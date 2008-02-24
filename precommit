@@ -1,0 +1,5 @@
+#! /bin/sh
+
+PYTHONPATH=`pwd`:$PYTHONPATH
+export PYTHONPATH
+python bin/doit

@@ -1,0 +1,37 @@
+0.1
+---
+
+- bzr pre-commit hook
+- basic tasks (string, list of strings, callable)
+- self hosting (pychecker, nosetests)
+
+- loader
+
+- capture output.
+     i am displaying the output only when not successful but nose and pychecker use stderror in a bad way...
+
+- option show output (all/error)
+- display running status
+
+- named tasks
+- option parser
+- task selection (just 1)
+- listing tasks
+
+- manage dependencies
+  - save 
+  - check
+
+- re-do only what is necessary
+
+. test main
+. create new Tasks
+. dry-run
+
+. task dependency 
+. default task
+. task tags (grouping but not necessarily in a hierarchy..)
+. release 
+. helper python packages...
+
+. run all regardless of failures
