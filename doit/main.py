@@ -1,6 +1,7 @@
 """the doit command line program"""
 
 import sys
+import traceback
 
 from doit.core import Loader,Runner
 
@@ -62,5 +63,9 @@ class Main(object):
         return runner.run()
         
 def main(fileName, **kargs):
-    m = Main(fileName, **kargs)
-    return m.process()
+    try:
+        m = Main(fileName, **kargs)
+        return m.process()
+    # make sure exception is printed out. we migth have redirected stderr
+    except Exception:
+        sys.__stderr__.write(traceback.format_exc())
