@@ -43,6 +43,7 @@ class Main(object):
         # list
         if self.list:
             self._list_generators()
+            return Runner.SUCCESS
 
         # if no filter is defined execute all tasks 
         # in the order they were defined.
