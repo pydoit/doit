@@ -19,6 +19,10 @@ class BaseTask(object):
         @param name string 
         @param dependencies list of absolute file paths.
         """
+        # check parameters make sense.
+        if not(isinstance(dependencies,list) or isinstance(dependencies,tuple)):
+            raise InvalidTask("'dependencies' paramater must be a list or tuple got:'%s' => %s"%(str(dependencies),dependencies.__class__))
+
         self.task = task
         self.name = name
         self.dependencies = dependencies
@@ -131,7 +135,7 @@ class Runner(object):
             self.oldErr = sys.stderr
             sys.stderr = StringIO.StringIO()
 
-    def addTask(self, task, name="", dependencies=[]):
+    def addTask(self, task, name=""):
         """append task to list of tasks"""
         # a proper Task instance
         if isinstance(task,BaseTask):
@@ -149,7 +153,7 @@ class Runner(object):
         # a generator
         elif isgenerator(task):
             for t in task:
-                self.addTask(t,name,dependencies)
+                self.addTask(t,name)
         # not valid
         else:
             raise InvalidTask()

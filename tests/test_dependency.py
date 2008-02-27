@@ -1,6 +1,8 @@
 import os 
 
-from doit.core import BaseTask
+from nose.tools import assert_raises
+
+from doit.core import BaseTask, InvalidTask
 from doit.dependency import Dependency
 
 ####
@@ -9,29 +11,6 @@ from doit.dependency import Dependency
 # whenever a task has a dependency the runner checks if this dependency
 # was modified since last successful run. if not the task is skipped.
 
-# if the task is executed and successful the dependency timestamp is updated.
-
-
-# Python callable
-#  
-#           md5(PythonTask.task.__module__ + ..__class__ + ..__name__ +
-#                 ..__hash__)
-
-# att\callable     func           class    method
-# __module__       ok             ok       ok
-# __name__         ok             ok       ok
-# __class__        function       no       instancemethod
-# __hash__         runtime        no       runtime
-# type
-# runtime parameters ...
-
-# use shelve
-
-#3 retrieve from DB
-#4 compare 1
-#5 compare all
-
-# 
 def get_abspath(relativePath):
     """ return abs file path relative to this file"""
     return os.path.abspath(__file__+"/../"+relativePath)
@@ -175,4 +154,13 @@ class TestTaskExecution(object):
         
         # execute again
         assert t1.check_execute()        
+
+class TestDependencyErrorMessages():
+
+    def test_dependency_not_sequence(self):
+        filePath = get_abspath("data/dependency1")
+        ff = open(filePath,"w")
+        ff.write("part1")
+        ff.close()
+        assert_raises(InvalidTask,BaseTask,"task A",dependencies=filePath)
 
