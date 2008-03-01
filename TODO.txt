@@ -24,15 +24,15 @@
 
 - re-do only what is necessary
 
-. remove task signature. use id
+-  remove task signature. use id
+. test main
 . show if a test was executed or up-to-date
-. task_ taskgen_
+. task decorator
 . do not buffer output when verbose
 
 . force run
 . 
 
-. test main
 . create new Tasks
 . dry-run
 

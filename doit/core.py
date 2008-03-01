@@ -2,7 +2,6 @@ import subprocess, sys, StringIO, traceback
 
 from odict import OrderedDict
 
-from doit.util import isgenerator
 from doit.dependency import Dependency
 
 class InvalidTask(Exception):pass
@@ -126,29 +125,16 @@ class Runner(object):
             self.oldErr = sys.stderr
             sys.stderr = StringIO.StringIO()
 
-    def _addTaskInstance(self,task):
+    def _addTask(self,task):
+        # task must be a BaseTask
+        if not isinstance(task,BaseTask):
+            raise InvalidTask("Task must an instance of BaseTask class. %s"% 
+                              (task.__class__))
+
+        #task name must be unique
         if task.name in self._tasks:
             raise InvalidTask("Task names must be unique. %s"%task.name)
         self._tasks[task.name] = task
-
-    def addTask(self, task, name, dependencies=[]):
-        """append task to list of tasks"""
-        # a list. execute as a cmd    
-        if isinstance(task,list) or isinstance(task,tuple):
-            self._addTaskInstance(CmdTask(task,name))
-        # a string. split and execute as a cmd
-        elif isinstance(task,str):
-            self._addTaskInstance(CmdTask(task.split(),name))
-        # a callable.
-        elif callable(task):
-            self._addTaskInstance(PythonTask(task,name))
-        # a generator
-#         elif isgenerator(task):
-#             for subname,t in task:
-#                 self.addTask(t,"%s.%s"%(name,subname))
-        # not valid
-        else:
-            raise InvalidTask("Invalid task type. %s:%s"%(name,task.__class__))
 
     def run(self, printTitle=True):
         """@param print_title bool print task title """

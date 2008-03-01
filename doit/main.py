@@ -3,7 +3,8 @@
 import sys
 import traceback
 
-from doit.core import Runner
+from doit.util import isgenerator
+from doit.core import Runner, InvalidTask, CmdTask, PythonTask
 from doit.loader import Loader
 
 class Main(object):
@@ -40,6 +41,25 @@ class Main(object):
                 raise Exception('"%s" is not a task'%f)
         return selectedTasks
 
+    def _createTask(self, task, name, dependencies=[]):
+        """append task to list of tasks"""
+        # a list. execute as a cmd    
+        if isinstance(task,list) or isinstance(task,tuple):
+            return CmdTask(task,name)
+        # a string. split and execute as a cmd
+        elif isinstance(task,str):
+            return CmdTask(task.split(),name)
+        # a callable.
+        elif callable(task):
+            return PythonTask(task,name)
+        # a generator
+        elif isgenerator(task):
+            for d in task:
+                self._createTask(d['action'],d['name'])
+        # not valid
+        else:
+            raise InvalidTask("Invalid task type. %s:%s"%(name,task.__class__))
+
     def process(self):
         """ process it according to given parameters"""
         # list
@@ -60,7 +80,7 @@ class Main(object):
         runner = Runner(self.verbosity)
         # tasks from every task generator.
         for f in selectedTasks:
-            runner.addTask(f.ref(),f.name)
+            runner._addTaskInstance(self._createTask(f.ref(),f.name))
         return runner.run()
         
 def main(fileName, **kargs):
@@ -70,3 +90,5 @@ def main(fileName, **kargs):
     # make sure exception is printed out. we migth have redirected stderr
     except Exception:
         sys.__stderr__.write(traceback.format_exc())
+        return -1
+    
