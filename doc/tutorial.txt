@@ -12,19 +12,19 @@ All 'doit' does is to execute an external process as a shell script and report a
 
 2) now you need to add new tasks. each task takes a sequence of string as a parameter (as the first argument of subprocess.Popen from std lib). 
 
->>> runner.addTask(['ls'])
+>>> runner.addTask(['ls'],'task0')
 
 3) you can add as many tasks as you want...
 
->>> runner.addTask(['ls','-1'])
->>> runner.addTask(['ls','-1','-a'])
+>>> runner.addTask(['ls','-1'],'task1')
+>>> runner.addTask(['ls','-1','-a'],'task2')
 
 4) when you finish adding tasks you just run it.
 
 >>> runner.run()
- => Cmd: ls
- => Cmd: ls -1
- => Cmd: ls -1 -a
+task0 => Cmd: ls
+task1 => Cmd: ls -1
+task2 => Cmd: ls -1 -a
 0
 
 5) check the result
@@ -37,9 +37,9 @@ True
 Of course a process can also fail...
 
 >>> runner = Runner()
->>> runner.addTask('ls i dont exist')
+>>> runner.addTask('ls i dont exist','taskX')
 >>> runner.run()
- => Cmd: ls i dont exist
+taskX => Cmd: ls i dont exist
 Task failed
 1
 >>> runner.success

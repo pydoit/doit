@@ -16,23 +16,6 @@ def get_abspath(relativePath):
     return os.path.abspath(__file__+"/../"+relativePath)
 
 
-class TestTaskSignature(object):
-
-    # if the task is different the signature must be different. (
-    def testSinatureDiffers(self):
-        t1 = BaseTask(['ls','-1'])
-        t2 = BaseTask(['ls','-2'])
-        assert t1.signature() != t2.signature()
-
-    # 2 different instances with the same content has the same signature
-    def testSinatureEqual(self):
-        t1 = BaseTask(['ls','-1'])
-        t2 = BaseTask(['ls','-1'])
-        assert t1.signature() == t2.signature()
-
-
-#TODO task signature for PythonTask(s)
-
 
 
 # since more than one task might have the same dependency, and the tasks
@@ -126,7 +109,7 @@ class TestTaskExecution(object):
 
     # if there is no dependency the task is always executed
     def test_no_dependency(self):
-        t1 = BaseTask("task A")
+        t1 = BaseTask("taskcmd","task A")
         # first time execute
         assert t1.check_execute()        
         # second too
@@ -141,7 +124,7 @@ class TestTaskExecution(object):
         ff.write("part1")
         ff.close()
 
-        t1 = BaseTask("task A",dependencies=[filePath])
+        t1 = BaseTask("taskcmd","task X",dependencies=[filePath])
         # first time execute
         assert t1.check_execute()        
         # second time no
@@ -162,5 +145,5 @@ class TestDependencyErrorMessages():
         ff = open(filePath,"w")
         ff.write("part1")
         ff.close()
-        assert_raises(InvalidTask,BaseTask,"task A",dependencies=filePath)
+        assert_raises(InvalidTask,BaseTask,"taskcmd","Task X",dependencies=filePath)
 

@@ -24,13 +24,20 @@
 
 - re-do only what is necessary
 
+. remove task signature. use id
+. show if a test was executed or up-to-date
+. task_ taskgen_
+. do not buffer output when verbose
+
+. force run
+. 
+
 . test main
 . create new Tasks
 . dry-run
 
 . task dependency 
 . default task
-. task tags (grouping but not necessarily in a hierarchy..)
 . release 
 . helper python packages...
 

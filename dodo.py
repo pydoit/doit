@@ -9,7 +9,7 @@ pyFiles = ["doit/__init__.py","doit/core.py","doit/main.py","doit/util.py",
 
 def task_checker():
     for file in pyFiles:
-        yield CmdTask(["pychecker", file], dependencies=(file,))
+        yield CmdTask(["pychecker", file], name=file, dependencies=(file,))
 
 def bad_seed():
     xiiiiii = 5

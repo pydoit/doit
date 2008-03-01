@@ -2,6 +2,8 @@
 import subprocess, sys, StringIO, traceback
 import os, inspect
 
+from odict import OrderedDict
+
 from doit.util import isgenerator
 from doit.dependency import Dependency
 
@@ -13,7 +15,7 @@ class TaskError(Exception):pass
 class BaseTask(object):
     _dependencyManager = None 
 
-    def __init__(self,task,name="",dependencies=[]):
+    def __init__(self,task,name,dependencies=[]):
         """
         @param task see derived classes
         @param name string 
@@ -26,7 +28,6 @@ class BaseTask(object):
         self.task = task
         self.name = name
         self.dependencies = dependencies
-        self._signature = self.signature()
 
         if not BaseTask._dependencyManager:
             BaseTask._dependencyManager = Dependency(".doit.dbm")
@@ -40,7 +41,7 @@ class BaseTask(object):
             return True
         # check for dependencies before executing
         for d in self.dependencies:
-            if self._dependencyManager.modified(self._signature,d):
+            if self._dependencyManager.modified(self.name,d):
                 self.execute()
                 self.save_dependencies()
                 return True
@@ -49,7 +50,7 @@ class BaseTask(object):
     def save_dependencies(self):
         """save dependencies value."""
         for d in self.dependencies:
-            self._dependencyManager.save(self._signature,d)
+            self._dependencyManager.save(self.name,d)
 
 
     def execute(self):
@@ -60,14 +61,6 @@ class BaseTask(object):
         """return a string representing the task title"""
         return "%s => %s"%(self.name,str(self))
 
-    def signature(self):
-        """@return string object signature.
-
-        This is supossed to uniquely identify the task object.
-        One object with the same attributes must always return the
-        same signature independent of the runtime.
-        """
-        return str(self.task)
 
 class CmdTask(BaseTask):
 
@@ -120,7 +113,7 @@ class Runner(object):
         """
         self.verbosity = verbosity
         self.success = None
-        self._tasks = []
+        self._tasks = OrderedDict()
 
         # set stdout
         self.oldOut = None
@@ -135,32 +128,33 @@ class Runner(object):
             self.oldErr = sys.stderr
             sys.stderr = StringIO.StringIO()
 
-    def addTask(self, task, name=""):
+    def _addTaskInstance(self,task):
+        if task.name in self._tasks:
+            raise InvalidTask("Task names must be unique. %s"%task.name)
+        self._tasks[task.name] = task
+
+    def addTask(self, task, name, dependencies=[]):
         """append task to list of tasks"""
-        # a proper Task instance
-        if isinstance(task,BaseTask):
-            task.name = task.name or name
-            self._tasks.append(task)    
         # a list. execute as a cmd    
-        elif isinstance(task,list) or isinstance(task,tuple):
-            self._tasks.append(CmdTask(task,name))
+        if isinstance(task,list) or isinstance(task,tuple):
+            self._addTaskInstance(CmdTask(task,name))
         # a string. split and execute as a cmd
         elif isinstance(task,str):
-            self._tasks.append(CmdTask(task.split(),name))
+            self._addTaskInstance(CmdTask(task.split(),name))
         # a callable.
         elif callable(task):
-            self._tasks.append(PythonTask(task,name))
+            self._addTaskInstance(PythonTask(task,name))
         # a generator
-        elif isgenerator(task):
-            for t in task:
-                self.addTask(t,name)
+#         elif isgenerator(task):
+#             for subname,t in task:
+#                 self.addTask(t,"%s.%s"%(name,subname))
         # not valid
         else:
-            raise InvalidTask()
+            raise InvalidTask("Invalid task type. %s:%s"%(name,task.__class__))
 
     def run(self, printTitle=True):
         """@param print_title bool print task title """
-        for task in self._tasks:
+        for task in self._tasks.itervalues():
             # clear previous output
             if self.oldOut:
                 sys.stdout = StringIO.StringIO()
