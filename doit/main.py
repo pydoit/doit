@@ -3,7 +3,8 @@
 import sys
 import traceback
 
-from doit.core import Loader,Runner
+from doit.core import Runner
+from doit.loader import Loader
 
 class Main(object):
     
