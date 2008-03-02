@@ -90,16 +90,17 @@ class Main(object):
             print g
         print "="*25,"\n"
 
-#     def _filter_generators(self):
-#         """select tasks specified by filter"""
-#         selectedTasks = OrderedDict()
-#         for f in self.filter:
-#             if g in self.taskgen.iterkeys():
-#                 selectedTasks[g] = self.tasks[g]
-#             else:
-#                 #TODO document this
-#                 raise Exception('"%s" is not a task'%g)
-#         return selectedTasks
+
+    def _filter_taskgen(self):
+        """select tasks specified by filter"""
+        selectedTaskgen = OrderedDict()
+        for f in self.filter:
+            if f in self.taskgen.iterkeys():
+                selectedTaskgen[f] = self.taskgen[f]
+            else:
+                #TODO document this
+                raise Exception('"%s" is not a task'%f)
+        return selectedTaskgen
 
         
     
@@ -111,19 +112,19 @@ class Main(object):
             self._list_generators()
             return Runner.SUCCESS
 
-#         # if no filter is defined execute all tasks 
-#         # in the order they were defined.
-#         selectedTasks = None
-#         if not self.filter:
-#             selectedTasks = self.tasks
-#         # execute only tasks in the filter in the order specified by filter
-#         else:
-#             selectedTasks = self._filter_tasks()
+        # if no filter is defined execute all tasks 
+        # in the order they were defined.
+        selectedTaskgen = None
+        if not self.filter:
+            selectedTaskgen = self.taskgen
+        # execute only tasks in the filter in the order specified by filter
+        else:
+            selectedTaskgen = self._filter_taskgen()
 
         # create a Runner instance and ...
         runner = Runner(self.verbosity)
         # tasks from every task generator.
-        for g in self.taskgen.itervalues():#selectedTasks:
+        for g in selectedTaskgen.itervalues():
             for subtask in _get_tasks(g.name,g.ref()):
                 runner._addTask(subtask)
 

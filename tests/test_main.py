@@ -138,3 +138,21 @@ class TestMain(object):
         sys.stdout.close()
         sys.stdout = self.oldOut
         
+
+
+    def testFilter(self):
+        #setup stdout
+        self.oldOut = sys.stdout
+        sys.stdout = StringIO.StringIO()
+
+        m = Main(self.fileName,filter=["dictionary","string"])
+        m.process()
+
+        assert ["dictionary => Cmd: ls -1",
+                "string => Cmd: ls -a",] == \
+                sys.stdout.getvalue().split("\n")[:-1]
+
+        #teardown stdout
+        sys.stdout.close()
+        sys.stdout = self.oldOut
+        
