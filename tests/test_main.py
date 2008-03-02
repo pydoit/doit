@@ -79,7 +79,7 @@ class TestGetTasks(object):
 
 ###################
 
-TASKS = ['string','python','dictionary','dependency','generator']
+TASKS = ['string','python','dictionary','dependency','generator','func_args']
 
 class TestMain(object):
     def setUp(self):
@@ -129,8 +129,10 @@ class TestMain(object):
                 "dictionary => Cmd: ls -1",
                 "dependency => Python: function do_nothing ",
                 "generator.test_core.py => Cmd: ls -l test_core.py",
-                "generator.test_util.py => Cmd: ls -l test_util.py",] == \
+                "generator.test_util.py => Cmd: ls -l test_util.py",
+                "func_args => Python: function funcX "] == \
                 sys.stdout.getvalue().split("\n")[:-1]
+
 
         #teardown stdout
         sys.stdout.close()

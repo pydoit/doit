@@ -9,7 +9,7 @@ from doit.core import Runner, InvalidTask, CmdTask, PythonTask
 from doit.loader import Loader
 
 
-def _create_task(name,action,dependencies=[]):
+def _create_task(name,action,dependencies=[],**kwargs):
     """ create a TaskInstance acording to action type"""
     
     # a list. execute as a cmd    
@@ -20,12 +20,13 @@ def _create_task(name,action,dependencies=[]):
         return CmdTask(name,action.split(),dependencies)
     # a callable.
     elif callable(action):
-        return PythonTask(name,action,dependencies)
+        return PythonTask(name,action,dependencies,**kwargs)
     else:
         raise InvalidTask("Invalid task type. %s:%s"%(name,action.__class__))
 
 def _get_tasks(name,task):
     """@return list tasks instances """
+
     # task described as a dictionary
     if isinstance(task,dict):
         # check valid input
@@ -34,7 +35,9 @@ def _get_tasks(name,task):
                               (name,task))
 
         return [_create_task(name,task.get('action'),
-                             task.get('dependencies',[]))]
+                             task.get('dependencies',[]),
+                             args=task.get('args',[]),
+                             kwargs=task.get('kwargs',{}))]
 
     # a generator
     if isgenerator(task):

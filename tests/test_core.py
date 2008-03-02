@@ -54,6 +54,14 @@ class TestExecuteTask(ExecuteRunner):
         assert self.runner.SUCCESS == self.runner.run()
         assert self.runner.success
 
+#####################################
+
+def func_par(par1,par2,par3=5):
+    if par1 == par2 and par3 > 10:
+        return True
+    else:
+        return False
+
 
 # it is also possible to pass any python callable
 class TestPythonTask(ExecuteRunner):
@@ -82,7 +90,17 @@ class TestPythonTask(ExecuteRunner):
         assert self.runner.FAILURE == self.runner.run()
         assert not self.runner.success
 
+    def testFunctionParameters(self):
+        self.runner._addTask(PythonTask("taskX",func_par,
+                                        args=(2,),kwargs={'par2':2,'par3':25}))
+        assert self.runner.SUCCESS == self.runner.run()
+        assert self.runner.success
 
+    def testFunctionParametersFail(self):
+        self.runner._addTask(PythonTask("taskX",func_par,
+                                        args=(2,3),kwargs={'par3':25}))
+        assert self.runner.FAILURE == self.runner.run()
+        
 ####################
 
 class DumbTask(BaseTask):

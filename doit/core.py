@@ -14,9 +14,9 @@ class BaseTask(object):
 
     def __init__(self,name,action,dependencies=[]):
         """
-        @param action see derived classes
         @param name string 
-        @param dependencies list of absolute file paths.
+        @param action see derived classes
+        @param dependencies list of absolute? file paths.
         """
         # check parameters make sense.
         if not(isinstance(dependencies,list) or isinstance(dependencies,tuple)):
@@ -83,11 +83,16 @@ class CmdTask(BaseTask):
 
 class PythonTask(BaseTask):
 
+    def __init__(self,name,action,dependencies=[],args=[],kwargs={}):
+        BaseTask.__init__(self,name,action,dependencies)
+        self.args = args
+        self.kwargs = kwargs
+
     def execute(self):
         # TODO i guess a common mistake will be to pass a function
         # that returns a generator instead of passing the generator
         # itself. i could have a special test for this case.
-        if not self.action():
+        if not self.action(*self.args,**self.kwargs):
             raise TaskFailed("Task failed")
         
     def __str__(self):

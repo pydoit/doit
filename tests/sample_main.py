@@ -21,4 +21,12 @@ def task_generator():
     for f in files:
         yield {'action': "ls -l %s"%f,
                'name': f}
-               
+    
+
+def funcX(par1,par2,par3):
+    if par1 == par2 and par3 > 10:
+        return True
+           
+def task_func_args():
+    return {'action':funcX, 
+            'kwargs':{'par1':3,'par2':3,'par3':20}}
