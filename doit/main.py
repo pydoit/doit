@@ -1,64 +1,105 @@
 """the doit command line program"""
 
-import sys
-import traceback
+import os
+
+from odict import OrderedDict
 
 from doit.util import isgenerator
 from doit.core import Runner, InvalidTask, CmdTask, PythonTask
 from doit.loader import Loader
 
+
+def _create_task(name,action,dependencies=[]):
+    """ create a TaskInstance acording to action type"""
+    
+    # a list. execute as a cmd    
+    if isinstance(action,list) or isinstance(action,tuple):
+        return CmdTask(action,name,dependencies)
+    # a string. split and execute as a cmd
+    elif isinstance(action,str):
+        return CmdTask(action.split(),name,dependencies)
+    # a callable.
+    elif callable(action):
+        return PythonTask(action,name,dependencies)
+    else:
+        raise InvalidTask("Invalid task type. %s:%s"%(name,action.__class__))
+
+def _get_tasks(name,task):
+    """@return list tasks instances """
+    # task described as a dictionary
+    if isinstance(task,dict):
+        # check valid input
+        if 'action' not in task:
+            raise InvalidTask("Task %s must contain field action. %s"%
+                              (name,task))
+
+        return [_create_task(name,task.get('action'),
+                             task.get('dependencies',[]))]
+
+    # a generator
+    if isgenerator(task):
+        tasks = []
+        for t in task:
+            # check valid input
+            if not isinstance(t,dict):
+                raise InvalidTask("Task %s must yield dictionaries"%name)
+
+            if 'name' not in t:
+                raise InvalidTask("Task %s must contain field name. %s"%
+                                  (name,t))
+            if 'action' not in t:
+                raise InvalidTask("Task %s must contain field action. %s"%
+                                  (name,t))
+
+            tasks.append(_create_task("%s.%s"%(name,t.get('name')), 
+                                      t.get('action'),
+                                      t.get('dependencies',[])))
+        return tasks
+
+    # if not a dictionary nor a generator. "task" is the action itself.
+    return [_create_task(name, task)]
+
+
+
+
 class Main(object):
     
-    def __init__(self,fileName,verbosity=0,list=False,filter=None):
-        loaded = Loader(fileName)
-        # list of functions that generate tasks
-        self.generator = loaded.getTaskGenerators()
-
-        # also put them in a dictionary with name as key
-        self.tasks = {}
-        for f in self.generator:
-            self.tasks[f.name] = f
-
+    def __init__(self, fileName, list=False, verbosity=0,filter=None):
         self.list = list
-        self.filter = filter
         self.verbosity = verbosity
+        self.filter = filter
+
+        # dictionary of functions that generate tasks with name as key
+        self.taskgen = OrderedDict()
+
+        loaded = Loader(fileName)
+        # file specified on dodo file are relative to itself.
+        os.chdir(loaded.dir_)
+
+        for g in loaded.getTaskGenerators():
+            self.taskgen[g.name] = g
+
 
     def _list_generators(self):
         """list task generators, in the order they were defined"""
         print "==== Task Generators ===="
-        for f in self.generator:
-            print f.name
+        for g in self.taskgen.iterkeys():
+            print g
         print "="*25,"\n"
 
-    def _filter_tasks(self):
-        """select tasks specified by filter"""
-        selectedTasks = []
-        for f in self.filter:
-            if f in self.tasks:
-                selectedTasks.append(self.tasks[f])
-            else:
-                #TODO document this
-                raise Exception('"%s" is not a task'%f)
-        return selectedTasks
+#     def _filter_generators(self):
+#         """select tasks specified by filter"""
+#         selectedTasks = OrderedDict()
+#         for f in self.filter:
+#             if g in self.taskgen.iterkeys():
+#                 selectedTasks[g] = self.tasks[g]
+#             else:
+#                 #TODO document this
+#                 raise Exception('"%s" is not a task'%g)
+#         return selectedTasks
 
-    def _createTask(self, task, name, dependencies=[]):
-        """append task to list of tasks"""
-        # a list. execute as a cmd    
-        if isinstance(task,list) or isinstance(task,tuple):
-            return CmdTask(task,name)
-        # a string. split and execute as a cmd
-        elif isinstance(task,str):
-            return CmdTask(task.split(),name)
-        # a callable.
-        elif callable(task):
-            return PythonTask(task,name)
-        # a generator
-        elif isgenerator(task):
-            for d in task:
-                self._createTask(d['action'],d['name'])
-        # not valid
-        else:
-            raise InvalidTask("Invalid task type. %s:%s"%(name,task.__class__))
+        
+    
 
     def process(self):
         """ process it according to given parameters"""
@@ -67,28 +108,21 @@ class Main(object):
             self._list_generators()
             return Runner.SUCCESS
 
-        # if no filter is defined execute all tasks 
-        # in the order they were defined.
-        selectedTasks = None
-        if not self.filter:
-            selectedTasks = self.generator
-        # execute only tasks in the filter in the order specified by filter
-        else:
-            selectedTasks = self._filter_tasks()
+#         # if no filter is defined execute all tasks 
+#         # in the order they were defined.
+#         selectedTasks = None
+#         if not self.filter:
+#             selectedTasks = self.tasks
+#         # execute only tasks in the filter in the order specified by filter
+#         else:
+#             selectedTasks = self._filter_tasks()
 
         # create a Runner instance and ...
         runner = Runner(self.verbosity)
         # tasks from every task generator.
-        for f in selectedTasks:
-            runner._addTaskInstance(self._createTask(f.ref(),f.name))
+        for g in self.taskgen.itervalues():#selectedTasks:
+            for subtask in _get_tasks(g.name,g.ref()):
+                runner._addTask(subtask)
+
         return runner.run()
-        
-def main(fileName, **kargs):
-    try:
-        m = Main(fileName, **kargs)
-        return m.process()
-    # make sure exception is printed out. we migth have redirected stderr
-    except Exception:
-        sys.__stderr__.write(traceback.format_exc())
-        return -1
-    
+

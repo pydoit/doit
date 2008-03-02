@@ -1,6 +1,6 @@
 import nose.tools
 
-from doit import Runner
+from doit.core import Runner
 from doit.core import InvalidTask, BaseTask, CmdTask, PythonTask
 
 class ExecuteRunner(object):

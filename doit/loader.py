@@ -10,6 +10,7 @@ class _TaskGenerator(object):
         self.ref = ref
         self.line = line
 
+
 class Loader(object):
     """load tasks from a python module"""
     taskString = "task_"
@@ -17,9 +18,9 @@ class Loader(object):
     def __init__(self,fileName):
         """@param fileName string path from cwd to module"""
 
-        dir_,file_ = os.path.split(os.path.abspath(fileName))
+        self.dir_,file_ = os.path.split(os.path.abspath(fileName))
         # make sure dir is on sys.path so we can import it
-        sys.path.insert(0,dir_)
+        sys.path.insert(0,self.dir_)
         # get module containing the tasks
         self.module = __import__(os.path.splitext(file_)[0])
 
@@ -42,3 +43,5 @@ class Loader(object):
         return funcs
 
 
+
+    

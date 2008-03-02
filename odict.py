@@ -511,7 +511,7 @@ class OrderedDict(dict):
         """
         return self._sequence[:]
 
-    def values(self, values=None):
+    def values(self):
         """
         Return a list of all the values in the OrderedDict.
         

@@ -79,7 +79,7 @@ class CmdTask(BaseTask):
         return "Cmd: %s"%" ".join(self.task)
 
     def __repr__(self):
-        return "<%s cmd:'%s'>"%(str(self.__class__)[8:-2]," ".join(self.task))
+        return "<%s cmd:'%s'>"%(self.name," ".join(self.task))
 
 class PythonTask(BaseTask):
 
@@ -91,10 +91,11 @@ class PythonTask(BaseTask):
             raise TaskFailed("Task failed")
         
     def __str__(self):
-        return "Python: %s"%str(self.task)
+        # get object description excluding runtime memory address
+        return "Python: %s"%str(self.task).split('at')[0][1:]
 
     def __repr__(self):
-        return "<%s Python:'%s'>"%(str(self.__class__)[8:-2],repr(self.task))
+        return "<%s Python:'%s'>"%(self.name,repr(self.task))
 
 class Runner(object):
     SUCCESS = 0

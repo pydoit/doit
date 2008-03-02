@@ -26,16 +26,15 @@
 
 -  remove task signature. use id
 . test main
-. show if a test was executed or up-to-date
 . task decorator
+
+. verbosity out of the core
+. show if a test was executed or up-to-date
 . do not buffer output when verbose
 
 . force run
-. 
 
-. create new Tasks
-. dry-run
-
+. target parameter
 . task dependency 
 . default task
 . release 

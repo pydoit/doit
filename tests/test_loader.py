@@ -5,7 +5,7 @@ from doit.loader import Loader
 class TestLoader():
     def setUp(self):
         # this test can be executed from any path
-        self.fileName = os.path.abspath(__file__+"/../sample.py")
+        self.fileName = os.path.abspath(__file__+"/../loader_sample.py")
 
     def testImport(self):
         loaded = Loader(self.fileName)
@@ -21,7 +21,7 @@ class TestLoader():
         # test relative import but test should still work from any path
         # so change cwd.
         os.chdir(os.path.abspath(__file__+"/../.."))
-        self.fileName = "tests/sample.py"
+        self.fileName = "tests/loader_sample.py"
         self.testImport()
 
 
