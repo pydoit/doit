@@ -109,7 +109,7 @@ class TestTaskExecution(object):
 
     # if there is no dependency the task is always executed
     def test_no_dependency(self):
-        t1 = BaseTask("taskcmd","task A")
+        t1 = BaseTask("task A","taskcmd")
         # first time execute
         assert t1.check_execute()        
         # second too
@@ -124,7 +124,7 @@ class TestTaskExecution(object):
         ff.write("part1")
         ff.close()
 
-        t1 = BaseTask("taskcmd","task X",dependencies=[filePath])
+        t1 = BaseTask("task X","taskcmd",dependencies=[filePath])
         # first time execute
         assert t1.check_execute()        
         # second time no
@@ -145,5 +145,5 @@ class TestDependencyErrorMessages():
         ff = open(filePath,"w")
         ff.write("part1")
         ff.close()
-        assert_raises(InvalidTask,BaseTask,"taskcmd","Task X",dependencies=filePath)
+        assert_raises(InvalidTask,BaseTask,"Task X","taskcmd",dependencies=filePath)
 

@@ -11,46 +11,46 @@ class ExecuteRunner(object):
 class TestExecuteTask(ExecuteRunner):
     
     def testAddTask(self):
-        self.runner._addTask(CmdTask(["ls","bla bla"],"taskX"))
-        self.runner._addTask(CmdTask(["ls","-1"],"taskY"))
+        self.runner._addTask(CmdTask("taskX",["ls","bla bla"]))
+        self.runner._addTask(CmdTask("taskY",["ls","-1"]))
         assert 2 == len(self.runner._tasks)
 
     # 2 tasks can not have the same name
     def testAddTaskSameName(self):
-        self.runner._addTask(CmdTask(["ls","bla bla"],"taskX"))
-        t = CmdTask(["ls","-1"],"taskX")
+        self.runner._addTask(CmdTask("taskX",["ls","bla bla"]))
+        t = CmdTask("taskX",["ls","-1"])
         nose.tools.assert_raises(InvalidTask,self.runner._addTask,t)
 
     def testInvalidTask(self):
         nose.tools.assert_raises(InvalidTask,self.runner._addTask,666)
 
     def testTaskError(self):
-        self.runner._addTask(CmdTask("invalid_command asdf","taskX"))
+        self.runner._addTask(CmdTask("taskX","invalid_command asdf"))
         assert self.runner.ERROR == self.runner.run()
         assert not self.runner.success
 
     def testSuccess(self):
-        self.runner._addTask(CmdTask(["ls","-1"],"taskX"))
-        self.runner._addTask(CmdTask(["ls","-1","-a"],"taskY"))
+        self.runner._addTask(CmdTask("taskX",["ls","-1"]))
+        self.runner._addTask(CmdTask("taskY",["ls","-1","-a"]))
         assert self.runner.SUCCESS == self.runner.run()
         assert self.runner.success
 
     def testFailure(self):
-        self.runner._addTask(CmdTask(["ls","I dont exist"],"taskX"))
+        self.runner._addTask(CmdTask("taskX",["ls","I dont exist"]))
         assert self.runner.FAILURE == self.runner.run()
         assert not self.runner.success
 
     def testAnyFailure(self):
         #ok
-        self.runner._addTask(CmdTask(["ls"],"taskX"))
+        self.runner._addTask(CmdTask("taskX",["ls"]))
         #fail
-        self.runner._addTask(CmdTask(["ls","I dont exist"],"taskY"))
+        self.runner._addTask(CmdTask("taskY",["ls","I dont exist"]))
         assert self.runner.FAILURE == self.runner.run()
         assert not self.runner.success
 
     def testTuple(self):
-        self.runner._addTask(CmdTask(("ls","-1"),"taskX"))
-        self.runner._addTask(CmdTask(("ls","-1","-a"),"taskY"))
+        self.runner._addTask(CmdTask("taskX",("ls","-1")))
+        self.runner._addTask(CmdTask("taskY",("ls","-1","-a")))
         assert self.runner.SUCCESS == self.runner.run()
         assert self.runner.success
 
@@ -61,14 +61,14 @@ class TestPythonTask(ExecuteRunner):
     def testPythonTaskSuccess(self):
         def success_sample():return True
 
-        self.runner._addTask(PythonTask(success_sample,"taskX"))
+        self.runner._addTask(PythonTask("taskX",success_sample))
         assert self.runner.SUCCESS == self.runner.run()
         assert self.runner.success
 
     def testPythonTaskFail(self):
         def fail_sample():return False
 
-        self.runner._addTask(PythonTask(fail_sample,"taskX"))
+        self.runner._addTask(PythonTask("taskX",fail_sample))
         assert self.runner.FAILURE == self.runner.run()
         assert not self.runner.success
 
@@ -78,7 +78,7 @@ class TestPythonTask(ExecuteRunner):
             def __call__(self):
                 return False
 
-        self.runner._addTask(PythonTask(CallMe(),"taskX"))
+        self.runner._addTask(PythonTask("taskX",CallMe()))
         assert self.runner.FAILURE == self.runner.run()
         assert not self.runner.success
 
@@ -92,7 +92,7 @@ class DumbTask(BaseTask):
 
 class TestCustomTask(ExecuteRunner):    
     def testCustomSuccess(self):
-        self.runner._addTask(DumbTask(None,"dumb"))
+        self.runner._addTask(DumbTask("dumb",None))
         assert 1 == len(self.runner._tasks)
         assert self.runner.SUCCESS == self.runner.run()
         assert self.runner.success
@@ -126,14 +126,14 @@ class TestRunnerVerbosityStderr(object):
     # success - i should not get anything
     def testVerbosity_0_stderr_success(self):
         runner = Runner(0)
-        runner._addTask(PythonTask(self.write_on_stderr_success,"taskX"))
+        runner._addTask(PythonTask("taskX",self.write_on_stderr_success))
         assert runner.SUCCESS == runner.run()
         assert "" == sys.stderr.getvalue()
 
     # failure - i should get the stderr
     def testVerbosity_0_stderr_fail(self):
         runner = Runner(0)
-        runner._addTask(PythonTask(self.write_on_stderr_fail,"taskX"))
+        runner._addTask(PythonTask("taskX",self.write_on_stderr_fail))
         assert runner.FAILURE == runner.run()
         assert "this is stderr F\n" == sys.stderr.getvalue()
 
@@ -141,7 +141,7 @@ class TestRunnerVerbosityStderr(object):
     # and the traceback of the error.
     def testVerbosity_0_stderr_error(self):
         runner = Runner(0)
-        runner._addTask(PythonTask(self.raise_something,"taskX"))
+        runner._addTask(PythonTask("taskX",self.raise_something))
         assert runner.ERROR == runner.run()
         # stderr by line
         err = sys.stderr.getvalue().split('\n')
@@ -154,14 +154,14 @@ class TestRunnerVerbosityStderr(object):
     # success - i should get the stderr
     def testVerbosity_1_stderr_success(self):
         runner = Runner(1)
-        runner._addTask(PythonTask(self.write_on_stderr_success,"taskX"))
+        runner._addTask(PythonTask("taskX",self.write_on_stderr_success))
         assert runner.SUCCESS == runner.run()
         assert "this is stderr S\n" == sys.stderr.getvalue()
 
     # failure - i should get the stderr
     def testVerbosity_1_stderr_fail(self):
         runner = Runner(1)
-        runner._addTask(PythonTask(self.write_on_stderr_fail,"taskX"))
+        runner._addTask(PythonTask("taskX",self.write_on_stderr_fail))
         assert runner.FAILURE == runner.run()
         assert "this is stderr F\n" == sys.stderr.getvalue()
 
@@ -169,7 +169,7 @@ class TestRunnerVerbosityStderr(object):
     # and the traceback of the error.
     def testVerbosity_1_stderr_error(self):
         runner = Runner(1)
-        runner._addTask(PythonTask(self.raise_something,"taskX"))
+        runner._addTask(PythonTask("taskX",self.raise_something))
         assert runner.ERROR == runner.run()
         # stderr by line
         err = sys.stderr.getvalue().split('\n')
@@ -183,14 +183,14 @@ class TestRunnerVerbosityStderr(object):
     # success - i should get the stderr
     def testVerbosity_2_stderr_success(self):
         runner = Runner(2)
-        runner._addTask(PythonTask(self.write_on_stderr_success,"taskX"))
+        runner._addTask(PythonTask("taskX",self.write_on_stderr_success))
         assert runner.SUCCESS == runner.run()
         assert "this is stderr S\n" == sys.stderr.getvalue()
 
     # failure - i should get the stderr
     def testVerbosity_2_stderr_fail(self):
         runner = Runner(2)
-        runner._addTask(PythonTask(self.write_on_stderr_fail,"taskX"))
+        runner._addTask(PythonTask("taskX",self.write_on_stderr_fail))
         assert runner.FAILURE == runner.run()
         assert "this is stderr F\n" == sys.stderr.getvalue()
 
@@ -198,7 +198,7 @@ class TestRunnerVerbosityStderr(object):
     # and the traceback of the error.
     def testVerbosity_2_stderr_error(self):
         runner = Runner(2)
-        runner._addTask(PythonTask(self.raise_something,"taskX"))
+        runner._addTask(PythonTask("taskX",self.raise_something))
         assert runner.ERROR == runner.run()
         # stderr by line
         err = sys.stderr.getvalue().split('\n')
@@ -209,8 +209,8 @@ class TestRunnerVerbosityStderr(object):
     # captured streams should be show only for the tasks that failed
     def testVerboseOnlyErrorTask(self):
         runner = Runner(0)
-        runner._addTask(PythonTask(self.write_on_stderr_success,"taskX"))
-        runner._addTask(PythonTask(self.raise_something,"taskY"))
+        runner._addTask(PythonTask("taskX",self.write_on_stderr_success))
+        runner._addTask(PythonTask("taskY",self.raise_something))
         assert runner.ERROR == runner.run()
         # stderr by line
         err = sys.stderr.getvalue().split('\n')
@@ -245,21 +245,21 @@ class TestRunnerVerbosityStdout(object):
     # success - i should not get anything
     def testVerbosity_0_stdout_success(self):
         runner = Runner(0)
-        runner._addTask(PythonTask(self.write_on_stdout_success,"taskX"))
+        runner._addTask(PythonTask("taskX",self.write_on_stdout_success))
         assert runner.SUCCESS == runner.run(False)
         assert "" == sys.stdout.getvalue()
 
     # failure - i should get the stdout
     def testVerbosity_0_stdout_fail(self):
         runner = Runner(0)
-        runner._addTask(PythonTask(self.write_on_stdout_fail,"taskX"))
+        runner._addTask(PythonTask("taskX",self.write_on_stdout_fail))
         assert runner.FAILURE == runner.run(False)
         assert "this is stdout F\nTask failed\n" == sys.stdout.getvalue()
 
     # error -  i should get the stdout
     def testVerbosity_0_stdout_error(self):
         runner = Runner(0)
-        runner._addTask(PythonTask(self.raise_something,"taskX"))
+        runner._addTask(PythonTask("taskX",self.raise_something))
         assert runner.ERROR == runner.run(False)
         assert "this is stdout E\n" == sys.stdout.getvalue()
 
@@ -268,21 +268,21 @@ class TestRunnerVerbosityStdout(object):
     # success - i should not get anything
     def testVerbosity_1_stdout_success(self):
         runner = Runner(1)
-        runner._addTask(PythonTask(self.write_on_stdout_success,"taskX"))
+        runner._addTask(PythonTask("taskX",self.write_on_stdout_success))
         assert runner.SUCCESS == runner.run(False)
         assert "" == sys.stdout.getvalue()
 
     # failure - i should get the stdout
     def testVerbosity_1_stdout_fail(self):
         runner = Runner(1)
-        runner._addTask(PythonTask(self.write_on_stdout_fail,"taskX"))
+        runner._addTask(PythonTask("taskX",self.write_on_stdout_fail))
         assert runner.FAILURE == runner.run(False)
         assert "this is stdout F\nTask failed\n" == sys.stdout.getvalue()
 
     # error -  i should get the stdout
     def testVerbosity_1_stdout_error(self):
         runner = Runner(1)
-        runner._addTask(PythonTask(self.raise_something,"taskX"))
+        runner._addTask(PythonTask("taskX",self.raise_something))
         assert runner.ERROR == runner.run(False)
         assert "this is stdout E\n" == sys.stdout.getvalue()
 
@@ -291,14 +291,14 @@ class TestRunnerVerbosityStdout(object):
     # success - i should not get anything
     def testVerbosity_2_stdout_success(self):
         runner = Runner(2)
-        runner._addTask(PythonTask(self.write_on_stdout_success,"taskX"))
+        runner._addTask(PythonTask("taskX",self.write_on_stdout_success))
         assert runner.SUCCESS == runner.run(False)
         assert "this is stdout S\n" == sys.stdout.getvalue()
 
     # failure - i should get the stdout
     def testVerbosity_2_stdout_fail(self):
         runner = Runner(2)
-        runner._addTask(PythonTask(self.write_on_stdout_fail,"taskX"))
+        runner._addTask(PythonTask("taskX",self.write_on_stdout_fail))
         assert runner.FAILURE == runner.run(False)
         assert "this is stdout F\nTask failed\n" == sys.stdout.getvalue()\
             , sys.stdout.getvalue()
@@ -306,15 +306,15 @@ class TestRunnerVerbosityStdout(object):
     # error -  i should get the stdout
     def testVerbosity_2_stdout_error(self):
         runner = Runner(2)
-        runner._addTask(PythonTask(self.raise_something,"taskX"))
+        runner._addTask(PythonTask("taskX",self.raise_something))
         assert runner.ERROR == runner.run(False)
         assert "this is stdout E\n" == sys.stdout.getvalue()
 
     # captured streams should be show only for the tasks that failed
     def testVerboseOnlyErrorTask(self):
         runner = Runner(0)
-        runner._addTask(PythonTask(self.write_on_stdout_success,"taskX"))
-        runner._addTask(PythonTask(self.raise_something,"taskY"))
+        runner._addTask(PythonTask("taskX",self.write_on_stdout_success))
+        runner._addTask(PythonTask("taskY",self.raise_something))
         assert runner.ERROR == runner.run(False)
         sys.__stderr__.write(sys.stdout.getvalue())
         assert "this is stdout E\n" == sys.stdout.getvalue()
@@ -334,8 +334,8 @@ class TestDisplayRunningStatus(object):
 
     def testDisplay(self):
         runner = Runner(1)
-        runner._addTask(CmdTask(["ls", "-1"],"taskX"))
-        runner._addTask(CmdTask(["ls","-a"],"taskY"))
+        runner._addTask(CmdTask("taskX",["ls", "-1"]))
+        runner._addTask(CmdTask("taskY",["ls","-a"]))
         runner.run()
         taskTitles = sys.stdout.getvalue().split('\n')
         assert runner._tasks['taskX'].title() == taskTitles[0]

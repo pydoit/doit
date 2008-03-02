@@ -24,8 +24,9 @@
 
 - re-do only what is necessary
 
--  remove task signature. use id
+- remove task signature. use id
 - test main
+. PythonTask arguments
 . task decorator
 
 . verbosity out of the core

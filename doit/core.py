@@ -12,9 +12,9 @@ class TaskError(Exception):pass
 class BaseTask(object):
     _dependencyManager = None 
 
-    def __init__(self,task,name,dependencies=[]):
+    def __init__(self,name,action,dependencies=[]):
         """
-        @param task see derived classes
+        @param action see derived classes
         @param name string 
         @param dependencies list of absolute file paths.
         """
@@ -22,8 +22,8 @@ class BaseTask(object):
         if not(isinstance(dependencies,list) or isinstance(dependencies,tuple)):
             raise InvalidTask("'dependencies' paramater must be a list or tuple got:'%s' => %s"%(str(dependencies),dependencies.__class__))
 
-        self.task = task
         self.name = name
+        self.action = action
         self.dependencies = dependencies
 
         if not BaseTask._dependencyManager:
@@ -63,11 +63,11 @@ class CmdTask(BaseTask):
 
     def execute(self):
         try:
-            p = subprocess.Popen(self.task,stdout=subprocess.PIPE,
+            p = subprocess.Popen(self.action,stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE)
         except OSError, e:
             raise TaskError("Error trying to execute the command: %s\n" % 
-                             " ".join(self.task) + "    error: %s" % e)
+                             " ".join(self.action) + "    error: %s" % e)
 
         out,err = p.communicate()
         sys.stdout.write(out)
@@ -76,10 +76,10 @@ class CmdTask(BaseTask):
             raise TaskFailed("Task failed")
             
     def __str__(self):
-        return "Cmd: %s"%" ".join(self.task)
+        return "Cmd: %s"%" ".join(self.action)
 
     def __repr__(self):
-        return "<%s cmd:'%s'>"%(self.name," ".join(self.task))
+        return "<%s cmd:'%s'>"%(self.name," ".join(self.action))
 
 class PythonTask(BaseTask):
 
@@ -87,15 +87,15 @@ class PythonTask(BaseTask):
         # TODO i guess a common mistake will be to pass a function
         # that returns a generator instead of passing the generator
         # itself. i could have a special test for this case.
-        if not self.task():
+        if not self.action():
             raise TaskFailed("Task failed")
         
     def __str__(self):
         # get object description excluding runtime memory address
-        return "Python: %s"%str(self.task).split('at')[0][1:]
+        return "Python: %s"%str(self.action).split('at')[0][1:]
 
     def __repr__(self):
-        return "<%s Python:'%s'>"%(self.name,repr(self.task))
+        return "<%s Python:'%s'>"%(self.name,repr(self.action))
 
 class Runner(object):
     SUCCESS = 0
@@ -135,6 +135,7 @@ class Runner(object):
         #task name must be unique
         if task.name in self._tasks:
             raise InvalidTask("Task names must be unique. %s"%task.name)
+        # add
         self._tasks[task.name] = task
 
     def run(self, printTitle=True):

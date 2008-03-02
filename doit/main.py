@@ -14,13 +14,13 @@ def _create_task(name,action,dependencies=[]):
     
     # a list. execute as a cmd    
     if isinstance(action,list) or isinstance(action,tuple):
-        return CmdTask(action,name,dependencies)
+        return CmdTask(name,action,dependencies)
     # a string. split and execute as a cmd
     elif isinstance(action,str):
-        return CmdTask(action.split(),name,dependencies)
+        return CmdTask(name,action.split(),dependencies)
     # a callable.
     elif callable(action):
-        return PythonTask(action,name,dependencies)
+        return PythonTask(name,action,dependencies)
     else:
         raise InvalidTask("Invalid task type. %s:%s"%(name,action.__class__))
 
