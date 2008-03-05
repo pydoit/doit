@@ -61,17 +61,23 @@ class BaseTask(object):
 
 class CmdTask(BaseTask):
 
+    REDOUT = subprocess.PIPE
+    REDERR = subprocess.PIPE
+
     def execute(self):
         try:
-            p = subprocess.Popen(self.action,stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE)
+            p = subprocess.Popen(self.action,stdout=self.REDOUT,
+                                 stderr=self.REDERR)
+
         except OSError, e:
             raise TaskError("Error trying to execute the command: %s\n" % 
                              " ".join(self.action) + "    error: %s" % e)
 
         out,err = p.communicate()
-        sys.stdout.write(out)
-        sys.stderr.write(err)
+        if out:
+            sys.stdout.write(out)
+        if err:
+            sys.stderr.write(err)
         if p.returncode != 0:
             raise TaskFailed("Task failed")
             
@@ -117,6 +123,12 @@ class Runner(object):
         self.verbosity = verbosity
         self.success = None
         self._tasks = OrderedDict()
+
+        if verbosity > 1:
+            CmdTask.REDOUT = sys.__stdout__
+
+        if verbosity > 0:
+            CmdTask.REDERR = sys.__stderr__
 
         # set stdout
         self.oldOut = None

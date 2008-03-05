@@ -29,12 +29,14 @@
 - PythonTask arguments
 . task decorator
 
+- do not buffer output when verbose
 . verbosity out of the core
 . show if a test was executed or up-to-date
-. do not buffer output when verbose
 
 . target parameter
 . task dependency 
+
+. list/filter subtask
 
 . force run
 
