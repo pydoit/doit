@@ -1,6 +1,8 @@
-import subprocess, sys, StringIO, traceback
+import subprocess, sys, traceback
+import StringIO
 
 from odict import OrderedDict
+from doit import logger
 
 from doit.dependency import Dependency
 
@@ -11,6 +13,8 @@ class TaskError(Exception):pass
 # interface 
 class BaseTask(object):
     _dependencyManager = None 
+    CAPTURE_OUT = False
+    CAPTURE_ERR = False
 
     def __init__(self,name,action,dependencies=[]):
         """
@@ -61,13 +65,20 @@ class BaseTask(object):
 
 class CmdTask(BaseTask):
 
-    REDOUT = subprocess.PIPE
-    REDERR = subprocess.PIPE
-
     def execute(self):
+        if not self.CAPTURE_OUT:
+            stdout = sys.__stdout__
+        else:
+            stdout = subprocess.PIPE
+
+        if not self.CAPTURE_ERR:
+            stderr = sys.__stderr__
+        else:
+            stderr = subprocess.PIPE
+        
         try:
-            p = subprocess.Popen(self.action,stdout=self.REDOUT,
-                                 stderr=self.REDERR)
+            p = subprocess.Popen(self.action,stdout=stdout,
+                                 stderr=stderr)
 
         except OSError, e:
             raise TaskError("Error trying to execute the command: %s\n" % 
@@ -75,9 +86,9 @@ class CmdTask(BaseTask):
 
         out,err = p.communicate()
         if out:
-            sys.stdout.write(out)
+            logger.log('stdout',out)
         if err:
-            sys.stderr.write(err)
+            logger.log('stderr',err)
         if p.returncode != 0:
             raise TaskFailed("Task failed")
             
@@ -95,11 +106,32 @@ class PythonTask(BaseTask):
         self.kwargs = kwargs
 
     def execute(self):
+        if self.CAPTURE_OUT:
+            old_stdout = sys.stdout
+            sys.stdout = StringIO.StringIO()
+
+        if self.CAPTURE_ERR:
+            old_stderr = sys.stderr
+            sys.stderr = StringIO.StringIO()
+
         # TODO i guess a common mistake will be to pass a function
         # that returns a generator instead of passing the generator
         # itself. i could have a special test for this case.
-        if not self.action(*self.args,**self.kwargs):
-            raise TaskFailed("Task failed")
+        try:
+            if not self.action(*self.args,**self.kwargs):
+                raise TaskFailed("Task failed")
+        finally:
+            if self.CAPTURE_OUT:
+                logger.log('stdout',sys.stdout.getvalue())
+                sys.stdout.close()
+                sys.stdout = old_stdout
+
+            if self.CAPTURE_ERR:
+                logger.log('stderr',sys.stderr.getvalue())
+                sys.stderr.close()
+                sys.stderr = old_stderr
+
+            
         
     def __str__(self):
         # get object description excluding runtime memory address
@@ -123,25 +155,9 @@ class Runner(object):
         self.verbosity = verbosity
         self.success = None
         self._tasks = OrderedDict()
-
-        if verbosity > 1:
-            CmdTask.REDOUT = sys.__stdout__
-
-        if verbosity > 0:
-            CmdTask.REDERR = sys.__stderr__
-
-        # set stdout
-        self.oldOut = None
-        if self.verbosity < 2:
-            self.oldOut = sys.stdout 
-            sys.stdout = StringIO.StringIO()
-
-        # only if verbosity is 0 we need to capture stderr
-        # otherwise we should not supress any message.
-        self.oldErr = None
-        if self.verbosity == 0:
-            self.oldErr = sys.stderr
-            sys.stderr = StringIO.StringIO()
+        
+        BaseTask.CAPTURE_OUT = verbosity < 2
+        BaseTask.CAPTURE_ERR = verbosity == 0
 
     def _addTask(self,task):
         # task must be a BaseTask
@@ -159,29 +175,20 @@ class Runner(object):
         """@param print_title bool print task title """
         for task in self._tasks.itervalues():
             # clear previous output
-            if self.oldOut:
-                sys.stdout = StringIO.StringIO()
-            if self.oldErr:
-                sys.stderr = StringIO.StringIO()
+            logger.clear('stdout')
+            logger.clear('stderr')
 
             try:                
                 # print title
-                # TODO this is so ugly!
                 if printTitle:
-                    if self.oldOut:
-                        self.oldOut.write("%s\n"%task.title())
-                    else:
-                        print task.title()
-                
+                    print task.title()
             
                 task.check_execute()
-                #executed = task.check_execute()
-                #self.oldOut.write(str(executed))
 
             # task failed
             except TaskFailed, e:
                 self.success = False
-                print e
+                logger.log("stdout",str(e)+'\n')
                 return self.done(self.FAILURE)
             # task error
             except Exception:
@@ -197,25 +204,11 @@ class Runner(object):
         BaseTask._dependencyManager.close()
         BaseTask._dependencyManager = None
 
-        # if test fails
+        # if test fails print output from failed task
         if result != self.SUCCESS:
-            # print stderr if havent printed yet.
-            if self.verbosity == 0:
-                self.oldErr.write(sys.stderr.getvalue())
-            # print stdout if havent printed yet.
-            if self.verbosity < 2:
-                self.oldOut.write(sys.stdout.getvalue())
+            logger.flush('stdout',sys.stdout)
+            logger.flush('stderr',sys.stderr)
         
-        # restore out stream
-        if self.verbosity < 2:
-            sys.stdout.close()
-            sys.stdout = self.oldOut
-
-        # restore err stream
-        if self.verbosity == 0:
-            sys.stderr.close()
-            sys.stderr = self.oldErr
-
         # always show traceback for whatever exception
         if result == self.ERROR:
             sys.stderr.write(traceback.format_exc())

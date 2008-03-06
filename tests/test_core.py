@@ -232,7 +232,7 @@ class TestRunnerVerbosityStderr(object):
         assert runner.ERROR == runner.run()
         # stderr by line
         err = sys.stderr.getvalue().split('\n')
-        assert "this is stderr E" == err[0]
+        assert "this is stderr E" == err[0], err
         # ignore traceback, compare just exception message
         assert "Exception: Hi i am an exception" == err[-2]
 
@@ -273,6 +273,7 @@ class TestRunnerVerbosityStdout(object):
         runner._addTask(PythonTask("taskX",self.write_on_stdout_fail))
         assert runner.FAILURE == runner.run(False)
         assert "this is stdout F\nTask failed\n" == sys.stdout.getvalue()
+
 
     # error -  i should get the stdout
     def testVerbosity_0_stdout_error(self):
@@ -354,7 +355,7 @@ class TestDisplayRunningStatus(object):
         runner = Runner(1)
         runner._addTask(CmdTask("taskX",["ls", "-1"]))
         runner._addTask(CmdTask("taskY",["ls","-a"]))
-        runner.run()
+        assert runner.SUCCESS == runner.run()
         taskTitles = sys.stdout.getvalue().split('\n')
         assert runner._tasks['taskX'].title() == taskTitles[0]
         assert runner._tasks['taskY'].title() == taskTitles[1], taskTitles
