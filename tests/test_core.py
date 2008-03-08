@@ -379,3 +379,19 @@ class TestDisplayRunningStatus(object):
         assert runner._tasks['taskX'].title() == taskTitles[0]
         assert runner._tasks['taskY'].title() == taskTitles[1], taskTitles
 
+    # if task is up to date, it is displayed in a different way.
+    def testDisplayUpToDate(self):
+        runner = Runner(TESTDBM,1)
+        runner._addTask(CmdTask("taskX",["ls", "-1"],dependencies=[__file__]))
+        assert runner.SUCCESS == runner.run()
+        taskTitles = sys.stdout.getvalue().split('\n')
+        assert runner._tasks['taskX'].title() == taskTitles[0]
+        # again
+        sys.stdout = StringIO.StringIO()
+        runner2 = Runner(TESTDBM,1)
+        runner2._addTask(CmdTask("taskX",["ls", "-1"],dependencies=[__file__]))
+
+        assert runner2.SUCCESS == runner2.run()
+        taskTitles = sys.stdout.getvalue().split('\n')
+        assert "--- " +runner2._tasks['taskX'].title() == taskTitles[0]
+

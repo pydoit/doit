@@ -160,10 +160,12 @@ class Runner(object):
             logger.clear('stderr')
 
             try:                
-                if printTitle: 
-                    print task.title()
-
-                if not dependencyManager.up_to_date(task.name,task.dependencies):
+                if dependencyManager.up_to_date(task.name,task.dependencies):
+                    if printTitle:
+                        print "---", task.title()
+                else:
+                    if printTitle:
+                        print task.title()
                     task.execute()
                     dependencyManager.save_dependencies(task.name,task.dependencies)
             # task failed

@@ -30,7 +30,7 @@
 
 - do not buffer output when verbose
 - verbosity out of the core (at least logger)
-. show if a test was executed or up-to-date
+- show if a test was executed or up-to-date
 
 . target parameter
 . task dependency 
