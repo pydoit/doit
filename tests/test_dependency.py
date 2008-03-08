@@ -1,21 +1,18 @@
 import os 
 
-from nose.tools import assert_raises
-
-from doit.core import BaseTask, InvalidTask
 from doit.dependency import Dependency
 
-####
-# dependencies are files only (not other tasks).
-#
-# whenever a task has a dependency the runner checks if this dependency
-# was modified since last successful run. if not the task is skipped.
 
 def get_abspath(relativePath):
     """ return abs file path relative to this file"""
     return os.path.abspath(__file__+"/../"+relativePath)
 
 
+####
+# dependencies are files only (not other tasks).
+#
+# whenever a task has a dependency the runner checks if this dependency
+# was modified since last successful run. if not the task is skipped.
 
 
 # since more than one task might have the same dependency, and the tasks
@@ -104,16 +101,19 @@ class TestDependencyDb(object):
 
 class TestTaskExecution(object):
 
+    def setUp(self):
+        self.dm = Dependency("testdbm")
+        
     # whenever a task has a dependency the runner checks if this dependency
     # was modified since last successful run. if not the task is skipped.    
 
     # if there is no dependency the task is always executed
     def test_no_dependency(self):
-        t1 = BaseTask("task A","taskcmd")
+        taskId = "task A"
         # first time execute
-        assert not t1.up_to_date()        
+        assert not self.dm.up_to_date(taskId,[])        
         # second too
-        assert not t1.up_to_date()
+        assert not self.dm.up_to_date(taskId,[])
 
 
     # if there is a dependency the task is executed only if one of
@@ -124,12 +124,13 @@ class TestTaskExecution(object):
         ff.write("part1")
         ff.close()
 
-        t1 = BaseTask("task X","taskcmd",dependencies=[filePath])
+        taskId = "task X";
+        dependencies = [filePath]
         # first time execute
-        assert not t1.up_to_date()        
-        t1.save_dependencies()
+        assert not self.dm.up_to_date(taskId,dependencies)
+        self.dm.save_dependencies(taskId,dependencies)
         # second time no
-        assert t1.up_to_date()
+        assert self.dm.up_to_date(taskId,dependencies)
 
         # a small change on the file
         ff = open(filePath,"a")
@@ -137,17 +138,5 @@ class TestTaskExecution(object):
         ff.close()
         
         # execute again
-        assert not t1.up_to_date()        
-
-
-class TestDependencyErrorMessages():
-
-    # dependevy must be a sequence. give proper error message when anything 
-    # else is used.
-    def test_dependency_not_sequence(self):
-        filePath = get_abspath("data/dependency1")
-        ff = open(filePath,"w")
-        ff.write("part1")
-        ff.close()
-        assert_raises(InvalidTask,BaseTask,"Task X","taskcmd",dependencies=filePath)
+        assert not self.dm.up_to_date(taskId,dependencies)
 

@@ -33,28 +33,7 @@ class BaseTask(object):
         if not BaseTask._dependencyManager:
             #raise Exception("No dependecy manager defined.")
             BaseTask._dependencyManager = Dependency("testdbm")
-
-    def up_to_date(self):
-        """check if task is up to date
-        @return bool True if up to date, False needs to re-execute.
-        """
-        # no dependencies means it is never up to date.
-        if not self.dependencies:
-            return False
-
-        # check for dependencies 
-        for d in self.dependencies:
-            if self._dependencyManager.modified(self.name,d):
-                return False
-                
-        return True
         
-
-    def save_dependencies(self):
-        """save dependencies value."""
-        for d in self.dependencies:
-            self._dependencyManager.save(self.name,d)
-
 
     def execute(self):
         """raise a TaskFailed or TaskError in case task was not completed"""
@@ -185,9 +164,9 @@ class Runner(object):
                 if printTitle:
                     print task.title()
 
-                if not task.up_to_date():
+                if not BaseTask._dependencyManager.up_to_date(task.name,task.dependencies):
                     task.execute()
-                    task.save_dependencies()
+                    BaseTask._dependencyManager.save_dependencies(task.name,task.dependencies)
 
             # task failed
             except TaskFailed, e:

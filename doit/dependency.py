@@ -49,3 +49,28 @@ class Dependency(object):
         if not self._closed:
             self._db.close()
             self._closed = True
+
+    def save_dependencies(self,taskId, dependencies):
+        """save dependencies value.
+        @param taskId  string
+        @param dependencies list of string 
+        """
+        for d in dependencies:
+            self.save(taskId,d)
+
+    def up_to_date(self, taskId, dependencies):
+        """check if task is up to date
+        @param taskId  string
+        @param dependencies list of string 
+        @return bool True if up to date, False needs to re-execute.
+        """
+        # no dependencies means it is never up to date.
+        if not dependencies:
+            return False
+
+        # check for dependencies 
+        for d in dependencies:
+            if self.modified(taskId,d):
+                return False
+                
+        return True

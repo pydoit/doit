@@ -1,3 +1,4 @@
+import os
 import nose.tools
 
 from doit.core import Runner
@@ -25,7 +26,19 @@ from doit.core import InvalidTask, BaseTask, CmdTask, PythonTask
 
 
 #############
+class TestDependencyErrorMessages():
 
+    # dependevy must be a sequence. give proper error message when anything 
+    # else is used.
+    def test_dependency_not_sequence(self):
+        filePath = os.path.abspath(__file__+"/../"+"data/dependency1")
+        ff = open(filePath,"w")
+        ff.write("part1")
+        ff.close()
+        nose.tools.assert_raises(InvalidTask,BaseTask,
+                                 "Task X","taskcmd",dependencies=filePath)
+
+##############
 class ExecuteRunner(object):
     def setUp(self):
         self.runner = Runner(0)
