@@ -67,7 +67,9 @@ def _get_tasks(name,task):
 
 class Main(object):
     
-    def __init__(self, fileName, list=False, verbosity=0,filter=None):
+    def __init__(self, fileName, dependencyFile, 
+                 list=False, verbosity=0,filter=None):
+        self.dependencyFile = dependencyFile
         self.list = list
         self.verbosity = verbosity
         self.filter = filter
@@ -122,7 +124,7 @@ class Main(object):
             selectedTaskgen = self._filter_taskgen()
 
         # create a Runner instance and ...
-        runner = Runner(self.verbosity)
+        runner = Runner(self.dependencyFile, self.verbosity)
         # tasks from every task generator.
         for g in selectedTaskgen.itervalues():
             for subtask in _get_tasks(g.name,g.ref()):

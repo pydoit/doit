@@ -23,7 +23,7 @@ parser.add_option("-v","--verbosity",dest="verbosity",default=0,
         
 def main(fileName, **kargs):
     try:
-        m = Main(fileName, **kargs)
+        m = Main(fileName, ".doit.dbm", **kargs)
         return m.process()
     # make sure exception is printed out. we migth have redirected stderr
     except Exception:

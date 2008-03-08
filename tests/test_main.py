@@ -80,6 +80,7 @@ class TestGetTasks(object):
 ###################
 
 TASKS = ['string','python','dictionary','dependency','generator','func_args']
+TESTDBM = "testdbm"
 
 class TestMain(object):
     def setUp(self):
@@ -88,11 +89,11 @@ class TestMain(object):
 
     # on initialization taskgen are in loaded
     def testInit(self):
-        m = Main(self.fileName)
+        m = Main(self.fileName, TESTDBM)
         assert TASKS == m.taskgen.keys()
 
     def testListGenerators(self):
-        m = Main(self.fileName)
+        m = Main(self.fileName, TESTDBM)
         #setup stdout
         self.oldOut = sys.stdout
         sys.stdout = StringIO.StringIO()
@@ -107,7 +108,7 @@ class TestMain(object):
     
     # test list_generators is called 
     def testProcessListGenerators(self):
-        m = Main(self.fileName, list=True)
+        m = Main(self.fileName, TESTDBM, list=True)
         self.listed = False
         def listgen():
             self.listed = True
@@ -121,7 +122,7 @@ class TestMain(object):
         self.oldOut = sys.stdout
         sys.stdout = StringIO.StringIO()
 
-        m = Main(self.fileName)
+        m = Main(self.fileName, TESTDBM)
         m.process()
 
         assert ["string => Cmd: ls -a",
@@ -145,7 +146,7 @@ class TestMain(object):
         self.oldOut = sys.stdout
         sys.stdout = StringIO.StringIO()
 
-        m = Main(self.fileName,filter=["dictionary","string"])
+        m = Main(self.fileName, TESTDBM,filter=["dictionary","string"])
         m.process()
 
         assert ["dictionary => Cmd: ls -1",

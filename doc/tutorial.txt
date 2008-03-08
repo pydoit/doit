@@ -8,7 +8,7 @@ All 'doit' does is to execute an external process as a shell script and report a
 1) first you create an instance
 
 >>> from doit.core import Runner,CmdTask
->>> runner = Runner()
+>>> runner = Runner("testdbm")
 
 2) now you need to add new tasks. each task takes a sequence of string as a parameter (as the first argument of subprocess.Popen from std lib). 
 
@@ -27,21 +27,16 @@ task1 => Cmd: ls -1
 task2 => Cmd: ls -1 -a
 0
 
-5) check the result
-
->>> runner.success
-True
 
 ------------
 
 Of course a process can also fail...
 
->>> runner = Runner()
+>>> runner = Runner("testdbm")
 >>> runner._addTask(CmdTask('taskX',['ls', 'i dont exist']))
 >>> runner.run()
 taskX => Cmd: ls i dont exist
 Task failed
 1
->>> runner.success
-False
+
 

@@ -12,7 +12,6 @@ class TaskError(Exception):pass
 
 # interface 
 class BaseTask(object):
-    _dependencyManager = None 
     CAPTURE_OUT = False
     CAPTURE_ERR = False
 
@@ -30,10 +29,6 @@ class BaseTask(object):
         self.action = action
         self.dependencies = dependencies
 
-        if not BaseTask._dependencyManager:
-            #raise Exception("No dependecy manager defined.")
-            BaseTask._dependencyManager = Dependency("testdbm")
-        
 
     def execute(self):
         """raise a TaskFailed or TaskError in case task was not completed"""
@@ -126,15 +121,15 @@ class Runner(object):
     FAILURE = 1
     ERROR = 2
 
-    def __init__(self, verbosity=1):
+    def __init__(self, dependencyFile, verbosity=1):
         """
         verbosity
         # 0 => print (stderr and stdout) from failed tasks
         # 1 => print stderr and (stdout from failed tasks)
         # 2 => print stderr and stdout from all tasks
         """
+        self.dependencyFile = dependencyFile
         self.verbosity = verbosity
-        self.success = None
         self._tasks = OrderedDict()
         
         BaseTask.CAPTURE_OUT = verbosity < 2
@@ -153,39 +148,37 @@ class Runner(object):
         self._tasks[task.name] = task
 
     def run(self, printTitle=True):
-        """@param print_title bool print task title """
+        """
+        @param dependencyFile string 
+        @param print_title bool print task title """
+        dependencyManager = Dependency(self.dependencyFile)
+        result = self.SUCCESS 
+
         for task in self._tasks.itervalues():
             # clear previous output
             logger.clear('stdout')
             logger.clear('stderr')
 
             try:                
-                # print title
-                if printTitle:
+                if printTitle: 
                     print task.title()
 
-                if not BaseTask._dependencyManager.up_to_date(task.name,task.dependencies):
+                if not dependencyManager.up_to_date(task.name,task.dependencies):
                     task.execute()
-                    BaseTask._dependencyManager.save_dependencies(task.name,task.dependencies)
-
+                    dependencyManager.save_dependencies(task.name,task.dependencies)
             # task failed
             except TaskFailed, e:
-                self.success = False
                 logger.log("stdout",str(e)+'\n')
-                return self.done(self.FAILURE)
+                result = self.FAILURE
+                break
             # task error
             except Exception:
-                self.success = False
-                return self.done(self.ERROR)
+                result = self.ERROR
+                break                
         
-        self.success = True
-        #done
-        return self.done(self.SUCCESS)
-
-    def done(self,result):
-        # update dependencies 
-        BaseTask._dependencyManager.close()
-        BaseTask._dependencyManager = None
+        ## done
+        # flush update dependencies 
+        dependencyManager.close()
 
         # if test fails print output from failed task
         if result != self.SUCCESS:
