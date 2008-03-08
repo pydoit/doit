@@ -13,6 +13,7 @@ class Dependency(object):
         @param name string filepath of the DBM file
         @param clear boolean always create a new empty database
         """
+        self.name = name
         self._closed = False
         if clear:
             self._db = anydbm.open(name,'n')

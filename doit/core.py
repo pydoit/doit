@@ -31,22 +31,24 @@ class BaseTask(object):
         self.dependencies = dependencies
 
         if not BaseTask._dependencyManager:
-            BaseTask._dependencyManager = Dependency(".doit.dbm")
+            #raise Exception("No dependecy manager defined.")
+            BaseTask._dependencyManager = Dependency("testdbm")
 
-    def check_execute(self):
-        """execute if any dependency was modified
-        @return True if executed, False if skipped execution"""
-        # always execute task if there is no specified dependency.
+    def up_to_date(self):
+        """check if task is up to date
+        @return bool True if up to date, False needs to re-execute.
+        """
+        # no dependencies means it is never up to date.
         if not self.dependencies:
-            self.execute()
-            return True
-        # check for dependencies before executing
+            return False
+
+        # check for dependencies 
         for d in self.dependencies:
             if self._dependencyManager.modified(self.name,d):
-                self.execute()
-                self.save_dependencies()
-                return True
-        return False
+                return False
+                
+        return True
+        
 
     def save_dependencies(self):
         """save dependencies value."""
@@ -182,8 +184,10 @@ class Runner(object):
                 # print title
                 if printTitle:
                     print task.title()
-            
-                task.check_execute()
+
+                if not task.up_to_date():
+                    task.execute()
+                    task.save_dependencies()
 
             # task failed
             except TaskFailed, e:

@@ -111,9 +111,9 @@ class TestTaskExecution(object):
     def test_no_dependency(self):
         t1 = BaseTask("task A","taskcmd")
         # first time execute
-        assert t1.check_execute()        
+        assert not t1.up_to_date()        
         # second too
-        assert t1.check_execute()
+        assert not t1.up_to_date()
 
 
     # if there is a dependency the task is executed only if one of
@@ -126,9 +126,10 @@ class TestTaskExecution(object):
 
         t1 = BaseTask("task X","taskcmd",dependencies=[filePath])
         # first time execute
-        assert t1.check_execute()        
+        assert not t1.up_to_date()        
+        t1.save_dependencies()
         # second time no
-        assert not t1.check_execute()
+        assert t1.up_to_date()
 
         # a small change on the file
         ff = open(filePath,"a")
@@ -136,10 +137,13 @@ class TestTaskExecution(object):
         ff.close()
         
         # execute again
-        assert t1.check_execute()        
+        assert not t1.up_to_date()        
+
 
 class TestDependencyErrorMessages():
 
+    # dependevy must be a sequence. give proper error message when anything 
+    # else is used.
     def test_dependency_not_sequence(self):
         filePath = get_abspath("data/dependency1")
         ff = open(filePath,"w")

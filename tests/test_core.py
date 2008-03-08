@@ -3,6 +3,29 @@ import nose.tools
 from doit.core import Runner
 from doit.core import InvalidTask, BaseTask, CmdTask, PythonTask
 
+# # dependencies file
+# TESTDBM = "testdbm"
+
+# #############
+
+# class TestDependencySetup(object):
+
+#     def setUp(self):
+#         .dependencyManager = None
+
+#     def tearDown(self):
+#         BaseTask.set_dependency_manager(TESTDBM)
+
+#     def test_noDependecyManagerRaises(self):
+#         nose.tools.assert_raises(Exception,BaseTask,"name","action")
+        
+#     def test_setDependencyManager(self):
+#         BaseTask.set_dependency_manager(TESTDBM)
+#         assert TESTDBM == BaseTask._dependencyManager.name
+
+
+#############
+
 class ExecuteRunner(object):
     def setUp(self):
         self.runner = Runner(0)

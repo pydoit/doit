@@ -27,7 +27,6 @@
 - remove task signature. use id
 - test main
 - PythonTask arguments
-. task decorator
 
 - do not buffer output when verbose
 - verbosity out of the core (at least logger)
@@ -41,7 +40,11 @@
 . force run
 
 . default task
+. put code inside lib folder
 . release 
-. helper python packages...
 
+---
+
+. task decorator
+. helper python packages...
 . run all regardless of failures
