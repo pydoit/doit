@@ -23,10 +23,16 @@ def get_abspath(relativePath):
 # taskId_dependency => signature(dependency)
 # taskId is md5(CmdTask.task)
 
-class TestDependencyDb(object):
-
+TESTDBM = "testdbm"
+class DependencyTestBase(object):
     def setUp(self):
-        self.d = Dependency("testdbm", clear=True)
+        self.d = Dependency(TESTDBM)
+
+    def tearDown(self):
+        if os.path.exists(TESTDBM):
+            os.remove(TESTDBM)
+
+class TestDependencyDb(DependencyTestBase):
 
     # adding a new value to the DB
     def test_set(self):
@@ -41,7 +47,7 @@ class TestDependencyDb(object):
         del self.d
 
         # open it again and check the value
-        d2 = Dependency("testdbm")
+        d2 = Dependency(TESTDBM)
         value = d2._get("taskId_X","dependency_A")
         assert "da_md5" == value, value
         
@@ -99,10 +105,9 @@ class TestDependencyDb(object):
         ff.close()
         assert self.d.modified("taskId_X",filePath)
 
-class TestTaskExecution(object):
 
-    def setUp(self):
-        self.dm = Dependency("testdbm")
+
+class TestTaskExecution(DependencyTestBase):
         
     # whenever a task has a dependency the runner checks if this dependency
     # was modified since last successful run. if not the task is skipped.    
@@ -111,9 +116,9 @@ class TestTaskExecution(object):
     def test_no_dependency(self):
         taskId = "task A"
         # first time execute
-        assert not self.dm.up_to_date(taskId,[])        
+        assert not self.d.up_to_date(taskId,[])        
         # second too
-        assert not self.dm.up_to_date(taskId,[])
+        assert not self.d.up_to_date(taskId,[])
 
 
     # if there is a dependency the task is executed only if one of
@@ -127,10 +132,10 @@ class TestTaskExecution(object):
         taskId = "task X";
         dependencies = [filePath]
         # first time execute
-        assert not self.dm.up_to_date(taskId,dependencies)
-        self.dm.save_dependencies(taskId,dependencies)
+        assert not self.d.up_to_date(taskId,dependencies)
+        self.d.save_dependencies(taskId,dependencies)
         # second time no
-        assert self.dm.up_to_date(taskId,dependencies)
+        assert self.d.up_to_date(taskId,dependencies)
 
         # a small change on the file
         ff = open(filePath,"a")
@@ -138,5 +143,5 @@ class TestTaskExecution(object):
         ff.close()
         
         # execute again
-        assert not self.dm.up_to_date(taskId,dependencies)
+        assert not self.d.up_to_date(taskId,dependencies)
 

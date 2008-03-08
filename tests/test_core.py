@@ -25,6 +25,9 @@ class ExecuteRunner(object):
     def setUp(self):
         self.runner = Runner(TESTDBM,0)
 
+    def tearDown(self):
+        if os.path.exists(TESTDBM):
+            os.remove(TESTDBM)
 
 class TestExecuteTask(ExecuteRunner):
     
@@ -134,6 +137,9 @@ class TestRunnerVerbosityStderr(object):
     def tearDown(self):
         sys.stderr.close()
         sys.stderr = self.oldErr
+
+        if os.path.exists(TESTDBM):
+            os.remove(TESTDBM)
 
     def raise_something(self):
         sys.stderr.write("this is stderr E\n")
@@ -254,6 +260,9 @@ class TestRunnerVerbosityStdout(object):
         sys.stdout.close()
         sys.stdout = self.oldOut
 
+        if os.path.exists(TESTDBM):
+            os.remove(TESTDBM)
+
     def raise_something(self):
         sys.stdout.write("this is stdout E\n")
         raise Exception("Hi i am an exception")
@@ -357,6 +366,8 @@ class TestDisplayRunningStatus(object):
     def tearDown(self):
         sys.stdout.close()
         sys.stdout = self.oldOut
+        if os.path.exists(TESTDBM):
+            os.remove(TESTDBM)
 
 
     def testDisplay(self):

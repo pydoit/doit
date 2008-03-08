@@ -87,6 +87,11 @@ class TestMain(object):
         # this test can be executed from any path
         self.fileName = os.path.abspath(__file__+"/../sample_main.py")
 
+    def tearDown(self):
+        if os.path.exists(TESTDBM):
+            os.remove(TESTDBM)
+
+
     # on initialization taskgen are in loaded
     def testInit(self):
         m = Main(self.fileName, TESTDBM)
