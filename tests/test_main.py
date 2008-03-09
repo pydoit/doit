@@ -3,7 +3,7 @@ import sys, StringIO
 
 import nose.tools
 
-from doit.core import InvalidTask, CmdTask, PythonTask
+from doit.task import InvalidTask, CmdTask, PythonTask
 from doit.main import _create_task, _get_tasks
 from doit.main import Main, InvalidCommand
 
