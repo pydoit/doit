@@ -16,7 +16,7 @@ def get_abspath(relativePath):
 
 
 # since more than one task might have the same dependency, and the tasks
-# might have different results (success/failure). the timestamp be associated
+# might have different results (success/failure). the signature is associated
 # not only with the file, but also with the task.
 #
 # save in db (task - dependency - signature)
@@ -41,7 +41,7 @@ class TestDependencyDb(DependencyTestBase):
         assert "da_md5" == value, value
 
     # 
-    def test_set_persistence(self):
+    def test_setPersistence(self):
         # save and close db
         self.d._set("taskId_X","dependency_A","da_md5")
         del self.d
@@ -50,6 +50,15 @@ class TestDependencyDb(DependencyTestBase):
         d2 = Dependency(TESTDBM)
         value = d2._get("taskId_X","dependency_A")
         assert "da_md5" == value, value
+        
+    def test_new(self):
+        # save and close db
+        self.d._set("taskId_X","dependency_A","da_md5")
+        del self.d
+
+        # open same file but with new parameter
+        d2 = Dependency(TESTDBM, new=True)
+        assert 0 == len(d2._db)
         
 
     # _get must return None if entry doesnt exist.

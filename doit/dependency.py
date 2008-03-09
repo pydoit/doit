@@ -8,23 +8,21 @@ class Dependency(object):
     """
 
     #TODO lazy open DBM.
-    def __init__(self, name, clear=False):
+    def __init__(self, name, new=False):
         """open/create a DBM
         @param name string filepath of the DBM file
-        @param clear boolean always create a new empty database
+        @param new boolean always create a new empty database
         """
         self.name = name
         self._closed = False
-        if clear:
+        if new:
             self._db = anydbm.open(name,'n')
         else:
             self._db = anydbm.open(name,'c')
 
 
     def __del__(self):
-        # close db file.
-        if not self._closed:
-            self._db.close()
+        self.close()
 
     def _set(self, taskId, dependency, value):
         """ store value in the DBM"""
