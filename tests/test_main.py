@@ -131,14 +131,13 @@ class TestMain(object):
         m.process()
 
         assert ["string => Cmd: ls -a",
-                "python => Python: function do_nothing ",
+                "python => Python: function do_nothing",
                 "dictionary => Cmd: ls -1",
-                "dependency => Python: function do_nothing ",
+                "dependency => Python: function do_nothing",
                 "generator.test_core.py => Cmd: ls -l test_core.py",
                 "generator.test_util.py => Cmd: ls -l test_util.py",
-                "func_args => Python: function funcX "] == \
+                "func_args => Python: function funcX"] == \
                 sys.stdout.getvalue().split("\n")[:-1]
-
 
         #teardown stdout
         sys.stdout.close()
