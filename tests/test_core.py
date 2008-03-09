@@ -395,3 +395,35 @@ class TestDisplayRunningStatus(object):
         taskTitles = sys.stdout.getvalue().split('\n')
         assert "--- " +runner2._tasks['taskX'].title() == taskTitles[0]
 
+
+class TestRunningTask(object):
+    def setUp(self):
+        self.oldOut = sys.stdout
+        sys.stdout = StringIO.StringIO()
+
+    def tearDown(self):
+        sys.stdout.close()
+        sys.stdout = self.oldOut
+        if os.path.exists(TESTDBM):
+            os.remove(TESTDBM)
+
+    # whenever a task fails remaining task are not executed
+    def testFailureStops(self):
+        runner = Runner(TESTDBM,1)
+        runner._addTask(CmdTask("taskX",["ls", "-2"]))
+        runner._addTask(CmdTask("taskY",["ls","-a"]))
+        assert runner.FAILURE == runner.run()
+        taskTitles = sys.stdout.getvalue().split('\n')
+        assert runner._tasks['taskX'].title() == taskTitles[0], taskTitles
+        assert "Task failed" == taskTitles[1]
+
+    # whenever there is an error executing a task,
+    # remaining task are not executed
+    def testErrorStops(self):
+        runner = Runner(TESTDBM,1)
+        runner._addTask(CmdTask("taskX",["lsadsaf", "-2"]))
+        runner._addTask(CmdTask("taskY",["ls","-a"]))
+        assert runner.ERROR == runner.run()
+        taskTitles = sys.stdout.getvalue().split('\n')
+        assert runner._tasks['taskX'].title() == taskTitles[0], taskTitles
+        assert "" == taskTitles[1], taskTitles
