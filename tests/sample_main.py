@@ -16,7 +16,7 @@ def task_dependency():
     return {'action':do_nothing,
             'dependencies':['test_main.py']}
 
-files = ['test_core.py','test_util.py']
+files = ['test_runner.py','test_util.py']
 def task_generator():
     for f in files:
         yield {'action': "ls -l %s"%f,

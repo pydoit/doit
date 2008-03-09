@@ -7,7 +7,7 @@ All 'doit' does is to execute an external process as a shell script and report a
 
 1) first you create an instance
 
->>> from doit.core import Runner
+>>> from doit.runner import Runner
 >>> from doit.task import CmdTask
 >>> runner = Runner("testdbm")
 

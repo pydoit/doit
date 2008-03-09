@@ -3,21 +3,11 @@ import sys, StringIO
 
 import nose.tools
 
-from doit.core import Runner
+from doit.runner import Runner
 from doit.task import InvalidTask, BaseTask, CmdTask, PythonTask
 
 # dependencies file
 TESTDBM = "testdbm"
-
-class ExecuteRunner(object):
-    def setUp(self):
-        self.runner = Runner(TESTDBM,0)
-
-    def tearDown(self):
-        if os.path.exists(TESTDBM):
-            os.remove(TESTDBM)
-
-##############
 
 class TestVerbosity(object):
  
@@ -41,7 +31,10 @@ class TestVerbosity(object):
 
 
 
-class TestAddTask(ExecuteRunner):
+class TestAddTask(object):
+
+    def setUp(self):
+        self.runner = Runner(TESTDBM,0)
     
     def test_addTask(self):
         self.runner._addTask(CmdTask("taskX",["ls","bla bla"]))

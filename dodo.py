@@ -2,9 +2,9 @@
 def task_nose():
     return "nosetests"
 
-pyFiles = ["doit/__init__.py","doit/core.py","doit/task.py","doit/main.py",
+pyFiles = ["doit/__init__.py","doit/runner.py","doit/task.py","doit/main.py",
            "doit/util.py",  "doit/dependency.py", "doit/loader.py", 
-           "tests/__init__.py", "tests/test_core.py", "tests/test_task.py",
+           "tests/__init__.py", "tests/test_runner.py", "tests/test_task.py",
            "tests/test_util.py", "tests/test_dependency.py",
            "tests/test_loader.py", "tests/test_main.py"]
 

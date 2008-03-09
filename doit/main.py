@@ -7,7 +7,7 @@ from odict import OrderedDict
 from doit.util import isgenerator
 from doit.task import InvalidTask, CmdTask, PythonTask
 from doit.loader import Loader
-from doit.core import Runner
+from doit.runner import Runner
 
 
 class InvalidCommand(Exception):pass
