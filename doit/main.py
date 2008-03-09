@@ -8,6 +8,7 @@ from doit.util import isgenerator
 from doit.core import Runner, InvalidTask, CmdTask, PythonTask
 from doit.loader import Loader
 
+class InvalidCommand(Exception):pass
 
 def _create_task(name,action,dependencies=[],**kwargs):
     """ create a TaskInstance acording to action type"""
@@ -100,10 +101,8 @@ class Main(object):
             if f in self.taskgen.iterkeys():
                 selectedTaskgen[f] = self.taskgen[f]
             else:
-                #TODO document this
-                raise Exception('"%s" is not a task'%f)
+                raise InvalidCommand('"%s" is not a task.'%f)
         return selectedTaskgen
-
         
     
 

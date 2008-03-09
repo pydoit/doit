@@ -5,7 +5,7 @@ import nose.tools
 
 from doit.core import InvalidTask, CmdTask, PythonTask
 from doit.main import _create_task, _get_tasks
-from doit.main import Main
+from doit.main import Main, InvalidCommand
 
 
 def dumb(): return
@@ -161,4 +161,10 @@ class TestMain(object):
         #teardown stdout
         sys.stdout.close()
         sys.stdout = self.oldOut
+        
+    # filter a non-existent task raises an error
+    def testFilterWrongName(self):
+        m = Main(self.fileName, TESTDBM,filter=["XdictooonaryX","string"])
+        nose.tools.assert_raises(InvalidCommand,m.process)
+
         
