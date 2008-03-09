@@ -78,7 +78,7 @@ class CmdTask(BaseTask):
 
         # task failure
         if p.returncode != 0:
-            raise TaskFailed("Task failed")
+            raise TaskFailed("")
 
             
     def __str__(self):
@@ -131,7 +131,7 @@ class PythonTask(BaseTask):
 
         # if callable returns false. Task failed
         if not result:
-            raise TaskFailed("Task failed")
+            raise TaskFailed("")
                     
     def __str__(self):
         # get object description excluding runtime memory address

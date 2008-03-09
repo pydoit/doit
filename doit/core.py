@@ -3,7 +3,7 @@ import sys, traceback
 from odict import OrderedDict
 
 from doit import logger
-from doit.task import BaseTask, InvalidTask, TaskFailed
+from doit.task import BaseTask, InvalidTask, TaskFailed, TaskError
 from doit.dependency import Dependency
 
 
@@ -60,12 +60,13 @@ class Runner(object):
                     task.execute()
                     dependencyManager.save_dependencies(task.name,task.dependencies)
             # task failed
-            except TaskFailed, e:
-                logger.log("stdout",str(e)+'\n')
+            except TaskFailed:
+                logger.log("stdout", 'Task failed\n')
                 result = self.FAILURE
                 break
             # task error
-            except Exception:
+            except TaskError:
+                logger.log("stdout", 'Task error\n')
                 result = self.ERROR
                 break                
         
@@ -80,6 +81,7 @@ class Runner(object):
         
         # always show traceback for whatever exception
         if result == self.ERROR:
+            # FIXME. traceback for the original exception.
             sys.stderr.write(traceback.format_exc())
         
         return result

@@ -4,12 +4,11 @@ import sys, StringIO
 import nose.tools
 
 from doit.core import Runner
-from doit.task import InvalidTask, CmdTask
+from doit.task import InvalidTask, BaseTask, CmdTask, PythonTask
 
 # dependencies file
 TESTDBM = "testdbm"
 
-##############
 class ExecuteRunner(object):
     def setUp(self):
         self.runner = Runner(TESTDBM,0)
@@ -18,83 +17,76 @@ class ExecuteRunner(object):
         if os.path.exists(TESTDBM):
             os.remove(TESTDBM)
 
-class TestExecuteTask(ExecuteRunner):
+##############
+
+class TestVerbosity(object):
+ 
+    # 0: capture stdout and stderr
+    def test_verbosity0(self):
+        Runner(TESTDBM,0)
+        assert BaseTask.CAPTURE_OUT
+        assert BaseTask.CAPTURE_ERR
+
+    # 1: capture stderr
+    def test_verbosity1(self):
+        Runner(TESTDBM,1)
+        assert BaseTask.CAPTURE_OUT
+        assert not BaseTask.CAPTURE_ERR
+
+    # 2: capture -
+    def test_verbosity2(self):
+        Runner(TESTDBM,2)
+        assert not BaseTask.CAPTURE_OUT
+        assert not BaseTask.CAPTURE_ERR
+
+
+
+class TestAddTask(ExecuteRunner):
     
-    def testAddTask(self):
+    def test_addTask(self):
         self.runner._addTask(CmdTask("taskX",["ls","bla bla"]))
         self.runner._addTask(CmdTask("taskY",["ls","-1"]))
         assert 2 == len(self.runner._tasks)
 
     # 2 tasks can not have the same name
-    def testAddTaskSameName(self):
+    def test_addTaskSameName(self):
         self.runner._addTask(CmdTask("taskX",["ls","bla bla"]))
         t = CmdTask("taskX",["ls","-1"])
         nose.tools.assert_raises(InvalidTask,self.runner._addTask,t)
 
-    def testInvalidTask(self):
+    def test_addInvalidTask(self):
         nose.tools.assert_raises(InvalidTask,self.runner._addTask,666)
 
-    def testAnyFailure(self):
-        #ok
-        self.runner._addTask(CmdTask("taskX",["ls"]))
-        #fail
-        self.runner._addTask(CmdTask("taskY",["ls","I dont exist"]))
-        assert self.runner.FAILURE == self.runner.run()
-
-    def testTuple(self):
-        self.runner._addTask(CmdTask("taskX",("ls","-1")))
-        self.runner._addTask(CmdTask("taskY",("ls","-1","-a")))
-        assert self.runner.SUCCESS == self.runner.run()
-
-#####################################
-#     # captured streams should be show only for the tasks that failed
-#     def testVerboseOnlyErrorTask(self):
-#         runner = Runner(TESTDBM,0)
-#         runner._addTask(PythonTask("taskX",self.write_on_stderr_success))
-#         runner._addTask(PythonTask("taskY",self.raise_something))
-#         assert runner.ERROR == runner.run()
-#         # stderr by line
-#         err = sys.stderr.getvalue().split('\n')
-#         assert "this is stderr E" == err[0], err
-#         # ignore traceback, compare just exception message
-#         assert "TaskError: Hi i am an exception" == err[-2], err
 
 
-#     # captured streams should be show only for the tasks that failed
-#     def testVerboseOnlyErrorTask(self):
-#         runner = Runner(TESTDBM,0)
-#         runner._addTask(PythonTask("taskX",self.write_on_stdout_success))
-#         runner._addTask(PythonTask("taskY",self.raise_something))
-#         assert runner.ERROR == runner.run(False)
-#         sys.__stderr__.write(sys.stdout.getvalue())
-#         assert "this is stdout E\n" == sys.stdout.getvalue()
 
-#########################
-
-
-class TestDisplayRunningStatus(object):
+class TestRunningTask(object):
     def setUp(self):
         self.oldOut = sys.stdout
         sys.stdout = StringIO.StringIO()
+        self.oldErr = sys.stderr
+        sys.stderr = StringIO.StringIO()
 
     def tearDown(self):
         sys.stdout.close()
         sys.stdout = self.oldOut
+        sys.stderr.close()
+        sys.stderr = self.oldErr
         if os.path.exists(TESTDBM):
             os.remove(TESTDBM)
 
-
-    def testDisplay(self):
+    def test_success(self):
         runner = Runner(TESTDBM,1)
         runner._addTask(CmdTask("taskX",["ls", "-1"]))
         runner._addTask(CmdTask("taskY",["ls","-a"]))
         assert runner.SUCCESS == runner.run()
+        # only titles are printed.
         taskTitles = sys.stdout.getvalue().split('\n')
         assert runner._tasks['taskX'].title() == taskTitles[0]
         assert runner._tasks['taskY'].title() == taskTitles[1], taskTitles
 
     # if task is up to date, it is displayed in a different way.
-    def testDisplayUpToDate(self):
+    def test_successUpToDate(self):
         runner = Runner(TESTDBM,1)
         runner._addTask(CmdTask("taskX",["ls", "-1"],dependencies=[__file__]))
         assert runner.SUCCESS == runner.run()
@@ -104,40 +96,51 @@ class TestDisplayRunningStatus(object):
         sys.stdout = StringIO.StringIO()
         runner2 = Runner(TESTDBM,1)
         runner2._addTask(CmdTask("taskX",["ls", "-1"],dependencies=[__file__]))
-
         assert runner2.SUCCESS == runner2.run()
         taskTitles = sys.stdout.getvalue().split('\n')
         assert "--- " +runner2._tasks['taskX'].title() == taskTitles[0]
 
-
-class TestRunningTask(object):
-    def setUp(self):
-        self.oldOut = sys.stdout
-        sys.stdout = StringIO.StringIO()
-
-    def tearDown(self):
-        sys.stdout.close()
-        sys.stdout = self.oldOut
-        if os.path.exists(TESTDBM):
-            os.remove(TESTDBM)
-
     # whenever a task fails remaining task are not executed
-    def testFailureStops(self):
-        runner = Runner(TESTDBM,1)
-        runner._addTask(CmdTask("taskX",["ls", "-2"]))
-        runner._addTask(CmdTask("taskY",["ls","-a"]))
-        assert runner.FAILURE == runner.run()
-        taskTitles = sys.stdout.getvalue().split('\n')
-        assert runner._tasks['taskX'].title() == taskTitles[0], taskTitles
-        assert "Task failed" == taskTitles[1]
+    def test_failure(self):
+        def write_and_fail():
+            sys.stdout.write("stdout here.\n")
+            sys.stderr.write("stderr here.\n")
+            return False
 
-    # whenever there is an error executing a task,
-    # remaining task are not executed
-    def testErrorStops(self):
-        runner = Runner(TESTDBM,1)
-        runner._addTask(CmdTask("taskX",["lsadsaf", "-2"]))
-        runner._addTask(CmdTask("taskY",["ls","-a"]))
+        runner = Runner(TESTDBM,0)
+        runner._addTask(PythonTask("taskX",write_and_fail))
+        runner._addTask(PythonTask("taskY",write_and_fail))
+        assert runner.FAILURE == runner.run()
+        output = sys.stdout.getvalue().split('\n')
+        assert runner._tasks['taskX'].title() == output[0], output
+        # captured output is displayed
+        assert "stdout here." == output[1]
+        assert "stderr here.\n" == sys.stderr.getvalue()
+        # final failed message
+        assert "Task failed" == output[2]
+        # nothing more (but the empty string)
+        assert 4 == len(output)
+
+
+    def test_error(self):
+        def write_and_error():
+            sys.stdout.write("stdout here.\n")
+            sys.stderr.write("stderr here.\n")
+            raise Exception("I am the exception.\n")
+
+        runner = Runner(TESTDBM,0)
+        runner._addTask(PythonTask("taskX",write_and_error))
+        runner._addTask(PythonTask("taskY",write_and_error))
         assert runner.ERROR == runner.run()
-        taskTitles = sys.stdout.getvalue().split('\n')
-        assert runner._tasks['taskX'].title() == taskTitles[0], taskTitles
-        assert "" == taskTitles[1], taskTitles
+        output = sys.stdout.getvalue().split('\n')
+        errput = sys.stderr.getvalue().split('\n')
+        assert runner._tasks['taskX'].title() == output[0], output
+        # captured output is displayed
+        assert "stdout here." == output[1]
+        assert "stderr here." ==  errput[0]
+        # final failed message
+        assert "Task error" == output[2], output
+        # nothing more (but the empty string)
+        assert 4 == len(output)
+
+        # FIXME stderr output

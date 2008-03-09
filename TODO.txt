@@ -39,6 +39,7 @@
 
 . force run
 
+. nice output when task fail/error
 . default task
 . put code inside lib folder
 . release 
