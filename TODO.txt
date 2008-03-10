@@ -32,7 +32,7 @@
 - verbosity out of the core (at least logger)
 - show if a test was executed or up-to-date
 
-. target parameter
+- target parameter
 . task dependency 
 
 . list/filter subtask
@@ -42,6 +42,7 @@
 . nice output when task fail/error
 . default task
 . put code inside lib folder
+. style review
 . release 
 
 ---
@@ -49,3 +50,5 @@
 . task decorator
 . helper python packages...
 . run all regardless of failures
+
+. multiple (include) dodo files

@@ -3,8 +3,9 @@ import sys, StringIO
 
 import nose.tools
 
-from doit.runner import Runner
+from doit.dependency import Dependency
 from doit.task import InvalidTask, BaseTask, CmdTask, PythonTask
+from doit.runner import Runner
 
 # dependencies file
 TESTDBM = "testdbm"
@@ -68,7 +69,7 @@ class TestRunningTask(object):
         if os.path.exists(TESTDBM):
             os.remove(TESTDBM)
 
-    def test_success(self):
+    def test_successOutput(self):
         runner = Runner(TESTDBM,1)
         runner._addTask(CmdTask("taskX",["ls", "-1"]))
         runner._addTask(CmdTask("taskY",["ls","-a"]))
@@ -94,7 +95,7 @@ class TestRunningTask(object):
         assert "--- " +runner2._tasks['taskX'].title() == taskTitles[0]
 
     # whenever a task fails remaining task are not executed
-    def test_failure(self):
+    def test_failureOutput(self):
         def write_and_fail():
             sys.stdout.write("stdout here.\n")
             sys.stderr.write("stderr here.\n")
@@ -115,7 +116,7 @@ class TestRunningTask(object):
         assert 4 == len(output)
 
 
-    def test_error(self):
+    def test_errorOutput(self):
         def write_and_error():
             sys.stdout.write("stdout here.\n")
             sys.stderr.write("stderr here.\n")
@@ -137,3 +138,25 @@ class TestRunningTask(object):
         assert 4 == len(output)
 
         # FIXME stderr output
+
+
+    # when successful dependencies are updated
+    def test_successDependencies(self):
+        filePath = os.path.abspath(__file__+"/../data/dependency1")
+        ff = open(filePath,"a")
+        ff.write("xxx")
+        ff.close()
+        dependencies = [filePath]
+
+        filePath = os.path.abspath(__file__+"/../data/target")
+        ff = open(filePath,"a")
+        ff.write("xxx")
+        ff.close()
+        targets = [filePath]
+
+        runner = Runner(TESTDBM,1)
+        runner._addTask(CmdTask("taskX",["ls", "-1"],dependencies,targets))
+        assert runner.SUCCESS == runner.run()
+        # only titles are printed.
+        d = Dependency(TESTDBM)
+        assert 2 == len(d._db)

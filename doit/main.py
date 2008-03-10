@@ -12,18 +12,18 @@ from doit.runner import Runner
 
 class InvalidCommand(Exception):pass
 
-def _create_task(name,action,dependencies=[],**kwargs):
+def _create_task(name,action,dependencies=[],targets=[],*args,**kwargs):
     """ create a TaskInstance acording to action type"""
     
     # a list. execute as a cmd    
     if isinstance(action,list) or isinstance(action,tuple):
-        return CmdTask(name,action,dependencies)
+        return CmdTask(name,action,dependencies,targets)
     # a string. split and execute as a cmd
     elif isinstance(action,str):
-        return CmdTask(name,action.split(),dependencies)
+        return CmdTask(name,action.split(),dependencies,targets)
     # a callable.
     elif callable(action):
-        return PythonTask(name,action,dependencies,**kwargs)
+        return PythonTask(name,action,dependencies,targets,*args,**kwargs)
     else:
         raise InvalidTask("Invalid task type. %s:%s"%(name,action.__class__))
 
@@ -39,6 +39,7 @@ def _get_tasks(name,task):
 
         return [_create_task(name,task.get('action'),
                              task.get('dependencies',[]),
+                             task.get('targets',[]),
                              args=task.get('args',[]),
                              kwargs=task.get('kwargs',{}))]
 

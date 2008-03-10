@@ -18,19 +18,25 @@ class BaseTask(object):
     CAPTURE_OUT = False
     CAPTURE_ERR = False
 
-    def __init__(self,name,action,dependencies=[]):
+    def __init__(self,name,action,dependencies=[],targets=[]):
         """
         @param name string 
         @param action see derived classes
         @param dependencies list of absolute? file paths.
+        @param targets list of absolute? file paths.
         """
         # dependencies parameter must be a list
         if not(isinstance(dependencies,list) or isinstance(dependencies,tuple)):
             raise InvalidTask("'dependencies' paramater must be a list or tuple got:'%s' => %s"%(str(dependencies),dependencies.__class__))
 
+        # targets parameter must be a list
+        if not(isinstance(targets,list) or isinstance(targets,tuple)):
+            raise InvalidTask("'targets' paramater must be a list or tuple got:'%s' => %s"%(str(targets),targets.__class__))
+
         self.name = name
         self.action = action
         self.dependencies = dependencies
+        self.targets = targets
 
 
     def execute(self):
@@ -92,13 +98,13 @@ class CmdTask(BaseTask):
 class PythonTask(BaseTask):
     """Python task. Execute a python callable"""
 
-    def __init__(self,name,action,dependencies=[],args=[],kwargs={}):
+    def __init__(self,name,action,dependencies=[],targets=[],args=[],kwargs={}):
         """
         @ivar action callable a python callable
         @ivar args sequnce arguments to be passed to the callable
         @ivar kwargs dict dict to be passed to the callable
         """
-        BaseTask.__init__(self,name,action,dependencies)
+        BaseTask.__init__(self,name,action,dependencies,targets)
         self.args = args
         self.kwargs = kwargs
 

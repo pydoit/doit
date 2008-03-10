@@ -1,3 +1,4 @@
+import os
 import anydbm
 
 from doit.util import md5sum
@@ -56,7 +57,7 @@ class Dependency(object):
         for d in dependencies:
             self.save(taskId,d)
 
-    def up_to_date(self, taskId, dependencies):
+    def up_to_date(self, taskId, dependencies, targets):
         """check if task is up to date
         @param taskId  string
         @param dependencies list of string 
@@ -66,8 +67,13 @@ class Dependency(object):
         if not dependencies:
             return False
 
+        # if target file is not there, task is not up to date
+        for t in targets:
+            if not os.path.exists(t):
+                return False
+
         # check for dependencies 
-        for d in dependencies:
+        for d in tuple(dependencies) + tuple(targets):
             if self.modified(taskId,d):
                 return False
                 

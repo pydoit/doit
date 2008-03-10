@@ -51,14 +51,19 @@ class Runner(object):
             logger.clear('stderr')
 
             try:                
-                if dependencyManager.up_to_date(task.name,task.dependencies):
+                if dependencyManager.up_to_date(task.name,task.dependencies,
+                                                task.targets):
                     if printTitle:
                         print "---", task.title()
                 else:
                     if printTitle:
                         print task.title()
                     task.execute()
-                    dependencyManager.save_dependencies(task.name,task.dependencies)
+                    dependencyManager.save_dependencies(task.name,
+                                                        task.dependencies)
+                    dependencyManager.save_dependencies(task.name,
+                                                        task.targets)
+
             # task failed
             except TaskFailed:
                 logger.log("stdout", 'Task failed\n')
