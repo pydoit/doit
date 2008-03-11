@@ -100,8 +100,18 @@ class Main(object):
         # file specified on dodo file are relative to itself.
         os.chdir(loaded.dir_)
 
+        # get task generators
         for g in loaded.getTaskGenerators():
             self.taskgen[g.name] = g
+
+        # get tasks/subtasks
+        # key task name, value list task names.
+        self.tasks = OrderedDict()
+        for g in self.taskgen.itervalues():
+            self.tasks[g.name] = []
+            for subtask in _get_tasks(g.name,g.ref()):
+                self.tasks[g.name].append(subtask.name)
+                self.tasks[subtask.name] = subtask
 
 
     def _list_generators(self):
@@ -111,6 +121,12 @@ class Main(object):
             print g
         print "="*25,"\n"
 
+    def _list_names(self, names):
+        """list task generators, in the order they were defined"""
+        print "==== Tasks ===="
+        for g in names:
+            print g
+        print "="*25,"\n"
 
     def _filter_taskgen(self):
         """select tasks specified by filter"""
@@ -121,10 +137,20 @@ class Main(object):
             else:
                 raise InvalidCommand('"%s" is not a task.'%f)
         return selectedTaskgen
+
+    def _filter_tasks(self):
+        """select tasks specified by filter"""
+        selectedTaskgen = OrderedDict()
+        for f in self.filter:
+            if f in self.tasks.iterkeys():
+                selectedTaskgen[f] = self.tasks[f]
+            else:
+                raise InvalidCommand('"%s" is not a task.'%f)
+        return selectedTaskgen
         
     
 
-    def process(self):
+    def process1(self):
         """ process it according to given parameters"""
         # list
         if self.list:
@@ -142,10 +168,44 @@ class Main(object):
 
         # create a Runner instance and ...
         runner = Runner(self.dependencyFile, self.verbosity)
+
         # tasks from every task generator.
         for g in selectedTaskgen.itervalues():
             for subtask in _get_tasks(g.name,g.ref()):
                 runner._addTask(subtask)
+
+        return runner.run()
+
+
+    def process(self):
+        """ process it according to given parameters"""
+        # list
+        if self.list:
+            #self._list_names(self.tasks.iterkeys())
+            self._list_generators()
+            return Runner.SUCCESS
+
+        # if no filter is defined execute all tasks 
+        # in the order they were defined.
+        selectedTask = None
+        if not self.filter:
+            selectedTask = self.tasks
+        # execute only tasks in the filter in the order specified by filter
+        else:
+            selectedTask = self._filter_tasks()
+
+        # create a Runner instance and ...
+        runner = Runner(self.dependencyFile, self.verbosity)
+
+        # tasks from every task generator.
+        for t in selectedTask.itervalues():
+            if isinstance(t,list):
+                for ti in t:
+                    if ti not in runner._tasks:
+                        runner._addTask(self.tasks[ti])
+            else:
+                if t.name not in runner._tasks:
+                    runner._addTask(t)
 
         return runner.run()
 
