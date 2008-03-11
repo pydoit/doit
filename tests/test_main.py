@@ -77,6 +77,11 @@ class TestGetTasks(object):
 
         nose.tools.assert_raises(InvalidTask,_get_tasks,"ls", ls())
 
+
+    def testDictFieldTypo(self):
+        nose.tools.assert_raises(InvalidTask,_get_tasks,
+                                 "dict",{'action':'ls -a','target':['xxx']})
+
 ###################
 
 TASKS = ['string','python','dictionary','dependency','generator','func_args']

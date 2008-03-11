@@ -11,6 +11,31 @@ from doit.runner import Runner
 
 
 class InvalidCommand(Exception):pass
+# sequence of know attributes(keys) of a task dict.
+TASK_ATTRS = ('name','action','dependencies','targets','args','kwargs')
+
+def dict_to_task(task_dict):
+    """ return task instance from dictionary
+    check for errors in input dict and calls _create_task"""
+    # user friendly. dont go ahead with invalid input.
+    for key in task_dict.keys():
+        if key not in TASK_ATTRS:
+            raise InvalidTask("Task %s contain invalid field: %s"%
+                              (task_dict['name'],key))
+            
+
+    # check required fields
+    if 'action' not in task_dict:
+        raise InvalidTask("Task %s must contain field action. %s"%
+                          (task_dict['name'],task_dict))
+
+    return _create_task(task_dict.get('name'),
+                        task_dict.get('action'),
+                        task_dict.get('dependencies',[]),
+                        task_dict.get('targets',[]),
+                        args=task_dict.get('args',[]),
+                        kwargs=task_dict.get('kwargs',{}))
+        
 
 def _create_task(name,action,dependencies=[],targets=[],*args,**kwargs):
     """ create a TaskInstance acording to action type"""
@@ -27,25 +52,12 @@ def _create_task(name,action,dependencies=[],targets=[],*args,**kwargs):
     else:
         raise InvalidTask("Invalid task type. %s:%s"%(name,action.__class__))
 
+
 def _get_tasks(name,task):
     """@return list tasks instances """
-
-    def dict_to_task(task_dict):
-        # check required fields
-        if 'action' not in task_dict:
-            raise InvalidTask("Task %s must contain field action. %s"%
-                              (task_dict['name'],task_dict))
-
-        return _create_task(task_dict.get('name'),
-                            task_dict.get('action'),
-                            task_dict.get('dependencies',[]),
-                            task_dict.get('targets',[]),
-                            args=task_dict.get('args',[]),
-                            kwargs=task_dict.get('kwargs',{}))
-        
-
     # task described as a dictionary
     if isinstance(task,dict):
+        #FIXME name parameter can not be given
         task['name'] = name
         return [dict_to_task(task)]
 
@@ -66,6 +78,7 @@ def _get_tasks(name,task):
         return tasks
 
     # if not a dictionary nor a generator. "task" is the action itself.
+    # FIXME name parameter can not be given
     return [dict_to_task({'name':name,'action':task})]
 
 
