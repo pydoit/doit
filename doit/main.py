@@ -30,18 +30,24 @@ def _create_task(name,action,dependencies=[],targets=[],*args,**kwargs):
 def _get_tasks(name,task):
     """@return list tasks instances """
 
+    def dict_to_task(task_dict):
+        # check required fields
+        if 'action' not in task_dict:
+            raise InvalidTask("Task %s must contain field action. %s"%
+                              (task_dict['name'],task_dict))
+
+        return _create_task(task_dict.get('name'),
+                            task_dict.get('action'),
+                            task_dict.get('dependencies',[]),
+                            task_dict.get('targets',[]),
+                            args=task_dict.get('args',[]),
+                            kwargs=task_dict.get('kwargs',{}))
+        
+
     # task described as a dictionary
     if isinstance(task,dict):
-        # check valid input
-        if 'action' not in task:
-            raise InvalidTask("Task %s must contain field action. %s"%
-                              (name,task))
-
-        return [_create_task(name,task.get('action'),
-                             task.get('dependencies',[]),
-                             task.get('targets',[]),
-                             args=task.get('args',[]),
-                             kwargs=task.get('kwargs',{}))]
+        task['name'] = name
+        return [dict_to_task(task)]
 
     # a generator
     if isgenerator(task):
@@ -54,17 +60,13 @@ def _get_tasks(name,task):
             if 'name' not in t:
                 raise InvalidTask("Task %s must contain field name. %s"%
                                   (name,t))
-            if 'action' not in t:
-                raise InvalidTask("Task %s must contain field action. %s"%
-                                  (name,t))
-
-            tasks.append(_create_task("%s.%s"%(name,t.get('name')), 
-                                      t.get('action'),
-                                      t.get('dependencies',[])))
+            # name is task.subtask
+            t['name'] = "%s.%s"%(name,t.get('name'))
+            tasks.append(dict_to_task(t))
         return tasks
 
     # if not a dictionary nor a generator. "task" is the action itself.
-    return [_create_task(name, task)]
+    return [dict_to_task({'name':name,'action':task})]
 
 
 
