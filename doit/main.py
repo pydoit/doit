@@ -53,18 +53,23 @@ def _create_task(name,action,dependencies=[],targets=[],*args,**kwargs):
         raise InvalidTask("Invalid task type. %s:%s"%(name,action.__class__))
 
 
-def _get_tasks(name,task):
-    """@return list tasks instances """
+def _get_tasks(name,gen_result):
+    """
+    @param name {string}: name of taskgen function
+    @param gen_result: value returned by a task generator (dictionary/generator)
+    @return list tasks instances from a TaskGen result
+    """
     # task described as a dictionary
-    if isinstance(task,dict):
-        #FIXME name parameter can not be given
-        task['name'] = name
-        return [dict_to_task(task)]
+    if isinstance(gen_result,dict):
+        # FIXME name parameter can not be given
+        gen_result['name'] = name
+        return [dict_to_task(gen_result)]
 
     # a generator
-    if isgenerator(task):
+    if isgenerator(gen_result):
         tasks = []
-        for t in task:
+        # the generator return subtasks.
+        for t in gen_result:
             # check valid input
             if not isinstance(t,dict):
                 raise InvalidTask("Task %s must yield dictionaries"%name)
@@ -78,34 +83,52 @@ def _get_tasks(name,task):
         return tasks
 
     # if not a dictionary nor a generator. "task" is the action itself.
-    # FIXME name parameter can not be given
-    return [dict_to_task({'name':name,'action':task})]
+    return [dict_to_task({'name':name,'action':gen_result})]
 
 
 
 
 class Main(object):
+    """
+    runtime options:
+    ---------------
+    @ivar dependencyFile {string}: file path of the dbm file.
+    @ivar list {int}: 0 dont list, run
+                      1 list task generators (do not run if listing)
+                      2 list all tasks (do not run if listing)
+    @ivar verbosity {bool}: verbosity level. @see Runner
+    @ivar filter {sequence of strings}: selection of tasks to execute
+
+    @ivar taskgen {OrderedDict}: Key: name of the function that generate tasks 
+                                 Value: TaskGen instance
     
-    def __init__(self, fileName, dependencyFile, 
+    @ivar tasks {OrderedDict}: Key: task name ([taskgen.]name)
+                               Value: sequence of dependent tasks
+                                      or a task instance
+    """
+    
+    def __init__(self, dodoFile, dependencyFile, 
                  list=False, verbosity=0,filter=None):
+        """
+        @param dodoFile {string} path to file containing the tasks
+        """
+        ## intialize cmd line options
         self.dependencyFile = dependencyFile
         self.list = list
         self.verbosity = verbosity
         self.filter = filter
 
-        # dictionary of functions that generate tasks with name as key
-        self.taskgen = OrderedDict()
-
-        loaded = Loader(fileName)
+        ## load dodo file
+        dodo = Loader(dodoFile)
         # file specified on dodo file are relative to itself.
-        os.chdir(loaded.dir_)
+        os.chdir(dodo.dir_)
 
         # get task generators
-        for g in loaded.getTaskGenerators():
+        self.taskgen = OrderedDict()
+        for g in dodo.getTaskGenerators():
             self.taskgen[g.name] = g
 
-        # get tasks/subtasks
-        # key task name, value list task names.
+        # get tasks
         self.tasks = OrderedDict()
         for g in self.taskgen.itervalues():
             self.tasks[g.name] = []
@@ -114,29 +137,20 @@ class Main(object):
                 self.tasks[subtask.name] = subtask
 
 
-    def _list_generators(self):
-        """list task generators, in the order they were defined"""
-        print "==== Task Generators ===="
-        for g in self.taskgen.iterkeys():
-            print g
-        print "="*25,"\n"
-
-    def _list_names(self, names):
+    def _list_tasks(self, printSubtasks):
         """list task generators, in the order they were defined"""
         print "==== Tasks ===="
-        for g in names:
+        for g in self.taskgen.iterkeys():
             print g
+            # print subtasks  
+            if printSubtasks:
+                taskDep = self.tasks[g]
+                if isinstance(taskDep,list):
+                    for t in taskDep:
+                        print t
+
         print "="*25,"\n"
 
-    def _filter_taskgen(self):
-        """select tasks specified by filter"""
-        selectedTaskgen = OrderedDict()
-        for f in self.filter:
-            if f in self.taskgen.iterkeys():
-                selectedTaskgen[f] = self.taskgen[f]
-            else:
-                raise InvalidCommand('"%s" is not a task.'%f)
-        return selectedTaskgen
 
     def _filter_tasks(self):
         """select tasks specified by filter"""
@@ -148,41 +162,13 @@ class Main(object):
                 raise InvalidCommand('"%s" is not a task.'%f)
         return selectedTaskgen
         
-    
-
-    def process1(self):
-        """ process it according to given parameters"""
-        # list
-        if self.list:
-            self._list_generators()
-            return Runner.SUCCESS
-
-        # if no filter is defined execute all tasks 
-        # in the order they were defined.
-        selectedTaskgen = None
-        if not self.filter:
-            selectedTaskgen = self.taskgen
-        # execute only tasks in the filter in the order specified by filter
-        else:
-            selectedTaskgen = self._filter_taskgen()
-
-        # create a Runner instance and ...
-        runner = Runner(self.dependencyFile, self.verbosity)
-
-        # tasks from every task generator.
-        for g in selectedTaskgen.itervalues():
-            for subtask in _get_tasks(g.name,g.ref()):
-                runner._addTask(subtask)
-
-        return runner.run()
 
 
     def process(self):
         """ process it according to given parameters"""
         # list
         if self.list:
-            #self._list_names(self.tasks.iterkeys())
-            self._list_generators()
+            self._list_tasks(bool(self.list==2))
             return Runner.SUCCESS
 
         # if no filter is defined execute all tasks 
@@ -201,6 +187,7 @@ class Main(object):
         for t in selectedTask.itervalues():
             if isinstance(t,list):
                 for ti in t:
+                    # dont add a task twice
                     if ti not in runner._tasks:
                         runner._addTask(self.tasks[ti])
             else:

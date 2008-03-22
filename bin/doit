@@ -9,7 +9,11 @@ from doit.main import Main
 
 usage = "usage: %prog [options] [tasks]"
 parser = OptionParser(usage)
-parser.add_option("-l","--list",action="store_true",dest="list",default=False,
+parser.add_option("-l","--list",action="store_const",const=1,dest="list",
+                  default=0,
+                  help="list tasks from task file [default: %default]")
+parser.add_option("--list-all",action="store_const",const=2,dest="list",
+                  default=0,
                   help="list tasks from task file [default: %default]")
 parser.add_option("-f","--file",dest="file",default="dodo.py",
                   help="load task from FILE [default: %default]")

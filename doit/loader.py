@@ -4,7 +4,12 @@ import inspect
 
 #TODO do i really need this?
 class _TaskGenerator(object):
-    """An instance of this class is a python function that return tasks"""
+    """
+    An instance of this class is a python function that return tasks
+    @ivar name {string}: function name
+    @ivar ref {function}: function reference
+    @ivar line {integer}: line number of the function on the source code
+    """
     def __init__(self,name,ref,line):
         self.name = name
         self.ref = ref

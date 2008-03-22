@@ -35,7 +35,10 @@
 - target parameter
 . task dependency 
 
-. list/filter subtask
+- list/filter subtask
+
+. target dependency
+. filter by target
 
 . force run
 
