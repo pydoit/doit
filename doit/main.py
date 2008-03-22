@@ -78,7 +78,7 @@ def _get_tasks(name,gen_result):
                 raise InvalidTask("Task %s must contain field name. %s"%
                                   (name,t))
             # name is task.subtask
-            t['name'] = "%s.%s"%(name,t.get('name'))
+            t['name'] = "%s:%s"%(name,t.get('name'))
             tasks.append(dict_to_task(t))
         return tasks
 

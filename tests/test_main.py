@@ -54,7 +54,7 @@ class TestGetTasks(object):
 
         tasks = _get_tasks("ls", ls())
         assert 3 == len(tasks)
-        assert "ls.1" == tasks[1].name
+        assert "ls:1" == tasks[1].name
 
     def testGeneratorDoesntReturnDict(self):
         def ls():
@@ -86,7 +86,7 @@ class TestGetTasks(object):
 
 TASKS = ['string','python','dictionary','dependency','generator','func_args']
 ALLTASKS = ['string','python','dictionary','dependency','generator',
-            'generator.test_runner.py','generator.test_util.py','func_args']
+            'generator:test_runner.py','generator:test_util.py','func_args']
 TESTDBM = "testdbm"
 
 class TestMain(object):
@@ -149,8 +149,8 @@ class TestMain(object):
                 "python => Python: function do_nothing",
                 "dictionary => Cmd: ls -1",
                 "dependency => Python: function do_nothing",
-                "generator.test_runner.py => Cmd: ls -l test_runner.py",
-                "generator.test_util.py => Cmd: ls -l test_util.py",
+                "generator:test_runner.py => Cmd: ls -l test_runner.py",
+                "generator:test_util.py => Cmd: ls -l test_util.py",
                 "func_args => Python: function funcX"] == \
                 sys.stdout.getvalue().split("\n")[:-1]
 
@@ -164,9 +164,9 @@ class TestMain(object):
                 sys.stdout.getvalue().split("\n")[:-1]
 
     def testFilterSubtask(self):
-        m = Main(self.fileName, TESTDBM,filter=["generator.test_util.py"])
+        m = Main(self.fileName, TESTDBM,filter=["generator:test_util.py"])
         m.process()
-        assert ["generator.test_util.py => Cmd: ls -l test_util.py",] == \
+        assert ["generator:test_util.py => Cmd: ls -l test_util.py",] == \
                 sys.stdout.getvalue().split("\n")[:-1]
         
     # filter a non-existent task raises an error
