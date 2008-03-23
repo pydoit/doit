@@ -160,3 +160,17 @@ class TestRunningTask(object):
         # only titles are printed.
         d = Dependency(TESTDBM)
         assert 2 == len(d._db)
+
+    def test_alwaysExecute(self):
+        runner = Runner(TESTDBM,1)
+        runner._addTask(CmdTask("taskX",["ls", "-1"],dependencies=[__file__]))
+        assert runner.SUCCESS == runner.run()
+        taskTitles = sys.stdout.getvalue().split('\n')
+        assert runner._tasks['taskX'].title() == taskTitles[0]
+        # again
+        sys.stdout = StringIO.StringIO()
+        runner2 = Runner(TESTDBM,1,True)
+        runner2._addTask(CmdTask("taskX",["ls", "-1"],dependencies=[__file__]))
+        assert runner2.SUCCESS == runner2.run()
+        taskTitles = sys.stdout.getvalue().split('\n')
+        assert runner2._tasks['taskX'].title() == taskTitles[0]

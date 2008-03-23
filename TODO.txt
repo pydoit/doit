@@ -40,16 +40,17 @@
 - target dependency
 - filter by target
 
-. force run
+- force run
 
 . nice output when task fail/error
-. default task
 . put code inside lib folder
 . style review
+. epydoc
 . release 
 
 ---
 
+. default task
 . helper python packages...
 . depedency scanner
 . multiple (include) dodo files

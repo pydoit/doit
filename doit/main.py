@@ -166,7 +166,7 @@ class Main(object):
     """
     
     def __init__(self, dodoFile, dependencyFile, 
-                 list=False, verbosity=0,filter=None):
+                 list=False, verbosity=0, alwaysExecute=False, filter=None):
         """
         @param dodoFile {string} path to file containing the tasks
         """
@@ -174,6 +174,7 @@ class Main(object):
         self.dependencyFile = dependencyFile
         self.list = list
         self.verbosity = verbosity
+        self.alwaysExecute = alwaysExecute
         self.filter = filter
         self.targets = {}
 
@@ -279,7 +280,7 @@ class Main(object):
             selectedTask = self._filter_tasks()
 
         # create a Runner instance and ...
-        runner = Runner(self.dependencyFile, self.verbosity)
+        runner = Runner(self.dependencyFile, self.verbosity, self.alwaysExecute)
 
         # add to runner tasks from every selected task
         for doitTask in selectedTask.itervalues():            

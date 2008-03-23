@@ -9,16 +9,19 @@ from doit.main import Main
 
 usage = "usage: %prog [options] [tasks]"
 parser = OptionParser(usage)
+parser.add_option("-f","--file",dest="file",default="dodo.py",
+                  help="load task from FILE [default: %default]")
+parser.add_option("-v","--verbosity",dest="verbosity",default=0,
+                  help="0 capture stdout/stderr from task. 1 capture stdout only. 2 dont capture anything. [default: %default]")
+parser.add_option("-a","--always-execute",action="store_true",
+                  dest="alwaysExecute", default=False,
+                  help="always execute tasks even if up-to-date [default: %default]")
 parser.add_option("-l","--list",action="store_const",const=1,dest="list",
                   default=0,
                   help="list tasks from task file [default: %default]")
 parser.add_option("--list-all",action="store_const",const=2,dest="list",
                   default=0,
                   help="list tasks from task file [default: %default]")
-parser.add_option("-f","--file",dest="file",default="dodo.py",
-                  help="load task from FILE [default: %default]")
-parser.add_option("-v","--verbosity",dest="verbosity",default=0,
-                  help="0 capture stdout/stderr from task. 1 capture stdout only. 2 dont capture anything. [default: %default]")
 
 (options,args) = parser.parse_args()
 
@@ -36,6 +39,7 @@ def main(fileName, **kargs):
     
 
 result = main(options.file, verbosity=options.verbosity, 
-              list=options.list, filter=args)
+              list=options.list, alwaysExecute=options.alwaysExecute, 
+              filter=args)
 
 sys.exit(result)

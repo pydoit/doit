@@ -12,7 +12,7 @@ class Runner(object):
     FAILURE = 1
     ERROR = 2
 
-    def __init__(self, dependencyFile, verbosity=1):
+    def __init__(self, dependencyFile, verbosity=1, alwaysExecute=False):
         """
         verbosity
         # 0 => print (stderr and stdout) from failed tasks
@@ -21,6 +21,7 @@ class Runner(object):
         """
         self.dependencyFile = dependencyFile
         self.verbosity = verbosity
+        self.alwaysExecute = alwaysExecute
         self._tasks = OrderedDict()
         
         BaseTask.CAPTURE_OUT = verbosity < 2
@@ -51,8 +52,9 @@ class Runner(object):
             logger.clear('stderr')
 
             try:                
-                if dependencyManager.up_to_date(task.name,task.dependencies,
-                                                task.targets):
+                if not self.alwaysExecute and \
+                        dependencyManager.up_to_date(task.name,
+                                       task.dependencies, task.targets):
                     if printTitle:
                         print "---", task.title()
                 else:
