@@ -33,18 +33,16 @@ class TestCreateTask(object):
 class TestGetTasks(object):
 
     def testDict(self):
-        tasks = _get_tasks("dict",{'action':'ls -a'})
-        assert 1 == len(tasks)
-        assert isinstance(tasks[0],CmdTask)
+        task,subtasks = _get_tasks("dict",{'action':'ls -a'})
+        assert isinstance(task,CmdTask)
 
     def testDictMissingFieldAction(self):
         nose.tools.assert_raises(InvalidTask,_get_tasks,
                                  "dict",{'acTion':'ls -a'})
 
     def testAction(self):
-        tasks = _get_tasks("dict",'ls -a')
-        assert 1 == len(tasks)
-        assert isinstance(tasks[0],CmdTask)
+        task,subtasks = _get_tasks("dict",'ls -a')
+        assert isinstance(task,CmdTask)
 
 
     def testGenerator(self):
@@ -52,9 +50,10 @@ class TestGetTasks(object):
             for i in range(3):
                 yield {'name':str(i), 'action' :"ls -%d"%i}
 
-        tasks = _get_tasks("ls", ls())
-        assert 3 == len(tasks)
-        assert "ls:1" == tasks[1].name
+        task,subtasks = _get_tasks("ls", ls())
+        assert None == task
+        assert 3 == len(subtasks)
+        assert "ls:1" == subtasks[1].name
 
     def testGeneratorDoesntReturnDict(self):
         def ls():

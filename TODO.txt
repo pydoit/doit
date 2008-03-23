@@ -52,6 +52,4 @@
 
 . task decorator
 . helper python packages...
-. run all regardless of failures
-
 . multiple (include) dodo files

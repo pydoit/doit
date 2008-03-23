@@ -57,13 +57,13 @@ def _get_tasks(name,gen_result):
     """
     @param name {string}: name of taskgen function
     @param gen_result: value returned by a task generator (dictionary/generator)
-    @return list tasks instances from a TaskGen result
+    @return task,list subtasks
     """
     # task described as a dictionary
     if isinstance(gen_result,dict):
         # FIXME name parameter can not be given
         gen_result['name'] = name
-        return [dict_to_task(gen_result)]
+        return dict_to_task(gen_result),[]
 
     # a generator
     if isgenerator(gen_result):
@@ -80,13 +80,32 @@ def _get_tasks(name,gen_result):
             # name is task.subtask
             t['name'] = "%s:%s"%(name,t.get('name'))
             tasks.append(dict_to_task(t))
-        return tasks
+        return None,tasks
 
     # if not a dictionary nor a generator. "task" is the action itself.
-    return [dict_to_task({'name':name,'action':gen_result})]
+    return dict_to_task({'name':name,'action':gen_result}),[]
 
 
+class DoitTask(object):
+    """ 
+    DoitTask helps in keeping track dependencies between tasks.
 
+    @ivar dependsOn {list of string}: note that dependencies here are tasks only
+                                      not files, as in BaseTask
+    @ivar task {BaseTask}: the task itself
+    @ivar state {choice}: 
+           UNUSED -> task not used 
+           ADDING -> adding dependencies (used to detect cyclic dependency).
+           ADDED -> task already added to runner.
+    """
+    UNUSED = 0
+    ADDING = 1
+    ADDED = 2
+
+    def __init__(self, task, dependsOn=[]):
+        self.task = task
+        self.dependsOn = dependsOn
+    
 
 class Main(object):
     """
@@ -103,8 +122,7 @@ class Main(object):
                                  Value: TaskGen instance
     
     @ivar tasks {OrderedDict}: Key: task name ([taskgen.]name)
-                               Value: sequence of dependent tasks
-                                      or a task instance
+                               Value: DoitTask instance
     """
     
     def __init__(self, dodoFile, dependencyFile, 
@@ -128,14 +146,14 @@ class Main(object):
         for g in dodo.getTaskGenerators():
             self.taskgen[g.name] = g
 
-        # get tasks
+        ## get tasks
         self.tasks = OrderedDict()
+        # for each task generator
         for g in self.taskgen.itervalues():
-            self.tasks[g.name] = []
-            for subtask in _get_tasks(g.name,g.ref()):
-                self.tasks[g.name].append(subtask.name)
-                self.tasks[subtask.name] = subtask
-
+            task, subtasks = _get_tasks(g.name,g.ref())
+            self.tasks[g.name] = DoitTask(task,[s.name for s in subtasks])
+            for s in subtasks:
+                self.tasks[s.name] = DoitTask(s)
 
     def _list_tasks(self, printSubtasks):
         """list task generators, in the order they were defined"""
@@ -144,10 +162,8 @@ class Main(object):
             print g
             # print subtasks  
             if printSubtasks:
-                taskDep = self.tasks[g]
-                if isinstance(taskDep,list):
-                    for t in taskDep:
-                        print t
+                for t in self.tasks[g].dependsOn:
+                    print t
 
         print "="*25,"\n"
 
@@ -184,15 +200,17 @@ class Main(object):
         runner = Runner(self.dependencyFile, self.verbosity)
 
         # tasks from every task generator.
-        for t in selectedTask.itervalues():
-            if isinstance(t,list):
-                for ti in t:
-                    # dont add a task twice
-                    if ti not in runner._tasks:
-                        runner._addTask(self.tasks[ti])
-            else:
-                if t.name not in runner._tasks:
-                    runner._addTask(t)
+        for name,t in selectedTask.iteritems():
+            # add dependencies
+            for ti in t.dependsOn:
+                # dont add a task twice
+                if ti not in runner._tasks:
+                    runner._addTask(self.tasks[ti].task)
+            
+            # add itself
+            if t.task:
+                if name not in runner._tasks:
+                    runner._addTask(t.task)
 
         return runner.run()
 
