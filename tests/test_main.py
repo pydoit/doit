@@ -35,6 +35,11 @@ class TestGetTasks(object):
         task,subtasks = DoitTask.get_tasks("dict",{'action':'ls -a'})
         assert isinstance(task,CmdTask)
 
+    # name field is only for subtasks.
+    def testInvalidNameField(self):
+        nose.tools.assert_raises(InvalidTask,DoitTask.get_tasks,"dict",
+                                 {'action':'ls -a','name':'bla bla'})
+
     def testDictMissingFieldAction(self):
         nose.tools.assert_raises(InvalidTask,DoitTask.get_tasks,
                                  "dict",{'acTion':'ls -a'})

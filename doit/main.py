@@ -52,7 +52,9 @@ class DoitTask(object):
         """
         # task described as a dictionary
         if isinstance(gen_result,dict):
-            # FIXME name parameter can not be given
+            if 'name' in gen_result:
+                raise InvalidTask("Task %s. Only subtasks use field name."%name)
+
             gen_result['name'] = name
             return cls._dict_to_task(gen_result),[]
 

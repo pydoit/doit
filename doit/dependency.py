@@ -8,7 +8,6 @@ class Dependency(object):
     Each dependency is a saved in dbm. where the key is taskId + dependency (abs file path), and the value is the dependency signature.
     """
 
-    #TODO lazy open DBM.
     def __init__(self, name, new=False):
         """open/create a DBM
         @param name string filepath of the DBM file
