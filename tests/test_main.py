@@ -4,8 +4,7 @@ import sys, StringIO
 import nose.tools
 
 from doit.task import InvalidTask, CmdTask, PythonTask
-from doit.main import _create_task, _get_tasks
-from doit.main import Main, InvalidCommand
+from doit.main import InvalidCommand, DoitTask, Main
 
 
 def dumb(): return
@@ -14,34 +13,34 @@ class TestCreateTask(object):
 
     # you can pass a cmd as a sequence
     def testStringTask(self):
-        task = _create_task("taskX","ls -1 -a")
+        task = DoitTask._create_task("taskX","ls -1 -a")
         assert isinstance(task, CmdTask)
 
     # you can pass a cmd as a string
     def testSequenceTask(self):
-        task = _create_task("taskX",('ls','-1', '-a'))
+        task = DoitTask._create_task("taskX",('ls','-1', '-a'))
         assert isinstance(task, CmdTask)
 
     def testPythonTask(self):
-        task = _create_task("taskX",dumb)
+        task = DoitTask._create_task("taskX",dumb)
         assert isinstance(task, PythonTask)
 
     def testInvalidTask(self):
-        nose.tools.assert_raises(InvalidTask,_create_task,"taskX",self)
+        nose.tools.assert_raises(InvalidTask,DoitTask._create_task,"taskX",self)
         
 
 class TestGetTasks(object):
 
     def testDict(self):
-        task,subtasks = _get_tasks("dict",{'action':'ls -a'})
+        task,subtasks = DoitTask.get_tasks("dict",{'action':'ls -a'})
         assert isinstance(task,CmdTask)
 
     def testDictMissingFieldAction(self):
-        nose.tools.assert_raises(InvalidTask,_get_tasks,
+        nose.tools.assert_raises(InvalidTask,DoitTask.get_tasks,
                                  "dict",{'acTion':'ls -a'})
 
     def testAction(self):
-        task,subtasks = _get_tasks("dict",'ls -a')
+        task,subtasks = DoitTask.get_tasks("dict",'ls -a')
         assert isinstance(task,CmdTask)
 
 
@@ -50,7 +49,7 @@ class TestGetTasks(object):
             for i in range(3):
                 yield {'name':str(i), 'action' :"ls -%d"%i}
 
-        task,subtasks = _get_tasks("ls", ls())
+        task,subtasks = DoitTask.get_tasks("ls", ls())
         assert None == task
         assert 3 == len(subtasks)
         assert "ls:1" == subtasks[1].name
@@ -60,25 +59,25 @@ class TestGetTasks(object):
             for i in range(3):
                 yield "ls -%d"%i
 
-        nose.tools.assert_raises(InvalidTask,_get_tasks,"ls", ls())
+        nose.tools.assert_raises(InvalidTask,DoitTask.get_tasks,"ls", ls())
 
     def testGeneratorDictMissingName(self):
         def ls():
             for i in range(3):
                 yield {'action' :"ls -%d"%i}
 
-        nose.tools.assert_raises(InvalidTask,_get_tasks,"ls", ls())
+        nose.tools.assert_raises(InvalidTask,DoitTask.get_tasks,"ls", ls())
 
     def testGeneratorDictMissingAction(self):
         def ls():
             for i in range(3):
                 yield {'name':str(i)}
 
-        nose.tools.assert_raises(InvalidTask,_get_tasks,"ls", ls())
+        nose.tools.assert_raises(InvalidTask,DoitTask.get_tasks,"ls", ls())
 
 
     def testDictFieldTypo(self):
-        nose.tools.assert_raises(InvalidTask,_get_tasks,
+        nose.tools.assert_raises(InvalidTask,DoitTask.get_tasks,
                                  "dict",{'action':'ls -a','target':['xxx']})
 
 ###################
