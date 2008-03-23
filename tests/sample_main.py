@@ -10,7 +10,8 @@ def task_python():
 
 
 def task_dictionary():
-    return {'action':'ls -1'}
+    return {'action':'ls -1',
+            'targets':['test_runner.py']}
 
 def task_dependency():
     return {'action':do_nothing,
@@ -34,3 +35,8 @@ def task_func_args():
 def task_taskdependency():
     return {'action':'ls',
             'dependencies':[":generator"]}
+
+def task_targetdependency():
+    return {'action':'ls',
+            'dependencies':['test_runner.py']}
+    

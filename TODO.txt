@@ -37,7 +37,7 @@
 
 - list/filter subtask
 
-. target dependency
+- target dependency
 . filter by target
 
 . force run
@@ -50,6 +50,6 @@
 
 ---
 
-. task decorator
 . helper python packages...
+. depedency scanner
 . multiple (include) dodo files

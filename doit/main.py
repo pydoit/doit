@@ -245,6 +245,26 @@ class Main(object):
                 doitTask.task.dependencies = depFiles                    
                         
 
+        # get target dependecies on other tasks based on file dependency on
+        # a target
+        # first create a dictionary containing all target=>DoitTask
+        targets = {}
+        for doitTask in self.tasks.itervalues():
+            if doitTask.task:
+                for target in doitTask.task.targets:
+                    targets[target] = doitTask
+        # now go through all dependencies and check if they are target from 
+        # another task
+        for doitTask in self.tasks.itervalues():
+            if doitTask.task:
+                for dep in doitTask.task.dependencies:
+                    if dep in targets and \
+                            targets[dep] not in doitTask.dependsOn:
+                        doitTask.dependsOn.append(targets[dep])
+                       
+
+        
+
         # if no filter is defined execute all tasks 
         # in the order they were defined.
         selectedTask = None

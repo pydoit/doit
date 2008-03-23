@@ -122,10 +122,10 @@ class TestAddToRunner(object):
 ###################
 
 TASKS = ['string','python','dictionary','dependency','generator','func_args',
-         'taskdependency']
+         'taskdependency','targetdependency']
 ALLTASKS = ['string','python','dictionary','dependency','generator',
             'generator:test_runner.py','generator:test_util.py','func_args',
-            'taskdependency']
+            'taskdependency','targetdependency']
 TESTDBM = "testdbm"
 
 class TestMain(object):
@@ -191,7 +191,8 @@ class TestMain(object):
                 "generator:test_runner.py => Cmd: ls -l test_runner.py",
                 "generator:test_util.py => Cmd: ls -l test_util.py",
                 "func_args => Python: function funcX",
-                "taskdependency => Cmd: ls"] == \
+                "taskdependency => Cmd: ls",
+                "targetdependency => Cmd: ls"] == \
                 sys.stdout.getvalue().split("\n")[:-1]
 
 
@@ -220,6 +221,14 @@ class TestMain(object):
         assert ["generator:test_runner.py => Cmd: ls -l test_runner.py",
                 "generator:test_util.py => Cmd: ls -l test_util.py",
                 "taskdependency => Cmd: ls"] == \
+                sys.stdout.getvalue().split("\n")[:-1]
+        
+        
+    def testTargetDependency(self):
+        m = Main(self.fileName, TESTDBM,filter=["targetdependency"])
+        m.process()
+        assert ["dictionary => Cmd: ls -1",
+                "targetdependency => Cmd: ls"] == \
                 sys.stdout.getvalue().split("\n")[:-1]
         
 
