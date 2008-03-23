@@ -1,5 +1,5 @@
 #! /bin/sh
 
-PYTHONPATH=`pwd`:$PYTHONPATH
+PYTHONPATH=`pwd`/lib:$PYTHONPATH
 export PYTHONPATH
 python bin/doit

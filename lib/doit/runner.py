@@ -56,10 +56,8 @@ class Runner(object):
                         dependencyManager.up_to_date(task.name,
                                        task.dependencies, task.targets):
                     if printTitle:
-                        print "---", task.title()
+                        print "---", 
                 else:
-                    if printTitle:
-                        print task.title()
                     task.execute()
                     dependencyManager.save_dependencies(task.name,
                                                         task.dependencies)
@@ -72,11 +70,14 @@ class Runner(object):
                 result = self.FAILURE
                 break
             # task error
-            except TaskError:
+            except:
                 logger.log("stdout", 'Task error\n')
                 result = self.ERROR
-                break                
-        
+                break              
+            finally:
+                if printTitle:
+                    print task.title()
+            
         ## done
         # flush update dependencies 
         dependencyManager.close()
@@ -88,7 +89,7 @@ class Runner(object):
         
         # always show traceback for whatever exception
         if result == self.ERROR:
-            title = "="*40,"\n"
+            title = "="*40 + "\n"
             sys.stderr.write(title)
             sys.stderr.write(traceback.format_exc())
         
