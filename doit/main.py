@@ -161,6 +161,8 @@ class Main(object):
     
     @ivar tasks {OrderedDict}: Key: task name ([taskgen.]name)
                                Value: DoitTask instance
+    @ivar targets {dict}: Key: fileName 
+                          Value: DoitTask instance
     """
     
     def __init__(self, dodoFile, dependencyFile, 
@@ -173,6 +175,7 @@ class Main(object):
         self.list = list
         self.verbosity = verbosity
         self.filter = filter
+        self.targets = {}
 
         ## load dodo file
         dodo = Loader(dodoFile)
@@ -218,8 +221,11 @@ class Main(object):
         for f in self.filter:
             if f in self.tasks.iterkeys():
                 selectedTaskgen[f] = self.tasks[f]
+            elif f in self.targets:
+                selectedTaskgen[f] = self.targets[f]
             else:
-                raise InvalidCommand('"%s" is not a task.'%f)
+                print self.targets
+                raise InvalidCommand('"%s" is not a task/target.'%f)
         return selectedTaskgen
         
 
@@ -235,36 +241,34 @@ class Main(object):
         # remove these entries from BaseTask instance and add them
         # as depends on on the DoitTask.
         for doitTask in self.tasks.itervalues():
-            if doitTask.task:
-                depFiles = []
-                for dep in doitTask.task.dependencies:
-                    if dep.startswith(':'):
-                        doitTask.dependsOn.append(self.tasks[dep[1:]])
-                    else:
-                        depFiles.append(dep)
-                doitTask.task.dependencies = depFiles                    
+            if not doitTask.task:
+                continue
+            depFiles = []
+            for dep in doitTask.task.dependencies:
+                if dep.startswith(':'):
+                    doitTask.dependsOn.append(self.tasks[dep[1:]])
+                else:
+                    depFiles.append(dep)
+            doitTask.task.dependencies = depFiles                    
                         
 
         # get target dependecies on other tasks based on file dependency on
         # a target
-        # first create a dictionary containing all target=>DoitTask
-        targets = {}
         for doitTask in self.tasks.itervalues():
-            if doitTask.task:
-                for target in doitTask.task.targets:
-                    targets[target] = doitTask
+            if not doitTask.task:
+                continue
+            for target in doitTask.task.targets:
+                self.targets[target] = doitTask
         # now go through all dependencies and check if they are target from 
         # another task
         for doitTask in self.tasks.itervalues():
-            if doitTask.task:
-                for dep in doitTask.task.dependencies:
-                    if dep in targets and \
-                            targets[dep] not in doitTask.dependsOn:
-                        doitTask.dependsOn.append(targets[dep])
+            if not doitTask.task:
+                continue
+            for dep in doitTask.task.dependencies:
+                if dep in self.targets and \
+                        self.targets[dep] not in doitTask.dependsOn:
+                    doitTask.dependsOn.append(self.targets[dep])
                        
-
-        
-
         # if no filter is defined execute all tasks 
         # in the order they were defined.
         selectedTask = None

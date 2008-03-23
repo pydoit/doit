@@ -38,7 +38,7 @@
 - list/filter subtask
 
 - target dependency
-. filter by target
+- filter by target
 
 . force run
 

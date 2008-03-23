@@ -209,6 +209,12 @@ class TestMain(object):
         m.process()
         assert ["generator:test_util.py => Cmd: ls -l test_util.py",] == \
                 sys.stdout.getvalue().split("\n")[:-1]
+
+    def testFilterTarget(self):
+        m = Main(self.fileName, TESTDBM,filter=["test_runner.py"])
+        m.process()
+        assert ["dictionary => Cmd: ls -1",] == \
+                sys.stdout.getvalue().split("\n")[:-1]        
         
     # filter a non-existent task raises an error
     def testFilterWrongName(self):
