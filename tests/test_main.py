@@ -121,9 +121,11 @@ class TestAddToRunner(object):
     
 ###################
 
-TASKS = ['string','python','dictionary','dependency','generator','func_args']
+TASKS = ['string','python','dictionary','dependency','generator','func_args',
+         'taskdependency']
 ALLTASKS = ['string','python','dictionary','dependency','generator',
-            'generator:test_runner.py','generator:test_util.py','func_args']
+            'generator:test_runner.py','generator:test_util.py','func_args',
+            'taskdependency']
 TESTDBM = "testdbm"
 
 class TestMain(object):
@@ -188,7 +190,8 @@ class TestMain(object):
                 "dependency => Python: function do_nothing",
                 "generator:test_runner.py => Cmd: ls -l test_runner.py",
                 "generator:test_util.py => Cmd: ls -l test_util.py",
-                "func_args => Python: function funcX"] == \
+                "func_args => Python: function funcX",
+                "taskdependency => Cmd: ls"] == \
                 sys.stdout.getvalue().split("\n")[:-1]
 
 
@@ -210,5 +213,14 @@ class TestMain(object):
     def testFilterWrongName(self):
         m = Main(self.fileName, TESTDBM,filter=["XdictooonaryX","string"])
         nose.tools.assert_raises(InvalidCommand,m.process)
+
+    def testTaskDependency(self):
+        m = Main(self.fileName, TESTDBM,filter=["taskdependency"])
+        m.process()
+        assert ["generator:test_runner.py => Cmd: ls -l test_runner.py",
+                "generator:test_util.py => Cmd: ls -l test_util.py",
+                "taskdependency => Cmd: ls"] == \
+                sys.stdout.getvalue().split("\n")[:-1]
+        
 
         

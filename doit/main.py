@@ -230,6 +230,21 @@ class Main(object):
             self._list_tasks(bool(self.list==2))
             return Runner.SUCCESS
 
+        # get tasks dependencies on other tasks
+        # task dependencies are prefixed with ":"
+        # remove these entries from BaseTask instance and add them
+        # as depends on on the DoitTask.
+        for doitTask in self.tasks.itervalues():
+            if doitTask.task:
+                depFiles = []
+                for dep in doitTask.task.dependencies:
+                    if dep.startswith(':'):
+                        doitTask.dependsOn.append(self.tasks[dep[1:]])
+                    else:
+                        depFiles.append(dep)
+                doitTask.task.dependencies = depFiles                    
+                        
+
         # if no filter is defined execute all tasks 
         # in the order they were defined.
         selectedTask = None

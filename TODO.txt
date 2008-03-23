@@ -33,7 +33,7 @@
 - show if a test was executed or up-to-date
 
 - target parameter
-. task dependency 
+- task dependency 
 
 - list/filter subtask
 

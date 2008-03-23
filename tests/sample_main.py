@@ -30,3 +30,7 @@ def funcX(par1,par2,par3):
 def task_func_args():
     return {'action':funcX, 
             'kwargs':{'par1':3,'par2':3,'par3':20}}
+
+def task_taskdependency():
+    return {'action':'ls',
+            'dependencies':[":generator"]}
