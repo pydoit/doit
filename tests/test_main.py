@@ -4,7 +4,7 @@ import sys, StringIO
 import nose.tools
 
 from doit.task import InvalidTask, CmdTask, PythonTask
-from doit.main import InvalidCommand, DoitTask, Main
+from doit.main import InvalidCommand, InvalidDodoFile, DoitTask, Main
 
 
 def dumb(): return
@@ -80,6 +80,45 @@ class TestGetTasks(object):
         nose.tools.assert_raises(InvalidTask,DoitTask.get_tasks,
                                  "dict",{'action':'ls -a','target':['xxx']})
 
+
+class TestAddToRunner(object):
+    
+    def setUp(self):
+        class MockRunner: 
+            taskCount = 0
+            def _addTask(self,task):self.taskCount += 1
+
+        self.runner = MockRunner()
+    
+    def testStatusSet(self):
+        baseTask = DoitTask._create_task("taskX","ls -1 -a")
+        doitTask = DoitTask(baseTask)
+        assert DoitTask.UNUSED == doitTask.status
+        doitTask.add_to(self.runner._addTask)
+        assert DoitTask.ADDED == doitTask.status
+
+    # same task is not added twice
+    def testAddJustOnce(self):
+        baseTask = DoitTask._create_task("taskX","ls -1 -a")
+        doitTask = DoitTask(baseTask)
+        assert 0 == self.runner.taskCount
+        doitTask.add_to(self.runner._addTask)
+        assert 1 == self.runner.taskCount
+        doitTask.add_to(self.runner._addTask)
+        assert 1 == self.runner.taskCount
+
+    def testDetectCyclicReference(self):
+        baseTask1 = DoitTask._create_task("taskX","ls -1 -a")
+        baseTask2 = DoitTask._create_task("taskX","ls -1 -a")
+        doitTask1 = DoitTask(baseTask1)
+        doitTask2 = DoitTask(baseTask2,[doitTask1])
+        doitTask1.dependsOn = [doitTask2]        
+        
+        nose.tools.assert_raises(InvalidDodoFile,doitTask1.add_to,
+                                 self.runner._addTask)
+
+        
+    
 ###################
 
 TASKS = ['string','python','dictionary','dependency','generator','func_args']

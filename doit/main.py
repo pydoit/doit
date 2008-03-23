@@ -11,15 +11,16 @@ from doit.runner import Runner
 
 
 class InvalidCommand(Exception):pass
+class InvalidDodoFile(Exception):pass
 
 class DoitTask(object):
     """ 
     DoitTask helps in keeping track dependencies between tasks.
 
-    @ivar dependsOn {list of string}: note that dependencies here are tasks only
-                                      not files, as in BaseTask
+    @ivar dependsOn {list of DoitTask}: note that dependencies here are tasks 
+                                        only not files, as in BaseTask
     @ivar task {BaseTask}: the task itself
-    @ivar state {choice}: 
+    @ivar status {choice}: 
            UNUSED -> task not used 
            ADDING -> adding dependencies (used to detect cyclic dependency).
            ADDED -> task already added to runner.
@@ -36,6 +37,11 @@ class DoitTask(object):
     def __init__(self, task, dependsOn=[]):
         self.task = task
         self.dependsOn = dependsOn
+        self.status = self.UNUSED
+
+    def __str__(self):
+        if self.task:
+            return self.task.name
     
     @classmethod
     def get_tasks(cls,name,gen_result):
@@ -112,7 +118,31 @@ class DoitTask(object):
                                   (name,action.__class__))
 
 
+    
+    def add_to(self,add_cb):        
+        """ add task to runner.
+        @parameter add_cb callable/callback: callable must receive one 
+                                             parameter (the task).
+        """
+        # check task was alaready added
+        if self.status == self.ADDED:
+            return
 
+        # detect cyclic/recursive dependencies
+        if self.status == self.ADDING:
+            raise InvalidDodoFile("Cyclic/recursive dependencies for task %s"%\
+                                  self)
+        self.status = self.ADDING
+
+        # add dependencies first
+        for dependency in self.dependsOn:
+            dependency.add_to(add_cb)
+            
+        # add itself
+        if self.task:
+            add_cb(self.task)
+
+        self.status = self.ADDED
 
 
 class Main(object):
@@ -149,7 +179,7 @@ class Main(object):
         # file specified on dodo file are relative to itself.
         os.chdir(dodo.dir_)
 
-        # get task generators
+        ## get task generators
         self.taskgen = OrderedDict()
         for g in dodo.getTaskGenerators():
             self.taskgen[g.name] = g
@@ -159,9 +189,15 @@ class Main(object):
         # for each task generator
         for g in self.taskgen.itervalues():
             task, subtasks = DoitTask.get_tasks(g.name,g.ref())
-            self.tasks[g.name] = DoitTask(task,[s.name for s in subtasks])
-            for s in subtasks:
-                self.tasks[s.name] = DoitTask(s)
+            subDoit = []
+            # create subtasks first
+            for s in subtasks:                
+                doitTask = DoitTask(s)
+                self.tasks[s.name] = doitTask
+                subDoit.append(doitTask)
+            # create task. depends on subtasks
+            self.tasks[g.name] = DoitTask(task,subDoit)
+
 
     def _list_tasks(self, printSubtasks):
         """list task generators, in the order they were defined"""
@@ -187,7 +223,6 @@ class Main(object):
         return selectedTaskgen
         
 
-
     def process(self):
         """ process it according to given parameters"""
         # list
@@ -207,18 +242,9 @@ class Main(object):
         # create a Runner instance and ...
         runner = Runner(self.dependencyFile, self.verbosity)
 
-        # tasks from every task generator.
-        for name,t in selectedTask.iteritems():
-            # add dependencies
-            for ti in t.dependsOn:
-                # dont add a task twice
-                if ti not in runner._tasks:
-                    runner._addTask(self.tasks[ti].task)
-            
-            # add itself
-            if t.task:
-                if name not in runner._tasks:
-                    runner._addTask(t.task)
+        # add to runner tasks from every selected task
+        for doitTask in selectedTask.itervalues():            
+            doitTask.add_to(runner._addTask)
 
         return runner.run()
 
