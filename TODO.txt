@@ -42,7 +42,7 @@
 
 - force run
 
-. nice output when task fail/error
+- nice output when task fail/error
 . put code inside lib folder
 . style review
 . epydoc

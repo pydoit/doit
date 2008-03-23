@@ -131,13 +131,14 @@ class TestRunningTask(object):
         assert runner._tasks['taskX'].title() == output[0], output
         # captured output is displayed
         assert "stdout here." == output[1]
-        assert "stderr here." ==  errput[0]
         # final failed message
         assert "Task error" == output[2], output
         # nothing more (but the empty string)
         assert 4 == len(output)
+        # stderr
+        assert "stderr here." ==  errput[0]
+        assert 'TaskError: I am the exception.' == errput[-3]
 
-        # FIXME stderr output
 
 
     # when successful dependencies are updated

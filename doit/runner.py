@@ -88,7 +88,8 @@ class Runner(object):
         
         # always show traceback for whatever exception
         if result == self.ERROR:
-            # FIXME. traceback for the original exception.
+            title = "="*40,"\n"
+            sys.stderr.write(title)
             sys.stderr.write(traceback.format_exc())
         
         return result
