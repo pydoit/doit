@@ -1,31 +1,41 @@
+"""Logger with channel support."""
+
 import StringIO
 
 class Logger(object):
-    """A very simple logger with channel support"""
+    """A simple logger with channels.
+    
+    @ivar channel: (dict) key: channel name. value: StringIO with logged 
+    messages.
+    """
 
     def __init__(self):
-        # key: channel name. value: StringIO with logged messages
+        """Init."""
         self.channel = {}
 
     def __del__(self):
-        # close StringIO's
+        """Close StringIO's."""
         for c in self.channel.itervalues():
             c.close()
 
     def log(self,channel,text):
-        """log text in channel"""
+        """Log text in channel.
 
+        If channel does not exist a new channel is created.
+        @param channel: (string) channel name.
+        @param text: (string) text to be logged.
+        """
         # create channel if new channel
         if channel not in self.channel:
             self.channel[channel] = StringIO.StringIO()
-        # write
         self.channel[channel].write(text)
 
 
     def clear(self,channel):
-        """clear all logged messages from channel
-
-        do nothing (raise nothing) if channel doesnt exist.
+        """Clear all logged messages from channel.
+        
+        Do nothing (raise nothing) if channel doesnt exist.
+        @param channel: (string) channel name.
         """
         if channel in self.channel:
             # delete and create a new one
@@ -36,21 +46,27 @@ class Logger(object):
     def flush(self,channel,stream):
         """write logged content from channel to 'stream' and clear log.
 
-        do nothing (raise nothing) if channel doesnt exist.
-        @param stream anything that implements a 'write' method"""
+        Do nothing (raise nothing) if channel doesnt exist.
+        @param channel: (string) channel name.
+        @param stream: anything that implements a 'write' method.
+        """
         if channel in self.channel:
             stream.write(self.channel[channel].getvalue())
             self.clear(channel)
 
-# default unamed logger 
+
+#: default unamed global logger
 _theLogger = Logger()
 
 # is this user friendly or stupid?
 def log(channel,text):
+    """L{Logger.log} shortcut for global logger."""
     _theLogger.log(channel,text)
 
 def clear(channel):
+    """L{Logger.clear} shortcut for global logger."""
     _theLogger.clear(channel)
 
 def flush(channel,stream):
+    """L{Logger.clear} shortcut for global logger."""
     _theLogger.flush(channel,stream)

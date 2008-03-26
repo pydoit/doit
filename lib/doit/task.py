@@ -1,30 +1,40 @@
+"""Task classes."""
+
 import subprocess, sys
 import StringIO
 
 from doit import logger
 
-class InvalidTask(Exception):pass
-class TaskFailed(Exception):pass
-class TaskError(Exception):pass
+
+class InvalidTask(Exception):
+    """Invalid task instance. It doesnt if try to execute."""
+    pass
+
+class TaskFailed(Exception):
+    """Task execution was not successful."""
+    pass
+
+class TaskError(Exception):
+    """Error while trying to execute task."""
+    pass
 
 # interface 
 class BaseTask(object):
     """Base class for all tasks objects
 
-    @cvar CAPTURE_OUT bool stdout from the task to be captured
-    @cvar CAPTURE_ERR bool stderr from the task to be captured
+    @cvar CAPTURE_OUT: (bool) stdout from the task to be captured
+    @cvar CAPTURE_ERR: (bool) stderr from the task to be captured
+    @ivar name string 
+    @ivar action see derived classes
+    @ivar dependencies list of absolute? file paths.
+    @ivar targets list of absolute? file paths.
     """
 
     CAPTURE_OUT = False
     CAPTURE_ERR = False
 
     def __init__(self,name,action,dependencies=[],targets=[]):
-        """
-        @param name string 
-        @param action see derived classes
-        @param dependencies list of absolute? file paths.
-        @param targets list of absolute? file paths.
-        """
+        """Init."""
         # dependencies parameter must be a list
         if not(isinstance(dependencies,list) or isinstance(dependencies,tuple)):
             raise InvalidTask("'dependencies' paramater must be a list or tuple got:'%s' => %s"%(str(dependencies),dependencies.__class__))
@@ -40,20 +50,29 @@ class BaseTask(object):
 
 
     def execute(self):
-        """raise a TaskFailed or TaskError in case task was not completed"""
+        """Executes the task.
+
+        @raise TaskFailed: 
+        @raise TaskError:
+        """
         raise InvalidTask("Not Implemented")
+
 
     def __str__(self):
         return str(self.action)
 
+
     def title(self):
-        """return a string representing the task title"""
+        """String representation on output.
+
+        return: (string)
+        """
         return "%s => %s"%(self.name,str(self))
 
 
 
 class CmdTask(BaseTask):
-    """Command line task. spawn new process."""
+    """Command line task. Spawns a new process."""
  
     def execute(self):
         # set Popen stream parameters
@@ -96,14 +115,15 @@ class CmdTask(BaseTask):
 
 
 class PythonTask(BaseTask):
-    """Python task. Execute a python callable"""
+    """Python task. Execute a python callable.
+
+    @ivar action: (callable) a python callable
+    @ivar args: (sequnce) arguments to be passed to the callable
+    @ivar kwargs: (dict) dict to be passed to the callable
+    """
 
     def __init__(self,name,action,dependencies=[],targets=[],args=[],kwargs={}):
-        """
-        @ivar action callable a python callable
-        @ivar args sequnce arguments to be passed to the callable
-        @ivar kwargs dict dict to be passed to the callable
-        """
+        """Init."""
         BaseTask.__init__(self,name,action,dependencies,targets)
         self.args = args
         self.kwargs = kwargs

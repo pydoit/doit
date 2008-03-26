@@ -1,3 +1,5 @@
+"""Task runner."""
+
 import sys, traceback
 
 from odict import OrderedDict
@@ -8,17 +10,27 @@ from doit.dependency import Dependency
 
 
 class Runner(object):
+    """Run tasks.
+
+    @cvar SUCCESS: execution result.
+    @cvar FAILURE: execution result.
+    @cvar ERROR: execution result.
+
+    @ivar dependencyFile: (string) file path of the dbm file.
+    @ivar verbosity:
+     - 0 => print (stderr and stdout) from failed tasks
+     - 1 => print stderr and (stdout from failed tasks)
+     - 2 => print stderr and stdout from all tasks
+    @ivar alwaysExecute: (bool) execute even if up-to-date
+    @ivar _tasks: (OrderedDictionary) tasks to be executed.
+    key:task name; value:L{BaseTask} instance
+    """
     SUCCESS = 0
     FAILURE = 1
     ERROR = 2
 
     def __init__(self, dependencyFile, verbosity=1, alwaysExecute=False):
-        """
-        verbosity
-        # 0 => print (stderr and stdout) from failed tasks
-        # 1 => print stderr and (stdout from failed tasks)
-        # 2 => print stderr and stdout from all tasks
-        """
+        """Init."""
         self.dependencyFile = dependencyFile
         self.verbosity = verbosity
         self.alwaysExecute = alwaysExecute
@@ -28,6 +40,11 @@ class Runner(object):
         BaseTask.CAPTURE_ERR = verbosity == 0
 
     def _addTask(self,task):
+        """Add a task to be run.
+
+        @param task: (L{BaseTask}) instance.
+        @raise InvalidTask: 
+        """
         # task must be a BaseTask
         if not isinstance(task,BaseTask):
             raise InvalidTask("Task must an instance of BaseTask class. %s"% 
@@ -40,9 +57,10 @@ class Runner(object):
         self._tasks[task.name] = task
 
     def run(self, printTitle=True):
+        """Execute all tasks.
+
+        @param printTitle: (bool) print task title
         """
-        @param dependencyFile string 
-        @param print_title bool print task title """
         dependencyManager = Dependency(self.dependencyFile)
         result = self.SUCCESS 
 

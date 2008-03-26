@@ -1,28 +1,39 @@
+"""Loads a python module and extracts its task generator functions.
+
+The python file is a called "dodo" file. (Equivalent of a makefile for make)
+"""
 import os
 import sys
 import inspect
 
 #TODO do i really need this?
 class _TaskGenerator(object):
-    """
-    An instance of this class is a python function that return tasks
-    @ivar name {string}: function name
-    @ivar ref {function}: function reference
-    @ivar line {integer}: line number of the function on the source code
+    """Reference and metadata of a python function that return tasks.
+
+    @ivar name: (string) function name
+    @ivar ref: (function) function reference
+    @ivar line: (integer) line number of the function on the source code
     """
     def __init__(self,name,ref,line):
+        """Constructor."""
         self.name = name
         self.ref = ref
         self.line = line
 
 
 class Loader(object):
-    """load tasks from a python module"""
+    """Load tasks from a python module.
+
+    @cvar taskString: (string) prefix used to identify python function that are
+    task generators in a dodo file.
+    """
     taskString = "task_"
 
     def __init__(self,fileName):
-        """@param fileName string path from cwd to module"""
+        """Import a python module.
 
+        @param fileName: (string) path from cwd to module
+        """
         self.dir_,file_ = os.path.split(os.path.abspath(fileName))
         # make sure dir is on sys.path so we can import it
         sys.path.insert(0,self.dir_)
@@ -30,7 +41,10 @@ class Loader(object):
         self.module = __import__(os.path.splitext(file_)[0])
 
     def getTaskGenerators(self):
-        """@return list of _TaskGenerator's define in the target module"""
+        """Get L{_TaskGenerator}'s define in the target module.
+
+        @return: list of L{_TaskGenerator}
+        """
         # a task generator function name starts with the string self.taskString
         funcs = []
         # get all functions defined in the module

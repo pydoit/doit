@@ -1,4 +1,4 @@
-"""the doit command line program"""
+"""DoIt command line program."""
 
 import os
 
@@ -10,22 +10,30 @@ from doit.loader import Loader
 from doit.runner import Runner
 
 
-class InvalidCommand(Exception):pass
-class InvalidDodoFile(Exception):pass
+class InvalidCommand(Exception):
+    """Invalid command line argument."""
+    pass
+
+class InvalidDodoFile(Exception):
+    """Invalid dodo file"""
+    pass
+
 
 class DoitTask(object):
     """ 
     DoitTask helps in keeping track dependencies between tasks.
 
-    @ivar dependsOn {list of DoitTask}: note that dependencies here are tasks 
-                                        only not files, as in BaseTask
-    @ivar task {BaseTask}: the task itself
-    @ivar status {choice}: 
-           UNUSED -> task not used 
-           ADDING -> adding dependencies (used to detect cyclic dependency).
-           ADDED -> task already added to runner.
+    @cvar TASK_ATTRS: sequence of know attributes(keys) of a task dict.
+    @cvar UNUSED: task not used.
+    @cvar ADDING: adding dependencies (used to detect cyclic dependency).
+    @cvar ADDED: task already added to runner.
+
+    @ivar dependsOn: (list of DoitTask) note that dependencies here are tasks 
+    only, not files as in BaseTask.
+    @ivar task: (L{BaseTask}) the task instance used by the L{Runner}.
+    @ivar status: (int) one of UNUSED, ADDING, ADDED
     """
-    # sequence of know attributes(keys) of a task dict.
+
     TASK_ATTRS = ('name','action','dependencies','targets','args','kwargs')
 
     UNUSED = 0
@@ -33,8 +41,12 @@ class DoitTask(object):
     ADDED = 2
 
 
-
     def __init__(self, task, dependsOn=[]):
+        """Init.
+
+        @param task: (L{BaseTask})
+        @param dependsOn: list of other L{DoitTask}
+        """
         self.task = task
         self.dependsOn = dependsOn
         self.status = self.UNUSED
@@ -45,10 +57,11 @@ class DoitTask(object):
     
     @classmethod
     def get_tasks(cls,name,gen_result):
-        """
-        @param name {string}: name of taskgen function
+        """Create tasks from a task generator.
+
+        @param name: (string) name of taskgen function
         @param gen_result: value returned by a task generator 
-        @return task,list subtasks
+        @return: (tuple) task,list of subtasks
         """
         # task described as a dictionary
         if isinstance(gen_result,dict):
@@ -78,10 +91,14 @@ class DoitTask(object):
         # if not a dictionary nor a generator. "task" is the action itself.
         return cls._dict_to_task({'name':name,'action':gen_result}),[]
 
+
     @classmethod
     def _dict_to_task(cls,task_dict):
-        """ return task instance from dictionary
-        check for errors in input dict and calls _create_task"""
+        """Create a task instance from dictionary.
+        
+        @param task_dict: (dict) task representation as a dict.
+        @raise L{InvalidTask}: 
+        """
         # user friendly. dont go ahead with invalid input.
         for key in task_dict.keys():
             if key not in cls.TASK_ATTRS:
@@ -104,7 +121,16 @@ class DoitTask(object):
 
     @staticmethod
     def _create_task(name,action,dependencies=[],targets=[],*args,**kwargs):
-        """ create a BaseTask acording to action type"""
+        """ create a BaseTask acording to action type
+
+        @param name: (string) task name
+        @param action: value dependes on the type of the task
+        @param dependencies: (list of strings) each item is a file path or
+        another task (prefixed with ':')
+        @param targets: (list of strings) items are file paths.
+        @param args: optional positional arguments for task.
+        @param kwargs: optional keyword arguments for task.
+        """
     
         # a list. execute as a cmd    
         if isinstance(action,list) or isinstance(action,tuple):
@@ -122,9 +148,10 @@ class DoitTask(object):
 
     
     def add_to(self,add_cb):        
-        """ add task to runner.
-        @parameter add_cb callable/callback: callable must receive one 
-                                             parameter (the task).
+        """Add task to runner.
+
+        @parameter add_cb: (callable/callback) callable must receive one 
+        parameter (the task). the callebale 
         """
         # check task was alaready added
         if self.status == self.ADDED:
@@ -148,29 +175,30 @@ class DoitTask(object):
 
 
 class Main(object):
-    """
-    runtime options:
-    ---------------
-    @ivar dependencyFile {string}: file path of the dbm file.
-    @ivar list {int}: 0 dont list, run
-                      1 list task generators (do not run if listing)
-                      2 list all tasks (do not run if listing)
-    @ivar verbosity {bool}: verbosity level. @see Runner
-    @ivar filter {sequence of strings}: selection of tasks to execute
+    """DoIt - load dodo file and execute tasks.
 
-    @ivar taskgen {OrderedDict}: Key: name of the function that generate tasks 
-                                 Value: TaskGen instance
+    @ivar dependencyFile: (string) file path of the dbm file.
+    @ivar verbosity: (bool) verbosity level. @see L{Runner}
+
+    @ivar list: (int) 0 dont list, run;
+                      1 list task generators (do not run if listing);
+                      2 list all tasks (do not run if listing);
+    @ivar filter: (sequence of strings) selection of tasks to execute
+
+    @ivar taskgen: (OrderedDict) Key: name of the function that generate tasks 
+                                 Value: L{_TaskGenerator} instance
     
-    @ivar tasks {OrderedDict}: Key: task name ([taskgen.]name)
-                               Value: DoitTask instance
-    @ivar targets {dict}: Key: fileName 
-                          Value: DoitTask instance
+    @ivar tasks: (OrderedDict) Key: task name ([taskgen.]name)
+                               Value: L{DoitTask} instance
+    @ivar targets: (dict) Key: fileName 
+                          Value: L{DoitTask} instance
     """
     
     def __init__(self, dodoFile, dependencyFile, 
                  list=False, verbosity=0, alwaysExecute=False, filter=None):
-        """
-        @param dodoFile {string} path to file containing the tasks
+        """Init.
+
+        @param dodoFile: (string) path to file containing the tasks
         """
         ## intialize cmd line options
         self.dependencyFile = dependencyFile
@@ -194,6 +222,7 @@ class Main(object):
         self.tasks = OrderedDict()
         # for each task generator
         for g in self.taskgen.itervalues():
+            #FIXME pass just g
             task, subtasks = DoitTask.get_tasks(g.name,g.ref())
             subDoit = []
             # create subtasks first
@@ -206,7 +235,10 @@ class Main(object):
 
 
     def _list_tasks(self, printSubtasks):
-        """list task generators, in the order they were defined"""
+        """List task generators, in the order they were defined.
+        
+        @param printSubtasks: (bool) print subtasks
+        """
         print "==== Tasks ===="
         for g in self.taskgen.iterkeys():
             print g
@@ -219,7 +251,7 @@ class Main(object):
 
 
     def _filter_tasks(self):
-        """select tasks specified by filter"""
+        """Select tasks specified by filter."""
         selectedTaskgen = OrderedDict()
         for f in self.filter:
             if f in self.tasks.iterkeys():
@@ -233,7 +265,7 @@ class Main(object):
         
 
     def process(self):
-        """ process it according to given parameters"""
+        """Execute tasks."""
         # list
         if self.list:
             self._list_tasks(bool(self.list==2))

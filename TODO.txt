@@ -45,7 +45,7 @@
 - nice output when task fail/error
 - put code inside lib folder
 . style review
-. epydoc
+- epydoc
 . release 
 
 ---
@@ -54,3 +54,4 @@
 . helper python packages...
 . depedency scanner
 . multiple (include) dodo files
+. color output on the terminal. 
