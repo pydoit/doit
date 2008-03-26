@@ -39,7 +39,7 @@ def main(fileName, **kargs):
     
 
 result = main(options.file, verbosity=options.verbosity, 
-              list=options.list, alwaysExecute=options.alwaysExecute, 
-              filter=args)
+              list_=options.list, alwaysExecute=options.alwaysExecute, 
+              filter_=args)
 
 sys.exit(result)

@@ -37,11 +37,14 @@ class BaseTask(object):
         """Init."""
         # dependencies parameter must be a list
         if not(isinstance(dependencies,list) or isinstance(dependencies,tuple)):
-            raise InvalidTask("'dependencies' paramater must be a list or tuple got:'%s' => %s"%(str(dependencies),dependencies.__class__))
+            raise InvalidTask("'dependencies' paramater must be a list or" +
+                              "tuple got:'%s' => %s"% 
+                              (str(dependencies),dependencies.__class__))
 
         # targets parameter must be a list
         if not(isinstance(targets,list) or isinstance(targets,tuple)):
-            raise InvalidTask("'targets' paramater must be a list or tuple got:'%s' => %s"%(str(targets),targets.__class__))
+            raise InvalidTask("'targets' paramater must be a list or tuple " +
+                             "got:'%s' => %s"% (str(targets),targets.__class__))
 
         self.name = name
         self.action = action
@@ -67,7 +70,7 @@ class BaseTask(object):
 
         return: (string)
         """
-        return "%s => %s"%(self.name,str(self))
+        return "%s => %s"% (self.name,str(self))
 
 
 
@@ -87,30 +90,30 @@ class CmdTask(BaseTask):
 
         # spawn task process
         try:
-            p = subprocess.Popen(self.action,stdout=stdout,
+            process = subprocess.Popen(self.action,stdout=stdout,
                                  stderr=stderr)
         # task error
-        except OSError, e:
+        except OSError, exception:
             raise TaskError("Error trying to execute the command: %s\n" % 
-                             " ".join(self.action) + "    error: %s" % e)
+                             " ".join(self.action) + "    error: %s"% exception)
 
         # log captured stream
-        out,err = p.communicate()
+        out,err = process.communicate()
         if out:
             logger.log('stdout',out)
         if err:
             logger.log('stderr',err)
 
         # task failure
-        if p.returncode != 0:
+        if process.returncode != 0:
             raise TaskFailed("")
 
             
     def __str__(self):
-        return "Cmd: %s"%" ".join(self.action)
+        return "Cmd: %s"% " ".join(self.action)
 
     def __repr__(self):
-        return "<CmdTask: %s - '%s'>"%(self.name," ".join(self.action))
+        return "<CmdTask: %s - '%s'>"% (self.name," ".join(self.action))
 
 
 
@@ -141,8 +144,8 @@ class PythonTask(BaseTask):
         # execute action / callable
         try:
             result = self.action(*self.args,**self.kwargs)
-        except Exception, e:
-            raise TaskError(e)
+        except Exception, exception:
+            raise TaskError(exception)
         finally:
             # restore std streams /log captured streams
             if self.CAPTURE_OUT:
@@ -161,7 +164,7 @@ class PythonTask(BaseTask):
                     
     def __str__(self):
         # get object description excluding runtime memory address
-        return "Python: %s"%str(self.action)[1:].split(' at ')[0]
+        return "Python: %s"% str(self.action)[1:].split(' at ')[0]
 
     def __repr__(self):
-        return "<PythonTask: %s - '%s'>"%(self.name,repr(self.action))
+        return "<PythonTask: %s - '%s'>"% (self.name,repr(self.action))

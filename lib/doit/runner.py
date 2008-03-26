@@ -5,7 +5,7 @@ import sys, traceback
 from odict import OrderedDict
 
 from doit import logger
-from doit.task import BaseTask, InvalidTask, TaskFailed, TaskError
+from doit.task import BaseTask, InvalidTask, TaskFailed
 from doit.dependency import Dependency
 
 
@@ -39,7 +39,7 @@ class Runner(object):
         BaseTask.CAPTURE_OUT = verbosity < 2
         BaseTask.CAPTURE_ERR = verbosity == 0
 
-    def addTask(self,task):
+    def add_task(self,task):
         """Add a task to be run.
 
         @param task: (L{BaseTask}) instance.

@@ -34,7 +34,8 @@ class Debugger(object):
         sys.stdout = sys.__stdout__
         sys.stderr = sys.__stderr__
         # start pdb
-        import pdb;pdb.set_trace()
+        import pdb
+        pdb.set_trace()
 
     def done(self):
         """Finish debugging. Restore std streams."""

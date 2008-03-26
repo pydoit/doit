@@ -91,7 +91,7 @@ class TestAddToRunner(object):
     def setUp(self):
         class MockRunner: 
             taskCount = 0
-            def addTask(self,task):self.taskCount += 1
+            def add_task(self,task):self.taskCount += 1
 
         self.runner = MockRunner()
     
@@ -99,7 +99,7 @@ class TestAddToRunner(object):
         baseTask = DoitTask._create_task("taskX","ls -1 -a")
         doitTask = DoitTask(baseTask)
         assert DoitTask.UNUSED == doitTask.status
-        doitTask.add_to(self.runner.addTask)
+        doitTask.add_to(self.runner.add_task)
         assert DoitTask.ADDED == doitTask.status
 
     # same task is not added twice
@@ -107,9 +107,9 @@ class TestAddToRunner(object):
         baseTask = DoitTask._create_task("taskX","ls -1 -a")
         doitTask = DoitTask(baseTask)
         assert 0 == self.runner.taskCount
-        doitTask.add_to(self.runner.addTask)
+        doitTask.add_to(self.runner.add_task)
         assert 1 == self.runner.taskCount
-        doitTask.add_to(self.runner.addTask)
+        doitTask.add_to(self.runner.add_task)
         assert 1 == self.runner.taskCount
 
     def testDetectCyclicReference(self):
@@ -120,7 +120,7 @@ class TestAddToRunner(object):
         doitTask1.dependsOn = [doitTask2]        
         
         nose.tools.assert_raises(InvalidDodoFile,doitTask1.add_to,
-                                 self.runner.addTask)
+                                 self.runner.add_task)
 
         
     
@@ -166,7 +166,7 @@ class TestMain(object):
     
     # test list_tasks is called 
     def testProcessListTasks(self):
-        m = Main(self.fileName, TESTDBM, list=1)
+        m = Main(self.fileName, TESTDBM, list_=1)
         self.listed = False
         def listgen(printSubtasks):
             if not printSubtasks:
@@ -176,7 +176,7 @@ class TestMain(object):
         assert self.listed
 
     def testProcessListAllTasks(self):
-        m = Main(self.fileName, TESTDBM, list=2)
+        m = Main(self.fileName, TESTDBM, list_=2)
         self.listed = False
         def listgen(printSubtasks):
             if printSubtasks:
@@ -203,31 +203,31 @@ class TestMain(object):
 
 
     def testFilter(self):
-        m = Main(self.fileName, TESTDBM,filter=["dictionary","string"])
+        m = Main(self.fileName, TESTDBM,filter_=["dictionary","string"])
         m.process()
         assert ["dictionary => Cmd: ls -1",
                 "string => Cmd: ls -a",] == \
                 sys.stdout.getvalue().split("\n")[:-1]
 
     def testFilterSubtask(self):
-        m = Main(self.fileName, TESTDBM,filter=["generator:test_util.py"])
+        m = Main(self.fileName, TESTDBM,filter_=["generator:test_util.py"])
         m.process()
         assert ["generator:test_util.py => Cmd: ls -l test_util.py",] == \
                 sys.stdout.getvalue().split("\n")[:-1]
 
     def testFilterTarget(self):
-        m = Main(self.fileName, TESTDBM,filter=["test_runner.py"])
+        m = Main(self.fileName, TESTDBM,filter_=["test_runner.py"])
         m.process()
         assert ["dictionary => Cmd: ls -1",] == \
                 sys.stdout.getvalue().split("\n")[:-1]        
         
     # filter a non-existent task raises an error
     def testFilterWrongName(self):
-        m = Main(self.fileName, TESTDBM,filter=["XdictooonaryX","string"])
+        m = Main(self.fileName, TESTDBM,filter_=["XdictooonaryX","string"])
         nose.tools.assert_raises(InvalidCommand,m.process)
 
     def testTaskDependency(self):
-        m = Main(self.fileName, TESTDBM,filter=["taskdependency"])
+        m = Main(self.fileName, TESTDBM,filter_=["taskdependency"])
         m.process()
         assert ["generator:test_runner.py => Cmd: ls -l test_runner.py",
                 "generator:test_util.py => Cmd: ls -l test_util.py",
@@ -236,7 +236,7 @@ class TestMain(object):
         
         
     def testTargetDependency(self):
-        m = Main(self.fileName, TESTDBM,filter=["targetdependency"])
+        m = Main(self.fileName, TESTDBM,filter_=["targetdependency"])
         m.process()
         assert ["dictionary => Cmd: ls -1",
                 "targetdependency => Cmd: ls"] == \

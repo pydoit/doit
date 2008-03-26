@@ -13,7 +13,7 @@ class TestLoader():
 
     def testGetTaskGenerators(self):
         loaded = Loader(self.fileName)
-        funcNames =  [f.name for f in loaded.getTaskGenerators()]
+        funcNames =  [f.name for f in loaded.get_task_generators()]
         expected = ["nose","checker"]
         assert expected == funcNames
 

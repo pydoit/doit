@@ -6,7 +6,6 @@ import os
 import sys
 import inspect
 
-#TODO do i really need this?
 class TaskGenerator(object):
     """Reference and metadata of a python function that return tasks.
 
@@ -40,7 +39,7 @@ class Loader(object):
         # get module containing the tasks
         self.module = __import__(os.path.splitext(file_)[0])
 
-    def getTaskGenerators(self):
+    def get_task_generators(self):
         """Get L{TaskGenerator}'s define in the target module.
 
         @return: list of L{TaskGenerator}

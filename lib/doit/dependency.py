@@ -67,8 +67,8 @@ class Dependency(object):
         @param taskId: (string)
         @param dependencies: (list of string)
         """
-        for d in dependencies:
-            self.save(taskId,d)
+        for dep in dependencies:
+            self.save(taskId,dep)
 
     def up_to_date(self, taskId, dependencies, targets):
         """Check if task is up to date.
@@ -82,13 +82,13 @@ class Dependency(object):
             return False
 
         # if target file is not there, task is not up to date
-        for t in targets:
-            if not os.path.exists(t):
+        for targ in targets:
+            if not os.path.exists(targ):
                 return False
 
         # check for dependencies 
-        for d in tuple(dependencies) + tuple(targets):
-            if self.modified(taskId,d):
+        for dep in tuple(dependencies) + tuple(targets):
+            if self.modified(taskId,dep):
                 return False
                 
         return True

@@ -74,18 +74,18 @@ class DoitTask(object):
         # a generator
         if isgenerator(gen_result):
             tasks = []
-            # the generator return subtasks.
-            for t in gen_result:
+            # the generator return subtasks as dictionaries .
+            for task_dict in gen_result:
                 # check valid input
-                if not isinstance(t,dict):
-                    raise InvalidTask("Task %s must yield dictionaries"%name)
+                if not isinstance(task_dict, dict):
+                    raise InvalidTask("Task %s must yield dictionaries"% name)
 
-                if 'name' not in t:
+                if 'name' not in task_dict:
                     raise InvalidTask("Task %s must contain field name. %s"%
-                                  (name,t))
+                                  (name,task_dict))
                 # name is task.subtask
-                t['name'] = "%s:%s"%(name,t.get('name'))
-                tasks.append(cls._dict_to_task(t))
+                task_dict['name'] = "%s:%s"% (name,task_dict.get('name'))
+                tasks.append(cls._dict_to_task(task_dict))
             return None,tasks
 
         # if not a dictionary nor a generator. "task" is the action itself.
@@ -195,17 +195,17 @@ class Main(object):
     """
     
     def __init__(self, dodoFile, dependencyFile, 
-                 list=False, verbosity=0, alwaysExecute=False, filter=None):
+                 list_=False, verbosity=0, alwaysExecute=False, filter_=None):
         """Init.
 
         @param dodoFile: (string) path to file containing the tasks
         """
         ## intialize cmd line options
         self.dependencyFile = dependencyFile
-        self.list = list
+        self.list = list_
         self.verbosity = verbosity
         self.alwaysExecute = alwaysExecute
-        self.filter = filter
+        self.filter = filter_
         self.targets = {}
 
         ## load dodo file
@@ -215,22 +215,22 @@ class Main(object):
 
         ## get task generators
         self.taskgen = OrderedDict()
-        for g in dodo.getTaskGenerators():
-            self.taskgen[g.name] = g
+        for gen in dodo.get_task_generators():
+            self.taskgen[gen.name] = gen
 
         ## get tasks
         self.tasks = OrderedDict()
         # for each task generator
-        for g in self.taskgen.itervalues():
-            task, subtasks = DoitTask.get_tasks(g.name,g.ref())
+        for gen in self.taskgen.itervalues():
+            task, subtasks = DoitTask.get_tasks(gen.name,gen.ref())
             subDoit = []
             # create subtasks first
-            for s in subtasks:                
-                doitTask = DoitTask(s)
-                self.tasks[s.name] = doitTask
+            for sub in subtasks:                
+                doitTask = DoitTask(sub)
+                self.tasks[sub.name] = doitTask
                 subDoit.append(doitTask)
             # create task. depends on subtasks
-            self.tasks[g.name] = DoitTask(task,subDoit)
+            self.tasks[gen.name] = DoitTask(task,subDoit)
 
 
     def _list_tasks(self, printSubtasks):
@@ -239,12 +239,11 @@ class Main(object):
         @param printSubtasks: (bool) print subtasks
         """
         print "==== Tasks ===="
-        for g in self.taskgen.iterkeys():
-            print g
-            # print subtasks  
+        for generator in self.taskgen.iterkeys():
+            print generator
             if printSubtasks:
-                for t in self.tasks[g].dependsOn:
-                    print t
+                for subtask in self.tasks[generator].dependsOn:
+                    print subtask
 
         print "="*25,"\n"
 
@@ -252,14 +251,14 @@ class Main(object):
     def _filter_tasks(self):
         """Select tasks specified by filter."""
         selectedTaskgen = OrderedDict()
-        for f in self.filter:
-            if f in self.tasks.iterkeys():
-                selectedTaskgen[f] = self.tasks[f]
-            elif f in self.targets:
-                selectedTaskgen[f] = self.targets[f]
+        for filter_ in self.filter:
+            if filter_ in self.tasks.iterkeys():
+                selectedTaskgen[filter_] = self.tasks[filter_]
+            elif filter_ in self.targets:
+                selectedTaskgen[filter_] = self.targets[filter_]
             else:
                 print self.targets
-                raise InvalidCommand('"%s" is not a task/target.'%f)
+                raise InvalidCommand('"%s" is not a task/target.'% filter_)
         return selectedTaskgen
         
 
@@ -317,7 +316,7 @@ class Main(object):
 
         # add to runner tasks from every selected task
         for doitTask in selectedTask.itervalues():            
-            doitTask.add_to(runner.addTask)
+            doitTask.add_to(runner.add_task)
 
         return runner.run()
 
