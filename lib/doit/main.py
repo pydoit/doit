@@ -186,7 +186,7 @@ class Main(object):
     @ivar filter: (sequence of strings) selection of tasks to execute
 
     @ivar taskgen: (OrderedDict) Key: name of the function that generate tasks 
-                                 Value: L{_TaskGenerator} instance
+                                 Value: L{TaskGenerator} instance
     
     @ivar tasks: (OrderedDict) Key: task name ([taskgen.]name)
                                Value: L{DoitTask} instance
@@ -222,7 +222,6 @@ class Main(object):
         self.tasks = OrderedDict()
         # for each task generator
         for g in self.taskgen.itervalues():
-            #FIXME pass just g
             task, subtasks = DoitTask.get_tasks(g.name,g.ref())
             subDoit = []
             # create subtasks first
@@ -318,7 +317,7 @@ class Main(object):
 
         # add to runner tasks from every selected task
         for doitTask in selectedTask.itervalues():            
-            doitTask.add_to(runner._addTask)
+            doitTask.add_to(runner.addTask)
 
         return runner.run()
 

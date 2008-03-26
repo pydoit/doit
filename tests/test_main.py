@@ -91,7 +91,7 @@ class TestAddToRunner(object):
     def setUp(self):
         class MockRunner: 
             taskCount = 0
-            def _addTask(self,task):self.taskCount += 1
+            def addTask(self,task):self.taskCount += 1
 
         self.runner = MockRunner()
     
@@ -99,7 +99,7 @@ class TestAddToRunner(object):
         baseTask = DoitTask._create_task("taskX","ls -1 -a")
         doitTask = DoitTask(baseTask)
         assert DoitTask.UNUSED == doitTask.status
-        doitTask.add_to(self.runner._addTask)
+        doitTask.add_to(self.runner.addTask)
         assert DoitTask.ADDED == doitTask.status
 
     # same task is not added twice
@@ -107,9 +107,9 @@ class TestAddToRunner(object):
         baseTask = DoitTask._create_task("taskX","ls -1 -a")
         doitTask = DoitTask(baseTask)
         assert 0 == self.runner.taskCount
-        doitTask.add_to(self.runner._addTask)
+        doitTask.add_to(self.runner.addTask)
         assert 1 == self.runner.taskCount
-        doitTask.add_to(self.runner._addTask)
+        doitTask.add_to(self.runner.addTask)
         assert 1 == self.runner.taskCount
 
     def testDetectCyclicReference(self):
@@ -120,7 +120,7 @@ class TestAddToRunner(object):
         doitTask1.dependsOn = [doitTask2]        
         
         nose.tools.assert_raises(InvalidDodoFile,doitTask1.add_to,
-                                 self.runner._addTask)
+                                 self.runner.addTask)
 
         
     

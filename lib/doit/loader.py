@@ -7,7 +7,7 @@ import sys
 import inspect
 
 #TODO do i really need this?
-class _TaskGenerator(object):
+class TaskGenerator(object):
     """Reference and metadata of a python function that return tasks.
 
     @ivar name: (string) function name
@@ -41,9 +41,9 @@ class Loader(object):
         self.module = __import__(os.path.splitext(file_)[0])
 
     def getTaskGenerators(self):
-        """Get L{_TaskGenerator}'s define in the target module.
+        """Get L{TaskGenerator}'s define in the target module.
 
-        @return: list of L{_TaskGenerator}
+        @return: list of L{TaskGenerator}
         """
         # a task generator function name starts with the string self.taskString
         funcs = []
@@ -56,7 +56,7 @@ class Loader(object):
             line = inspect.getsourcelines(ref)[1]
             # add to list task generator functions
             # remove "task_" from name
-            funcs.append(_TaskGenerator(name[5:],ref,line))
+            funcs.append(TaskGenerator(name[5:],ref,line))
         # sort by the order functions were defined (line number)
         funcs.sort(key=lambda obj:obj.line)
         return funcs

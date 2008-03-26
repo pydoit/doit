@@ -39,7 +39,7 @@ class Runner(object):
         BaseTask.CAPTURE_OUT = verbosity < 2
         BaseTask.CAPTURE_ERR = verbosity == 0
 
-    def _addTask(self,task):
+    def addTask(self,task):
         """Add a task to be run.
 
         @param task: (L{BaseTask}) instance.
