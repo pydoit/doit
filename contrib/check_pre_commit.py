@@ -1,4 +1,9 @@
-"""this is a plugin/hook for bazaar. just add this file to ~/.bazaar/plugins/"""
+"""this is a plugin/hook for bazaar. just add this file to ~/.bazaar/plugins/
+
+The MIT License
+Copyright (c) 2008 Eduardo Naufel Schettino
+see LICENSE 
+"""
 
 from bzrlib import branch
 
