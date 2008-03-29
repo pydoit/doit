@@ -44,8 +44,11 @@
 
 - nice output when task fail/error
 - put code inside lib folder
-. style review
+- style review
 - epydoc
+. distutils, EGG, easy_install?
+. tutorial + docs 
+. website
 . release 
 
 ---

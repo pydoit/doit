@@ -56,11 +56,9 @@ class Runner(object):
         # add
         self._tasks[task.name] = task
 
-    def run(self, printTitle=True):
-        """Execute all tasks.
+    def run(self):
+        """Execute all tasks."""
 
-        @param printTitle: (bool) print task title
-        """
         dependencyManager = Dependency(self.dependencyFile)
         result = self.SUCCESS 
 
@@ -69,34 +67,41 @@ class Runner(object):
             logger.clear('stdout')
             logger.clear('stderr')
 
-            try:                
-                if not self.alwaysExecute and \
-                        dependencyManager.up_to_date(task.name,
-                                       task.dependencies, task.targets):
-                    if printTitle:
-                        print "---", 
-                else:
+            # check if task is up-to-date
+            try:
+                task_uptodate = dependencyManager.up_to_date(task.name, 
+                                              task.dependencies, task.targets)
+            except:
+                print
+                print "ERROR checking dependencies for: %s"% task.title()
+                result = self.ERROR
+                break
+
+            # if task id up to date just print title
+            if not self.alwaysExecute and task_uptodate:
+                print "---", task.title()
+            else:
+                print task.title()
+                try:
                     task.execute()
+                # task failed
+                except TaskFailed:
+                    logger.log("stdout", 'Task failed\n')
+                    result = self.FAILURE
+                    break
+                # task error
+                except:
+                    logger.log("stdout", 'Task error\n')
+                    result = self.ERROR
+                    break              
+                # task success - save dependencies
+                else:
                     dependencyManager.save_dependencies(task.name,
                                                         task.dependencies)
-                    dependencyManager.save_dependencies(task.name,
-                                                        task.targets)
-
-            # task failed
-            except TaskFailed:
-                logger.log("stdout", 'Task failed\n')
-                result = self.FAILURE
-                break
-            # task error
-            except:
-                logger.log("stdout", 'Task error\n')
-                result = self.ERROR
-                break              
-            finally:
-                if printTitle:
-                    print task.title()
+                    dependencyManager.save_dependencies(task.name, task.targets)
+                
             
-        ## done
+        ## done 
         # flush update dependencies 
         dependencyManager.close()
 
@@ -105,10 +110,10 @@ class Runner(object):
             logger.flush('stdout',sys.stdout)
             logger.flush('stderr',sys.stderr)
         
-        # always show traceback for whatever exception
+        # in case of error show traceback from last exception
         if result == self.ERROR:
-            title = "="*40 + "\n"
-            sys.stderr.write(title)
+            line = "="*40 + "\n"
+            sys.stderr.write(line)
             sys.stderr.write(traceback.format_exc())
         
         return result

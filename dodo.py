@@ -2,6 +2,7 @@
 def task_nose():
     return "nosetests"
 
+
 pyFiles = ["lib/doit/__init__.py","lib/doit/runner.py","lib/doit/task.py",
            "lib/doit/main.py", "lib/doit/util.py", "lib/doit/dependency.py", 
            "lib/doit/loader.py", "lib/doit/logger.py",

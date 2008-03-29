@@ -79,6 +79,21 @@ class TestRunningTask(object):
         assert runner._tasks['taskX'].title() == taskTitles[0]
         assert runner._tasks['taskY'].title() == taskTitles[1], taskTitles
 
+    def test_successVerboseOutput(self):
+        def write_and_success():
+            sys.stdout.write("stdout here.\n")
+            return True
+
+        runner = Runner(TESTDBM,2)
+        runner.add_task(PythonTask("taskX",write_and_success))
+        assert runner.SUCCESS == runner.run()
+        output = sys.stdout.getvalue().split('\n')
+        assert runner._tasks['taskX'].title() == output[0], output
+        # captured output is displayed
+        assert "stdout here." == output[1], output
+        # nothing more (but the empty string)
+        assert 3 == len(output)
+
     # if task is up to date, it is displayed in a different way.
     def test_successUpToDate(self):
         runner = Runner(TESTDBM,1)
@@ -161,6 +176,18 @@ class TestRunningTask(object):
         # only titles are printed.
         d = Dependency(TESTDBM)
         assert 2 == len(d._db)
+
+
+    def test_errorDependency(self):
+        runner = Runner(TESTDBM,1)
+        runner.add_task(CmdTask("taskX",["ls", "-1"],["i_dont_exist.xxx"]))
+        assert runner.ERROR == runner.run()
+        # only titles are printed.
+        output = sys.stdout.getvalue().split('\n')
+        title = runner._tasks['taskX'].title()
+        assert "" == output[0], output
+        assert "ERROR checking dependencies for: %s"% title == output[1]
+
 
     def test_alwaysExecute(self):
         runner = Runner(TESTDBM,1)
