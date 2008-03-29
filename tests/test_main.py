@@ -16,11 +16,6 @@ class TestCreateTask(object):
         task = DoitTask._create_task("taskX","ls -1 -a")
         assert isinstance(task, CmdTask)
 
-    # you can pass a cmd as a string
-    def testSequenceTask(self):
-        task = DoitTask._create_task("taskX",('ls','-1', '-a'))
-        assert isinstance(task, CmdTask)
-
     def testPythonTask(self):
         task = DoitTask._create_task("taskX",dumb)
         assert isinstance(task, PythonTask)

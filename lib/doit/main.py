@@ -131,13 +131,9 @@ class DoitTask(object):
         @param args: optional positional arguments for task.
         @param kwargs: optional keyword arguments for task.
         """
-    
-        # a list. execute as a cmd    
-        if isinstance(action,list) or isinstance(action,tuple):
+        # a string.
+        if isinstance(action,str):
             return CmdTask(name,action,dependencies,targets)
-        # a string. split and execute as a cmd
-        elif isinstance(action,str):
-            return CmdTask(name,action.split(),dependencies,targets)
         # a callable.
         elif callable(action):
             return PythonTask(name,action,dependencies,targets,*args,**kwargs)

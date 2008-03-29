@@ -12,7 +12,7 @@ pyFiles = ["lib/doit/__init__.py","lib/doit/runner.py","lib/doit/task.py",
 
 def task_checker():
     for file in pyFiles:
-        yield {'action': ["pychecker",file], 
+        yield {'action': "pychecker %s"% file, 
                'name':file, 
                'dependencies':(file,)}
 

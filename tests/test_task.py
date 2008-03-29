@@ -44,7 +44,7 @@ class TestCmdTask(object):
 
     # if nothing is raised it is successful
     def test_success(self):
-        t = CmdTask("taskX",["ls","-1"])
+        t = CmdTask("taskX","ls -1")
         t.execute()
 
     def test_error(self):
@@ -52,15 +52,15 @@ class TestCmdTask(object):
         nose.tools.assert_raises(TaskError,t.execute)
 
     def test_failure(self):
-        t = CmdTask("taskX",["ls","I dont exist"])
+        t = CmdTask("taskX","ls I dont exist")
         nose.tools.assert_raises(TaskFailed,t.execute)
 
     def test_str(self):
-        t = CmdTask("taskX",["ls","-1"])
+        t = CmdTask("taskX","ls -1")
         assert "Cmd: ls -1" == str(t), str(t)
 
     def test_repr(self):
-        t = CmdTask("taskX",["ls","-1"])
+        t = CmdTask("taskX","ls -1")
         assert "<CmdTask: taskX - 'ls -1'>" == repr(t), repr(t)
 
 
@@ -138,7 +138,7 @@ class TestCmdVerbosityStderr(object):
     # Capture stderr
     def test_capture(self):
         BaseTask.CAPTURE_ERR = True
-        t = CmdTask("taskX",["ls","-2"])
+        t = CmdTask("taskX","ls -2")
         nose.tools.assert_raises(TaskFailed,t.execute)
         assert "" == sys.stderr.getvalue()
         logger.flush('stderr',sys.stderr)
@@ -151,7 +151,7 @@ class TestCmdVerbosityStderr(object):
     # the stream is sent straight to the parent process from doit.
     def test_noCapture(self):
         BaseTask.CAPTURE_ERR = False
-        t = CmdTask("taskX",["ls","-2"])
+        t = CmdTask("taskX","ls -2")
         nose.tools.assert_raises(TaskFailed,t.execute)
         assert "" == sys.stderr.getvalue(),sys.stderr.getvalue()
         logger.flush('stderr',sys.stderr)
@@ -173,7 +173,7 @@ class TestCmdVerbosityStdout(object):
     # Capture stdout
     def test_capture(self):
         BaseTask.CAPTURE_OUT = True
-        t = CmdTask("taskX",["echo","hi from stdout"])
+        t = CmdTask("taskX","echo hi from stdout")
         t.execute()
         assert "" == sys.stdout.getvalue()
         logger.flush('stdout',sys.stdout)
@@ -186,7 +186,7 @@ class TestCmdVerbosityStdout(object):
     # the stream is sent straight to the parent process from doit.
     def test_noCapture(self):
         BaseTask.CAPTURE_OUT = False
-        t = CmdTask("taskX",["echo","hi from stdout"])
+        t = CmdTask("taskX","echo hi from stdout")
         t.execute()
         assert "" == sys.stdout.getvalue(),sys.stdout.getvalue()
         logger.flush('stdout',sys.stdout)

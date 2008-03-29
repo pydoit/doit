@@ -77,6 +77,12 @@ class BaseTask(object):
 class CmdTask(BaseTask):
     """Command line task. Spawns a new process."""
  
+    def __init__(self,name,action,dependencies=[],targets=[]):
+        """Init."""
+        assert isinstance(action,str),\
+            "'action' from CmdTask must be a string."
+        BaseTask.__init__(self,name,action,dependencies,targets)
+
     def execute(self):
         # set Popen stream parameters
         if not self.CAPTURE_OUT:
@@ -91,7 +97,7 @@ class CmdTask(BaseTask):
         # spawn task process
         try:
             process = subprocess.Popen(self.action,stdout=stdout,
-                                 stderr=stderr)
+                                 stderr=stderr, shell=True)
         # task error
         except OSError, exception:
             raise TaskError("Error trying to execute the command: %s\n" % 
@@ -104,16 +110,22 @@ class CmdTask(BaseTask):
         if err:
             logger.log('stderr',err)
 
+        # task error - based on: 
+        # http://www.gnu.org/software/bash/manual/bashref.html#Exit-Status
+        # it doesnt make so much difference to return as Error or Failed anyway
+        if process.returncode > 125:
+            raise TaskError("")
+
         # task failure
         if process.returncode != 0:
             raise TaskFailed("")
 
             
     def __str__(self):
-        return "Cmd: %s"% " ".join(self.action)
+        return "Cmd: %s"% self.action
 
     def __repr__(self):
-        return "<CmdTask: %s - '%s'>"% (self.name," ".join(self.action))
+        return "<CmdTask: %s - '%s'>"% (self.name,self.action)
 
 
 
@@ -127,6 +139,7 @@ class PythonTask(BaseTask):
 
     def __init__(self,name,action,dependencies=[],targets=[],args=[],kwargs={}):
         """Init."""
+        assert callable(action),"'action' from PythonTask must be a 'callable'."
         BaseTask.__init__(self,name,action,dependencies,targets)
         self.args = args
         self.kwargs = kwargs
