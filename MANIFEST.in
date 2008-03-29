@@ -1,0 +1,18 @@
+include README
+include MANIFEST.in
+include LICENSE
+include TODO.txt
+include revision.txt
+
+include precommit
+include unicoverage
+include dodo.py
+include release.py
+include epydoc.config
+include .pycheckrc
+
+include contrib/*.py
+include doc/*.py doc/*.txt
+include lib/odict.py
+include tests/*.py tests/*.txt 
+include tests/data/target

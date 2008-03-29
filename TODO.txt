@@ -46,7 +46,7 @@
 - put code inside lib folder
 - style review
 - epydoc
-. distutils, EGG, easy_install?
+- distutils
 . tutorial + docs 
 . website
 . release 

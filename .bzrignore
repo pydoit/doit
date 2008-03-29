@@ -2,3 +2,6 @@
 .doit.dbm
 tests/data
 doc/html
+dist
+MANIFEST
+revision.txt
