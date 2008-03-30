@@ -270,8 +270,8 @@ class Main(object):
         # remove these entries from BaseTask instance and add them
         # as depends on on the DoitTask.
         for doitTask in self.tasks.itervalues():
-            if not doitTask.task:
-                continue
+            if not doitTask.task: 
+                continue # a task that just contain subtasks.
             depFiles = []
             for dep in doitTask.task.dependencies:
                 if dep.startswith(':'):
@@ -282,14 +282,16 @@ class Main(object):
                         
 
         # get target dependecies on other tasks based on file dependency on
-        # a target
+        # a target.
+        # 1) create a dictionary associating every target->task. where the task
+        # is would build that target.
         for doitTask in self.tasks.itervalues():
             if not doitTask.task:
                 continue
             for target in doitTask.task.targets:
                 self.targets[target] = doitTask
-        # now go through all dependencies and check if they are target from 
-        # another task
+        # 2) now go through all dependencies and check if they are target from 
+        # another task. 
         for doitTask in self.tasks.itervalues():
             if not doitTask.task:
                 continue

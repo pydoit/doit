@@ -1,4 +1,4 @@
-"""Manage (save/check) task dependency on files."""
+"""Manage (save/check) task dependency-on-files data."""
 
 import os
 import anydbm
