@@ -9,7 +9,7 @@ This document presents a general overview of how DoIt works. If you just want to
 Package modules
 ---------------     
 
-- init.py: (empty) make a package
+- __init__.py: (empty) make a package
 - `dependency.py <api/doit.dependency-module.html>`_: Manage (save/check) task dependency-on-files data.
 - `loader.py <api/doit.loader-module.html>`_: Loads a python module and extracts its task generator functions.
 - `logger.py <api/doit.logger-module.html>`_: Logger with channel support.

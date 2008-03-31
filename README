@@ -1,5 +1,9 @@
+================
+README
+================
 
 DoIt - A task execution tool (build-tool)
+=========================================
 
 DoIt is a build tool that focus not only on making/building things but on executing any kind of tasks in an efficient way. Designed to be easy to use and "get out of your way".
 
@@ -12,21 +16,28 @@ DoIt can be used to perform any task or build anything, though it doesn't suppor
 
 
 
+
 Dependencies:
--------------
+=============
 
-# odict.py
-# An Ordered Dictionary object
-# Copyright (C) 2005 Nicola Larosa, Michael Foord
-# E-mail: nico AT tekNico DOT net, fuzzyman AT voidspace DOT org DOT uk
+odict.py
+--------
 
-# This software is licensed under the terms of the BSD license.
-# http://www.voidspace.org.uk/python/license.shtml
-# Basically you're free to copy, modify, distribute and relicense it,
-# So long as you keep a copy of the license with it.
+::
 
-# Documentation at http://www.voidspace.org.uk/python/odict.html
-# For information about bugfixes, updates and support, please join the
-# Pythonutils mailing list:
-# http://groups.google.com/group/pythonutils/
-# Comments, suggestions and bug reports welcome.
+ # An Ordered Dictionary object
+ # Copyright (C) 2005 Nicola Larosa, Michael Foord
+ # E-mail: nico AT tekNico DOT net, fuzzyman AT voidspace DOT org DOT uk
+ 
+ # This software is licensed under the terms of the BSD license.
+ # http://www.voidspace.org.uk/python/license.shtml
+ # Basically you're free to copy, modify, distribute and relicense it,
+ # So long as you keep a copy of the license with it.
+ 
+ # Documentation at http://www.voidspace.org.uk/python/odict.html
+ # For information about bugfixes, updates and support, please join the
+ # Pythonutils mailing list:
+ # http://groups.google.com/group/pythonutils/
+ # Comments, suggestions and bug reports welcome.
+
+
