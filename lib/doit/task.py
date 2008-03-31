@@ -33,7 +33,7 @@ class BaseTask(object):
     CAPTURE_OUT = False
     CAPTURE_ERR = False
 
-    def __init__(self,name,action,dependencies=[],targets=[]):
+    def __init__(self,name,action,dependencies=(),targets=()):
         """Init."""
         # dependencies parameter must be a list
         if not(isinstance(dependencies,list) or isinstance(dependencies,tuple)):
@@ -77,7 +77,7 @@ class BaseTask(object):
 class CmdTask(BaseTask):
     """Command line task. Spawns a new process."""
  
-    def __init__(self,name,action,dependencies=[],targets=[]):
+    def __init__(self,name,action,dependencies=(),targets=()):
         """Init."""
         assert isinstance(action,str),\
             "'action' from CmdTask must be a string."
@@ -137,12 +137,19 @@ class PythonTask(BaseTask):
     @ivar kwargs: (dict) dict to be passed to the callable
     """
 
-    def __init__(self,name,action,dependencies=[],targets=[],args=[],kwargs={}):
+    def __init__(self,name,action,dependencies=(),targets=(),args=None,kwargs=None):
         """Init."""
         assert callable(action),"'action' from PythonTask must be a 'callable'."
         BaseTask.__init__(self,name,action,dependencies,targets)
-        self.args = args
-        self.kwargs = kwargs
+        if args is None:
+            self.args = []
+        else:
+            self.args = args
+
+        if kwargs is None:
+            self.kwargs = {}
+        else:
+            self.kwargs = kwargs
 
     def execute(self):
         # set std stream 

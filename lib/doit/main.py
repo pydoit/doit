@@ -41,7 +41,7 @@ class DoitTask(object):
     ADDED = 2
 
 
-    def __init__(self, task, dependsOn=[]):
+    def __init__(self, task, dependsOn):
         """Init.
 
         @param task: (L{BaseTask})
@@ -222,7 +222,7 @@ class Main(object):
             subDoit = []
             # create subtasks first
             for sub in subtasks:                
-                doitTask = DoitTask(sub)
+                doitTask = DoitTask(sub,[])
                 self.tasks[sub.name] = doitTask
                 subDoit.append(doitTask)
             # create task. depends on subtasks

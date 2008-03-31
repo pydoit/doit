@@ -92,7 +92,7 @@ class TestAddToRunner(object):
     
     def testStatusSet(self):
         baseTask = DoitTask._create_task("taskX","ls -1 -a")
-        doitTask = DoitTask(baseTask)
+        doitTask = DoitTask(baseTask,[])
         assert DoitTask.UNUSED == doitTask.status
         doitTask.add_to(self.runner.add_task)
         assert DoitTask.ADDED == doitTask.status
@@ -100,7 +100,7 @@ class TestAddToRunner(object):
     # same task is not added twice
     def testAddJustOnce(self):
         baseTask = DoitTask._create_task("taskX","ls -1 -a")
-        doitTask = DoitTask(baseTask)
+        doitTask = DoitTask(baseTask,[])
         assert 0 == self.runner.taskCount
         doitTask.add_to(self.runner.add_task)
         assert 1 == self.runner.taskCount
@@ -110,7 +110,7 @@ class TestAddToRunner(object):
     def testDetectCyclicReference(self):
         baseTask1 = DoitTask._create_task("taskX","ls -1 -a")
         baseTask2 = DoitTask._create_task("taskX","ls -1 -a")
-        doitTask1 = DoitTask(baseTask1)
+        doitTask1 = DoitTask(baseTask1,[])
         doitTask2 = DoitTask(baseTask2,[doitTask1])
         doitTask1.dependsOn = [doitTask2]        
         
