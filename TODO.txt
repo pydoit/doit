@@ -49,12 +49,12 @@
 - distutils
 . tutorial + docs 
 . website
-. one .doit for each file
 . FIX. dont hide the most important part of the traceback for python-task errors
 . release 
 
 ---
 
+. one .doit for each file
 . default task
 . support for depedency scanner
 . multiple (include) dodo files

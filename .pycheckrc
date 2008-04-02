@@ -57,7 +57,7 @@ onlyCheckInitForMembers = 0
 initDefinedInSubclass = 0
 
 # Baseclass.__init__() not called
-baseClassInitted = 1
+baseClassInitted = 0
 
 # Subclass needs to override methods that only throw exceptions
 abstractClasses = 1
@@ -102,7 +102,7 @@ varArgumentsUsed = 1
 ignoreSelfUnused = 0
 
 # check if overridden methods have the same signature
-checkOverridenMethods = 1
+checkOverridenMethods = 0
 
 # check if __special__ methods exist and have the correct signature
 checkSpecialMethods = 1

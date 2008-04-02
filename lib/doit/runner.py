@@ -2,9 +2,8 @@
 
 import sys, traceback
 
-from odict import OrderedDict
-
 from doit import logger
+from doit.util import OrderedDict
 from doit.task import BaseTask, InvalidTask, TaskFailed
 from doit.dependency import Dependency
 

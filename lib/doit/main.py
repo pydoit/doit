@@ -2,9 +2,7 @@
 
 import os
 
-from odict import OrderedDict
-
-from doit.util import isgenerator
+from doit.util import isgenerator, OrderedDict
 from doit.task import InvalidTask, CmdTask, PythonTask
 from doit.loader import Loader
 from doit.runner import Runner
