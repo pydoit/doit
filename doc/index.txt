@@ -1,0 +1,30 @@
+DoIt - A task execution tool (build-tool)
+=========================================
+
+DoIt is a build tool that focus not only on making/building things but on executing any kind of tasks in an efficient way. Designed to be easy to use and "get out of your way".
+
+DoIt like most build tools is used to execute tasks defined in a configuration file. Configuration files are python modules. The tasks can be python functions (or any callable) or an external shell script. DoIt automatically keeps track of declared dependencies executing only tasks that needs to be update (based on which dependencies have changed). 
+
+In DoIt, unlike most(all?) build-tools, a task doesn't need to define a target file to use the execute only if not up-to-date feature. This make DoIt specially suitable for running test suites.
+
+DoIt can be used to perform any task or build anything, though it doesn't support automatic dependency discovery for any language.
+
+Project Details
+===============
+
+ - Project management on `launchpad <https://launchpad.net/doit>`_
+ - `Discussion group <http://groups.google.co.in/group/python-doit>`_
+
+
+Hystory
+=======
+
+If you are wondering why the world needs another build tool, check this blog post. TODO
+
+DOCS
+====
+
+ - Tutorial
+ - Reference
+ - Examples
+ - Developer's doc

@@ -47,7 +47,7 @@
 - style review
 - epydoc
 - distutils
-. tutorial + docs 
+- tutorial + docs 
 . website
 . FIX. dont hide the most important part of the traceback for python-task errors
 . release 
