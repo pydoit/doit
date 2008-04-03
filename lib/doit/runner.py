@@ -57,8 +57,9 @@ class Runner(object):
 
     def run(self):
         """Execute all tasks."""
-
+        
         dependencyManager = Dependency(self.dependencyFile)
+        errorException = None
         result = self.SUCCESS 
 
         for task in self._tasks.itervalues():
@@ -89,9 +90,10 @@ class Runner(object):
                     result = self.FAILURE
                     break
                 # task error
-                except:
+                except Exception, exception:
                     logger.log("stdout", 'Task error\n')
                     result = self.ERROR
+                    errorException = exception
                     break              
                 # task success - save dependencies
                 else:
@@ -113,6 +115,9 @@ class Runner(object):
         if result == self.ERROR:
             line = "="*40 + "\n"
             sys.stderr.write(line)
-            sys.stderr.write(traceback.format_exc())
+            if errorException and hasattr(errorException, "originalException"):
+                sys.stderr.write("\n".join(errorException.originalException))
+            else:
+                sys.stderr.write(traceback.format_exc())
         
         return result

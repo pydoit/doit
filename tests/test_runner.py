@@ -152,7 +152,7 @@ class TestRunningTask(object):
         assert 4 == len(output)
         # stderr
         assert "stderr here." ==  errput[0]
-        assert 'TaskError: I am the exception.' == errput[-3]
+        assert 'Exception: I am the exception.' == errput[-3]
 
 
 

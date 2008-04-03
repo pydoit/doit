@@ -2,6 +2,7 @@
 
 import subprocess, sys
 import StringIO
+import traceback
 
 from doit import logger
 
@@ -95,13 +96,8 @@ class CmdTask(BaseTask):
             stderr = subprocess.PIPE
 
         # spawn task process
-        try:
-            process = subprocess.Popen(self.action,stdout=stdout,
+        process = subprocess.Popen(self.action,stdout=stdout,
                                  stderr=stderr, shell=True)
-        # task error
-        except OSError, exception:
-            raise TaskError("Error trying to execute the command: %s\n" % 
-                             " ".join(self.action) + "    error: %s"% exception)
 
         # log captured stream
         out,err = process.communicate()
@@ -165,7 +161,10 @@ class PythonTask(BaseTask):
         try:
             result = self.action(*self.args,**self.kwargs)
         except Exception, exception:
-            raise TaskError(exception)
+            error = TaskError(exception)
+            error.originalException = traceback.format_exception(\
+                exception.__class__, exception,sys.exc_info()[2])
+            raise error
         finally:
             # restore std streams /log captured streams
             if self.CAPTURE_OUT:

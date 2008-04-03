@@ -49,7 +49,7 @@
 - distutils
 - tutorial + docs 
 . website
-. FIX. dont hide the most important part of the traceback for python-task errors
+- dont hide the most important part of the traceback for python-task errors
 . release 
 
 ---
