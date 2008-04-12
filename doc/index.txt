@@ -16,10 +16,10 @@ Project Details
  - `Discussion group <http://groups.google.co.in/group/python-doit>`_
 
 
-Hystory
+History
 =======
 
-If you are wondering why the world needs another build tool, check this blog post. TODO
+If you are still wondering why the world needs yet another build tool, check this blog post. TODO
 
 DOCS
 ====
