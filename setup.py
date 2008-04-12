@@ -6,7 +6,7 @@ setup(name = 'doit',
       license= 'MIT',
       author = 'Eduardo Naufel Schettino',
       author_email = 'schettino72@gmail.com',
-      url = 'https://launchpad.net/doit',
+      url = 'http://python-doit.sourceforge.net/',
 
       packages = ['doit'],
       package_dir = {'':'lib'},

@@ -33,6 +33,20 @@ INSTALL
 ``pytohn setup.py install``
 
 
+DEPENDENCIES
+============
+
+There are no external dependencies to install and use DoIt.
+
+Tools required for developement:
+
+- nose * unit tests
+- epydoc * API doc generator
+- docutils * Restructured text
+- mako * html templates (website)
+- bazaar * VCS
+
+
 TESTS
 =====
 
@@ -43,7 +57,12 @@ TESTS
 DOCUMENTATION
 =============
 
-see "doc" folder
+``doc`` folder contains ReST documentation. They are the base for creating the website.
+To create it (after installing DoIt):
+
+``doit -f website.py``
+
+It includes epydoc generated API documentation.
 
 
 LICENSE
@@ -57,7 +76,7 @@ see LICENSE file
 OrderedDict
 -----------
 
-the source include the class OrderedDict from twisted.python.util. License details below.
+the source code include the class OrderedDict from twisted.python.util. License details below.
 
 ::
 

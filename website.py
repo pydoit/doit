@@ -1,5 +1,6 @@
 """dodo file create website html files"""
 
+import os
 import glob
 
 from docutils.core import publish_parts
@@ -47,6 +48,12 @@ def mako2html(bodyFile,htmlFile):
     return True
 
 
+def create_folder(path):
+    """Create folder given by "path" if it doesnt exist"""
+    if not os.path.exists(path):
+        os.mkdir(path)
+    return True
+
 
 ########## build site ####################
 
@@ -58,6 +65,12 @@ docFiles = [f[4:-4] for f in glob.glob('doc/*.txt')]
 
 baseTemplate = templatePath + "base.mako"
 
+def task_create_temp_folder():
+    buildFolder = tempPath
+    return {'action':create_folder,
+            'args': (buildFolder,)
+            }
+
 
 def task_rst():
     for rst in docFiles:                
@@ -66,7 +79,7 @@ def task_rst():
         yield {'action':rst2body,
                'name':source,
                'args':[source, target],
-               'dependencies':[source],
+               'dependencies':[":create_temp_folder",source],
                'targets':[target]}
 
 

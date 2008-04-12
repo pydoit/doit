@@ -1,8 +1,10 @@
 .coverage
 .doit.dbm
-tests/data
-doc/html
+tests/data/*
+doc/html/*.html
+doc/html/api/*
 dist
 MANIFEST
 revision.txt
 temp
+
