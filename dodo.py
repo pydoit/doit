@@ -1,15 +1,12 @@
 """dodo file. run pychecker and unittests."""
 
+import glob
+
+pyFiles = glob.glob("lib/doit/*.py") + glob.glob("tests/*.py")
+
 def task_nose():
-    return "nosetests"
-
-
-pyFiles = ["lib/doit/__init__.py","lib/doit/runner.py","lib/doit/task.py",
-           "lib/doit/main.py", "lib/doit/util.py", "lib/doit/dependency.py", 
-           "lib/doit/loader.py", "lib/doit/logger.py",
-           "tests/__init__.py", "tests/test_runner.py", "tests/test_task.py",
-           "tests/test_main.py","tests/test_util.py","tests/test_dependency.py",
-           "tests/test_loader.py", "tests/test_logger.py"]
+    return {'action':"nosetests",
+            'dependencies':pyFiles}
 
 def task_checker():
     for file in pyFiles:
