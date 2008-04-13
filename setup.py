@@ -12,7 +12,9 @@ setup(name = 'doit',
       package_dir = {'':'lib'},
       scripts = ['bin/doit'],
       
-      long_description = """DoIt is a build tool that focus not only on making/building things but on executing any kind of tasks in an efficient way. Designed to be easy to use and "get out of your way"."""
-
+      long_description = """
+        DoIt is a build tool that focus not only on making/building things but 
+        on executing any kind of tasks in an efficient way. Designed to be easy
+        to use and "get out of your way"."""
       )
 

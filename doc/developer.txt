@@ -1,7 +1,7 @@
 
-===============
-Inside Mr. DoIt
-===============
+==================================
+Inside Mr. DoIt (developer's doc)
+==================================
 
 This document presents a general overview of how DoIt works. If you just want to use DoIt, you better take a look at the tutorial_. 
 

@@ -1,4 +1,5 @@
-DoIt - A task execution tool (build-tool)
+=========================================
+About
 =========================================
 
 DoIt is a build tool that focus not only on making/building things but on executing any kind of tasks in an efficient way. Designed to be easy to use and "get out of your way".
@@ -11,9 +12,19 @@ DoIt can be used to perform any task or build anything, though it doesn't suppor
 
 Project Details
 ===============
+ 
+This is an open-source (`MIT license <http://>`_) written in python. Project management (bug tracker, feature requests and source code ) are available on `launchpad <https://launchpad.net/doit>`_. There is google `Discussion group <http://groups.google.co.in/group/python-doit>`_. This web site is hosted on http://sourceforge.net.
 
- - Project management on `launchpad <https://launchpad.net/doit>`_
- - `Discussion group <http://groups.google.co.in/group/python-doit>`_
+Installing
+==========
+
+Using easy_install::
+
+  easy_install doit
+
+or download the source and::
+
+  pytohn setup.py install
 
 
 History
@@ -21,10 +32,4 @@ History
 
 If you are still wondering why the world needs yet another build tool, check this blog post. TODO
 
-DOCS
-====
 
- - Tutorial
- - Reference
- - Examples
- - Developer's doc

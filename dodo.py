@@ -1,3 +1,4 @@
+"""dodo file. run pychecker and unittests."""
 
 def task_nose():
     return "nosetests"
@@ -19,5 +20,3 @@ def task_checker():
 
 
 
-# find usage of "private" members.
-#  grep -r "[^self]\._[^_]" *

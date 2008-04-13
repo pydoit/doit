@@ -129,9 +129,9 @@ Example 2 - Target + Dependency
 
 You might be thinking... Why should I define targets if the task itself can keep track of dependencies? There are two reasons to define targets.
 
-.# Even if the dependencies do not change but the target is modified the task is executed again. i.e. if you manually edit a file built by a DoIt task it will be rebuilt if you execute the task even the are no modifications on the dependencies.
+#. Even if the dependencies do not change but the target is modified the task is executed again. i.e. if you manually edit a file built by a DoIt task it will be rebuilt if you execute the task even the are no modifications on the dependencies.
 
-.# In case the target file is a dependency for another file it ensure tasks will be executed on the proper order. (By default tasks are executed in the order they were defined).
+#. In case the target file is a dependency for another file it ensure tasks will be executed on the proper order. (By default tasks are executed in the order they were defined).
 
 In the next example the task "count_lines" is used to create a file reporting the number of lines from "files.txt". "files.txt" is actually the target from another task.
 
@@ -149,6 +149,7 @@ In the next example the task "count_lines" is used to create a file reporting th
 
 
 ::
+
   .../tutorial$ doit -f counter.py
   ls => Cmd: ls -1 > files.txt
   count_lines => Cmd: wc -l files.txt > count.txt
@@ -275,12 +276,12 @@ Let's start from the end.
 Next Steps
 ----------
 
-Check the reference page for DoIt command line options and a summary of task dictionary fields.
+Check the `reference <reference.html>`_ page for DoIt command line options and a summary of task dictionary fields.
 
-There are also more examples. Including the one used to generate this website from ReSTructured text.
+There are also more `examples <examples.html>`_. Including the one used to generate this website from ReSTructured text.
 
-Then join our discussion forum and drop me a line about your experience using DoIt. I will set-up a recipes page with more examples. Contributions are welcome.
+Then join our `discussion forum <http://groups.google.co.in/group/python-doit>`_ and drop me a line about your experience using DoIt. I will set-up a recipes page with more examples. Contributions are welcome.
 
-Finally take a look at the developer's docs.
+Finally take a look at the developer's `docs <developer.html>`_.
 
 
