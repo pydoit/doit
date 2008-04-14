@@ -22,7 +22,7 @@ Using easy_install::
 
   easy_install doit
 
-or download the source and::
+or `download <http://pypi.python.org/pypi/doit>`_ the source and::
 
   pytohn setup.py install
 
@@ -30,6 +30,6 @@ or download the source and::
 History
 =======
 
-If you are still wondering why the world needs yet another build tool, check this blog post. TODO
+If you are still wondering why the world needs yet another build tool, check this blog `post <http://schettino72.wordpress.com/2008/04/14/doit-a-build-tool-tale/>`_.
 
 

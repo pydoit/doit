@@ -27,7 +27,7 @@
       <li><a href="https://launchpad.net/doit">dev (launchpad)</a></li>
       <li><a href="http://groups.google.co.in/group/python-doit">discussion group</a></li>
       <li><a href="http://schettino72.wordpress.com/tag/doit/">blog</a></li>
-      <li><a>pypi</a></li>
+      <li><a href="http://pypi.python.org/pypi/doit">pypi</a></li>
       <li><a href="http://sourceforge.net/projects/python-doit/">source forge</a></li>
       </ul>
       <p/><hr/><p/>
