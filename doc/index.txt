@@ -18,7 +18,7 @@ This is an open-source (`MIT license <http://opensource.org/licenses/mit-license
 Installing
 ==========
 
-Using easy_install::
+Using `easy_install <http://peak.telecommunity.com/DevCenter/EasyInstall>`_::
 
   easy_install doit
 

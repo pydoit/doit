@@ -52,9 +52,9 @@ Generators return python dictionaries to represent tasks. The task name is given
 
 There is only one required field: 'action'. This field describes the action executed by the task. It can be a reference to a python callable (Python-task) or a string - to be executed as a shell script (Cmd-task).
 
-It can optionally define 'dependencies'. A list of string, where each string is the file path from a dependent file (i.e. the task depends on this file to execute its action). A dependency can also be a task-dependency (i.e. another task that must be executed before this task). Task-dependency string is composed of the character ':' followed by the task name. So there are two types of task dependencies. "task-dependency" and "file-dependency". 
+It can optionally define 'dependencies'. A list of strings, where each string is the file path from a dependent file (i.e. the task depends on this file to execute its action). A dependency can also be a task-dependency (i.e. another task that must be executed before this task). Task-dependency string is composed of the character ':' followed by the task name. So there are two types of task dependencies. "task-dependency" and "file-dependency". 
 
-'targets' is also optional. A list of string, where each string is the file path from a target file (i.e. the task action will create/update this file).
+'targets' is also optional. A list of strings, where each string is the file path from a target file (i.e. the task action will create/update this file).
 
 See reference_ for a complete list of accepted fields. 
 

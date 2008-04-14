@@ -154,7 +154,7 @@ In the next example the task "count_lines" is used to create a file reporting th
   ls => Cmd: ls -1 > files.txt
   count_lines => Cmd: wc -l files.txt > count.txt
 
-Notice that "task_ls" executed before "task_count_line" even that it was defined after. Because its target is a dependency of "task_count_line".
+Notice that "task_ls" is executed before "task_count_line" even that it was defined after. Because its target is a dependency of "task_count_line".
 
 Also notice that even that "task_ls" is always executed (because it doesn't define any dependency). "task_count_lines" is executed only if "files.txt" is change.
 
@@ -177,9 +177,9 @@ To define a dependency on another task use the task name (whatever comes after `
 Subtasks
 --------
 
-Most of the time we want to apply the same task to several times in different contexts. 
+Most of the time we want to apply the same task several times in different contexts. 
 
-The task function can return a generator that yields dictionaries. Since each subtask must uniquely identified it requires an additional field ``name``. 
+The task function can return a generator that yields dictionaries. Since each subtask must be uniquely identified it requires an additional field ``name``. 
 
 Below an example on how to execute PyChecker for all files in a folder.
 
