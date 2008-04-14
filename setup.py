@@ -15,7 +15,7 @@ setup(name = 'doit',
                      'Operating System :: POSIX',
                      'Topic :: Software Development :: Build Tools',
                      'Topic :: Software Development :: Quality Assurance',
-                     ]
+                     ],
 
       packages = ['doit'],
       package_dir = {'':'lib'},
