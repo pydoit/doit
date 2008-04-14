@@ -36,6 +36,7 @@ div#content-main {
 div#side-bar {
   float: right;
   border-left: 1px solid #ddd;
+  margin-top: 2em;
   padding-left: 5px;
   font-size: 1.2em;
 }
@@ -51,7 +52,6 @@ div#side-bar ul{
   margin: 0;	     
   padding: 0;
 }
-
 
 div#footer {
   clear:both;
