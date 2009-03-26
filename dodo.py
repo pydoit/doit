@@ -13,7 +13,3 @@ def task_checker():
         yield {'action': "pychecker %s"% file, 
                'name':file, 
                'dependencies':(file,)}
-
-
-
-

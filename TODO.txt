@@ -1,60 +1,22 @@
-0.1
+0.2
 ---
 
-- bzr pre-commit hook
-- basic tasks (string, list of strings, callable)
-- self hosting (pychecker, nosetests)
+- remove tests dependency on unix cmds - (for windows)
+. easier group tasks (see email with prajwala)
+. directory dependency
+. use sphinx
+. python 2.4, 2.6
 
-- loader
 
-- capture output.
-     i am displaying the output only when not successful but nose and pychecker use stderror in a bad way...
+0.3
+---
 
-- option show output (all/error)
-- display running status
-
-- named tasks
-- option parser
-- task selection (just 1)
-- listing tasks
-
-- manage dependencies
-  - save 
-  - check
-
-- re-do only what is necessary
-
-- remove task signature. use id
-- test main
-- PythonTask arguments
-
-- do not buffer output when verbose
-- verbosity out of the core (at least logger)
-- show if a test was executed or up-to-date
-
-- target parameter
-- task dependency 
-
-- list/filter subtask
-
-- target dependency
-- filter by target
-
-- force run
-
-- nice output when task fail/error
-- put code inside lib folder
-- style review
-- epydoc
-- distutils
-- tutorial + docs 
-. website
-- dont hide the most important part of the traceback for python-task errors
-. release 
+. no dependency but execute once if not cleared
+. continue execution even if one task fails
 
 ---
 
-. one .doit for each file
+. one .doit for each dodo file
 . default task
 . support for depedency scanner
 . multiple (include) dodo files

@@ -6,5 +6,6 @@ def task_checker():
     pass
 
 def bad_seed():
-    xiiiiii = 5
+    pass
+
 

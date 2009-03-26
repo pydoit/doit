@@ -7,12 +7,15 @@ from doit import logger
 from doit.task import BaseTask, CmdTask, PythonTask
 from doit.task import InvalidTask, TaskError, TaskFailed
 
+#path to test folder
+TEST_PATH = os.path.abspath(__file__+'/../')
+
 class TestBaseTask(object):
 
     # dependency must be a sequence. give proper error message when anything 
     # else is used.
     def test_dependencyNotSequence(self):
-        filePath = os.path.abspath(__file__+"/../"+"data/dependency1")
+        filePath = os.path.abspath(TEST_PATH + "/data/dependency1")
         ff = open(filePath,"w")
         ff.write("part1")
         ff.close()
@@ -22,7 +25,7 @@ class TestBaseTask(object):
     # targets must be a sequence. give proper error message when anything 
     # else is used.
     def test_targetNotSequence(self):
-        filePath = os.path.abspath(__file__+"/../"+"data/dependency1")
+        filePath = os.path.abspath(TEST_PATH + "/data/dependency1")
         ff = open(filePath,"w")
         ff.write("part1")
         ff.close()
@@ -44,24 +47,25 @@ class TestCmdTask(object):
 
     # if nothing is raised it is successful
     def test_success(self):
-        t = CmdTask("taskX","ls -1")
+        t = CmdTask("taskX","python %s/sample_process.py"%TEST_PATH)
         t.execute()
 
     def test_error(self):
-        t = CmdTask("taskX","invalid_command asdf")
+        t = CmdTask("taskX","python %s/sample_process.py 1 2 3"%TEST_PATH)
         nose.tools.assert_raises(TaskError,t.execute)
 
     def test_failure(self):
-        t = CmdTask("taskX","ls I dont exist")
+        t = CmdTask("taskX","python %s/sample_process.py please fail"%TEST_PATH)
         nose.tools.assert_raises(TaskFailed,t.execute)
 
     def test_str(self):
-        t = CmdTask("taskX","ls -1")
-        assert "Cmd: ls -1" == str(t), str(t)
+        t = CmdTask("taskX","python %s/sample_process.py"%TEST_PATH)
+        assert "Cmd: python %s/sample_process.py"%TEST_PATH == str(t), str(t)
 
     def test_repr(self):
-        t = CmdTask("taskX","ls -1")
-        assert "<CmdTask: taskX - 'ls -1'>" == repr(t), repr(t)
+        t = CmdTask("taskX","python %s/sample_process.py"%TEST_PATH)
+        assert "<CmdTask: taskX - 'python %s/sample_process.py'>"%TEST_PATH \
+            == repr(t), repr(t)
 
 
 
@@ -138,11 +142,11 @@ class TestCmdVerbosityStderr(object):
     # Capture stderr
     def test_capture(self):
         BaseTask.CAPTURE_ERR = True
-        t = CmdTask("taskX","ls -2")
+        t = CmdTask("taskX","python %s/sample_process.py please fail"%TEST_PATH)
         nose.tools.assert_raises(TaskFailed,t.execute)
         assert "" == sys.stderr.getvalue()
         logger.flush('stderr',sys.stderr)
-        assert "ls: invalid option -- 2\nTry `ls --help' for more information.\n" == sys.stderr.getvalue(),sys.stderr.getvalue()
+        assert "err output on failure" == sys.stderr.getvalue(), repr(sys.stderr.getvalue())
 
         
     # Do not capture stderr 
@@ -151,11 +155,11 @@ class TestCmdVerbosityStderr(object):
     # the stream is sent straight to the parent process from doit.
     def test_noCapture(self):
         BaseTask.CAPTURE_ERR = False
-        t = CmdTask("taskX","ls -2")
+        t = CmdTask("taskX","python %s/sample_process.py please fail"%TEST_PATH)
         nose.tools.assert_raises(TaskFailed,t.execute)
-        assert "" == sys.stderr.getvalue(),sys.stderr.getvalue()
+        assert "" == sys.stderr.getvalue(),repr(sys.stderr.getvalue())
         logger.flush('stderr',sys.stderr)
-        assert "" == sys.stderr.getvalue(),sys.stderr.getvalue()
+        assert "" == sys.stderr.getvalue(),repr(sys.stderr.getvalue())
 
 
 
@@ -173,11 +177,11 @@ class TestCmdVerbosityStdout(object):
     # Capture stdout
     def test_capture(self):
         BaseTask.CAPTURE_OUT = True
-        t = CmdTask("taskX","echo hi from stdout")
+        t = CmdTask("taskX","python %s/sample_process.py hi_stdout hi2"%TEST_PATH)
         t.execute()
         assert "" == sys.stdout.getvalue()
         logger.flush('stdout',sys.stdout)
-        assert "hi from stdout\n" == sys.stdout.getvalue(),sys.stdout.getvalue()
+        assert "hi_stdout" == sys.stdout.getvalue(),repr(sys.stdout.getvalue())
 
         
     # Do not capture stdout 
@@ -186,11 +190,11 @@ class TestCmdVerbosityStdout(object):
     # the stream is sent straight to the parent process from doit.
     def test_noCapture(self):
         BaseTask.CAPTURE_OUT = False
-        t = CmdTask("taskX","echo hi from stdout")
+        t = CmdTask("taskX","python %s/sample_process.py hi_stdout hi2"%TEST_PATH)
         t.execute()
-        assert "" == sys.stdout.getvalue(),sys.stdout.getvalue()
+        assert "" == sys.stdout.getvalue(),repr(sys.stdout.getvalue())
         logger.flush('stdout',sys.stdout)
-        assert "" == sys.stdout.getvalue(),sys.stdout.getvalue()
+        assert "" == sys.stdout.getvalue(),repr(sys.stdout.getvalue())
 
 
 
@@ -228,7 +232,7 @@ class TestPythonVerbosityStderr(object):
         t.execute()
         assert "" == sys.stderr.getvalue()
         logger.flush('stderr',sys.stderr)
-        assert "this is stderr S\n" == sys.stderr.getvalue()
+        assert "this is stderr S\n" == sys.stderr.getvalue(), repr(sys.stderr.getvalue())
 
     # failure 
     def test_captureFail(self):
@@ -237,7 +241,7 @@ class TestPythonVerbosityStderr(object):
         nose.tools.assert_raises(TaskFailed,t.execute)
         assert "" == sys.stderr.getvalue()
         logger.flush('stderr',sys.stderr)
-        assert "this is stderr F\n" == sys.stderr.getvalue()
+        assert "this is stderr F\n" == sys.stderr.getvalue(), repr(sys.stderr.getvalue())
 
     # error 
     def test_captureError(self):
@@ -246,7 +250,7 @@ class TestPythonVerbosityStderr(object):
         nose.tools.assert_raises(TaskError,t.execute)
         assert "" == sys.stderr.getvalue()
         logger.flush('stderr',sys.stderr)
-        assert "this is stderr E\n" == sys.stderr.getvalue()
+        assert "this is stderr E\n" == sys.stderr.getvalue(), repr(sys.stderr.getvalue())
         
     ##### Do not capture stderr 
     #
@@ -255,21 +259,21 @@ class TestPythonVerbosityStderr(object):
         BaseTask.CAPTURE_ERR = False
         t = PythonTask("taskX",self.write_and_success)
         t.execute()
-        assert "this is stderr S\n" == sys.stderr.getvalue()
+        assert "this is stderr S\n" == sys.stderr.getvalue(), repr(sys.stderr.getvalue())
 
     # failure
     def test_noCaptureFail(self):
         BaseTask.CAPTURE_ERR = False
         t = PythonTask("taskX",self.write_and_fail)
         nose.tools.assert_raises(TaskFailed,t.execute)
-        assert "this is stderr F\n" == sys.stderr.getvalue()
+        assert "this is stderr F\n" == sys.stderr.getvalue(), repr(sys.stderr.getvalue())
 
     # error
     def test_noCaptureError(self):
         BaseTask.CAPTURE_ERR = False
         t = PythonTask("taskX",self.write_and_error)
         nose.tools.assert_raises(TaskError,t.execute)
-        assert "this is stderr E\n" == sys.stderr.getvalue()
+        assert "this is stderr E\n" == sys.stderr.getvalue(), repr(sys.stderr.getvalue())
 
 
 class TestPythonVerbosityStdout(object):
@@ -304,7 +308,7 @@ class TestPythonVerbosityStdout(object):
         t.execute()
         assert "" == sys.stdout.getvalue()
         logger.flush('stdout',sys.stdout)
-        assert "this is stdout S\n" == sys.stdout.getvalue()
+        assert "this is stdout S\n" == sys.stdout.getvalue(), repr(sys.stdout.getvalue())
 
     # failure 
     def test_captureFail(self):
@@ -313,7 +317,7 @@ class TestPythonVerbosityStdout(object):
         nose.tools.assert_raises(TaskFailed,t.execute)
         assert "" == sys.stdout.getvalue()
         logger.flush('stdout',sys.stdout)
-        assert "this is stdout F\n" == sys.stdout.getvalue()
+        assert "this is stdout F\n" == sys.stdout.getvalue(), repr(sys.stdout.getvalue())
 
     # error 
     def test_captureError(self):
@@ -322,7 +326,7 @@ class TestPythonVerbosityStdout(object):
         nose.tools.assert_raises(TaskError,t.execute)
         assert "" == sys.stdout.getvalue()
         logger.flush('stdout',sys.stdout)
-        assert "this is stdout E\n" == sys.stdout.getvalue()
+        assert "this is stdout E\n" == sys.stdout.getvalue(), repr(sys.stdout.getvalue())
         
     ##### Do not capture stdout 
     #
@@ -331,18 +335,18 @@ class TestPythonVerbosityStdout(object):
         BaseTask.CAPTURE_OUT = False
         t = PythonTask("taskX",self.write_and_success)
         t.execute()
-        assert "this is stdout S\n" == sys.stdout.getvalue()
+        assert "this is stdout S\n" == sys.stdout.getvalue(), repr(sys.stdout.getvalue())
 
     # failure
     def test_noCaptureFail(self):
         BaseTask.CAPTURE_OUT = False
         t = PythonTask("taskX",self.write_and_fail)
         nose.tools.assert_raises(TaskFailed,t.execute)
-        assert "this is stdout F\n" == sys.stdout.getvalue()
+        assert "this is stdout F\n" == sys.stdout.getvalue(), repr(sys.stdout.getvalue())
 
     # error
     def test_noCaptureError(self):
         BaseTask.CAPTURE_OUT = False
         t = PythonTask("taskX",self.write_and_error)
         nose.tools.assert_raises(TaskError,t.execute)
-        assert "this is stdout E\n" == sys.stdout.getvalue()
+        assert "this is stdout E\n" == sys.stdout.getvalue(), repr(sys.stdout.getvalue())

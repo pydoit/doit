@@ -13,7 +13,7 @@ class TestCreateTask(object):
 
     # you can pass a cmd as a sequence
     def testStringTask(self):
-        task = DoitTask._create_task("taskX","ls -1 -a")
+        task = DoitTask._create_task("taskX","xpto 14 7")
         assert isinstance(task, CmdTask)
 
     def testPythonTask(self):
@@ -27,58 +27,54 @@ class TestCreateTask(object):
 class TestGetTasks(object):
 
     def testDict(self):
-        task,subtasks = DoitTask.get_tasks("dict",{'action':'ls -a'})
+        task,subtasks = DoitTask.get_tasks("dict",{'action':'xpto 14'})
         assert isinstance(task,CmdTask)
 
     # name field is only for subtasks.
     def testInvalidNameField(self):
         nose.tools.assert_raises(InvalidTask,DoitTask.get_tasks,"dict",
-                                 {'action':'ls -a','name':'bla bla'})
+                                 {'action':'xpto 14','name':'bla bla'})
 
     def testDictMissingFieldAction(self):
         nose.tools.assert_raises(InvalidTask,DoitTask.get_tasks,
-                                 "dict",{'acTion':'ls -a'})
+                                 "dict",{'acTion':'xpto 14'})
 
     def testAction(self):
-        task,subtasks = DoitTask.get_tasks("dict",'ls -a')
+        task,subtasks = DoitTask.get_tasks("dict",'xpto 14')
         assert isinstance(task,CmdTask)
 
 
     def testGenerator(self):
-        def ls():
+        def f_xpto():
             for i in range(3):
-                yield {'name':str(i), 'action' :"ls -%d"%i}
-
-        task,subtasks = DoitTask.get_tasks("ls", ls())
+                yield {'name':str(i), 'action' :"xpto -%d"%i}
+        task,subtasks = DoitTask.get_tasks("xpto", f_xpto())
         assert None == task
         assert 3 == len(subtasks)
-        assert "ls:1" == subtasks[1].name
+        assert "xpto:1" == subtasks[1].name
 
     def testGeneratorDoesntReturnDict(self):
-        def ls():
+        def f_xpto():
             for i in range(3):
-                yield "ls -%d"%i
-
-        nose.tools.assert_raises(InvalidTask,DoitTask.get_tasks,"ls", ls())
+                yield "xpto -%d"%i
+        nose.tools.assert_raises(InvalidTask,DoitTask.get_tasks,"xpto", f_xpto())
 
     def testGeneratorDictMissingName(self):
-        def ls():
+        def f_xpto():
             for i in range(3):
-                yield {'action' :"ls -%d"%i}
-
-        nose.tools.assert_raises(InvalidTask,DoitTask.get_tasks,"ls", ls())
+                yield {'action' :"xpto -%d"%i}
+        nose.tools.assert_raises(InvalidTask,DoitTask.get_tasks,"xpto", f_xpto())
 
     def testGeneratorDictMissingAction(self):
-        def ls():
+        def f_xpto():
             for i in range(3):
                 yield {'name':str(i)}
-
-        nose.tools.assert_raises(InvalidTask,DoitTask.get_tasks,"ls", ls())
+        nose.tools.assert_raises(InvalidTask,DoitTask.get_tasks,"xpto", f_xpto())
 
 
     def testDictFieldTypo(self):
         nose.tools.assert_raises(InvalidTask,DoitTask.get_tasks,
-                                 "dict",{'action':'ls -a','target':['xxx']})
+                                 "dict",{'action':'xpto 14','typo_here':['xxx']})
 
 
 class TestAddToRunner(object):
@@ -91,7 +87,7 @@ class TestAddToRunner(object):
         self.runner = MockRunner()
     
     def testStatusSet(self):
-        baseTask = DoitTask._create_task("taskX","ls -1 -a")
+        baseTask = DoitTask._create_task("taskX","xpto 14 7")
         doitTask = DoitTask(baseTask,[])
         assert DoitTask.UNUSED == doitTask.status
         doitTask.add_to(self.runner.add_task)
@@ -99,7 +95,7 @@ class TestAddToRunner(object):
 
     # same task is not added twice
     def testAddJustOnce(self):
-        baseTask = DoitTask._create_task("taskX","ls -1 -a")
+        baseTask = DoitTask._create_task("taskX","xpto 14 7")
         doitTask = DoitTask(baseTask,[])
         assert 0 == self.runner.taskCount
         doitTask.add_to(self.runner.add_task)
@@ -108,8 +104,8 @@ class TestAddToRunner(object):
         assert 1 == self.runner.taskCount
 
     def testDetectCyclicReference(self):
-        baseTask1 = DoitTask._create_task("taskX","ls -1 -a")
-        baseTask2 = DoitTask._create_task("taskX","ls -1 -a")
+        baseTask1 = DoitTask._create_task("taskX","xpto 14 7")
+        baseTask2 = DoitTask._create_task("taskX","xpto 14 7")
         doitTask1 = DoitTask(baseTask1,[])
         doitTask2 = DoitTask(baseTask2,[doitTask1])
         doitTask1.dependsOn = [doitTask2]        
@@ -120,18 +116,17 @@ class TestAddToRunner(object):
         
     
 ###################
-
+# expected values from sample_main.py
 TASKS = ['string','python','dictionary','dependency','generator','func_args',
          'taskdependency','targetdependency']
 ALLTASKS = ['string','python','dictionary','dependency','generator',
             'generator:test_runner.py','generator:test_util.py','func_args',
             'taskdependency','targetdependency']
 TESTDBM = "testdbm"
+DODO_FILE = os.path.abspath(__file__+"/../sample_main.py")
 
 class TestMain(object):
     def setUp(self):
-        # this test can be executed from any path
-        self.fileName = os.path.abspath(__file__+"/../sample_main.py")
         #setup stdout
         self.oldOut = sys.stdout
         sys.stdout = StringIO.StringIO()
@@ -146,22 +141,22 @@ class TestMain(object):
 
     # on initialization taskgen are in loaded
     def testInit(self):
-        m = Main(self.fileName, TESTDBM)
+        m = Main(DODO_FILE, TESTDBM)
         assert TASKS == m.taskgen.keys()
 
     def testListTasks(self):
-        m = Main(self.fileName, TESTDBM)
+        m = Main(DODO_FILE, TESTDBM)
         m._list_tasks(False)
         assert TASKS == sys.stdout.getvalue().split('\n')[1:-3]
 
     def testListAllTasks(self):
-        m = Main(self.fileName, TESTDBM)
+        m = Main(DODO_FILE, TESTDBM)
         m._list_tasks(True)
         assert ALLTASKS == sys.stdout.getvalue().split('\n')[1:-3]
     
     # test list_tasks is called 
     def testProcessListTasks(self):
-        m = Main(self.fileName, TESTDBM, list_=1)
+        m = Main(DODO_FILE, TESTDBM, list_=1)
         self.listed = False
         def listgen(printSubtasks):
             if not printSubtasks:
@@ -171,7 +166,7 @@ class TestMain(object):
         assert self.listed
 
     def testProcessListAllTasks(self):
-        m = Main(self.fileName, TESTDBM, list_=2)
+        m = Main(DODO_FILE, TESTDBM, list_=2)
         self.listed = False
         def listgen(printSubtasks):
             if printSubtasks:
@@ -182,60 +177,56 @@ class TestMain(object):
 
     
     def testProcessRun(self):
-        m = Main(self.fileName, TESTDBM)
+        m = Main(DODO_FILE, TESTDBM)
         m.process()
-        assert ["string => Cmd: ls -a",
+        assert ["string => Cmd: python sample_process.py sss",
                 "python => Python: function do_nothing",
-                "dictionary => Cmd: ls -1",
+                "dictionary => Cmd: python sample_process.py ddd",
                 "dependency => Python: function do_nothing",
-                "generator:test_runner.py => Cmd: ls -l test_runner.py",
-                "generator:test_util.py => Cmd: ls -l test_util.py",
+                "generator:test_runner.py => Cmd: python sample_process.py test_runner.py",
+                "generator:test_util.py => Cmd: python sample_process.py test_util.py",
                 "func_args => Python: function funcX",
-                "taskdependency => Cmd: ls",
-                "targetdependency => Cmd: ls"] == \
+                "taskdependency => Python: function do_nothing",
+                "targetdependency => Python: function do_nothing"] == \
                 sys.stdout.getvalue().split("\n")[:-1]
-
 
 
     def testFilter(self):
-        m = Main(self.fileName, TESTDBM,filter_=["dictionary","string"])
+        m = Main(DODO_FILE, TESTDBM,filter_=["dictionary","string"])
         m.process()
-        assert ["dictionary => Cmd: ls -1",
-                "string => Cmd: ls -a",] == \
+        assert ["dictionary => Cmd: python sample_process.py ddd",
+                "string => Cmd: python sample_process.py sss",] == \
                 sys.stdout.getvalue().split("\n")[:-1]
 
     def testFilterSubtask(self):
-        m = Main(self.fileName, TESTDBM,filter_=["generator:test_util.py"])
+        m = Main(DODO_FILE, TESTDBM,filter_=["generator:test_util.py"])
         m.process()
-        assert ["generator:test_util.py => Cmd: ls -l test_util.py",] == \
+        assert ["generator:test_util.py => Cmd: python sample_process.py test_util.py",] == \
                 sys.stdout.getvalue().split("\n")[:-1]
 
     def testFilterTarget(self):
-        m = Main(self.fileName, TESTDBM,filter_=["test_runner.py"])
+        m = Main(DODO_FILE, TESTDBM,filter_=["test_runner.py"])
         m.process()
-        assert ["dictionary => Cmd: ls -1",] == \
-                sys.stdout.getvalue().split("\n")[:-1]        
+        assert ["dictionary => Cmd: python sample_process.py ddd",] == \
+                sys.stdout.getvalue().split("\n")[:-1]
         
     # filter a non-existent task raises an error
     def testFilterWrongName(self):
-        m = Main(self.fileName, TESTDBM,filter_=["XdictooonaryX","string"])
+        m = Main(DODO_FILE, TESTDBM,filter_=["XdictooonaryX","string"])
         nose.tools.assert_raises(InvalidCommand,m.process)
 
     def testTaskDependency(self):
-        m = Main(self.fileName, TESTDBM,filter_=["taskdependency"])
+        m = Main(DODO_FILE, TESTDBM,filter_=["taskdependency"])
         m.process()
-        assert ["generator:test_runner.py => Cmd: ls -l test_runner.py",
-                "generator:test_util.py => Cmd: ls -l test_util.py",
-                "taskdependency => Cmd: ls"] == \
+        assert ["generator:test_runner.py => Cmd: python sample_process.py test_runner.py",
+                "generator:test_util.py => Cmd: python sample_process.py test_util.py",
+                "taskdependency => Python: function do_nothing"] == \
                 sys.stdout.getvalue().split("\n")[:-1]
         
         
     def testTargetDependency(self):
-        m = Main(self.fileName, TESTDBM,filter_=["targetdependency"])
+        m = Main(DODO_FILE, TESTDBM,filter_=["targetdependency"])
         m.process()
-        assert ["dictionary => Cmd: ls -1",
-                "targetdependency => Cmd: ls"] == \
+        assert ["dictionary => Cmd: python sample_process.py ddd",
+                "targetdependency => Python: function do_nothing"] == \
                 sys.stdout.getvalue().split("\n")[:-1]
-        
-
-        

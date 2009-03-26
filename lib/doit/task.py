@@ -110,11 +110,13 @@ class CmdTask(BaseTask):
         # http://www.gnu.org/software/bash/manual/bashref.html#Exit-Status
         # it doesnt make so much difference to return as Error or Failed anyway
         if process.returncode > 125:
-            raise TaskError("")
+            raise TaskError("Command error: '%s' returned %s" % 
+                            (self.action,process.returncode))
 
         # task failure
         if process.returncode != 0:
-            raise TaskFailed("")
+            raise TaskFailed("Command failed: '%s' returned %s" % 
+                             (self.action,process.returncode))
 
             
     def __str__(self):

@@ -1,6 +1,6 @@
 
 def task_string():
-    return "ls -a"
+    return "python sample_process.py sss"
 
 def do_nothing():
     return True
@@ -10,7 +10,7 @@ def task_python():
 
 
 def task_dictionary():
-    return {'action':'ls -1',
+    return {'action':'python sample_process.py ddd',
             'targets':['test_runner.py']}
 
 def task_dependency():
@@ -20,7 +20,7 @@ def task_dependency():
 files = ['test_runner.py','test_util.py']
 def task_generator():
     for f in files:
-        yield {'action': "ls -l %s"%f,
+        yield {'action': "python sample_process.py %s"%f,
                'name': f}
     
 
@@ -33,10 +33,10 @@ def task_func_args():
             'kwargs':{'par1':3,'par2':3,'par3':20}}
 
 def task_taskdependency():
-    return {'action':'ls',
+    return {'action':do_nothing,
             'dependencies':[":generator"]}
 
 def task_targetdependency():
-    return {'action':'ls',
+    return {'action':do_nothing,
             'dependencies':['test_runner.py']}
     
