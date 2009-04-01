@@ -2,7 +2,7 @@ import os,inspect
 
 from doit.loader import Loader
 
-class TestLoader():
+class TestLoader(object):
     def setUp(self):
         # this test can be executed from any path
         self.fileName = os.path.abspath(__file__+"/../loader_sample.py")

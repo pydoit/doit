@@ -2,11 +2,12 @@
 ---
 
 - remove tests dependency on unix cmds - (for windows)
+- python 2.4
+  . python 2.4 doesnt have hashlib. there is a package for backward compatibility on pypi. add hashlib as dependency.
+. python 2.6
 . easier group tasks (see email with prajwala)
 . directory dependency
 . use sphinx
-. python 2.4, 2.6
-
 
 0.3
 ---

@@ -31,10 +31,8 @@ class Runner(object):
     def __init__(self, dependencyFile, verbosity=1, alwaysExecute=False):
         """Init."""
         self.dependencyFile = dependencyFile
-        self.verbosity = verbosity
         self.alwaysExecute = alwaysExecute
         self._tasks = OrderedDict()
-        
         BaseTask.CAPTURE_OUT = verbosity < 2
         BaseTask.CAPTURE_ERR = verbosity == 0
 

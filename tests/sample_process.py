@@ -14,6 +14,7 @@ if __name__ == "__main__":
         sys.exit(166)
     # fail
     if len(sys.argv) == 3 and sys.argv[1]=='please' and sys.argv[2]=='fail':
+        sys.stdout.write("out ouch")
         sys.stderr.write("err output on failure")
         sys.exit(11)
     # ok

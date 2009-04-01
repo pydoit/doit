@@ -87,11 +87,11 @@ class CmdTask(BaseTask):
     def execute(self):
         # set Popen stream parameters
         if not self.CAPTURE_OUT:
-            stdout = sys.__stdout__
+            stdout = None
         else:
             stdout = subprocess.PIPE
         if not self.CAPTURE_ERR:
-            stderr = sys.__stderr__
+            stderr = None
         else:
             stderr = subprocess.PIPE
 
@@ -161,12 +161,14 @@ class PythonTask(BaseTask):
 
         # execute action / callable
         try:
-            result = self.action(*self.args,**self.kwargs)
-        except Exception, exception:
-            error = TaskError(exception)
-            error.originalException = traceback.format_exception(\
-                exception.__class__, exception,sys.exc_info()[2])
-            raise error
+            # Python2.4
+            try:
+                result = self.action(*self.args,**self.kwargs)
+            except Exception, exception:
+                error = TaskError(exception)
+                error.originalException = traceback.format_exception(\
+                    exception.__class__, exception,sys.exc_info()[2])
+                raise error
         finally:
             # restore std streams /log captured streams
             if self.CAPTURE_OUT:
@@ -181,7 +183,8 @@ class PythonTask(BaseTask):
 
         # if callable returns false. Task failed
         if not result:
-            raise TaskFailed("")
+            raise TaskFailed("Python Task failed: '%s' returned %s" %
+                             (self.action, result))
                     
     def __str__(self):
         # get object description excluding runtime memory address

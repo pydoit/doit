@@ -11,7 +11,7 @@ usage = "usage: %prog [options] [tasks]"
 parser = OptionParser(usage)
 parser.add_option("-f","--file",dest="file",default="dodo.py",
                   help="load task from dodo FILE [default: %default]")
-parser.add_option("-v","--verbosity",dest="verbosity",default=0,
+parser.add_option("-v","--verbosity",dest="verbosity",type="int",default=0,
                   help="0 capture stdout/stderr from task. 1 capture stdout only. 2 dont capture anything. [default: %default]")
 parser.add_option("-a","--always-execute",action="store_true",
                   dest="alwaysExecute", default=False,
@@ -36,7 +36,7 @@ def main(fileName, **kargs):
     except Exception:
         sys.__stderr__.write(traceback.format_exc())
         return -1
-    
+
 
 result = main(options.file, verbosity=options.verbosity, 
               list_=options.list, alwaysExecute=options.alwaysExecute, 
