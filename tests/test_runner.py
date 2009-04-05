@@ -123,14 +123,15 @@ class TestRunningTask(object):
         runner.add_task(PythonTask("taskY",write_and_fail))
         assert runner.FAILURE == runner.run()
         output = sys.stdout.getvalue().split('\n')
+        errput = sys.stderr.getvalue().split('\n')
         assert runner._tasks['taskX'].title() == output[0], output
         # captured output is displayed
         assert "stdout here." == output[1]
-        assert "stderr here.\n" == sys.stderr.getvalue()
+        assert "stderr here." == errput[0]
         # final failed message
-        assert "Task failed" == output[2]
+        assert "Task failed => taskX" == errput[2], errput
         # nothing more (but the empty string)
-        assert 4 == len(output)
+        assert 3 == len(output)
 
 
     def test_errorOutput(self):
@@ -148,12 +149,12 @@ class TestRunningTask(object):
         assert runner._tasks['taskX'].title() == output[0], output
         # captured output is displayed
         assert "stdout here." == output[1]
-        # final failed message
-        assert "Task error" == output[2], output
         # nothing more (but the empty string)
-        assert 4 == len(output)
+        assert 3 == len(output)
         # stderr
         assert "stderr here." ==  errput[0]
+        # final failed message
+        assert "Task error => taskX" == errput[2], errput
         assert 'Exception: I am the exception.' == errput[-3]
 
 

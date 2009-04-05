@@ -85,12 +85,12 @@ class Runner(object):
                     task.execute()
                 # task failed
                 except TaskFailed:
-                    logger.log("stdout", 'Task failed\n')
+                    logger.log("stderr", '\nTask failed => %s\n'% task.name)
                     result = self.FAILURE
                     break
                 # task error
                 except Exception, exception:
-                    logger.log("stdout", 'Task error\n')
+                    logger.log("stderr", '\nTask error => %s\n'% task.name)
                     result = self.ERROR
                     errorException = exception
                     break              
