@@ -62,17 +62,12 @@ class BaseTask(object):
         raise InvalidTask("Not Implemented")
 
 
-    def __str__(self):
-        return str(self.action)
-
-
     def title(self):
         """String representation on output.
 
         return: (string)
         """
         return "%s => %s"% (self.name,str(self))
-
 
 
 class CmdTask(BaseTask):
@@ -192,3 +187,18 @@ class PythonTask(BaseTask):
 
     def __repr__(self):
         return "<PythonTask: %s - '%s'>"% (self.name,repr(self.action))
+
+
+
+class GroupTask(BaseTask):
+    """Do nothing. Used to create group tasks
+    Group is actually defined by dependencies.
+    """
+    def execute(self):
+        pass
+
+    def __str__(self):
+        return "Group"
+
+    def __repr__(self):
+        return "<GroupTask: %s>"% self.name

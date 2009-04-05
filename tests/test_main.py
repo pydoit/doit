@@ -3,15 +3,13 @@ import sys, StringIO
 
 import nose.tools
 
-from doit.task import InvalidTask, CmdTask, PythonTask
+from doit.task import InvalidTask, CmdTask, PythonTask, GroupTask
 from doit.main import InvalidCommand, InvalidDodoFile, DoitTask, Main
 
 
 def dumb(): return
 
 class TestCreateTask(object):
-
-    # you can pass a cmd as a sequence
     def testStringTask(self):
         task = DoitTask._create_task("taskX","xpto 14 7")
         assert isinstance(task, CmdTask)
@@ -19,6 +17,10 @@ class TestCreateTask(object):
     def testPythonTask(self):
         task = DoitTask._create_task("taskX",dumb)
         assert isinstance(task, PythonTask)
+
+    def testGroupTask(self):
+        task = DoitTask._create_task("taskX",None)
+        assert isinstance(task, GroupTask)
 
     def testInvalidTask(self):
         nose.tools.assert_raises(InvalidTask,DoitTask._create_task,"taskX",self)
@@ -118,10 +120,10 @@ class TestAddToRunner(object):
 ###################
 # expected values from sample_main.py
 TASKS = ['string','python','dictionary','dependency','generator','func_args',
-         'taskdependency','targetdependency']
+         'taskdependency','targetdependency','mygroup']
 ALLTASKS = ['string','python','dictionary','dependency','generator',
             'generator:test_runner.py','generator:test_util.py','func_args',
-            'taskdependency','targetdependency']
+            'taskdependency','targetdependency','mygroup']
 TESTDBM = "testdbm"
 DODO_FILE = os.path.abspath(__file__+"/../sample_main.py")
 
@@ -187,8 +189,9 @@ class TestMain(object):
                 "generator:test_util.py => Cmd: python sample_process.py test_util.py",
                 "func_args => Python: function funcX",
                 "taskdependency => Python: function do_nothing",
-                "targetdependency => Python: function do_nothing"] == \
-                sys.stdout.getvalue().split("\n")[:-1]
+                "targetdependency => Python: function do_nothing",
+                "mygroup => Group"] == \
+                sys.stdout.getvalue().split("\n")[:-1], sys.stdout.getvalue()
 
 
     def testFilter(self):
@@ -209,11 +212,22 @@ class TestMain(object):
         m.process()
         assert ["dictionary => Cmd: python sample_process.py ddd",] == \
                 sys.stdout.getvalue().split("\n")[:-1]
+
         
     # filter a non-existent task raises an error
     def testFilterWrongName(self):
         m = Main(DODO_FILE, TESTDBM,filter_=["XdictooonaryX","string"])
         nose.tools.assert_raises(InvalidCommand,m.process)
+
+
+    def testGroup(self):
+        m = Main(DODO_FILE, TESTDBM,filter_=["mygroup"])
+        m.process()
+        assert ["dictionary => Cmd: python sample_process.py ddd",
+                "string => Cmd: python sample_process.py sss",
+                "mygroup => Group"] == \
+                sys.stdout.getvalue().split("\n")[:-1], sys.stdout.getvalue()
+
 
     def testTaskDependency(self):
         m = Main(DODO_FILE, TESTDBM,filter_=["taskdependency"])

@@ -4,8 +4,9 @@
 - remove tests dependency on unix cmds - (for windows)
 - python 2.4
   . python 2.4 doesnt have hashlib. there is a package for backward compatibility on pypi. add hashlib as dependency.
-. python 2.6
-. easier group tasks (see email with prajwala)
+- python 2.6
+- easier group tasks (see email with prajwala)
+. better error message when invalid task dependence
 . directory dependency
 . use sphinx
 
@@ -22,3 +23,9 @@
 . support for depedency scanner
 . multiple (include) dodo files
 . color output on the terminal. 
+
+
+Ideas
+------
+
+. it would be better if DoitTaks print the output not BaseTask, because BaseTask doesnt know about task dependencies. another problem is the order in which the task are sent to stdout... 

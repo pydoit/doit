@@ -3,7 +3,7 @@
 import os
 
 from doit.util import isgenerator, OrderedDict
-from doit.task import InvalidTask, CmdTask, PythonTask
+from doit.task import InvalidTask, CmdTask, PythonTask, GroupTask
 from doit.loader import Loader
 from doit.runner import Runner
 
@@ -135,6 +135,8 @@ class DoitTask(object):
         # a callable.
         elif callable(action):
             return PythonTask(name,action,dependencies,targets,*args,**kwargs)
+        elif action is None:
+            return GroupTask(name,action,dependencies,targets)
         else:
             raise InvalidTask("Invalid task type. %s:%s"%\
                                   (name,action.__class__))

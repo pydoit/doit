@@ -4,7 +4,7 @@ import sys, StringIO
 import nose
 
 from doit import logger
-from doit.task import BaseTask, CmdTask, PythonTask
+from doit.task import BaseTask, CmdTask, PythonTask, GroupTask
 from doit.task import InvalidTask, TaskError, TaskFailed
 
 #path to test folder
@@ -34,7 +34,7 @@ class TestBaseTask(object):
 
     def test_title(self):
         t = BaseTask("MyName","MyAction")
-        assert "MyName => MyAction" == t.title(), t.title()
+        assert "MyName => %s"%str(t) == t.title(), t.title()
 
     # BaseTask must be subclassed and define an execute method
     def test_mustSubclass(self):
@@ -105,9 +105,18 @@ class TestPythonTask(object):
         else:
             return False
         
-    def test_functionParameters(self):
+    def test_functionParametersArgs(self):
+        t = PythonTask("taskX",self._func_par,args=(2,2,25))
+        t.execute()
+
+    def test_functionParametersKwargs(self):
         t = PythonTask("taskX",self._func_par,
-                       args=(2,),kwargs={'par2':2,'par3':25})
+                       kwargs={'par1':2,'par2':2,'par3':25})
+        t.execute()
+
+    def test_functionParameters(self):
+        t = PythonTask("taskX",self._func_par,args=(2,2),
+                       kwargs={'par3':25})
         t.execute()
 
     def test_functionParametersFail(self):
@@ -124,6 +133,21 @@ class TestPythonTask(object):
         def repr_sample(): return True
         t = PythonTask("taskX",repr_sample)
         assert "<PythonTask: taskX - '%s'>"%repr(repr_sample) == repr(t)
+
+
+
+class TestGroupTask(object):
+    def test_success(self):
+        t = GroupTask("taskX",None)
+        t.execute()
+
+    def test_str(self):
+        t = GroupTask("taskX",None,('t1','t2'))
+        assert "Group" == str(t), "'%s'"%str(t)
+
+    def test_repr(self):
+        t = GroupTask("taskX",None,('t1','t2'))
+        assert "<GroupTask: taskX>" == repr(t), repr(t)
 
 
 
