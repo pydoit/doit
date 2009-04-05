@@ -6,8 +6,10 @@
   . python 2.4 doesnt have hashlib. there is a package for backward compatibility on pypi. add hashlib as dependency.
 - python 2.6
 - easier group tasks (see email with prajwala)
-. better error message when invalid task dependence
-. directory dependency
+- better error message when invalid task dependence
+. directory dependency (lp)
+. clarify -v "capture" (lp)
+. improve result "output" (lp)
 . use sphinx
 
 0.3
@@ -15,6 +17,7 @@
 
 . no dependency but execute once if not cleared
 . continue execution even if one task fails
+. dont show traceback for user errors
 
 ---
 
@@ -29,3 +32,5 @@ Ideas
 ------
 
 . it would be better if DoitTaks print the output not BaseTask, because BaseTask doesnt know about task dependencies. another problem is the order in which the task are sent to stdout... 
+
+. now there are groupTask and subtask... need to think about it. maybe unify them.

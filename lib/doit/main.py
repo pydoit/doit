@@ -16,7 +16,6 @@ class InvalidDodoFile(Exception):
     """Invalid dodo file"""
     pass
 
-
 class DoitTask(object):
     """ 
     DoitTask helps in keeping track dependencies between tasks.
@@ -274,8 +273,13 @@ class Main(object):
                 continue # a task that just contain subtasks.
             depFiles = []
             for dep in doitTask.task.dependencies:
-                if dep.startswith(':'):
-                    doitTask.dependsOn.append(self.tasks[dep[1:]])
+                # task dependencies start with ':'
+                if dep.startswith(':'):                    
+                    task_dep_name = dep[1:]
+                    if task_dep_name not in self.tasks:
+                        msg = "%s. Task dependency '%s' does not exist."
+                        raise InvalidTask(msg% (doitTask.task.name,task_dep_name))
+                    doitTask.dependsOn.append(self.tasks[task_dep_name])
                 else:
                     depFiles.append(dep)
             doitTask.task.dependencies = depFiles                    

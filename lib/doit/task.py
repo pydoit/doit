@@ -8,7 +8,7 @@ from doit import logger
 
 
 class InvalidTask(Exception):
-    """Invalid task instance. It doesnt if try to execute."""
+    """Invalid task instance. User error on specifying the task."""
     pass
 
 class TaskFailed(Exception):
@@ -38,14 +38,15 @@ class BaseTask(object):
         """Init."""
         # dependencies parameter must be a list
         if not(isinstance(dependencies,list) or isinstance(dependencies,tuple)):
-            raise InvalidTask("'dependencies' paramater must be a list or" +
-                              "tuple got:'%s' => %s"% 
-                              (str(dependencies),dependencies.__class__))
+            msg = ("%s. paramater 'dependencies' must be a list or " +
+                   "tuple got:'%s'%s")
+            raise InvalidTask(msg % (name, str(dependencies),type(dependencies)))
 
         # targets parameter must be a list
         if not(isinstance(targets,list) or isinstance(targets,tuple)):
-            raise InvalidTask("'targets' paramater must be a list or tuple " +
-                             "got:'%s' => %s"% (str(targets),targets.__class__))
+            msg = ("%s. paramater 'targets' must be a list or tuple " +
+                   "got:'%s'%s")
+            raise InvalidTask(msg % (name, str(targets),type(targets)))
 
         self.name = name
         self.action = action

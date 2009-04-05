@@ -69,6 +69,7 @@ class Runner(object):
             try:
                 task_uptodate = dependencyManager.up_to_date(task.name, 
                                               task.dependencies, task.targets)
+            #TODO: raise an exception here.
             except:
                 print
                 print "ERROR checking dependencies for: %s"% task.title()

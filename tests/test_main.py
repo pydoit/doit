@@ -115,9 +115,11 @@ class TestAddToRunner(object):
         nose.tools.assert_raises(InvalidDodoFile,doitTask1.add_to,
                                  self.runner.add_task)
 
-        
-    
+
 ###################
+# FIXME: this are more like system tests. i must create a dodo file to test the processing part, but i should not.
+
+# Main class needs to be split up. the load
 # expected values from sample_main.py
 TASKS = ['string','python','dictionary','dependency','generator','func_args',
          'taskdependency','targetdependency','mygroup']
@@ -126,6 +128,9 @@ ALLTASKS = ['string','python','dictionary','dependency','generator',
             'taskdependency','targetdependency','mygroup']
 TESTDBM = "testdbm"
 DODO_FILE = os.path.abspath(__file__+"/../sample_main.py")
+# sample dodo file with user error on task dependency name.
+ETD_DODO_FILE = os.path.abspath(__file__+"/../sample_uetd.py")
+
 
 class TestMain(object):
     def setUp(self):
@@ -244,3 +249,9 @@ class TestMain(object):
         assert ["dictionary => Cmd: python sample_process.py ddd",
                 "targetdependency => Python: function do_nothing"] == \
                 sys.stdout.getvalue().split("\n")[:-1]
+
+
+    def testUserErrorTaskDependency(self):
+        m = Main(ETD_DODO_FILE, TESTDBM)
+        nose.tools.assert_raises(InvalidTask,m.process)
+        
