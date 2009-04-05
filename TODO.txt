@@ -7,15 +7,15 @@
 - python 2.6
 - easier group tasks (see email with prajwala)
 - better error message when invalid task dependence
-. directory dependency (lp)
+- directory dependency (lp)
 . clarify -v "capture" (lp)
 . improve result "output" (lp)
+. no dependency but execute once if not cleared
 . use sphinx
 
 0.3
 ---
 
-. no dependency but execute once if not cleared
 . continue execution even if one task fails
 . dont show traceback for user errors
 

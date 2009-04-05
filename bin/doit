@@ -12,7 +12,10 @@ parser = OptionParser(usage)
 parser.add_option("-f","--file",dest="file",default="dodo.py",
                   help="load task from dodo FILE [default: %default]")
 parser.add_option("-v","--verbosity",dest="verbosity",type="int",default=0,
-                  help="0 capture stdout/stderr from task. 1 capture stdout only. 2 dont capture anything. [default: %default]")
+                  help="""0 capture (do not print) stdout/stderr from task. \t
+                          1 capture stdout only. \t
+                          2 dont capture anything (print everything immediately). \t
+                          [default: %default]""")
 parser.add_option("-a","--always-execute",action="store_true",
                   dest="alwaysExecute", default=False,
                   help="always execute tasks even if up-to-date [default: %default]")
