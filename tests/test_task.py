@@ -12,23 +12,27 @@ TEST_PATH = os.path.abspath(__file__+'/../')
 
 class TestBaseTask(object):
 
-    # dependency must be a sequence. give proper error message when anything 
-    # else is used.
+    def test_dependencySequenceIsValid(self):
+        BaseTask("Task X","taskcmd",dependencies=["123","456"])
+
+    def test_dependencyTrueIsValid(self):
+        BaseTask("Task X","taskcmd",dependencies=[True])
+
+    def test_dependencyFalseIsNotValid(self):
+        nose.tools.assert_raises(InvalidTask,BaseTask,
+                                 "Task X","taskcmd",dependencies=[False])
+
+    # dependency must be a sequence or bool. 
+    # give proper error message when anything else is used.
     def test_dependencyNotSequence(self):
-        filePath = os.path.abspath(TEST_PATH + "/data/dependency1")
-        ff = open(filePath,"w")
-        ff.write("part1")
-        ff.close()
+        filePath = "data/dependency1"
         nose.tools.assert_raises(InvalidTask,BaseTask,
                                  "Task X","taskcmd",dependencies=filePath)
 
     # targets must be a sequence. give proper error message when anything 
     # else is used.
     def test_targetNotSequence(self):
-        filePath = os.path.abspath(TEST_PATH + "/data/dependency1")
-        ff = open(filePath,"w")
-        ff.write("part1")
-        ff.close()
+        filePath = "data/target1"
         nose.tools.assert_raises(InvalidTask,BaseTask,
                                  "Task X","taskcmd",targets=filePath)
 

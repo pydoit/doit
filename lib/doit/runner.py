@@ -69,8 +69,8 @@ class Runner(object):
 
             # check if task is up-to-date
             try:
-                task_uptodate = dependencyManager.up_to_date(task.name, 
-                                              task.file_dep, task.targets)
+                task_uptodate = dependencyManager.up_to_date(task.name,
+                              task.file_dep, task.targets, task.run_once)
             #TODO: raise an exception here.
             except:
                 print
@@ -103,8 +103,10 @@ class Runner(object):
                     break              
                 # task success - save dependencies
                 else:
+                    if task.run_once:
+                        dependencyManager.save_run_once(task.name)
                     dependencyManager.save_dependencies(task.name,task.file_dep)
-                    dependencyManager.save_dependencies(task.name, task.targets)
+                    dependencyManager.save_dependencies(task.name,task.targets)
                 
             
         ## done 

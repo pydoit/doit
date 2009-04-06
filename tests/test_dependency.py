@@ -9,11 +9,11 @@ def get_abspath(relativePath):
 
 
 ####
-# dependencies are files only (not other tasks).
+# dependencies are files only (not other tasks), or bool.
 #
 # whenever a task has a dependency the runner checks if this dependency
 # was modified since last successful run. if not the task is skipped.
-
+# if depedency is a bool. it is always up-to-date if present.
 
 # since more than one task might have the same dependency, and the tasks
 # might have different results (success/failure). the signature is associated
@@ -141,9 +141,9 @@ class TestTaskDependency(DependencyTestBase):
     def test_upToDate_noDependency(self):
         taskId = "task A"
         # first time execute
-        assert not self.d.up_to_date(taskId,[],[])        
+        assert not self.d.up_to_date(taskId,[],[],False)
         # second too
-        assert not self.d.up_to_date(taskId,[],[])
+        assert not self.d.up_to_date(taskId,[],[],False)
 
 
     # if there is a dependency the task is executed only if one of
@@ -157,10 +157,10 @@ class TestTaskDependency(DependencyTestBase):
         taskId = "task X";
         dependencies = [filePath]
         # first time execute
-        assert not self.d.up_to_date(taskId,dependencies,[])
+        assert not self.d.up_to_date(taskId,dependencies,[],False)
         self.d.save_dependencies(taskId,dependencies)
         # second time no
-        assert self.d.up_to_date(taskId,dependencies,[])
+        assert self.d.up_to_date(taskId,dependencies,[],False)
 
         # a small change on the file
         ff = open(filePath,"a")
@@ -168,7 +168,7 @@ class TestTaskDependency(DependencyTestBase):
         ff.close()
         
         # execute again
-        assert not self.d.up_to_date(taskId,dependencies,[])
+        assert not self.d.up_to_date(taskId,dependencies,[],False)
 
 
     # if target file does not exist, task is outdated.
@@ -181,7 +181,7 @@ class TestTaskDependency(DependencyTestBase):
         if os.path.exists(filePath):
             os.remove(filePath)
 
-        assert not self.d.up_to_date(taskId,dependencies,[filePath])
+        assert not self.d.up_to_date(taskId,dependencies,[filePath],False)
 
     def test_upToDate_targets(self):
         filePath = get_abspath("data/target")
@@ -194,10 +194,10 @@ class TestTaskDependency(DependencyTestBase):
         targets = [filePath]
         self.d.save_dependencies(taskId,dependencies)
         # first time execute
-        assert not self.d.up_to_date(taskId,dependencies,targets)
+        assert not self.d.up_to_date(taskId,dependencies,targets,False)
         self.d.save_dependencies(taskId,targets)
         # second time no
-        assert self.d.up_to_date(taskId,dependencies,targets)
+        assert self.d.up_to_date(taskId,dependencies,targets,False)
 
         # a small change on the file
         ff = open(filePath,"a")
@@ -205,5 +205,14 @@ class TestTaskDependency(DependencyTestBase):
         ff.close()
         
         # execute again
-        assert not self.d.up_to_date(taskId,dependencies,targets)
+        assert not self.d.up_to_date(taskId,dependencies,targets,False)
 
+
+class TestRunOnceDependency(DependencyTestBase):
+
+    def test_upToDate_BoolDependency(self):
+        taskId = "task X"
+        assert not self.d.up_to_date(taskId,[],[],True)
+        self.d.save_run_once(taskId)
+        assert self.d.up_to_date(taskId,[],[],True)
+        

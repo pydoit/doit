@@ -10,7 +10,7 @@
 - directory dependency (lp - 223794)
 - clarify -v "capture" (lp - 263576)
 - improve result "output" (lp - 249770)
-. no dependency but execute once if not cleared
+- no dependency but execute once if not cleared
 . group title() print dependencies
 . use sphinx
 
@@ -18,6 +18,7 @@
 ---
 
 . dont get subtasks if task is not going to be executed
+. setup/teardown for tasks 
 . continue execution even if one task fails
 . dont show traceback for user errors
 . one .doit for each dodo file

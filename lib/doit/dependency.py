@@ -10,6 +10,9 @@ class Dependency(object):
 
     Each dependency is a saved in dbm. where the key is taskId + dependency 
     (abs file path), and the value is the dependency signature.
+
+    In case dependency is a bool value True it will be saved with key: taskId
+    value: True. 
     """
 
     def __init__(self, name, new=False):
@@ -61,32 +64,44 @@ class Dependency(object):
             self._db.close()
             self._closed = True
 
-    def save_dependencies(self,taskId, dependencies):
+    def save_dependencies(self,taskId,dependencies):
         """Save dependencies value.
 
         @param taskId: (string)
         @param dependencies: (list of string)
         """
+        # list of files
         for dep in dependencies:
             self.save(taskId,dep)
 
-    def up_to_date(self, taskId, dependencies, targets):
+    def save_run_once(self,taskId):
+        """Save run_once task as executed"""
+        self._set(taskId,'','1')# string could be any value
+
+    def up_to_date(self, taskId, dependencies, targets, runOnce):
         """Check if task is up to date.
 
         @param taskId: (string)
         @param dependencies: (list of string)
+        @param runOnce: (bool) task has dependencies but they are not managed by
+        doit. they can only be cleared manualy.
         @return: (bool) True if up to date, False needs to re-execute.
         """
         # no dependencies means it is never up to date.
-        if not dependencies:
+        if (not dependencies) and (not runOnce):
             return False
+
+        # user managed dependency always up-to-date if it exists
+        if runOnce:
+            if not self._get(taskId,''):
+                return False
 
         # if target file is not there, task is not up to date
         for targ in targets:
             if not os.path.exists(targ):
                 return False
 
-        # check for dependencies 
+        # check for dependencies on file list
         for dep in tuple(dependencies) + tuple(targets):
             if self.modified(taskId,dep):
                 return False

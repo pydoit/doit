@@ -11,19 +11,20 @@ def dumb(): return
 
 class TestCreateTask(object):
     def testStringTask(self):
-        task = DoitTask._create_task("taskX","xpto 14 7")
+        task = DoitTask._create_task("taskX","xpto 14 7",[],[])
         assert isinstance(task, CmdTask)
 
     def testPythonTask(self):
-        task = DoitTask._create_task("taskX",dumb)
+        task = DoitTask._create_task("taskX",dumb,[],[])
         assert isinstance(task, PythonTask)
 
     def testGroupTask(self):
-        task = DoitTask._create_task("taskX",None)
+        task = DoitTask._create_task("taskX",None,[],[])
         assert isinstance(task, GroupTask)
 
     def testInvalidTask(self):
-        nose.tools.assert_raises(InvalidTask,DoitTask._create_task,"taskX",self)
+        nose.tools.assert_raises(InvalidTask,DoitTask._create_task,
+                                 "taskX",self,[],[])
         
 
 class TestGetTasks(object):
@@ -89,7 +90,7 @@ class TestAddToRunner(object):
         self.runner = MockRunner()
     
     def testStatusSet(self):
-        baseTask = DoitTask._create_task("taskX","xpto 14 7")
+        baseTask = DoitTask._create_task("taskX","xpto 14 7",[],[])
         doitTask = DoitTask(baseTask,[])
         assert DoitTask.UNUSED == doitTask.status
         doitTask.add_to(self.runner.add_task)
@@ -97,7 +98,7 @@ class TestAddToRunner(object):
 
     # same task is not added twice
     def testAddJustOnce(self):
-        baseTask = DoitTask._create_task("taskX","xpto 14 7")
+        baseTask = DoitTask._create_task("taskX","xpto 14 7",[],[])
         doitTask = DoitTask(baseTask,[])
         assert 0 == self.runner.taskCount
         doitTask.add_to(self.runner.add_task)
@@ -106,8 +107,8 @@ class TestAddToRunner(object):
         assert 1 == self.runner.taskCount
 
     def testDetectCyclicReference(self):
-        baseTask1 = DoitTask._create_task("taskX","xpto 14 7")
-        baseTask2 = DoitTask._create_task("taskX","xpto 14 7")
+        baseTask1 = DoitTask._create_task("taskX","xpto 14 7",[],[])
+        baseTask2 = DoitTask._create_task("taskX","xpto 14 7",[],[])
         doitTask1 = DoitTask(baseTask1,[])
         doitTask2 = DoitTask(baseTask2,[doitTask1])
         doitTask1.dependsOn = [doitTask2]        

@@ -32,6 +32,7 @@ class BaseTask(object):
     @ivar folder_dep: (list) 
     @ivar task_dep: (list)
     @ivar file_dep: (list)
+    @ivar run_once: (bool) task without dependencies should run
     """
 
     CAPTURE_OUT = False
@@ -40,10 +41,11 @@ class BaseTask(object):
     def __init__(self,name,action,dependencies=(),targets=()):
         """Init."""    
         # dependencies parameter must be a list
-        if not(isinstance(dependencies,list) or isinstance(dependencies,tuple)):
+        if not ((isinstance(dependencies,list)) or
+                (isinstance(dependencies,tuple))):
             msg = ("%s. paramater 'dependencies' must be a list or " +
                    "tuple got:'%s'%s")
-            raise InvalidTask(msg % (name, str(dependencies),type(dependencies)))
+            raise InvalidTask(msg%(name, str(dependencies),type(dependencies)))
 
         # targets parameter must be a list
         if not(isinstance(targets,list) or isinstance(targets,tuple)):
@@ -55,21 +57,35 @@ class BaseTask(object):
         self.action = action
         self.dependencies = dependencies
         self.targets = targets
+        self.run_once = False        
 
         # there are 3 kinds of dependencies: file, task, and folder
         self.folder_dep = [] 
         self.task_dep = [] 
         self.file_dep = []
         for dep in self.dependencies:
+            # True on the list. set run_once
+            if isinstance(dep,bool):
+                if not dep:
+                    msg = ("%s. bool paramater in 'dependencies' "+
+                           "must be True got:'%s'")
+                    raise InvalidTask(msg%(name, str(dep)))
+                self.run_once = True
             # folder dep ends with a '/'
-            if dep.endswith('/'):
+            elif dep.endswith('/'):
                 self.folder_dep.append(dep)
             # task dep starts with a ':'
             elif dep.startswith(':'):                    
                 self.task_dep.append(dep[1:])
             # file dep 
-            else:
+            elif isinstance(dep,str):
                 self.file_dep.append(dep)
+
+        # run_once can't be used together with file dependencies
+        if self.run_once and self.file_dep:
+            msg = ("%s. task cant have file and dependencies and True " +
+                   "at the same time. (just remove True)")
+            raise InvalidTask(msg % name)
 
     def execute(self):
         """Executes the task.

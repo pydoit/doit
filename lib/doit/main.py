@@ -117,7 +117,7 @@ class DoitTask(object):
         
 
     @staticmethod
-    def _create_task(name,action,dependencies=[],targets=[],*args,**kwargs):
+    def _create_task(name,action,dependencies,targets,*args,**kwargs):
         """ create a BaseTask acording to action type
 
         @param name: (string) task name

@@ -41,5 +41,6 @@ def task_targetdependency():
             'dependencies':['test_runner.py']}
 
 def task_mygroup():
-    return{'action':None,
+    return {'action':None,
            'dependencies':[':dictionary',':string']}
+
