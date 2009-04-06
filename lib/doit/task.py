@@ -27,15 +27,18 @@ class BaseTask(object):
     @cvar CAPTURE_ERR: (bool) stderr from the task to be captured
     @ivar name string 
     @ivar action see derived classes
-    @ivar dependencies list of absolute? file paths.
-    @ivar targets list of absolute? file paths.
+    @ivar dependencies list of all dependencies
+    @ivar targets list of targets
+    @ivar folder_dep: (list) 
+    @ivar task_dep: (list)
+    @ivar file_dep: (list)
     """
 
     CAPTURE_OUT = False
     CAPTURE_ERR = False
 
     def __init__(self,name,action,dependencies=(),targets=()):
-        """Init."""
+        """Init."""    
         # dependencies parameter must be a list
         if not(isinstance(dependencies,list) or isinstance(dependencies,tuple)):
             msg = ("%s. paramater 'dependencies' must be a list or " +
@@ -53,6 +56,20 @@ class BaseTask(object):
         self.dependencies = dependencies
         self.targets = targets
 
+        # there are 3 kinds of dependencies: file, task, and folder
+        self.folder_dep = [] 
+        self.task_dep = [] 
+        self.file_dep = []
+        for dep in self.dependencies:
+            # folder dep ends with a '/'
+            if dep.endswith('/'):
+                self.folder_dep.append(dep)
+            # task dep starts with a ':'
+            elif dep.startswith(':'):                    
+                self.task_dep.append(dep[1:])
+            # file dep 
+            else:
+                self.file_dep.append(dep)
 
     def execute(self):
         """Executes the task.

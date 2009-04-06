@@ -191,6 +191,18 @@ class TestRunningTask(object):
         assert "" == output[0], output
         assert "ERROR checking dependencies for: %s"% title == output[1]
 
+        
+    def test_ignoreNonFileDep(self):
+        runner = Runner(TESTDBM,1)
+        DIR_DEP = os.path.abspath(__file__+"/../folder_dep/")+'/'
+        dep = [DIR_DEP, ":taskY"]
+        runner.add_task(PythonTask("taskX",my_print,dep))
+        assert runner.SUCCESS == runner.run()
+        d = Dependency(TESTDBM)
+        assert 0 == len(d._db)
+        if os.path.exists(DIR_DEP):
+            os.removedirs(DIR_DEP)
+                        
 
     def test_alwaysExecute(self):
         runner = Runner(TESTDBM,1)
@@ -205,3 +217,15 @@ class TestRunningTask(object):
         assert runner2.SUCCESS == runner2.run()
         taskTitles = sys.stdout.getvalue().split('\n')
         assert runner2._tasks['taskX'].title() == taskTitles[0]
+
+
+    def test_createFolderDependency(self):
+        DIR_DEP = os.path.abspath(__file__+"/../parent/child/")+'/'
+        if os.path.exists(DIR_DEP):
+            os.removedirs(DIR_DEP)
+        runner = Runner(TESTDBM,1)
+        runner.add_task(PythonTask("taskX",my_print,dependencies=[DIR_DEP]))
+        assert runner.SUCCESS == runner.run()
+        assert os.path.exists(DIR_DEP)
+        if os.path.exists(DIR_DEP):
+            os.removedirs(DIR_DEP)

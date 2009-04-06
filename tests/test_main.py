@@ -250,8 +250,8 @@ class TestMain(object):
                 "targetdependency => Python: function do_nothing"] == \
                 sys.stdout.getvalue().split("\n")[:-1]
 
-
     def testUserErrorTaskDependency(self):
         m = Main(ETD_DODO_FILE, TESTDBM)
         nose.tools.assert_raises(InvalidTask,m.process)
         
+

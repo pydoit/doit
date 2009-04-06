@@ -42,6 +42,15 @@ class TestBaseTask(object):
         nose.tools.assert_raises(InvalidTask,t.execute)
 
 
+    # dependency types going to the write place
+    def test_dependencyTypes(self):
+        dep = ["file1.txt",":taskX","folderA/","pathB/","file2"]
+        t = BaseTask("MyName","MyAction",dep)
+        assert t.dependencies == dep
+        assert t.folder_dep == [dep[2],dep[3]]
+        assert t.task_dep == [dep[1][1:]]
+        assert t.file_dep == [dep[0],dep[4]]
+
 
 class TestCmdTask(object):
 

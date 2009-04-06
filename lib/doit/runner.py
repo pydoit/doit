@@ -1,6 +1,8 @@
 """Task runner."""
 
-import sys, traceback
+import sys
+import traceback
+import os
 
 from doit import logger
 from doit.util import OrderedDict
@@ -68,7 +70,7 @@ class Runner(object):
             # check if task is up-to-date
             try:
                 task_uptodate = dependencyManager.up_to_date(task.name, 
-                                              task.dependencies, task.targets)
+                                              task.file_dep, task.targets)
             #TODO: raise an exception here.
             except:
                 print
@@ -81,7 +83,12 @@ class Runner(object):
                 print "---", task.title()
             else:
                 print task.title()
-                try:
+                # process folder dependency
+                for dep in task.folder_dep:
+                    if not os.path.exists(dep):
+                        os.makedirs(dep)
+
+                try:                    
                     task.execute()
                 # task failed
                 except TaskFailed:
@@ -96,8 +103,7 @@ class Runner(object):
                     break              
                 # task success - save dependencies
                 else:
-                    dependencyManager.save_dependencies(task.name,
-                                                        task.dependencies)
+                    dependencyManager.save_dependencies(task.name,task.file_dep)
                     dependencyManager.save_dependencies(task.name, task.targets)
                 
             

@@ -39,7 +39,6 @@ def task_taskdependency():
 def task_targetdependency():
     return {'action':do_nothing,
             'dependencies':['test_runner.py']}
-    
 
 def task_mygroup():
     return{'action':None,

@@ -147,6 +147,8 @@ class DoitTask(object):
 
         @parameter add_cb: (callable/callback) callable must receive one 
         parameter (the task). the callebale 
+
+        make sure a task is added only once. detected cyclic dependencies.
         """
         # check task was alaready added
         if self.status == self.ADDED:
@@ -265,25 +267,15 @@ class Main(object):
             return Runner.SUCCESS
 
         # get tasks dependencies on other tasks
-        # task dependencies are prefixed with ":"
-        # remove these entries from BaseTask instance and add them
-        # as depends on on the DoitTask.
+        # add them as dependsOn the DoitTask.
         for doitTask in self.tasks.itervalues():
             if not doitTask.task: 
                 continue # a task that just contain subtasks.
-            depFiles = []
-            for dep in doitTask.task.dependencies:
-                # task dependencies start with ':'
-                if dep.startswith(':'):                    
-                    task_dep_name = dep[1:]
-                    if task_dep_name not in self.tasks:
-                        msg = "%s. Task dependency '%s' does not exist."
-                        raise InvalidTask(msg% (doitTask.task.name,task_dep_name))
-                    doitTask.dependsOn.append(self.tasks[task_dep_name])
-                else:
-                    depFiles.append(dep)
-            doitTask.task.dependencies = depFiles                    
-                        
+            for dep in doitTask.task.task_dep:
+                if dep not in self.tasks:
+                    msg = "%s. Task dependency '%s' does not exist."
+                    raise InvalidTask(msg% (doitTask.task.name,dep))
+                doitTask.dependsOn.append(self.tasks[dep])
 
         # get target dependecies on other tasks based on file dependency on
         # a target.
@@ -299,7 +291,7 @@ class Main(object):
         for doitTask in self.tasks.itervalues():
             if not doitTask.task:
                 continue
-            for dep in doitTask.task.dependencies:
+            for dep in doitTask.task.file_dep:
                 if dep in self.targets and \
                         self.targets[dep] not in doitTask.dependsOn:
                     doitTask.dependsOn.append(self.targets[dep])
