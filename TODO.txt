@@ -11,7 +11,7 @@
 - clarify -v "capture" (lp - 263576)
 - improve result "output" (lp - 249770)
 - no dependency but execute once if not cleared
-. group title() print dependencies
+- group title() print dependencies
 . use sphinx
 
 

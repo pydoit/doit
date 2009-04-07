@@ -196,7 +196,7 @@ class TestMain(object):
                 "func_args => Python: function funcX",
                 "taskdependency => Python: function do_nothing",
                 "targetdependency => Python: function do_nothing",
-                "mygroup => Group"] == \
+                "mygroup => Group: :dictionary, :string"] == \
                 sys.stdout.getvalue().split("\n")[:-1], sys.stdout.getvalue()
 
 
@@ -231,7 +231,7 @@ class TestMain(object):
         m.process()
         assert ["dictionary => Cmd: python sample_process.py ddd",
                 "string => Cmd: python sample_process.py sss",
-                "mygroup => Group"] == \
+                "mygroup => Group: :dictionary, :string"] == \
                 sys.stdout.getvalue().split("\n")[:-1], sys.stdout.getvalue()
 
 

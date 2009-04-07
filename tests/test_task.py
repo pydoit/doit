@@ -156,7 +156,7 @@ class TestGroupTask(object):
 
     def test_str(self):
         t = GroupTask("taskX",None,('t1','t2'))
-        assert "Group" == str(t), "'%s'"%str(t)
+        assert "Group: t1, t2" == str(t), "'%s'"%str(t)
 
     def test_repr(self):
         t = GroupTask("taskX",None,('t1','t2'))

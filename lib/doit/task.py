@@ -232,7 +232,7 @@ class GroupTask(BaseTask):
         pass
 
     def __str__(self):
-        return "Group"
+        return "Group: %s" % ", ".join(self.dependencies)
 
     def __repr__(self):
         return "<GroupTask: %s>"% self.name
