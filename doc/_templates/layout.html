@@ -1,0 +1,25 @@
+{% extends "!layout.html" %}
+
+{% block rootrellink %}
+        <li><a href="{{ pathto('index') }}">Home</a>&nbsp;|&nbsp;</li>
+        <li><a href="{{ pathto('contents') }}">Documentation</a>&raquo;</li>
+{% endblock %}
+
+{% block header %}
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 50px">
+<img src="{{ pathto("_static/doit.png", 1) }}" alt="doit logo" />
+</div>
+{% endblock %}
+
+{% block sidebarsearch %}
+{{ super() }}
+<h3></h3>
+<a href="http://python.org"><img src="_static/python-powered-w-100x40.png" /></a><br/><br/>
+
+<a href="http://sourceforge.net"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=222936&amp;type=3" width="125" height="37" border="0" alt="SourceForge.net Logo" /></a><br/>
+{% endblock %}
+
+
+{% block sidebarrel %}
+{% endblock %}
+

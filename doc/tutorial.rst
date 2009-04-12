@@ -1,12 +1,11 @@
-==============
-DoIt Tutorial
-==============
-
+===========
+Tutorial
+===========
 
 Tasks
 -----
 
-DoIt is all about automation of tasks execution. Tasks are external shell commands/scripts or a python function (or any callable). So a task can be anything you can code :)
+`doit` is all about automation of tasks execution. Tasks are external shell commands/scripts or a python function (or any callable). So a task can be anything you can code :)
 
 Configuration files (aka dodo file) are written in python. You should be comfortable with python basics. If you don't know python yet check `Python tutorial <http://docs.python.org/tut/>`_ and `Dive Into Python <http://www.diveintopython.org/>`_. 
 
@@ -84,7 +83,7 @@ Dependency
   A *dependency* indicates that the task depends on it to be executed. 
 
   i.e. A 'C' object file depends on the source code file to execute the compilation.
-  Dependencies are generally on files. But DoIt also handle dependencies on other tasks.
+  Dependencies are generally on files. But `doit` also handle dependencies on other tasks.
 
 Target
   A task *target* is the result produced by the task execution.
@@ -94,7 +93,7 @@ Target
 
 ``Dependencies`` and ``targets`` are optional fields for the task dictionary. They must be a sequence of strings.
 
-DoIt automatically keeps track of task dependencies. It saves the signature (MD5) of the dependencies every time the task is completed successfully. In case there is no modification in the dependencies (and targets) files it skip the task execution to save time as it would produce the same output from the previous run. Tasks without dependencies are always executed.
+`doit` automatically keeps track of task dependencies. It saves the signature (MD5) of the dependencies every time the task is completed successfully. In case there is no modification in the dependencies (and targets) files it skip the task execution to save time as it would produce the same output from the previous run. Tasks without dependencies are always executed.
 
 Dependencies are on tasks not on targets, so a task even without defining targets can take advantage of the execute only if not up-to-date feature.
 
@@ -129,7 +128,7 @@ Example 2 - Target + Dependency
 
 You might be thinking... Why should I define targets if the task itself can keep track of dependencies? There are two reasons to define targets.
 
-#. Even if the dependencies do not change but the target is modified the task is executed again. i.e. if you manually edit a file built by a DoIt task it will be rebuilt if you execute the task even the are no modifications on the dependencies.
+#. Even if the dependencies do not change but the target is modified the task is executed again. i.e. if you manually edit a file built by a `doit` task it will be rebuilt if you execute the task even the are no modifications on the dependencies.
 
 #. In case the target file is a dependency for another file it ensure tasks will be executed on the proper order. (By default tasks are executed in the order they were defined).
 
@@ -271,16 +270,16 @@ Let's start from the end.
 
 ``task_shrink_js`` compress a single javascript file and save the result in the "build" folder.
 
-``task_create_build_folder`` is used to create a *build* folder to store the compressed javascript files (if the folder doesnt exist yet). Note that this task will always be execute because it doesnt have dependencies. But even it is a dependency for every "shrink_js" task it will be executed only once per DoIt run. The same task is never executed twice.
+``task_create_build_folder`` is used to create a *build* folder to store the compressed javascript files (if the folder doesnt exist yet). Note that this task will always be execute because it doesnt have dependencies. But even it is a dependency for every "shrink_js" task it will be executed only once per `doit` run. The same task is never executed twice.
 
 Next Steps
 ----------
 
-Check the `reference <reference.html>`_ page for DoIt command line options and a summary of task dictionary fields.
+Check the `reference <reference.html>`_ page for `doit` command line options and a summary of task dictionary fields.
 
 There are also more `examples <examples.html>`_. Including the one used to generate this website from ReSTructured text.
 
-Then join our `discussion forum <http://groups.google.co.in/group/python-doit>`_ and drop me a line about your experience using DoIt. I will set-up a recipes page with more examples. Contributions are welcome.
+Then join our `discussion forum <http://groups.google.co.in/group/python-doit>`_ and drop me a line about your experience using `doit`. I will set-up a recipes page with more examples. Contributions are welcome.
 
 Finally take a look at the developer's `docs <developer.html>`_.
 

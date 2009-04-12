@@ -2,22 +2,22 @@
 README
 ================
 
-DoIt - A task execution tool (build-tool)
+doit - A task execution tool (build-tool)
 =========================================
 
-DoIt is a build tool that focus not only on making/building things but on executing any kind of tasks in an efficient way. Designed to be easy to use and "get out of your way".
+doit is a build tool that focus not only on making/building things but on executing any kind of tasks in an efficient way. Designed to be easy to use and "get out of your way".
 
-DoIt like most build tools is used to execute tasks defined in a configuration file. Configuration files are python modules. The tasks can be python functions (or any callable) or an external shell script. DoIt automatically keeps track of declared dependencies executing only tasks that needs to be update (based on which dependencies have changed). 
+doit like most build tools is used to execute tasks defined in a configuration file. Configuration files are python modules. The tasks can be python functions (or any callable) or an external shell script. doit automatically keeps track of declared dependencies executing only tasks that needs to be update (based on which dependencies have changed). 
 
-In DoIt, unlike most(all?) build-tools, a task doesn't need to define a target file to use the execute only if not up-to-date feature. This make DoIt specially suitable for running test suites.
+In doit, unlike most(all?) build-tools, a task doesn't need to define a target file to use the execute only if not up-to-date feature. This make doit specially suitable for running test suites.
 
-DoIt can be used to perform any task or build anything, though it doesn't support automatic dependency discovery for any language.
+doit can be used to perform any task or build anything, though it doesn't support automatic dependency discovery for any language.
 
 Author
 ======
 
 Eduardo Schettino
-email: schettino72 at mail dot com
+email: schettino72 at gmail dot com
 
 Project Details
 ===============
@@ -30,13 +30,13 @@ Project Details
 INSTALL
 =======
 
-``pytohn setup.py install``
+``python setup.py install``
 
 
 DEPENDENCIES
 ============
 
-There are no external dependencies to install and use DoIt.
+There are no external dependencies to install and use doit.
 
 Tools required for developement:
 
@@ -58,7 +58,7 @@ DOCUMENTATION
 =============
 
 ``doc`` folder contains ReST documentation. They are the base for creating the website.
-To create it (after installing DoIt):
+To create it (after installing doit):
 
 ``doit -f website.py``
 
