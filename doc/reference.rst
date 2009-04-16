@@ -2,23 +2,42 @@
 Reference
 ===============
 
+Command line
+------------
 
-Command line options
---------------------
+.. program :: doit
 
-DoIt Usage::
+.. describe:: doit [options] [task] [task] ...
 
-  ..$doit --help
-  Usage: doit [options] [tasks]
+options
+^^^^^^^
 
-  Options:
-    -h, --help            show this help message and exit
-    -f FILE, --file=FILE  load task from dodo FILE [default: dodo.py]
-    -v VERBOSITY, --verbosity=VERBOSITY 0 capture stdout/stderr from task. 1 capture stdout only. 2 don't capture anything. [default: 0]
-    -a, --always-execute  always execute tasks even if up-to-date [default: False]
-    -l, --list            list tasks from dodo file [default: 0]
-    --list-all            list all tasks and sub-tasks from dodo file [default: 0]
+.. cmdoption:: -h, --help            
 
+show this help message and exit
+
+.. cmdoption:: -f FILE, --file FILE
+
+load task from dodo FILE 
+[default: dodo.py]
+
+.. cmdoption:: -v VERBOSITY, --verbosity VERBOSITY 
+
+* 0 capture (do not print) stdout/stderr from task. 
+* 1 capture stdout only. 
+* 2 dont capture anything (print everything immediately)
+[default: 0]
+
+.. cmdoption:: -a, --always-execute  
+
+always execute tasks even if up-to-date 
+[default: False]
+
+.. cmdoption:: -l, --list
+list tasks from dodo file 
+
+.. cmdoption:: --list-all
+list all tasks and sub-tasks from dodo file
 
 
 Task Dictionary parameters
@@ -30,6 +49,7 @@ action:
   - Required field
   - type: Python-Task -> function(callable) reference. 
   - type: Cmd-Task -> string to be executed by shell.
+  - type: Group-Task -> None.
 
 args:
   - Optional field - Python-Task only
@@ -45,9 +65,11 @@ name:
 
 dependencies:
   - Optional field
-  - type: list of strings
-  - each item is file-path relative to the dodo file
-  - or ":<task_name>" for a task-dependency
+  - type: list. items:
+    * file (string) path relative to the dodo file
+    * folder (string) must end with "/"
+    * task (string) ":<task_name>"
+    * True (bool) run once
 
 targets:
   - Optional field

@@ -1,9 +1,8 @@
+================
+Developer's docs
+================
 
-==================================
-Inside Mr. DoIt (developer's doc)
-==================================
-
-This document presents a general overview of how DoIt works. If you just want to use DoIt, you better take a look at the tutorial_. 
+This document presents a general overview of how `doit` works. If you just want to use `doit`, you better take a look at the tutorial_. 
 
 
 Package modules
@@ -13,7 +12,7 @@ Package modules
 - `dependency.py <api/doit.dependency-module.html>`_: Manage (save/check) task dependency-on-files data.
 - `loader.py <api/doit.loader-module.html>`_: Loads a python module and extracts its task generator functions.
 - `logger.py <api/doit.logger-module.html>`_: Logger with channel support.
-- `main.py <api/doit.main-module.html>`_: DoIt command line program.
+- `main.py <api/doit.main-module.html>`_: `doit` command line program.
 - `runner.py <api/doit.runner-module.html>`_: Task runner.
 - `task.py <api/doit.task-module.html>`_: Task classes.
 - `util.py <api/doit.util-module.html>`_: Utility methods.
@@ -22,7 +21,7 @@ Package modules
 Execution flow
 --------------
 
-DoIt is invoked using the script ``bin/doit``. It uses optparse_ to parse the command line arguments and create a Main_ instance. And then calls ``Main.process``.
+`doit` is invoked using the script ``bin/doit``. It uses optparse_ to parse the command line arguments and create a Main_ instance. And then calls ``Main.process``.
 
 Main_ is responsible for controlling the whole execution. It has 6 stages:
 
@@ -37,7 +36,7 @@ Main_ is responsible for controlling the whole execution. It has 6 stages:
 Load "task generators"
 ^^^^^^^^^^^^^^^^^^^^^^
 
-Tasks are defined on the configuration file(from now on called "dodo" file). The dodo file is a plain python module. 
+Tasks are defined on the configuration file (from now on called "dodo" file). The dodo file is a plain python module. 
 
 The Loader_ will first import the dodo file. Than it introspects the module collecting all functions named with a starting ``task_``. These functions are "task generators", they are not tasks on its own but they build tasks. 
 
@@ -50,13 +49,7 @@ Get tasks from task generators
  
 Generators return python dictionaries to represent tasks. The task name is given by function name of the task generator less the initial string ``task_``. For example the task name for "task_doXYZ" would be "doXYZ".
 
-There is only one required field: 'action'. This field describes the action executed by the task. It can be a reference to a python callable (Python-task) or a string - to be executed as a shell script (Cmd-task).
-
-It can optionally define 'dependencies'. A list of strings, where each string is the file path from a dependent file (i.e. the task depends on this file to execute its action). A dependency can also be a task-dependency (i.e. another task that must be executed before this task). Task-dependency string is composed of the character ':' followed by the task name. So there are two types of task dependencies. "task-dependency" and "file-dependency". 
-
-'targets' is also optional. A list of strings, where each string is the file path from a target file (i.e. the task action will create/update this file).
-
-See reference_ for a complete list of accepted fields. 
+There is only one required field: 'action'. This field describes the action executed by the task. It can optionally define 'dependencies' and 'targets'. See reference_ for a complete list of accepted fields. 
 
 As a convenience to users if the task only defines an ``action`` they don't need to return it in a dictionary. 
 
@@ -99,22 +92,16 @@ Execute tasks
 At this point the _Runner has a list of all tasks that will be executed and its file-dependencies and targets.
 
 The runner executes only tasks that are not up-to-date. A dbm_ (simple "database
-" interface) is used to keep information on tasks and their dependencies. Each entry is: key=>  taskId + dependency (abs file path), value=>  signature(md5) the dependency content.
+" interface) is used to keep information on tasks and their file-dependencies. Each entry is: key=>  taskId + dependency (abs file path), value=>  signature(md5) the dependency content.
 
 
-Targets are treated as dependencies. The only difference is that if a dependency file is not on the file system an error is raised. While targets are not required to exist on the file system before the task is executed.
+Targets are treated as file-dependencies. The only difference is that if a dependency file is not on the file system an error is raised. While targets are not required to exist on the file system before the task is executed.
 
-The following rules apply (targets=dependencies):
+The following rules apply to dependencies (targets also):
 
-- if a task does not define any dependency it is always executed.
-- if none of the dependencies changed its signature the task action is not executed
+- if a task does not define any file-dependency or True (run-once) it is always executed.
+- if none of the file-dependencies is not modified (changed its signature) the task action is not executed
 - if the task is completed successfully all dependency records are updated.
-
-A task execution can be:
-
-#. success: Python-task returns True, Cmd-task process exits 0.
-#. failure: Python-task returns False, Cmd-task process exits 1-125.
-#. error: Python-task raises an Exception, Cmd-task process exits 126-
 
 In case any task fails the whole execution is aborted. 
 
@@ -122,8 +109,7 @@ And, that's it :)
 
 ---------------------
 
-You can find more details on how each module work in the `API docs <api/index.html>`_. If you need any further clarification direct your question to the `discussion group <http://groups.google.co.in/group/python-doit>`_. 
-
+You can find more details on how each module work in the `API docs <api/index.html>`_.
 
 
 .. _tutorial: tutorial.html

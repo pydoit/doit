@@ -1,13 +1,13 @@
+checker2.py
 checker.py
-checker.py~
 checker.pyc
+compressed.js
+compressjs.py
 counter2.py
-counter2.py~
-counter2.pyc
 counter.py
-counter.py~
 counter.pyc
-count.txt
+file1.js
+file2.js
 files.txt
 hello_python.txt
 hello_sh.txt
@@ -17,8 +17,4 @@ sample.py
 sample.pyc
 test
 tutorial_01.py
-tutorial_01.py~
-tutorial_01.pyc
 tutorial_02.py
-tutorial_02.py~
-tutorial_02.pyc

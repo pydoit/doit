@@ -60,7 +60,7 @@ release = '0.2'
 #today_fmt = '%B %d, %Y'
 
 # List of documents that shouldn't be included in the build.
-unused_docs = []
+unused_docs = ['examples']
 
 rest_pages = ['index']
 

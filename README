@@ -41,10 +41,9 @@ There are no external dependencies to install and use doit.
 Tools required for developement:
 
 - nose * unit tests
-- epydoc * API doc generator
-- docutils * Restructured text
-- mako * html templates (website)
 - bazaar * VCS
+- epydoc * API doc generator
+- sphinx * doc tool
 
 
 TESTS

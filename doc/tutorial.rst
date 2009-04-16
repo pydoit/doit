@@ -1,78 +1,68 @@
-===========
+========
 Tutorial
-===========
+========
 
 Tasks
 -----
 
-`doit` is all about automation of tasks execution. Tasks are external shell commands/scripts or a python function (or any callable). So a task can be anything you can code :)
+`doit` is all about automating tasks execution. Tasks can be external shell commands/scripts or a python function (or any callable). So a task can be anything you can code :)
 
-Configuration files (aka dodo file) are written in python. You should be comfortable with python basics. If you don't know python yet check `Python tutorial <http://docs.python.org/tut/>`_ and `Dive Into Python <http://www.diveintopython.org/>`_. 
+`doit` will execute tasks defined in a configuration file, something like a Makefile here called "dodo" file. They are written in python. 
 
-``tutorial_01.py``
-::
+You should be comfortable with python basics. If you don't know python yet check `Python tutorial <http://docs.python.org/tut/>`_ and `Dive Into Python <http://www.diveintopython.org/>`_. 
 
-  def say_hello():
-      output = open("hello_python.txt","w")
-      output.write("Hello World.")
-      output.close()    
-      return True
+The first example we will just create a file with the content "Hello World". Using both a python-task and a cmd-task.
 
+``tutorial_01.py``:
 
-  def task_hello_python():
-      return {'action':say_hello}
+.. literalinclude:: tutorial/tutorial_01.py
 
-  def task_hello_sh():
-      return {'action':"echo 'Hello World' > hello_sh.txt"}
-
-
-Any function that start with the string ``task_`` is a task. A task must return a dictionary where it specifies its parameters. The only required parameter is ``action``.
+`doit` will read the configuration file and collect the defined tasks. Any function that start with the string ``task_`` is defining task. These functions must return a dictionary where it specifies the task parameters. The only required parameter is ``action``.
 
 Cmd-Task
   If ``action`` is a string it will be executed by the shell. 
-  The result of the task follows the shell convention. If the process exit with the value ``0`` it is successful.  Any other value means the task failed.
+  The result of the task follows the shell convention. If the process exits with the value ``0`` it is successful.  Any other value means the task failed.
 
 Python-Task
   If ``action`` is a function reference (or any callable) the python function is executed. 
   The result of the task is given by the returned value of the ``action`` function. So it **must** return a value that evaluates to True to indicate successful completion of the task.
 
+Group-Task
+  There is one more kind of taks. It is only used to group tasks together. It will be explained later.
+
 After executing the command below you should get the two files with the "Hello World" text.
 
 ::
 
-  .../tutorial$ doit -f tutorial_01.py
+  $ doit -f tutorial_01.py
   hello_python => Python: function say_hello
   hello_sh => Cmd: echo 'Hello World' > hello_sh.txt
   
 
+Task Results
+------------
+
+`doit` classify the task result as success, failure or error. 
+
+Failures are caused by the task not being completed successfully. For python-task when the returned value is False. For a cmd-task when the returned value by the process is bigger than 125.
+
+Errors are caused by unexpected problems in the execution of a task. For a python-task an exception is raised. For a cmd-task returns a value between 1 and 125.
+
+So it basically means that an error is caused by the definition of the task. And a failure is caused by the task itself. 
+
+The return codes for cmd-task are defined based on http://www.gnu.org/software/bash/manual/bashref.html#Exit-Status. But not all applications follow this convention.
+
 
 Task arguments
-----------------
+--------------
 
 You can pass arguments to your Python-Task *action* function using the optional fields ``args`` (sequence) and ``kwargs`` (dictionary). They will be passed as `*args <http://docs.python.org/tut/node6.html#SECTION006730000000000000000>`_ and `**kwargs <http://docs.python.org/tut/node6.html#SECTION006720000000000000000>`_ to the *action* function.
 
 For Cmd-Task, just manipulate the string!
 
-
 ``tutorial_02.py``
-::
 
-  def say_something(times, text):
-      output = open("hey_python.txt","w")
-      for x in range(times):
-	  output.write(text)
-      output.close()    
-      return True
-
-
-  def task_hey_python():
-      return {'action':say_something,
-	      'args':(10,),
-	      'kwargs':{'text':'hey! '}}
-
-  def task_hi_sh():
-      hi = 10*"hi! "
-      return {'action':"echo '%s' > hi_sh.txt"% hi}
+.. literalinclude:: tutorial/tutorial_02.py
 
 
 
@@ -83,7 +73,7 @@ Dependency
   A *dependency* indicates that the task depends on it to be executed. 
 
   i.e. A 'C' object file depends on the source code file to execute the compilation.
-  Dependencies are generally on files. But `doit` also handle dependencies on other tasks.
+
 
 Target
   A task *target* is the result produced by the task execution.
@@ -91,40 +81,53 @@ Target
   i.e. An object file from a compilation task.
 
 
-``Dependencies`` and ``targets`` are optional fields for the task dictionary. They must be a sequence of strings.
+``Dependencies`` and ``targets`` are optional fields for the task definition.
 
-`doit` automatically keeps track of task dependencies. It saves the signature (MD5) of the dependencies every time the task is completed successfully. In case there is no modification in the dependencies (and targets) files it skip the task execution to save time as it would produce the same output from the previous run. Tasks without dependencies are always executed.
+`doit` automatically keeps track of file-dependencies. It saves the signature (MD5) of the dependencies every time the task is completed successfully. In case there is no modification in the dependencies (and targets) files it skip the task execution to save time as it would produce the same output from the previous run. Tasks without dependencies are always executed.
 
 Dependencies are on tasks not on targets, so a task even without defining targets can take advantage of the execute only if not up-to-date feature.
 
-Targets are basically treated as dependencies. The only difference is that if a dependency file is not on the file system an error is raised. While targets are not required to exist on the file system before the task is executed.
+Targets are basically treated as dependencies. The only difference is that if a dependency file is not on the file system an error is raised. While targets are not required to exist on the file system before the task is executed. If a task defines a target but no dependencies it is also always executed.
+
+There are four kinds of dependencies:
+
+file-dependency:
+  type: string. value is the path of the file (relative to the dodo file).
+
+folder-dependency:
+  type: string. value is the path that must exist on the file system (relative to the dodo file). The last charachter of the string must be a '/'. i.e. "path/to/build/"
+
+task-dependency:
+  type: string. values is the name of a task preceeded by ':'. i.e. ":compile"
+
+run-once:
+  type: boolean. value must always be `True`. This is actually used to say that a task has no dependency but should be executed only once. This is useful if you have a task with no dependency that creates a target and you dont want to create the target over and over again.
 
 
-Example 1 - Simple Dependency - Lint
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Targets can only be a string with a file path.
 
-Suppose you want to apply a lint-like tool(`PyChecker <http://pychecker.sourceforge.net/>`_) to your source code file. You can define the source code as a dependency to the task.
+
+Example 1 - Simple File Dependency - Lint
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Suppose you want to apply a lint-like tool (`PyChecker <http://pychecker.sourceforge.net/>`_) to your source code file. You can define the source code as a dependency to the task.
 
 ``checker.py``
-::
 
-  pyfile = "sample.py"
-  def task_checker():
-      return {'action': "pychecker %s"% pyfile, 
-	      'dependencies':(pyfile,)}
+.. literalinclude:: tutorial/checker.py
 
 This way the Pychecker is executed only when source file has changed. On the output the string ``---`` preceding the task description indicates the task execution was skipped because it is up-to-date.
 
 ::
 
-  .../tutorial$ doit -f checker.py 
+  $ doit -f checker.py 
   checker => Cmd: pychecker sample.py
-  .../tutorial$ doit -f checker.py 
+  $ doit -f checker.py 
   --- checker => Cmd: pychecker sample.py
 
 
-Example 2 - Target + Dependency
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Example 2 - Target + Folder Dependency
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 You might be thinking... Why should I define targets if the task itself can keep track of dependencies? There are two reasons to define targets.
 
@@ -135,42 +138,60 @@ You might be thinking... Why should I define targets if the task itself can keep
 In the next example the task "count_lines" is used to create a file reporting the number of lines from "files.txt". "files.txt" is actually the target from another task.
 
 ``counter.py``
-::
 
-  def task_count_lines():
-      return {'action': "wc -l files.txt > count.txt",
-	      'dependencies':['files.txt'],
-	      'targets':['count.txt']}
-
-  def task_ls():
-      return {'action':"ls -1 > files.txt",
-	      'targets':['files.txt']}
-
+.. literalinclude:: tutorial/counter.py
 
 ::
 
-  .../tutorial$ doit -f counter.py
-  ls => Cmd: ls -1 > files.txt
-  count_lines => Cmd: wc -l files.txt > count.txt
+  $ doit -f counter.py 
+  ls => Cmd: ls -1 > build/files.txt
+  count_lines => Cmd: wc -l build/files.txt > result/count.txt
 
-Notice that "task_ls" is executed before "task_count_line" even that it was defined after. Because its target is a dependency of "task_count_line".
 
-Also notice that even that "task_ls" is always executed (because it doesn't define any dependency). "task_count_lines" is executed only if "files.txt" is change.
+* Notice that "task_ls" is executed before "task_count_line" even that it was defined after. Because its target is a dependency of "task_count_line".
 
- 
-To define a dependency on another task use the task name (whatever comes after ``task_`` on the function name) preceded by ":". This is only to ensure the correct order of the task execution. In this case both tasks would be always executed.
+* ``ls`` will write its output in the ``build`` folder. Since this folder is a "folder-dependency" it is not required to exist before you run `doit`.
 
-``counter2.py``
+* "task_ls" is always executed (because it doesn't define any file-dependency). 
+
+* "task_count_lines" is executed only if "files.txt" is change.
+
+Lets execute it one more time. Notice the "---" to indicate the task was not executed.
+
 ::
 
-  def task_count_lines():
-      return {'action': "wc -l files.txt > count.txt",
-	      'dependencies':[':ls'],
-	      'targets':['count.txt']}
+  $ doit -f counter.py 
+  ls => Cmd: ls -1 > build/files.txt
+  --- count_lines => Cmd: wc -l build/files.txt > result/count.txt
 
-  def task_ls():
-      return {'action':"ls -1 > files.txt",
-	      'targets':['files.txt']}
+
+Example 3 - Task Dependency
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To define a dependency on another task use the task name (whatever comes after ``task_`` on the function name) preceded by ":". It is used to enforce tasks are executed on the desired order. This example we make sure we include a file with the latest revision number of the bazaar repository on the tar file.
+
+``tar.py``
+
+.. literalinclude:: tutorial/tar.py
+
+::
+
+  $ doit -f tar.py
+  version => Cmd: bzr version-info > revision.txt
+  tar => Cmd: tar -cf foo.tar *
+
+
+Example 4 - run-once
+^^^^^^^^^^^^^^^^^^^^
+
+Sometimes you might want to have execute a task only once even if it has no dependencies. For example, if you need a package that you dont want to include in your source distribution. Just add ``True`` as a dependency.
+
+``download.py``
+
+.. literalinclude:: tutorial/download.py
+
+This way it will shrinksafe will be downloaded only once. If you set the file as a target it will be download again only if you delete it.
+
 
 
 Subtasks
@@ -183,30 +204,41 @@ The task function can return a generator that yields dictionaries. Since each su
 Below an example on how to execute PyChecker for all files in a folder.
 
 ``checker2.py``
+
+.. literalinclude:: tutorial/checker2.py
+
+
+Task Groups
+-----------
+
+The command line allows you to select which tasks from a file you want to run. You can define group of tasks by adding tasks as dependencies and setting its action to `None`.
+
+``group.py``
+
+.. literalinclude:: tutorial/group.py
+
 ::
 
-  import glob;
-
-  pyFiles = glob.glob('*.py')
-
-  def task_checker():
-      for f in pyFiles:
-	  yield {'action': "pychecker %s"% f, 
-		 'name':f, 
-		 'dependencies':(f,)}
+  $ doit -f group.py mygroup
+  foo => Cmd: echo foo
+  bar => Cmd: echo bar
+  mygroup => Group: :foo, :bar
 
 
-Output::
+The command line
+-----------------
 
-  .../tutorial$ doit -f checker2.py 
-  checker:tutorial_01.py => Cmd: pychecker tutorial_01.py
-  checker:tutorial_02.py => Cmd: pychecker tutorial_02.py
-  checker:sample.py => Cmd: pychecker sample.py
-  checker:checker.py => Cmd: pychecker checker.py
-  checker:counter.py => Cmd: pychecker counter.py
-  checker:counter2.py => Cmd: pychecker counter2.py
-  checker:checker2.py => Cmd: pychecker checker2.py
+By default ``$ doit`` will execute all tasks from a file named ``dodo.py``. The tasks will be executed in the order they where defined, as long as all dependencies are executed first.
 
+* to specify another file containg task. use the file parameter ``-f``. 
+
+* to view the defined tasks (dont run). use the list parameter ``-l``.
+
+* to select which tasks to execute. pass the task name or target. You can pass as many as you want separated by a space. they will be executed in the order they were passed. ``$ doit -f group.py bar foo``
+
+* to force the execution of tasks even if they are updated use the always-execute paramter ``-a``.
+
+``doit`` creates a file ``.doit.dbm`` where information of previous runs are saved. to reset it just delete it.
 
 
 Putting all together
@@ -214,55 +246,15 @@ Putting all together
 
 Really. You already learned everything you need to know! Quite easy :)
 
-I am going to show one more real life example. Compressing javascript files, and combining them in a single file. I will use `shrinksafe <http://svn.dojotoolkit.org/branches/1.1/util/shrinksafe/custom_rhino.jar>`_.
+I am going to show one real life example. Compressing javascript files, and combining them in a single file. 
 
 ``compressjs.py``
-::
 
-  """ dodo file - compress javascript files """
-
-  import os
-
-  jsPath = "./"
-  jsFiles = ["file1.js", "file2.js"]
-
-  sourceFiles = [jsPath + f for f in jsFiles]
-  compressedFiles = [jsPath + "build/" + f + ".compressed" for f in jsFiles]
-
-  def create_folder(path):
-      """Create folder given by "path" if it doesnt exist"""
-      if not os.path.exists(path):
-	  os.mkdir(path)
-      return True
-
-  def task_create_build_folder():
-      buildFolder = jsPath + "build"
-      return {'action':create_folder,
-	      'args': (buildFolder,)
-	      }
-
-  def task_shrink_js():
-      for jsFile,compFile in zip(sourceFiles,compressedFiles):
-	  action = 'java -jar custom_rhino.jar -c %s > %s'% (jsFile, compFile)
-	  yield {'action':action,
-		 'name':jsFile,
-		 'dependencies':(":create_build_folder", jsFile,),
-		 'targets':(compFile,)
-		 }
-
-  def task_pack_js():
-      output = jsPath + 'compressed.js'
-      input = compressedFiles
-      action = "cat %s > %s"% (" ".join(input), output)
-      return {'action': action,
-	      'dependencies': input,
-	      'targets':[output]}
-
+.. literalinclude:: tutorial/compressjs.py
 
 Running::
 
-  doit -f compressjs.py
-
+  $ doit -f compressjs.py
 
 Let's start from the end. 
 
@@ -270,17 +262,5 @@ Let's start from the end.
 
 ``task_shrink_js`` compress a single javascript file and save the result in the "build" folder.
 
-``task_create_build_folder`` is used to create a *build* folder to store the compressed javascript files (if the folder doesnt exist yet). Note that this task will always be execute because it doesnt have dependencies. But even it is a dependency for every "shrink_js" task it will be executed only once per `doit` run. The same task is never executed twice.
-
-Next Steps
-----------
-
-Check the `reference <reference.html>`_ page for `doit` command line options and a summary of task dictionary fields.
-
-There are also more `examples <examples.html>`_. Including the one used to generate this website from ReSTructured text.
-
-Then join our `discussion forum <http://groups.google.co.in/group/python-doit>`_ and drop me a line about your experience using `doit`. I will set-up a recipes page with more examples. Contributions are welcome.
-
-Finally take a look at the developer's `docs <developer.html>`_.
-
+``task_get_shrinksafe`` will download shrinksafe.
 

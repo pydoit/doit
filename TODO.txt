@@ -1,7 +1,7 @@
 0.2
 ---
 
-- remove tests dependency on unix cmds - (for windows) (lp - 218276)
+- remove tests dependency on unix cmds 
 - python 2.4
   . python 2.4 doesnt have hashlib. there is a package for backward compatibility on pypi. add hashlib as dependency.
 - python 2.6
@@ -17,17 +17,19 @@
 
 ---
 
-. dont get subtasks if task is not going to be executed
 . setup/teardown for tasks 
+. support for depedency scanner (lp - 218303)
+. cmd line (sub-commands, -l is another cmd not a parameter)
+. dont get subtasks if task is not going to be executed
 . continue execution even if one task fails
 . dont show traceback for user errors
 . one .doit for each dodo file
-. support for depedency scanner (lp - 218303)
 . multiple (include) dodo files (lp - 218279)
 . color output on the terminal. (lp - 263576)
 . default task
 . flag task to not be executed by default
 . subcommand clean targets
+. windows (lp - 218276)
 
 
 Ideas

@@ -13,7 +13,5 @@ Contents:
 
    tutorial
    reference
-   examples
    related
    developer
-   api

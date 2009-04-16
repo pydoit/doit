@@ -1,4 +1,4 @@
-"""DoIt command line program."""
+"""doit command line program."""
 
 import os
 

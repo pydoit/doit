@@ -1,1 +1,1 @@
-"""DoIt - Build Tool"""
+"""doit - Automation Tool"""

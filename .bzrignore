@@ -1,11 +1,11 @@
 .coverage
 .doit.dbm
 tests/data/*
-doc/html/*.html
-doc/html/api/*
 dist
 MANIFEST
 revision.txt
 temp
-
 _build
+doc/tutorial/build/count.txt
+doc/tutorial/build/files.txt
+shrinksafe.jar

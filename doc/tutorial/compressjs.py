@@ -1,31 +1,27 @@
-""" dodo file - compress javascript files """
+""" dodo file - compress javascript files and pack them together"""
 
-import os
-
+url = "http://svn.dojotoolkit.org/src/util/trunk/shrinksafe/shrinksafe.jar"
+shrinksafe = "shrinksafe.jar"
 jsPath = "./"
+buildPath = "build/"
 jsFiles = ["file1.js", "file2.js"]
 
 sourceFiles = [jsPath + f for f in jsFiles]
-compressedFiles = [jsPath + "build/" + f + ".compressed" for f in jsFiles]
+compressedFiles = [jsPath + buildPath + f + ".compressed" for f in jsFiles]
 
-def create_folder(path):
-    """Create folder given by "path" if it doesnt exist"""
-    if not os.path.exists(path):
-        os.mkdir(path)
-    return True
 
-def task_create_build_folder():
-    buildFolder = jsPath + "build"
-    return {'action':create_folder,
-            'args': (buildFolder,)
+def task_get_shrinksafe():
+    return {'action': "wget %s"% url,
+            'targets': [shrinksafe],
+            'dependencies': [True]
             }
 
 def task_shrink_js():
     for jsFile,compFile in zip(sourceFiles,compressedFiles):
-        action = 'java -jar custom_rhino.jar -c %s > %s'% (jsFile, compFile)
+        action = 'java -jar %s %s > %s'% (shrinksafe, jsFile, compFile),
         yield {'action':action,
                'name':jsFile,
-               'dependencies':(":create_build_folder", jsFile,),
+               'dependencies':(shrinksafe, buildPath, jsFile),
                'targets':(compFile,)
                }
 

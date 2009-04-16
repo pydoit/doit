@@ -7,7 +7,7 @@ from optparse import OptionParser
 
 from doit.main import Main
 
-usage = "usage: %prog [options] [tasks]"
+usage = "usage: %prog [options] [task] [task] ..."
 parser = OptionParser(usage)
 parser.add_option("-f","--file",dest="file",default="dodo.py",
                   help="load task from dodo FILE [default: %default]")
@@ -21,10 +21,10 @@ parser.add_option("-a","--always-execute",action="store_true",
                   help="always execute tasks even if up-to-date [default: %default]")
 parser.add_option("-l","--list",action="store_const",const=1,dest="list",
                   default=0,
-                  help="list tasks from dodo file [default: %default]")
+                  help="list tasks from dodo file")
 parser.add_option("--list-all",action="store_const",const=2,dest="list",
                   default=0,
-                  help="list all tasks and sub-tasks from dodo file [default: %default]")
+                  help="list all tasks and sub-tasks from dodo file")
 
 (options,args) = parser.parse_args()
 
