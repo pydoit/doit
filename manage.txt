@@ -1,0 +1,14 @@
+ bzr push bzr+ssh://bazaar.launchpad.net/%7Eschettino72/doit/trunk/
+
+################################
+
+rsync -avP -e ssh /home/eduardo/work/doit/doc/_build/html/* schettino72,python-doit@web.sourceforge.net:htdocs/
+
+rsync -avP -e ssh /home/eduardo/work/doit/dist/doit-0.2.0.tar.gz schettino72,python-doit@frs.sourceforge.net:uploads/
+
+#######################################
+pypi
+
+ python setup.py sdist upload
+
+
