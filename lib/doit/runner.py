@@ -42,11 +42,11 @@ class Runner(object):
         """Add a task to be run.
 
         @param task: (L{BaseTask}) instance.
-        @raise InvalidTask: 
+        @raise InvalidTask:
         """
         # task must be a BaseTask
         if not isinstance(task,BaseTask):
-            raise InvalidTask("Task must an instance of BaseTask class. %s"% 
+            raise InvalidTask("Task must an instance of BaseTask class. %s"%
                               (task.__class__))
 
         #task name must be unique
@@ -57,10 +57,10 @@ class Runner(object):
 
     def run(self):
         """Execute all tasks."""
-        
+
         dependencyManager = Dependency(self.dependencyFile)
         errorException = None
-        result = self.SUCCESS 
+        result = self.SUCCESS
 
         for task in self._tasks.itervalues():
             # clear previous output
@@ -88,7 +88,7 @@ class Runner(object):
                     if not os.path.exists(dep):
                         os.makedirs(dep)
 
-                try:                    
+                try:
                     task.execute()
                 # task failed
                 except TaskFailed:
@@ -100,24 +100,24 @@ class Runner(object):
                     logger.log("stderr", '\nTask error => %s\n'% task.name)
                     result = self.ERROR
                     errorException = exception
-                    break              
+                    break
                 # task success - save dependencies
                 else:
                     if task.run_once:
                         dependencyManager.save_run_once(task.name)
                     dependencyManager.save_dependencies(task.name,task.file_dep)
                     dependencyManager.save_dependencies(task.name,task.targets)
-                
-            
-        ## done 
-        # flush update dependencies 
+
+
+        ## done
+        # flush update dependencies
         dependencyManager.close()
 
         # if test fails print output from failed task
         if result != self.SUCCESS:
             logger.flush('stdout',sys.stdout)
             logger.flush('stderr',sys.stderr)
-        
+
         # in case of error show traceback from last exception
         if result == self.ERROR:
             line = "="*40 + "\n"
@@ -126,5 +126,5 @@ class Runner(object):
                 sys.stderr.write("\n".join(errorException.originalException))
             else:
                 sys.stderr.write(traceback.format_exc())
-        
+
         return result

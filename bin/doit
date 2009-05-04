@@ -9,29 +9,30 @@ from doit.main import Main
 
 usage = "usage: %prog [options] [task] [task] ..."
 parser = OptionParser(usage)
-parser.add_option("-f","--file",dest="file",default="dodo.py",
+parser.add_option("--version", dest="printVersion", action="store_true",
+                  default=False, help="print the version of 'doit' and exit")
+parser.add_option("-f", "--file", dest="file", default="dodo.py",
                   help="load task from dodo FILE [default: %default]")
-parser.add_option("-v","--verbosity",dest="verbosity",type="int",default=0,
+parser.add_option("-v", "--verbosity", dest="verbosity", type="int",default=0,
                   help="""0 capture (do not print) stdout/stderr from task. \t
                           1 capture stdout only. \t
                           2 dont capture anything (print everything immediately). \t
                           [default: %default]""")
-parser.add_option("-a","--always-execute",action="store_true",
+parser.add_option("-a", "--always-execute", action="store_true",
                   dest="alwaysExecute", default=False,
                   help="always execute tasks even if up-to-date [default: %default]")
-parser.add_option("-l","--list",action="store_const",const=1,dest="list",
+parser.add_option("-l", "--list", action="store_const", const=1, dest="list",
                   default=0,
                   help="list tasks from dodo file")
-parser.add_option("--list-all",action="store_const",const=2,dest="list",
+parser.add_option("--list-all", action="store_const", const=2, dest="list",
                   default=0,
                   help="list all tasks and sub-tasks from dodo file")
 
 (options,args) = parser.parse_args()
 
-# execute it
 
-        
-def main(fileName, **kargs):
+# execute it
+def execute(fileName, **kargs):
     try:
         m = Main(fileName, ".doit.dbm", **kargs)
         return m.process()
@@ -41,8 +42,15 @@ def main(fileName, **kargs):
         return -1
 
 
-result = main(options.file, verbosity=options.verbosity, 
-              list_=options.list, alwaysExecute=options.alwaysExecute, 
-              filter_=args)
+if __name__ == "__main__":
+    # special parameter --version
+    if options.printVersion:
+        import doit
+        print ".".join([str(i) for i in doit.__version__])
+        sys.exit(0)
+    # do real work
+    result = execute(options.file, verbosity=options.verbosity,
+                  list_=options.list, alwaysExecute=options.alwaysExecute,
+                  filter_=args)
+    sys.exit(result)
 
-sys.exit(result)

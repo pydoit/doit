@@ -8,11 +8,11 @@ from doit.util import md5sum
 class Dependency(object):
     """Manage dependency on files.
 
-    Each dependency is a saved in dbm. where the key is taskId + dependency 
+    Each dependency is a saved in dbm. where the key is taskId + dependency
     (abs file path), and the value is the dependency signature.
 
     In case dependency is a bool value True it will be saved with key: taskId
-    value: True. 
+    value: True.
     """
 
     def __init__(self, name, new=False):
@@ -54,7 +54,7 @@ class Dependency(object):
     def modified(self,taskId, dependency):
         """Check if dependency for task was modified.
 
-        @return: (boolean) 
+        @return: (boolean)
         """
         return self._get(taskId,dependency) != md5sum(dependency)
 
@@ -83,8 +83,8 @@ class Dependency(object):
 
         @param taskId: (string)
         @param dependencies: (list of string)
-        @param runOnce: (bool) task has dependencies but they are not managed by
-        doit. they can only be cleared manualy.
+        @param runOnce: (bool) task has dependencies but they are not managed
+        by doit. they can only be cleared manualy.
         @return: (bool) True if up to date, False needs to re-execute.
         """
         # no dependencies means it is never up to date.
@@ -105,5 +105,5 @@ class Dependency(object):
         for dep in tuple(dependencies) + tuple(targets):
             if self.modified(taskId,dep):
                 return False
-                
+
         return True

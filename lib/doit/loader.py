@@ -61,5 +61,3 @@ class Loader(object):
         return funcs
 
 
-
-    

@@ -17,7 +17,7 @@ class InvalidDodoFile(Exception):
     pass
 
 class DoitTask(object):
-    """ 
+    """
     DoitTask helps in keeping track dependencies between tasks.
 
     @cvar TASK_ATTRS: sequence of know attributes(keys) of a task dict.
@@ -25,7 +25,7 @@ class DoitTask(object):
     @cvar ADDING: adding dependencies (used to detect cyclic dependency).
     @cvar ADDED: task already added to runner.
 
-    @ivar dependsOn: (list of DoitTask) note that dependencies here are tasks 
+    @ivar dependsOn: (list of DoitTask) note that dependencies here are tasks
     only, not files as in BaseTask.
     @ivar task: (L{BaseTask}) the task instance used by the L{Runner}.
     @ivar status: (int) one of UNUSED, ADDING, ADDED
@@ -51,13 +51,13 @@ class DoitTask(object):
     def __str__(self):
         if self.task:
             return self.task.name
-    
+
     @classmethod
     def get_tasks(cls,name,gen_result):
         """Create tasks from a task generator.
 
         @param name: (string) name of taskgen function
-        @param gen_result: value returned by a task generator 
+        @param gen_result: value returned by a task generator
         @return: (tuple) task,list of subtasks
         """
         # task described as a dictionary
@@ -92,16 +92,16 @@ class DoitTask(object):
     @classmethod
     def _dict_to_task(cls,task_dict):
         """Create a task instance from dictionary.
-        
+
         @param task_dict: (dict) task representation as a dict.
-        @raise L{InvalidTask}: 
+        @raise L{InvalidTask}:
         """
         # user friendly. dont go ahead with invalid input.
         for key in task_dict.keys():
             if key not in cls.TASK_ATTRS:
                 raise InvalidTask("Task %s contain invalid field: %s"%
                                   (task_dict['name'],key))
-            
+
 
         # check required fields
         if 'action' not in task_dict:
@@ -114,7 +114,7 @@ class DoitTask(object):
                                 task_dict.get('targets',[]),
                                 args=task_dict.get('args',[]),
                                 kwargs=task_dict.get('kwargs',{}))
-        
+
 
     @staticmethod
     def _create_task(name,action,dependencies,targets,*args,**kwargs):
@@ -141,12 +141,12 @@ class DoitTask(object):
                                   (name,action.__class__))
 
 
-    
-    def add_to(self,add_cb):        
+
+    def add_to(self,add_cb):
         """Add task to runner.
 
-        @parameter add_cb: (callable/callback) callable must receive one 
-        parameter (the task). the callebale 
+        @parameter add_cb: (callable/callback) callable must receive one
+        parameter (the task). the callebale
 
         make sure a task is added only once. detected cyclic dependencies.
         """
@@ -163,7 +163,7 @@ class DoitTask(object):
         # add dependencies first
         for dependency in self.dependsOn:
             dependency.add_to(add_cb)
-            
+
         # add itself
         if self.task:
             add_cb(self.task)
@@ -172,7 +172,7 @@ class DoitTask(object):
 
 
 class Main(object):
-    """DoIt - load dodo file and execute tasks.
+    """doit - load dodo file and execute tasks.
 
     @ivar dependencyFile: (string) file path of the dbm file.
     @ivar verbosity: (bool) verbosity level. @see L{Runner}
@@ -182,16 +182,16 @@ class Main(object):
                       2 list all tasks (do not run if listing);
     @ivar filter: (sequence of strings) selection of tasks to execute
 
-    @ivar taskgen: (OrderedDict) Key: name of the function that generate tasks 
+    @ivar taskgen: (OrderedDict) Key: name of the function that generate tasks
                                  Value: L{TaskGenerator} instance
-    
+
     @ivar tasks: (OrderedDict) Key: task name ([taskgen.]name)
                                Value: L{DoitTask} instance
-    @ivar targets: (dict) Key: fileName 
+    @ivar targets: (dict) Key: fileName
                           Value: L{DoitTask} instance
     """
-    
-    def __init__(self, dodoFile, dependencyFile, 
+
+    def __init__(self, dodoFile, dependencyFile,
                  list_=False, verbosity=0, alwaysExecute=False, filter_=None):
         """Init.
 
@@ -222,7 +222,7 @@ class Main(object):
             task, subtasks = DoitTask.get_tasks(gen.name,gen.ref())
             subDoit = []
             # create subtasks first
-            for sub in subtasks:                
+            for sub in subtasks:
                 doitTask = DoitTask(sub,[])
                 self.tasks[sub.name] = doitTask
                 subDoit.append(doitTask)
@@ -232,7 +232,7 @@ class Main(object):
 
     def _list_tasks(self, printSubtasks):
         """List task generators, in the order they were defined.
-        
+
         @param printSubtasks: (bool) print subtasks
         """
         print "==== Tasks ===="
@@ -257,7 +257,7 @@ class Main(object):
                 print self.targets
                 raise InvalidCommand('"%s" is not a task/target.'% filter_)
         return selectedTaskgen
-        
+
 
     def process(self):
         """Execute tasks."""
@@ -269,7 +269,7 @@ class Main(object):
         # get tasks dependencies on other tasks
         # add them as dependsOn the DoitTask.
         for doitTask in self.tasks.itervalues():
-            if not doitTask.task: 
+            if not doitTask.task:
                 continue # a task that just contain subtasks.
             for dep in doitTask.task.task_dep:
                 if dep not in self.tasks:
@@ -286,8 +286,8 @@ class Main(object):
                 continue
             for target in doitTask.task.targets:
                 self.targets[target] = doitTask
-        # 2) now go through all dependencies and check if they are target from 
-        # another task. 
+        # 2) now go through all dependencies and check if they are target from
+        # another task.
         for doitTask in self.tasks.itervalues():
             if not doitTask.task:
                 continue
@@ -295,8 +295,8 @@ class Main(object):
                 if dep in self.targets and \
                         self.targets[dep] not in doitTask.dependsOn:
                     doitTask.dependsOn.append(self.targets[dep])
-                       
-        # if no filter is defined execute all tasks 
+
+        # if no filter is defined execute all tasks
         # in the order they were defined.
         selectedTask = None
         if not self.filter:
@@ -309,7 +309,7 @@ class Main(object):
         runner = Runner(self.dependencyFile, self.verbosity, self.alwaysExecute)
 
         # add to runner tasks from every selected task
-        for doitTask in selectedTask.itervalues():            
+        for doitTask in selectedTask.itervalues():
             doitTask.add_to(runner.add_task)
 
         return runner.run()

@@ -5,7 +5,7 @@ import sys, types
 
 def isgenerator(object):
     """Check if object type is a generator.
-    
+
     @param object: object to test.
     @return: (bool) object is a generator?"""
     return type(object) is types.GeneratorType

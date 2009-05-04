@@ -1,11 +1,11 @@
 0.3
 --------
 
-. --version option on cmd (#370894)
-. setup/teardown for tasks (#370905)
+- --version option on cmd (#370894)
 . cmd line (sub-commands, -l is another cmd not a parameter) (#370909)
 . subcommand clean saved update status (#370911)
 . passing arguments on cmd line (#370914)
+. setup/teardown for tasks (#370905)
 . dont calculate hash of all files everytime. use timestamp/size/hash (see mercurial dirstate) (#370920)
 . dont get subtasks if task is not going to be executed (#370923)
 

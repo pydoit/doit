@@ -19,17 +19,17 @@ class TaskError(Exception):
     """Error while trying to execute task."""
     pass
 
-# interface 
+# interface
 class BaseTask(object):
     """Base class for all tasks objects
 
     @cvar CAPTURE_OUT: (bool) stdout from the task to be captured
     @cvar CAPTURE_ERR: (bool) stderr from the task to be captured
-    @ivar name string 
+    @ivar name string
     @ivar action see derived classes
     @ivar dependencies list of all dependencies
     @ivar targets list of targets
-    @ivar folder_dep: (list) 
+    @ivar folder_dep: (list)
     @ivar task_dep: (list)
     @ivar file_dep: (list)
     @ivar run_once: (bool) task without dependencies should run
@@ -39,7 +39,7 @@ class BaseTask(object):
     CAPTURE_ERR = False
 
     def __init__(self,name,action,dependencies=(),targets=()):
-        """Init."""    
+        """Init."""
         # dependencies parameter must be a list
         if not ((isinstance(dependencies,list)) or
                 (isinstance(dependencies,tuple))):
@@ -57,11 +57,11 @@ class BaseTask(object):
         self.action = action
         self.dependencies = dependencies
         self.targets = targets
-        self.run_once = False        
+        self.run_once = False
 
         # there are 3 kinds of dependencies: file, task, and folder
-        self.folder_dep = [] 
-        self.task_dep = [] 
+        self.folder_dep = []
+        self.task_dep = []
         self.file_dep = []
         for dep in self.dependencies:
             # True on the list. set run_once
@@ -75,9 +75,9 @@ class BaseTask(object):
             elif dep.endswith('/'):
                 self.folder_dep.append(dep)
             # task dep starts with a ':'
-            elif dep.startswith(':'):                    
+            elif dep.startswith(':'):
                 self.task_dep.append(dep[1:])
-            # file dep 
+            # file dep
             elif isinstance(dep,str):
                 self.file_dep.append(dep)
 
@@ -90,7 +90,7 @@ class BaseTask(object):
     def execute(self):
         """Executes the task.
 
-        @raise TaskFailed: 
+        @raise TaskFailed:
         @raise TaskError:
         """
         raise InvalidTask("Not Implemented")
@@ -106,7 +106,7 @@ class BaseTask(object):
 
 class CmdTask(BaseTask):
     """Command line task. Spawns a new process."""
- 
+
     def __init__(self,name,action,dependencies=(),targets=()):
         """Init."""
         assert isinstance(action,str),\
@@ -135,19 +135,19 @@ class CmdTask(BaseTask):
         if err:
             logger.log('stderr',err)
 
-        # task error - based on: 
+        # task error - based on:
         # http://www.gnu.org/software/bash/manual/bashref.html#Exit-Status
         # it doesnt make so much difference to return as Error or Failed anyway
         if process.returncode > 125:
-            raise TaskError("Command error: '%s' returned %s" % 
+            raise TaskError("Command error: '%s' returned %s" %
                             (self.action,process.returncode))
 
         # task failure
         if process.returncode != 0:
-            raise TaskFailed("Command failed: '%s' returned %s" % 
+            raise TaskFailed("Command failed: '%s' returned %s" %
                              (self.action,process.returncode))
 
-            
+
     def __str__(self):
         return "Cmd: %s"% self.action
 
@@ -179,7 +179,7 @@ class PythonTask(BaseTask):
             self.kwargs = kwargs
 
     def execute(self):
-        # set std stream 
+        # set std stream
         if self.CAPTURE_OUT:
             old_stdout = sys.stdout
             sys.stdout = StringIO.StringIO()
@@ -214,7 +214,7 @@ class PythonTask(BaseTask):
         if not result:
             raise TaskFailed("Python Task failed: '%s' returned %s" %
                              (self.action, result))
-                    
+
     def __str__(self):
         # get object description excluding runtime memory address
         return "Python: %s"% str(self.action)[1:].split(' at ')[0]

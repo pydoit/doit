@@ -4,8 +4,8 @@ import StringIO
 
 class Logger(object):
     """A simple logger with channels.
-    
-    @ivar channel: (dict) key: channel name. value: StringIO with logged 
+
+    @ivar channel: (dict) key: channel name. value: StringIO with logged
     messages.
     """
 
@@ -33,7 +33,7 @@ class Logger(object):
 
     def clear(self,channel):
         """Clear all logged messages from channel.
-        
+
         Do nothing (raise nothing) if channel doesnt exist.
         @param channel: (string) channel name.
         """
