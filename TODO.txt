@@ -1,40 +1,33 @@
-0.2
----
+0.3
+--------
 
-- remove tests dependency on unix cmds 
-- python 2.4
-  . python 2.4 doesnt have hashlib. there is a package for backward compatibility on pypi. add hashlib as dependency.
-- python 2.6
-- easier group tasks (see email with prajwala)
-- better error message when invalid task dependence
-- directory dependency (lp - 223794)
-- clarify -v "capture" (lp - 263576)
-- improve result "output" (lp - 249770)
-- no dependency but execute once if not cleared
-- group title() print dependencies
-. use sphinx
+. --version option on cmd (#370894)
+. setup/teardown for tasks (#370905)
+. cmd line (sub-commands, -l is another cmd not a parameter) (#370909)
+. subcommand clean saved update status (#370911)
+. passing arguments on cmd line (#370914)
+. dont calculate hash of all files everytime. use timestamp/size/hash (see mercurial dirstate) (#370920)
+. dont get subtasks if task is not going to be executed (#370923)
 
+----------
 
----
-
-. setup/teardown for tasks 
 . support for depedency scanner (lp - 218303)
-. cmd line (sub-commands, -l is another cmd not a parameter)
-. dont get subtasks if task is not going to be executed
 . continue execution even if one task fails
 . dont show traceback for user errors
 . one .doit for each dodo file
 . multiple (include) dodo files (lp - 218279)
 . color output on the terminal. (lp - 263576)
+. use templates for output (see mercurial)
 . default task
 . flag task to not be executed by default
-. subcommand clean targets
 . windows (lp - 218276)
+. clean targets
 
 
 Ideas
 ------
 
-. it would be better if DoitTaks print the output not BaseTask, because ~~BaseTask doesnt know about task dependencies~~. another problem is the order in which the task are sent to stdout... 
+. it would be better if DoitTaks print the output not BaseTask, because ~~BaseTask doesnt know about task dependencies~~. another problem is the order in which the task are sent to stdout...
 
 . now there are groupTask and subtask... need to think about it. maybe unify them.
+

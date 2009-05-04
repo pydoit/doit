@@ -1,0 +1,20 @@
+
+=======
+CHANGES
+=======
+
+0.2.0
+=====
+
+- docs generated using sphinx
+- execute onde (dependency = True)
+- group task
+- support python 2.4 and 2.6
+- folder dependency
+
+
+0.1.0
+=====
+
+- initial release
+
