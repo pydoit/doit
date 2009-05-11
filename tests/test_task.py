@@ -6,6 +6,7 @@ import nose
 from doit import logger
 from doit.task import BaseTask, CmdTask, PythonTask, GroupTask
 from doit.task import InvalidTask, TaskError, TaskFailed
+from doit.task import create_task
 
 #path to test folder
 TEST_PATH = os.path.abspath(__file__+'/../')

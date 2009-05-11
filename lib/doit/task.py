@@ -236,3 +236,30 @@ class GroupTask(BaseTask):
 
     def __repr__(self):
         return "<GroupTask: %s>"% self.name
+
+
+
+
+def create_task(name,action,dependencies,targets,*args,**kwargs):
+    """ create a BaseTask acording to action type
+
+    @param name: (string) task name
+    @param action: value dependes on the type of the task
+    @param dependencies: (list of strings) each item is a file path or
+    another task (prefixed with ':')
+    @param targets: (list of strings) items are file paths.
+    @param args: optional positional arguments for task.
+    @param kwargs: optional keyword arguments for task.
+    """
+    # a string.
+    if isinstance(action,str):
+        return CmdTask(name,action,dependencies,targets)
+    # a callable.
+    elif callable(action):
+        return PythonTask(name,action,dependencies,targets,*args,**kwargs)
+    elif action is None:
+        return GroupTask(name,action,dependencies,targets)
+    else:
+        raise InvalidTask("Invalid task type. %s:%s" % (name,action.__class__))
+
+
