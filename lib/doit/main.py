@@ -120,7 +120,28 @@ def generate_tasks(name, gen_result):
         return GroupTask(name, None), tasks
 
     # if not a dictionary nor a generator. "task" is the action itself.
-    return _dict_to_task({'name':name,'action':gen_result}),[]
+    return _dict_to_task({'name':name,'action':gen_result}), []
+
+
+def get_tasks(taskgen):
+    """get tasks from list of task generators
+
+    @param taskgen: (tupple) (name, function reference)
+    @return list of DoitTask's
+    """
+    tasks = OrderedDict()
+    # for each task generator
+    for name, ref in taskgen:
+        task, subtasks = generate_tasks(name, ref())
+        subDoit = []
+        # create subtasks first
+        for sub in subtasks:
+            doitTask = DoitTask(sub,[])
+            tasks[sub.name] = doitTask
+            subDoit.append(doitTask)
+        # create task. depends on subtasks
+        tasks[name] = DoitTask(task,subDoit)
+    return tasks
 
 
 # FIXME remove this class.
@@ -222,21 +243,7 @@ class Main(object):
         self.filter = filter_
         self.targets = {}
         self.taskgen = load_task_generators(dodoFile)
-
-        ## get tasks
-        self.tasks = OrderedDict()
-        # for each task generator
-        for name, ref in self.taskgen:
-            task, subtasks = generate_tasks(name, ref())
-            subDoit = []
-            # create subtasks first
-            for sub in subtasks:
-                doitTask = DoitTask(sub,[])
-                self.tasks[sub.name] = doitTask
-                subDoit.append(doitTask)
-            # create task. depends on subtasks
-            self.tasks[name] = DoitTask(task,subDoit)
-
+        self.tasks = get_tasks(self.taskgen)
 
     def _list_tasks(self, printSubtasks):
         """List task generators, in the order they were defined.
