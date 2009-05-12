@@ -5,7 +5,7 @@ import sys
 import inspect
 
 from doit.util import isgenerator, OrderedDict
-from doit.task import InvalidTask, create_task
+from doit.task import InvalidTask, GroupTask, create_task
 from doit.runner import Runner
 
 
@@ -117,14 +117,13 @@ def generate_tasks(name, gen_result):
             # name is task.subtask
             task_dict['name'] = "%s:%s"% (name,task_dict.get('name'))
             tasks.append(_dict_to_task(task_dict))
-        # TODO return a group-task instead of None?
-        return None, tasks
+        return GroupTask(name, None), tasks
 
     # if not a dictionary nor a generator. "task" is the action itself.
     return _dict_to_task({'name':name,'action':gen_result}),[]
 
 
-
+# FIXME remove this class.
 class DoitTask(object):
     """
     DoitTask contains a task to be executed and keeps information on
@@ -160,8 +159,7 @@ class DoitTask(object):
         self.status = self.UNUSED
 
     def __str__(self):
-        if self.task:
-            return self.task.name
+        return self.task.name
 
     # FIXME remove all this callback shit. just get a list and return a list.
     def add_to(self,add_cb):
@@ -187,8 +185,7 @@ class DoitTask(object):
             dependency.add_to(add_cb)
 
         # add itself
-        if self.task:
-            add_cb(self.task)
+        add_cb(self.task)
 
         self.status = self.ADDED
 
@@ -290,8 +287,6 @@ class Main(object):
         # get tasks dependencies on other tasks
         # add them as dependsOn the DoitTask.
         for doitTask in self.tasks.itervalues():
-            if not doitTask.task:
-                continue # a task that just contain subtasks.
             for dep in doitTask.task.task_dep:
                 if dep not in self.tasks:
                     msg = "%s. Task dependency '%s' does not exist."
@@ -303,18 +298,14 @@ class Main(object):
         # 1) create a dictionary associating every target->task. where the task
         # is would build that target.
         for doitTask in self.tasks.itervalues():
-            if not doitTask.task:
-                continue
             for target in doitTask.task.targets:
                 self.targets[target] = doitTask
         # 2) now go through all dependencies and check if they are target from
         # another task.
         for doitTask in self.tasks.itervalues():
-            if not doitTask.task:
-                continue
             for dep in doitTask.task.file_dep:
-                if dep in self.targets and \
-                        self.targets[dep] not in doitTask.dependsOn:
+                if (dep in self.targets and
+                    self.targets[dep] not in doitTask.dependsOn):
                     doitTask.dependsOn.append(self.targets[dep])
 
         # if no filter is defined execute all tasks

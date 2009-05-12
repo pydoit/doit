@@ -28,6 +28,3 @@ Ideas
 ------
 
 . it would be better if DoitTaks print the output not BaseTask, because ~~BaseTask doesnt know about task dependencies~~. another problem is the order in which the task are sent to stdout...
-
-. now there are groupTask and subtask... need to think about it. maybe unify them.
-

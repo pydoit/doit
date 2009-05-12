@@ -52,8 +52,8 @@ class TestGenerateTasks(object):
         def f_xpto():
             for i in range(3):
                 yield {'name':str(i), 'action' :"xpto -%d"%i}
-        task,subtasks = generate_tasks("xpto", f_xpto())
-        assert None == task
+        task, subtasks = generate_tasks("xpto", f_xpto())
+        assert isinstance(task, GroupTask)
         assert 3 == len(subtasks)
         assert "xpto:1" == subtasks[1].name
 
@@ -198,11 +198,12 @@ class TestMain(object):
             "dependency => Python: function do_nothing",
             "generator:test_runner.py => Cmd: python sample_process.py test_runner.py",
             "generator:test_util.py => Cmd: python sample_process.py test_util.py",
+            "generator => Group: ",
             "func_args => Python: function funcX",
             "taskdependency => Python: function do_nothing",
             "targetdependency => Python: function do_nothing",
             "mygroup => Group: :dictionary, :string"] == \
-            sys.stdout.getvalue().split("\n")[:-1], sys.stdout.getvalue()
+            sys.stdout.getvalue().split("\n")[:-1], repr(sys.stdout.getvalue())
 
 
     def testFilter(self):
@@ -246,6 +247,7 @@ class TestMain(object):
         m.process()
         assert ["generator:test_runner.py => Cmd: python sample_process.py test_runner.py",
                 "generator:test_util.py => Cmd: python sample_process.py test_util.py",
+                "generator => Group: ",
                 "taskdependency => Python: function do_nothing"] == \
                 sys.stdout.getvalue().split("\n")[:-1]
 
