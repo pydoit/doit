@@ -96,13 +96,10 @@ class TestOrderTasks(object):
         assert 1 == len(result)
 
     def testDetectCyclicReference(self):
-        def baseTask1():
-            return create_task("taskX","xpto 14 7",[],[])
-        baseTask2 = create_task("taskY","xpto 14 7",[],[])
-        baseTask1.task_dep = ["taskY"]
-        baseTask2.task_dep = ["taskX"]
-        taskgen = {"taskX": baseTask1, "taskY": baseTask2}
-        m = Main(None, taskgen)
+        baseTask1 = create_task("taskX",None,[":taskY"],[])
+        baseTask2 = create_task("taskY",None,[":taskX"],[])
+        tasks = {"taskX": baseTask1, "taskY": baseTask2}
+        m = Main(None, tasks)
         nose.tools.assert_raises(InvalidDodoFile, m._order_tasks,
                                  ["taskX", "taskY"])
 
@@ -120,10 +117,6 @@ ALLTASKS = ['string','python','dictionary','dependency','generator',
             'taskdependency','targetdependency','mygroup']
 TESTDBM = "testdbm"
 DODO_FILE = os.path.abspath(__file__+"/../sample_main.py")
-# sample dodo file with user error on task dependency name.
-# FIXME remove this file
-ETD_DODO_FILE = os.path.abspath(__file__+"/../sample_uetd.py")
-
 
 
 class TestListCmd(object):
@@ -241,7 +234,7 @@ class TestMain(object):
                 sys.stdout.getvalue().split("\n")[:-1]
 
     def testUserErrorTaskDependency(self):
-        taskgen = load_task_generators(ETD_DODO_FILE)
-        tasks = get_tasks(taskgen)
+        tt = GroupTask('wrong', None,[":typo"])
+        tasks = {'wrong': tt}
         m = Main(TESTDBM, tasks)
         nose.tools.assert_raises(InvalidTask, m.process)

@@ -16,7 +16,7 @@ def my_print(out="",err=""):
     return True
 
 class TestVerbosity(object):
- 
+
     # 0: capture stdout and stderr
     def test_verbosity0(self):
         Runner(TESTDBM,0)
@@ -41,7 +41,7 @@ class TestAddTask(object):
 
     def setUp(self):
         self.runner = Runner(TESTDBM,0)
-    
+
     def testadd_task(self):
         self.runner.add_task(PythonTask("taskX",my_print))
         self.runner.add_task(PythonTask("taskY",my_print))
@@ -191,7 +191,7 @@ class TestRunningTask(object):
         assert "" == output[0], output
         assert "ERROR checking dependencies for: %s"% title == output[1]
 
-        
+
     def test_ignoreNonFileDep(self):
         runner = Runner(TESTDBM,1)
         DIR_DEP = os.path.abspath(__file__+"/../folder_dep/")+'/'
@@ -202,7 +202,7 @@ class TestRunningTask(object):
         assert 0 == len(d._db)
         if os.path.exists(DIR_DEP):
             os.removedirs(DIR_DEP)
-                        
+
 
     def test_alwaysExecute(self):
         runner = Runner(TESTDBM,1)
@@ -220,12 +220,15 @@ class TestRunningTask(object):
 
 
     def test_createFolderDependency(self):
+        def rm_dir():
+            if os.path.exists(DIR_DEP):
+                os.removedirs(DIR_DEP)
+
         DIR_DEP = os.path.abspath(__file__+"/../parent/child/")+'/'
-        if os.path.exists(DIR_DEP):
-            os.removedirs(DIR_DEP)
+        rm_dir()
         runner = Runner(TESTDBM,1)
         runner.add_task(PythonTask("taskX",my_print,dependencies=[DIR_DEP]))
         assert runner.SUCCESS == runner.run()
         assert os.path.exists(DIR_DEP)
-        if os.path.exists(DIR_DEP):
-            os.removedirs(DIR_DEP)
+        rm_dir()
+
