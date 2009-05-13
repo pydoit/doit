@@ -29,9 +29,9 @@ class BaseTask(object):
     @ivar action see derived classes
     @ivar dependencies list of all dependencies
     @ivar targets list of targets
-    @ivar folder_dep: (list)
-    @ivar task_dep: (list)
-    @ivar file_dep: (list)
+    @ivar folder_dep: (list - string)
+    @ivar task_dep: (list - string)
+    @ivar file_dep: (list - string)
     @ivar run_once: (bool) task without dependencies should run
     """
 
@@ -58,6 +58,7 @@ class BaseTask(object):
         self.dependencies = dependencies
         self.targets = targets
         self.run_once = False
+        self.isSubtask = False #TODO document
 
         # there are 3 kinds of dependencies: file, task, and folder
         self.folder_dep = []

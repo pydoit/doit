@@ -4,11 +4,11 @@ import sys, StringIO
 import nose.tools
 
 from doit.task import create_task
-from doit.task import InvalidTask, CmdTask, PythonTask, GroupTask
+from doit.task import InvalidTask, CmdTask, GroupTask
 from doit.main import load_task_generators
 from doit.main import generate_tasks
-from doit.main import InvalidCommand, InvalidDodoFile, DoitTask, Main
-
+from doit.main import InvalidCommand, InvalidDodoFile, Main
+from doit.main import order_tasks
 
 class TestLoadTaskGenerators(object):
 
@@ -31,8 +31,8 @@ class TestLoadTaskGenerators(object):
 class TestGenerateTasks(object):
 
     def testDict(self):
-        task,subtasks = generate_tasks("dict",{'action':'xpto 14'})
-        assert isinstance(task,CmdTask)
+        tasks = generate_tasks("dict",{'action':'xpto 14'})
+        assert isinstance(tasks[0],CmdTask)
 
     # name field is only for subtasks.
     def testInvalidNameField(self):
@@ -44,18 +44,18 @@ class TestGenerateTasks(object):
                                  "dict",{'acTion':'xpto 14'})
 
     def testAction(self):
-        task,subtasks = generate_tasks("dict",'xpto 14')
-        assert isinstance(task,CmdTask)
+        tasks = generate_tasks("dict",'xpto 14')
+        assert isinstance(tasks[0],CmdTask)
 
 
     def testGenerator(self):
         def f_xpto():
             for i in range(3):
                 yield {'name':str(i), 'action' :"xpto -%d"%i}
-        task, subtasks = generate_tasks("xpto", f_xpto())
-        assert isinstance(task, GroupTask)
-        assert 3 == len(subtasks)
-        assert "xpto:1" == subtasks[1].name
+        tasks = generate_tasks("xpto", f_xpto())
+        assert isinstance(tasks[-1], GroupTask)
+        assert 4 == len(tasks)
+        assert "xpto:1" == tasks[1].name
 
     def testGeneratorDoesntReturnDict(self):
         def f_xpto():
@@ -84,40 +84,24 @@ class TestGenerateTasks(object):
         nose.tools.assert_raises(InvalidTask, generate_tasks, "dict", dict_)
 
 
-class TestAddToRunner(object):
-
-    def setUp(self):
-        class MockRunner:
-            taskCount = 0
-            def add_task(self,task):self.taskCount += 1
-        self.runner = MockRunner()
-
-    def testStatusSet(self):
-        baseTask = create_task("taskX","xpto 14 7",[],[])
-        doitTask = DoitTask(baseTask,[])
-        assert DoitTask.UNUSED == doitTask.status
-        doitTask.add_to(self.runner.add_task)
-        assert DoitTask.ADDED == doitTask.status
+class TestOrderTasks(object):
 
     # same task is not added twice
     def testAddJustOnce(self):
         baseTask = create_task("taskX","xpto 14 7",[],[])
-        doitTask = DoitTask(baseTask,[])
-        assert 0 == self.runner.taskCount
-        doitTask.add_to(self.runner.add_task)
-        assert 1 == self.runner.taskCount
-        doitTask.add_to(self.runner.add_task)
-        assert 1 == self.runner.taskCount
+        all_ = {"taskX": baseTask}
+        result = order_tasks(all_, [baseTask]*2)
+        assert 1 == len(result)
 
     def testDetectCyclicReference(self):
         baseTask1 = create_task("taskX","xpto 14 7",[],[])
-        baseTask2 = create_task("taskX","xpto 14 7",[],[])
-        doitTask1 = DoitTask(baseTask1,[])
-        doitTask2 = DoitTask(baseTask2,[doitTask1])
-        doitTask1.dependsOn = [doitTask2]
+        baseTask2 = create_task("taskY","xpto 14 7",[],[])
+        baseTask1.task_dep = ["taskY"]
+        baseTask2.task_dep = ["taskX"]
+        all_ = {"taskX": baseTask1, "taskY": baseTask2}
 
-        nose.tools.assert_raises(InvalidDodoFile,doitTask1.add_to,
-                                 self.runner.add_task)
+        nose.tools.assert_raises(InvalidDodoFile, order_tasks,
+                                 all_, [baseTask1, baseTask2])
 
 
 ###################
@@ -164,7 +148,7 @@ class TestMain(object):
     def testListAllTasks(self):
         m = Main(DODO_FILE, TESTDBM)
         m._list_tasks(True)
-        assert ALLTASKS == sys.stdout.getvalue().split('\n')[1:-3]
+        assert ALLTASKS == sys.stdout.getvalue().split('\n')[1:-3], sys.stdout.getvalue()
 
     # test list_tasks is called
     def testProcessListTasks(self):
@@ -249,7 +233,7 @@ class TestMain(object):
                 "generator:test_util.py => Cmd: python sample_process.py test_util.py",
                 "generator => Group: ",
                 "taskdependency => Python: function do_nothing"] == \
-                sys.stdout.getvalue().split("\n")[:-1]
+                sys.stdout.getvalue().split("\n")[:-1], sys.stdout.getvalue()
 
 
     def testTargetDependency(self):
@@ -262,5 +246,3 @@ class TestMain(object):
     def testUserErrorTaskDependency(self):
         m = Main(ETD_DODO_FILE, TESTDBM)
         nose.tools.assert_raises(InvalidTask,m.process)
-
-

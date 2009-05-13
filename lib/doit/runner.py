@@ -57,7 +57,7 @@ class Runner(object):
 
     def run(self):
         """Execute all tasks."""
-
+        # TODO move this line to __init__
         dependencyManager = Dependency(self.dependencyFile)
         errorException = None
         result = self.SUCCESS
