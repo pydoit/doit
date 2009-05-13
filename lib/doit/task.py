@@ -240,7 +240,6 @@ class GroupTask(BaseTask):
 
 
 
-
 def create_task(name,action,dependencies,targets,*args,**kwargs):
     """ create a BaseTask acording to action type
 
@@ -263,4 +262,33 @@ def create_task(name,action,dependencies,targets,*args,**kwargs):
     else:
         raise InvalidTask("Invalid task type. %s:%s" % (name,action.__class__))
 
+def dict_to_task(task_dict):
+    """Create a task instance from dictionary.
+
+    The dictionary has the same format as returned by task-generators
+    from dodo files.
+
+    @param task_dict: (dict) task representation as a dict.
+    @raise L{InvalidTask}:
+    """
+    # TASK_ATTRS: sequence of know attributes(keys) of a task dict.
+    TASK_ATTRS = ('name','action','dependencies','targets','args','kwargs')
+
+    # user friendly. dont go ahead with invalid input.
+    for key in task_dict.keys():
+        if key not in TASK_ATTRS:
+            raise InvalidTask("Task %s contain invalid field: %s"%
+                              (task_dict['name'],key))
+
+    # check required fields
+    if 'action' not in task_dict:
+        raise InvalidTask("Task %s must contain field action. %s"%
+                          (task_dict['name'],task_dict))
+
+    return create_task(task_dict.get('name'),
+                       task_dict.get('action'),
+                       task_dict.get('dependencies',[]),
+                       task_dict.get('targets',[]),
+                       args=task_dict.get('args',[]),
+                       kwargs=task_dict.get('kwargs',{}))
 

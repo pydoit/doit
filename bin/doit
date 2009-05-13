@@ -5,7 +5,7 @@ import traceback
 
 from optparse import OptionParser
 
-from doit.main import Main
+from doit import main
 
 usage = "usage: %prog [options] [task] [task] ..."
 parser = OptionParser(usage)
@@ -34,8 +34,7 @@ parser.add_option("--list-all", action="store_const", const=2, dest="list",
 # execute it
 def execute(fileName, **kargs):
     try:
-        m = Main(fileName, ".doit.dbm", **kargs)
-        return m.process()
+        return main.doCmd(fileName, ".doit.dbm", **kargs)
     # make sure exception is printed out. we migth have redirected stderr
     except Exception:
         sys.__stderr__.write(traceback.format_exc())

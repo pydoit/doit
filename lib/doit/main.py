@@ -5,7 +5,7 @@ import sys
 import inspect
 
 from doit.util import isgenerator, OrderedDict
-from doit.task import InvalidTask, GroupTask, create_task
+from doit.task import InvalidTask, GroupTask, dict_to_task
 from doit.runner import Runner
 
 
@@ -20,8 +20,6 @@ class InvalidDodoFile(Exception):
 # TASK_STRING: (string) prefix used to identify python function
 # that are task generators in a dodo file.
 TASK_STRING = "task_"
-# TASK_ATTRS: sequence of know attributes(keys) of a task dict.
-TASK_ATTRS = ('name','action','dependencies','targets','args','kwargs')
 
 def load_task_generators(dodoFile):
     """Loads a python file and extracts its task generator functions.
@@ -59,70 +57,9 @@ def load_task_generators(dodoFile):
     return [(name,ref) for name,ref,line in funcs]
 
 
-def _dict_to_task(task_dict):
-    """Create a task instance from dictionary.
-
-    The dictionary has the same format as returned by task-generators
-    from dodo files.
-
-    @param task_dict: (dict) task representation as a dict.
-    @raise L{InvalidTask}:
-    """
-    # FIXME: check this in another place
-    # user friendly. dont go ahead with invalid input.
-    for key in task_dict.keys():
-        if key not in TASK_ATTRS:
-            raise InvalidTask("Task %s contain invalid field: %s"%
-                              (task_dict['name'],key))
-
-    # check required fields
-    if 'action' not in task_dict:
-        raise InvalidTask("Task %s must contain field action. %s"%
-                          (task_dict['name'],task_dict))
-
-    return create_task(task_dict.get('name'),
-                       task_dict.get('action'),
-                       task_dict.get('dependencies',[]),
-                       task_dict.get('targets',[]),
-                       args=task_dict.get('args',[]),
-                       kwargs=task_dict.get('kwargs',{}))
-
-def order_tasks(all_, to_add):
-    # put tasks in an order so that dependencies are executed before.
-    # make sure a task is added only once. detected cyclic dependencies.
-    ADDING, ADDED = 0, 1
-    status = {}
-    task_in_order = []
-
-    def add_task(task):
-        if task.name in status:
-            # check task was alaready added
-            if status[task.name] == ADDED:
-                return
-
-            # detect cyclic/recursive dependencies
-            if status[task.name] == ADDING:
-                msg = "Cyclic/recursive dependencies for task %s"
-                raise InvalidDodoFile(msg % task)
-
-        status[task.name] = ADDING
-
-        # add dependencies first
-        for dependency in task.task_dep:
-            add_task(all_[dependency])
-
-        # add itself
-        task_in_order.append(task)
-        status[task.name] = ADDED
-
-    for task in to_add:
-        add_task(task)
-    return task_in_order
-
-
 
 def generate_tasks(name, gen_result):
-    """Create tasks from a task generator.
+    """Create tasks from a task generator result.
 
     @param name: (string) name of taskgen function
     @param gen_result: value returned by a task generator function
@@ -134,7 +71,7 @@ def generate_tasks(name, gen_result):
             raise InvalidTask("Task %s. Only subtasks use field name."%name)
 
         gen_result['name'] = name
-        return [_dict_to_task(gen_result)]
+        return [dict_to_task(gen_result)]
 
     # a generator
     if isgenerator(gen_result):
@@ -150,7 +87,7 @@ def generate_tasks(name, gen_result):
                                   (name,task_dict))
             # name is task.subtask
             task_dict['name'] = "%s:%s"% (name,task_dict.get('name'))
-            sub_task = _dict_to_task(task_dict)
+            sub_task = dict_to_task(task_dict)
             sub_task.isSubtask = True
             tasks.append(sub_task)
 
@@ -161,7 +98,7 @@ def generate_tasks(name, gen_result):
         return tasks
 
     # if not a dictionary nor a generator. "task" is the action itself.
-    return [_dict_to_task({'name':name,'action':gen_result})]
+    return [dict_to_task({'name':name,'action':gen_result})]
 
 
 def get_tasks(taskgen):
@@ -178,6 +115,49 @@ def get_tasks(taskgen):
             tasks[sub.name] = sub
     return tasks
 
+
+def doCmd(dodoFile, dependencyFile, list_=False, verbosity=0,
+        alwaysExecute=False, filter_=None):
+
+    taskgen = load_task_generators(dodoFile)
+    tasks = get_tasks(taskgen)
+
+    # list
+    if list_:
+        lili = CmdList(taskgen, tasks)
+        lili.process(list_==2)
+        return 0
+
+    # run
+    m = Main(dependencyFile, tasks, verbosity, alwaysExecute, filter_)
+    return m.process()
+
+
+
+
+class CmdList(object):
+    def __init__(self, taskgen, tasks):
+        self.taskgen = taskgen
+        self.tasks = tasks
+
+    def process(self, printSubtasks):
+        """List task generators, in the order they were defined.
+
+        @param printSubtasks: (bool) print subtasks
+        """
+        # this function is called when after the constructor,
+        # and before task-dependencies and targets are processed
+        # so task_dep contains only subtaks
+        print "==== Tasks ===="
+        for items in self.taskgen:
+            generator = items[0]
+            print generator
+            if printSubtasks:
+                for subtask in self.tasks[generator].task_dep:
+                    if self.tasks[subtask].isSubtask:
+                        print subtask
+
+        print "="*25,"\n"
 
 
 class Main(object):
@@ -199,37 +179,16 @@ class Main(object):
                           Value: L{BaseTask} instance
     """
 
-    def __init__(self, dodoFile, dependencyFile,
-                 list_=False, verbosity=0, alwaysExecute=False, filter_=None):
+    def __init__(self, dependencyFile, tasks,
+                 verbosity=0, alwaysExecute=False, filter_=None):
 
         ## intialize cmd line options
         self.dependencyFile = dependencyFile
-        self.list = list_
+        self.tasks = tasks
         self.verbosity = verbosity
         self.alwaysExecute = alwaysExecute
         self.filter = filter_
         self.targets = {}
-        self.taskgen = load_task_generators(dodoFile)
-        self.tasks = get_tasks(self.taskgen)
-
-    def _list_tasks(self, printSubtasks):
-        """List task generators, in the order they were defined.
-
-        @param printSubtasks: (bool) print subtasks
-        """
-        # this function is called when after the constructor,
-        # and before task-dependencies and targets are processed
-        # so task_dep contains only subtaks
-        print "==== Tasks ===="
-        for items in self.taskgen:
-            generator = items[0]
-            print generator
-            if printSubtasks:
-                for subtask in self.tasks[generator].task_dep:
-                    if self.tasks[subtask].isSubtask:
-                        print subtask
-
-        print "="*25,"\n"
 
 
     def _filter_tasks(self):
@@ -237,35 +196,53 @@ class Main(object):
 
         filter can specify tasks to be execute by task name or target.
         """
-        # FIXME we just need a list of strings.
-        selectedTaskgen = OrderedDict()
+        selectedTask = []
         for filter_ in self.filter:
             # by task name
             if filter_ in self.tasks.iterkeys():
-                selectedTaskgen[filter_] = self.tasks[filter_]
+                selectedTask.append(filter_)
             # by target
             elif filter_ in self.targets:
-                selectedTaskgen[filter_] = self.targets[filter_]
+                selectedTask.append(self.targets[filter_].name)
             else:
                 print self.targets
                 raise InvalidCommand('"%s" is not a task/target.'% filter_)
-        return selectedTaskgen
+        return selectedTask
 
+    def _order_tasks(self, to_add):
+        # put tasks in an order so that dependencies are executed before.
+        # make sure a task is added only once. detected cyclic dependencies.
+        ADDING, ADDED = 0, 1
+        status = {}
+        task_in_order = []
 
+        def add_task(task_name):
+            if task_name in status:
+                # check task was alaready added
+                if status[task_name] == ADDED:
+                    return
+
+                # detect cyclic/recursive dependencies
+                if status[task_name] == ADDING:
+                    msg = "Cyclic/recursive dependencies for task %s"
+                    raise InvalidDodoFile(msg % self.tasks[task_name])
+
+            status[task_name] = ADDING
+
+            # add dependencies first
+            for dependency in self.tasks[task_name].task_dep:
+                add_task(dependency)
+
+            # add itself
+            task_in_order.append(self.tasks[task_name])
+            status[task_name] = ADDED
+
+        for name in to_add:
+            add_task(name)
+        return task_in_order
 
 
     def process(self):
-        """Execute sub-comannd"""
-        if self.list:
-            return self.cmd_list()
-        return self.run()
-
-    def cmd_list(self):
-        self._list_tasks(bool(self.list==2))
-        return 0
-
-
-    def run(self):
         """Execute tasks."""
         # check task-dependencies exist.
         for task in self.tasks.itervalues():
@@ -293,7 +270,7 @@ class Main(object):
         # in the order they were defined.
         selectedTask = None
         if not self.filter:
-            selectedTask = self.tasks
+            selectedTask = self.tasks.keys()
         # execute only tasks in the filter in the order specified by filter
         else:
             selectedTask = self._filter_tasks()
@@ -302,7 +279,7 @@ class Main(object):
         runner = Runner(self.dependencyFile, self.verbosity, self.alwaysExecute)
 
         # add to runner tasks from every selected task
-        taskorder = order_tasks(self.tasks, selectedTask.itervalues())
+        taskorder = self._order_tasks(selectedTask)
         for task in taskorder:
             runner.add_task(task)
 
