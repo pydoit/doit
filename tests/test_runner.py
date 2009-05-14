@@ -1,10 +1,8 @@
 import os
 import sys, StringIO
 
-import nose.tools
-
 from doit.dependency import Dependency
-from doit.task import InvalidTask, BaseTask, PythonTask
+from doit.task import BaseTask, PythonTask
 from doit.runner import Runner
 
 # dependencies file
@@ -37,28 +35,6 @@ class TestVerbosity(object):
 
 
 
-class TestAddTask(object):
-
-    def setUp(self):
-        self.runner = Runner(TESTDBM,0)
-
-    def testadd_task(self):
-        self.runner.add_task(PythonTask("taskX",my_print))
-        self.runner.add_task(PythonTask("taskY",my_print))
-        assert 2 == len(self.runner._tasks)
-
-    # 2 tasks can not have the same name
-    def testadd_taskSameName(self):
-        self.runner.add_task(PythonTask("taskX",my_print))
-        t = PythonTask("taskX",my_print)
-        nose.tools.assert_raises(InvalidTask,self.runner.add_task,t)
-
-    def test_addInvalidTask(self):
-        nose.tools.assert_raises(InvalidTask,self.runner.add_task,666)
-
-
-
-
 class TestRunningTask(object):
     def setUp(self):
         self.oldOut = sys.stdout
@@ -76,21 +52,21 @@ class TestRunningTask(object):
 
     def test_successOutput(self):
         runner = Runner(TESTDBM,1)
-        runner.add_task(PythonTask("taskX",my_print,args=["out a"]))
-        runner.add_task(PythonTask("taskY",my_print,args=["out a"]))
+        runner.tasks.append(PythonTask("taskX",my_print,args=["out a"]))
+        runner.tasks.append(PythonTask("taskY",my_print,args=["out a"]))
         assert runner.SUCCESS == runner.run()
         # only titles are printed.
         taskTitles = sys.stdout.getvalue().split('\n')
-        assert runner._tasks['taskX'].title() == taskTitles[0]
-        assert runner._tasks['taskY'].title() == taskTitles[1], taskTitles
+        assert runner.tasks[0].title() == taskTitles[0]
+        assert runner.tasks[1].title() == taskTitles[1], taskTitles
 
     def test_successVerboseOutput(self):
         runner = Runner(TESTDBM,2)
         task = PythonTask("taskX",my_print,args=["stdout here.\n"])
-        runner.add_task(task)
+        runner.tasks.append(task)
         assert runner.SUCCESS == runner.run()
         output = sys.stdout.getvalue().split('\n')
-        assert runner._tasks['taskX'].title() == output[0], output
+        assert runner.tasks[0].title() == output[0], output
         # captured output is displayed
         assert "stdout here." == output[1], output
         # nothing more (but the empty string)
@@ -99,17 +75,17 @@ class TestRunningTask(object):
     # if task is up to date, it is displayed in a different way.
     def test_successUpToDate(self):
         runner = Runner(TESTDBM,1)
-        runner.add_task(PythonTask("taskX",my_print,dependencies=[__file__]))
+        runner.tasks.append(PythonTask("taskX",my_print,dependencies=[__file__]))
         assert runner.SUCCESS == runner.run()
         taskTitles = sys.stdout.getvalue().split('\n')
-        assert runner._tasks['taskX'].title() == taskTitles[0]
+        assert runner.tasks[0].title() == taskTitles[0]
         # again
         sys.stdout = StringIO.StringIO()
         runner2 = Runner(TESTDBM,1)
-        runner2.add_task(PythonTask("taskX",my_print,dependencies=[__file__]))
+        runner2.tasks.append(PythonTask("taskX",my_print,dependencies=[__file__]))
         assert runner2.SUCCESS == runner2.run()
         taskTitles = sys.stdout.getvalue().split('\n')
-        assert "--- " +runner2._tasks['taskX'].title() == taskTitles[0]
+        assert "--- " +runner2.tasks[0].title() == taskTitles[0]
 
     # whenever a task fails remaining task are not executed
     def test_failureOutput(self):
@@ -119,12 +95,12 @@ class TestRunningTask(object):
             return False
 
         runner = Runner(TESTDBM,0)
-        runner.add_task(PythonTask("taskX",write_and_fail))
-        runner.add_task(PythonTask("taskY",write_and_fail))
+        runner.tasks.append(PythonTask("taskX",write_and_fail))
+        runner.tasks.append(PythonTask("taskY",write_and_fail))
         assert runner.FAILURE == runner.run()
         output = sys.stdout.getvalue().split('\n')
         errput = sys.stderr.getvalue().split('\n')
-        assert runner._tasks['taskX'].title() == output[0], output
+        assert runner.tasks[0].title() == output[0], output
         # captured output is displayed
         assert "stdout here." == output[1]
         assert "stderr here." == errput[0]
@@ -141,12 +117,12 @@ class TestRunningTask(object):
             raise Exception("I am the exception.\n")
 
         runner = Runner(TESTDBM,0)
-        runner.add_task(PythonTask("taskX",write_and_error))
-        runner.add_task(PythonTask("taskY",write_and_error))
+        runner.tasks.append(PythonTask("taskX",write_and_error))
+        runner.tasks.append(PythonTask("taskY",write_and_error))
         assert runner.ERROR == runner.run()
         output = sys.stdout.getvalue().split('\n')
         errput = sys.stderr.getvalue().split('\n')
-        assert runner._tasks['taskX'].title() == output[0], output
+        assert runner.tasks[0].title() == output[0], output
         # captured output is displayed
         assert "stdout here." == output[1]
         # nothing more (but the empty string)
@@ -174,7 +150,7 @@ class TestRunningTask(object):
         targets = [filePath]
 
         runner = Runner(TESTDBM,1)
-        runner.add_task(PythonTask("taskX",my_print,dependencies,targets))
+        runner.tasks.append(PythonTask("taskX",my_print,dependencies,targets))
         assert runner.SUCCESS == runner.run()
         # only titles are printed.
         d = Dependency(TESTDBM)
@@ -183,11 +159,11 @@ class TestRunningTask(object):
 
     def test_errorDependency(self):
         runner = Runner(TESTDBM,1)
-        runner.add_task(PythonTask("taskX",my_print,["i_dont_exist.xxx"]))
+        runner.tasks.append(PythonTask("taskX",my_print,["i_dont_exist.xxx"]))
         assert runner.ERROR == runner.run()
         # only titles are printed.
         output = sys.stdout.getvalue().split('\n')
-        title = runner._tasks['taskX'].title()
+        title = runner.tasks[0].title()
         assert "" == output[0], output
         assert "ERROR checking dependencies for: %s"% title == output[1]
 
@@ -196,7 +172,7 @@ class TestRunningTask(object):
         runner = Runner(TESTDBM,1)
         DIR_DEP = os.path.abspath(__file__+"/../folder_dep/")+'/'
         dep = [DIR_DEP, ":taskY"]
-        runner.add_task(PythonTask("taskX",my_print,dep))
+        runner.tasks.append(PythonTask("taskX",my_print,dep))
         assert runner.SUCCESS == runner.run()
         d = Dependency(TESTDBM)
         assert 0 == len(d._db)
@@ -206,17 +182,17 @@ class TestRunningTask(object):
 
     def test_alwaysExecute(self):
         runner = Runner(TESTDBM,1)
-        runner.add_task(PythonTask("taskX",my_print,dependencies=[__file__]))
+        runner.tasks.append(PythonTask("taskX",my_print,dependencies=[__file__]))
         assert runner.SUCCESS == runner.run()
         taskTitles = sys.stdout.getvalue().split('\n')
-        assert runner._tasks['taskX'].title() == taskTitles[0]
+        assert runner.tasks[0].title() == taskTitles[0]
         # again
         sys.stdout = StringIO.StringIO()
         runner2 = Runner(TESTDBM,1,True)
-        runner2.add_task(PythonTask("taskX",my_print,dependencies=[__file__]))
+        runner2.tasks.append(PythonTask("taskX",my_print,dependencies=[__file__]))
         assert runner2.SUCCESS == runner2.run()
         taskTitles = sys.stdout.getvalue().split('\n')
-        assert runner2._tasks['taskX'].title() == taskTitles[0]
+        assert runner2.tasks[0].title() == taskTitles[0]
 
 
     def test_createFolderDependency(self):
@@ -227,7 +203,7 @@ class TestRunningTask(object):
         DIR_DEP = os.path.abspath(__file__+"/../parent/child/")+'/'
         rm_dir()
         runner = Runner(TESTDBM,1)
-        runner.add_task(PythonTask("taskX",my_print,dependencies=[DIR_DEP]))
+        runner.tasks.append(PythonTask("taskX",my_print,dependencies=[DIR_DEP]))
         assert runner.SUCCESS == runner.run()
         assert os.path.exists(DIR_DEP)
         rm_dir()

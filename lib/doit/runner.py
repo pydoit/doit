@@ -5,13 +5,15 @@ import traceback
 import os
 
 from doit import logger
-from doit.util import OrderedDict
-from doit.task import BaseTask, InvalidTask, TaskFailed
+from doit.task import BaseTask, TaskFailed
 from doit.dependency import Dependency
 
 
 class Runner(object):
-    """Run tasks.
+    """This will actually run/execute the tasks.
+    It will check file dependencies to decide if task should be executed
+    and save info on successful runs.
+    It also deals with output to stdout/stderr.
 
     @cvar SUCCESS: execution result.
     @cvar FAILURE: execution result.
@@ -23,8 +25,7 @@ class Runner(object):
      - 1 => print stderr and (stdout from failed tasks)
      - 2 => print stderr and stdout from all tasks
     @ivar alwaysExecute: (bool) execute even if up-to-date
-    @ivar _tasks: (OrderedDictionary) tasks to be executed.
-    key:task name; value:L{BaseTask} instance
+    @ivar tasks: [L{BaseTask}] tasks to be executed.
     """
     SUCCESS = 0
     FAILURE = 1
@@ -34,26 +35,10 @@ class Runner(object):
         """Init."""
         self.dependencyFile = dependencyFile
         self.alwaysExecute = alwaysExecute
-        self._tasks = OrderedDict()
+        self.tasks = []
         BaseTask.CAPTURE_OUT = verbosity < 2
         BaseTask.CAPTURE_ERR = verbosity == 0
 
-    def add_task(self,task):
-        """Add a task to be run.
-
-        @param task: (L{BaseTask}) instance.
-        @raise InvalidTask:
-        """
-        # task must be a BaseTask
-        if not isinstance(task,BaseTask):
-            raise InvalidTask("Task must an instance of BaseTask class. %s"%
-                              (task.__class__))
-
-        #task name must be unique
-        if task.name in self._tasks:
-            raise InvalidTask("Task names must be unique. %s"%task.name)
-        # add
-        self._tasks[task.name] = task
 
     def run(self):
         """Execute all tasks."""
@@ -62,7 +47,7 @@ class Runner(object):
         errorException = None
         result = self.SUCCESS
 
-        for task in self._tasks.itervalues():
+        for task in self.tasks:
             # clear previous output
             logger.clear('stdout')
             logger.clear('stderr')

@@ -6,8 +6,8 @@ import nose.tools
 from doit.task import create_task
 from doit.task import InvalidTask, CmdTask, GroupTask
 from doit.main import load_task_generators
-from doit.main import generate_tasks, get_tasks
-from doit.main import InvalidCommand, Main, CmdList
+from doit.main import generate_tasks
+from doit.main import InvalidCommand, Main, cmd_list
 from doit.main import InvalidDodoFile
 
 class TestLoadTaskGenerators(object):
@@ -15,8 +15,8 @@ class TestLoadTaskGenerators(object):
     def testAbsolutePath(self):
         fileName = os.path.abspath(__file__+"/../loader_sample.py")
         expected = ["xxx1","yyy2"]
-        taskgen = load_task_generators(fileName)
-        assert expected == [i for i,j in taskgen]
+        task_list = load_task_generators(fileName)
+        assert expected == [t.name for t in task_list]
 
     def testRelativePath(self):
         # test relative import but test should still work from any path
@@ -24,8 +24,8 @@ class TestLoadTaskGenerators(object):
         os.chdir(os.path.abspath(__file__+"/../.."))
         fileName = "tests/loader_sample.py"
         expected = ["xxx1","yyy2"]
-        taskgen = load_task_generators(fileName)
-        assert expected == [i for i,j in taskgen]
+        task_list = load_task_generators(fileName)
+        assert expected == [t.name for t in task_list]
 
 
 class TestGenerateTasks(object):
@@ -53,9 +53,9 @@ class TestGenerateTasks(object):
             for i in range(3):
                 yield {'name':str(i), 'action' :"xpto -%d"%i}
         tasks = generate_tasks("xpto", f_xpto())
-        assert isinstance(tasks[-1], GroupTask)
+        assert isinstance(tasks[0], GroupTask)
         assert 4 == len(tasks)
-        assert "xpto:1" == tasks[1].name
+        assert "xpto:0" == tasks[1].name
 
     def testGeneratorDoesntReturnDict(self):
         def f_xpto():
@@ -86,20 +86,36 @@ class TestGenerateTasks(object):
 
 
 ###################
+class TestAddTask(object):
+
+    def testadd_task(self):
+        t1 = GroupTask("taskX", None)
+        t2 = GroupTask("taskY", None)
+        m = Main(None, [t1, t2])
+        assert 2 == len(m.tasks)
+
+    # 2 tasks can not have the same name
+    def testadd_taskSameName(self):
+        t1 = GroupTask("taskX", None)
+        t2 = GroupTask("taskX", None)
+        nose.tools.assert_raises(InvalidDodoFile, Main, None, [t1, t2])
+
+    def test_addInvalidTask(self):
+        nose.tools.assert_raises(InvalidTask, Main, None, [666])
+
 
 class TestOrderTasks(object):
     # same task is not added twice
     def testAddJustOnce(self):
         baseTask = create_task("taskX","xpto 14 7",[],[])
-        m = Main(None, {"taskX": baseTask})
+        m = Main(None, [baseTask])
         result = m._order_tasks(["taskX"]*2)
         assert 1 == len(result)
 
     def testDetectCyclicReference(self):
         baseTask1 = create_task("taskX",None,[":taskY"],[])
         baseTask2 = create_task("taskY",None,[":taskX"],[])
-        tasks = {"taskX": baseTask1, "taskY": baseTask2}
-        m = Main(None, tasks)
+        m = Main(None, [baseTask1, baseTask2])
         nose.tools.assert_raises(InvalidDodoFile, m._order_tasks,
                                  ["taskX", "taskY"])
 
@@ -119,28 +135,25 @@ TESTDBM = "testdbm"
 DODO_FILE = os.path.abspath(__file__+"/../sample_main.py")
 
 
-class TestListCmd(object):
+class TestCmdList(object):
+
     def setUp(self):
         #setup stdout
         self.oldOut = sys.stdout
         sys.stdout = StringIO.StringIO()
-        self.taskgen = load_task_generators(DODO_FILE)
-        self.tasks = get_tasks(self.taskgen)
+        self.task_list = load_task_generators(DODO_FILE)
 
     def tearDown(self):
         #teardown stdout
         sys.stdout.close()
         sys.stdout = self.oldOut
 
-
     def testListTasks(self):
-        m = CmdList(self.taskgen, self.tasks)
-        m.process(False)
+        cmd_list(self.task_list, False)
         assert TASKS == sys.stdout.getvalue().split('\n')[1:-3]
 
     def testListAllTasks(self):
-        m = CmdList(self.taskgen, self.tasks)
-        m.process(True)
+        cmd_list(self.task_list, True)
         assert ALLTASKS == sys.stdout.getvalue().split('\n')[1:-3], sys.stdout.getvalue()
 
 
@@ -151,8 +164,7 @@ class TestMain(object):
         #setup stdout
         self.oldOut = sys.stdout
         sys.stdout = StringIO.StringIO()
-        taskgen = load_task_generators(DODO_FILE)
-        self.tasks = get_tasks(taskgen)
+        self.task_list = load_task_generators(DODO_FILE)
 
     def tearDown(self):
         if os.path.exists(TESTDBM):
@@ -163,7 +175,7 @@ class TestMain(object):
 
 
     def testProcessRun(self):
-        m = Main(TESTDBM, self.tasks)
+        m = Main(TESTDBM, self.task_list)
         m.process()
         assert [
             "string => Cmd: python sample_process.py sss",
@@ -181,21 +193,21 @@ class TestMain(object):
 
 
     def testFilter(self):
-        m = Main(TESTDBM, self.tasks, filter_=["dictionary","string"])
+        m = Main(TESTDBM, self.task_list, filter_=["dictionary","string"])
         m.process()
         assert ["dictionary => Cmd: python sample_process.py ddd",
                 "string => Cmd: python sample_process.py sss",] == \
                 sys.stdout.getvalue().split("\n")[:-1]
 
     def testFilterSubtask(self):
-        m = Main(TESTDBM, self.tasks, filter_=["generator:test_util.py"])
+        m = Main(TESTDBM, self.task_list, filter_=["generator:test_util.py"])
         m.process()
         expect = ("generator:test_util.py => " +
                   "Cmd: python sample_process.py test_util.py")
         assert [expect,] == sys.stdout.getvalue().split("\n")[:-1]
 
     def testFilterTarget(self):
-        m = Main(TESTDBM, self.tasks, filter_=["test_runner.py"])
+        m = Main(TESTDBM, self.task_list, filter_=["test_runner.py"])
         m.process()
         assert ["dictionary => Cmd: python sample_process.py ddd",] == \
                 sys.stdout.getvalue().split("\n")[:-1]
@@ -203,12 +215,12 @@ class TestMain(object):
 
     # filter a non-existent task raises an error
     def testFilterWrongName(self):
-        m = Main(TESTDBM, self.tasks, filter_=["XdictooonaryX","string"])
+        m = Main(TESTDBM, self.task_list, filter_=["XdictooonaryX","string"])
         nose.tools.assert_raises(InvalidCommand,m.process)
 
 
     def testGroup(self):
-        m = Main(TESTDBM, self.tasks, filter_=["mygroup"])
+        m = Main(TESTDBM, self.task_list, filter_=["mygroup"])
         m.process()
         assert ["dictionary => Cmd: python sample_process.py ddd",
                 "string => Cmd: python sample_process.py sss",
@@ -217,7 +229,7 @@ class TestMain(object):
 
 
     def testTaskDependency(self):
-        m = Main(TESTDBM, self.tasks, filter_=["taskdependency"])
+        m = Main(TESTDBM, self.task_list, filter_=["taskdependency"])
         m.process()
         assert ["generator:test_runner.py => Cmd: python sample_process.py test_runner.py",
                 "generator:test_util.py => Cmd: python sample_process.py test_util.py",
@@ -227,14 +239,12 @@ class TestMain(object):
 
 
     def testTargetDependency(self):
-        m = Main(TESTDBM, self.tasks, filter_=["targetdependency"])
+        m = Main(TESTDBM, self.task_list, filter_=["targetdependency"])
         m.process()
         assert ["dictionary => Cmd: python sample_process.py ddd",
                 "targetdependency => Python: function do_nothing"] == \
                 sys.stdout.getvalue().split("\n")[:-1]
 
     def testUserErrorTaskDependency(self):
-        tt = GroupTask('wrong', None,[":typo"])
-        tasks = {'wrong': tt}
-        m = Main(TESTDBM, tasks)
+        m = Main(TESTDBM, [GroupTask('wrong', None,[":typo"])])
         nose.tools.assert_raises(InvalidTask, m.process)
