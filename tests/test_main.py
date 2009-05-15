@@ -7,7 +7,7 @@ from doit.task import create_task
 from doit.task import InvalidTask, CmdTask, GroupTask
 from doit.main import load_task_generators
 from doit.main import generate_tasks
-from doit.main import InvalidCommand, Main, cmd_list
+from doit.main import InvalidCommand, Main, cmd_list, cmd_run
 from doit.main import InvalidDodoFile
 
 class TestLoadTaskGenerators(object):
@@ -91,31 +91,31 @@ class TestAddTask(object):
     def testadd_task(self):
         t1 = GroupTask("taskX", None)
         t2 = GroupTask("taskY", None)
-        m = Main(None, [t1, t2])
+        m = Main([t1, t2])
         assert 2 == len(m.tasks)
 
     # 2 tasks can not have the same name
     def testadd_taskSameName(self):
         t1 = GroupTask("taskX", None)
         t2 = GroupTask("taskX", None)
-        nose.tools.assert_raises(InvalidDodoFile, Main, None, [t1, t2])
+        nose.tools.assert_raises(InvalidDodoFile, Main, [t1, t2])
 
     def test_addInvalidTask(self):
-        nose.tools.assert_raises(InvalidTask, Main, None, [666])
+        nose.tools.assert_raises(InvalidTask, Main, [666])
 
 
 class TestOrderTasks(object):
     # same task is not added twice
     def testAddJustOnce(self):
         baseTask = create_task("taskX","xpto 14 7",[],[])
-        m = Main(None, [baseTask])
+        m = Main([baseTask])
         result = m._order_tasks(["taskX"]*2)
         assert 1 == len(result)
 
     def testDetectCyclicReference(self):
         baseTask1 = create_task("taskX",None,[":taskY"],[])
         baseTask2 = create_task("taskY",None,[":taskX"],[])
-        m = Main(None, [baseTask1, baseTask2])
+        m = Main([baseTask1, baseTask2])
         nose.tools.assert_raises(InvalidDodoFile, m._order_tasks,
                                  ["taskX", "taskY"])
 
@@ -175,8 +175,7 @@ class TestMain(object):
 
 
     def testProcessRun(self):
-        m = Main(TESTDBM, self.task_list)
-        m.process()
+        cmd_run(TESTDBM, self.task_list)
         assert [
             "string => Cmd: python sample_process.py sss",
             "python => Python: function do_nothing",
@@ -193,35 +192,31 @@ class TestMain(object):
 
 
     def testFilter(self):
-        m = Main(TESTDBM, self.task_list, filter_=["dictionary","string"])
-        m.process()
+        cmd_run(TESTDBM, self.task_list, filter_=["dictionary","string"])
         assert ["dictionary => Cmd: python sample_process.py ddd",
                 "string => Cmd: python sample_process.py sss",] == \
                 sys.stdout.getvalue().split("\n")[:-1]
 
     def testFilterSubtask(self):
-        m = Main(TESTDBM, self.task_list, filter_=["generator:test_util.py"])
-        m.process()
+        cmd_run(TESTDBM, self.task_list, filter_=["generator:test_util.py"])
         expect = ("generator:test_util.py => " +
                   "Cmd: python sample_process.py test_util.py")
         assert [expect,] == sys.stdout.getvalue().split("\n")[:-1]
 
     def testFilterTarget(self):
-        m = Main(TESTDBM, self.task_list, filter_=["test_runner.py"])
-        m.process()
+        cmd_run(TESTDBM, self.task_list, filter_=["test_runner.py"])
         assert ["dictionary => Cmd: python sample_process.py ddd",] == \
                 sys.stdout.getvalue().split("\n")[:-1]
 
 
     # filter a non-existent task raises an error
     def testFilterWrongName(self):
-        m = Main(TESTDBM, self.task_list, filter_=["XdictooonaryX","string"])
-        nose.tools.assert_raises(InvalidCommand,m.process)
+        nose.tools.assert_raises(InvalidCommand,cmd_run,TESTDBM,
+                      self.task_list, filter_=["XdictooonaryX","string"])
 
 
     def testGroup(self):
-        m = Main(TESTDBM, self.task_list, filter_=["mygroup"])
-        m.process()
+        cmd_run(TESTDBM, self.task_list, filter_=["mygroup"])
         assert ["dictionary => Cmd: python sample_process.py ddd",
                 "string => Cmd: python sample_process.py sss",
                 "mygroup => Group: :dictionary, :string"] == \
@@ -229,8 +224,7 @@ class TestMain(object):
 
 
     def testTaskDependency(self):
-        m = Main(TESTDBM, self.task_list, filter_=["taskdependency"])
-        m.process()
+        cmd_run(TESTDBM, self.task_list, filter_=["taskdependency"])
         assert ["generator:test_runner.py => Cmd: python sample_process.py test_runner.py",
                 "generator:test_util.py => Cmd: python sample_process.py test_util.py",
                 "generator => Group: ",
@@ -239,12 +233,11 @@ class TestMain(object):
 
 
     def testTargetDependency(self):
-        m = Main(TESTDBM, self.task_list, filter_=["targetdependency"])
-        m.process()
+        cmd_run(TESTDBM, self.task_list, filter_=["targetdependency"])
         assert ["dictionary => Cmd: python sample_process.py ddd",
                 "targetdependency => Python: function do_nothing"] == \
                 sys.stdout.getvalue().split("\n")[:-1]
 
     def testUserErrorTaskDependency(self):
-        m = Main(TESTDBM, [GroupTask('wrong', None,[":typo"])])
-        nose.tools.assert_raises(InvalidTask, m.process)
+        nose.tools.assert_raises(InvalidTask, cmd_run, TESTDBM,
+                                 [GroupTask('wrong', None,[":typo"])])

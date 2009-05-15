@@ -7,7 +7,7 @@ doit - A task execution tool (build-tool)
 
 doit is a build tool that focus not only on making/building things but on executing any kind of tasks in an efficient way. Designed to be easy to use and "get out of your way".
 
-doit like most build tools is used to execute tasks defined in a configuration file. Configuration files are python modules. The tasks can be python functions (or any callable) or an external shell script. doit automatically keeps track of declared dependencies executing only tasks that needs to be update (based on which dependencies have changed). 
+doit like most build tools is used to execute tasks defined in a configuration file. Configuration files are python modules. The tasks can be python functions (or any callable) or an external shell script. doit automatically keeps track of declared dependencies executing only tasks that needs to be update (based on which dependencies have changed).
 
 In doit, unlike most(all?) build-tools, a task doesn't need to define a target file to use the execute only if not up-to-date feature. This make doit specially suitable for running test suites.
 
@@ -71,65 +71,3 @@ The MIT License
 Copyright (c) 2008 Eduardo Naufel Schettino
 
 see LICENSE file
-
-OrderedDict
------------
-
-the source code include the class OrderedDict from twisted.python.util. License details below.
-
-::
-
-  # copied from http://twistedmatrix.com/trac/browser/tags/releases/twisted-8.0.0//twisted/python/util.py
-
-  # Copyright (c) 2001-2008
-  # Allen Short
-  # Andrew Bennetts
-  # Apple Computer, Inc.
-  # Benjamin Bruheim
-  # Bob Ippolito
-  # Canonical Limited
-  # Christopher Armstrong
-  # David Reid
-  # Donovan Preston
-  # Eric Mangold
-  # Itamar Shtull-Trauring
-  # James Knight
-  # Jason A. Mobarak
-  # Jonathan Lange
-  # Jonathan D. Simms
-  # Jp Calderone
-  # JÃ¼rgen Hermann
-  # Kevin Turner
-  # Mary Gardiner
-  # Matthew Lefkowitz
-  # Massachusetts Institute of Technology
-  # Moshe Zadka
-  # Paul Swartz
-  # Pavel Pergamenshchik
-  # Ralph Meijer
-  # Sean Riley
-  # Travis B. Hartwell
-  # Thomas Herve
-  # Eyal Lotem
-  # Antoine Pitrou
-  # Andy Gayton
-
-  # Permission is hereby granted, free of charge, to any person obtaining
-  # a copy of this software and associated documentation files (the
-  # "Software"), to deal in the Software without restriction, including
-  # without limitation the rights to use, copy, modify, merge, publish,
-  # distribute, sublicense, and/or sell copies of the Software, and to
-  # permit persons to whom the Software is furnished to do so, subject to
-  # the following conditions:
-
-  # The above copyright notice and this permission notice shall be
-  # included in all copies or substantial portions of the Software.
-
-  # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-  # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-  # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-  # NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-  # LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-  # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-  # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-

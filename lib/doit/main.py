@@ -4,7 +4,7 @@ import os
 import sys
 import inspect
 
-from doit.util import isgenerator, OrderedDict
+from doit.util import isgenerator
 from doit.task import InvalidTask, BaseTask, GroupTask, dict_to_task
 from doit.runner import Runner
 
@@ -55,6 +55,7 @@ def load_task_generators(dodoFile):
 
     # sort by the order functions were defined (line number)
     funcs.sort(key=lambda obj:obj[2])
+
     # generate all tasks
     task_list = []
     for name, ref, line in funcs:
@@ -95,7 +96,7 @@ def generate_tasks(name, gen_result):
             sub_task.isSubtask = True
             tasks.append(sub_task)
 
-        # create task. depends on subtasks.
+        # add task dependencies to group task.
         group_task.task_dep = [task.name for task in tasks[1:]]
         return tasks
 
@@ -116,9 +117,15 @@ def doCmd(dodoFile, dependencyFile, list_=False, verbosity=0,
         return cmd_list(task_list, (list_==2))
 
     # run
-    m = Main(dependencyFile, task_list, verbosity, alwaysExecute, filter_)
-    return m.process()
+    cmd_run(dependencyFile, task_list, verbosity, alwaysExecute, filter_)
 
+
+def cmd_run(dependencyFile, task_list, verbosity=0, alwaysExecute=False, filter_=None):
+    selected_tasks = Main(task_list, filter_).process()
+    # create a Runner instance and ...
+    runner = Runner(dependencyFile, verbosity, alwaysExecute)
+    runner.tasks = selected_tasks
+    return runner.run()
 
 
 def cmd_list(task_list, printSubtasks):
@@ -147,19 +154,18 @@ class Main(object):
 
     @ivar taskgen: (tupple) (name, function reference)
 
-    @ivar tasks: (OrderedDict) Key: task name ([taskgen.]name)
+    @ivar tasks: (dict) Key: task name ([taskgen.]name)
                                Value: L{BaseTask} instance
     @ivar targets: (dict) Key: fileName
                           Value: L{BaseTask} instance
     """
 
-    def __init__(self, dependencyFile, task_list,
-                 verbosity=0, alwaysExecute=False, filter_=None):
+    def __init__(self, task_list, filter_=None):
 
         self.filter = filter_
         self.targets = {}
-
-        self.tasks = OrderedDict()
+        self.task_order = [] # name of task in order to be executed
+        self.tasks = {}
         for task in task_list:
             # task must be a BaseTask
             if not isinstance(task, BaseTask):
@@ -171,9 +177,8 @@ class Main(object):
                 raise InvalidDodoFile(msg % task.name)
 
             self.tasks[task.name] = task
+            self.task_order.append(task.name)
 
-        # create a Runner instance and ...
-        self.runner = Runner(dependencyFile, verbosity, alwaysExecute)
 
     def _filter_tasks(self):
         """Select tasks specified by filter.
@@ -183,7 +188,7 @@ class Main(object):
         selectedTask = []
         for filter_ in self.filter:
             # by task name
-            if filter_ in self.tasks.iterkeys():
+            if filter_ in self.tasks:
                 selectedTask.append(filter_)
             # by target
             elif filter_ in self.targets:
@@ -252,14 +257,8 @@ class Main(object):
 
         # if no filter is defined execute all tasks
         # in the order they were defined.
-        selectedTask = None
-        if not self.filter:
-            selectedTask = self.tasks.keys()
+        selectedTask = self.task_order
         # execute only tasks in the filter in the order specified by filter
-        else:
+        if self.filter:
             selectedTask = self._filter_tasks()
-
-        # add to runner tasks from every selected task
-        self.runner.tasks = self._order_tasks(selectedTask)
-        return self.runner.run()
-
+        return self._order_tasks(selectedTask)
