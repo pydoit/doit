@@ -6,7 +6,7 @@ import inspect
 
 from doit.util import isgenerator
 from doit.task import InvalidTask, BaseTask, GroupTask, dict_to_task
-from doit.runner import Runner
+from doit import runner
 
 
 class InvalidCommand(Exception):
@@ -112,20 +112,22 @@ def doCmd(dodoFile, dependencyFile, list_=False, verbosity=0,
 
     task_list = load_task_generators(dodoFile)
 
-    # list
     if list_:
+        # list_ (int)
+        # * 0 dont list, run;
+        # * 1 list task generators (do not run if listing);
+        # * 2 list all tasks (do not run if listing);
         return cmd_list(task_list, (list_==2))
 
     # run
     cmd_run(dependencyFile, task_list, verbosity, alwaysExecute, filter_)
 
 
-def cmd_run(dependencyFile, task_list, verbosity=0, alwaysExecute=False, filter_=None):
+def cmd_run(dependencyFile, task_list, verbosity=0, alwaysExecute=False,
+            filter_=None):
     selected_tasks = Main(task_list, filter_).process()
-    # create a Runner instance and ...
-    runner = Runner(dependencyFile, verbosity, alwaysExecute)
-    runner.tasks = selected_tasks
-    return runner.run()
+    return runner.run(dependencyFile, selected_tasks, verbosity, alwaysExecute)
+
 
 
 def cmd_list(task_list, printSubtasks):
@@ -144,15 +146,7 @@ def cmd_list(task_list, printSubtasks):
 class Main(object):
     """doit - load dodo file and execute tasks.
 
-    @ivar dependencyFile: (string) file path of the dbm file.
-    @ivar verbosity: (bool) verbosity level. @see L{Runner}
-
-    @ivar list: (int) 0 dont list, run;
-                      1 list task generators (do not run if listing);
-                      2 list all tasks (do not run if listing);
     @ivar filter: (sequence of strings) selection of tasks to execute
-
-    @ivar taskgen: (tupple) (name, function reference)
 
     @ivar tasks: (dict) Key: task name ([taskgen.]name)
                                Value: L{BaseTask} instance
@@ -164,8 +158,13 @@ class Main(object):
 
         self.filter = filter_
         self.targets = {}
-        self.task_order = [] # name of task in order to be executed
+        # name of task in order to be executed
+        # this the order as in the dodo file. the real execution
+        # order might be different if the dependecies require so.
+        self.task_order = []
+        # dict of tasks by name
         self.tasks = {}
+
         for task in task_list:
             # task must be a BaseTask
             if not isinstance(task, BaseTask):
