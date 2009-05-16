@@ -8,7 +8,6 @@ from doit.util import isgenerator
 from doit.task import InvalidTask, BaseTask, GroupTask, dict_to_task
 from doit import runner
 
-
 class InvalidCommand(Exception):
     """Invalid command line argument."""
     pass
@@ -27,7 +26,7 @@ def load_task_generators(dodoFile):
     The python file is a called "dodo" file.
 
     @param dodoFile: (string) path to file containing the tasks
-    @return (tupple) (name, function reference)
+    @return (list) of BaseTasks in the roder they were defined on the file
     """
     ## load module dodo file and set environment
     base_path, file_name = os.path.split(os.path.abspath(dodoFile))
@@ -105,49 +104,13 @@ def generate_tasks(name, gen_result):
 
 
 
-##################################
-
-def doCmd(dodoFile, dependencyFile, list_=False, verbosity=0,
-        alwaysExecute=False, filter_=None):
-
-    task_list = load_task_generators(dodoFile)
-
-    if list_:
-        # list_ (int)
-        # * 0 dont list, run;
-        # * 1 list task generators (do not run if listing);
-        # * 2 list all tasks (do not run if listing);
-        return cmd_list(task_list, (list_==2))
-
-    # run
-    cmd_run(dependencyFile, task_list, verbosity, alwaysExecute, filter_)
-
-
-def cmd_run(dependencyFile, task_list, verbosity=0, alwaysExecute=False,
-            filter_=None):
-    selected_tasks = Main(task_list, filter_).process()
-    return runner.run(dependencyFile, selected_tasks, verbosity, alwaysExecute)
-
-
-
-def cmd_list(task_list, printSubtasks):
-    """List task generators, in the order they were defined.
-
-    @param printSubtasks: (bool) print subtasks
+class TaskSetup(object):
     """
-    print "==== Tasks ===="
-    for task in task_list:
-        if (not task.isSubtask) or printSubtasks:
-            print task.name
-    print "="*25,"\n"
-    return 0
-
-
-class Main(object):
-    """doit - load dodo file and execute tasks.
+    Process dependencies and targets to find out the order tasks
+    should be executed. Also apply filter to exclude tasks from
+    execution.
 
     @ivar filter: (sequence of strings) selection of tasks to execute
-
     @ivar tasks: (dict) Key: task name ([taskgen.]name)
                                Value: L{BaseTask} instance
     @ivar targets: (dict) Key: fileName
@@ -165,6 +128,7 @@ class Main(object):
         # dict of tasks by name
         self.tasks = {}
 
+        # sanity check and create tasks dict
         for task in task_list:
             # task must be a BaseTask
             if not isinstance(task, BaseTask):
@@ -179,10 +143,36 @@ class Main(object):
             self.task_order.append(task.name)
 
 
+        # check task-dependencies exist.
+        for task in self.tasks.itervalues():
+            for dep in task.task_dep:
+                if dep not in self.tasks:
+                    msg = "%s. Task dependency '%s' does not exist."
+                    raise InvalidTask(msg% (task.name,dep))
+
+        # get target dependecies on other tasks based on file dependency on
+        # a target.
+        # 1) create a dictionary associating every target->task. where the task
+        # builds that target.
+        for task in self.tasks.itervalues():
+            for target in task.targets:
+                # TODO support more than one task with same target or raise
+                # an error
+                self.targets[target] = task
+        # 2) now go through all dependencies and check if they are target from
+        # another task.
+        for task in self.tasks.itervalues():
+            for dep in task.file_dep:
+                if (dep in self.targets and
+                    self.targets[dep] not in task.task_dep):
+                    task.task_dep.append(self.targets[dep].name)
+
+
     def _filter_tasks(self):
         """Select tasks specified by filter.
 
         filter can specify tasks to be execute by task name or target.
+        @return (list) of string. where elements are task name.
         """
         selectedTask = []
         for filter_ in self.filter:
@@ -198,8 +188,9 @@ class Main(object):
         return selectedTask
 
     def _order_tasks(self, to_add):
-        # put tasks in an order so that dependencies are executed before.
-        # make sure a task is added only once. detected cyclic dependencies.
+        """put tasks in an order so that dependencies are executed before.
+        make sure a task is added only once. detected cyclic dependencies.
+        """
         ADDING, ADDED = 0, 1
         status = {}
         task_in_order = []
@@ -231,29 +222,7 @@ class Main(object):
 
 
     def process(self):
-        """Execute tasks."""
-        # check task-dependencies exist.
-        for task in self.tasks.itervalues():
-            for dep in task.task_dep:
-                if dep not in self.tasks:
-                    msg = "%s. Task dependency '%s' does not exist."
-                    raise InvalidTask(msg% (task.name,dep))
-
-        # get target dependecies on other tasks based on file dependency on
-        # a target.
-        # 1) create a dictionary associating every target->task. where the task
-        # builds that target.
-        for task in self.tasks.itervalues():
-            for target in task.targets:
-                self.targets[target] = task
-        # 2) now go through all dependencies and check if they are target from
-        # another task.
-        for task in self.tasks.itervalues():
-            for dep in task.file_dep:
-                if (dep in self.targets and
-                    self.targets[dep] not in task.task_dep):
-                    task.task_dep.append(self.targets[dep].name)
-
+        """@return (list - string) each element is the name of a task"""
         # if no filter is defined execute all tasks
         # in the order they were defined.
         selectedTask = self.task_order
@@ -261,3 +230,44 @@ class Main(object):
         if self.filter:
             selectedTask = self._filter_tasks()
         return self._order_tasks(selectedTask)
+
+
+
+##################################
+
+def doCmd(dodoFile, dependencyFile, list_=False, verbosity=0,
+        alwaysExecute=False, filter_=None):
+
+    task_list = load_task_generators(dodoFile)
+
+    if list_:
+        # list_ (int)
+        # * 0 dont list, run;
+        # * 1 list task generators (do not run if listing);
+        # * 2 list all tasks (do not run if listing);
+        return cmd_list(task_list, (list_==2))
+
+    # run
+    cmd_run(dependencyFile, task_list, filter_, verbosity, alwaysExecute)
+
+
+def cmd_run(dependencyFile, task_list, filter_=None, verbosity=0,
+            alwaysExecute=False):
+    selected_tasks = TaskSetup(task_list, filter_).process()
+    return runner.run(dependencyFile, selected_tasks, verbosity, alwaysExecute)
+
+
+
+def cmd_list(task_list, printSubtasks):
+    """List task generators, in the order they were defined.
+
+    @param printSubtasks: (bool) print subtasks
+    """
+    print "==== Tasks ===="
+    for task in task_list:
+        if (not task.isSubtask) or printSubtasks:
+            print task.name
+    print "="*25,"\n"
+    return 0
+
+
