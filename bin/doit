@@ -2,54 +2,122 @@
 
 import sys
 import traceback
+import getopt
 
-from optparse import OptionParser
-
+import doit
 from doit import main
 
-usage = "usage: %prog [options] [task] [task] ..."
-parser = OptionParser(usage)
-parser.add_option("--version", dest="printVersion", action="store_true",
-                  default=False, help="print the version of 'doit' and exit")
-parser.add_option("-f", "--file", dest="file", default="dodo.py",
-                  help="load task from dodo FILE [default: %default]")
-parser.add_option("-v", "--verbosity", dest="verbosity", type="int",default=0,
-                  help="""0 capture (do not print) stdout/stderr from task. \t
-                          1 capture stdout only. \t
-                          2 dont capture anything (print everything immediately). \t
-                          [default: %default]""")
-parser.add_option("-a", "--always-execute", action="store_true",
-                  dest="alwaysExecute", default=False,
-                  help="always execute tasks even if up-to-date [default: %default]")
-parser.add_option("-l", "--list", action="store_const", const=1, dest="list",
-                  default=0,
-                  help="list tasks from dodo file")
-parser.add_option("--list-all", action="store_const", const=2, dest="list",
-                  default=0,
-                  help="list all tasks and sub-tasks from dodo file")
+# usage="usage: %prog [options] [task] [task] ...",
+# "-f", "--file", default="dodo.py", help="load task from dodo FILE [default: %default]")
 
-(options,args) = parser.parse_args()
+#"-v", "--verbosity", default=0,
+# help="""0 capture (do not print) stdout/stderr from task. \t
+#         1 capture stdout only. \t
+#         2 dont capture anything (print everything immediately). \t
+#                           [default: %default]""")
+
+# "-a", "--always-execute" help="always execute tasks even if up-to-date [default: %default]")
+
+# "list"  help="list tasks from dodo file")
+# --list-all"  help="list all tasks and sub-tasks from dodo file")
 
 
-# execute it
-def execute(fileName, **kargs):
+def main_cmd():
     try:
-        return main.doCmd(fileName, ".doit.dbm", **kargs)
+        result = 0
+        try:
+            main_opts, main_args = getopt.getopt(sys.argv[1:], "f:", ["version", "help", "file="])
+        except getopt.GetoptError, err:
+            print str(err)
+            print "not like this"
+            return 2
+
+        # defaults
+        dodoFile = "dodo.py"
+
+        # process options
+        for opt, val in main_opts:
+            if opt == "--version":
+                print ".".join([str(i) for i in doit.__version__])
+                return 0
+            if opt == "--help":
+                print "usage help"
+                return 0
+            if opt in ["-f","--file"]:
+                dodoFile = val
+
+        # excute
+        task_list = main.load_task_generators(dodoFile)
+
+        #########################################################
+        ## process sub command
+        # default command is "run"
+        if len(main_args) and main_args[0] in ["run", "list"]:
+            sub_cmd = main_args.pop(0)
+        else:
+            sub_cmd = "run"
+
+
+        if sub_cmd == "run":
+            try:
+                run_opts, run_args = getopt.getopt(main_args, "av:", ["always-execute", "verbosity="])
+            except getopt.GetoptError, err:
+                print str(err)
+                print "not like this (list)"
+                return 2
+
+            # defaults
+            dependencyFile = ".doit.dbm" #no option to change this
+            verbosity = 0
+            alwaysExecute = False
+
+            for opt, val in run_opts:
+                if opt in ["-a", "--always-execute"]:
+                    alwaysExecute = True
+                elif opt in ["-v", "--verbosity"]:
+                    verbosity = val
+
+            filter_ = run_args
+            task_list = main.load_task_generators(dodoFile)
+            return main.cmd_run(dependencyFile, task_list, filter_, verbosity, alwaysExecute)
+
+
+        #########################################################
+        elif sub_cmd == "list":
+            try:
+                list_opts, list_args = getopt.getopt(main_args, "", ["all"])
+            except getopt.GetoptError, err:
+                print str(err)
+                print "not like this (list)"
+                return 2
+
+            # defaults
+            all = False
+
+            # process options
+            for opt, val in list_opts:
+                if opt == "--all":
+                    all = True
+            # TODO raise if len(list_args)
+
+            # cmd
+            task_list = main.load_task_generators(dodoFile)
+            return main.cmd_list(task_list, all)
+
+
     # make sure exception is printed out. we migth have redirected stderr
     except Exception:
         sys.__stderr__.write(traceback.format_exc())
-        return -1
+        result = -1
+
+    return result
+
+
 
 
 if __name__ == "__main__":
-    # special parameter --version
-    if options.printVersion:
-        import doit
-        print ".".join([str(i) for i in doit.__version__])
-        sys.exit(0)
-    # do real work
-    result = execute(options.file, verbosity=options.verbosity,
-                  list_=options.list, alwaysExecute=options.alwaysExecute,
-                  filter_=args)
-    sys.exit(result)
+    sys.exit(main_cmd())
 
+
+#FIXME better error message when there is no dodo file.
+# "                         when task doesnt exist.

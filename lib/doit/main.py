@@ -1,5 +1,3 @@
-"""doit command line program."""
-
 import os
 import sys
 import inspect
@@ -234,22 +232,6 @@ class TaskSetup(object):
 
 
 ##################################
-
-def doCmd(dodoFile, dependencyFile, list_=False, verbosity=0,
-        alwaysExecute=False, filter_=None):
-
-    task_list = load_task_generators(dodoFile)
-
-    if list_:
-        # list_ (int)
-        # * 0 dont list, run;
-        # * 1 list task generators (do not run if listing);
-        # * 2 list all tasks (do not run if listing);
-        return cmd_list(task_list, (list_==2))
-
-    # run
-    cmd_run(dependencyFile, task_list, filter_, verbosity, alwaysExecute)
-
 
 def cmd_run(dependencyFile, task_list, filter_=None, verbosity=0,
             alwaysExecute=False):
