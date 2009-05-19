@@ -33,6 +33,7 @@ def run(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
     dependencyManager = Dependency(dependencyFile)
     errorException = None  # Exception instance, in case of error
     result = SUCCESS
+    setup_loaded = set() # setups that were loaded already.
 
     for task in tasks:
         # clear previous output
@@ -62,7 +63,18 @@ def run(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
                     os.makedirs(dep)
 
             try:
+                # setup env
+                if task.setup and task.setup not in setup_loaded:
+                    setup_loaded.add(task.setup)
+                    task.setup.setup()
+                # finally execute it
                 task.execute()
+                #save execution successful
+                if task.run_once:
+                    dependencyManager.save_run_once(task.name)
+                dependencyManager.save_dependencies(task.name,task.file_dep)
+                dependencyManager.save_dependencies(task.name,task.targets)
+
             # task failed
             except TaskFailed:
                 logger.log("stderr", '\nTask failed => %s\n'% task.name)
@@ -74,13 +86,10 @@ def run(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
                 result = ERROR
                 errorException = exception
                 break
-            # task success - save dependencies
-            else:
-                if task.run_once:
-                    dependencyManager.save_run_once(task.name)
-                dependencyManager.save_dependencies(task.name,task.file_dep)
-                dependencyManager.save_dependencies(task.name,task.targets)
 
+    for setup in setup_loaded:
+        if hasattr(setup, 'cleanup'):
+            setup.cleanup()
 
     ## done
     # flush update dependencies

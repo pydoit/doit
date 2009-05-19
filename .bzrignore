@@ -9,3 +9,4 @@ _build
 doc/tutorial/build/count.txt
 doc/tutorial/build/files.txt
 shrinksafe.jar
+tests/testdbm

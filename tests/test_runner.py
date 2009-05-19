@@ -2,7 +2,7 @@ import os
 import sys, StringIO
 
 from doit.dependency import Dependency
-from doit.task import BaseTask, PythonTask
+from doit.task import BaseTask, PythonTask, GroupTask
 from doit import runner
 
 # dependencies file
@@ -35,7 +35,7 @@ class TestVerbosity(object):
 
 
 
-class TestRunningTask(object):
+class BaseRunner(object):
     def setUp(self):
         self.oldOut = sys.stdout
         sys.stdout = StringIO.StringIO()
@@ -49,6 +49,8 @@ class TestRunningTask(object):
         sys.stderr = self.oldErr
         if os.path.exists(TESTDBM):
             os.remove(TESTDBM)
+
+class TestRunningTask(BaseRunner):
 
     def test_successOutput(self):
         tasks = [PythonTask("taskX",my_print,args=["out a"]),
@@ -144,9 +146,15 @@ class TestRunningTask(object):
 
         tasks = [PythonTask("taskX",my_print,dependencies,targets)]
         assert runner.SUCCESS == runner.run(TESTDBM, tasks, 1)
-        # only titles are printed.
         d = Dependency(TESTDBM)
         assert 2 == len(d._db)
+
+    # when successful and run_once is updated
+    def test_successRunOnce(self):
+        tasks = [PythonTask("taskX",my_print,[True],[])]
+        assert runner.SUCCESS == runner.run(TESTDBM, tasks, 1)
+        d = Dependency(TESTDBM)
+        assert 1 == len(d._db)
 
 
     def test_errorDependency(self):
@@ -194,3 +202,44 @@ class TestRunningTask(object):
         assert os.path.exists(DIR_DEP)
         rm_dir()
 
+
+class TestTaskSetup(BaseRunner):
+
+    class SetupSample(object):
+        def __init__(self):
+            self.executed = 0
+            self.cleaned = 0
+
+        def setup(self):
+            self.executed += 1
+
+        def cleanup(self):
+            self.cleaned += 1
+
+    #FIXME test a setup attribute is required. and cleanup is optional
+    #TODO check errors on setup and cleanup
+
+    def testExecuted(self):
+        setup = self.SetupSample()
+        t = GroupTask("ss", None, [], [], setup)
+        assert runner.SUCCESS == runner.run(TESTDBM, [t])
+        assert 1 == setup.executed
+        assert 1 == setup.cleaned
+
+    def testExecuteOnce(self):
+        setup = self.SetupSample()
+        t1 = GroupTask("ss", None, [], [], setup)
+        t2 = GroupTask("ss2", None, [], [], setup)
+        assert runner.SUCCESS == runner.run(TESTDBM, [t1, t2])
+        assert 1 == setup.executed
+        assert 1 == setup.cleaned
+
+    def testExecuteCleanedOnTaskErrors(self):
+        setup = self.SetupSample()
+        def bad_seed():
+            raise Exception("rrrr")
+        t1 = PythonTask("ss", bad_seed, [], [], setup)
+        t2 = GroupTask("ss2", None, [], [], setup)
+        assert runner.ERROR == runner.run(TESTDBM, [t1, t2])
+        assert 1 == setup.executed
+        assert 1 == setup.cleaned

@@ -6,7 +6,7 @@ import nose
 from doit import logger
 from doit.task import BaseTask, CmdTask, PythonTask, GroupTask
 from doit.task import InvalidTask, TaskError, TaskFailed
-from doit.task import create_task
+from doit.task import create_task, dict_to_task
 
 #path to test folder
 TEST_PATH = os.path.abspath(__file__+'/../')
@@ -17,20 +17,25 @@ class TestBaseTask(object):
         BaseTask("Task X","taskcmd",dependencies=["123","456"])
 
     def test_dependencyTrueIsValid(self):
-        BaseTask("Task X","taskcmd",dependencies=[True])
+        t = BaseTask("Task X","taskcmd",dependencies=[True])
+        assert t.run_once
 
     def test_dependencyFalseIsNotValid(self):
         nose.tools.assert_raises(InvalidTask,BaseTask,
                                  "Task X","taskcmd",dependencies=[False])
 
-    # dependency must be a sequence or bool. 
+    def test_ruOnce_or_fileDependency(self):
+        nose.tools.assert_raises(InvalidTask,BaseTask,
+                    "Task X","taskcmd",dependencies=[True,"whatever"])
+
+    # dependency must be a sequence or bool.
     # give proper error message when anything else is used.
     def test_dependencyNotSequence(self):
         filePath = "data/dependency1"
         nose.tools.assert_raises(InvalidTask,BaseTask,
                                  "Task X","taskcmd",dependencies=filePath)
 
-    # targets must be a sequence. give proper error message when anything 
+    # targets must be a sequence. give proper error message when anything
     # else is used.
     def test_targetNotSequence(self):
         filePath = "data/target1"
@@ -118,7 +123,7 @@ class TestPythonTask(object):
             return True
         else:
             return False
-        
+
     def test_functionParametersArgs(self):
         t = PythonTask("taskX",self._func_par,args=(2,2,25))
         t.execute()
@@ -186,9 +191,9 @@ class TestCmdVerbosityStderr(object):
         logger.flush('stderr',sys.stderr)
         assert "err output on failure" == sys.stderr.getvalue(), repr(sys.stderr.getvalue())
 
-        
-    # Do not capture stderr 
-    #     
+
+    # Do not capture stderr
+    #
     # i dont know how to test this (in a reasonable easy way).
     # the stream is sent straight to the parent process from doit.
     def test_noCapture(self):
@@ -221,9 +226,9 @@ class TestCmdVerbosityStdout(object):
         logger.flush('stdout',sys.stdout)
         assert "hi_stdout" == sys.stdout.getvalue(),repr(sys.stdout.getvalue())
 
-        
-    # Do not capture stdout 
-    #     
+
+    # Do not capture stdout
+    #
     # i dont know how to test this (in a reasonable easy way).
     # the stream is sent straight to the parent process from doit.
     def test_noCapture(self):
@@ -252,7 +257,7 @@ class TestPythonVerbosityStderr(object):
     def write_and_error(self):
         sys.stderr.write("this is stderr E\n")
         raise Exception("Hi i am an exception")
-        
+
     def write_and_success(self):
         sys.stderr.write("this is stderr S\n")
         return True
@@ -261,9 +266,9 @@ class TestPythonVerbosityStderr(object):
         sys.stderr.write("this is stderr F\n")
         return False
 
-    ##### Capture stderr 
+    ##### Capture stderr
     #
-    # success 
+    # success
     def test_captureSuccess(self):
         BaseTask.CAPTURE_ERR = True
         t = PythonTask("taskX",self.write_and_success)
@@ -272,7 +277,7 @@ class TestPythonVerbosityStderr(object):
         logger.flush('stderr',sys.stderr)
         assert "this is stderr S\n" == sys.stderr.getvalue(), repr(sys.stderr.getvalue())
 
-    # failure 
+    # failure
     def test_captureFail(self):
         BaseTask.CAPTURE_ERR = True
         t = PythonTask("taskX",self.write_and_fail)
@@ -281,7 +286,7 @@ class TestPythonVerbosityStderr(object):
         logger.flush('stderr',sys.stderr)
         assert "this is stderr F\n" == sys.stderr.getvalue(), repr(sys.stderr.getvalue())
 
-    # error 
+    # error
     def test_captureError(self):
         BaseTask.CAPTURE_ERR = True
         t = PythonTask("taskX",self.write_and_error)
@@ -289,8 +294,8 @@ class TestPythonVerbosityStderr(object):
         assert "" == sys.stderr.getvalue()
         logger.flush('stderr',sys.stderr)
         assert "this is stderr E\n" == sys.stderr.getvalue(), repr(sys.stderr.getvalue())
-        
-    ##### Do not capture stderr 
+
+    ##### Do not capture stderr
     #
     # success
     def test_noCaptureSuccess(self):
@@ -328,7 +333,7 @@ class TestPythonVerbosityStdout(object):
     def write_and_error(self):
         sys.stdout.write("this is stdout E\n")
         raise Exception("Hi i am an exception")
-        
+
     def write_and_success(self):
         sys.stdout.write("this is stdout S\n")
         return True
@@ -339,7 +344,7 @@ class TestPythonVerbosityStdout(object):
 
     ##### Capture stdout
     #
-    # success 
+    # success
     def test_captureSuccess(self):
         BaseTask.CAPTURE_OUT = True
         t = PythonTask("taskX",self.write_and_success)
@@ -348,7 +353,7 @@ class TestPythonVerbosityStdout(object):
         logger.flush('stdout',sys.stdout)
         assert "this is stdout S\n" == sys.stdout.getvalue(), repr(sys.stdout.getvalue())
 
-    # failure 
+    # failure
     def test_captureFail(self):
         BaseTask.CAPTURE_OUT = True
         t = PythonTask("taskX",self.write_and_fail)
@@ -357,7 +362,7 @@ class TestPythonVerbosityStdout(object):
         logger.flush('stdout',sys.stdout)
         assert "this is stdout F\n" == sys.stdout.getvalue(), repr(sys.stdout.getvalue())
 
-    # error 
+    # error
     def test_captureError(self):
         BaseTask.CAPTURE_OUT = True
         t = PythonTask("taskX",self.write_and_error)
@@ -365,8 +370,8 @@ class TestPythonVerbosityStdout(object):
         assert "" == sys.stdout.getvalue()
         logger.flush('stdout',sys.stdout)
         assert "this is stdout E\n" == sys.stdout.getvalue(), repr(sys.stdout.getvalue())
-        
-    ##### Do not capture stdout 
+
+    ##### Do not capture stdout
     #
     # success
     def test_noCaptureSuccess(self):
@@ -388,3 +393,35 @@ class TestPythonVerbosityStdout(object):
         t = PythonTask("taskX",self.write_and_error)
         nose.tools.assert_raises(TaskError,t.execute)
         assert "this is stdout E\n" == sys.stdout.getvalue(), repr(sys.stdout.getvalue())
+
+class TestCreateTask(object):
+    def testStringTask(self):
+        task = create_task("taskX","xpto 14 7",[],[],None)
+        assert isinstance(task, CmdTask)
+
+    def testPythonTask(self):
+        def dumb(): return
+        task = create_task("taskX",dumb,[],[],None)
+        assert isinstance(task, PythonTask)
+
+    def testGroupTask(self):
+        task = create_task("taskX",None,[],[],None)
+        assert isinstance(task, GroupTask)
+
+    def testInvalidTask(self):
+        nose.tools.assert_raises(InvalidTask,create_task,
+                                 "taskX",self,[],[],None)
+
+class TestDictToTask(object):
+    def testDictOkMinimum(self):
+        dict_ = {'name':'simple','action':'xpto 14'}
+        assert isinstance(dict_to_task(dict_), BaseTask)
+
+    def testDictFieldTypo(self):
+        dict_ = {'name':'z','action':'xpto 14','typo_here':['xxx']}
+        nose.tools.assert_raises(InvalidTask, dict_to_task, dict_)
+
+    def testDictMissingFieldAction(self):
+        nose.tools.assert_raises(InvalidTask, dict_to_task, {'name':'xpto 14'})
+
+

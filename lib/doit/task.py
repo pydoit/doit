@@ -38,7 +38,7 @@ class BaseTask(object):
     CAPTURE_OUT = False
     CAPTURE_ERR = False
 
-    def __init__(self,name,action,dependencies=(),targets=()):
+    def __init__(self,name,action,dependencies=(),targets=(),setup=None):
         """Init."""
         # dependencies parameter must be a list
         if not ((isinstance(dependencies,list)) or
@@ -57,8 +57,9 @@ class BaseTask(object):
         self.action = action
         self.dependencies = dependencies
         self.targets = targets
+        self.setup = setup
         self.run_once = False
-        self.isSubtask = False #TODO document
+        self.isSubtask = False #TODO document. test
 
         # there are 3 kinds of dependencies: file, task, and folder
         self.folder_dep = []
@@ -108,11 +109,11 @@ class BaseTask(object):
 class CmdTask(BaseTask):
     """Command line task. Spawns a new process."""
 
-    def __init__(self,name,action,dependencies=(),targets=()):
+    def __init__(self,name,action,dependencies=(),targets=(),setup=None):
         """Init."""
         assert isinstance(action,str),\
             "'action' from CmdTask must be a string."
-        BaseTask.__init__(self,name,action,dependencies,targets)
+        BaseTask.__init__(self,name,action,dependencies,targets,setup)
 
     def execute(self):
         # set Popen stream parameters
@@ -165,10 +166,10 @@ class PythonTask(BaseTask):
     @ivar kwargs: (dict) dict to be passed to the callable
     """
 
-    def __init__(self,name,action,dependencies=(),targets=(),args=None,kwargs=None):
+    def __init__(self,name,action,dependencies=(),targets=(),setup=None,args=None,kwargs=None):
         """Init."""
         assert callable(action),"'action' from PythonTask must be a 'callable'."
-        BaseTask.__init__(self,name,action,dependencies,targets)
+        BaseTask.__init__(self,name,action,dependencies,targets,setup)
         if args is None:
             self.args = []
         else:
@@ -240,7 +241,7 @@ class GroupTask(BaseTask):
 
 
 
-def create_task(name,action,dependencies,targets,*args,**kwargs):
+def create_task(name,action,dependencies,targets,setup,*args,**kwargs):
     """ create a BaseTask acording to action type
 
     @param name: (string) task name
@@ -253,12 +254,12 @@ def create_task(name,action,dependencies,targets,*args,**kwargs):
     """
     # a string.
     if isinstance(action,str):
-        return CmdTask(name,action,dependencies,targets)
+        return CmdTask(name,action,dependencies,targets,setup)
     # a callable.
     elif callable(action):
-        return PythonTask(name,action,dependencies,targets,*args,**kwargs)
+        return PythonTask(name,action,dependencies,targets,setup,*args,**kwargs)
     elif action is None:
-        return GroupTask(name,action,dependencies,targets)
+        return GroupTask(name,action,dependencies,targets,setup)
     else:
         raise InvalidTask("Invalid task type. %s:%s" % (name,action.__class__))
 
@@ -272,7 +273,13 @@ def dict_to_task(task_dict):
     @raise L{InvalidTask}:
     """
     # TASK_ATTRS: sequence of know attributes(keys) of a task dict.
-    TASK_ATTRS = ('name','action','dependencies','targets','args','kwargs')
+    TASK_ATTRS = ('name','action','dependencies','targets','args','kwargs','setup')
+    # FIXME check field 'name'
+
+    # check required fields
+    if 'action' not in task_dict:
+        raise InvalidTask("Task %s must contain field action. %s"%
+                          (task_dict['name'],task_dict))
 
     # user friendly. dont go ahead with invalid input.
     for key in task_dict.keys():
@@ -280,15 +287,12 @@ def dict_to_task(task_dict):
             raise InvalidTask("Task %s contain invalid field: %s"%
                               (task_dict['name'],key))
 
-    # check required fields
-    if 'action' not in task_dict:
-        raise InvalidTask("Task %s must contain field action. %s"%
-                          (task_dict['name'],task_dict))
-
     return create_task(task_dict.get('name'),
                        task_dict.get('action'),
                        task_dict.get('dependencies',[]),
                        task_dict.get('targets',[]),
+                       task_dict.get('setup',None),
                        args=task_dict.get('args',[]),
                        kwargs=task_dict.get('kwargs',{}))
+
 

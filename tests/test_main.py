@@ -3,12 +3,10 @@ import sys, StringIO
 
 import nose.tools
 
-from doit.task import create_task
 from doit.task import InvalidTask, CmdTask, GroupTask
-from doit.main import load_task_generators
-from doit.main import generate_tasks
-from doit.main import InvalidCommand, cmd_list, cmd_run
-from doit.main import InvalidDodoFile, TaskSetup
+from doit.main import InvalidDodoFile, InvalidCommand
+from doit.main import load_task_generators, generate_tasks
+from doit.main import TaskSetup, cmd_list, cmd_run
 
 class TestGenerateTasks(object):
 
@@ -21,11 +19,7 @@ class TestGenerateTasks(object):
         nose.tools.assert_raises(InvalidTask, generate_tasks,"dict",
                                  {'action':'xpto 14','name':'bla bla'})
 
-    def testDictMissingFieldAction(self):
-        nose.tools.assert_raises(InvalidTask, generate_tasks,
-                                 "dict",{'acTion':'xpto 14'})
-
-    def testAction(self):
+    def testActionAsString(self):
         tasks = generate_tasks("dict",'xpto 14')
         assert isinstance(tasks[0],CmdTask)
 
@@ -61,10 +55,6 @@ class TestGenerateTasks(object):
                 yield {'name':str(i)}
         nose.tools.assert_raises(InvalidTask, generate_tasks,"xpto",
                                  f_xpto())
-
-    def testDictFieldTypo(self):
-        dict_ = {'action':'xpto 14','typo_here':['xxx']}
-        nose.tools.assert_raises(InvalidTask, generate_tasks, "dict", dict_)
 
 
 class TestLoadTaskGenerators(object):
