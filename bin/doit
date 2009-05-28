@@ -22,97 +22,155 @@ from doit import main
 # --list-all"  help="list all tasks and sub-tasks from dodo file")
 
 
-def main_cmd():
-    try:
-        result = 0
+class SubCommand(object):
+    """
+    @ivar name (string)
+    """
+    def __init__(self, name, options, do_cmd):
+        self.name = name
+        self.options = options
+        self.do_cmd = do_cmd
+        self.params = {} #values for parameters
+        self.args = None
+
+    def get_short(self):
+        short_list = ""
+        for opt in self.options:
+            if not opt['short']:
+                continue
+            short_list += opt['short']
+            if opt['type'] is not bool:
+                short_list += ':'
+        return short_list
+
+    def get_long(self):
+        long_list = []
+        for opt in self.options:
+            long = opt['long']
+            if not long:
+                continue
+            if opt['type'] is not bool:
+                long += '='
+            long_list.append(long)
+        return long_list
+
+    def get_option(self, opt_str):
+        for opt in self.options:
+            if opt_str in ('-' + opt['short'], '--' + opt['long']):
+                return opt
+
+    def __call__(self, in_args, **kwargs):
+        # global parameters (got from main command options)
+        self.params.update(kwargs)
+
         try:
-            main_opts, main_args = getopt.getopt(sys.argv[1:], "f:", ["version", "help", "file="])
+            opts,args = getopt.getopt(in_args,self.get_short(),self.get_long())
         except getopt.GetoptError, err:
             print str(err)
-            print "not like this"
+            print "not like this %s" % self.name
             return 2
 
-        # defaults
-        dodoFile = "dodo.py"
+        for opt in self.options:
+            self.params[opt['name']] = opt['default']
 
-        # process options
-        for opt, val in main_opts:
-            if opt == "--version":
-                print ".".join([str(i) for i in doit.__version__])
-                return 0
-            if opt == "--help":
-                print "usage help"
-                return 0
-            if opt in ["-f","--file"]:
-                dodoFile = val
+        for opt, val in opts:
+            this = self.get_option(opt)
+            if this['type'] is bool:
+                self.params[this['name']] = True
+            else:
+                self.params[this['name']] = this['type'](val)
 
-        # excute
-        task_list = main.load_task_generators(dodoFile)
+        self.args = args
+        return self.do_cmd(self)
 
-        #########################################################
-        ## process sub command
+
+
+
+
+def main_cmd():
+
+    opt_dodo ={'name': 'dodoFile',
+               'short':'f',
+               'long': 'file',
+               'type': str,
+               'default': 'dodo.py'}
+
+    subCmd = {}
+    run_options = [opt_dodo,
+        {'name': 'version',
+         'short':'',
+         'long': 'version',
+         'type': bool,
+         'default': False},
+        {'name': 'help',
+         'short':'',
+         'long': 'help',
+         'type': bool,
+         'default': False},
+        {'name': 'dep_file',
+         'short':'',
+         'long': '',
+         'type': str,
+         'default': ".doit.dbm"},
+        {'name':'always',
+         'short':'a',
+         'long':'always-execute',
+         'type':bool,
+         'default': False},
+        {'name':'verbosity',
+         'short':'v',
+         'long':'verbosity',
+         'type':int,
+         'default': 0}
+        ]
+
+    def run_cmd(self):
+        # special parameters that dont run anything
+        if self.params["version"]:
+            print ".".join([str(i) for i in doit.__version__])
+            return 0
+        if self.params["help"]:
+            print "usage help"
+            return 0
+
+
+        # check if run command
         # default command is "run"
-        if len(main_args) and main_args[0] in ["run", "list"]:
-            sub_cmd = main_args.pop(0)
-        else:
-            sub_cmd = "run"
+        if len(self.args) == 0 or self.args[0] not in self.params['sub']:
+            filter_ = self.args
+            task_list = main.load_task_generators(self.params['dodoFile'])
+            return main.cmd_run(self.params['dep_file'], task_list, filter_, self.params['verbosity'], self.params['always'])
 
+        # sub cmd provided on cmd line. parse arguments again
+        sub_cmd = self.args.pop(0)
+        return self.params['sub'][sub_cmd](self.args, dodoFile=self.params['dodoFile'])
 
-        if sub_cmd == "run":
-            try:
-                run_opts, run_args = getopt.getopt(main_args, "av:", ["always-execute", "verbosity="])
-            except getopt.GetoptError, err:
-                print str(err)
-                print "not like this (list)"
-                return 2
+    subCmd['run'] = SubCommand('run', run_options, run_cmd)
 
-            # defaults
-            dependencyFile = ".doit.dbm" #no option to change this
-            verbosity = 0
-            alwaysExecute = False
+    ##########################
 
-            for opt, val in run_opts:
-                if opt in ["-a", "--always-execute"]:
-                    alwaysExecute = True
-                elif opt in ["-v", "--verbosity"]:
-                    verbosity = val
+    list_options = [opt_dodo,
+        {'name': 'all',
+         'short':'',
+         'long': 'all',
+         'type': bool,
+         'default': False}]
 
-            filter_ = run_args
-            task_list = main.load_task_generators(dodoFile)
-            return main.cmd_run(dependencyFile, task_list, filter_, verbosity, alwaysExecute)
+    def list_cmd(self):
+        task_list = main.load_task_generators(self.params['dodoFile'])
+        return main.cmd_list(task_list, self.params['all'])
 
+    subCmd['list'] = SubCommand('list', list_options, list_cmd)
 
-        #########################################################
-        elif sub_cmd == "list":
-            try:
-                list_opts, list_args = getopt.getopt(main_args, "", ["all"])
-            except getopt.GetoptError, err:
-                print str(err)
-                print "not like this (list)"
-                return 2
+    ###########################
 
-            # defaults
-            all = False
-
-            # process options
-            for opt, val in list_opts:
-                if opt == "--all":
-                    all = True
-            # TODO raise if len(list_args)
-
-            # cmd
-            task_list = main.load_task_generators(dodoFile)
-            return main.cmd_list(task_list, all)
-
+    try:
+        return subCmd['run'](sys.argv[1:],sub=subCmd)
 
     # make sure exception is printed out. we migth have redirected stderr
-    except Exception:
+    except Exception, e:
         sys.__stderr__.write(traceback.format_exc())
-        result = -1
-
-    return result
-
-
+        return 1
 
 
 if __name__ == "__main__":

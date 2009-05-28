@@ -4,8 +4,9 @@
 - --version option on cmd (#370894)
 - cmd line (sub-commands, -l is another cmd not a parameter) (#370909)
 - setup/cleanup for tasks (#370905)
-. subcommand clean saved update status (#370911)
 . passing arguments on cmd line (#370914)
+. subcommand clean saved update status (#370911)
+. cmd line help
 . dont calculate hash of all files everytime. use timestamp/size/hash (see mercurial dirstate) (#370920)
 . dont get subtasks if task is not going to be executed (#370923)
 . sub-cmd create template
