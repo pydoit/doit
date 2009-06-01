@@ -71,11 +71,11 @@ class TestCmdTask(object):
 
     def test_error(self):
         t = CmdTask("taskX","python %s/sample_process.py 1 2 3"%TEST_PATH)
-        nose.tools.assert_raises(TaskError,t.execute)
+        nose.tools.assert_raises(TaskError, t.execute)
 
     def test_failure(self):
         t = CmdTask("taskX","python %s/sample_process.py please fail"%TEST_PATH)
-        nose.tools.assert_raises(TaskFailed,t.execute)
+        nose.tools.assert_raises(TaskFailed, t.execute)
 
     def test_str(self):
         t = CmdTask("taskX","python %s/sample_process.py"%TEST_PATH)
@@ -86,8 +86,45 @@ class TestCmdTask(object):
         assert "<CmdTask: taskX - 'python %s/sample_process.py'>"%TEST_PATH \
             == repr(t), repr(t)
 
+class TestCmdListTask(object):
+    def setUp(self):
+        # capture stdout
+        self.oldOut = sys.stdout
+        sys.stdout = StringIO.StringIO()
+        logger.clear("stdout")
+
+    def tearDown(self):
+        sys.stdout.close()
+        sys.stdout = self.oldOut
+
+    def test_success(self):
+        t = CmdTask("taskX", ["python %s/sample_process.py" % TEST_PATH])
+        t.execute()
+
+    def test_failure(self):
+        t = CmdTask("taskX", ["python %s/sample_process.py 1 2 3" % TEST_PATH])
+        nose.tools.assert_raises(TaskError, t.execute)
+
+    # make sure all cmds are being executed.
+    def test_many(self):
+        BaseTask.CAPTURE_OUT = True
+        t = CmdTask("taskX",["python %s/sample_process.py hi_stdout hi2"%TEST_PATH,
+                             "python %s/sample_process.py hi_list hi6"%TEST_PATH])
+        t.execute()
+        assert "" == sys.stdout.getvalue()
+        logger.flush('stdout',sys.stdout)
+        assert "hi_stdouthi_list" == sys.stdout.getvalue(),repr(sys.stdout.getvalue())
 
 
+    def test_fail_first(self):
+        t = CmdTask("taskX", ["python %s/sample_process.py 1 2 3" % TEST_PATH,
+                              "python %s/sample_process.py " % TEST_PATH])
+        nose.tools.assert_raises(TaskError, t.execute)
+
+    def test_fail_second(self):
+        t = CmdTask("taskX", ["python %s/sample_process.py 1 2" % TEST_PATH,
+                              "python %s/sample_process.py 1 2 3" % TEST_PATH])
+        nose.tools.assert_raises(TaskError, t.execute)
 
 
 # it is also possible to pass any python callable

@@ -111,8 +111,11 @@ class CmdTask(BaseTask):
 
     def __init__(self,name,action,dependencies=(),targets=(),setup=None):
         """Init."""
-        assert isinstance(action,str),\
-            "'action' from CmdTask must be a string."
+        assert isinstance(action,str) or isinstance(action, list),\
+            "'action' from CmdTask must be a string or list."
+
+        if isinstance(action, str):
+            action = [action]
         BaseTask.__init__(self,name,action,dependencies,targets,setup)
 
     def execute(self):
@@ -126,35 +129,36 @@ class CmdTask(BaseTask):
         else:
             stderr = subprocess.PIPE
 
-        # spawn task process
-        process = subprocess.Popen(self.action,stdout=stdout,
-                                 stderr=stderr, shell=True)
+        for action in self.action:
+            # spawn task process
+            process = subprocess.Popen(action,stdout=stdout,
+                                     stderr=stderr, shell=True)
 
-        # log captured stream
-        out,err = process.communicate()
-        if out:
-            logger.log('stdout',out)
-        if err:
-            logger.log('stderr',err)
+            # log captured stream
+            out,err = process.communicate()
+            if out:
+                logger.log('stdout',out)
+            if err:
+                logger.log('stderr',err)
 
-        # task error - based on:
-        # http://www.gnu.org/software/bash/manual/bashref.html#Exit-Status
-        # it doesnt make so much difference to return as Error or Failed anyway
-        if process.returncode > 125:
-            raise TaskError("Command error: '%s' returned %s" %
-                            (self.action,process.returncode))
+            # task error - based on:
+            # http://www.gnu.org/software/bash/manual/bashref.html#Exit-Status
+            # it doesnt make so much difference to return as Error or Failed anyway
+            if process.returncode > 125:
+                raise TaskError("Command error: '%s' returned %s" %
+                                (self.action,process.returncode))
 
-        # task failure
-        if process.returncode != 0:
-            raise TaskFailed("Command failed: '%s' returned %s" %
-                             (self.action,process.returncode))
+            # task failure
+            if process.returncode != 0:
+                raise TaskFailed("Command failed: '%s' returned %s" %
+                                 (self.action,process.returncode))
 
 
     def __str__(self):
-        return "Cmd: %s"% self.action
+        return "\n\t".join(["Cmd: %s"% action for action in self.action])
 
     def __repr__(self):
-        return "<CmdTask: %s - '%s'>"% (self.name,self.action)
+        return "<CmdTask: %s - '%s'>"% (self.name, "\n\t".join(self.action))
 
 
 
@@ -253,7 +257,7 @@ def create_task(name,action,dependencies,targets,setup,*args,**kwargs):
     @param kwargs: optional keyword arguments for task.
     """
     # a string.
-    if isinstance(action,str):
+    if isinstance(action,str) or isinstance(action,list):
         return CmdTask(name,action,dependencies,targets,setup)
     # a callable.
     elif callable(action):
