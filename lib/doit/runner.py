@@ -75,11 +75,19 @@ def run(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
                 dependencyManager.save_dependencies(task.name,task.file_dep)
                 dependencyManager.save_dependencies(task.name,task.targets)
 
+            # in python 2.4 SystemExit and KeyboardInterrupt subclass
+            # from Exception.
+            # specially a problem when the a fork from the main process
+            # exit using sys.exit() instead of os._exit().
+            except (SystemExit, KeyboardInterrupt), exp:
+                raise
+
             # task failed
             except TaskFailed:
                 logger.log("stderr", '\nTask failed => %s\n'% task.name)
                 result = FAILURE
                 break
+
             # task error
             except Exception, exception:
                 logger.log("stderr", '\nTask error => %s\n'% task.name)

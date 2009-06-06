@@ -199,6 +199,11 @@ class PythonTask(BaseTask):
             # Python2.4
             try:
                 result = self.action(*self.args,**self.kwargs)
+            # in python 2.4 SystemExit and KeyboardInterrupt subclass
+            # from Exception.
+            except (SystemExit, KeyboardInterrupt), exp:
+                raise
+
             except Exception, exception:
                 error = TaskError(exception)
                 error.originalException = traceback.format_exception(\

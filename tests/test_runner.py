@@ -1,6 +1,8 @@
 import os
 import sys, StringIO
 
+import nose
+
 from doit.dependency import Dependency
 from doit.task import BaseTask, PythonTask, GroupTask
 from doit import runner
@@ -243,3 +245,13 @@ class TestTaskSetup(BaseRunner):
         assert runner.ERROR == runner.run(TESTDBM, [t1, t2])
         assert 1 == setup.executed
         assert 1 == setup.cleaned
+
+
+class TestSystemExit(BaseRunner):
+
+    # SystemExit runner should interfere with SystemExit
+    def testRaises(self):
+        def i_raise():
+            raise SystemExit()
+        t1 = PythonTask("x",i_raise)
+        nose.tools.assert_raises(SystemExit, runner.run, TESTDBM, [t1])

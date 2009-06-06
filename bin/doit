@@ -167,6 +167,13 @@ def main_cmd():
     try:
         return subCmd['run'](sys.argv[1:],sub=subCmd)
 
+    # in python 2.4 SystemExit and KeyboardInterrupt subclass
+    # from Exception.
+    # TODO maybe I should do something to help the user find out who
+    # is raising SystemExit. because it shouldnt happen...
+    except (SystemExit, KeyboardInterrupt), exp:
+        raise
+
     # make sure exception is printed out. we migth have redirected stderr
     except Exception, e:
         sys.__stderr__.write(traceback.format_exc())
