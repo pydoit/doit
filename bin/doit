@@ -2,170 +2,127 @@
 
 import sys
 import traceback
-import getopt
 
 import doit
 from doit import main
+from doit import cmdparse
 
 # usage="usage: %prog [options] [task] [task] ...",
-# "-f", "--file", default="dodo.py", help="load task from dodo FILE [default: %default]")
+
+# "list"  help="list tasks from dodo file")
+# --list-all"  help="list all tasks and sub-tasks from dodo file")
+
+## cmd line options
+
+##########################################################
+########## run
+# print version and exit
+opt_version = {'name': 'version',
+               'short':'',
+               'long': 'version',
+               'type': bool,
+               'default': False}
+
+# display cmd line usage
+opt_help = {'name': 'help',
+            'short':'',
+            'long': 'help',
+            'type': bool,
+            'default': False}
+
+# select dodo file containing tasks
+# "load task from dodo FILE [default: %default]")
+opt_dodo = {'name': 'dodoFile',
+            'short':'f',
+            'long': 'file',
+            'type': str,
+            'default': 'dodo.py'}
+
+# choose internal dependency file.
+opt_depfile = {'name': 'dep_file',
+               'short':'',
+               'long': '',
+               'type': str,
+               'default': ".doit.dbm"}
+
+#
+# always execute tasks even if up-to-date [default: %default]")
+opt_always = {'name':'always',
+              'short':'a',
+              'long':'always-execute',
+              'type':bool,
+              'default': False}
 
 #"-v", "--verbosity", default=0,
 # help="""0 capture (do not print) stdout/stderr from task. \t
 #         1 capture stdout only. \t
 #         2 dont capture anything (print everything immediately). \t
 #                           [default: %default]""")
+opt_verbosity = {'name':'verbosity',
+                 'short':'v',
+                 'long':'verbosity',
+                 'type':int,
+                 'default': 0}
 
-# "-a", "--always-execute" help="always execute tasks even if up-to-date [default: %default]")
 
-# "list"  help="list tasks from dodo file")
-# --list-all"  help="list all tasks and sub-tasks from dodo file")
+def cmd_run(params, args):
+    """execute cmd run"""
+
+    # special parameters that dont run anything
+    if params["version"]:
+        print ".".join([str(i) for i in doit.__version__])
+        return 0
+    if params["help"]:
+        print "usage help"
+        return 0
 
 
-class SubCommand(object):
-    """
-    @ivar name (string)
-    """
-    def __init__(self, name, options, do_cmd):
-        self.name = name
-        self.options = options
-        self.do_cmd = do_cmd
-        self.params = {} #values for parameters
-        self.args = None
+    # check if run command
+    # default command is "run"
+    if len(args) == 0 or args[0] not in params['sub']:
+        filter_ = args
+        task_list = main.load_task_generators(params['dodoFile'])
+        return main.doit_run(params['dep_file'], task_list, filter_,
+                            params['verbosity'], params['always'])
 
-    def get_short(self):
-        short_list = ""
-        for opt in self.options:
-            if not opt['short']:
-                continue
-            short_list += opt['short']
-            if opt['type'] is not bool:
-                short_list += ':'
-        return short_list
-
-    def get_long(self):
-        long_list = []
-        for opt in self.options:
-            long = opt['long']
-            if not long:
-                continue
-            if opt['type'] is not bool:
-                long += '='
-            long_list.append(long)
-        return long_list
-
-    def get_option(self, opt_str):
-        for opt in self.options:
-            if opt_str in ('-' + opt['short'], '--' + opt['long']):
-                return opt
-
-    def __call__(self, in_args, **kwargs):
-        # global parameters (got from main command options)
-        self.params.update(kwargs)
-
-        try:
-            opts,args = getopt.getopt(in_args,self.get_short(),self.get_long())
-        except getopt.GetoptError, err:
-            print str(err)
-            print "not like this %s" % self.name
-            return 2
-
-        for opt in self.options:
-            self.params[opt['name']] = opt['default']
-
-        for opt, val in opts:
-            this = self.get_option(opt)
-            if this['type'] is bool:
-                self.params[this['name']] = True
-            else:
-                self.params[this['name']] = this['type'](val)
-
-        self.args = args
-        return self.do_cmd(self)
+    # sub cmd provided on cmd line. parse arguments again
+    commands = params['sub']
+    sub_cmd = args.pop(0)
+    return commands[sub_cmd](args, dodoFile=params['dodoFile'])
 
 
 
+##########################################################
+########## list
 
 
-def main_cmd():
+opt_listall = {'name': 'all',
+               'short':'',
+               'long': 'all',
+               'type': bool,
+               'default': False}
 
-    opt_dodo ={'name': 'dodoFile',
-               'short':'f',
-               'long': 'file',
-               'type': str,
-               'default': 'dodo.py'}
-
-    subCmd = {}
-    run_options = [opt_dodo,
-        {'name': 'version',
-         'short':'',
-         'long': 'version',
-         'type': bool,
-         'default': False},
-        {'name': 'help',
-         'short':'',
-         'long': 'help',
-         'type': bool,
-         'default': False},
-        {'name': 'dep_file',
-         'short':'',
-         'long': '',
-         'type': str,
-         'default': ".doit.dbm"},
-        {'name':'always',
-         'short':'a',
-         'long':'always-execute',
-         'type':bool,
-         'default': False},
-        {'name':'verbosity',
-         'short':'v',
-         'long':'verbosity',
-         'type':int,
-         'default': 0}
-        ]
-
-    def run_cmd(self):
-        # special parameters that dont run anything
-        if self.params["version"]:
-            print ".".join([str(i) for i in doit.__version__])
-            return 0
-        if self.params["help"]:
-            print "usage help"
-            return 0
+# FIXME list should support "args" as a filter.
+def cmd_list(params, args):
+    task_list = main.load_task_generators(params['dodoFile'])
+    return main.doit_list(task_list, params['all'])
 
 
-        # check if run command
-        # default command is "run"
-        if len(self.args) == 0 or self.args[0] not in self.params['sub']:
-            filter_ = self.args
-            task_list = main.load_task_generators(self.params['dodoFile'])
-            return main.cmd_run(self.params['dep_file'], task_list, filter_, self.params['verbosity'], self.params['always'])
+def cmd_main():
+    subCmd = {} # all sub-commands
 
-        # sub cmd provided on cmd line. parse arguments again
-        sub_cmd = self.args.pop(0)
-        return self.params['sub'][sub_cmd](self.args, dodoFile=self.params['dodoFile'])
+    # run command
+    run_options = (opt_version, opt_help, opt_dodo,
+                   opt_depfile, opt_always, opt_verbosity)
+    subCmd['run'] = cmdparse.Command('run', run_options, cmd_run)
 
-    subCmd['run'] = SubCommand('run', run_options, run_cmd)
+    # list command
+    list_options = (opt_dodo, opt_listall)
+    subCmd['list'] = cmdparse.Command('list', list_options, cmd_list)
 
-    ##########################
-
-    list_options = [opt_dodo,
-        {'name': 'all',
-         'short':'',
-         'long': 'all',
-         'type': bool,
-         'default': False}]
-
-    def list_cmd(self):
-        task_list = main.load_task_generators(self.params['dodoFile'])
-        return main.cmd_list(task_list, self.params['all'])
-
-    subCmd['list'] = SubCommand('list', list_options, list_cmd)
-
-    ###########################
 
     try:
-        return subCmd['run'](sys.argv[1:],sub=subCmd)
+        return subCmd['run'](sys.argv[1:], sub=subCmd)
 
     # in python 2.4 SystemExit and KeyboardInterrupt subclass
     # from Exception.
@@ -181,7 +138,7 @@ def main_cmd():
 
 
 if __name__ == "__main__":
-    sys.exit(main_cmd())
+    sys.exit(cmd_main())
 
 
 #FIXME better error message when there is no dodo file.

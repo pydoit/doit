@@ -7,7 +7,7 @@ from doit import util
 
 
 class TestIsGenerator(object):
-    
+
     def testIsGeneratorYes(self):
         def giveme():
             for i in range(3):
@@ -28,14 +28,14 @@ class TestDebugger(object):
 
     def setUp(self):
         def dumb_set_trace():pass
-        self.original = pdb.set_trace 
+        self.original = pdb.set_trace
         pdb.set_trace = dumb_set_trace
 
     def tearDown(self):
         pdb.set_trace = self.original
-    
+
     # starting the debugger makes stdout == __stdout__. same for stderr
-    def testStart(self):        
+    def testStart(self):
         sys.stdout = StringIO.StringIO()
         sys.stderr = StringIO.StringIO()
         util.DEBUGGER()
@@ -43,7 +43,7 @@ class TestDebugger(object):
         assert sys.__stderr__ == sys.stderr
 
     # done restore stdout, stderr
-    def testDone(self):        
+    def testDone(self):
         out = sys.stdout = StringIO.StringIO()
         err = sys.stderr = StringIO.StringIO()
         util.DEBUGGER()

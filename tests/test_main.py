@@ -6,7 +6,7 @@ import nose.tools
 from doit.task import InvalidTask, CmdTask, GroupTask
 from doit.main import InvalidDodoFile, InvalidCommand
 from doit.main import load_task_generators, generate_tasks
-from doit.main import TaskSetup, cmd_list, cmd_run
+from doit.main import TaskSetup, doit_list, doit_run
 
 class TestGenerateTasks(object):
 
@@ -166,11 +166,11 @@ class BaseTestOutput(object):
 
 class TestCmdList(BaseTestOutput):
     def testListTasks(self):
-        cmd_list(TASKS_SAMPLE, False)
+        doit_list(TASKS_SAMPLE, False)
         assert TASKS_NAME == sys.stdout.getvalue().split('\n')[1:-3], sys.stdout.getvalue()
 
     def testListAllTasks(self):
-        cmd_list(TASKS_SAMPLE, True)
+        doit_list(TASKS_SAMPLE, True)
         assert TASKS_ALL_NAME == sys.stdout.getvalue().split('\n')[1:-3], sys.stdout.getvalue()
 
 
@@ -183,7 +183,7 @@ class TestCmdRun(BaseTestOutput):
         BaseTestOutput.tearDown(self)
 
     def testProcessRun(self):
-        cmd_run(TESTDBM, TASKS_SAMPLE)
+        doit_run(TESTDBM, TASKS_SAMPLE)
         assert ["t1 => Cmd: ",
                 "t2 => Cmd: ",
                 "g1 => Group: ",
@@ -192,5 +192,5 @@ class TestCmdRun(BaseTestOutput):
                 "t3 => Cmd: "] == sys.stdout.getvalue().split("\n")[:-1], repr(sys.stdout.getvalue())
 
     def testProcessRunFilter(self):
-        cmd_run(TESTDBM, TASKS_SAMPLE, filter_=["g1.a"])
+        doit_run(TESTDBM, TASKS_SAMPLE, filter_=["g1.a"])
         assert ["g1.a => Cmd: "] == sys.stdout.getvalue().split("\n")[:-1], repr(sys.stdout.getvalue())

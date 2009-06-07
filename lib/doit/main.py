@@ -233,14 +233,15 @@ class TaskSetup(object):
 
 ##################################
 
-def cmd_run(dependencyFile, task_list, filter_=None, verbosity=0,
+def doit_run(dependencyFile, task_list, filter_=None, verbosity=0,
             alwaysExecute=False):
     selected_tasks = TaskSetup(task_list, filter_).process()
-    return runner.run(dependencyFile, selected_tasks, verbosity, alwaysExecute)
+    return runner.run_tasks(dependencyFile, selected_tasks,
+                            verbosity, alwaysExecute)
 
 
 
-def cmd_list(task_list, printSubtasks):
+def doit_list(task_list, printSubtasks):
     """List task generators, in the order they were defined.
 
     @param printSubtasks: (bool) print subtasks

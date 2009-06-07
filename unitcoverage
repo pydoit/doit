@@ -1,2 +1,2 @@
 #!/bin/sh
-nosetests --with-coverage --cover-erase --cover-package=doit,tests --cover-tests 
+nosetests --with-coverage --cover-erase --cover-package=doit,tests --cover-tests

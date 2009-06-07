@@ -13,7 +13,7 @@ SUCCESS = 0
 FAILURE = 1
 ERROR = 2
 
-def run(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
+def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
     """This will actually run/execute the tasks.
     It will check file dependencies to decide if task should be executed
     and save info on successful runs.
