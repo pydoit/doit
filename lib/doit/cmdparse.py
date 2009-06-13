@@ -20,10 +20,29 @@ class Command(object):
                              with the result of the parse method.
     """
 
-    def __init__(self, name, options, do_cmd):
+    _doc_fields = ('purpose', 'usage', 'description')
+    # description can be None or string. other must be string.
+
+    def __init__(self, name, options, do_cmd, doc):
         self.name = name
         self.options = options
         self.do_cmd = do_cmd
+        self.doc = doc
+        # sanity check
+        for field in self._doc_fields:
+            assert field in self.doc
+
+    def help(self):
+        """return help text"""
+        print "Purpose: %s" % self.doc['purpose']
+        print "Usage: doit %s %s" % (self.name, self.doc['usage'])
+        print
+        print "Options:"
+        #TODO
+        print "xxx"
+        if self.doc['description'] is not None:
+            print "Description:"
+            print self.doc['description']
 
     def get_short(self):
         """return string with short options for getopt"""
@@ -76,12 +95,7 @@ class Command(object):
         params.update(kwargs)
 
         # parse options using getopt
-        try:
-            opts,args = getopt.getopt(in_args,self.get_short(),self.get_long())
-        except getopt.GetoptError, err:
-            print str(err)
-            print "not like this %s" % self.name
-            return #FIXME TODO
+        opts,args = getopt.getopt(in_args,self.get_short(),self.get_long())
 
         # update params with values from command line
         for opt, val in opts:
@@ -101,5 +115,11 @@ class Command(object):
         @args: see method parse
         @returns: result of do_cmd
         """
-        params, args = self.parse(in_args, **kwargs)
+        try:
+            params, args = self.parse(in_args, **kwargs)
+        except getopt.GetoptError, err:
+            print str(err)
+            print "see: doit help %s" % self.name
+            return 1
+
         return self.do_cmd(params, args)

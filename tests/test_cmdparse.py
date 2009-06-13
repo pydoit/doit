@@ -26,7 +26,9 @@ class TestCommand(object):
 
     def setUp(self):
         options = [opt_bool, opt_rare, opt_int]
-        self.cmd = cmdparse.Command('xxx', options, cmd_xxx)
+        #TODO write tests for docs
+        doc = {'purpose':'','usage':'','description':''}
+        self.cmd = cmdparse.Command('xxx', options, cmd_xxx, doc)
 
     def test_short(self):
         assert "fn:" == self.cmd.get_short(), self.cmd.get_short()

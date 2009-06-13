@@ -10,6 +10,8 @@
 . dont calculate hash of all files everytime. use timestamp/size/hash (see mercurial dirstate) (#370920)
 . dont get subtasks if task is not going to be executed (#370923)
 . sub-cmd create template
+. flag task to not be executed by default
+. test for cmdline
 
 ----------
 
@@ -21,7 +23,6 @@
 . color output on the terminal. (lp - 263576)
 . use templates for output (see mercurial)
 . default task
-. flag task to not be executed by default
 . windows (lp - 218276)
 . clean targets
 

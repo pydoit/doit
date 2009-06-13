@@ -7,13 +7,19 @@ import doit
 from doit import main
 from doit import cmdparse
 
-# usage="usage: %prog [options] [task] [task] ...",
+DOIT_USAGE = """
+doit -- automation tool
+http://python-doit.sourceforge.net/
 
-# "list"  help="list tasks from dodo file")
-# --list-all"  help="list all tasks and sub-tasks from dodo file")
+Commands:
+ doit [run]             run tasks
+ doit list              list tasks from dodo file
+
+ doit help              show help / reference
+ doit help <command>    show command usage
+"""
 
 ## cmd line options
-
 ##########################################################
 ########## run
 # print version and exit
@@ -21,49 +27,62 @@ opt_version = {'name': 'version',
                'short':'',
                'long': 'version',
                'type': bool,
-               'default': False}
+               'default': False,
+               'help': "show version"
+               }
 
 # display cmd line usage
 opt_help = {'name': 'help',
             'short':'',
             'long': 'help',
             'type': bool,
-            'default': False}
+            'default': False,
+            'help':"show help"
+            }
 
 # select dodo file containing tasks
-# "load task from dodo FILE [default: %default]")
 opt_dodo = {'name': 'dodoFile',
             'short':'f',
             'long': 'file',
             'type': str,
-            'default': 'dodo.py'}
+            'default': 'dodo.py',
+            'help':"load task from dodo FILE [default: (%default)s]"
+            }
 
 # choose internal dependency file.
 opt_depfile = {'name': 'dep_file',
                'short':'',
                'long': '',
                'type': str,
-               'default': ".doit.dbm"}
+               'default': ".doit.dbm",
+               'help': "file used to save successful runs"
+               }
 
-#
-# always execute tasks even if up-to-date [default: %default]")
-opt_always = {'name':'always',
-              'short':'a',
-              'long':'always-execute',
-              'type':bool,
-              'default': False}
+# always execute task
+opt_always = {'name': 'always',
+              'short': 'a',
+              'long': 'always-execute',
+              'type': bool,
+              'default': False,
+              'help': "always execute tasks even if up-to-date [default: "
+                      "%default]"
+              }
 
-#"-v", "--verbosity", default=0,
-# help="""0 capture (do not print) stdout/stderr from task. \t
-#         1 capture stdout only. \t
-#         2 dont capture anything (print everything immediately). \t
-#                           [default: %default]""")
+# verbosity
 opt_verbosity = {'name':'verbosity',
                  'short':'v',
                  'long':'verbosity',
                  'type':int,
-                 'default': 0}
-
+                 'default': 0,
+                 'help': """
+0 capture (do not print) stdout/stderr from task.
+1 capture stdout only.
+2 dont capture anything (print everything immediately).
+[default: %default]"""
+                 }
+run_doc = {'purpose': "run tasks",
+           'usage': "[TASK/TARGET...]",
+           'description': "#TODO"}
 
 def cmd_run(params, args):
     """execute cmd run"""
@@ -73,7 +92,7 @@ def cmd_run(params, args):
         print ".".join([str(i) for i in doit.__version__])
         return 0
     if params["help"]:
-        print "usage help"
+        print DOIT_USAGE
         return 0
 
 
@@ -88,19 +107,25 @@ def cmd_run(params, args):
     # sub cmd provided on cmd line. parse arguments again
     commands = params['sub']
     sub_cmd = args.pop(0)
-    return commands[sub_cmd](args, dodoFile=params['dodoFile'])
+    # TODO help need 'sub' parameter. can i move it into cmdparse?
+    return commands[sub_cmd](args, dodoFile=params['dodoFile'], sub=commands)
 
 
 
 ##########################################################
 ########## list
 
+list_doc = {'purpose': "list tasks from dodo file",
+            'usage': "",
+            'description': "#TODO"}
 
 opt_listall = {'name': 'all',
                'short':'',
                'long': 'all',
                'type': bool,
-               'default': False}
+               'default': False,
+               'help': "list include all sub-tasks from dodo file"
+               }
 
 # FIXME list should support "args" as a filter.
 def cmd_list(params, args):
@@ -108,17 +133,38 @@ def cmd_list(params, args):
     return main.doit_list(task_list, params['all'])
 
 
+##########################################################
+########## help
+
+help_doc = {'purpose': "show help",
+            'usage': "",
+            'description': None}
+
+def cmd_help(params, args):
+    if len(args) == 1 and args[0] in params['sub']:
+        params['sub'][args[0]].help()
+    else:
+        print DOIT_USAGE
+    return 0
+
+
+
+
+
 def cmd_main():
     subCmd = {} # all sub-commands
+
+    # help command
+    subCmd['help'] = cmdparse.Command('help', (), cmd_help, help_doc)
 
     # run command
     run_options = (opt_version, opt_help, opt_dodo,
                    opt_depfile, opt_always, opt_verbosity)
-    subCmd['run'] = cmdparse.Command('run', run_options, cmd_run)
+    subCmd['run'] = cmdparse.Command('run', run_options, cmd_run, run_doc)
 
     # list command
     list_options = (opt_dodo, opt_listall)
-    subCmd['list'] = cmdparse.Command('list', list_options, cmd_list)
+    subCmd['list'] = cmdparse.Command('list', list_options, cmd_list, list_doc)
 
 
     try:
