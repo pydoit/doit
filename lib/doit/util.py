@@ -47,8 +47,18 @@ DEBUGGER = Debugger()
 
 
 
+try:
+    import hashlib
+    def get_md5(input):
+        return hashlib.md5(input).hexdigest()
+# support python 2.4
+except ImportError:
+    import md5
+    def get_md5(input):
+        out = md5.new()
+        out.update(input)
+        return out.hexdigest()
 
-import hashlib
 def md5sum(path):
     """Calculate the md5 sum from file content.
 
@@ -56,6 +66,6 @@ def md5sum(path):
     @return: (string) md5
     """
     f = open(path,'rb')
-    result = hashlib.md5(f.read()).hexdigest()
+    result = get_md5(f.read())
     f.close()
     return result
