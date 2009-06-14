@@ -24,7 +24,7 @@ def load_task_generators(dodoFile):
     The python file is a called "dodo" file.
 
     @param dodoFile: (string) path to file containing the tasks
-    @return (list) of BaseTasks in the roder they were defined on the file
+    @return (list) of BaseTasks in the order they were defined on the file
     """
     ## load module dodo file and set environment
     base_path, file_name = os.path.split(os.path.abspath(dodoFile))

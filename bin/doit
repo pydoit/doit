@@ -14,6 +14,7 @@ http://python-doit.sourceforge.net/
 Commands:
  doit [run]             run tasks
  doit list              list tasks from dodo file
+ doit template          create a dodo.py template file 
 
  doit help              show help / reference
  doit help <command>    show command usage
@@ -131,6 +132,36 @@ def cmd_list(params, args):
     task_list = main.load_task_generators(params['dodoFile'])
     return main.doit_list(task_list, params['all'])
 
+##########################################################
+########## template
+
+template_doc = {'purpose': "create a dodo file from command line",
+                'usage': "",
+                'description': "#TODO"}
+
+def cmd_template(params, args):
+    print """
+#dodo file. run pychecker and unittests.
+
+import glob
+
+pyFiles = glob.glob("lib/doit/*.py") + glob.glob("tests/*.py")
+
+def task_checker():
+    for file in pyFiles:
+        yield {'action': "pyflakes %s"% file,
+               'name':file,
+               'dependencies':(file,)}
+
+def task_nose():
+    return {'action':"nosetests",
+            'dependencies':pyFiles}
+
+"""
+    return 0
+
+
+
 
 ##########################################################
 ########## help
@@ -164,6 +195,9 @@ def cmd_main():
     # list command
     list_options = (opt_dodo, opt_listall)
     subCmd['list'] = cmdparse.Command('list', list_options, cmd_list, list_doc)
+
+    # template command
+    subCmd['template'] = cmdparse.Command('template', () , cmd_template, template_doc)
 
 
     try:
