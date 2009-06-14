@@ -46,7 +46,7 @@ opt_dodo = {'name': 'dodoFile',
             'long': 'file',
             'type': str,
             'default': 'dodo.py',
-            'help':"load task from dodo FILE [default: (%default)s]"
+            'help':"load task from dodo FILE [default: %(default)s]"
             }
 
 # choose internal dependency file.
@@ -65,7 +65,7 @@ opt_always = {'name': 'always',
               'type': bool,
               'default': False,
               'help': "always execute tasks even if up-to-date [default: "
-                      "%default]"
+                      "%(default)s]"
               }
 
 # verbosity
@@ -74,11 +74,10 @@ opt_verbosity = {'name':'verbosity',
                  'long':'verbosity',
                  'type':int,
                  'default': 0,
-                 'help': """
-0 capture (do not print) stdout/stderr from task.
-1 capture stdout only.
-2 dont capture anything (print everything immediately).
-[default: %default]"""
+                 'help': """0 capture (do not print) stdout/stderr from task.
+\t\t1 capture stdout only.
+\t\t2 dont capture anything (print everything immediately).
+\t\t[default: %(default)s]"""
                  }
 run_doc = {'purpose': "run tasks",
            'usage': "[TASK/TARGET...]",

@@ -16,6 +16,7 @@ class Command(object):
                       if type is bool. option is just a flag. and if present
                       its value is set to True.
        - default (value from its type): default value
+       - help (string): option description
     @ivar do_cmd (callable): function must have 2 parameters. it will be called
                              with the result of the parse method.
     """
@@ -35,12 +36,28 @@ class Command(object):
     def help(self):
         """return help text"""
         print "Purpose: %s" % self.doc['purpose']
-        print "Usage: doit %s %s" % (self.name, self.doc['usage'])
+        print "Usage:   doit %s %s" % (self.name, self.doc['usage'])
         print
+
         print "Options:"
-        #TODO
-        print "xxx"
+        for opt in self.options:
+            opts_str = []
+            if opt['short']:
+                if opt['type'] is bool:
+                    opts_str.append('-%s' % opt['short'])
+                else:
+                    opts_str.append('-%s ARG' % opt['short'])
+            if opt['long']:
+                if opt['type'] is bool:
+                    opts_str.append('--%s' % opt['long'])
+                else:
+                    opts_str.append('--%s=ARG' % opt['long'])
+            opt_help = opt['help'] % {'default':opt['default']}
+            # TODO use ljust
+            print "  %s\t%s" % (', '.join(opts_str), opt_help)
+
         if self.doc['description'] is not None:
+            print
             print "Description:"
             print self.doc['description']
 
