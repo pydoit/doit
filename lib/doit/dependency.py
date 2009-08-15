@@ -101,8 +101,8 @@ class Dependency(object):
             if not os.path.exists(targ):
                 return False
 
-        # check for dependencies on file list
-        for dep in tuple(dependencies) + tuple(targets):
+        # check for modified dependencies
+        for dep in tuple(dependencies):
             if self.modified(taskId,dep):
                 return False
 

@@ -1,4 +1,4 @@
-import os 
+import os
 
 from doit.dependency import Dependency
 
@@ -40,7 +40,7 @@ class TestDependencyDb(DependencyTestBase):
         value = self.d._get("taskId_X","dependency_A")
         assert "da_md5" == value, value
 
-    # 
+    #
     def test_setPersistence(self):
         # save and close db
         self.d._set("taskId_X","dependency_A","da_md5")
@@ -50,7 +50,7 @@ class TestDependencyDb(DependencyTestBase):
         d2 = Dependency(TESTDBM)
         value = d2._get("taskId_X","dependency_A")
         assert "da_md5" == value, value
-        
+
     def test_new(self):
         # save and close db
         self.d._set("taskId_X","dependency_A","da_md5")
@@ -59,7 +59,7 @@ class TestDependencyDb(DependencyTestBase):
         # open same file but with new parameter
         d2 = Dependency(TESTDBM, new=True)
         assert 0 == len(d2._db)
-        
+
 
     # _get must return None if entry doesnt exist.
     def test_getNonExistent(self):
@@ -78,18 +78,18 @@ class TestDependencyDb(DependencyTestBase):
         expected = "a1bb792202ce163b4f0d17cb264c04e1"
         value = self.d._get("taskId_X",filePath)
         assert expected == value, value
-        
+
     def test_notModified(self):
         # create a test dependency file
         filePath = get_abspath("data/dependency1")
         ff = open(filePath,"w")
         ff.write("i am the first dependency ever for doit")
-        ff.close()      
+        ff.close()
         # save it
         self.d.save("taskId_X",filePath)
-        
+
         assert not self.d.modified("taskId_X",filePath)
-        
+
     def test_yesModified(self):
         # create a test dependency file
         filePath = get_abspath("data/dependency1")
@@ -102,7 +102,7 @@ class TestDependencyDb(DependencyTestBase):
         ff = open(filePath,"a")
         ff.write(" - with the first modification!")
         ff.close()
-        
+
         assert self.d.modified("taskId_X",filePath)
 
     # if there is no entry for dependency. it is like modified.
@@ -117,9 +117,9 @@ class TestDependencyDb(DependencyTestBase):
 
 
 class TestTaskDependency(DependencyTestBase):
-        
+
     # whenever a task has a dependency the runner checks if this dependency
-    # was modified since last successful run. if not the task is skipped.    
+    # was modified since last successful run. if not the task is skipped.
 
     def test_saveDependencies(self):
         filePath = get_abspath("data/dependency1")
@@ -166,7 +166,7 @@ class TestTaskDependency(DependencyTestBase):
         ff = open(filePath,"a")
         ff.write(" part2")
         ff.close()
-        
+
         # execute again
         assert not self.d.up_to_date(taskId,dependencies,[],False)
 
@@ -193,20 +193,21 @@ class TestTaskDependency(DependencyTestBase):
         dependencies = [get_abspath("data/dependency1")]
         targets = [filePath]
         self.d.save_dependencies(taskId,dependencies)
-        # first time execute
-        assert not self.d.up_to_date(taskId,dependencies,targets,False)
-        self.d.save_dependencies(taskId,targets)
-        # second time no
+        # up-to-date because target exist
         assert self.d.up_to_date(taskId,dependencies,targets,False)
 
-        # a small change on the file
-        ff = open(filePath,"a")
-        ff.write(" part2")
-        ff.close()
-        
-        # execute again
-        assert not self.d.up_to_date(taskId,dependencies,targets,False)
-
+    def test_upToDate_targetFolder(self):
+        # folder not there. task is not up-to-date
+        dependencies = [get_abspath("data/dependency1")]
+        taskId = "task x"
+        self.d.save_dependencies(taskId,dependencies)
+        folderPath = get_abspath("data/target-folder")
+        if os.path.exists(folderPath):
+            os.rmdir(folderPath)
+        assert not self.d.up_to_date(taskId,dependencies,[folderPath],False)
+        # create folder. task is up-to-date
+        os.mkdir(folderPath)
+        assert self.d.up_to_date(taskId,dependencies,[folderPath],False)
 
 class TestRunOnceDependency(DependencyTestBase):
 
@@ -215,4 +216,4 @@ class TestRunOnceDependency(DependencyTestBase):
         assert not self.d.up_to_date(taskId,[],[],True)
         self.d.save_run_once(taskId)
         assert self.d.up_to_date(taskId,[],[],True)
-        
+

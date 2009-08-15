@@ -73,7 +73,6 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
                 if task.run_once:
                     dependencyManager.save_run_once(task.name)
                 dependencyManager.save_dependencies(task.name,task.file_dep)
-                dependencyManager.save_dependencies(task.name,task.targets)
 
             # in python 2.4 SystemExit and KeyboardInterrupt subclass
             # from Exception.

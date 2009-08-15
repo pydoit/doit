@@ -149,7 +149,8 @@ class TestRunningTask(BaseRunner):
         tasks = [PythonTask("taskX",my_print,dependencies,targets)]
         assert runner.SUCCESS == runner.run_tasks(TESTDBM, tasks, 1)
         d = Dependency(TESTDBM)
-        assert 2 == len(d._db)
+        # there is only one dependency. targets md5 are not saved.
+        assert 1 == len(d._db)
 
     # when successful and run_once is updated
     def test_successRunOnce(self):
