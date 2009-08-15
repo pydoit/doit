@@ -5,10 +5,10 @@
 - cmd line (sub-commands, -l is another cmd not a parameter) (#370909)
 - setup/cleanup for tasks (#370905)
 - cmd line help
+- sub-cmd create template
+. folder target
 . default task
 . subcommand clean saved update status (#370911)
-. sub-cmd create template
-. folder target
 
 
 0.4
