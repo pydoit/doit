@@ -46,18 +46,20 @@ class Debugger(object):
 DEBUGGER = Debugger()
 
 
-
+get_md5 = None
 try:
     import hashlib
-    def get_md5(input):
+    def get_md5_py5(input):
         return hashlib.md5(input).hexdigest()
+    get_md5 = get_md5_py5
 # support python 2.4
 except ImportError:
     import md5
-    def get_md5(input):
+    def get_md5_py4(input):
         out = md5.new()
         out.update(input)
         return out.hexdigest()
+    get_md5 = get_md5_py4
 
 def md5sum(path):
     """Calculate the md5 sum from file content.

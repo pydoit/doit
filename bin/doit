@@ -2,11 +2,13 @@
 
 import sys
 import traceback
+import getopt
 
 import doit
 from doit import main
 from doit import cmdparse
 
+# TODO cmd list should be automatically generated.
 DOIT_USAGE = """
 doit -- automation tool
 http://python-doit.sourceforge.net/
@@ -14,7 +16,7 @@ http://python-doit.sourceforge.net/
 Commands:
  doit [run]             run tasks
  doit list              list tasks from dodo file
- doit template          create a dodo.py template file 
+ doit template          create a dodo.py template file
 
  doit help              show help / reference
  doit help <command>    show command usage
@@ -75,10 +77,11 @@ opt_verbosity = {'name':'verbosity',
                  'long':'verbosity',
                  'type':int,
                  'default': 0,
-                 'help': """0 capture (do not print) stdout/stderr from task.
-\t\t1 capture stdout only.
-\t\t2 dont capture anything (print everything immediately).
-\t\t[default: %(default)s]"""
+                 'help':
+"""0 capture (do not print) stdout/stderr from task.
+1 capture stdout only.
+2 dont capture anything (print everything immediately).
+[default: %(default)s]"""
                  }
 run_doc = {'purpose': "run tasks",
            'usage': "[TASK/TARGET...]",
@@ -96,15 +99,15 @@ def cmd_run(params, args):
         return 0
 
 
-    # check if run command
-    # default command is "run"
+    # check if command is "run". default command is "run"
+    # FIXME blacklist tasks names to be different from sub-cmd name
     if len(args) == 0 or args[0] not in params['sub']:
         filter_ = args
         task_list = main.load_task_generators(params['dodoFile'])
         return main.doit_run(params['dep_file'], task_list, filter_,
                             params['verbosity'], params['always'])
 
-    # sub cmd provided on cmd line. parse arguments again
+    # sub cmd different from "run" on cmd line. parse arguments again
     commands = params['sub']
     sub_cmd = args.pop(0)
     # TODO help need 'sub' parameter. can i move it into cmdparse?
@@ -172,7 +175,7 @@ help_doc = {'purpose': "show help",
 
 def cmd_help(params, args):
     if len(args) == 1 and args[0] in params['sub']:
-        params['sub'][args[0]].help()
+        print params['sub'][args[0]].help()
     else:
         print DOIT_USAGE
     return 0
@@ -197,11 +200,18 @@ def cmd_main():
     subCmd['list'] = cmdparse.Command('list', list_options, cmd_list, list_doc)
 
     # template command
-    subCmd['template'] = cmdparse.Command('template', () , cmd_template, template_doc)
+    subCmd['template'] = cmdparse.Command('template', () , cmd_template,
+                                          template_doc)
 
 
     try:
         return subCmd['run'](sys.argv[1:], sub=subCmd)
+
+    # wrong command line usage. help user
+    except getopt.GetoptError, err:
+        print str(err)
+        print "see: doit help <cmd>"
+        return 1
 
     # in python 2.4 SystemExit and KeyboardInterrupt subclass
     # from Exception.

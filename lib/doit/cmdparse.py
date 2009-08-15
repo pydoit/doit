@@ -19,28 +19,37 @@ class Command(object):
        - help (string): option description
     @ivar do_cmd (callable): function must have 2 parameters. it will be called
                              with the result of the parse method.
+    @ivar doc (dict): dictionary containing help information. see _doc_fields.
     """
-
+    # description can be None or string. other fields must be string.
     _doc_fields = ('purpose', 'usage', 'description')
-    # description can be None or string. other must be string.
 
     def __init__(self, name, options, do_cmd, doc):
         self.name = name
         self.options = options
         self.do_cmd = do_cmd
         self.doc = doc
-        # sanity check
+        # sanity checks
+        # doc dict must contain all fields.
         for field in self._doc_fields:
             assert field in self.doc
+        # options must contain all fileds
+        for opt in self.options:
+            for field in ('name', 'short', 'long', 'type', 'default', 'help'):
+                assert field in opt, "missing '%s' in %s" % (field, opt)
 
     def help(self):
         """return help text"""
-        print "Purpose: %s" % self.doc['purpose']
-        print "Usage:   doit %s %s" % (self.name, self.doc['usage'])
-        print
+        text = []
+        text.append("Purpose: %s" % self.doc['purpose'])
+        text.append("Usage:   doit %s %s" % (self.name, self.doc['usage']))
+        text.append('')
 
-        print "Options:"
+        text.append("Options:")
         for opt in self.options:
+            # ignore option that cant be modified on cmd line
+            if not (opt['short'] or opt['long']):
+                continue
             opts_str = []
             if opt['short']:
                 if opt['type'] is bool:
@@ -53,13 +62,16 @@ class Command(object):
                 else:
                     opts_str.append('--%s=ARG' % opt['long'])
             opt_help = opt['help'] % {'default':opt['default']}
-            # TODO use ljust
-            print "  %s\t%s" % (', '.join(opts_str), opt_help)
+            # arrange in 2 columns
+            left = (', '.join(opts_str)).ljust(24)
+            right = opt_help.replace('\n','\n'+ 28*' ')
+            text.append("  %s  %s" % (left, right))
 
         if self.doc['description'] is not None:
-            print
-            print "Description:"
-            print self.doc['description']
+            text.append("")
+            text.append("Description:")
+            text.append(self.doc['description'])
+        return "\n".join(text)
 
     def get_short(self):
         """return string with short options for getopt"""
@@ -132,11 +144,5 @@ class Command(object):
         @args: see method parse
         @returns: result of do_cmd
         """
-        try:
-            params, args = self.parse(in_args, **kwargs)
-        except getopt.GetoptError, err:
-            print str(err)
-            print "see: doit help %s" % self.name
-            return 1
-
+        params, args = self.parse(in_args, **kwargs)
         return self.do_cmd(params, args)

@@ -5,13 +5,19 @@
 - cmd line (sub-commands, -l is another cmd not a parameter) (#370909)
 - setup/cleanup for tasks (#370905)
 - cmd line help
-. passing arguments on cmd line (#370914)
+. default task
 . subcommand clean saved update status (#370911)
+. sub-cmd create template
+. folder target
+
+
+0.4
+------------
+. passing arguments on cmd line (#370914)
 . dont calculate hash of all files everytime. use timestamp/size/hash (see mercurial dirstate) (#370920)
 . dont get subtasks if task is not going to be executed (#370923)
-. sub-cmd create template
-. flag task to not be executed by default
 . test for cmdline
+. task process isolation. (execute tasks in a different process)
 
 ----------
 
@@ -22,7 +28,6 @@
 . multiple (include) dodo files (lp - 218279)
 . color output on the terminal. (lp - 263576)
 . use templates for output (see mercurial)
-. default task
 . windows (lp - 218276)
 . clean targets
 
