@@ -18,13 +18,10 @@ class InvalidDodoFile(Exception):
 # that are task generators in a dodo file.
 TASK_STRING = "task_"
 
-def load_task_generators(dodoFile):
-    """Loads a python file and extracts its task generator functions.
-
-    The python file is a called "dodo" file.
-
+def get_module(dodoFile):
+    """
     @param dodoFile: (string) path to file containing the tasks
-    @return (list) of BaseTasks in the order they were defined on the file
+    @return (module) dodo module
     """
     ## load module dodo file and set environment
     base_path, file_name = os.path.split(os.path.abspath(dodoFile))
@@ -33,7 +30,18 @@ def load_task_generators(dodoFile):
     # file specified on dodo file are relative to itself.
     os.chdir(base_path)
     # get module containing the tasks
-    dodo_module = __import__(os.path.splitext(file_name)[0])
+    return __import__(os.path.splitext(file_name)[0])
+
+def load_task_generators(dodo_module):
+    """Loads a python file and extracts its task generator functions.
+
+    The python file is a called "dodo" file.
+
+    @param dodo_module: (module) module containing the tasks
+    @return (dict):
+     - task_list (list) of BaseTasks in the order they were defined on the file
+     - default_tasks (list) of tasks to be executed by default
+    """
 
     # get functions defined in the module and select the task generators
     # a task generator function name starts with the string TASK_STRING
@@ -57,7 +65,16 @@ def load_task_generators(dodoFile):
     task_list = []
     for name, ref, line in funcs:
         task_list.extend(generate_tasks(name, ref()))
-    return task_list
+
+    # get default tasks
+    default_tasks = getattr(dodo_module, 'DEFAULT_TASKS', None)
+    if default_tasks is not None and (not isinstance(default_tasks, list)):
+        msg = ("DEFAULT_TASKS  paramater 'dependencies' must be a list." +
+               "got:'%s'%s")
+        raise InvalidDodoFile(msg % (str(default_tasks),type(default_tasks)))
+
+    return {'task_list': task_list,
+            'default_tasks': default_tasks}
 
 def generate_tasks(name, gen_result):
     """Create tasks from a task generator result.

@@ -6,8 +6,8 @@
 - setup/cleanup for tasks (#370905)
 - cmd line help
 - sub-cmd create template
-. folder target
-. default task
+- folder target
+- default task
 . subcommand clean saved update status (#370911)
 
 

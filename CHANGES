@@ -6,6 +6,8 @@ CHANGES
 0.3.0
 =====
 
+- added support for DEFAULT_TASKS in dodo file
+- targets md5 is not checked anymore. if target exist, task is up-to-date. it also supports folders
 - cmd line sub-commands (#370909)
 - remove hashlib dependency on python 2.4
 - sub-cmd to create dodo template

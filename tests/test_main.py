@@ -5,7 +5,7 @@ import nose.tools
 
 from doit.task import InvalidTask, CmdTask, GroupTask
 from doit.main import InvalidDodoFile, InvalidCommand
-from doit.main import load_task_generators, generate_tasks
+from doit.main import get_module, load_task_generators, generate_tasks
 from doit.main import TaskSetup, doit_list, doit_run
 
 class TestGenerateTasks(object):
@@ -61,8 +61,9 @@ class TestLoadTaskGenerators(object):
     def testAbsolutePath(self):
         fileName = os.path.abspath(__file__+"/../loader_sample.py")
         expected = ["xxx1","yyy2"]
-        task_list = load_task_generators(fileName)
-        assert expected == [t.name for t in task_list]
+        dodo_module = get_module(fileName)
+        dodo = load_task_generators(dodo_module)
+        assert expected == [t.name for t in dodo['task_list']]
 
     def testRelativePath(self):
         # test relative import but test should still work from any path
@@ -70,8 +71,36 @@ class TestLoadTaskGenerators(object):
         os.chdir(os.path.abspath(__file__+"/../.."))
         fileName = "tests/loader_sample.py"
         expected = ["xxx1","yyy2"]
-        task_list = load_task_generators(fileName)
-        assert expected == [t.name for t in task_list]
+        dodo_module = get_module(fileName)
+        dodo = load_task_generators(dodo_module)
+        assert expected == [t.name for t in dodo['task_list']]
+
+class TestDodoDefaultTasks(object):
+    # to avoid creating many files for testing i am modifying the module
+    # dinamically. but it is tricky because python optmizes it and loads
+    # it just once. so need to clean up variables that i messed up.
+
+    def setUp(self):
+        fileName = os.path.abspath(__file__+"/../loader_sample.py")
+        self.dodo_module = get_module(fileName)
+
+    def tearDown(self):
+        if hasattr(self.dodo_module, 'DEFAULT_TASKS'):
+            del self.dodo_module.DEFAULT_TASKS
+
+    def testDefaultTasks_None(self):
+        dodo = load_task_generators(self.dodo_module)
+        assert None == dodo['default_tasks']
+
+    def testDefaultTasks_Error(self):
+        self.dodo_module.DEFAULT_TASKS = "abcd"
+        nose.tools.assert_raises(InvalidDodoFile, load_task_generators,
+                                 self.dodo_module)
+
+    def testDefaultTasks_Ok(self):
+        self.dodo_module.DEFAULT_TASKS = ["abcd", "add"]
+        dodo = load_task_generators(self.dodo_module)
+        assert ["abcd", "add"] == dodo['default_tasks']
 
 
 class TestTaskSetupInit(object):

@@ -102,10 +102,11 @@ def cmd_run(params, args):
     # check if command is "run". default command is "run"
     # FIXME blacklist tasks names to be different from sub-cmd name
     if len(args) == 0 or args[0] not in params['sub']:
-        filter_ = args
-        task_list = main.load_task_generators(params['dodoFile'])
-        return main.doit_run(params['dep_file'], task_list, filter_,
-                            params['verbosity'], params['always'])
+        dodo_module = main.get_module(params['dodoFile'])
+        dodo_tasks = main.load_task_generators(dodo_module)
+        filter_ = args or dodo_tasks['default_tasks']
+        return main.doit_run(params['dep_file'], dodo_tasks['task_list'],
+                             filter_, params['verbosity'], params['always'])
 
     # sub cmd different from "run" on cmd line. parse arguments again
     commands = params['sub']
@@ -132,8 +133,9 @@ opt_listall = {'name': 'all',
 
 # FIXME list should support "args" as a filter.
 def cmd_list(params, args):
-    task_list = main.load_task_generators(params['dodoFile'])
-    return main.doit_list(task_list, params['all'])
+    dodo_module = main.get_module(params['dodoFile'])
+    dodo_tasks = main.load_task_generators(dodo_module)
+    return main.doit_list(dodo_tasks['task_list'], params['all'])
 
 ##########################################################
 ########## template
