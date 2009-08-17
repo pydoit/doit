@@ -242,7 +242,7 @@ class TaskSetup(object):
         # in the order they were defined.
         selectedTask = self.task_order
         # execute only tasks in the filter in the order specified by filter
-        if self.filter:
+        if self.filter is not None:
             selectedTask = self._filter_tasks()
         return self._order_tasks(selectedTask)
 

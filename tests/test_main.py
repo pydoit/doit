@@ -165,6 +165,11 @@ class TestTaskSetupFilter(object):
         ts =  TaskSetup(TASKS_SAMPLE, ['no'])
         nose.tools.assert_raises(InvalidCommand, ts._filter_tasks)
 
+    def testFilterEmptyList(self):
+        filter_ = []
+        ts = TaskSetup(TASKS_SAMPLE, filter_)
+        assert filter_ == ts.process()
+
 
 class TestOrderTasks(object):
     # same task is not added twice
