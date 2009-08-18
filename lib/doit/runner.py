@@ -19,7 +19,7 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
     and save info on successful runs.
     It also deals with output to stdout/stderr.
 
-    @param dependencyFile: (string) file path of the dbm file
+    @param dependencyFile: (string) file path of the db file
     @param tasks: (list) - L{BaseTask} tasks to be executed
     @param verbosity:
      - 0 => print (stderr and stdout) from failed tasks

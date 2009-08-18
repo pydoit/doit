@@ -1,24 +1,31 @@
 """Manage (save/check) task dependency-on-files data."""
 
 import os
-import json
+
+# Use Python 2.6 json or simplejson
+try:
+    import json
+    json # keep pyflakes quiet
+except ImportError:
+    import simplejson as json
 
 from doit.util import md5sum
 
 class Dependency(object):
     """Manage dependency on files.
 
-    Each dependency is a saved in dbm. where the key is taskId + dependency
-    (abs file path), and the value is the dependency signature.
-
-    In case dependency is a bool value True it will be saved with key: taskId
+    Each dependency is a saved in "db". the "db" is a text file using json
+    format where there is a dictionary for every task. each task has a
+    dictionary where key is  dependency (abs file path), and the value is the
+    dependency signature.
+    In case dependency is a bool value True it will be saved with key: ""
     value: True.
     """
 
     def __init__(self, name, new=False):
-        """Open/create a DBM file.
+        """Open/create a DB file.
 
-        @param name: (string) filepath of the DBM file
+        @param name: (string) filepath of the DB file
         @param new: (boolean) always create a new empty database
         """
         self.name = name
@@ -35,15 +42,20 @@ class Dependency(object):
 
 
     def _set(self, taskId, dependency, value):
-        """Store value in the DBM."""
-        self._db[taskId+dependency] = value
+        """Store value in the DB."""
+        if taskId not in self._db:
+            self._db[taskId] = {}
+        self._db[taskId][dependency] = value
+
 
     def _get(self, taskId, dependency):
-        """Get value stored in the DBM.
+        """Get value stored in the DB.
 
         @return: (string) or (None) if entry not found
         """
-        return self._db.get(taskId+dependency,None)
+        if taskId in self._db:
+            return self._db[taskId].get(dependency, None)
+
 
     def save(self, taskId, dependency):
         """Save/update dependency on the DB.
@@ -53,15 +65,23 @@ class Dependency(object):
         """
         self._set(taskId,dependency,md5sum(dependency))
 
-    def modified(self,taskId, dependency):
+
+    def remove(self, taskId):
+        """remove saved dependecy from DB"""
+        if taskId in self._db:
+            del self._db[taskId]
+
+
+    def modified(self, taskId, dependency):
         """Check if dependency for task was modified.
 
         @return: (boolean)
         """
         return self._get(taskId,dependency) != md5sum(dependency)
 
+
     def close(self):
-        """Close DBM file. Flush changes."""
+        """Write DB in file"""
         if not self._closed:
             try:
                 fp = open(self.name,'w')
@@ -71,6 +91,7 @@ class Dependency(object):
             self._closed = True
         else:
             print 'just to see when this is closed twice'
+
 
     def save_dependencies(self,taskId,dependencies):
         """Save dependencies value.
@@ -82,9 +103,11 @@ class Dependency(object):
         for dep in dependencies:
             self.save(taskId,dep)
 
+
     def save_run_once(self,taskId):
         """Save run_once task as executed"""
         self._set(taskId,'','1')# string could be any value
+
 
     def up_to_date(self, taskId, dependencies, targets, runOnce):
         """Check if task is up to date.

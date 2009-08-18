@@ -82,6 +82,15 @@ class TestDependencyDb(DependencyTestBase):
         value = self.d._get("taskId_X",filePath)
         assert expected == value, value
 
+    def test_remove(self):
+        self.d._set("taskId_ZZZ","dep_1","12")
+        self.d._set("taskId_ZZZ","dep_2","13")
+        self.d._set("taskId_YYY","dep_1","14")
+        self.d.remove("taskId_ZZZ")
+        assert None == self.d._get("taskId_ZZZ","dep_1")
+        assert None == self.d._get("taskId_ZZZ","dep_2")
+        assert "14" == self.d._get("taskId_YYY","dep_1")
+
     def test_notModified(self):
         # create a test dependency file
         filePath = get_abspath("data/dependency1")

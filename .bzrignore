@@ -1,5 +1,5 @@
 .coverage
-.doit.dbm
+.doit.db
 tests/data/*
 dist
 MANIFEST
