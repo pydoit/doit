@@ -57,7 +57,7 @@ opt_depfile = {'name': 'dep_file',
                'short':'',
                'long': '',
                'type': str,
-               'default': ".doit.dbm",
+               'default': ".doit.db",
                'help': "file used to save successful runs"
                }
 

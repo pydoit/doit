@@ -94,6 +94,7 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
                 errorException = exception
                 break
 
+    # FIXME not checking for exceptions!
     for setup in setup_loaded:
         if hasattr(setup, 'cleanup'):
             setup.cleanup()

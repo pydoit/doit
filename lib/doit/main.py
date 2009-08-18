@@ -198,7 +198,6 @@ class TaskSetup(object):
             elif filter_ in self.targets:
                 selectedTask.append(self.targets[filter_].name)
             else:
-                print self.targets
                 raise InvalidCommand('"%s" is not a task/target.'% filter_)
         return selectedTask
 

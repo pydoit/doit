@@ -23,14 +23,17 @@ def get_abspath(relativePath):
 # taskId_dependency => signature(dependency)
 # taskId is md5(CmdTask.task)
 
-TESTDBM = "testdbm"
+TESTDB = "testdb"
+
 class DependencyTestBase(object):
     def setUp(self):
-        self.d = Dependency(TESTDBM)
+        if os.path.exists(TESTDB):
+            os.remove(TESTDB)
+        self.d = Dependency(TESTDB)
 
     def tearDown(self):
-        if os.path.exists(TESTDBM):
-            os.remove(TESTDBM)
+        if not self.d._closed:
+            self.d.close()
 
 class TestDependencyDb(DependencyTestBase):
 
@@ -44,20 +47,20 @@ class TestDependencyDb(DependencyTestBase):
     def test_setPersistence(self):
         # save and close db
         self.d._set("taskId_X","dependency_A","da_md5")
-        del self.d
+        self.d.close()
 
         # open it again and check the value
-        d2 = Dependency(TESTDBM)
+        d2 = Dependency(TESTDB)
         value = d2._get("taskId_X","dependency_A")
         assert "da_md5" == value, value
 
     def test_new(self):
         # save and close db
         self.d._set("taskId_X","dependency_A","da_md5")
-        del self.d
+        self.d.close()
 
         # open same file but with new parameter
-        d2 = Dependency(TESTDBM, new=True)
+        d2 = Dependency(TESTDB, new=True)
         assert 0 == len(d2._db)
 
 

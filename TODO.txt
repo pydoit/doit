@@ -9,10 +9,22 @@
 - folder target
 - default task
 . subcommand clean saved update status (#370911)
+. clean targets
 
 
 0.4
+---------------
+
+. action as list of commands/python
+. tools -> create folder
+. tools -> forget task
+. deprecate folder-depenency
+. deprecate "action" use "actions"
+
+
+0.5
 ------------
+
 . passing arguments on cmd line (#370914)
 . dont calculate hash of all files everytime. use timestamp/size/hash (see mercurial dirstate) (#370920)
 . dont get subtasks if task is not going to be executed (#370923)
@@ -21,6 +33,7 @@
 
 ----------
 
+. defer task generator
 . support for depedency scanner (lp - 218303)
 . continue execution even if one task fails
 . dont show traceback for user errors
@@ -29,7 +42,6 @@
 . color output on the terminal. (lp - 263576)
 . use templates for output (see mercurial)
 . windows (lp - 218276)
-. clean targets
 
 
 Ideas

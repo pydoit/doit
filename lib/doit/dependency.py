@@ -1,7 +1,7 @@
 """Manage (save/check) task dependency-on-files data."""
 
 import os
-import anydbm
+import json
 
 from doit.util import md5sum
 
@@ -23,14 +23,16 @@ class Dependency(object):
         """
         self.name = name
         self._closed = False
-        if new:
-            self._db = anydbm.open(name,'n')
+
+        if new or not os.path.exists(self.name):
+            self._db = {}
         else:
-            self._db = anydbm.open(name,'c')
+            try:
+                fp = open(self.name,'r')
+                self._db = json.load(fp)
+            finally:
+                fp.close()
 
-
-    def __del__(self):
-        self.close()
 
     def _set(self, taskId, dependency, value):
         """Store value in the DBM."""
@@ -61,8 +63,14 @@ class Dependency(object):
     def close(self):
         """Close DBM file. Flush changes."""
         if not self._closed:
-            self._db.close()
+            try:
+                fp = open(self.name,'w')
+                json.dump(self._db, fp)
+            finally:
+                fp.close()
             self._closed = True
+        else:
+            print 'just to see when this is closed twice'
 
     def save_dependencies(self,taskId,dependencies):
         """Save dependencies value.

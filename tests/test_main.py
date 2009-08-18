@@ -208,16 +208,16 @@ class TestCmdList(BaseTestOutput):
         assert TASKS_ALL_NAME == sys.stdout.getvalue().split('\n')[1:-3], sys.stdout.getvalue()
 
 
-TESTDBM = "testdbm"
+TESTDB = "testdb"
 class TestCmdRun(BaseTestOutput):
 
-    def tearDown(self):
-        if os.path.exists(TESTDBM):
-            os.remove(TESTDBM)
-        BaseTestOutput.tearDown(self)
+    def setUp(self):
+        BaseTestOutput.setUp(self)
+        if os.path.exists(TESTDB):
+            os.remove(TESTDB)
 
     def testProcessRun(self):
-        doit_run(TESTDBM, TASKS_SAMPLE)
+        doit_run(TESTDB, TASKS_SAMPLE)
         assert ["t1 => Cmd: ",
                 "t2 => Cmd: ",
                 "g1 => Group: ",
@@ -226,5 +226,5 @@ class TestCmdRun(BaseTestOutput):
                 "t3 => Cmd: "] == sys.stdout.getvalue().split("\n")[:-1], repr(sys.stdout.getvalue())
 
     def testProcessRunFilter(self):
-        doit_run(TESTDBM, TASKS_SAMPLE, filter_=["g1.a"])
+        doit_run(TESTDB, TASKS_SAMPLE, filter_=["g1.a"])
         assert ["g1.a => Cmd: "] == sys.stdout.getvalue().split("\n")[:-1], repr(sys.stdout.getvalue())
