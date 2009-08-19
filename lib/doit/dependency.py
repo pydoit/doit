@@ -67,10 +67,13 @@ class Dependency(object):
 
 
     def remove(self, taskId):
-        """remove saved dependecy from DB"""
+        """remove saved dependecies from DB for taskId"""
         if taskId in self._db:
             del self._db[taskId]
 
+    def remove_all(self):
+        """remove saved dependecies from DB for all tasks"""
+        self._db = {}
 
     def modified(self, taskId, dependency):
         """Check if dependency for task was modified.

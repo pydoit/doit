@@ -16,6 +16,7 @@ http://python-doit.sourceforge.net/
 Commands:
  doit [run]             run tasks
  doit list              list tasks from dodo file
+ doit forget            clear successful run status from DB
  doit template          create a dodo.py template file
 
  doit help              show help / reference
@@ -137,6 +138,20 @@ def cmd_list(params, args):
     dodo_tasks = main.load_task_generators(dodo_module)
     return main.doit_list(dodo_tasks['task_list'], params['all'])
 
+
+##########################################################
+########## forget
+
+forget_doc = {'purpose': "clear successful run status from DB",
+              'usage': "[TASK ...]",
+              'description': "#TODO"}
+
+def cmd_forget(params, args):
+    dodo_module = main.get_module(params['dodoFile'])
+    dodo_tasks = main.load_task_generators(dodo_module)
+    return main.doit_forget(params['dep_file'], dodo_tasks['task_list'], args)
+
+
 ##########################################################
 ########## template
 
@@ -200,6 +215,11 @@ def cmd_main():
     # list command
     list_options = (opt_dodo, opt_listall)
     subCmd['list'] = cmdparse.Command('list', list_options, cmd_list, list_doc)
+
+    # forget command
+    forget_options = (opt_depfile,)
+    subCmd['forget'] = cmdparse.Command('forget', forget_options,
+                                        cmd_forget, forget_doc)
 
     # template command
     subCmd['template'] = cmdparse.Command('template', () , cmd_template,

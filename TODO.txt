@@ -8,9 +8,8 @@
 - sub-cmd create template
 - folder target
 - default task
-. subcommand clean saved update status (#370911)
-. clean targets
-
+- subcommand clean saved update status (#370911)
+. add simplejson dependency to setup.py
 
 0.4
 ---------------
@@ -20,6 +19,8 @@
 . tools -> forget task
 . deprecate folder-depenency
 . deprecate "action" use "actions"
+. test for cmdline
+. sub-cmd clean targets
 
 
 0.5
@@ -28,13 +29,13 @@
 . passing arguments on cmd line (#370914)
 . dont calculate hash of all files everytime. use timestamp/size/hash (see mercurial dirstate) (#370920)
 . dont get subtasks if task is not going to be executed (#370923)
-. test for cmdline
 . task process isolation. (execute tasks in a different process)
 
 ----------
 
 . defer task generator
 . support for depedency scanner (lp - 218303)
+
 . continue execution even if one task fails
 . dont show traceback for user errors
 . one .doit for each dodo file

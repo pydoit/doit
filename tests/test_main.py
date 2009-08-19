@@ -6,7 +6,8 @@ import nose.tools
 from doit.task import InvalidTask, CmdTask, GroupTask
 from doit.main import InvalidDodoFile, InvalidCommand
 from doit.main import get_module, load_task_generators, generate_tasks
-from doit.main import TaskSetup, doit_list, doit_run
+from doit.main import TaskSetup, doit_list, doit_run, doit_forget
+from doit.dependency import Dependency
 
 class TestGenerateTasks(object):
 
@@ -201,14 +202,76 @@ class BaseTestOutput(object):
 class TestCmdList(BaseTestOutput):
     def testListTasks(self):
         doit_list(TASKS_SAMPLE, False)
-        assert TASKS_NAME == sys.stdout.getvalue().split('\n')[1:-3], sys.stdout.getvalue()
+        got = sys.stdout.getvalue().split('\n')[1:-3]
+        assert TASKS_NAME == got, sys.stdout.getvalue()
 
     def testListAllTasks(self):
         doit_list(TASKS_SAMPLE, True)
-        assert TASKS_ALL_NAME == sys.stdout.getvalue().split('\n')[1:-3], sys.stdout.getvalue()
+        got = sys.stdout.getvalue().split('\n')[1:-3]
+        assert TASKS_ALL_NAME == got, sys.stdout.getvalue()
 
 
 TESTDB = "testdb"
+
+class TestCmdForget(BaseTestOutput):
+    def setUp(self):
+        BaseTestOutput.setUp(self)
+        if os.path.exists(TESTDB):
+            os.remove(TESTDB)
+
+        self.tasks = [CmdTask("t1", ""),
+                      CmdTask("t2", ""),
+                      GroupTask("g1", None, (':g1.a',':g1.b')),
+                      CmdTask("g1.a", ""),
+                      CmdTask("g1.b", ""),
+                      CmdTask("t3", "", (':t1',)),
+                      GroupTask("g2", None, (':t1',':g1'))]
+
+        dep = Dependency(TESTDB)
+        for task in self.tasks:
+            dep._set(task.name,"dep","1")
+        dep.close()
+
+    def testForgetAll(self):
+        doit_forget(TESTDB, self.tasks, [])
+        got = sys.stdout.getvalue().split("\n")[:-1]
+        assert ["forgeting all tasks"] == got, repr(sys.stdout.getvalue())
+        dep = Dependency(TESTDB)
+        for task in self.tasks:
+            assert None == dep._get(task.name, "dep")
+
+    def testForgetOne(self):
+        doit_forget(TESTDB, self.tasks, ["t2", "t1"])
+        got = sys.stdout.getvalue().split("\n")[:-1]
+        assert ["forgeting t2", "forgeting t1"] == got
+        dep = Dependency(TESTDB)
+        assert None == dep._get("t1", "dep")
+        assert None == dep._get("t2", "dep")
+
+    def testForgetGroup(self):
+        doit_forget(TESTDB, self.tasks, ["g2"])
+        got = sys.stdout.getvalue().split("\n")[:-1]
+        dep = Dependency(TESTDB)
+        assert None == dep._get("t1", "dep")
+        assert "1" == dep._get("t2", "dep")
+        assert None == dep._get("g1", "dep")
+        assert None == dep._get("g1.a", "dep")
+        assert None == dep._get("g1.b", "dep")
+        assert None == dep._get("g2", "dep")
+
+    # if task dependency not from a group dont forget it
+    def testDontForgetTaskDependency(self):
+        doit_forget(TESTDB, self.tasks, ["t3"])
+        got = sys.stdout.getvalue().split("\n")[:-1]
+        dep = Dependency(TESTDB)
+        assert None == dep._get("t3", "dep")
+        assert "1" == dep._get("t1", "dep")
+
+    def testForgetInvalid(self):
+        nose.tools.assert_raises(InvalidCommand,
+                                 doit_forget, TESTDB, self.tasks, ["XXX"])
+
+
 class TestCmdRun(BaseTestOutput):
 
     def setUp(self):
@@ -218,13 +281,15 @@ class TestCmdRun(BaseTestOutput):
 
     def testProcessRun(self):
         doit_run(TESTDB, TASKS_SAMPLE)
+        got = sys.stdout.getvalue().split("\n")[:-1]
         assert ["t1 => Cmd: ",
                 "t2 => Cmd: ",
                 "g1 => Group: ",
                 "g1.a => Cmd: ",
                 "g1.b => Cmd: ",
-                "t3 => Cmd: "] == sys.stdout.getvalue().split("\n")[:-1], repr(sys.stdout.getvalue())
+                "t3 => Cmd: "] == got, repr(sys.stdout.getvalue())
 
     def testProcessRunFilter(self):
         doit_run(TESTDB, TASKS_SAMPLE, filter_=["g1.a"])
-        assert ["g1.a => Cmd: "] == sys.stdout.getvalue().split("\n")[:-1], repr(sys.stdout.getvalue())
+        got = sys.stdout.getvalue().split("\n")[:-1]
+        assert ["g1.a => Cmd: "] == got, repr(sys.stdout.getvalue())

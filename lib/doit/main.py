@@ -4,6 +4,7 @@ import inspect
 
 from doit.util import isgenerator
 from doit.task import InvalidTask, BaseTask, GroupTask, dict_to_task
+from doit import dependency
 from doit import runner
 
 class InvalidCommand(Exception):
@@ -269,4 +270,37 @@ def doit_list(task_list, printSubtasks):
     print "="*25,"\n"
     return 0
 
+
+def doit_forget(dbFileName, taskList, forgetTasks):
+    """remove saved data successful runs from DB
+    @param dbFileName: (str)
+    @param task_list: (BaseTask) tasks from dodo file
+    @param forget_tasks: (list - str) tasks to be removed. remove all if
+                         empty list.
+    """
+    dependencyManager = dependency.Dependency(dbFileName)
+    # no task specified. forget all
+    if not forgetTasks:
+        dependencyManager.remove_all()
+        print "forgeting all tasks"
+    # forget tasks from list
+    else:
+        tasks = dict([(t.name, t) for t in taskList])
+        for taskName in forgetTasks:
+            # check task exist
+            if taskName not in tasks:
+                available = [t.name for t in taskList]
+                msg = "'%s' is not a task. Available tasks:\n%s"
+                raise InvalidCommand(msg % (taskName, "\n".join(available)))
+            # for group tasks also remove all tasks from group.
+            group = [taskName]
+            while group:
+                to_forget = group.pop(0)
+                if tasks[to_forget].action is None:
+                    # get task dependencies only from group-task
+                    group.extend(tasks[to_forget].task_dep)
+                # forget it - remove from dependency file
+                dependencyManager.remove(to_forget)
+                print "forgeting %s" % to_forget
+    dependencyManager.close()
 

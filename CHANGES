@@ -6,6 +6,7 @@ CHANGES
 0.3.0
 =====
 
+- added subcommand "forget" to clear successful runs (#370911)
 - save run results in text file using JSON. (removed dbm)
 - added support for DEFAULT_TASKS in dodo file
 - targets md5 is not checked anymore. if target exist, task is up-to-date. it also supports folders
