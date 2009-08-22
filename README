@@ -34,7 +34,11 @@ INSTALL
 DEPENDENCIES
 ============
 
-There are no external dependencies to install and use doit.
+Python 2.6:
+  There are no external dependencies to install and use doit.
+
+Python 2.4 & 2.5:
+- simplejson
 
 Tools required for developement:
 
@@ -44,6 +48,7 @@ Tools required for developement:
 - sphinx * doc tool
 - pyflakes * syntax checker
 - pychecker * syntax checker
+
 
 TESTS
 =====

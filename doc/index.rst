@@ -5,19 +5,19 @@ About
 
 In `doit`, unlike most (all?) build-tools, a task doesn't need to define a target file to use the execute only if not up-to-date feature. This make `doit` specially suitable for running test suites.
 
-`doit` like most build tools is used to execute tasks defined in a configuration file. Configuration files are python modules. The tasks can be python functions or an external shell script/command. `doit` automatically keeps track of declared dependencies executing only tasks that needs to be update (based on which dependencies have changed). 
+`doit` like most build tools is used to execute tasks defined in a configuration file. Configuration files are python modules. The tasks can be python functions or an external shell script/command. `doit` automatically keeps track of declared dependencies executing only tasks that needs to be update (based on which dependencies have changed).
 
 If you are still wondering why someone would want to use this tool, check this blog `post <http://schettino72.wordpress.com/2008/04/14/doit-a-build-tool-tale/>`_.
 
 
 Project Details
 ===============
- 
-* This is an open-source project (`MIT license <http://opensource.org/licenses/mit-license.php>`_) written in python. 
 
-* Project management (bug tracker, feature requests and source code ) are available on `launchpad <https://launchpad.net/doit>`_. 
+* This is an open-source project (`MIT license <http://opensource.org/licenses/mit-license.php>`_) written in python.
 
-* Questions and feedback on `google group <http://groups.google.co.in/group/python-doit>`_. 
+* Project management (bug tracker, feature requests and source code ) are available on `launchpad <https://launchpad.net/doit>`_.
+
+* Questions and feedback on `google group <http://groups.google.co.in/group/python-doit>`_.
 
 * This web site is hosted on http://sourceforge.net.
 
@@ -30,8 +30,12 @@ Installing
 
 * `Download <http://pypi.python.org/pypi/doit>`_ the source and::
 
-  $ pytohn setup.py install
+  $ python setup.py install
 
 * Get latest development version::
 
   $ bzr branch lp:doit
+
+
+Note for Windows users:
+There is a bug on setup tools. Check this `bug <http://bugs.launchpad.net/doit/+bug/218276>` for instructions.

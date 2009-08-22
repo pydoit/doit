@@ -3,7 +3,7 @@
 def say_hello():
     output = open("hello_python.txt","w")
     output.write("Hello World.")
-    output.close()    
+    output.close()
     return True
 
 

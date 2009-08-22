@@ -5,5 +5,5 @@ def task_bar():
     return {'action': "echo bar"}
 
 def task_mygroup():
-    return {'action':None,
-           'dependencies':[':foo',':bar']}
+    return {'action': None,
+           'dependencies': [':foo', ':bar']}
