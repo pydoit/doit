@@ -24,7 +24,6 @@
 . support for depedency scanner (lp - 218303)
 
 . continue execution even if one task fails
-. dont show traceback for user errors
 . one .doit for each dodo file
 . multiple (include) dodo files (lp - 218279)
 . color output on the terminal. (lp - 263576)

@@ -32,7 +32,13 @@ def get_module(dodoFile):
     # file specified on dodo file are relative to itself.
     os.chdir(base_path)
     # get module containing the tasks
-    return __import__(os.path.splitext(file_name)[0])
+    try:
+        return __import__(os.path.splitext(file_name)[0])
+    except ImportError:
+        msg = ("Could not find dodo file '%s'. " +
+               "Please use '-f' to specify file name. " +
+               "Or use the command 'template' to create a new dodo file.")
+        raise InvalidDodoFile(msg % dodoFile)
 
 def load_task_generators(dodo_module, command_names=()):
     """Loads a python file and extracts its task generator functions.
@@ -300,9 +306,8 @@ def doit_forget(dbFileName, taskList, forgetTasks):
         for taskName in forgetTasks:
             # check task exist
             if taskName not in tasks:
-                available = [t.name for t in taskList]
-                msg = "'%s' is not a task. Available tasks:\n%s"
-                raise InvalidCommand(msg % (taskName, "\n".join(available)))
+                msg = "'%s' is not a task."
+                raise InvalidCommand(msg % taskName)
             # for group tasks also remove all tasks from group.
             group = [taskName]
             while group:

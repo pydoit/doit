@@ -98,7 +98,7 @@ class BaseTask(object):
         @raise TaskFailed:
         @raise TaskError:
         """
-        raise InvalidTask("Not Implemented")
+        raise Exception("Not Implemented")
 
 
     def title(self):

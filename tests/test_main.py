@@ -82,6 +82,10 @@ class TestLoadTaskGenerators(object):
         nose.tools.assert_raises(InvalidDodoFile, load_task_generators,
                                  dodo_module, ['yyy2'])
 
+    def testWrongFileName(self):
+        fileName = os.path.abspath(__file__+"/../i_dont_exist.py")
+        nose.tools.assert_raises(InvalidDodoFile, get_module, fileName)
+
 
 
 class TestDodoDefaultTasks(object):

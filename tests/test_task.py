@@ -49,7 +49,7 @@ class TestBaseTask(object):
     # BaseTask must be subclassed and define an execute method
     def test_mustSubclass(self):
         t = BaseTask("MyName","MyAction")
-        nose.tools.assert_raises(InvalidTask,t.execute)
+        nose.tools.assert_raises(Exception, t.execute)
 
 
     # dependency types going to the write place
