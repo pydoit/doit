@@ -219,9 +219,6 @@ class TestTaskSetup(BaseRunner):
         def cleanup(self):
             self.cleaned += 1
 
-    #FIXME test a setup attribute is required. and cleanup is optional
-    #TODO check errors on setup and cleanup
-
     def testExecuted(self):
         setup = self.SetupSample()
         t = GroupTask("ss", None, [], [], setup)
@@ -246,6 +243,24 @@ class TestTaskSetup(BaseRunner):
         assert runner.ERROR == runner.run_tasks(TESTDB, [t1, t2])
         assert 1 == setup.executed
         assert 1 == setup.cleaned
+
+    def testSetupError(self):
+        # it is same as a task error
+        def raise_something():
+            raise Exception('xxx')
+        setup = self.SetupSample()
+        setup.setup = raise_something
+        t1 = GroupTask('t1', None, [], [], setup)
+        assert runner.ERROR == runner.run_tasks(TESTDB, [t1])
+
+    def testCleanupError(self):
+        # ignore errors...
+        def raise_something():
+            raise Exception('xxx')
+        setup = self.SetupSample()
+        setup.cleanup = raise_something
+        t1 = GroupTask('t1', None, [], [], setup)
+        assert runner.SUCCESS == runner.run_tasks(TESTDB, [t1])
 
 
 class TestSystemExit(BaseRunner):

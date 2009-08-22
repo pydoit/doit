@@ -92,8 +92,6 @@ class Dependency(object):
             finally:
                 fp.close()
             self._closed = True
-        else:
-            print 'just to see when this is closed twice'
 
 
     def save_dependencies(self,taskId,dependencies):

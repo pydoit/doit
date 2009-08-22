@@ -33,12 +33,14 @@ class BaseTask(object):
     @ivar task_dep: (list - string)
     @ivar file_dep: (list - string)
     @ivar run_once: (bool) task without dependencies should run
+    @ivar is_subtask: (bool) indicate this task is a subtask.
     """
 
     CAPTURE_OUT = False
     CAPTURE_ERR = False
 
-    def __init__(self,name,action,dependencies=(),targets=(),setup=None):
+    def __init__(self,name,action,dependencies=(),targets=(),setup=None,
+                 is_subtask=False):
         """Init."""
         # dependencies parameter must be a list
         if not ((isinstance(dependencies,list)) or
@@ -59,7 +61,7 @@ class BaseTask(object):
         self.targets = targets
         self.setup = setup
         self.run_once = False
-        self.isSubtask = False #TODO document. test
+        self.is_subtask = is_subtask
 
         # there are 3 kinds of dependencies: file, task, and folder
         self.folder_dep = []
@@ -72,8 +74,6 @@ class BaseTask(object):
                     msg = ("%s. bool paramater in 'dependencies' "+
                            "must be True got:'%s'")
                     raise InvalidTask(msg%(name, str(dep)))
-                # TODO it doesnt make sense to have this dependency together
-                # with file dependencies. so should not accept it.
                 self.run_once = True
             # folder dep ends with a '/'
             elif dep.endswith('/'):
@@ -90,6 +90,7 @@ class BaseTask(object):
             msg = ("%s. task cant have file and dependencies and True " +
                    "at the same time. (just remove True)")
             raise InvalidTask(msg % name)
+
 
     def execute(self):
         """Executes the task.
@@ -111,14 +112,16 @@ class BaseTask(object):
 class CmdTask(BaseTask):
     """Command line task. Spawns a new process."""
 
-    def __init__(self,name,action,dependencies=(),targets=(),setup=None):
+    def __init__(self, name, action, dependencies=(), targets=(), setup=None,
+                 is_subtask=False):
         """Init."""
         assert isinstance(action,str) or isinstance(action, list),\
             "'action' from CmdTask must be a string or list."
 
         if isinstance(action, str):
             action = [action]
-        BaseTask.__init__(self,name,action,dependencies,targets,setup)
+        BaseTask.__init__(self, name, action, dependencies, targets, setup,
+                          is_subtask)
 
     def execute(self):
         # set Popen stream parameters
@@ -172,10 +175,12 @@ class PythonTask(BaseTask):
     @ivar kwargs: (dict) dict to be passed to the callable
     """
 
-    def __init__(self,name,action,dependencies=(),targets=(),setup=None,args=None,kwargs=None):
+    def __init__(self, name, action, dependencies=(), targets=(), setup=None,
+                 is_subtask=False, args=None, kwargs=None):
         """Init."""
         assert callable(action),"'action' from PythonTask must be a 'callable'."
-        BaseTask.__init__(self,name,action,dependencies,targets,setup)
+        BaseTask.__init__(self, name, action, dependencies, targets, setup,
+                          is_subtask)
         if args is None:
             self.args = []
         else:

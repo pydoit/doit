@@ -33,8 +33,8 @@ class TestGenerateTasks(object):
         assert isinstance(tasks[0], GroupTask)
         assert 4 == len(tasks)
         assert "xpto:0" == tasks[1].name
-        assert not tasks[0].isSubtask
-        assert tasks[1].isSubtask
+        assert not tasks[0].is_subtask
+        assert tasks[1].is_subtask
 
     def testGeneratorDoesntReturnDict(self):
         def f_xpto():
@@ -127,19 +127,21 @@ class TestTaskSetupInit(object):
     def test_addInvalidTask(self):
         nose.tools.assert_raises(InvalidTask, TaskSetup, [666])
 
-    def testUserErrorTaskDependency(self):
+    def test_userErrorTaskDependency(self):
         tasks = [GroupTask('wrong', None,[":typo"])]
         nose.tools.assert_raises(InvalidTask, TaskSetup, tasks)
 
-sub1 = CmdTask("g1.a", "")
-sub2 = CmdTask("g1.b", "")
-sub1.isSubtask = True
-sub2.isSubtask = True
+    def test_sameTarget(self):
+        tasks = [GroupTask('t1',None,[],["fileX"]),
+                 GroupTask('t2',None,[],["fileX"])]
+        nose.tools.assert_raises(InvalidTask, TaskSetup, tasks)
+
+
 TASKS_SAMPLE = [CmdTask("t1", ""),
                 CmdTask("t2", ""),
                 GroupTask("g1", None),
-                sub1,
-                sub2,
+                CmdTask("g1.a", "", is_subtask=True),
+                CmdTask("g1.b", "", is_subtask=True),
                 CmdTask("t3", "")]
 TASKS_NAME = ['t1', 't2', 'g1', 't3']
 TASKS_ALL_NAME = ['t1', 't2', 'g1', 'g1.a', 'g1.b', 't3']

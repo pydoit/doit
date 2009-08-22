@@ -66,7 +66,8 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
                 # setup env
                 if task.setup and task.setup not in setup_loaded:
                     setup_loaded.add(task.setup)
-                    task.setup.setup()
+                    if hasattr(task.setup, 'setup'):
+                        task.setup.setup()
                 # finally execute it
                 task.execute()
                 #save execution successful
@@ -94,11 +95,6 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
                 errorException = exception
                 break
 
-    # FIXME not checking for exceptions!
-    for setup in setup_loaded:
-        if hasattr(setup, 'cleanup'):
-            setup.cleanup()
-
     ## done
     # flush update dependencies
     dependencyManager.close()
@@ -116,5 +112,16 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
             sys.stderr.write("\n".join(errorException.originalException))
         else:
             sys.stderr.write(traceback.format_exc())
+
+    # run tasks cleanup.
+    for setup in setup_loaded:
+        if hasattr(setup, 'cleanup'):
+            try:
+                setup.cleanup()
+            # not sure what should be the behaviour of errors on
+            # cleanup.
+            # report error but keep result as successful.
+            except Exception, e:
+                sys.stderr.write(traceback.format_exc())
 
     return result

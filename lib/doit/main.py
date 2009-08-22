@@ -109,7 +109,7 @@ def generate_tasks(name, gen_result):
             # name is task.subtask
             task_dict['name'] = "%s:%s"% (name,task_dict.get('name'))
             sub_task = dict_to_task(task_dict)
-            sub_task.isSubtask = True
+            sub_task.is_subtask = True
             tasks.append(sub_task)
 
         # add task dependencies to group task.
@@ -120,7 +120,7 @@ def generate_tasks(name, gen_result):
     return [dict_to_task({'name':name,'action':gen_result})]
 
 
-
+# this name is confusing with task.setup which it doesnt have any relation...
 class TaskSetup(object):
     """
     Process dependencies and targets to find out the order tasks
@@ -173,8 +173,11 @@ class TaskSetup(object):
         # builds that target.
         for task in self.tasks.itervalues():
             for target in task.targets:
-                # TODO support more than one task with same target or raise
-                # an error
+                if target in self.targets:
+                    msg = ("Two different tasks can't have a common target." +
+                           "'%s' is a target for %s and %s.")
+                    raise InvalidTask(msg % (target, task.name,
+                                             self.targets[target].name))
                 self.targets[target] = task
         # 2) now go through all dependencies and check if they are target from
         # another task.
@@ -266,7 +269,7 @@ def doit_list(task_list, printSubtasks):
     """
     print "==== Tasks ===="
     for task in task_list:
-        if (not task.isSubtask) or printSubtasks:
+        if (not task.is_subtask) or printSubtasks:
             print task.name
     print "="*25,"\n"
     return 0
