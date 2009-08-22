@@ -34,12 +34,13 @@ def get_module(dodoFile):
     # get module containing the tasks
     return __import__(os.path.splitext(file_name)[0])
 
-def load_task_generators(dodo_module):
+def load_task_generators(dodo_module, command_names=()):
     """Loads a python file and extracts its task generator functions.
 
     The python file is a called "dodo" file.
 
     @param dodo_module: (module) module containing the tasks
+    @param command_names: (list - str) blacklist for task names
     @return (dict):
      - task_list (list) of BaseTasks in the order they were defined on the file
      - default_tasks (list) of tasks to be executed by default
@@ -50,15 +51,21 @@ def load_task_generators(dodo_module):
     funcs = []
     prefix_len = len(TASK_STRING)
     # get all functions defined in the module
-    for name,ref in inspect.getmembers(dodo_module, inspect.isfunction):
+    for name, ref in inspect.getmembers(dodo_module, inspect.isfunction):
         # ignore functions that are not a task (by its name)
         if not name.startswith(TASK_STRING):
             continue
+        task_name = name[prefix_len:]
+        # tasks cant have name of commands
+        if task_name in command_names:
+            msg = ("Task can't be called '%s' because this is a command name."+
+                   " Please choose another name.")
+            raise InvalidDodoFile(msg % task_name)
         # get line number where function is defined
         line = inspect.getsourcelines(ref)[1]
         # add to list task generator functions
         # remove TASK_STRING prefix from name
-        funcs.append((name[prefix_len:],ref,line))
+        funcs.append((task_name, ref, line))
 
     # sort by the order functions were defined (line number)
     funcs.sort(key=lambda obj:obj[2])
@@ -254,8 +261,8 @@ class TaskSetup(object):
 
 ##################################
 
-def doit_run(dependencyFile, task_list, filter_=None, verbosity=0,
-            alwaysExecute=False):
+def doit_run(dependencyFile, task_list, filter_=None,
+             verbosity=0, alwaysExecute=False):
     selected_tasks = TaskSetup(task_list, filter_).process()
     return runner.run_tasks(dependencyFile, selected_tasks,
                             verbosity, alwaysExecute)

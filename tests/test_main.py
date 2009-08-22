@@ -76,6 +76,14 @@ class TestLoadTaskGenerators(object):
         dodo = load_task_generators(dodo_module)
         assert expected == [t.name for t in dodo['task_list']]
 
+    def testNameBlacklist(self):
+        fileName = os.path.abspath(__file__+"/../loader_sample.py")
+        dodo_module = get_module(fileName)
+        nose.tools.assert_raises(InvalidDodoFile, load_task_generators,
+                                 dodo_module, ['yyy2'])
+
+
+
 class TestDodoDefaultTasks(object):
     # to avoid creating many files for testing i am modifying the module
     # dinamically. but it is tricky because python optmizes it and loads
@@ -135,6 +143,7 @@ class TestTaskSetupInit(object):
         tasks = [GroupTask('t1',None,[],["fileX"]),
                  GroupTask('t2',None,[],["fileX"])]
         nose.tools.assert_raises(InvalidTask, TaskSetup, tasks)
+
 
 
 TASKS_SAMPLE = [CmdTask("t1", ""),

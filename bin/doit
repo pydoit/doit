@@ -101,10 +101,10 @@ def cmd_run(params, args):
 
 
     # check if command is "run". default command is "run"
-    # FIXME blacklist tasks names to be different from sub-cmd name
     if len(args) == 0 or args[0] not in params['sub']:
         dodo_module = main.get_module(params['dodoFile'])
-        dodo_tasks = main.load_task_generators(dodo_module)
+        command_names = params['sub'].keys()
+        dodo_tasks = main.load_task_generators(dodo_module, command_names)
         filter_ = args or dodo_tasks['default_tasks']
         return main.doit_run(params['dep_file'], dodo_tasks['task_list'],
                              filter_, params['verbosity'], params['always'])
@@ -112,7 +112,6 @@ def cmd_run(params, args):
     # sub cmd different from "run" on cmd line. parse arguments again
     commands = params['sub']
     sub_cmd = args.pop(0)
-    # TODO help need 'sub' parameter. can i move it into cmdparse?
     return commands[sub_cmd](args, dodoFile=params['dodoFile'], sub=commands)
 
 
@@ -135,7 +134,8 @@ opt_listall = {'name': 'all',
 # FIXME list should support "args" as a filter.
 def cmd_list(params, args):
     dodo_module = main.get_module(params['dodoFile'])
-    dodo_tasks = main.load_task_generators(dodo_module)
+    command_names = params['sub'].keys()
+    dodo_tasks = main.load_task_generators(dodo_module, command_names)
     return main.doit_list(dodo_tasks['task_list'], params['all'])
 
 
@@ -148,7 +148,8 @@ forget_doc = {'purpose': "clear successful run status from DB",
 
 def cmd_forget(params, args):
     dodo_module = main.get_module(params['dodoFile'])
-    dodo_tasks = main.load_task_generators(dodo_module)
+    command_names = params['sub'].keys()
+    dodo_tasks = main.load_task_generators(dodo_module, command_names)
     return main.doit_forget(params['dep_file'], dodo_tasks['task_list'], args)
 
 
@@ -158,7 +159,7 @@ def cmd_forget(params, args):
 template_doc = {'purpose': "create a dodo file from command line",
                 'usage': "",
                 'description': "#TODO"}
-
+# FIXME put this in a file.
 def cmd_template(params, args):
     print """
 #dodo file. run pychecker and unittests.
