@@ -12,29 +12,29 @@ Command line
 options
 ^^^^^^^
 
-.. cmdoption:: -h, --help            
+.. cmdoption:: -h, --help
 
 show this help message and exit
 
 .. cmdoption:: -f FILE, --file FILE
 
-load task from dodo FILE 
+load task from dodo FILE
 [default: dodo.py]
 
-.. cmdoption:: -v VERBOSITY, --verbosity VERBOSITY 
+.. cmdoption:: -v VERBOSITY, --verbosity VERBOSITY
 
-* 0 capture (do not print) stdout/stderr from task. 
-* 1 capture stdout only. 
+* 0 capture (do not print) stdout/stderr from task.
+* 1 capture stdout only.
 * 2 dont capture anything (print everything immediately)
 [default: 0]
 
-.. cmdoption:: -a, --always-execute  
+.. cmdoption:: -a, --always-execute
 
-always execute tasks even if up-to-date 
+always execute tasks even if up-to-date
 [default: False]
 
 .. cmdoption:: -l, --list
-list tasks from dodo file 
+list tasks from dodo file
 
 .. cmdoption:: --list-all
 list all tasks and sub-tasks from dodo file
@@ -47,7 +47,7 @@ Tasks are defined by functions starting with the string ``task_``. It must retur
 
 action:
   - Required field
-  - type: Python-Task -> function(callable) reference. 
+  - type: Python-Task -> function(callable) reference.
   - type: Cmd-Task -> string to be executed by shell.
   - type: Group-Task -> None.
 
@@ -61,7 +61,7 @@ kwargs:
 
 name:
   - Required field - Sub-tasks only
-  - type: string. subtask identifier 
+  - type: string. subtask identifier
 
 dependencies:
   - Optional field
@@ -75,5 +75,3 @@ targets:
   - Optional field
   - type: list of strings
   - each item is file-path relative to the dodo file
-
-

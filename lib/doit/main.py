@@ -1,3 +1,4 @@
+"""Loads dodo file (a python module) and `doit` command line programs"""
 import os
 import sys
 import inspect

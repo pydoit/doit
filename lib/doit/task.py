@@ -72,6 +72,8 @@ class BaseTask(object):
                     msg = ("%s. bool paramater in 'dependencies' "+
                            "must be True got:'%s'")
                     raise InvalidTask(msg%(name, str(dep)))
+                # TODO it doesnt make sense to have this dependency together
+                # with file dependencies. so should not accept it.
                 self.run_once = True
             # folder dep ends with a '/'
             elif dep.endswith('/'):

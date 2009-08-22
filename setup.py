@@ -27,7 +27,7 @@ setup(name = 'doit',
       packages = ['doit'],
       package_dir = {'':'lib'},
       scripts = ['bin/doit'],
-      
+
       long_description = """
         doit comes from the idea of bringing the power of build-tools to 
         execute any kind of task. It will keep track of dependencies between 

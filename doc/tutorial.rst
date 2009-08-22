@@ -228,23 +228,6 @@ You can define group of tasks by adding tasks as dependencies and setting its ac
 Notice that a task is never executed twice in the same "run".
 
 
-The command line
-================
-
-The command line allows you to select which tasks from a file you want to run.
-By default ``$ doit`` will execute all tasks from a file named ``dodo.py``. The tasks will be executed in the order they where defined, as long as all dependencies are executed first.
-
-* to specify another file containg task. use the file parameter ``-f``.
-
-* to view the defined tasks (dont run). use the list parameter ``-l``.
-
-* to select which tasks to execute. pass the task name or target. You can pass as many as you want separated by a space. they will be executed in the order they were passed. ``$ doit -f group.py bar foo``
-
-* to force the execution of tasks even if they are updated use the always-execute paramter ``-a``.
-
-``doit`` creates a file ``.doit.dbm`` where information of previous runs are saved. to reset it just delete it.
-
-
 Putting all together
 ====================
 
@@ -268,3 +251,30 @@ Let's start from the end.
 
 ``task_get_shrinksafe`` will download shrinksafe.
 
+
+The command line
+================
+
+`doit` comes with several commands. `doit help` will list all available commands. You can also get help from each available command. e.g. `doit help run`. The basic commands are:
+
+help
+  show help / reference
+
+run
+  run tasks
+
+list
+  list tasks from dodo file
+
+forget
+  clear successful run status from DB
+
+template
+  create a dodo.py template file
+
+
+* 'run' is the default command, so if you don't specify any command 'run' will be used.
+
+* Commands that take a dodo file as a parameter will use the file named ``dodo.py`` on the current folder as default. to specify another file containg task. use the file parameter ``-f``.
+
+* ``doit`` creates a file ``.doit.db`` where information of previous runs are saved.
