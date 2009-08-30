@@ -17,7 +17,7 @@ Commands:
  doit [run]             run tasks
  doit list              list tasks from dodo file
  doit forget            clear successful run status from DB
- doit template          create a dodo.py template file
+ doit dodo-sample       create a sample dodo.py file
 
  doit help              show help / reference
  doit help <command>    show command usage
@@ -142,7 +142,7 @@ def cmd_list(params, args):
 ##########################################################
 ########## forget
 
-forget_doc = {'purpose': "clear successful run status from DB",
+forget_doc = {'purpose': "clear successful run status from internal DB",
               'usage': "[TASK ...]",
               'description': "#TODO"}
 
@@ -154,29 +154,118 @@ def cmd_forget(params, args):
 
 
 ##########################################################
-########## template
+########## dodo-sample
 
-template_doc = {'purpose': "create a dodo file from command line",
-                'usage': "",
-                'description': "#TODO"}
-# FIXME put this in a file.
-def cmd_template(params, args):
+dodo_sample_description = \
+"""Print a commented sample dodo file to stdout.
+This file contains an example of all supported features."""
+
+dodo_sample_doc = {'purpose': "create a dodo file from command line",
+                   'usage': "",
+                   'description': dodo_sample_description}
+
+def cmd_dodo_sample(params, args):
     print """
-#dodo file. run pychecker and unittests.
+## this is a quick reference. with small examples. for full instruction check
+## the tutorial on the website.
 
-import glob
+# name tasks that will be executed by default if nothing specified on
+# command line
+DEFAULT_TASKS = ['hello', 'py']
 
-pyFiles = glob.glob("lib/doit/*.py") + glob.glob("tests/*.py")
 
-def task_checker():
-    for file in pyFiles:
-        yield {'action': "pyflakes %s"% file,
-               'name':file,
-               'dependencies':(file,)}
+### task actions
 
-def task_nose():
-    return {'action':"nosetests",
-            'dependencies':pyFiles}
+# python-action
+def my_function(foo, bar=0, zeta=0):
+    # do whatever here
+    #must return True to indicate it was completed successfully
+    return True
+
+# command-action
+cmd_simple = "echo foo bar"
+cmd_two = "echo more"
+
+
+### tasks - a method that starts with the string "task_"
+# it is actually a task generator. tasks are described by
+# its: action, dependencies, targets.
+
+def task_hello():
+    return {'action': [cmd_simple, cmd_two],
+            'depenencies': ['file1.txt'],
+            'targets': ['target1.out']
+            }
+
+
+### python actions can also take args & kwargs
+def task_py():
+    return {'action': my_function,
+            'args': [5],
+            'kwargs': {'zeta': 6},
+            }
+
+
+### sub-task. create may tasks with same action. must have a name.
+MY_FILES = ['file1.txt', 'file2.txt', 'file3.txt']
+def task_many():
+    for fin in MY_FILES:
+        yield {'name': fin,
+               'action': "echo %s" % fin}
+
+
+### dependencies can be another task. use ":" before task name
+def task_target_dep():
+    return {'action': "echo xxx",
+            'dependencies': [':many']
+            }
+
+
+
+### run task only once if target exist. set dependency "True"
+def task_run_once():
+    return {'action': "echo xxx > out.txt",
+            'dependencies': [True],
+            'targets': ['out.txt']
+            }
+
+
+### group tasks. just set action to None. add group as depenencies.
+def task_mygroup():
+    return {'action': None,
+            'dependencies': [':py', ':run_once']
+            }
+
+
+### task setup env. good for functional tests!
+# pass an object that opnionally defines methods: "setup" and
+# "cleanup". tasks can share the same object.
+class SetupSample(object):
+    def __init__(self, server):
+        self.server = server
+        self.executed = 0
+        self.cleaned = 0
+
+    def setup(self):
+        # start server
+        self.executed += 1
+
+    def cleanup(self):
+        # stop server
+        self.cleaned += 1
+
+setupX = SetupSample('x')
+setupY = SetupSample('y')
+
+def task_withenvX():
+    for fin in MY_FILES:
+        yield {'name': fin,
+               'action':'echo x',
+               'setup': setupX}
+
+def task_withenvY():
+    return {'action':'echo x',
+            'setup': setupY}
 
 """
     return 0
@@ -199,6 +288,7 @@ def cmd_help(params, args):
     return 0
 
 
+##########################################################
 
 
 
@@ -222,9 +312,9 @@ def cmd_main():
     subCmd['forget'] = cmdparse.Command('forget', forget_options,
                                         cmd_forget, forget_doc)
 
-    # template command
-    subCmd['template'] = cmdparse.Command('template', () , cmd_template,
-                                          template_doc)
+    # dodo-sample command
+    subCmd['dodo-sample'] = cmdparse.Command('dodo-sample', () ,
+                                             cmd_dodo_sample, dodo_sample_doc)
 
 
     try:
@@ -257,3 +347,5 @@ def cmd_main():
 
 if __name__ == "__main__":
     sys.exit(cmd_main())
+
+#TODO: cmd error is not a task. improve message, could be misspeled sub-cmd.
