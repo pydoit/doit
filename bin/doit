@@ -168,6 +168,8 @@ def cmd_dodo_sample(params, args):
     print """
 ## this is a quick reference. with small examples. for full instruction check
 ## the tutorial on the website.
+## NOTE this file contains references for files that doesn't exist so you
+## can NOT run it!
 
 # name tasks that will be executed by default if nothing specified on
 # command line
@@ -193,7 +195,7 @@ cmd_two = "echo more"
 
 def task_hello():
     return {'action': [cmd_simple, cmd_two],
-            'depenencies': ['file1.txt'],
+            'dependencies': ['file1.txt'],
             'targets': ['target1.out']
             }
 

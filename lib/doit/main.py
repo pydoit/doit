@@ -37,7 +37,7 @@ def get_module(dodoFile):
     except ImportError:
         msg = ("Could not find dodo file '%s'. " +
                "Please use '-f' to specify file name. " +
-               "Or use the command 'template' to create a new dodo file.")
+               "Use the command 'dodo-sample' to view a sample.")
         raise InvalidDodoFile(msg % dodoFile)
 
 def load_task_generators(dodo_module, command_names=()):
