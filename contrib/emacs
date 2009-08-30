@@ -1,0 +1,64 @@
+;;(setq load-path (cons "/home/eduardo/jsu/tools" load-path))
+
+;; http://www.brgeight.se/ javascript mode
+(add-to-list 'auto-mode-alist '("\\.js\\'" . javascript-mode))
+(autoload 'javascript-mode "javascript" nil t)
+
+;; javascript lint
+(defun jslint-thisfile ()
+  (interactive)
+  (compile (format "jsl -process %s" (buffer-file-name))))
+
+(add-hook 'javascript-mode-hook
+  '(lambda ()
+  (local-set-key [f8] 'jslint-thisfile)))
+
+;; pyflakes
+(defun pyflakes-thisfile ()
+  (interactive)
+  (compile (format "pyflakes %s" (buffer-file-name))))
+
+(add-hook 'python-mode-hook
+	  '(lambda ()
+	     (local-set-key [f8] 'pyflakes-thisfile)))
+
+;; python beginning of block
+(add-hook 'python-mode-hook
+	  '(lambda ()
+	     (local-set-key (kbd "C-A") 'python-beginning-of-block)))
+
+;; color beyond 80 columns
+(add-hook 'python-mode-hook 'highlight-beyond-fill-column)
+
+;; key-binding for goto-line
+(global-set-key (kbd "C-l") 'goto-line)
+
+;; color theme
+(require 'color-theme)
+(color-theme-charcoal-black)
+
+;; window size
+(add-to-list 'default-frame-alist (cons 'width 83))
+(add-to-list 'default-frame-alist (cons 'height 60))
+
+(custom-set-variables
+  ;; custom-set-variables was added by Custom.
+  ;; If you edit it by hand, you could mess it up, so be careful.
+  ;; Your init file should contain only one such instance.
+  ;; If there is more than one, they won't work right.
+ '(fill-column 79)
+ '(make-backup-files nil)
+ '(show-trailing-whitespace t)
+ '(tool-bar-mode nil)
+ '(x-select-enable-clipboard t))
+
+(custom-set-faces
+  ;; custom-set-faces was added by Custom.
+  ;; If you edit it by hand, you could mess it up, so be careful.
+  ;; Your init file should contain only one such instance.
+  ;; If there is more than one, they won't work right.
+ '(highlight-beyond-fill-column-face ((t (:background "gray25"))))
+ '(trailing-whitespace ((t (:background "gray25")))))
+
+(put 'upcase-region 'disabled nil)
+
