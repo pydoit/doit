@@ -347,5 +347,3 @@ def cmd_main():
 
 if __name__ == "__main__":
     sys.exit(cmd_main())
-
-#TODO: cmd error is not a task. improve message, could be misspeled sub-cmd.

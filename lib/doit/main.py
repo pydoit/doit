@@ -216,7 +216,10 @@ class TaskSetup(object):
             elif filter_ in self.targets:
                 selectedTask.append(self.targets[filter_].name)
             else:
-                raise InvalidCommand('"%s" is not a task/target.'% filter_)
+                msg = ('"%s" must be a sub-commandm, a task, or a target.\n' +
+                       'Type "doit help" to see available sub-commands.\n' +
+                       'Type "doit list" to see available tasks')
+                raise InvalidCommand(msg % filter_)
         return selectedTask
 
     def _order_tasks(self, to_add):
