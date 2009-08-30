@@ -11,8 +11,7 @@ Package modules
 - __init__.py: (empty) make a package
 - `dependency.py <api/doit.dependency-module.html>`_: Manage (save/check) task dependency-on-files data.
 - `logger.py <api/doit.logger-module.html>`_: Logger with channel support.
-- `main.py <api/doit.main-module.html>`_: Loads dodo file (a python module) and
-`doit` command line programs.
+- `main.py <api/doit.main-module.html>`_: Loads dodo file (a python module) and `doit` command line programs.
 - `runner.py <api/doit.runner-module.html>`_: Tasks runner.
 - `task.py <api/doit.task-module.html>`_: Task classes.
 - `util.py <api/doit.util-module.html>`_: Utility methods.
@@ -50,9 +49,9 @@ Generators return python dictionaries to represent tasks. The task name is given
 
 As a convenience to users if the task only defines an ``action`` they don't need to return it in a dictionary.
 
-There are two kinds of tasks generators. Task generators that define a single a task, or define multiple subtasks. To define multiple subtasks instead of returning a single dictionary it must return a generator using `python-generator <http://docs.python.org/tut/node11.html#SECTION00111000000000000000000>`_
+There are two kinds of tasks generators. Task generators that define a single a task, or define multiple sub-tasks. To define multiple sub-tasks instead of returning a single dictionary it must return a generator using `python-generator <http://docs.python.org/tut/node11.html#SECTION00111000000000000000000>`_
 
-Subtasks must include the field ``name`` on its dictionary representation. A subtask name will be formed as "<task_name>:<subTask_name>".
+Sub-tasks must include the field ``name`` on its dictionary representation. A sub-task name will be formed as "<task_name>:<subTask_name>".
 
 
 
@@ -61,11 +60,11 @@ Set task's task-dependencies
 
 Collect all task-dependencies for every task. task-dependencies can come from 3 sources.
 
-#. A task generator that return maultiple subtasks creates a dumb task with no action that depends on all subtasks.
+#. A task generator that return multiple sub-tasks creates a dumb task with no action that depends on all sub-tasks.
 
-#. A task-dependency explicit defined in the 'dependecies' as ":<dependends-on-task_name>".
+#. A task-dependency explicit defined in the 'dependencies' as ":<depends-on-task_name>".
 
-#. A file-dependency where the file is also a target from another task. If task-B dependends on file-TA and file-TA is a target of task-A, task-B depends on task-A. Or task-A is a task-dependency of task-B.
+#. A file-dependency where the file is also a target from another task. If task-B depends on file-TA and file-TA is a target of task-A, task-B depends on task-A. Or task-A is a task-dependency of task-B.
 
 
 Filter selected tasks

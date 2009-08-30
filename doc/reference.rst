@@ -2,44 +2,6 @@
 Reference
 ===============
 
-Command line
-------------
-
-.. program :: doit
-
-.. describe:: doit [options] [task] [task] ...
-
-options
-^^^^^^^
-
-.. cmdoption:: -h, --help
-
-show this help message and exit
-
-.. cmdoption:: -f FILE, --file FILE
-
-load task from dodo FILE
-[default: dodo.py]
-
-.. cmdoption:: -v VERBOSITY, --verbosity VERBOSITY
-
-* 0 capture (do not print) stdout/stderr from task.
-* 1 capture stdout only.
-* 2 dont capture anything (print everything immediately)
-[default: 0]
-
-.. cmdoption:: -a, --always-execute
-
-always execute tasks even if up-to-date
-[default: False]
-
-.. cmdoption:: -l, --list
-list tasks from dodo file
-
-.. cmdoption:: --list-all
-list all tasks and sub-tasks from dodo file
-
-
 Task Dictionary parameters
 --------------------------
 
@@ -48,7 +10,7 @@ Tasks are defined by functions starting with the string ``task_``. It must retur
 action:
   - Required field
   - type: Python-Task -> function(callable) reference.
-  - type: Cmd-Task -> string to be executed by shell.
+  - type: Cmd-Task -> string or list of strings (each item is a different command). to be executed by shell.
   - type: Group-Task -> None.
 
 args:
@@ -74,4 +36,8 @@ dependencies:
 targets:
   - Optional field
   - type: list of strings
-  - each item is file-path relative to the dodo file
+  - each item is file-path relative to the dodo file (accepts both files and folders)
+
+setup:
+ - Optional field
+ - type: object with methods 'setup' and 'cleanup'

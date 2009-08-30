@@ -86,7 +86,7 @@ opt_verbosity = {'name':'verbosity',
                  }
 run_doc = {'purpose': "run tasks",
            'usage': "[TASK/TARGET...]",
-           'description': "#TODO"}
+           'description': None}
 
 def cmd_run(params, args):
     """execute cmd run"""
@@ -121,7 +121,7 @@ def cmd_run(params, args):
 
 list_doc = {'purpose': "list tasks from dodo file",
             'usage': "",
-            'description': "#TODO"}
+            'description': None}
 
 opt_listall = {'name': 'all',
                'short':'',
@@ -144,7 +144,7 @@ def cmd_list(params, args):
 
 forget_doc = {'purpose': "clear successful run status from internal DB",
               'usage': "[TASK ...]",
-              'description': "#TODO"}
+              'description': None}
 
 def cmd_forget(params, args):
     dodo_module = main.get_module(params['dodoFile'])

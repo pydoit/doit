@@ -40,7 +40,7 @@ Python 2.6:
 Python 2.4 & 2.5:
 - simplejson
 
-Tools required for developement:
+Tools required for development:
 
 - nose * unit tests
 - bazaar * VCS

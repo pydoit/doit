@@ -10,6 +10,18 @@ In `doit`, unlike most (all?) build-tools, a task doesn't need to define a targe
 If you are still wondering why someone would want to use this tool, check this blog `post <http://schettino72.wordpress.com/2008/04/14/doit-a-build-tool-tale/>`_.
 
 
+Status
+======
+
+`doit` is under active development. Version 0.3 released on 2009-08-30.
+
+While still a small project with room for lots of improvements and features. It is very stable and provides some great features not seen in any other project.
+
+Development is done based on real world use cases. If I don't need a feature and nobody never asked for it, it is not implemented ;) It is well designed and have a very small code base so adding new features isn't hard.
+
+If you use `doit` please drop me a line telling me your experience...
+
+
 Project Details
 ===============
 
@@ -20,6 +32,8 @@ Project Details
 * Questions and feedback on `google group <http://groups.google.co.in/group/python-doit>`_.
 
 * This web site is hosted on http://sourceforge.net.
+
+
 
 Installing
 ==========
@@ -40,8 +54,8 @@ Installing
 .. note::
 
    for python2.4 and python2.5 users:
-   `doit` depends on the package `simplejson`. So you need to install it::
-      easy_install simplejson
+   `doit` depends on the package `simplejson`. So you need to install it: `easy_install simplejson`
+
    On python 2.6 the stdlib `json` is used.
 
 .. note::

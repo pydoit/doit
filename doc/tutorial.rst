@@ -88,7 +88,7 @@ Target
 
 Dependencies are on tasks not on targets, so a task even without defining targets can take advantage of the execute only if not up-to-date feature.
 
-Targets can be any file path (a file or folder). If a target doesnt exist the task will be executed. If a task defines a target but no dependencies it will always be executed.
+Targets can be any file path (a file or folder). If a target doesn't exist the task will be executed. If a task defines a target but no dependencies it will always be executed.
 
 There are four kinds of dependencies:
 
@@ -96,13 +96,13 @@ file-dependency:
   type: string. value is the path of the file (relative to the dodo file).
 
 folder-dependency:
-  type: string. This is not a dependency on the same way of a file-dependency. It is not checked if the folder was modified or not. It is only a handy way to indicate that a folder should exist before the task is executed. If the folder doesn't exist it is created. If it already exist, nothing happens. folder-depencies are not used to determine if a task is up-to-date or not. So, if a task defines only folder-dependency it will always be executed. The value is the path on the file system (relative to the dodo file). The last charachter of the string must be a '/'. i.e. "path/to/build/"
+  type: string. This is not a dependency on the same way of a file-dependency. It is not checked if the folder was modified or not. It is only a handy way to indicate that a folder should exist before the task is executed. If the folder doesn't exist it is created. If it already exist, nothing happens. folder-dependencies are not used to determine if a task is up-to-date or not. So, if a task defines only folder-dependency it will always be executed. The value is the path on the file system (relative to the dodo file). The last character of the string must be a '/'. i.e. "path/to/build/"
 
 task-dependency:
-  type: string. values is the name of a task preceeded by ':'. i.e. ":compile". task-dependency are only used to force a certain order in the execution of the tasks. task-depencies are not used to determine if a task is up-to-date or not. So if a task only defines task-dependency it will always be executed.
+  type: string. values is the name of a task preceded by ':'. i.e. ":compile". task-dependency are only used to force a certain order in the execution of the tasks. task-dependencies are not used to determine if a task is up-to-date or not. So if a task only defines task-dependency it will always be executed.
 
 run-once:
-  type: boolean. value must always be `True`. This is actually used to say that a task has no dependency but should be executed only once. This is useful if you have a task with no dependency that creates a target and you dont want to create the target over and over again.
+  type: Boolean. value must always be `True`. This is actually used to say that a task has no dependency but should be executed only once. This is useful if you have a task with no dependency that creates a target and you don't want to create the target over and over again.
 
 
 Targets can only be a string with a file path.
@@ -185,7 +185,7 @@ To define a dependency on another task use the task name (whatever comes after `
 Example 4 - run-once
 ^^^^^^^^^^^^^^^^^^^^
 
-Sometimes you might want to have execute a task only once even if it has no dependencies. For example, if you need a package that you dont want to include in your source distribution. Just add ``True`` as a dependency.
+Sometimes you might want to have execute a task only once even if it has no dependencies. For example, if you need a package that you don't want to include in your source distribution. Just add ``True`` as a dependency.
 
 ``download.py``
 
@@ -195,12 +195,12 @@ This way it will shrinksafe will be downloaded only once. Notice that if delete 
 
 
 
-Subtasks
-========
+Sub-tasks
+=========
 
 Most of the time we want to apply the same task several times in different contexts.
 
-The task function can return a python-generator that yields dictionaries. Since each subtask must be uniquely identified it requires an additional field ``name``.
+The task function can return a python-generator that yields dictionaries. Since each sub-task must be uniquely identified it requires an additional field ``name``.
 
 Below an example on how to execute PyChecker for all files in a folder.
 
@@ -226,6 +226,21 @@ You can define group of tasks by adding tasks as dependencies and setting its ac
   mygroup => Group: :foo, :bar
 
 Notice that a task is never executed twice in the same "run".
+
+
+Environment setup
+==================
+
+Some tasks require some kind of environment setup/cleanup. Tasks can get a "setup" object. This object can optionally define a "setup" and a "cleanup" method. Multiple tasks can share the same setup object.
+
+* the setup will be executed before the first task that uses this object is executed
+* if no task that uses this object is called it is never setup
+* if the setup has already been called it won't be executed again for a different task
+* the cleanup method is executed after all have finished their execution.
+
+Example:
+
+.. literalinclude:: tutorial/setup.py
 
 
 Putting all together
@@ -269,12 +284,14 @@ list
 forget
   clear successful run status from DB
 
-template
+dodo-sample
   create a dodo.py template file
 
 
 * 'run' is the default command, so if you don't specify any command 'run' will be used.
 
-* Commands that take a dodo file as a parameter will use the file named ``dodo.py`` on the current folder as default. to specify another file containg task. use the file parameter ``-f``.
+* Commands that take a dodo file as a parameter will use the file named ``dodo.py`` on the current folder as default. to specify another file containing task. use the file parameter ``-f``.
 
 * ``doit`` creates a file ``.doit.db`` where information of previous runs are saved.
+
+* by default all tasks are executed on "run". You can add a module variable `DEFAULT_TASKS` to change this. This must be a list of string with task names.
