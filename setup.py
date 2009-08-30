@@ -3,7 +3,7 @@ from distutils.core import setup
 
 setup(name = 'doit',
       description = 'doit - Automation Tool',
-      version = '0.2.0',
+      version = '0.3.0',
       license= 'MIT',
       author = 'Eduardo Naufel Schettino',
       author_email = 'schettino72@gmail.com',
