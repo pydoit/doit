@@ -5,7 +5,6 @@ import traceback
 from __builtin__ import callable as is_callable
 
 from doit import logger
-from doit.exception import TaskError, TaskFailed, InvalidTask
 
 # Exceptions
 class InvalidTask(Exception):
