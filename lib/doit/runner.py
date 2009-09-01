@@ -5,7 +5,8 @@ import traceback
 import os
 
 from doit import logger
-from doit.task import BaseTask, TaskFailed
+from doit.task import BaseTask
+from doit.exception import TaskFailed
 from doit.dependency import Dependency
 
 #: execution result.

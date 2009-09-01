@@ -1,30 +1,12 @@
 """Task classes."""
+from doit.action import create_action
+from doit.exception import InvalidTask
 
-import subprocess, sys
-import StringIO
-import traceback
-
-from doit import logger
-
-
-class InvalidTask(Exception):
-    """Invalid task instance. User error on specifying the task."""
-    pass
-
-class TaskFailed(Exception):
-    """Task execution was not successful."""
-    pass
-
-class TaskError(Exception):
-    """Error while trying to execute task."""
-    pass
 
 # interface
 class BaseTask(object):
     """Base class for all tasks objects
 
-    @cvar CAPTURE_OUT: (bool) stdout from the task to be captured
-    @cvar CAPTURE_ERR: (bool) stderr from the task to be captured
     @ivar name string
     @ivar action see derived classes
     @ivar dependencies list of all dependencies
@@ -36,10 +18,7 @@ class BaseTask(object):
     @ivar is_subtask: (bool) indicate this task is a subtask.
     """
 
-    CAPTURE_OUT = False
-    CAPTURE_ERR = False
-
-    def __init__(self,name,action,dependencies=(),targets=(),setup=None,
+    def __init__(self,name,dependencies=(),targets=(),setup=None,
                  is_subtask=False):
         """Init."""
         # dependencies parameter must be a list
@@ -56,7 +35,7 @@ class BaseTask(object):
             raise InvalidTask(msg % (name, str(targets),type(targets)))
 
         self.name = name
-        self.action = action
+
         self.dependencies = dependencies
         self.targets = targets
         self.setup = setup
@@ -109,139 +88,60 @@ class BaseTask(object):
         return "%s => %s"% (self.name,str(self))
 
 
-class CmdTask(BaseTask):
-    """Command line task. Spawns a new process."""
-
+class SingleActionTask(BaseTask):
+    """
+    Task that contains a single action
+    """
     def __init__(self, name, action, dependencies=(), targets=(), setup=None,
                  is_subtask=False):
         """Init."""
-        assert isinstance(action,str) or isinstance(action, list),\
-            "'action' from CmdTask must be a string or list."
+        BaseTask.__init__(self, name, dependencies, targets, setup, is_subtask)
 
-        if isinstance(action, str):
-            action = [action]
-        BaseTask.__init__(self, name, action, dependencies, targets, setup,
-                          is_subtask)
+        self.action = create_action(action)
+
 
     def execute(self):
-        # set Popen stream parameters
-        if not self.CAPTURE_OUT:
-            stdout = None
-        else:
-            stdout = subprocess.PIPE
-        if not self.CAPTURE_ERR:
-            stderr = None
-        else:
-            stderr = subprocess.PIPE
+        """Executes the task.
 
-        for action in self.action:
-            # spawn task process
-            process = subprocess.Popen(action,stdout=stdout,
-                                     stderr=stderr, shell=True)
-
-            # log captured stream
-            out,err = process.communicate()
-            if out:
-                logger.log('stdout',out)
-            if err:
-                logger.log('stderr',err)
-
-            # task error - based on:
-            # http://www.gnu.org/software/bash/manual/bashref.html#Exit-Status
-            # it doesnt make so much difference to return as Error or Failed anyway
-            if process.returncode > 125:
-                raise TaskError("Command error: '%s' returned %s" %
-                                (self.action,process.returncode))
-
-            # task failure
-            if process.returncode != 0:
-                raise TaskFailed("Command failed: '%s' returned %s" %
-                                 (self.action,process.returncode))
+        @raise TaskFailed:
+        @raise TaskError:
+        """
+        self.action.execute()
 
 
     def __str__(self):
-        return "\n\t".join(["Cmd: %s"% action for action in self.action])
-
-    def __repr__(self):
-        return "<CmdTask: %s - '%s'>"% (self.name, "\n\t".join(self.action))
+        return "\t%s" % self.action
 
 
-
-class PythonTask(BaseTask):
-    """Python task. Execute a python callable.
-
-    @ivar action: (callable) a python callable
-    @ivar args: (sequnce) arguments to be passed to the callable
-    @ivar kwargs: (dict) dict to be passed to the callable
+class MultipleActionTask(BaseTask):
     """
-
-    def __init__(self, name, action, dependencies=(), targets=(), setup=None,
-                 is_subtask=False, args=None, kwargs=None):
+    Task that contains multiple actions
+    """
+    def __init__(self, name, actions, dependencies=(), targets=(), setup=None,
+                 is_subtask=False):
         """Init."""
-        assert callable(action),"'action' from PythonTask must be a 'callable'."
-        BaseTask.__init__(self, name, action, dependencies, targets, setup,
-                          is_subtask)
-        if args is None:
-            self.args = []
-        else:
-            self.args = args
+        assert type(actions) is list, \
+            "'action' from MultiAction must be a list."
 
-        if kwargs is None:
-            self.kwargs = {}
-        else:
-            self.kwargs = kwargs
+        BaseTask.__init__(self, name, dependencies, targets, setup, is_subtask)
+
+        self.actions = [create_action(a) for a in actions]
+
 
     def execute(self):
-        # set std stream
-        if self.CAPTURE_OUT:
-            old_stdout = sys.stdout
-            sys.stdout = StringIO.StringIO()
+        """Executes the task.
 
-        if self.CAPTURE_ERR:
-            old_stderr = sys.stderr
-            sys.stderr = StringIO.StringIO()
+        @raise TaskFailed:
+        @raise TaskError:
+        """
+        for action in self.actions:
+            action.execute()
 
-        # execute action / callable
-        try:
-            # Python2.4
-            try:
-                result = self.action(*self.args,**self.kwargs)
-            # in python 2.4 SystemExit and KeyboardInterrupt subclass
-            # from Exception.
-            except (SystemExit, KeyboardInterrupt), exp:
-                raise
-
-            except Exception, exception:
-                error = TaskError(exception)
-                error.originalException = traceback.format_exception(\
-                    exception.__class__, exception,sys.exc_info()[2])
-                raise error
-        finally:
-            # restore std streams /log captured streams
-            if self.CAPTURE_OUT:
-                logger.log('stdout',sys.stdout.getvalue())
-                sys.stdout.close()
-                sys.stdout = old_stdout
-
-            if self.CAPTURE_ERR:
-                logger.log('stderr',sys.stderr.getvalue())
-                sys.stderr.close()
-                sys.stderr = old_stderr
-
-        # if callable returns false. Task failed
-        if not result:
-            raise TaskFailed("Python Task failed: '%s' returned %s" %
-                             (self.action, result))
 
     def __str__(self):
-        # get object description excluding runtime memory address
-        return "Python: %s"% str(self.action)[1:].split(' at ')[0]
+        return "\n\t".join([str(action) for action in self.actions])
 
-    def __repr__(self):
-        return "<PythonTask: %s - '%s'>"% (self.name,repr(self.action))
-
-
-
+            
 class GroupTask(BaseTask):
     """Do nothing. Used to create group tasks
     Group is actually defined by dependencies.
@@ -257,7 +157,7 @@ class GroupTask(BaseTask):
 
 
 
-def create_task(name,action,dependencies,targets,setup,*args,**kwargs):
+def create_task(name,action,dependencies,targets,setup):
     """ create a BaseTask acording to action type
 
     @param name: (string) task name
@@ -268,16 +168,13 @@ def create_task(name,action,dependencies,targets,setup,*args,**kwargs):
     @param args: optional positional arguments for task.
     @param kwargs: optional keyword arguments for task.
     """
-    # a string.
-    if isinstance(action,str) or isinstance(action,list):
-        return CmdTask(name,action,dependencies,targets,setup)
-    # a callable.
-    elif callable(action):
-        return PythonTask(name,action,dependencies,targets,setup,*args,**kwargs)
-    elif action is None:
-        return GroupTask(name,action,dependencies,targets,setup)
+    if action is None:
+        return GroupTask(name,dependencies,targets,setup)
+    elif type(action) is list:
+        return MultipleActionTask(name,action,dependencies,targets,setup)
     else:
-        raise InvalidTask("Invalid task type. %s:%s" % (name,action.__class__))
+        return SingleActionTask(name,action,dependencies,targets,setup)
+
 
 def dict_to_task(task_dict):
     """Create a task instance from dictionary.
@@ -289,7 +186,7 @@ def dict_to_task(task_dict):
     @raise L{InvalidTask}:
     """
     # TASK_ATTRS: sequence of know attributes(keys) of a task dict.
-    TASK_ATTRS = ('name','action','dependencies','targets','args','kwargs','setup')
+    TASK_ATTRS = ('name','action','dependencies','targets','setup')
     # FIXME check field 'name'
 
     # check required fields
@@ -308,7 +205,5 @@ def dict_to_task(task_dict):
                        task_dict.get('dependencies',[]),
                        task_dict.get('targets',[]),
                        task_dict.get('setup',None),
-                       args=task_dict.get('args',[]),
-                       kwargs=task_dict.get('kwargs',{}))
-
+                       )
 
