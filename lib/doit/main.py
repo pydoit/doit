@@ -4,7 +4,7 @@ import sys
 import inspect
 
 from doit.util import isgenerator
-from doit.task import InvalidTask, BaseTask, GroupTask, dict_to_task
+from doit.task import InvalidTask, Task, dict_to_task
 from doit import dependency
 from doit import runner
 
@@ -48,7 +48,7 @@ def load_task_generators(dodo_module, command_names=()):
     @param dodo_module: (module) module containing the tasks
     @param command_names: (list - str) blacklist for task names
     @return (dict):
-     - task_list (list) of BaseTasks in the order they were defined on the file
+     - task_list (list) of Tasks in the order they were defined on the file
      - default_tasks (list) of tasks to be executed by default
     """
 
@@ -142,9 +142,9 @@ class TaskSetup(object):
 
     @ivar filter: (sequence of strings) selection of tasks to execute
     @ivar tasks: (dict) Key: task name ([taskgen.]name)
-                               Value: L{BaseTask} instance
+                               Value: L{Task} instance
     @ivar targets: (dict) Key: fileName
-                          Value: L{BaseTask} instance
+                          Value: L{Task} instance
     """
 
     def __init__(self, task_list, filter_=None):
@@ -160,9 +160,9 @@ class TaskSetup(object):
 
         # sanity check and create tasks dict
         for task in task_list:
-            # task must be a BaseTask
-            if not isinstance(task, BaseTask):
-                msg = "Task must an instance of BaseTask class. %s"
+            # task must be a Task
+            if not isinstance(task, Task):
+                msg = "Task must an instance of Task class. %s"
                 raise InvalidTask(msg % (task.__class__))
             # task name must be unique
             if task.name in self.tasks:
@@ -294,7 +294,7 @@ def doit_list(task_list, printSubtasks):
 def doit_forget(dbFileName, taskList, forgetTasks):
     """remove saved data successful runs from DB
     @param dbFileName: (str)
-    @param task_list: (BaseTask) tasks from dodo file
+    @param task_list: (Task) tasks from dodo file
     @param forget_tasks: (list - str) tasks to be removed. remove all if
                          empty list.
     """

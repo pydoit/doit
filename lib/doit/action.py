@@ -8,27 +8,7 @@ from doit import logger
 from doit.exception import TaskError, TaskFailed, InvalidTask
 
 class BaseAction(object):
-    """
-    Base class for all action objects
-
-    @cvar CAPTURE_OUT: (bool) stdout from the task to be captured
-    @cvar CAPTURE_ERR: (bool) stderr from the task to be captured
-    """
-    CAPTURE_OUT = False
-    CAPTURE_ERR = False
-
-    def __init__(self, action):
-        """Init."""
-        self.action = action
-
-
-    def execute(self):
-        """Executes the task.
-
-        @raise TaskFailed:
-        @raise TaskError:
-        """
-        raise Exception("Not Implemented")
+    pass
 
 
 class CmdAction(BaseAction):
@@ -39,17 +19,15 @@ class CmdAction(BaseAction):
     def __init__(self, action):
         assert isinstance(action,str), \
             "'action' from CmdAction must be a string."
-        
-        BaseAction.__init__(self, action)
+        self.action = action
 
-
-    def execute(self):
+    def execute(self, capture_stdout = False, capture_stderr = False):
         # set Popen stream parameters
-        if not self.CAPTURE_OUT:
+        if not capture_stdout:
             stdout = None
         else:
             stdout = subprocess.PIPE
-        if not self.CAPTURE_ERR:
+        if not capture_stderr:
             stderr = None
         else:
             stderr = subprocess.PIPE
@@ -94,8 +72,8 @@ class PythonAction(BaseAction):
     def __init__(self, callable, args = None, kwargs = None):
         """Init."""
         assert is_callable(callable),"'action' from PythonAction must be a 'callable'."
-        BaseAction.__init__(self, callable)
 
+        self.callable = callable
         if args is None:
             self.args = []
         else:
@@ -106,13 +84,13 @@ class PythonAction(BaseAction):
         else:
             self.kwargs = kwargs
 
-    def execute(self):
+    def execute(self, capture_stdout = False, capture_stderr = False):
         # set std stream
-        if self.CAPTURE_OUT:
+        if capture_stdout:
             old_stdout = sys.stdout
             sys.stdout = StringIO.StringIO()
 
-        if self.CAPTURE_ERR:
+        if capture_stderr:
             old_stderr = sys.stderr
             sys.stderr = StringIO.StringIO()
 
@@ -120,7 +98,7 @@ class PythonAction(BaseAction):
         try:
             # Python2.4
             try:
-                result = self.action(*self.args,**self.kwargs)
+                result = self.callable(*self.args,**self.kwargs)
             # in python 2.4 SystemExit and KeyboardInterrupt subclass
             # from Exception.
             except (SystemExit, KeyboardInterrupt), exp:
@@ -133,12 +111,12 @@ class PythonAction(BaseAction):
                 raise error
         finally:
             # restore std streams /log captured streams
-            if self.CAPTURE_OUT:
+            if capture_stdout:
                 logger.log('stdout',sys.stdout.getvalue())
                 sys.stdout.close()
                 sys.stdout = old_stdout
 
-            if self.CAPTURE_ERR:
+            if capture_stderr:
                 logger.log('stderr',sys.stderr.getvalue())
                 sys.stderr.close()
                 sys.stderr = old_stderr
@@ -146,11 +124,11 @@ class PythonAction(BaseAction):
         # if callable returns false. Task failed
         if not result:
             raise TaskFailed("Python Task failed: '%s' returned %s" %
-                             (self.action, result))
+                             (self.callable, result))
 
     def __str__(self):
         # get object description excluding runtime memory address
-        return "Python: %s"% str(self.action)[1:].split(' at ')[0]
+        return "Python: %s"% str(self.callable)[1:].split(' at ')[0]
 
     def __repr__(self):
         return "<PythonAction: %s>"% (repr(self.action))

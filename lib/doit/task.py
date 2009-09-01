@@ -4,7 +4,7 @@ from doit.exception import InvalidTask
 
 
 # interface
-class BaseTask(object):
+class Task(object):
     """Base class for all tasks objects
 
     @ivar name string
@@ -18,7 +18,7 @@ class BaseTask(object):
     @ivar is_subtask: (bool) indicate this task is a subtask.
     """
 
-    def __init__(self,name,dependencies=(),targets=(),setup=None,
+    def __init__(self,name,actions,dependencies=(),targets=(),setup=None,
                  is_subtask=False):
         """Init."""
         # dependencies parameter must be a list
@@ -35,6 +35,11 @@ class BaseTask(object):
             raise InvalidTask(msg % (name, str(targets),type(targets)))
 
         self.name = name
+
+        if type(actions) is list:
+            self.actions = [create_action(a) for a in actions]
+        else:
+            self.actions = [create_action(actions)]
 
         self.dependencies = dependencies
         self.targets = targets
@@ -77,7 +82,8 @@ class BaseTask(object):
         @raise TaskFailed:
         @raise TaskError:
         """
-        raise Exception("Not Implemented")
+        for action in self.actions:
+            action.execute()
 
 
     def title(self):
@@ -88,92 +94,11 @@ class BaseTask(object):
         return "%s => %s"% (self.name,str(self))
 
 
-class SingleActionTask(BaseTask):
-    """
-    Task that contains a single action
-    """
-    def __init__(self, name, action, dependencies=(), targets=(), setup=None,
-                 is_subtask=False):
-        """Init."""
-        BaseTask.__init__(self, name, dependencies, targets, setup, is_subtask)
-
-        self.action = create_action(action)
-
-
-    def execute(self):
-        """Executes the task.
-
-        @raise TaskFailed:
-        @raise TaskError:
-        """
-        self.action.execute()
-
-
-    def __str__(self):
-        return "\t%s" % self.action
-
-
-class MultipleActionTask(BaseTask):
-    """
-    Task that contains multiple actions
-    """
-    def __init__(self, name, actions, dependencies=(), targets=(), setup=None,
-                 is_subtask=False):
-        """Init."""
-        assert type(actions) is list, \
-            "'action' from MultiAction must be a list."
-
-        BaseTask.__init__(self, name, dependencies, targets, setup, is_subtask)
-
-        self.actions = [create_action(a) for a in actions]
-
-
-    def execute(self):
-        """Executes the task.
-
-        @raise TaskFailed:
-        @raise TaskError:
-        """
-        for action in self.actions:
-            action.execute()
-
-
     def __str__(self):
         return "\n\t".join([str(action) for action in self.actions])
 
-            
-class GroupTask(BaseTask):
-    """Do nothing. Used to create group tasks
-    Group is actually defined by dependencies.
-    """
-    def execute(self):
-        pass
-
-    def __str__(self):
-        return "Group: %s" % ", ".join(self.dependencies)
-
     def __repr__(self):
-        return "<GroupTask: %s>"% self.name
-
-
-
-def create_task(name,action,dependencies,targets,setup):
-    """ create a BaseTask acording to action type
-
-    @param name: (string) task name
-    @param action: value dependes on the type of the task
-    @param dependencies: (list of strings) each item is a file path or
-    another task (prefixed with ':')
-    @param targets: (list of strings) items are file paths.
-    @param args: optional positional arguments for task.
-    @param kwargs: optional keyword arguments for task.
-    """
-    if action is None:
-        return GroupTask(name,dependencies,targets,setup)
-    elif type(action) is list:
-        return MultipleActionTask(name,action,dependencies,targets,setup)
-    else:
-        return SingleActionTask(name,action,dependencies,targets,setup)
+        return "<Task: %s>"% self.name
 
 
 def dict_to_task(task_dict):
@@ -186,12 +111,12 @@ def dict_to_task(task_dict):
     @raise L{InvalidTask}:
     """
     # TASK_ATTRS: sequence of know attributes(keys) of a task dict.
-    TASK_ATTRS = ('name','action','dependencies','targets','setup')
+    TASK_ATTRS = ('name','actions','dependencies','targets','setup')
     # FIXME check field 'name'
 
     # check required fields
-    if 'action' not in task_dict:
-        raise InvalidTask("Task %s must contain field action. %s"%
+    if 'actions' not in task_dict:
+        raise InvalidTask("Task %s must contain 'actions' field. %s" %
                           (task_dict['name'],task_dict))
 
     # user friendly. dont go ahead with invalid input.
@@ -200,10 +125,9 @@ def dict_to_task(task_dict):
             raise InvalidTask("Task %s contain invalid field: %s"%
                               (task_dict['name'],key))
 
-    return create_task(task_dict.get('name'),
-                       task_dict.get('action'),
-                       task_dict.get('dependencies',[]),
-                       task_dict.get('targets',[]),
-                       task_dict.get('setup',None),
-                       )
-
+    return Task(task_dict.get('name'),
+                task_dict.get('actions'),
+                task_dict.get('dependencies',[]),
+                task_dict.get('targets',[]),
+                task_dict.get('setup',None),
+                )
