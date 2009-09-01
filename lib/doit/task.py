@@ -160,7 +160,7 @@ class CmdAction(BaseAction):
 
     def __init__(self, action):
         assert isinstance(action,str), \
-            "'action' from CmdAction must be a string."
+            "CmdAction must be a string."
         self.action = action
 
     def execute(self, capture_stdout = False, capture_stderr = False):
@@ -213,7 +213,7 @@ class PythonAction(BaseAction):
     """
     def __init__(self, callable, args = None, kwargs = None):
         """Init."""
-        assert is_callable(callable),"'action' from PythonAction must be a 'callable'."
+        assert is_callable(callable),"PythonAction must be a 'callable'."
 
         self.callable = callable
         if args is None:

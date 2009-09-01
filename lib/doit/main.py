@@ -130,7 +130,7 @@ def generate_tasks(name, gen_result):
         return tasks
 
     # if not a dictionary nor a generator. "task" is the action itself.
-    return [dict_to_task({'name':name,'action':gen_result})]
+    return [dict_to_task({'name':name,'actions':gen_result})]
 
 
 # this name is confusing with task.setup which it doesnt have any relation...
