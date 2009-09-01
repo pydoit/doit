@@ -315,7 +315,7 @@ def doit_forget(dbFileName, taskList, forgetTasks):
             group = [taskName]
             while group:
                 to_forget = group.pop(0)
-                if tasks[to_forget].action is None:
+                if tasks[to_forget].actions is None:
                     # get task dependencies only from group-task
                     group.extend(tasks[to_forget].task_dep)
                 # forget it - remove from dependency file
