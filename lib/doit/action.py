@@ -66,7 +66,7 @@ class PythonAction(BaseAction):
     """Python action. Execute a python callable.
 
     @ivar action: (callable) a python callable
-    @ivar args: (sequnce) arguments to be passed to the callable
+    @ivar args: (sequence) arguments to be passed to the callable
     @ivar kwargs: (dict) dict to be passed to the callable
     """
     def __init__(self, callable, args = None, kwargs = None):
@@ -144,8 +144,8 @@ def create_action(action):
     if type(action) is str:
         return CmdAction(action)
 
-    if type(action) is dict:
-        return PythonAction(**action)
+    if type(action) is tuple:
+        return PythonAction(*action)
 
     if is_callable(action):
         return PythonAction(action)
