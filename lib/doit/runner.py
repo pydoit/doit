@@ -5,8 +5,7 @@ import traceback
 import os
 
 from doit import logger
-from doit.task import Task
-from doit.exception import TaskFailed
+from doit.task import Task, TaskFailed
 from doit.dependency import Dependency
 
 #: execution result.
@@ -29,8 +28,8 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
     @param alwaysExecute: (bool) execute even if up-to-date
     """
     # FIXME, pass this as parameter to task.execute()
-    Task.CAPTURE_OUT = verbosity < 2
-    Task.CAPTURE_ERR = verbosity == 0
+    capture_stdout = verbosity < 2
+    capture_stderr = verbosity == 0
     dependencyManager = Dependency(dependencyFile)
     errorException = None  # Exception instance, in case of error
     result = SUCCESS
@@ -70,7 +69,7 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
                     if hasattr(task.setup, 'setup'):
                         task.setup.setup()
                 # finally execute it
-                task.execute()
+                task.execute(capture_stdout, capture_stderr)
                 #save execution successful
                 if task.run_once:
                     dependencyManager.save_run_once(task.name)
