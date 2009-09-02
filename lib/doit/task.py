@@ -132,8 +132,15 @@ def dict_to_task(task_dict):
 
     # check required fields
     if 'actions' not in task_dict:
-        raise InvalidTask("Task %s must contain 'actions' field. %s" %
-                          (task_dict['name'],task_dict))
+        if 'action' in task_dict:
+            task_dict['actions'] = task_dict['action']
+            del task_dict['action']
+            print ("WARNING Task %s contains 'action' key. "
+                   "This will be deprecated in future versions, "
+                   "please use 'actions' instead" % task_dict['name'])
+        else:
+            raise InvalidTask("Task %s must contain 'actions' field. %s" %
+                              (task_dict['name'],task_dict))
 
     # user friendly. dont go ahead with invalid input.
     for key in task_dict.keys():
