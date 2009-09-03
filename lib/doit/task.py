@@ -343,7 +343,7 @@ def dict_to_task(task_dict):
         if 'action' in task_dict:
             task_dict['actions'] = task_dict['action']
             del task_dict['action']
-            print ("WARNING Task %s contains 'action' key. "
+            print ("DEPRECATION WARNING Task %s contains 'action' key. "
                    "This will be deprecated in future versions, "
                    "please use 'actions' instead" % task_dict['name'])
         else:
