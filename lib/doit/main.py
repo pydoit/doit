@@ -108,7 +108,7 @@ def generate_tasks(name, gen_result):
 
     # a generator
     if isgenerator(gen_result):
-        group_task = GroupTask(name, None)
+        group_task = Task(name)
         tasks = [group_task]
         # the generator return subtasks as dictionaries .
         for task_dict in gen_result:

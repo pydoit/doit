@@ -240,7 +240,7 @@ class Task(object):
     @ivar is_subtask: (bool) indicate this task is a subtask.
     """
 
-    def __init__(self,name,actions,dependencies=(),targets=(),setup=None,
+    def __init__(self,name,actions=None,dependencies=(),targets=(),setup=None,
                  is_subtask=False):
         """Init."""
         # dependencies parameter must be a list
@@ -258,7 +258,9 @@ class Task(object):
 
         self.name = name
 
-        if type(actions) is list:
+        if actions is None:
+            self.actions = []
+        elif type(actions) is list:
             self.actions = [create_action(a) for a in actions]
         else:
             self.actions = [create_action(actions)]
