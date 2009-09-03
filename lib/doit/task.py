@@ -20,20 +20,42 @@ class TaskError(Exception):
 
 # Actions
 class BaseAction(object):
+    """Base class for all actions"""
     pass
 
 
 class CmdAction(BaseAction):
     """
     Command line action. Spawns a new process.
+
+    @type action: str
+    @ivar action: Command to be passed to the shell subprocess
     """
 
     def __init__(self, action):
+        """
+        Init.
+
+        @type action: str
+        @param action: Command to be passed to the shell subprocess
+        """
         assert isinstance(action,str), \
             "CmdAction must be a string."
         self.action = action
 
     def execute(self, capture_stdout = False, capture_stderr = False):
+        """
+        Execute command action
+
+        @type capture_stdout: bool
+        @param capture_stdout: Capture standard output
+        @type capture_err: bool
+        @param capture_err: Capture standard error
+
+        @raise TaskError: If subprocess return code is greater than 125
+        @raise TaskFailed: If subprocess return code isn't zero (and
+        not greater than 125)
+        """
         # set Popen stream parameters
         if not capture_stdout:
             stdout = None
@@ -77,12 +99,26 @@ class CmdAction(BaseAction):
 class PythonAction(BaseAction):
     """Python action. Execute a python callable.
 
-    @ivar action: (py_callable) a python callable
-    @ivar args: (sequence) arguments to be passed to the callable
-    @ivar kwargs: (dict) dict to be passed to the callable
+    @type py_callable: callable
+    @ivar py_callable: Python callable that returns a boolean
+    result depending on the success of the action
+    @type args: tuple or list
+    @ivar args: Extra arguments to be passed to py_callable
+    @type kwargs: dict
+    @ivar kwargs: Extra keyword arguments to be passed to py_callable
     """
     def __init__(self, py_callable, args = None, kwargs = None):
-        """Init."""
+        """
+        Init.
+
+        @type py_callable: callable
+        @param py_callable: Python callable that returns a boolean
+        result depending on the success of the action
+        @type args: tuple or list
+        @param args: Extra arguments to be passed to py_callable
+        @type kwargs: dict
+        @param kwargs: Extra keyword arguments to be passed to py_callable
+        """
         if not callable(py_callable):
             raise InvalidTask("PythonAction must be a 'callable'.")
 
@@ -104,6 +140,16 @@ class PythonAction(BaseAction):
             self.kwargs = kwargs
 
     def execute(self, capture_stdout = False, capture_stderr = False):
+        """
+        Execute command action
+
+        @type capture_stdout: bool
+        @param capture_stdout: Capture standard output
+        @type capture_err: bool
+        @param capture_err: Capture standard error
+
+        @raise TaskFailed: If py_callable returns False
+        """
         # set std stream
         if capture_stdout:
             old_stdout = sys.stdout
@@ -152,10 +198,14 @@ class PythonAction(BaseAction):
     def __repr__(self):
         return "<PythonAction: %s>"% (repr(self.action))
 
-        
+
 def create_action(action):
     """
     Create action using proper constructor based on the parameter type
+
+    @param action: Action to be created 
+    @type action: L{BaseAction} subclass object, str, tuple or callable
+    @raise InvalidTask: If action parameter type isn't valid
     """
     # Don't change a subclass object from BaseAction
     # this way any custom action can be written in the future
@@ -251,8 +301,8 @@ class Task(object):
     def execute(self, capture_stdout = False, capture_stderr = False):
         """Executes the task.
 
-        @raise TaskFailed:
-        @raise TaskError:
+        @raise TaskFailed: If raised when executing an action
+        @raise TaskError: If raised when executing an action
         """
         for action in self.actions:
             action.execute(capture_stdout, capture_stderr)
@@ -261,7 +311,8 @@ class Task(object):
     def title(self):
         """String representation on output.
 
-        return: (string)
+        @rtype: str
+        @return: Task name and actions
         """
         return "%s => %s"% (self.name,str(self))
 
@@ -279,8 +330,9 @@ def dict_to_task(task_dict):
     The dictionary has the same format as returned by task-generators
     from dodo files.
 
-    @param task_dict: (dict) task representation as a dict.
-    @raise L{InvalidTask}:
+    @type task_dict: dict
+    @param task_dict: task representation as a dict.
+    @raise InvalidTask: If unexpected fields were passed in task_dict
     """
     # TASK_ATTRS: sequence of know attributes(keys) of a task dict.
     TASK_ATTRS = ('name','actions','dependencies','targets','setup')
