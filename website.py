@@ -9,7 +9,7 @@ buildPath = docRoot + '_build/html/'
 # generate API docs.
 def task_epydoc():
     targetPath = buildPath + 'api/'
-    return {'action':"epydoc --config epydoc.config -o %s"% targetPath,
+    return {'actions':"epydoc --config epydoc.config -o %s"% targetPath,
             'dependencies': srcFiles + [targetPath],
             'targets': [targetPath + 'index.html']}
 
