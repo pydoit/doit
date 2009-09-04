@@ -3,7 +3,7 @@ import sys, StringIO
 
 import nose.tools
 
-from doit.task import InvalidTask, CmdTask, GroupTask
+from doit.task import InvalidTask, Task
 from doit.main import InvalidDodoFile, InvalidCommand
 from doit.main import get_module, load_task_generators, generate_tasks
 from doit.main import TaskSetup, doit_list, doit_run, doit_forget
@@ -13,7 +13,7 @@ class TestGenerateTasks(object):
 
     def testDict(self):
         tasks = generate_tasks("dict",{'action':'xpto 14'})
-        assert isinstance(tasks[0],CmdTask)
+        assert isinstance(tasks[0],Task)
 
     # name field is only for subtasks.
     def testInvalidNameField(self):
@@ -22,7 +22,7 @@ class TestGenerateTasks(object):
 
     def testActionAsString(self):
         tasks = generate_tasks("dict",'xpto 14')
-        assert isinstance(tasks[0],CmdTask)
+        assert isinstance(tasks[0],Task)
 
 
     def testGenerator(self):
@@ -30,7 +30,7 @@ class TestGenerateTasks(object):
             for i in range(3):
                 yield {'name':str(i), 'action' :"xpto -%d"%i}
         tasks = generate_tasks("xpto", f_xpto())
-        assert isinstance(tasks[0], GroupTask)
+        assert isinstance(tasks[0], Task)
         assert 4 == len(tasks)
         assert "xpto:0" == tasks[1].name
         assert not tasks[0].is_subtask
@@ -119,43 +119,43 @@ class TestDodoDefaultTasks(object):
 class TestTaskSetupInit(object):
 
     def test_addTask(self):
-        t1 = GroupTask("taskX", None)
-        t2 = GroupTask("taskY", None)
+        t1 = Task("taskX", None)
+        t2 = Task("taskY", None)
         ts = TaskSetup([t1, t2])
         assert 2 == len(ts.tasks)
 
     def test_targetDependency(self):
-        t1 = GroupTask("taskX", None,[],['intermediate'])
-        t2 = GroupTask("taskY", None,['intermediate'],[])
+        t1 = Task("taskX", None,[],['intermediate'])
+        t2 = Task("taskY", None,['intermediate'],[])
         TaskSetup([t1,t2])
         assert ['taskX'] == t2.task_dep
 
     # 2 tasks can not have the same name
     def test_addTaskSameName(self):
-        t1 = GroupTask("taskX", None)
-        t2 = GroupTask("taskX", None)
+        t1 = Task("taskX", None)
+        t2 = Task("taskX", None)
         nose.tools.assert_raises(InvalidDodoFile, TaskSetup, [t1, t2])
 
     def test_addInvalidTask(self):
         nose.tools.assert_raises(InvalidTask, TaskSetup, [666])
 
     def test_userErrorTaskDependency(self):
-        tasks = [GroupTask('wrong', None,[":typo"])]
+        tasks = [Task('wrong', None,[":typo"])]
         nose.tools.assert_raises(InvalidTask, TaskSetup, tasks)
 
     def test_sameTarget(self):
-        tasks = [GroupTask('t1',None,[],["fileX"]),
-                 GroupTask('t2',None,[],["fileX"])]
+        tasks = [Task('t1',None,[],["fileX"]),
+                 Task('t2',None,[],["fileX"])]
         nose.tools.assert_raises(InvalidTask, TaskSetup, tasks)
 
 
 
-TASKS_SAMPLE = [CmdTask("t1", ""),
-                CmdTask("t2", ""),
-                GroupTask("g1", None),
-                CmdTask("g1.a", "", is_subtask=True),
-                CmdTask("g1.b", "", is_subtask=True),
-                CmdTask("t3", "")]
+TASKS_SAMPLE = [Task("t1", ""),
+                Task("t2", ""),
+                Task("g1", None),
+                Task("g1.a", "", is_subtask=True),
+                Task("g1.b", "", is_subtask=True),
+                Task("t3", "")]
 TASKS_NAME = ['t1', 't2', 'g1', 't3']
 TASKS_ALL_NAME = ['t1', 't2', 'g1', 'g1.a', 'g1.b', 't3']
 
@@ -172,7 +172,7 @@ class TestTaskSetupFilter(object):
 
     def testFilterTarget(self):
         tasks = list(TASKS_SAMPLE)
-        tasks.append(CmdTask("tX", "",[],["targetX"]))
+        tasks.append(Task("tX", "",[],["targetX"]))
         ts =  TaskSetup(tasks, ["targetX"])
         assert ['tX'] == ts._filter_tasks()
 
@@ -190,13 +190,13 @@ class TestTaskSetupFilter(object):
 class TestOrderTasks(object):
     # same task is not added twice
     def testAddJustOnce(self):
-        ts = TaskSetup([GroupTask("taskX", None)])
+        ts = TaskSetup([Task("taskX", None)])
         result = ts._order_tasks(["taskX"]*2)
         assert 1 == len(result)
 
     def testDetectCyclicReference(self):
-        tasks = [GroupTask("taskX",None,[":taskY"]),
-                 GroupTask("taskY",None,[":taskX"])]
+        tasks = [Task("taskX",None,[":taskY"]),
+                 Task("taskY",None,[":taskX"])]
         ts = TaskSetup(tasks)
         nose.tools.assert_raises(InvalidDodoFile, ts._order_tasks,
                                  ["taskX", "taskY"])
@@ -234,13 +234,13 @@ class TestCmdForget(BaseTestOutput):
         if os.path.exists(TESTDB):
             os.remove(TESTDB)
 
-        self.tasks = [CmdTask("t1", ""),
-                      CmdTask("t2", ""),
-                      GroupTask("g1", None, (':g1.a',':g1.b')),
-                      CmdTask("g1.a", ""),
-                      CmdTask("g1.b", ""),
-                      CmdTask("t3", "", (':t1',)),
-                      GroupTask("g2", None, (':t1',':g1'))]
+        self.tasks = [Task("t1", ""),
+                      Task("t2", ""),
+                      Task("g1", None, (':g1.a',':g1.b')),
+                      Task("g1.a", ""),
+                      Task("g1.b", ""),
+                      Task("t3", "", (':t1',)),
+                      Task("g2", None, (':t1',':g1'))]
 
         dep = Dependency(TESTDB)
         for task in self.tasks:
@@ -266,8 +266,9 @@ class TestCmdForget(BaseTestOutput):
     def testForgetGroup(self):
         doit_forget(TESTDB, self.tasks, ["g2"])
         got = sys.stdout.getvalue().split("\n")[:-1]
+
         dep = Dependency(TESTDB)
-        assert None == dep._get("t1", "dep")
+        assert None == dep._get("t1", "dep"), got
         assert "1" == dep._get("t2", "dep")
         assert None == dep._get("g1", "dep")
         assert None == dep._get("g1.a", "dep")
@@ -297,6 +298,7 @@ class TestCmdRun(BaseTestOutput):
     def testProcessRun(self):
         doit_run(TESTDB, TASKS_SAMPLE)
         got = sys.stdout.getvalue().split("\n")[:-1]
+
         assert ["t1 => Cmd: ",
                 "t2 => Cmd: ",
                 "g1 => Group: ",

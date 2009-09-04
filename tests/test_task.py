@@ -4,86 +4,85 @@ import sys, StringIO
 import nose
 
 from doit import logger
-from doit.task import BaseTask, CmdTask, PythonTask, GroupTask
+from doit.task import Task, dict_to_task
 from doit.task import InvalidTask, TaskError, TaskFailed
-from doit.task import create_task, dict_to_task
 
 #path to test folder
 TEST_PATH = os.path.abspath(__file__+'/../')
 
-class TestBaseTask(object):
+class TestTask(object):
 
     def test_dependencySequenceIsValid(self):
-        BaseTask("Task X","taskcmd",dependencies=["123","456"])
+        Task("Task X","taskcmd",dependencies=["123","456"])
 
     def test_dependencyTrueIsValid(self):
-        t = BaseTask("Task X","taskcmd",dependencies=[True])
+        t = Task("Task X","taskcmd",dependencies=[True])
         assert t.run_once
 
     def test_dependencyFalseIsNotValid(self):
-        nose.tools.assert_raises(InvalidTask,BaseTask,
+        nose.tools.assert_raises(InvalidTask,Task,
                                  "Task X","taskcmd",dependencies=[False])
 
     def test_ruOnce_or_fileDependency(self):
-        nose.tools.assert_raises(InvalidTask,BaseTask,
+        nose.tools.assert_raises(InvalidTask,Task,
                     "Task X","taskcmd",dependencies=[True,"whatever"])
 
     # dependency must be a sequence or bool.
     # give proper error message when anything else is used.
     def test_dependencyNotSequence(self):
         filePath = "data/dependency1"
-        nose.tools.assert_raises(InvalidTask,BaseTask,
+        nose.tools.assert_raises(InvalidTask,Task,
                                  "Task X","taskcmd",dependencies=filePath)
 
     # targets must be a sequence. give proper error message when anything
     # else is used.
     def test_targetNotSequence(self):
         filePath = "data/target1"
-        nose.tools.assert_raises(InvalidTask,BaseTask,
+        nose.tools.assert_raises(InvalidTask,Task,
                                  "Task X","taskcmd",targets=filePath)
 
     def test_title(self):
-        t = BaseTask("MyName","MyAction")
+        t = Task("MyName","MyAction")
         assert "MyName => %s"%str(t) == t.title(), t.title()
 
-    # BaseTask must be subclassed and define an execute method
+    # Task must be subclassed and define an execute method
     def test_mustSubclass(self):
-        t = BaseTask("MyName","MyAction")
+        t = Task("MyName","MyAction")
         nose.tools.assert_raises(Exception, t.execute)
 
 
     # dependency types going to the write place
     def test_dependencyTypes(self):
         dep = ["file1.txt",":taskX","folderA/","pathB/","file2"]
-        t = BaseTask("MyName","MyAction",dep)
+        t = Task("MyName","MyAction",dep)
         assert t.dependencies == dep
         assert t.folder_dep == [dep[2],dep[3]]
         assert t.task_dep == [dep[1][1:]]
         assert t.file_dep == [dep[0],dep[4]]
 
 
-class TestCmdTask(object):
+class TestTask(object):
 
     # if nothing is raised it is successful
     def test_success(self):
-        t = CmdTask("taskX","python %s/sample_process.py"%TEST_PATH)
+        t = Task("taskX","python %s/sample_process.py"%TEST_PATH)
         t.execute()
 
     def test_error(self):
-        t = CmdTask("taskX","python %s/sample_process.py 1 2 3"%TEST_PATH)
+        t = Task("taskX","python %s/sample_process.py 1 2 3"%TEST_PATH)
         nose.tools.assert_raises(TaskError, t.execute)
 
     def test_failure(self):
-        t = CmdTask("taskX","python %s/sample_process.py please fail"%TEST_PATH)
+        t = Task("taskX","python %s/sample_process.py please fail"%TEST_PATH)
         nose.tools.assert_raises(TaskFailed, t.execute)
 
     def test_str(self):
-        t = CmdTask("taskX","python %s/sample_process.py"%TEST_PATH)
+        t = Task("taskX","python %s/sample_process.py"%TEST_PATH)
         assert "Cmd: python %s/sample_process.py"%TEST_PATH == str(t), str(t)
 
     def test_repr(self):
-        t = CmdTask("taskX","python %s/sample_process.py"%TEST_PATH)
-        assert "<CmdTask: taskX - 'python %s/sample_process.py'>"%TEST_PATH \
+        t = Task("taskX","python %s/sample_process.py"%TEST_PATH)
+        assert "<Task: taskX - 'python %s/sample_process.py'>"%TEST_PATH \
             == repr(t), repr(t)
 
 class TestCmdListTask(object):
@@ -98,51 +97,50 @@ class TestCmdListTask(object):
         sys.stdout = self.oldOut
 
     def test_success(self):
-        t = CmdTask("taskX", ["python %s/sample_process.py" % TEST_PATH])
+        t = Task("taskX", ["python %s/sample_process.py" % TEST_PATH])
         t.execute()
 
     def test_failure(self):
-        t = CmdTask("taskX", ["python %s/sample_process.py 1 2 3" % TEST_PATH])
+        t = Task("taskX", ["python %s/sample_process.py 1 2 3" % TEST_PATH])
         nose.tools.assert_raises(TaskError, t.execute)
 
     # make sure all cmds are being executed.
     def test_many(self):
-        BaseTask.CAPTURE_OUT = True
-        t = CmdTask("taskX",["python %s/sample_process.py hi_stdout hi2"%TEST_PATH,
-                             "python %s/sample_process.py hi_list hi6"%TEST_PATH])
-        t.execute()
+        t = Task("taskX",["python %s/sample_process.py hi_stdout hi2"%TEST_PATH,
+                          "python %s/sample_process.py hi_list hi6"%TEST_PATH])
+        t.execute(capture_stdout=True)
         assert "" == sys.stdout.getvalue()
         logger.flush('stdout',sys.stdout)
         assert "hi_stdouthi_list" == sys.stdout.getvalue(),repr(sys.stdout.getvalue())
 
 
     def test_fail_first(self):
-        t = CmdTask("taskX", ["python %s/sample_process.py 1 2 3" % TEST_PATH,
+        t = Task("taskX", ["python %s/sample_process.py 1 2 3" % TEST_PATH,
                               "python %s/sample_process.py " % TEST_PATH])
         nose.tools.assert_raises(TaskError, t.execute)
 
     def test_fail_second(self):
-        t = CmdTask("taskX", ["python %s/sample_process.py 1 2" % TEST_PATH,
+        t = Task("taskX", ["python %s/sample_process.py 1 2" % TEST_PATH,
                               "python %s/sample_process.py 1 2 3" % TEST_PATH])
         nose.tools.assert_raises(TaskError, t.execute)
 
 
 # it is also possible to pass any python callable
-class TestPythonTask(object):
+class TestTask(object):
 
     def test_success(self):
         def success_sample():return True
-        t = PythonTask("taskX",success_sample)
+        t = Task("taskX",success_sample)
         t.execute() # nothing raised it was successful
 
     def test_error(self):
         def error_sample(): raise Exception("asdf")
-        t = PythonTask("taskX",error_sample)
+        t = Task("taskX",error_sample)
         nose.tools.assert_raises(TaskError,t.execute)
 
     def test_fail(self):
         def fail_sample():return False
-        t = PythonTask("taskX",fail_sample)
+        t = Task("taskX",fail_sample)
         nose.tools.assert_raises(TaskFailed,t.execute)
 
     # any callable should work, not only functions
@@ -151,7 +149,7 @@ class TestPythonTask(object):
             def __call__(self):
                 return False
 
-        t = PythonTask("taskX",CallMe())
+        t = Task("taskX",CallMe())
         nose.tools.assert_raises(TaskFailed,t.execute)
 
     # helper to test callable with parameters
@@ -162,48 +160,48 @@ class TestPythonTask(object):
             return False
 
     def test_functionParametersArgs(self):
-        t = PythonTask("taskX",self._func_par,args=(2,2,25))
+        t = Task("taskX",self._func_par,args=(2,2,25))
         t.execute()
 
     def test_functionParametersKwargs(self):
-        t = PythonTask("taskX",self._func_par,
+        t = Task("taskX",self._func_par,
                        kwargs={'par1':2,'par2':2,'par3':25})
         t.execute()
 
     def test_functionParameters(self):
-        t = PythonTask("taskX",self._func_par,args=(2,2),
+        t = Task("taskX",self._func_par,args=(2,2),
                        kwargs={'par3':25})
         t.execute()
 
     def test_functionParametersFail(self):
-        t = PythonTask("taskX",self._func_par,
+        t = Task("taskX",self._func_par,
                        args=(2,3),kwargs={'par3':25})
         nose.tools.assert_raises(TaskFailed,t.execute)
 
     def test_str(self):
         def str_sample(): return True
-        t = PythonTask("taskX",str_sample)
+        t = Task("taskX",str_sample)
         assert "Python: function str_sample" == str(t), "'%s'"%str(t)
 
     def test_repr(self):
         def repr_sample(): return True
-        t = PythonTask("taskX",repr_sample)
-        assert "<PythonTask: taskX - '%s'>"%repr(repr_sample) == repr(t)
+        t = Task("taskX",repr_sample)
+        assert "<Task: taskX - '%s'>"%repr(repr_sample) == repr(t)
 
 
 
-class TestGroupTask(object):
+class TestTask(object):
     def test_success(self):
-        t = GroupTask("taskX",None)
+        t = Task("taskX",None)
         t.execute()
 
     def test_str(self):
-        t = GroupTask("taskX",None,('t1','t2'))
+        t = Task("taskX",None,('t1','t2'))
         assert "Group: t1, t2" == str(t), "'%s'"%str(t)
 
     def test_repr(self):
-        t = GroupTask("taskX",None,('t1','t2'))
-        assert "<GroupTask: taskX>" == repr(t), repr(t)
+        t = Task("taskX",None,('t1','t2'))
+        assert "<Task: taskX>" == repr(t), repr(t)
 
 
 
@@ -221,9 +219,8 @@ class TestCmdVerbosityStderr(object):
 
     # Capture stderr
     def test_capture(self):
-        BaseTask.CAPTURE_ERR = True
-        t = CmdTask("taskX","python %s/sample_process.py please fail"%TEST_PATH)
-        nose.tools.assert_raises(TaskFailed,t.execute)
+        t = Task("taskX","python %s/sample_process.py please fail"%TEST_PATH)
+        nose.tools.assert_raises(TaskFailed,t.execute, capture_stderr=True)
         assert "" == sys.stderr.getvalue()
         logger.flush('stderr',sys.stderr)
         assert "err output on failure" == sys.stderr.getvalue(), repr(sys.stderr.getvalue())
@@ -234,9 +231,8 @@ class TestCmdVerbosityStderr(object):
     # i dont know how to test this (in a reasonable easy way).
     # the stream is sent straight to the parent process from doit.
     def test_noCapture(self):
-        BaseTask.CAPTURE_ERR = False
-        t = CmdTask("taskX","python %s/sample_process.py please fail"%TEST_PATH)
-        nose.tools.assert_raises(TaskFailed,t.execute)
+        t = Task("taskX","python %s/sample_process.py please fail"%TEST_PATH)
+        nose.tools.assert_raises(TaskFailed,t.execute, capture_stderr = False)
         assert "" == sys.stderr.getvalue(),repr(sys.stderr.getvalue())
         logger.flush('stderr',sys.stderr)
         assert "" == sys.stderr.getvalue(),repr(sys.stderr.getvalue())
@@ -256,9 +252,8 @@ class TestCmdVerbosityStdout(object):
 
     # Capture stdout
     def test_capture(self):
-        BaseTask.CAPTURE_OUT = True
-        t = CmdTask("taskX","python %s/sample_process.py hi_stdout hi2"%TEST_PATH)
-        t.execute()
+        t = Task("taskX","python %s/sample_process.py hi_stdout hi2"%TEST_PATH)
+        t.execute(capture_stdout = True)
         assert "" == sys.stdout.getvalue()
         logger.flush('stdout',sys.stdout)
         assert "hi_stdout" == sys.stdout.getvalue(),repr(sys.stdout.getvalue())
@@ -269,9 +264,8 @@ class TestCmdVerbosityStdout(object):
     # i dont know how to test this (in a reasonable easy way).
     # the stream is sent straight to the parent process from doit.
     def test_noCapture(self):
-        BaseTask.CAPTURE_OUT = False
-        t = CmdTask("taskX","python %s/sample_process.py hi_stdout hi2"%TEST_PATH)
-        t.execute()
+        t = Task("taskX","python %s/sample_process.py hi_stdout hi2"%TEST_PATH)
+        t.execute(capture_stdout = False)
         assert "" == sys.stdout.getvalue(),repr(sys.stdout.getvalue())
         logger.flush('stdout',sys.stdout)
         assert "" == sys.stdout.getvalue(),repr(sys.stdout.getvalue())
@@ -307,27 +301,24 @@ class TestPythonVerbosityStderr(object):
     #
     # success
     def test_captureSuccess(self):
-        BaseTask.CAPTURE_ERR = True
-        t = PythonTask("taskX",self.write_and_success)
-        t.execute()
+        t = Task("taskX",self.write_and_success)
+        t.execute(capture_stderr = True)
         assert "" == sys.stderr.getvalue()
         logger.flush('stderr',sys.stderr)
         assert "this is stderr S\n" == sys.stderr.getvalue(), repr(sys.stderr.getvalue())
 
     # failure
     def test_captureFail(self):
-        BaseTask.CAPTURE_ERR = True
-        t = PythonTask("taskX",self.write_and_fail)
-        nose.tools.assert_raises(TaskFailed,t.execute)
+        t = Task("taskX",self.write_and_fail)
+        nose.tools.assert_raises(TaskFailed,t.execute, capture_stderr = True)
         assert "" == sys.stderr.getvalue()
         logger.flush('stderr',sys.stderr)
         assert "this is stderr F\n" == sys.stderr.getvalue(), repr(sys.stderr.getvalue())
 
     # error
     def test_captureError(self):
-        BaseTask.CAPTURE_ERR = True
-        t = PythonTask("taskX",self.write_and_error)
-        nose.tools.assert_raises(TaskError,t.execute)
+        t = Task("taskX",self.write_and_error)
+        nose.tools.assert_raises(TaskError,t.execute, capture_stderr = True)
         assert "" == sys.stderr.getvalue()
         logger.flush('stderr',sys.stderr)
         assert "this is stderr E\n" == sys.stderr.getvalue(), repr(sys.stderr.getvalue())
@@ -336,23 +327,20 @@ class TestPythonVerbosityStderr(object):
     #
     # success
     def test_noCaptureSuccess(self):
-        BaseTask.CAPTURE_ERR = False
-        t = PythonTask("taskX",self.write_and_success)
-        t.execute()
+        t = Task("taskX",self.write_and_success)
+        t.execute(capture_stderr = False)
         assert "this is stderr S\n" == sys.stderr.getvalue(), repr(sys.stderr.getvalue())
 
     # failure
     def test_noCaptureFail(self):
-        BaseTask.CAPTURE_ERR = False
-        t = PythonTask("taskX",self.write_and_fail)
-        nose.tools.assert_raises(TaskFailed,t.execute)
+        t = Task("taskX",self.write_and_fail)
+        nose.tools.assert_raises(TaskFailed,t.execute, capture_stderr = False)
         assert "this is stderr F\n" == sys.stderr.getvalue(), repr(sys.stderr.getvalue())
 
     # error
     def test_noCaptureError(self):
-        BaseTask.CAPTURE_ERR = False
-        t = PythonTask("taskX",self.write_and_error)
-        nose.tools.assert_raises(TaskError,t.execute)
+        t = Task("taskX",self.write_and_error)
+        nose.tools.assert_raises(TaskError,t.execute, capture_stderr = False)
         assert "this is stderr E\n" == sys.stderr.getvalue(), repr(sys.stderr.getvalue())
 
 
@@ -383,27 +371,24 @@ class TestPythonVerbosityStdout(object):
     #
     # success
     def test_captureSuccess(self):
-        BaseTask.CAPTURE_OUT = True
-        t = PythonTask("taskX",self.write_and_success)
-        t.execute()
+        t = Task("taskX",self.write_and_success)
+        t.execute(capture_stdout = True)
         assert "" == sys.stdout.getvalue()
         logger.flush('stdout',sys.stdout)
         assert "this is stdout S\n" == sys.stdout.getvalue(), repr(sys.stdout.getvalue())
 
     # failure
     def test_captureFail(self):
-        BaseTask.CAPTURE_OUT = True
-        t = PythonTask("taskX",self.write_and_fail)
-        nose.tools.assert_raises(TaskFailed,t.execute)
+        t = Task("taskX",self.write_and_fail)
+        nose.tools.assert_raises(TaskFailed,t.execute, capture_stdout = True)
         assert "" == sys.stdout.getvalue()
         logger.flush('stdout',sys.stdout)
         assert "this is stdout F\n" == sys.stdout.getvalue(), repr(sys.stdout.getvalue())
 
     # error
     def test_captureError(self):
-        BaseTask.CAPTURE_OUT = True
-        t = PythonTask("taskX",self.write_and_error)
-        nose.tools.assert_raises(TaskError,t.execute)
+        t = Task("taskX",self.write_and_error)
+        nose.tools.assert_raises(TaskError,t.execute, capture_stdout = True)
         assert "" == sys.stdout.getvalue()
         logger.flush('stdout',sys.stdout)
         assert "this is stdout E\n" == sys.stdout.getvalue(), repr(sys.stdout.getvalue())
@@ -412,47 +397,44 @@ class TestPythonVerbosityStdout(object):
     #
     # success
     def test_noCaptureSuccess(self):
-        BaseTask.CAPTURE_OUT = False
-        t = PythonTask("taskX",self.write_and_success)
-        t.execute()
+        t = Task("taskX",self.write_and_success)
+        t.execute(capture_stdout = False)
         assert "this is stdout S\n" == sys.stdout.getvalue(), repr(sys.stdout.getvalue())
 
     # failure
     def test_noCaptureFail(self):
-        BaseTask.CAPTURE_OUT = False
-        t = PythonTask("taskX",self.write_and_fail)
-        nose.tools.assert_raises(TaskFailed,t.execute)
+        t = Task("taskX",self.write_and_fail)
+        nose.tools.assert_raises(TaskFailed,t.execute, capture_stdout = False)
         assert "this is stdout F\n" == sys.stdout.getvalue(), repr(sys.stdout.getvalue())
 
     # error
     def test_noCaptureError(self):
-        BaseTask.CAPTURE_OUT = False
-        t = PythonTask("taskX",self.write_and_error)
-        nose.tools.assert_raises(TaskError,t.execute)
+        t = Task("taskX",self.write_and_error)
+        nose.tools.assert_raises(TaskError,t.execute, capture_stdout = False)
         assert "this is stdout E\n" == sys.stdout.getvalue(), repr(sys.stdout.getvalue())
 
 class TestCreateTask(object):
     def testStringTask(self):
-        task = create_task("taskX","xpto 14 7",[],[],None)
-        assert isinstance(task, CmdTask)
+        task = Task("taskX","xpto 14 7",[],[],None)
+        assert isinstance(task, Task)
 
-    def testPythonTask(self):
+    def testTask(self):
         def dumb(): return
-        task = create_task("taskX",dumb,[],[],None)
-        assert isinstance(task, PythonTask)
+        task = Task("taskX",dumb,[],[],None)
+        assert isinstance(task, Task)
 
-    def testGroupTask(self):
-        task = create_task("taskX",None,[],[],None)
-        assert isinstance(task, GroupTask)
+    def testTask(self):
+        task = Task("taskX",None,[],[],None)
+        assert isinstance(task, Task)
 
     def testInvalidTask(self):
-        nose.tools.assert_raises(InvalidTask,create_task,
+        nose.tools.assert_raises(InvalidTask,Task,
                                  "taskX",self,[],[],None)
 
 class TestDictToTask(object):
     def testDictOkMinimum(self):
         dict_ = {'name':'simple','action':'xpto 14'}
-        assert isinstance(dict_to_task(dict_), BaseTask)
+        assert isinstance(dict_to_task(dict_), Task)
 
     def testDictFieldTypo(self):
         dict_ = {'name':'z','action':'xpto 14','typo_here':['xxx']}

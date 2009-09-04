@@ -320,7 +320,12 @@ class Task(object):
 
 
     def __str__(self):
-        return "\n\t".join([str(action) for action in self.actions])
+        if self.actions:
+            return "\n\t".join([str(action) for action in self.actions])
+
+        # A task that contains no actions at all
+        # is used as group task
+        return "Group: %s" % ", ".join(self.dependencies)
 
     def __repr__(self):
         return "<Task: %s>"% self.name
