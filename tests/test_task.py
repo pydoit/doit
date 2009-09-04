@@ -418,12 +418,12 @@ class TestCreateTask(object):
         task = Task("taskX","xpto 14 7",[],[],None)
         assert isinstance(task, Task)
 
-    def testTask(self):
+    def testMethodTask(self):
         def dumb(): return
         task = Task("taskX",dumb,[],[],None)
         assert isinstance(task, Task)
 
-    def testTask(self):
+    def testNoneTask(self):
         task = Task("taskX",None,[],[],None)
         assert isinstance(task, Task)
 
@@ -442,5 +442,3 @@ class TestDictToTask(object):
 
     def testDictMissingFieldAction(self):
         nose.tools.assert_raises(InvalidTask, dict_to_task, {'name':'xpto 14'})
-
-
