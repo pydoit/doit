@@ -1,13 +1,13 @@
 0.4
 ---------------
 
-. action as list of commands/python
-. tools -> create folder
+. action as list of commands/python (#421445)
+. tools -> create folder (#421453)
 . tools -> forget task
 . deprecate folder-depenency
 . deprecate "action" use "actions"
 . test for cmdline
-. sub-cmd clean targets
+. sub-cmd clean targets (#421450)
 
 
 0.5
@@ -19,6 +19,11 @@
 . task process isolation. (execute tasks in a different process)
 
 ----------
+
+. list command improvements
+. setup parameter for a task should support a list
+. forget a dependencies, not a tasks
+. opposite of forget. mark as up-to-date.
 
 . defer task generator
 . support for depedency scanner (lp - 218303)
