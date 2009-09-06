@@ -4,7 +4,7 @@ import sys, StringIO
 import nose
 
 from doit.dependency import Dependency
-from doit.task import BaseTask, PythonTask, GroupTask
+from doit.task import Task
 from doit import runner
 
 # dependencies file
@@ -15,26 +15,34 @@ def my_print(out="",err=""):
     sys.stderr.write(err)
     return True
 
+
 class TestVerbosity(object):
+
+    class FakeTask(Task):
+        def execute(self, capture_stdout = False, capture_stderr = False):
+            self.execute_args = {'capture_stdout': capture_stdout,
+                                 'capture_stderr': capture_stderr}
+
+    def setUp(self):
+        self.fake_task = self.FakeTask('t1', None)
 
     # 0: capture stdout and stderr
     def test_verbosity0(self):
-        runner.run_tasks(TESTDB, [], 0)
-        assert BaseTask.CAPTURE_OUT
-        assert BaseTask.CAPTURE_ERR
+        runner.run_tasks(TESTDB, [self.fake_task], 0)
+        assert self.fake_task.execute_args['capture_stdout']
+        assert self.fake_task.execute_args['capture_stderr']
 
     # 1: capture stdout
     def test_verbosity1(self):
-        runner.run_tasks(TESTDB, [], 1)
-        assert BaseTask.CAPTURE_OUT
-        assert not BaseTask.CAPTURE_ERR
+        runner.run_tasks(TESTDB, [self.fake_task], 1)
+        assert self.fake_task.execute_args['capture_stdout']
+        assert not self.fake_task.execute_args['capture_stderr']
 
     # 2: capture -
     def test_verbosity2(self):
-        runner.run_tasks(TESTDB, [], 2)
-        assert not BaseTask.CAPTURE_OUT
-        assert not BaseTask.CAPTURE_ERR
-
+        runner.run_tasks(TESTDB, [self.fake_task], 2)
+        assert not self.fake_task.execute_args['capture_stdout']
+        assert not self.fake_task.execute_args['capture_stderr']
 
 
 class BaseRunner(object):
@@ -55,8 +63,8 @@ class BaseRunner(object):
 class TestRunningTask(BaseRunner):
 
     def test_successOutput(self):
-        tasks = [PythonTask("taskX",my_print,args=["out a"]),
-                 PythonTask("taskY",my_print,args=["out a"])]
+        tasks = [Task("taskX", [(my_print, ["out a"] )] ),
+                 Task("taskY", [(my_print, ["out a"] )] )]
         assert runner.SUCCESS == runner.run_tasks(TESTDB, tasks, 1)
         # only titles are printed.
         taskTitles = sys.stdout.getvalue().split('\n')
@@ -64,7 +72,7 @@ class TestRunningTask(BaseRunner):
         assert tasks[1].title() == taskTitles[1], taskTitles
 
     def test_successVerboseOutput(self):
-        tasks = [PythonTask("taskX",my_print,args=["stdout here.\n"])]
+        tasks = [Task("taskX", [(my_print, ["stdout here.\n"])] )]
         assert runner.SUCCESS == runner.run_tasks(TESTDB, tasks, 2)
         output = sys.stdout.getvalue().split('\n')
         assert tasks[0].title() == output[0], output
@@ -75,12 +83,12 @@ class TestRunningTask(BaseRunner):
 
     # if task is up to date, it is displayed in a different way.
     def test_successUpToDate(self):
-        tasks = [PythonTask("taskX",my_print,dependencies=[__file__])]
+        tasks = [Task("taskX", [my_print], dependencies=[__file__])]
         assert runner.SUCCESS == runner.run_tasks(TESTDB, tasks, 1)
         taskTitles = sys.stdout.getvalue().split('\n')
         assert tasks[0].title() == taskTitles[0]
         # again
-        tasks2 = [PythonTask("taskX",my_print,dependencies=[__file__])]
+        tasks2 = [Task("taskX", [my_print], dependencies=[__file__])]
         sys.stdout = StringIO.StringIO()
         assert runner.SUCCESS == runner.run_tasks(TESTDB, tasks2, 1)
         taskTitles = sys.stdout.getvalue().split('\n')
@@ -93,8 +101,8 @@ class TestRunningTask(BaseRunner):
             sys.stderr.write("stderr here.\n")
             return False
 
-        tasks = [PythonTask("taskX",write_and_fail),
-                 PythonTask("taskY",write_and_fail)]
+        tasks = [Task("taskX", [write_and_fail]),
+                 Task("taskY", [write_and_fail])]
         assert runner.FAILURE == runner.run_tasks(TESTDB, tasks, 0)
         output = sys.stdout.getvalue().split('\n')
         errput = sys.stderr.getvalue().split('\n')
@@ -114,8 +122,8 @@ class TestRunningTask(BaseRunner):
             sys.stderr.write("stderr here.\n")
             raise Exception("I am the exception.\n")
 
-        tasks = [PythonTask("taskX",write_and_error),
-                 PythonTask("taskY",write_and_error)]
+        tasks = [Task("taskX", [write_and_error]),
+                 Task("taskY", [write_and_error])]
         assert runner.ERROR == runner.run_tasks(TESTDB, tasks, 0)
         output = sys.stdout.getvalue().split('\n')
         errput = sys.stderr.getvalue().split('\n')
@@ -146,7 +154,7 @@ class TestRunningTask(BaseRunner):
         ff.close()
         targets = [filePath]
 
-        tasks = [PythonTask("taskX",my_print,dependencies,targets)]
+        tasks = [Task("taskX", [my_print], dependencies, targets)]
         assert runner.SUCCESS == runner.run_tasks(TESTDB, tasks, 1)
         d = Dependency(TESTDB)
         # there is only one dependency. targets md5 are not saved.
@@ -154,14 +162,14 @@ class TestRunningTask(BaseRunner):
 
     # when successful and run_once is updated
     def test_successRunOnce(self):
-        tasks = [PythonTask("taskX",my_print,[True],[])]
+        tasks = [Task("taskX", [my_print], [True], [])]
         assert runner.SUCCESS == runner.run_tasks(TESTDB, tasks, 1)
         d = Dependency(TESTDB)
         assert 1 == len(d._db)
 
 
     def test_errorDependency(self):
-        tasks = [PythonTask("taskX",my_print,["i_dont_exist.xxx"])]
+        tasks = [Task("taskX", [my_print], ["i_dont_exist.xxx"])]
         assert runner.ERROR == runner.run_tasks(TESTDB, tasks, 1)
         # only titles are printed.
         output = sys.stdout.getvalue().split('\n')
@@ -173,7 +181,7 @@ class TestRunningTask(BaseRunner):
     def test_ignoreNonFileDep(self):
         DIR_DEP = os.path.abspath(__file__+"/../folder_dep/")+'/'
         dep = [DIR_DEP, ":taskY"]
-        tasks = [PythonTask("taskX",my_print,dep)]
+        tasks = [Task("taskX", [my_print], dep)]
         assert runner.SUCCESS == runner.run_tasks(TESTDB, tasks, 1)
         d = Dependency(TESTDB)
         assert 0 == len(d._db)
@@ -181,13 +189,13 @@ class TestRunningTask(BaseRunner):
 
 
     def test_alwaysExecute(self):
-        tasks = [PythonTask("taskX",my_print,dependencies=[__file__])]
+        tasks = [Task("taskX", [my_print], dependencies=[__file__])]
         assert runner.SUCCESS == runner.run_tasks(TESTDB, tasks, 1)
         taskTitles = sys.stdout.getvalue().split('\n')
         assert tasks[0].title() == taskTitles[0]
         # again
         sys.stdout = StringIO.StringIO()
-        tasks2 = [PythonTask("taskX",my_print,dependencies=[__file__])]
+        tasks2 = [Task("taskX", [my_print], dependencies=[__file__])]
         assert runner.SUCCESS == runner.run_tasks(TESTDB, tasks2, 1,True)
         taskTitles = sys.stdout.getvalue().split('\n')
         assert tasks[0].title() == taskTitles[0]
@@ -200,7 +208,7 @@ class TestRunningTask(BaseRunner):
 
         DIR_DEP = os.path.abspath(__file__+"/../parent/child/")+'/'
         rm_dir()
-        tasks = [PythonTask("taskX",my_print,dependencies=[DIR_DEP])]
+        tasks = [Task("taskX", [my_print], dependencies=[DIR_DEP])]
         assert runner.SUCCESS == runner.run_tasks(TESTDB, tasks, 1)
         assert os.path.exists(DIR_DEP)
         rm_dir()
@@ -221,15 +229,15 @@ class TestTaskSetup(BaseRunner):
 
     def testExecuted(self):
         setup = self.SetupSample()
-        t = GroupTask("ss", None, [], [], setup)
+        t = Task("ss", None, [], [], setup)
         assert runner.SUCCESS == runner.run_tasks(TESTDB, [t])
         assert 1 == setup.executed
         assert 1 == setup.cleaned
 
     def testExecuteOnce(self):
         setup = self.SetupSample()
-        t1 = GroupTask("ss", None, [], [], setup)
-        t2 = GroupTask("ss2", None, [], [], setup)
+        t1 = Task("ss", None, [], [], setup)
+        t2 = Task("ss2", None, [], [], setup)
         assert runner.SUCCESS == runner.run_tasks(TESTDB, [t1, t2])
         assert 1 == setup.executed
         assert 1 == setup.cleaned
@@ -238,8 +246,8 @@ class TestTaskSetup(BaseRunner):
         setup = self.SetupSample()
         def bad_seed():
             raise Exception("rrrr")
-        t1 = PythonTask("ss", bad_seed, [], [], setup)
-        t2 = GroupTask("ss2", None, [], [], setup)
+        t1 = Task("ss", [bad_seed], [], [], setup)
+        t2 = Task("ss2", None, [], [], setup)
         assert runner.ERROR == runner.run_tasks(TESTDB, [t1, t2])
         assert 1 == setup.executed
         assert 1 == setup.cleaned
@@ -250,7 +258,7 @@ class TestTaskSetup(BaseRunner):
             raise Exception('xxx')
         setup = self.SetupSample()
         setup.setup = raise_something
-        t1 = GroupTask('t1', None, [], [], setup)
+        t1 = Task('t1', None, [], [], setup)
         assert runner.ERROR == runner.run_tasks(TESTDB, [t1])
 
     def testCleanupError(self):
@@ -259,7 +267,7 @@ class TestTaskSetup(BaseRunner):
             raise Exception('xxx')
         setup = self.SetupSample()
         setup.cleanup = raise_something
-        t1 = GroupTask('t1', None, [], [], setup)
+        t1 = Task('t1', None, [], [], setup)
         assert runner.SUCCESS == runner.run_tasks(TESTDB, [t1])
 
 
@@ -269,5 +277,5 @@ class TestSystemExit(BaseRunner):
     def testRaises(self):
         def i_raise():
             raise SystemExit()
-        t1 = PythonTask("x",i_raise)
+        t1 = Task("x", [i_raise])
         nose.tools.assert_raises(SystemExit, runner.run_tasks, TESTDB, [t1])

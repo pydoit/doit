@@ -1,4 +1,4 @@
-"""Automate release process. 
+"""Automate release process.
 
 This is "dodo" file (suposed to be run with doit).
 """

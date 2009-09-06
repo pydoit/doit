@@ -7,5 +7,3 @@ def task_yyy2():
 
 def bad_seed():
     pass
-
-

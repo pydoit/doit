@@ -5,7 +5,7 @@ import traceback
 import os
 
 from doit import logger
-from doit.task import BaseTask, TaskFailed
+from doit.task import TaskFailed
 from doit.dependency import Dependency
 
 #: execution result.
@@ -20,16 +20,15 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
     It also deals with output to stdout/stderr.
 
     @param dependencyFile: (string) file path of the db file
-    @param tasks: (list) - L{BaseTask} tasks to be executed
+    @param tasks: (list) - L{Task} tasks to be executed
     @param verbosity:
      - 0 => print (stderr and stdout) from failed tasks
      - 1 => print stderr and (stdout from failed tasks)
      - 2 => print stderr and stdout from all tasks
     @param alwaysExecute: (bool) execute even if up-to-date
     """
-    # FIXME, pass this as parameter to task.execute()
-    BaseTask.CAPTURE_OUT = verbosity < 2
-    BaseTask.CAPTURE_ERR = verbosity == 0
+    capture_stdout = verbosity < 2
+    capture_stderr = verbosity == 0
     dependencyManager = Dependency(dependencyFile)
     errorException = None  # Exception instance, in case of error
     result = SUCCESS
@@ -69,7 +68,7 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
                     if hasattr(task.setup, 'setup'):
                         task.setup.setup()
                 # finally execute it
-                task.execute()
+                task.execute(capture_stdout, capture_stderr)
                 #save execution successful
                 if task.run_once:
                     dependencyManager.save_run_once(task.name)
