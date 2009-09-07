@@ -228,10 +228,11 @@ class Task(object):
     @ivar file_dep: (list - string)
     @ivar run_once: (bool) task without dependencies should run
     @ivar is_subtask: (bool) indicate this task is a subtask.
+    @ivar doc: (string) task documentation
     """
 
     def __init__(self,name, actions, dependencies=(),targets=(),setup=None,
-                 is_subtask=False):
+                 is_subtask=False, doc=None):
         """Init."""
         # dependencies parameter must be a list
         if not ((isinstance(dependencies,list)) or
@@ -263,6 +264,7 @@ class Task(object):
         self.setup = setup
         self.run_once = False
         self.is_subtask = is_subtask
+        self.doc = doc
 
         # there are 3 kinds of dependencies: file, task, and folder
         self.folder_dep = []
@@ -334,7 +336,7 @@ def dict_to_task(task_dict):
     @raise InvalidTask: If unexpected fields were passed in task_dict
     """
     # TASK_ATTRS: sequence of know attributes(keys) of a task dict.
-    TASK_ATTRS = ('name','actions','dependencies','targets','setup')
+    TASK_ATTRS = ('name','actions','dependencies','targets','setup', 'doc')
     # FIXME check field 'name'
 
     # === DREPREACATED on 0.4 (to be removed on 0.5): START
@@ -358,9 +360,4 @@ def dict_to_task(task_dict):
             raise InvalidTask("Task %s contain invalid field: %s"%
                               (task_dict['name'],key))
 
-    return Task(task_dict.get('name'),
-                task_dict.get('actions'),
-                task_dict.get('dependencies',[]),
-                task_dict.get('targets',[]),
-                task_dict.get('setup',None),
-                )
+    return Task(**task_dict)

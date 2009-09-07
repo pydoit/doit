@@ -131,12 +131,19 @@ opt_listall = {'name': 'all',
                'help': "list include all sub-tasks from dodo file"
                }
 
+opt_list_verbose = {'name': 'verbose',
+                    'short': 'v',
+                    'long': 'verbose',
+                    'type': bool,
+                    'default': False,
+                    'help': 'print tasks documentation'}
+
 # TODO list should support "args" as a filter.
 def cmd_list(params, args):
     dodo_module = main.get_module(params['dodoFile'])
     command_names = params['sub'].keys()
     dodo_tasks = main.load_task_generators(dodo_module, command_names)
-    return main.doit_list(dodo_tasks['task_list'], params['all'])
+    return main.doit_list(dodo_tasks['task_list'], params['all'], params['verbose'])
 
 
 ##########################################################
@@ -304,7 +311,7 @@ def cmd_main():
     subCmd['run'] = cmdparse.Command('run', run_options, cmd_run, run_doc)
 
     # list command
-    list_options = (opt_dodo, opt_listall)
+    list_options = (opt_dodo, opt_listall, opt_list_verbose)
     subCmd['list'] = cmdparse.Command('list', list_options, cmd_list, list_doc)
 
     # forget command

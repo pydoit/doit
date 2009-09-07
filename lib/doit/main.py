@@ -2,6 +2,7 @@
 import os
 import sys
 import inspect
+import itertools
 
 from doit.util import isgenerator
 from doit.task import InvalidTask, Task, dict_to_task
@@ -79,7 +80,7 @@ def load_task_generators(dodo_module, command_names=()):
     # generate all tasks
     task_list = []
     for name, ref, line in funcs:
-        task_list.extend(generate_tasks(name, ref()))
+        task_list.extend(generate_tasks(name, ref(), ref.__doc__))
 
     # get default tasks
     default_tasks = getattr(dodo_module, 'DEFAULT_TASKS', None)
@@ -91,7 +92,7 @@ def load_task_generators(dodo_module, command_names=()):
     return {'task_list': task_list,
             'default_tasks': default_tasks}
 
-def generate_tasks(name, gen_result):
+def generate_tasks(name, gen_result, gen_doc = None):
     """Create tasks from a task generator result.
 
     @param name: (string) name of taskgen function
@@ -104,6 +105,12 @@ def generate_tasks(name, gen_result):
             raise InvalidTask("Task %s. Only subtasks use field name."%name)
 
         gen_result['name'] = name
+
+        # Use task generator documentation
+        # if no documentation present in task list
+        if not 'doc' in gen_result:
+            gen_result['doc'] = gen_doc
+
         return [dict_to_task(gen_result)]
 
     # a generator
@@ -280,7 +287,7 @@ def doit_run(dependencyFile, task_list, filter_=None,
 
 
 
-def doit_list(task_list, printSubtasks):
+def doit_list(task_list, printSubtasks, verbose):
     """List task generators, in the order they were defined.
 
     @param printSubtasks: (bool) print subtasks
@@ -288,7 +295,14 @@ def doit_list(task_list, printSubtasks):
     print "==== Tasks ===="
     for task in task_list:
         if (not task.is_subtask) or printSubtasks:
-            print task.name
+            task_str = task.name
+            if verbose and task.doc:
+                doc_lines = [line.strip()
+                             for line in task.doc.splitlines()]
+                doc_lines = list(itertools.dropwhile(lambda line: not line, reversed(doc_lines)))
+                doc_lines = list(itertools.dropwhile(lambda line: not line, reversed(doc_lines)))
+                task_str += ":\n%s\n" % "\n".join(["\t%s" % line for line in doc_lines])
+            print task_str
     print "="*25,"\n"
     return 0
 
