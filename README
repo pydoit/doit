@@ -11,11 +11,15 @@ In `doit`, unlike most (all?) build-tools, a task doesn't need to define a targe
 
 `doit` like most build tools is used to execute tasks defined in a configuration file. Configuration files are python modules. The tasks can be python functions or an external shell script/command. `doit` automatically keeps track of declared dependencies executing only tasks that needs to be update (based on which dependencies have changed).
 
-Author
-======
 
-Eduardo Schettino
-email: schettino72 at gmail dot com
+Developers
+==========
+
+(in chronological order) see also https://launchpad.net/~doit-team/+members
+
+ * Eduardo Schettino - (schettino72 at gmail dot com)
+ * Javier Collado -
+
 
 Project Details
 ===============
