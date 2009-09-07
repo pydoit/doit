@@ -287,7 +287,7 @@ def doit_run(dependencyFile, task_list, filter_=None,
 
 
 
-def doit_list(task_list, printSubtasks, verbose):
+def doit_list(task_list, printSubtasks, verbose = False):
     """List task generators, in the order they were defined.
 
     @param printSubtasks: (bool) print subtasks
