@@ -238,6 +238,11 @@ class TestCmdList(BaseTestOutput):
         got = [line for line in sys.stdout.getvalue().split('\n') if line]
         assert self.TASKS_NAME_WITH_DOC == got, sys.stdout.getvalue()
 
+    def testListTasksWithDocQuiet(self):
+        doit_list(self.TASKS_SAMPLE_WITH_DOC, False, True)
+        got = [line for line in sys.stdout.getvalue().split('\n') if line]
+        assert TASKS_NAME == got, sys.stdout.getvalue()
+
     def testListAllTasks(self):
         doit_list(TASKS_SAMPLE, True)
         got = [line for line in sys.stdout.getvalue().split('\n') if line]
@@ -247,6 +252,11 @@ class TestCmdList(BaseTestOutput):
         doit_list(self.TASKS_SAMPLE_WITH_DOC, True)
         got = [line for line in sys.stdout.getvalue().split('\n') if line]
         assert self.TASKS_ALL_NAME_WITH_DOC == got, sys.stdout.getvalue()
+
+    def testListAllTasksWithDocQuiet(self):
+        doit_list(self.TASKS_SAMPLE_WITH_DOC, True, True)
+        got = [line for line in sys.stdout.getvalue().split('\n') if line]
+        assert TASKS_ALL_NAME == got, sys.stdout.getvalue()
 
 
 TESTDB = "testdb"
