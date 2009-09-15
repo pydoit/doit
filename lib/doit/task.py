@@ -295,7 +295,7 @@ class Task(object):
             raise InvalidTask(msg % name)
 
 
-    def execute(self, capture_stdout = False, capture_stderr = False):
+    def execute(self, capture_stdout=False, capture_stderr=False):
         """Executes the task.
 
         @raise TaskFailed: If raised when executing an action

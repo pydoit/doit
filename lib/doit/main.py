@@ -92,7 +92,7 @@ def load_task_generators(dodo_module, command_names=()):
     return {'task_list': task_list,
             'default_tasks': default_tasks}
 
-def generate_tasks(name, gen_result, gen_doc = None):
+def generate_tasks(name, gen_result, gen_doc=None):
     """Create tasks from a task generator result.
 
     @param name: (string) name of taskgen function
@@ -287,7 +287,7 @@ def doit_run(dependencyFile, task_list, filter_=None,
 
 
 
-def doit_list(task_list, printSubtasks, quiet = False):
+def doit_list(task_list, printSubtasks, quiet=False):
     """List task generators, in the order they were defined.
 
     @param printSubtasks: (bool) print subtasks
