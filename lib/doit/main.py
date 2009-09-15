@@ -287,7 +287,7 @@ def doit_run(dependencyFile, task_list, filter_=None,
 
 
 
-def doit_list(task_list, printSubtasks, verbose = False):
+def doit_list(task_list, printSubtasks, quiet = False):
     """List task generators, in the order they were defined.
 
     @param printSubtasks: (bool) print subtasks
@@ -296,7 +296,7 @@ def doit_list(task_list, printSubtasks, verbose = False):
     for task in task_list:
         if (not task.is_subtask) or printSubtasks:
             task_str = task.name
-            if verbose and task.doc:
+            if not quiet and task.doc:
                 doc_lines = [line.strip()
                              for line in task.doc.splitlines()]
                 doc_lines = list(itertools.dropwhile(lambda line: not line, reversed(doc_lines)))
