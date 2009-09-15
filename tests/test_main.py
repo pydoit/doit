@@ -215,15 +215,38 @@ class BaseTestOutput(object):
         sys.stdout = self.oldOut
 
 class TestCmdList(BaseTestOutput):
+    TASKS_SAMPLE_WITH_DOC = [Task("t1", [""], doc="t1 doc string"),
+                             Task("t2", [""], doc="t2 doc string"),
+                             Task("g1", None, doc="g1 doc string"),
+                             Task("g1.a", [""], is_subtask=True, doc="g1.a doc string"),
+                             Task("g1.b", [""], is_subtask=True, doc="g1.b doc string"),
+                             Task("t3", [""], doc="t3 doc string")]
+
+    TASKS_NAME_WITH_DOC = ['%s : %s doc string' % (name, name)
+                           for name in ['t1', 't2', 'g1', 't3']]
+
+    TASKS_ALL_NAME_WITH_DOC = ['%s : %s doc string' % (name, name)
+                               for name in ['t1', 't2', 'g1', 'g1.a', 'g1.b', 't3']]
+
     def testListTasks(self):
         doit_list(TASKS_SAMPLE, False)
         got = [line for line in sys.stdout.getvalue().split('\n') if line]
         assert TASKS_NAME == got, sys.stdout.getvalue()
 
+    def testListTasksWithDoc(self):
+        doit_list(self.TASKS_SAMPLE_WITH_DOC, False)
+        got = [line for line in sys.stdout.getvalue().split('\n') if line]
+        assert self.TASKS_NAME_WITH_DOC == got, sys.stdout.getvalue()
+
     def testListAllTasks(self):
         doit_list(TASKS_SAMPLE, True)
         got = [line for line in sys.stdout.getvalue().split('\n') if line]
         assert TASKS_ALL_NAME == got, sys.stdout.getvalue()
+
+    def testListAllTasksWithDoc(self):
+        doit_list(self.TASKS_SAMPLE_WITH_DOC, True)
+        got = [line for line in sys.stdout.getvalue().split('\n') if line]
+        assert self.TASKS_ALL_NAME_WITH_DOC == got, sys.stdout.getvalue()
 
 
 TESTDB = "testdb"
