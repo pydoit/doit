@@ -300,7 +300,7 @@ def doit_list(task_list, printSubtasks, quiet=False):
                              for line in task.doc.splitlines()]
                 doc_lines = list(itertools.dropwhile(lambda line: not line, reversed(doc_lines)))
                 doc_lines = list(itertools.dropwhile(lambda line: not line, reversed(doc_lines)))
-                task_str += ":\n%s\n" % "\n".join(["\t%s" % line for line in doc_lines])
+                task_str += " :\n%s\n" % "\n".join(["\t%s" % line for line in doc_lines])
             print task_str
     return 0
 
