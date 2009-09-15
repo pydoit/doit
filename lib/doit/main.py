@@ -292,7 +292,6 @@ def doit_list(task_list, printSubtasks, quiet=False):
 
     @param printSubtasks: (bool) print subtasks
     """
-    print "==== Tasks ===="
     for task in task_list:
         if (not task.is_subtask) or printSubtasks:
             task_str = task.name
@@ -303,7 +302,6 @@ def doit_list(task_list, printSubtasks, quiet=False):
                 doc_lines = list(itertools.dropwhile(lambda line: not line, reversed(doc_lines)))
                 task_str += ":\n%s\n" % "\n".join(["\t%s" % line for line in doc_lines])
             print task_str
-    print "="*25,"\n"
     return 0
 
 
