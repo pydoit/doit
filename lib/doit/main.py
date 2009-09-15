@@ -296,11 +296,10 @@ def doit_list(task_list, printSubtasks, quiet=False):
         if (not task.is_subtask) or printSubtasks:
             task_str = task.name
             if not quiet and task.doc:
-                doc_lines = [line.strip()
-                             for line in task.doc.splitlines()]
-                doc_lines = list(itertools.dropwhile(lambda line: not line, reversed(doc_lines)))
-                doc_lines = list(itertools.dropwhile(lambda line: not line, reversed(doc_lines)))
-                task_str += " :\n%s\n" % "\n".join(["\t%s" % line for line in doc_lines])
+                # Print first non-empty documentation line
+                doc_line = itertools.ifilter(lambda line: line,
+                                             (line.strip() for line in task.doc.splitlines())).next()
+                task_str += " : %s" % doc_line
             print task_str
     return 0
 
