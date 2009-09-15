@@ -217,12 +217,12 @@ class BaseTestOutput(object):
 class TestCmdList(BaseTestOutput):
     def testListTasks(self):
         doit_list(TASKS_SAMPLE, False)
-        got = sys.stdout.getvalue().split('\n')[1:-3]
+        got = [line for line in sys.stdout.getvalue().split('\n') if line]
         assert TASKS_NAME == got, sys.stdout.getvalue()
 
     def testListAllTasks(self):
         doit_list(TASKS_SAMPLE, True)
-        got = sys.stdout.getvalue().split('\n')[1:-3]
+        got = [line for line in sys.stdout.getvalue().split('\n') if line]
         assert TASKS_ALL_NAME == got, sys.stdout.getvalue()
 
 
