@@ -254,9 +254,9 @@ class Task(object):
         elif type(actions) is list:
             self.actions = [create_action(a) for a in actions]
         else:
-            #raise Exception("DEPREACATED must be list")
-            print ("DEPRECATION WARNING task function must return a " +
-                   "dictionary or generator.")
+            #raise Exception("DEPRECATED must be list")
+            print ("DEPRECATION WARNING task actions must be a list "
+                   "even if it contains a single action")
             self.actions = [create_action(actions)]
 
         self.dependencies = dependencies
@@ -339,10 +339,10 @@ def dict_to_task(task_dict):
     TASK_ATTRS = ('name','actions','dependencies','targets','setup', 'doc')
     # FIXME check field 'name'
 
-    # === DREPREACATED on 0.4 (to be removed on 0.5): START
+    # === DEPRECATED on 0.4 (to be removed on 0.5): START
     # check required fields
     if 'action' in task_dict and 'actions' not in task_dict:
-        #raise Exception("DEPREACATED action")
+        #raise Exception("DEPRECATED action")
         task_dict['actions'] = task_dict['action']
         del task_dict['action']
         print ("DEPRECATION WARNING Task %s contains 'action' key. "
