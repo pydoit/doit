@@ -2,6 +2,7 @@
 import subprocess, sys
 import StringIO
 import traceback
+import itertools
 
 from doit import logger
 
@@ -264,7 +265,13 @@ class Task(object):
         self.setup = setup
         self.run_once = False
         self.is_subtask = is_subtask
-        self.doc = doc
+
+        # Store just first non-empty line as documentation string
+        if doc is None:
+            self.doc = None
+        else:
+            self.doc = itertools.ifilter(lambda line: line,
+                                         (line.strip() for line in doc.splitlines())).next()
 
         # there are 3 kinds of dependencies: file, task, and folder
         self.folder_dep = []

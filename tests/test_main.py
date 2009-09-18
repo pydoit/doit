@@ -87,6 +87,31 @@ class TestLoadTaskGenerators(object):
         nose.tools.assert_raises(InvalidDodoFile, get_module, fileName)
 
 
+class TestLoadTaskGeneratorsWithDoc(object):
+    DODO_FILE = os.path.abspath(__file__+"/../loader_sample_doc.py")
+
+    def setUp(self):
+        self.dodo_module = get_module(self.DODO_FILE)
+
+
+    def testDocString(self):
+        """
+        Test that documentation strings are used in tasks
+        """
+        dodo = load_task_generators(self.dodo_module)
+        expected = [None,
+                    None,
+                    None,
+                    'Compile .c files',
+                    'Compile file0.c',
+                    'Compile file1.c',
+                    'List files',
+                    'List all files',
+                    'Print Working Directory']
+        task_names = [task.name for task in dodo['task_list']]
+        task_docs = [task.doc for task in dodo['task_list']]
+        assert expected == task_docs, zip(task_names, task_docs)
+
 
 class TestDodoDefaultTasks(object):
     # to avoid creating many files for testing i am modifying the module

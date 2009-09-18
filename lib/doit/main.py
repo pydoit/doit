@@ -2,7 +2,6 @@
 import os
 import sys
 import inspect
-import itertools
 
 from doit.util import isgenerator
 from doit.task import InvalidTask, Task, dict_to_task
@@ -115,7 +114,7 @@ def generate_tasks(name, gen_result, gen_doc=None):
 
     # a generator
     if isgenerator(gen_result):
-        group_task = Task(name, None)
+        group_task = Task(name, None,doc=gen_doc)
         tasks = [group_task]
         # the generator return subtasks as dictionaries .
         for task_dict in gen_result:
@@ -296,10 +295,7 @@ def doit_list(task_list, printSubtasks, quiet=False):
         if (not task.is_subtask) or printSubtasks:
             task_str = task.name
             if not quiet and task.doc:
-                # Print first non-empty documentation line
-                doc_line = itertools.ifilter(lambda line: line,
-                                             (line.strip() for line in task.doc.splitlines())).next()
-                task_str += " : %s" % doc_line
+                task_str += " : %s" % task.doc
             print task_str
     return 0
 
