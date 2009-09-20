@@ -57,6 +57,23 @@ class TestGenerateTasks(object):
         nose.tools.assert_raises(InvalidTask, generate_tasks,"xpto",
                                  f_xpto())
 
+    def testUseDocstring(self):
+        tasks = generate_tasks("dict",{'actions':['xpto 14']}, "my doc")
+        assert "my doc" == tasks[0].doc
+
+    def testDocstringNotUsed(self):
+        mytask = {'actions':['xpto 14'], 'doc':'from dict'}
+        tasks = generate_tasks("dict", mytask, "from docstring")
+        assert "from dict" == tasks[0].doc
+
+    def testGeneratorDocString(self):
+        def f_xpto():
+            "the doc"
+            for i in range(3):
+                yield {'name':str(i), 'actions' :["xpto -%d"%i]}
+        tasks = generate_tasks("xpto", f_xpto(), f_xpto.__doc__)
+        assert "the doc" == tasks[0].doc
+
 
 class TestLoadTaskGenerators(object):
     def testAbsolutePath(self):
@@ -76,7 +93,7 @@ class TestLoadTaskGenerators(object):
         dodo = load_task_generators(dodo_module)
         assert expected == [t.name for t in dodo['task_list']]
 
-    def testNameBlacklist(self):
+    def testNameInBlacklist(self):
         fileName = os.path.abspath(__file__+"/../loader_sample.py")
         dodo_module = get_module(fileName)
         nose.tools.assert_raises(InvalidDodoFile, load_task_generators,
@@ -86,6 +103,12 @@ class TestLoadTaskGenerators(object):
         fileName = os.path.abspath(__file__+"/../i_dont_exist.py")
         nose.tools.assert_raises(InvalidDodoFile, get_module, fileName)
 
+
+    def testDocString(self):
+        fileName = os.path.abspath(__file__+"/../loader_sample.py")
+        dodo_module = get_module(fileName)
+        dodo = load_task_generators(dodo_module)
+        assert "task doc" == dodo['task_list'][0].doc, dodo['task_list'][0].doc
 
 
 class TestDodoDefaultTasks(object):
@@ -150,14 +173,13 @@ class TestTaskSetupInit(object):
 
 
 
-TASKS_SAMPLE = [Task("t1", [""]),
-                Task("t2", [""]),
-                Task("g1", None),
-                Task("g1.a", [""], is_subtask=True),
-                Task("g1.b", [""], is_subtask=True),
-                Task("t3", [""])]
-TASKS_NAME = ['t1', 't2', 'g1', 't3']
-TASKS_ALL_NAME = ['t1', 't2', 'g1', 'g1.a', 'g1.b', 't3']
+TASKS_SAMPLE = [Task("t1", [""], doc="t1 doc string"),
+                Task("t2", [""], doc="t2 doc string"),
+                Task("g1", None, doc="g1 doc string"),
+                Task("g1.a", [""], doc="g1.a doc string", is_subtask=True),
+                Task("g1.b", [""], doc="g1.b doc string", is_subtask=True),
+                Task("t3", [""], doc="t3 doc string")]
+
 
 class TestTaskSetupFilter(object):
     def testFilter(self):
@@ -202,6 +224,8 @@ class TestOrderTasks(object):
                                  ["taskX", "taskY"])
 
 
+
+
 class BaseTestOutput(object):
     """base class for tests that use stdout"""
     def setUp(self):
@@ -214,16 +238,35 @@ class BaseTestOutput(object):
         sys.stdout.close()
         sys.stdout = self.oldOut
 
-class TestCmdList(BaseTestOutput):
-    def testListTasks(self):
-        doit_list(TASKS_SAMPLE, False)
-        got = sys.stdout.getvalue().split('\n')[1:-3]
-        assert TASKS_NAME == got, sys.stdout.getvalue()
 
-    def testListAllTasks(self):
+class TestCmdList(BaseTestOutput):
+
+    def testListTasksWithDoc(self):
+        doit_list(TASKS_SAMPLE, False)
+        got = [line for line in sys.stdout.getvalue().split('\n') if line]
+        expected = []
+        for t in TASKS_SAMPLE:
+            if not t.is_subtask:
+                expected.append("%s : %s" % (t.name, t.doc))
+        assert expected == got, sys.stdout.getvalue()
+
+    def testListTasksWithDocQuiet(self):
+        doit_list(TASKS_SAMPLE, False, True)
+        got = [line for line in sys.stdout.getvalue().split('\n') if line]
+        expected = [t.name for t in TASKS_SAMPLE if not t.is_subtask]
+        assert expected == got, sys.stdout.getvalue()
+
+    def testListAllTasksWithDoc(self):
         doit_list(TASKS_SAMPLE, True)
-        got = sys.stdout.getvalue().split('\n')[1:-3]
-        assert TASKS_ALL_NAME == got, sys.stdout.getvalue()
+        got = [line for line in sys.stdout.getvalue().split('\n') if line]
+        expected = ["%s : %s" % (t.name, t.doc) for t in TASKS_SAMPLE]
+        assert expected == got, sys.stdout.getvalue()
+
+    def testListAllTasksWithDocQuiet(self):
+        doit_list(TASKS_SAMPLE, True, True)
+        got = [line for line in sys.stdout.getvalue().split('\n') if line]
+        expected = [t.name for t in TASKS_SAMPLE]
+        assert expected == got, sys.stdout.getvalue()
 
 
 TESTDB = "testdb"

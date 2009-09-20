@@ -61,6 +61,7 @@ def load_task_generators(dodo_module, command_names=()):
         # ignore functions that are not a task (by its name)
         if not name.startswith(TASK_STRING):
             continue
+        # remove TASK_STRING prefix from name
         task_name = name[prefix_len:]
         # tasks cant have name of commands
         if task_name in command_names:
@@ -70,7 +71,6 @@ def load_task_generators(dodo_module, command_names=()):
         # get line number where function is defined
         line = inspect.getsourcelines(ref)[1]
         # add to list task generator functions
-        # remove TASK_STRING prefix from name
         funcs.append((task_name, ref, line))
 
     # sort by the order functions were defined (line number)
@@ -79,7 +79,7 @@ def load_task_generators(dodo_module, command_names=()):
     # generate all tasks
     task_list = []
     for name, ref, line in funcs:
-        task_list.extend(generate_tasks(name, ref()))
+        task_list.extend(generate_tasks(name, ref(), ref.__doc__))
 
     # get default tasks
     default_tasks = getattr(dodo_module, 'DEFAULT_TASKS', None)
@@ -91,11 +91,12 @@ def load_task_generators(dodo_module, command_names=()):
     return {'task_list': task_list,
             'default_tasks': default_tasks}
 
-def generate_tasks(name, gen_result):
+def generate_tasks(name, gen_result, gen_doc=None):
     """Create tasks from a task generator result.
 
     @param name: (string) name of taskgen function
     @param gen_result: value returned by a task generator function
+    @param gen_doc: (string/None) docstring from the task generator function
     @return: (tuple) task,list of subtasks
     """
     # task described as a dictionary
@@ -104,11 +105,17 @@ def generate_tasks(name, gen_result):
             raise InvalidTask("Task %s. Only subtasks use field name."%name)
 
         gen_result['name'] = name
+
+        # Use task generator docstring
+        # if no doc present in task dict
+        if not 'doc' in gen_result:
+            gen_result['doc'] = gen_doc
+
         return [dict_to_task(gen_result)]
 
     # a generator
     if isgenerator(gen_result):
-        group_task = Task(name, None)
+        group_task = Task(name, None, doc=gen_doc)
         tasks = [group_task]
         # the generator return subtasks as dictionaries .
         for task_dict in gen_result:
@@ -280,16 +287,17 @@ def doit_run(dependencyFile, task_list, filter_=None,
 
 
 
-def doit_list(task_list, printSubtasks):
+def doit_list(task_list, printSubtasks, quiet=False):
     """List task generators, in the order they were defined.
 
     @param printSubtasks: (bool) print subtasks
     """
-    print "==== Tasks ===="
     for task in task_list:
         if (not task.is_subtask) or printSubtasks:
-            print task.name
-    print "="*25,"\n"
+            task_str = task.name
+            if not quiet and task.doc:
+                task_str += " : %s" % task.doc
+            print task_str
     return 0
 
 

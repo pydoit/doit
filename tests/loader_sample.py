@@ -1,6 +1,7 @@
 
 def task_xxx1():
-    pass
+    """task doc"""
+    return {'actions':['do nothing']}
 
 def task_yyy2():
     pass

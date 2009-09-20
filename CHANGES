@@ -6,6 +6,7 @@ CHANGES
 0.4.0
 =====
 
+- print task description when printing through doit list (#425811)
 - action as list of commands/python (#421445)
 - deprecate "action" use "actions"
 

@@ -215,9 +215,8 @@ def create_action(action):
 
 
 
-# Tasks
 class Task(object):
-    """Base class for all tasks objects
+    """Task
 
     @ivar name string
     @ivar actions: (list) of L{BaseAction}
@@ -228,11 +227,12 @@ class Task(object):
     @ivar file_dep: (list - string)
     @ivar run_once: (bool) task without dependencies should run
     @ivar is_subtask: (bool) indicate this task is a subtask.
+    @ivar doc: (string) task documentation
     """
 
     def __init__(self,name, actions, dependencies=(),targets=(),setup=None,
-                 is_subtask=False):
-        """Init."""
+                 is_subtask=False, doc=None):
+        """sanity checks and initialization"""
         # dependencies parameter must be a list
         if not ((isinstance(dependencies,list)) or
                 (isinstance(dependencies,tuple))):
@@ -247,6 +247,11 @@ class Task(object):
             raise InvalidTask(msg % (name, str(targets),type(targets)))
 
         self.name = name
+        self.dependencies = dependencies
+        self.targets = targets
+        self.setup = setup
+        self.run_once = False
+        self.is_subtask = is_subtask
 
         if actions is None:
             self.actions = []
@@ -258,11 +263,18 @@ class Task(object):
                    "even if it contains a single action")
             self.actions = [create_action(actions)]
 
-        self.dependencies = dependencies
-        self.targets = targets
-        self.setup = setup
-        self.run_once = False
-        self.is_subtask = is_subtask
+
+        # Store just first non-empty line as documentation string
+        if doc is None:
+            self.doc = ''
+        else:
+            for line in doc.splitlines():
+                striped = line.strip()
+                if striped:
+                    self.doc = striped
+                    break
+            else:
+                self.doc = ''
 
         # there are 3 kinds of dependencies: file, task, and folder
         self.folder_dep = []
@@ -293,7 +305,7 @@ class Task(object):
             raise InvalidTask(msg % name)
 
 
-    def execute(self, capture_stdout = False, capture_stderr = False):
+    def execute(self, capture_stdout=False, capture_stderr=False):
         """Executes the task.
 
         @raise TaskFailed: If raised when executing an action
@@ -334,7 +346,7 @@ def dict_to_task(task_dict):
     @raise InvalidTask: If unexpected fields were passed in task_dict
     """
     # TASK_ATTRS: sequence of know attributes(keys) of a task dict.
-    TASK_ATTRS = ('name','actions','dependencies','targets','setup')
+    TASK_ATTRS = ('name','actions','dependencies','targets','setup', 'doc')
     # FIXME check field 'name'
 
     # === DEPRECATED on 0.4 (to be removed on 0.5): START
@@ -358,9 +370,4 @@ def dict_to_task(task_dict):
             raise InvalidTask("Task %s contain invalid field: %s"%
                               (task_dict['name'],key))
 
-    return Task(task_dict.get('name'),
-                task_dict.get('actions'),
-                task_dict.get('dependencies',[]),
-                task_dict.get('targets',[]),
-                task_dict.get('setup',None),
-                )
+    return Task(**task_dict)

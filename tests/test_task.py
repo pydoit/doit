@@ -501,7 +501,26 @@ class TestTaskActions(object):
         assert "hi_stdout_PY_hi_list" == got, repr(got)
 
 
+class TestTaskDoc(object):
+    def test_no_doc(self):
+        t = task.Task("name", ["action"])
+        assert '' == t.doc
 
+    def test_single_line(self):
+        t = task.Task("name", ["action"], doc="  i am doc")
+        assert "i am doc" == t.doc
+
+    def test_multiple_lines(self):
+        t = task.Task("name", ["action"], doc="i am doc  \n with many lines\n")
+        assert "i am doc" == t.doc
+
+    def test_start_with_empty_lines(self):
+        t = task.Task("name", ["action"], doc="\n\n i am doc \n")
+        assert "i am doc" == t.doc
+
+    def test_just_new_line(self):
+        t = task.Task("name", ["action"], doc="  \n  \n\n")
+        assert "" == t.doc
 
 
 class TestDictToTask(object):
