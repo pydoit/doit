@@ -42,7 +42,7 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
 
         # check if task is up-to-date
         try:
-            task_uptodate = dependencyManager.up_to_date(task.name,
+            task.dep_changed, task_uptodate = dependencyManager.up_to_date(task.name,
                                  task.file_dep, task.targets, task.run_once)
         # TODO: raise an exception here.
         except:
@@ -55,7 +55,7 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
         if not alwaysExecute and task_uptodate:
             print "---", task.title()
         else:
-            print task.title()
+            print task.title() % {'targets' : " ".join(task.targets), 'changed': " ".join(task.dep_changed), 'dependencies': " ".join(task.dependencies)}
             # process folder dependency
             for dep in task.folder_dep:
                 if not os.path.exists(dep):

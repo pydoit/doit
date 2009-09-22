@@ -119,23 +119,25 @@ class Dependency(object):
         by doit. they can only be cleared manualy.
         @return: (bool) True if up to date, False needs to re-execute.
         """
+
         # no dependencies means it is never up to date.
         if (not dependencies) and (not runOnce):
-            return False
+            return [], False
 
         # user managed dependency always up-to-date if it exists
         if runOnce:
             if not self._get(taskId,''):
-                return False
+                return [], False
 
         # if target file is not there, task is not up to date
         for targ in targets:
             if not os.path.exists(targ):
-                return False
+                return dependencies, False
 
         # check for modified dependencies
+        changed = []
         for dep in tuple(dependencies):
             if self.modified(taskId,dep):
-                return False
+                changed.append(dep)
 
-        return True
+        return changed, len(changed) == 0

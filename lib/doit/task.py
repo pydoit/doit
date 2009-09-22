@@ -45,7 +45,7 @@ class CmdAction(BaseAction):
     def __init__(self, action):
         assert isinstance(action,str), "CmdAction must be a string."
         self.action = action
-
+        self.task = None
 
     def execute(self, capture_stdout=False, capture_stderr=False):
         """
@@ -68,8 +68,10 @@ class CmdAction(BaseAction):
         else:
             stderr = subprocess.PIPE
 
+        action = self.action % {'targets' : " ".join(self.task.targets), 'changed': " ".join(self.task.dep_changed), 'dependencies': " ".join(self.task.dependencies)}
+
         # spawn task process
-        process = subprocess.Popen(self.action,stdout=stdout,
+        process = subprocess.Popen(action,stdout=stdout,
                                  stderr=stderr, shell=True)
 
         # log captured stream
@@ -84,12 +86,12 @@ class CmdAction(BaseAction):
         # it doesnt make so much difference to return as Error or Failed anyway
         if process.returncode > 125:
             raise TaskError("Command error: '%s' returned %s" %
-                            (self.action,process.returncode))
+                            (action,process.returncode))
 
         # task failure
         if process.returncode != 0:
             raise TaskFailed("Command failed: '%s' returned %s" %
-                             (self.action,process.returncode))
+                             (action,process.returncode))
 
     def __str__(self):
         return "Cmd: %s" % self.action
@@ -275,6 +277,10 @@ class Task(object):
                     break
             else:
                 self.doc = ''
+
+        for action in self.actions:
+            action.task = self
+            open("log","a").write("%s -- %s\n" % (action.task, action))
 
         # there are 3 kinds of dependencies: file, task, and folder
         self.folder_dep = []

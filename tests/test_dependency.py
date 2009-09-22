@@ -235,7 +235,7 @@ class TestRunOnceDependency(DependencyTestBase):
 
     def test_upToDate_BoolDependency(self):
         taskId = "task X"
-        assert not self.d.up_to_date(taskId,[],[],True)
+        assert self.d.up_to_date(taskId,[],[],True) == ([], False)
         self.d.save_run_once(taskId)
-        assert self.d.up_to_date(taskId,[],[],True)
+        assert self.d.up_to_date(taskId,[],[],True) == ([], True)
 
