@@ -163,9 +163,9 @@ class TestTaskDependency(DependencyTestBase):
     def test_upToDate_noDependency(self):
         taskId = "task A"
         # first time execute
-        assert not self.d.up_to_date(taskId,[],[],False)
+        assert self.d.up_to_date(taskId,[],[],False) == ([], False)
         # second too
-        assert not self.d.up_to_date(taskId,[],[],False)
+        assert self.d.up_to_date(taskId,[],[],False) == ([], False)
 
 
     # if there is a dependency the task is executed only if one of
@@ -179,10 +179,10 @@ class TestTaskDependency(DependencyTestBase):
         taskId = "task X";
         dependencies = [filePath]
         # first time execute
-        assert not self.d.up_to_date(taskId,dependencies,[],False)
+        assert self.d.up_to_date(taskId,dependencies,[],False) == (dependencies, False)
         self.d.save_dependencies(taskId,dependencies)
         # second time no
-        assert self.d.up_to_date(taskId,dependencies,[],False)
+        assert self.d.up_to_date(taskId,dependencies,[],False) == ([], True)
 
         # a small change on the file
         ff = open(filePath,"a")
@@ -190,7 +190,7 @@ class TestTaskDependency(DependencyTestBase):
         ff.close()
 
         # execute again
-        assert not self.d.up_to_date(taskId,dependencies,[],False)
+        assert self.d.up_to_date(taskId,dependencies,[],False) == (dependencies, False)
 
 
     # if target file does not exist, task is outdated.
@@ -203,7 +203,7 @@ class TestTaskDependency(DependencyTestBase):
         if os.path.exists(filePath):
             os.remove(filePath)
 
-        assert not self.d.up_to_date(taskId,dependencies,[filePath],False)
+        assert self.d.up_to_date(taskId,dependencies,[filePath],False) == (dependencies, False)
 
     def test_upToDate_targets(self):
         filePath = get_abspath("data/target")
@@ -216,7 +216,7 @@ class TestTaskDependency(DependencyTestBase):
         targets = [filePath]
         self.d.save_dependencies(taskId,dependencies)
         # up-to-date because target exist
-        assert self.d.up_to_date(taskId,dependencies,targets,False)
+        assert self.d.up_to_date(taskId,dependencies,targets,False) == ([], True)
 
     def test_upToDate_targetFolder(self):
         # folder not there. task is not up-to-date
@@ -226,10 +226,10 @@ class TestTaskDependency(DependencyTestBase):
         folderPath = get_abspath("data/target-folder")
         if os.path.exists(folderPath):
             os.rmdir(folderPath)
-        assert not self.d.up_to_date(taskId,dependencies,[folderPath],False)
+        assert self.d.up_to_date(taskId,dependencies,[folderPath],False) == (dependencies, False)
         # create folder. task is up-to-date
         os.mkdir(folderPath)
-        assert self.d.up_to_date(taskId,dependencies,[folderPath],False)
+        assert self.d.up_to_date(taskId,dependencies,[folderPath],False) == ([], True)
 
 class TestRunOnceDependency(DependencyTestBase):
 

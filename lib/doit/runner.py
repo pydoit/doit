@@ -55,7 +55,7 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
         if not alwaysExecute and task_uptodate:
             print "---", task.title()
         else:
-            print task.title() % {'targets' : " ".join(task.targets), 'changed': " ".join(task.dep_changed), 'dependencies': " ".join(task.dependencies)}
+            print task.title() % {'targets' : " ".join(task.targets), 'changed': " ".join(task.dep_changed), 'dependencies': " ".join(["%s" % x for x in task.dependencies])}
             # process folder dependency
             for dep in task.folder_dep:
                 if not os.path.exists(dep):

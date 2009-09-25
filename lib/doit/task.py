@@ -68,7 +68,10 @@ class CmdAction(BaseAction):
         else:
             stderr = subprocess.PIPE
 
-        action = self.action % {'targets' : " ".join(self.task.targets), 'changed': " ".join(self.task.dep_changed), 'dependencies': " ".join(self.task.dependencies)}
+        if self.task:
+            action = self.action % {'targets' : " ".join(self.task.targets), 'changed': " ".join(self.task.dep_changed), 'dependencies': " ".join(["%s" % x for x in self.task.dependencies])}
+        else:
+            action = self.action
 
         # spawn task process
         process = subprocess.Popen(action,stdout=stdout,
@@ -254,6 +257,7 @@ class Task(object):
         self.setup = setup
         self.run_once = False
         self.is_subtask = is_subtask
+        self.dep_changed = []
 
         if actions is None:
             self.actions = []
