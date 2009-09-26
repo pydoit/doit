@@ -3,13 +3,11 @@
 
 - action as list of commands/python (#421445)
 - deprecate "action" use "actions"
+- dodo.pyc unfriendly error message (#425553)
 . tools -> create folder (#421453)
-. tools -> forget task
 . deprecate folder-depenency
-. test for cmdline
 . sub-cmd clean targets (#421450)
-. dodo.pyc unfriendly error message (#425553)
-. option to make sub-task not part of a group
+. setup parameter for a task should support a list
 
 
 0.5
@@ -22,8 +20,11 @@
 
 ----------
 
+. test for cmdline
+. tools -> forget task
+. option to make sub-task not part of a group
+
 . list command improvements
-. setup parameter for a task should support a list
 . forget a dependencies, not a tasks
 . opposite of forget. mark as up-to-date.
 

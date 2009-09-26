@@ -31,14 +31,14 @@ def get_module(dodoFile):
     sys.path.insert(0, base_path)
     # file specified on dodo file are relative to itself.
     os.chdir(base_path)
-    # get module containing the tasks
-    try:
-        return __import__(os.path.splitext(file_name)[0])
-    except ImportError:
-        msg = ("Could not find dodo file '%s'. " +
-               "Please use '-f' to specify file name. " +
-               "Use the command 'dodo-sample' to view a sample.")
+    if not os.path.exists(file_name):
+        msg = ("Could not find dodo file '%s'.\n" +
+               "Please use '-f' to specify file name.\n" +
+               "Use the command 'dodo-sample' to view a sample dodo file.\n")
         raise InvalidDodoFile(msg % dodoFile)
+    # get module containing the tasks
+    return __import__(os.path.splitext(file_name)[0])
+
 
 def load_task_generators(dodo_module, command_names=()):
     """Loads a python file and extracts its task generator functions.
