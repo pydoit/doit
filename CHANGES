@@ -6,6 +6,8 @@ CHANGES
 0.4.0
 =====
 
+- added tools.create_folder (#421453)
+- deprecate folder-depenency
 - CmdActions reference to dependencies, targets and changed dependencies (#434327)
 - print task description when printing through doit list (#425811)
 - action as list of commands/python (#421445)

@@ -282,10 +282,12 @@ class Task(object):
         elif type(actions) is list:
             self.actions = [create_action(a) for a in actions]
         else:
+        ## DEPREACTED ON 0.4 - REMOVE ON 0.5
             #raise Exception("DEPRECATED must be list")
-            print ("DEPRECATION WARNING task actions must be a list "
-                   "even if it contains a single action")
+            msg = "DEPRECATION WARNING: task %s actions must be a list."
+            print msg % self.name
             self.actions = [create_action(actions)]
+        ## DEPRECATION END
 
 
         # Store just first non-empty line as documentation string
@@ -383,7 +385,7 @@ def dict_to_task(task_dict):
         #raise Exception("DEPRECATED action")
         task_dict['actions'] = task_dict['action']
         del task_dict['action']
-        print ("DEPRECATION WARNING Task %s contains 'action' key. "
+        print ("DEPRECATION WARNING: Task %s contains 'action' key. "
                "This will be deprecated in future versions, "
                "please use 'actions' instead" % task_dict['name'])
     # === DEPRECATION: END

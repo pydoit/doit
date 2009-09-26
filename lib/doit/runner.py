@@ -56,10 +56,19 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
             print "---", task.title()
         else:
             print task.title()
+
+            ### DEPRECATED ON 0.4 - REMOVE ON 0.5
+            if task.folder_dep:
+                msg = ("DEPRECATION WARNING: Task %s contains folder " +
+                       "dependencies: %s. Folder dependency support will be " +
+                       "removed. The same behaviour can be achieved using "
+                       "doit.tools.create as an action.")
+                print msg % (task.name, task.folder_dep)
             # process folder dependency
             for dep in task.folder_dep:
                 if not os.path.exists(dep):
                     os.makedirs(dep)
+            ## DERECATED END
 
             try:
                 # setup env

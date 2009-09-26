@@ -4,8 +4,8 @@
 - action as list of commands/python (#421445)
 - deprecate "action" use "actions"
 - dodo.pyc unfriendly error message (#425553)
-. tools -> create folder (#421453)
-. deprecate folder-depenency
+- tools -> create folder (#421453)
+- deprecate folder-depenency
 . sub-cmd clean targets (#421450)
 . setup parameter for a task should support a list
 
