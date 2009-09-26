@@ -542,3 +542,31 @@ class TestDictToTask(object):
         assert isinstance(t, task.Task)
         assert not hasattr(t, 'action')
         assert hasattr(t, 'actions')
+
+
+class TestCmdFormatting(object):
+    def setUp(self):
+        # capture stdout
+        self.oldOut = sys.stdout
+        sys.stdout = StringIO.StringIO()
+
+    def tearDown(self):
+        sys.stdout.close()
+        sys.stdout = self.oldOut
+
+    def test_task_meta_reference(self):
+        cmd = "python %s/myecho.py" % TEST_PATH
+        cmd += " %(dependencies)s - %(changed)s - %(targets)s"
+        dependencies = ["data/dependency1", "data/dependency2"]
+        targets = ["data/target", "data/targetXXX"]
+        t = task.Task('formating', [cmd], dependencies, targets)
+        t.dep_changed = ["data/dependency1"]
+        t.execute(capture_stdout=True)
+        logger.flush('stdout',sys.stdout)
+
+        got = sys.stdout.getvalue().split('-')
+        assert dependencies == got[0].split(), got[0]
+        assert t.dep_changed == got[1].split(), got[1]
+        assert targets == got[2].split(), got[2]
+
+

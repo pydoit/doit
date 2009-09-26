@@ -39,12 +39,16 @@ class CmdAction(BaseAction):
     """
     Command line action. Spawns a new process.
 
-    @ivar action(str): Command to be passed to the shell subprocess
+    @ivar action(str): Command to be passed to the shell subprocess.
+         It may contain python mapping strings with the keys: dependencies,
+         changed and targets. ie. "zip %(targets)s %(changed)s"
+    @ivar task(Task): reference to task that contains this action
     """
 
     def __init__(self, action):
         assert isinstance(action,str), "CmdAction must be a string."
         self.action = action
+        self.task = None
 
 
     def execute(self, capture_stdout=False, capture_stderr=False):
@@ -68,9 +72,11 @@ class CmdAction(BaseAction):
         else:
             stderr = subprocess.PIPE
 
+        action = self.expand_action()
+
         # spawn task process
-        process = subprocess.Popen(self.action,stdout=stdout,
-                                 stderr=stderr, shell=True)
+        process = subprocess.Popen(action,stdout=stdout,
+                                   stderr=stderr, shell=True)
 
         # log captured stream
         out,err = process.communicate()
@@ -84,18 +90,33 @@ class CmdAction(BaseAction):
         # it doesnt make so much difference to return as Error or Failed anyway
         if process.returncode > 125:
             raise TaskError("Command error: '%s' returned %s" %
-                            (self.action,process.returncode))
+                            (action,process.returncode))
 
         # task failure
         if process.returncode != 0:
             raise TaskFailed("Command failed: '%s' returned %s" %
-                             (self.action,process.returncode))
+                             (action,process.returncode))
+
+    def expand_action(self):
+        """expand action string using task meta informations
+        @returns (string) - expanded string after substitution
+        """
+        if not self.task:
+            return self.action
+
+        subs_dict = {'targets' : " ".join(self.task.targets),
+                     'dependencies': " ".join(self.task.dependencies)}
+        # just included changed if it is set
+        if self.task.dep_changed is not None:
+            subs_dict['changed'] = " ".join(self.task.dep_changed)
+        return self.action % subs_dict
+
 
     def __str__(self):
-        return "Cmd: %s" % self.action
+        return "Cmd: %s" % self.expand_action()
 
     def __repr__(self):
-        return "<CmdAction: '%s'>"  % self.action
+        return "<CmdAction: '%s'>"  % self.expand_action()
 
 
 class PythonAction(BaseAction):
@@ -225,6 +246,8 @@ class Task(object):
     @ivar folder_dep: (list - string)
     @ivar task_dep: (list - string)
     @ivar file_dep: (list - string)
+    @ivar dep_changed (list - string): list of file-dependencies that changed
+          (are not up_to_date). this must be set before
     @ivar run_once: (bool) task without dependencies should run
     @ivar is_subtask: (bool) indicate this task is a subtask.
     @ivar doc: (string) task documentation
@@ -252,6 +275,7 @@ class Task(object):
         self.setup = setup
         self.run_once = False
         self.is_subtask = is_subtask
+        self.dep_changed = None
 
         if actions is None:
             self.actions = []
@@ -275,6 +299,10 @@ class Task(object):
                     break
             else:
                 self.doc = ''
+
+        # set self as task for all actions
+        for action in self.actions:
+            action.task = self
 
         # there are 3 kinds of dependencies: file, task, and folder
         self.folder_dep = []

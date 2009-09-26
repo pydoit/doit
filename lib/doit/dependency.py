@@ -117,25 +117,30 @@ class Dependency(object):
         @param dependencies: (list of string)
         @param runOnce: (bool) task has dependencies but they are not managed
         by doit. they can only be cleared manualy.
-        @return: (bool) True if up to date, False needs to re-execute.
+        @return: (bool, changed) True if up to date, False needs to re-execute.
+            changed (list-strings): file-dependencies that are not up-to-date
+            if task not up-to-date because of a target, returned value
+            will contain all file-dependencies reagrdless they are up-to-date
+            or not.
         """
+
         # no dependencies means it is never up to date.
         if (not dependencies) and (not runOnce):
-            return False
+            return False, []
 
         # user managed dependency always up-to-date if it exists
-        if runOnce:
-            if not self._get(taskId,''):
-                return False
+        if runOnce and not self._get(taskId,''):
+            return False, []
 
         # if target file is not there, task is not up to date
         for targ in targets:
             if not os.path.exists(targ):
-                return False
+                return False, dependencies
 
         # check for modified dependencies
+        changed = []
         for dep in tuple(dependencies):
             if self.modified(taskId,dep):
-                return False
+                changed.append(dep)
 
-        return True
+        return len(changed) == 0, changed
