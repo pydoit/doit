@@ -55,7 +55,7 @@ class TestDebugger(object):
 
 
 def test_md5():
-    filePath = os.path.abspath(__file__+"/../sample_md5.txt")
+    filePath = os.path.join(os.path.dirname(__file__),"sample_md5.txt")
     # result got using command line md5sum
     expected = "45d1503cb985898ab5bd8e58973007dd"
     assert expected == util.md5sum(filePath)

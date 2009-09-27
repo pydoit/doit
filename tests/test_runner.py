@@ -10,6 +10,12 @@ from doit import runner
 # dependencies file
 TESTDB = "testdb"
 
+
+def tearDownModule():
+    if os.path.exists(TESTDB):
+        os.remove(TESTDB)
+
+
 def my_print(out="",err=""):
     sys.stdout.write(out)
     sys.stderr.write(err)
@@ -142,13 +148,13 @@ class TestRunningTask(BaseRunner):
 
     # when successful dependencies are updated
     def test_successDependencies(self):
-        filePath = os.path.abspath(__file__+"/../data/dependency1")
+        filePath = os.path.join(os.path.dirname(__file__),"data/dependency1")
         ff = open(filePath,"a")
         ff.write("xxx")
         ff.close()
         dependencies = [filePath]
 
-        filePath = os.path.abspath(__file__+"/../data/target")
+        filePath = os.path.join(os.path.dirname(__file__),"data/target")
         ff = open(filePath,"a")
         ff.write("xxx")
         ff.close()
@@ -179,7 +185,7 @@ class TestRunningTask(BaseRunner):
 
 
     def test_ignoreNonFileDep(self):
-        DIR_DEP = os.path.abspath(__file__+"/../folder_dep/")+'/'
+        DIR_DEP = os.path.join(os.path.dirname(__file__),"folder_dep/")+'/'
         dep = [DIR_DEP, ":taskY"]
         tasks = [Task("taskX", [my_print], dep)]
         assert runner.SUCCESS == runner.run_tasks(TESTDB, tasks, 1)
@@ -206,7 +212,7 @@ class TestRunningTask(BaseRunner):
             if os.path.exists(DIR_DEP):
                 os.removedirs(DIR_DEP)
 
-        DIR_DEP = os.path.abspath(__file__+"/../parent/child/")+'/'
+        DIR_DEP = os.path.join(os.path.dirname(__file__),"parent/child/")+'/'
         rm_dir()
         tasks = [Task("taskX", [my_print], dependencies=[DIR_DEP])]
         assert runner.SUCCESS == runner.run_tasks(TESTDB, tasks, 1)

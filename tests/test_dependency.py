@@ -5,7 +5,7 @@ from doit.dependency import Dependency
 
 def get_abspath(relativePath):
     """ return abs file path relative to this file"""
-    return os.path.abspath(__file__+"/../"+relativePath)
+    return os.path.join(os.path.dirname(__file__), relativePath)
 
 
 ####
@@ -34,6 +34,8 @@ class DependencyTestBase(object):
     def tearDown(self):
         if not self.d._closed:
             self.d.close()
+        if os.path.exists(TESTDB):
+            os.remove(TESTDB)
 
 class TestDependencyDb(DependencyTestBase):
 

@@ -7,7 +7,7 @@ from doit import logger
 from doit import task
 
 #path to test folder
-TEST_PATH = os.path.abspath(__file__+'/../')
+TEST_PATH = os.path.dirname(__file__)
 
 
 ############# CmdAction

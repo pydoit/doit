@@ -7,7 +7,7 @@ def test_create_folder():
         if os.path.exists(DIR_DEP):
             os.removedirs(DIR_DEP)
 
-    DIR_DEP = os.path.abspath(__file__+"/../parent/child/")
+    DIR_DEP = os.path.join(os.path.dirname(__file__),"parent/child/")
     rm_dir()
     assert True == create_folder(DIR_DEP)
     assert os.path.exists(DIR_DEP)

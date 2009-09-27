@@ -9,6 +9,15 @@ from doit.main import get_module, load_task_generators, generate_tasks
 from doit.main import TaskSetup, doit_list, doit_run, doit_forget
 from doit.dependency import Dependency
 
+
+TESTDB = os.path.join(os.path.dirname(__file__), "testdb")
+
+def tearDownModule(self):
+    if os.path.exists(TESTDB):
+        os.remove(TESTDB)
+
+
+
 class TestGenerateTasks(object):
 
     def testDict(self):
@@ -77,7 +86,7 @@ class TestGenerateTasks(object):
 
 class TestLoadTaskGenerators(object):
     def testAbsolutePath(self):
-        fileName = os.path.abspath(__file__+"/../loader_sample.py")
+        fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
         expected = ["xxx1","yyy2"]
         dodo_module = get_module(fileName)
         dodo = load_task_generators(dodo_module)
@@ -86,7 +95,7 @@ class TestLoadTaskGenerators(object):
     def testRelativePath(self):
         # test relative import but test should still work from any path
         # so change cwd.
-        os.chdir(os.path.abspath(__file__+"/../.."))
+        os.chdir(os.path.abspath(os.path.join(os.path.dirname(__file__),'..')))
         fileName = "tests/loader_sample.py"
         expected = ["xxx1","yyy2"]
         dodo_module = get_module(fileName)
@@ -94,18 +103,18 @@ class TestLoadTaskGenerators(object):
         assert expected == [t.name for t in dodo['task_list']]
 
     def testNameInBlacklist(self):
-        fileName = os.path.abspath(__file__+"/../loader_sample.py")
+        fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
         dodo_module = get_module(fileName)
         nose.tools.assert_raises(InvalidDodoFile, load_task_generators,
                                  dodo_module, ['yyy2'])
 
     def testWrongFileName(self):
-        fileName = os.path.abspath(__file__+"/../i_dont_exist.py")
+        fileName = os.path.join(os.path.dirname(__file__),"i_dont_exist.py")
         nose.tools.assert_raises(InvalidDodoFile, get_module, fileName)
 
 
     def testDocString(self):
-        fileName = os.path.abspath(__file__+"/../loader_sample.py")
+        fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
         dodo_module = get_module(fileName)
         dodo = load_task_generators(dodo_module)
         assert "task doc" == dodo['task_list'][0].doc, dodo['task_list'][0].doc
@@ -117,7 +126,7 @@ class TestDodoDefaultTasks(object):
     # it just once. so need to clean up variables that i messed up.
 
     def setUp(self):
-        fileName = os.path.abspath(__file__+"/../loader_sample.py")
+        fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
         self.dodo_module = get_module(fileName)
 
     def tearDown(self):
@@ -269,7 +278,6 @@ class TestCmdList(BaseTestOutput):
         assert expected == got, sys.stdout.getvalue()
 
 
-TESTDB = "testdb"
 
 class TestCmdForget(BaseTestOutput):
     def setUp(self):
@@ -289,6 +297,7 @@ class TestCmdForget(BaseTestOutput):
         for task in self.tasks:
             dep._set(task.name,"dep","1")
         dep.close()
+
 
     def testForgetAll(self):
         doit_forget(TESTDB, self.tasks, [])
