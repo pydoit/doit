@@ -173,24 +173,26 @@ class PythonAction(BaseAction):
             old_stderr = sys.stderr
             sys.stderr = StringIO.StringIO()
 
-        # prepare action arguments
-        argspec = inspect.getargspec(self.py_callable)
-        extra_args = {'targets': self.task.targets,
-                      'dependencies': self.task.dependencies,
-                      'changed': self.task.dep_changed}
-        kwargs = self.kwargs.copy()
+        if self.task:
+            # prepare action arguments
+            argspec = inspect.getargspec(self.py_callable)
+            extra_args = {'targets': self.task.targets,
+                          'dependencies': self.task.dependencies,
+                          'changed': self.task.dep_changed}
+            kwargs = self.kwargs.copy()
 
-        for key in extra_args.keys():
-            arg_defined = argspec.args and key in argspec.args
-            if arg_defined:
-                index = argspec.args.index(key)
-                arg_passed = len(self.args) > index
-                default_defined = argspec.defaults and len(argspec.defaults) > index
-                if not arg_passed and not default_defined:
+            for key in extra_args.keys():
+                arg_defined = argspec.args and key in argspec.args
+                if arg_defined:
+                    index = argspec.args.index(key)
+                    arg_passed = len(self.args) > index
+                    default_defined = argspec.defaults and len(argspec.defaults) > index
+                    if not arg_passed and not default_defined:
+                        kwargs[key] = extra_args[key]
+                elif argspec.keywords:
                     kwargs[key] = extra_args[key]
-            elif argspec.keywords:
-                kwargs[key] = extra_args[key]
-
+        else:
+            kwargs = self.kwargs
 
         # execute action / callable
         try:
