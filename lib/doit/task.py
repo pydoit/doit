@@ -2,6 +2,7 @@
 import subprocess, sys
 import StringIO
 import traceback
+import inspect
 
 from doit import logger
 
@@ -126,10 +127,12 @@ class PythonAction(BaseAction):
     result depending on the success of the action
     @ivar args: (sequence)  Extra arguments to be passed to py_callable
     @ivar kwargs: (dict) Extra keyword arguments to be passed to py_callable
+    @ivar task(Task): reference to task that contains this action
     """
     def __init__(self, py_callable, args=None, kwargs=None):
 
         self.py_callable = py_callable
+        self.task = None
 
         if args is None:
             self.args = []
@@ -170,11 +173,29 @@ class PythonAction(BaseAction):
             old_stderr = sys.stderr
             sys.stderr = StringIO.StringIO()
 
+        # prepare action arguments
+        argspec = inspect.getargspec(self.py_callable)
+
+        if argspec.keywords:
+            kwargs = {'targets': self.task.targets,
+                      'dependencies': self.task.dependencies,
+                      'changed': self.task.dep_changed}
+
+            # use passed arguments (including their default value) by default
+            for index, key in enumerate(kwargs.keys()):
+                if (argspec.args and key in argspec.args
+                    and len(self.args) > index
+                    or (argspec.defaults and len(argspec.defaults) > index)):
+                    del kwargs[key]
+            kwargs.update(self.kwargs)
+        else:
+            kwargs = self.kwargs
+
         # execute action / callable
         try:
             # Python2.4
             try:
-                result = self.py_callable(*self.args,**self.kwargs)
+                result = self.py_callable(*self.args,**kwargs)
             # in python 2.4 SystemExit and KeyboardInterrupt subclass
             # from Exception.
             except (SystemExit, KeyboardInterrupt), exp:
