@@ -175,21 +175,22 @@ class PythonAction(BaseAction):
 
         # prepare action arguments
         argspec = inspect.getargspec(self.py_callable)
-
-        if argspec.keywords:
-            kwargs = {'targets': self.task.targets,
+        extra_args = {'targets': self.task.targets,
                       'dependencies': self.task.dependencies,
                       'changed': self.task.dep_changed}
+        kwargs = self.kwargs.copy()
 
-            # use passed arguments (including their default value) by default
-            for index, key in enumerate(kwargs.keys()):
-                if (argspec.args and key in argspec.args
-                    and len(self.args) > index
-                    or (argspec.defaults and len(argspec.defaults) > index)):
-                    del kwargs[key]
-            kwargs.update(self.kwargs)
-        else:
-            kwargs = self.kwargs
+        for key in extra_args.keys():
+            arg_defined = argspec.args and key in argspec.args
+            if arg_defined:
+                index = argspec.args.index(key)
+                arg_passed = len(self.args) > index
+                default_defined = argspec.defaults and len(argspec.defaults) > index
+                if not arg_passed and not default_defined:
+                    kwargs[key] = extra_args[key]
+            elif argspec.keywords:
+                kwargs[key] = extra_args[key]
+
 
         # execute action / callable
         try:
