@@ -160,7 +160,7 @@ class PythonAction(BaseAction):
         Prepare keyword arguments (targets, dependencies, changed)
         Inspect python callable and add missing arguments:
         - that the callable expects
-        - have not been passed
+        - have not been passed (as a regular arg or as keyword arg)
         - are available internally through the task object
         """
         # Return just what was passed in task generator
@@ -187,7 +187,7 @@ class PythonAction(BaseAction):
                                       % (self.task.name, self.py_callable.__name__, key))
                 if not arg_passed:
                     kwargs[key] = extra_args[key]
-            elif argspec.keywords:
+            elif argspec.keywords and key not in self.kwargs:
                 kwargs[key] = extra_args[key]
 
         return kwargs

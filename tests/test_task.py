@@ -643,6 +643,18 @@ class TestPythonActionExtraArgs(object):
         got = sys.stdout.getvalue().splitlines()
         assert got == ['a', 'b', 'c']
 
+    def test_extra_kwarg_overwritten(self):
+        def py_callable(a, b, **kwargs):
+            print a
+            print b
+            print kwargs['changed']
+            return True
+        action = task.PythonAction(py_callable, ('a', 'b'), {'changed': 'c'})
+        action.task = self.task
+        action.execute()
+        got = sys.stdout.getvalue().splitlines()
+        assert got == ['a', 'b', 'c']
+
     def test_extra_arg_default_disallowed(self):
         def py_callable(a, b, changed=None):
             return True
