@@ -155,6 +155,44 @@ class PythonAction(BaseAction):
             raise InvalidTask(msg % self.kwargs)
 
 
+    def _prepare_kwargs(self):
+        """
+        Prepare keyword arguments (targets, dependencies, changed)
+        Inspect python callable and add missing arguments:
+        - that the callable expects
+        - have not been passed
+        - are available internally through the task object
+        """
+        # Return just what was passed in task generator
+        # dictionary if the task isn't available
+        if not self.task:
+            return self.kwargs
+
+        argspec = inspect.getargspec(self.py_callable)
+        extra_args = {'targets': self.task.targets,
+                      'dependencies': self.task.dependencies,
+                      'changed': self.task.dep_changed}
+        kwargs = self.kwargs.copy()
+
+        for key in extra_args.keys():
+            arg_defined = argspec.args and key in argspec.args
+            if arg_defined:
+                index = argspec.args.index(key)
+                arg_passed = len(self.args) > index
+                default_defined = argspec.defaults and len(argspec.defaults) > (len(argspec.args) - (index+1))
+
+                if default_defined:
+                    raise InvalidTask("%s.%s: '%s' argument default value not allowed "
+                                      "(reserved by doit)"
+                                      % (self.task.name, self.py_callable.__name__, key))
+                if not arg_passed:
+                    kwargs[key] = extra_args[key]
+            elif argspec.keywords:
+                kwargs[key] = extra_args[key]
+
+        return kwargs
+
+
     def execute(self, capture_stdout=False, capture_stderr=False):
         """
         Execute command action
@@ -173,26 +211,7 @@ class PythonAction(BaseAction):
             old_stderr = sys.stderr
             sys.stderr = StringIO.StringIO()
 
-        if self.task:
-            # prepare action arguments
-            argspec = inspect.getargspec(self.py_callable)
-            extra_args = {'targets': self.task.targets,
-                          'dependencies': self.task.dependencies,
-                          'changed': self.task.dep_changed}
-            kwargs = self.kwargs.copy()
-
-            for key in extra_args.keys():
-                arg_defined = argspec.args and key in argspec.args
-                if arg_defined:
-                    index = argspec.args.index(key)
-                    arg_passed = len(self.args) > index
-                    default_defined = argspec.defaults and len(argspec.defaults) > index
-                    if not arg_passed and not default_defined:
-                        kwargs[key] = extra_args[key]
-                elif argspec.keywords:
-                    kwargs[key] = extra_args[key]
-        else:
-            kwargs = self.kwargs
+        kwargs = self._prepare_kwargs()
 
         # execute action / callable
         try:
