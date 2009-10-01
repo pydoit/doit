@@ -422,6 +422,11 @@ class TestTask(object):
         assert_raises(task.InvalidTask, task.Task,
                       "Task X",["taskcmd"], targets=filePath)
 
+    def test_setupNotSequence(self):
+        t = task.Task("Task X",["taskcmd"], setup=str)
+        # this is deprecated assert single value will be converted to list
+        assert isinstance(t.setup, list)
+
     def test_title(self):
         t = task.Task("MyName",["MyAction"])
         assert "MyName => %s"%str(t) == t.title(), t.title()

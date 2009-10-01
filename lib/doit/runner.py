@@ -72,10 +72,12 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
 
             try:
                 # setup env
-                if task.setup and task.setup not in setup_loaded:
-                    setup_loaded.add(task.setup)
-                    if hasattr(task.setup, 'setup'):
-                        task.setup.setup()
+                for setup_obj in task.setup:
+                    if setup_obj in setup_loaded:
+                        continue
+                    setup_loaded.add(setup_obj)
+                    if hasattr(setup_obj, 'setup'):
+                        setup_obj.setup()
                 # finally execute it
                 task.execute(capture_stdout, capture_stderr)
                 #save execution successful

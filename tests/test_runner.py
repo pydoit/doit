@@ -235,15 +235,15 @@ class TestTaskSetup(BaseRunner):
 
     def testExecuted(self):
         setup = self.SetupSample()
-        t = Task("ss", None, [], [], setup)
+        t = Task("ss", None, [], [], [setup])
         assert runner.SUCCESS == runner.run_tasks(TESTDB, [t])
         assert 1 == setup.executed
         assert 1 == setup.cleaned
 
     def testExecuteOnce(self):
         setup = self.SetupSample()
-        t1 = Task("ss", None, [], [], setup)
-        t2 = Task("ss2", None, [], [], setup)
+        t1 = Task("ss", None, [], [], [setup])
+        t2 = Task("ss2", None, [], [], [setup])
         assert runner.SUCCESS == runner.run_tasks(TESTDB, [t1, t2])
         assert 1 == setup.executed
         assert 1 == setup.cleaned
@@ -252,8 +252,8 @@ class TestTaskSetup(BaseRunner):
         setup = self.SetupSample()
         def bad_seed():
             raise Exception("rrrr")
-        t1 = Task("ss", [bad_seed], [], [], setup)
-        t2 = Task("ss2", None, [], [], setup)
+        t1 = Task("ss", [bad_seed], [], [], [setup])
+        t2 = Task("ss2", None, [], [], [setup])
         assert runner.ERROR == runner.run_tasks(TESTDB, [t1, t2])
         assert 1 == setup.executed
         assert 1 == setup.cleaned
@@ -264,7 +264,7 @@ class TestTaskSetup(BaseRunner):
             raise Exception('xxx')
         setup = self.SetupSample()
         setup.setup = raise_something
-        t1 = Task('t1', None, [], [], setup)
+        t1 = Task('t1', None, [], [], [setup])
         assert runner.ERROR == runner.run_tasks(TESTDB, [t1])
 
     def testCleanupError(self):
@@ -273,7 +273,7 @@ class TestTaskSetup(BaseRunner):
             raise Exception('xxx')
         setup = self.SetupSample()
         setup.cleanup = raise_something
-        t1 = Task('t1', None, [], [], setup)
+        t1 = Task('t1', None, [], [], [setup])
         assert runner.SUCCESS == runner.run_tasks(TESTDB, [t1])
 
 

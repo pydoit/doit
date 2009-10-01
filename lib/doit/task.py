@@ -299,13 +299,16 @@ class Task(object):
     @ivar dep_changed (list - string): list of file-dependencies that changed
           (are not up_to_date). this must be set before
     @ivar run_once: (bool) task without dependencies should run
+    @ivar setup (list): List of setup objects
+          (any object with setup or cleanup method)
     @ivar is_subtask: (bool) indicate this task is a subtask.
     @ivar doc: (string) task documentation
     """
 
-    def __init__(self,name, actions, dependencies=(),targets=(),setup=None,
+    def __init__(self, name, actions, dependencies=(),targets=(),setup=(),
                  is_subtask=False, doc=None):
         """sanity checks and initialization"""
+
         # dependencies parameter must be a list
         if not ((isinstance(dependencies,list)) or
                 (isinstance(dependencies,tuple))):
@@ -318,6 +321,13 @@ class Task(object):
             msg = ("%s. paramater 'targets' must be a list or tuple " +
                    "got:'%s'%s")
             raise InvalidTask(msg % (name, str(targets),type(targets)))
+
+        # setup parameter must be a list
+        if not(isinstance(setup,list) or isinstance(setup,tuple)):
+            ## DEPREACTED ON 0.4 - REMOVE ON 0.5
+            setup = [setup]
+            msg = "DEPRECATION WARNING: %s 'setup' must be a sequence."
+            print msg % name
 
         self.name = name
         self.targets = targets
