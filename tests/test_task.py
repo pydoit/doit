@@ -569,3 +569,94 @@ class TestCmdFormatting(object):
         assert targets == got[2].split(), got[2]
 
 
+class TestPythonActionExtraArgs(object):
+    class FakeTask(object):
+        def __init__(self):
+            self.name = 'name'
+            self.targets = 'targets'
+            self.file_dep = 'dependencies'
+            self.dep_changed = 'changed'
+
+    def setUp(self):
+        self.task = self.FakeTask()
+
+        # capture stdout
+        self.oldOut = sys.stdout
+        sys.stdout = StringIO.StringIO()
+
+    def tearDown(self):
+        sys.stdout.close()
+        sys.stdout = self.oldOut
+
+    def test_no_extra_args(self):
+        def py_callable():
+            return True
+        action = task.PythonAction(py_callable)
+        action.task = self.task
+        action.execute()
+
+    def test_keyword_extra_args(self):
+        def py_callable(arg=None, **kwargs):
+            print kwargs['targets']
+            print kwargs['dependencies']
+            print kwargs['changed']
+            return True
+        action = task.PythonAction(py_callable)
+        action.task = self.task
+        action.execute()
+        got = sys.stdout.getvalue().splitlines()
+        assert got == ['targets', 'dependencies', 'changed']
+
+    def test_named_extra_args(self):
+        def py_callable(targets, dependencies, changed):
+            print targets
+            print dependencies
+            print changed
+            return True
+        action = task.PythonAction(py_callable)
+        action.task = self.task
+        action.execute()
+        got = sys.stdout.getvalue().splitlines()
+        assert got == ['targets', 'dependencies', 'changed']
+
+    def test_mixed_args(self):
+        def py_callable(a, b, changed):
+            print a
+            print b
+            print changed
+            return True
+        action = task.PythonAction(py_callable, ('a', 'b'))
+        action.task = self.task
+        action.execute()
+        got = sys.stdout.getvalue().splitlines()
+        assert got == ['a', 'b', 'changed']
+
+    def test_extra_arg_overwritten(self):
+        def py_callable(a, b, changed):
+            print a
+            print b
+            print changed
+            return True
+        action = task.PythonAction(py_callable, ('a', 'b', 'c'))
+        action.task = self.task
+        action.execute()
+        got = sys.stdout.getvalue().splitlines()
+        assert got == ['a', 'b', 'c']
+
+    def test_extra_kwarg_overwritten(self):
+        def py_callable(a, b, **kwargs):
+            print a
+            print b
+            print kwargs['changed']
+            return True
+        action = task.PythonAction(py_callable, ('a', 'b'), {'changed': 'c'})
+        action.task = self.task
+        action.execute()
+        got = sys.stdout.getvalue().splitlines()
+        assert got == ['a', 'b', 'c']
+
+    def test_extra_arg_default_disallowed(self):
+        def py_callable(a, b, changed=None): pass
+        action = task.PythonAction(py_callable, ('a', 'b'))
+        action.task = self.task
+        assert_raises(task.InvalidTask, action.execute)

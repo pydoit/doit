@@ -2,6 +2,7 @@
 import subprocess, sys
 import StringIO
 import traceback
+import inspect
 
 from doit import logger
 
@@ -126,10 +127,12 @@ class PythonAction(BaseAction):
     result depending on the success of the action
     @ivar args: (sequence)  Extra arguments to be passed to py_callable
     @ivar kwargs: (dict) Extra keyword arguments to be passed to py_callable
+    @ivar task(Task): reference to task that contains this action
     """
     def __init__(self, py_callable, args=None, kwargs=None):
 
         self.py_callable = py_callable
+        self.task = None
 
         if args is None:
             self.args = []
@@ -152,6 +155,52 @@ class PythonAction(BaseAction):
             raise InvalidTask(msg % self.kwargs)
 
 
+    def _prepare_kwargs(self):
+        """
+        Prepare keyword arguments (targets, dependencies, changed)
+        Inspect python callable and add missing arguments:
+        - that the callable expects
+        - have not been passed (as a regular arg or as keyword arg)
+        - are available internally through the task object
+        """
+        # Return just what was passed in task generator
+        # dictionary if the task isn't available
+        if not self.task:
+            return self.kwargs
+
+        argspec = inspect.getargspec(self.py_callable)
+        # use task meta information as extra_args
+        extra_args = {'targets': self.task.targets,
+                      'dependencies': self.task.file_dep,
+                      'changed': self.task.dep_changed}
+        kwargs = self.kwargs.copy()
+
+        for key in extra_args.keys():
+            # check key is a positional parameter
+            if key in argspec.args:
+                arg_pos = argspec.args.index(key)
+
+                # it is forbidden to use default values for this arguments
+                # because the user might be unware of this magic.
+                if (argspec.defaults and
+                    len(argspec.defaults) > (len(argspec.args) - (arg_pos+1))):
+                    msg = ("%s.%s: '%s' argument default value not allowed "
+                           "(reserved by doit)"
+                           % (self.task.name, self.py_callable.__name__, key))
+                    raise InvalidTask(msg)
+
+                # if not over-written by value passed in *args use extra_arg
+                overwritten = arg_pos < len(self.args)
+                if not overwritten:
+                    kwargs[key] = extra_args[key]
+
+            # if function has **kwargs include extra_arg on it
+            elif argspec.keywords and key not in self.kwargs:
+                kwargs[key] = extra_args[key]
+
+        return kwargs
+
+
     def execute(self, capture_stdout=False, capture_stderr=False):
         """
         Execute command action
@@ -170,11 +219,13 @@ class PythonAction(BaseAction):
             old_stderr = sys.stderr
             sys.stderr = StringIO.StringIO()
 
+        kwargs = self._prepare_kwargs()
+
         # execute action / callable
         try:
             # Python2.4
             try:
-                result = self.py_callable(*self.args,**self.kwargs)
+                result = self.py_callable(*self.args,**kwargs)
             # in python 2.4 SystemExit and KeyboardInterrupt subclass
             # from Exception.
             except (SystemExit, KeyboardInterrupt), exp:
