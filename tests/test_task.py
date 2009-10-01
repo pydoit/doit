@@ -428,7 +428,7 @@ class TestTask(object):
 
 
     def test_strGroup(self):
-        t = task.Task("taskX",None,('t1','t2'))
+        t = task.Task("taskX",None,('file_foo', ':t1',':t2'))
         assert "Group: t1, t2" == str(t), "'%s'"%str(t)
 
 
@@ -436,7 +436,6 @@ class TestTask(object):
     def test_dependencyTypes(self):
         dep = ["file1.txt",":taskX","folderA/","pathB/","file2"]
         t = task.Task("MyName", ["MyAction"], dep)
-        assert t.dependencies == dep
         assert t.folder_dep == [dep[2],dep[3]]
         assert t.task_dep == [dep[1][1:]]
         assert t.file_dep == [dep[0],dep[4]]
@@ -557,7 +556,7 @@ class TestCmdFormatting(object):
     def test_task_meta_reference(self):
         cmd = "python %s/myecho.py" % TEST_PATH
         cmd += " %(dependencies)s - %(changed)s - %(targets)s"
-        dependencies = ["data/dependency1", "data/dependency2"]
+        dependencies = ["data/dependency1", "data/dependency2", ":dep_on_task"]
         targets = ["data/target", "data/targetXXX"]
         t = task.Task('formating', [cmd], dependencies, targets)
         t.dep_changed = ["data/dependency1"]
@@ -565,7 +564,7 @@ class TestCmdFormatting(object):
         logger.flush('stdout',sys.stdout)
 
         got = sys.stdout.getvalue().split('-')
-        assert dependencies == got[0].split(), got[0]
+        assert t.file_dep == got[0].split(), got[0]
         assert t.dep_changed == got[1].split(), got[1]
         assert targets == got[2].split(), got[2]
 

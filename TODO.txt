@@ -7,7 +7,7 @@
 - tools -> create folder (#421453)
 - deprecate folder-depenency
 . sub-cmd clean targets (#421450)
-. setup parameter for a task should support a list
+. setup parameter for a task should support a list (#437225)
 
 
 0.5

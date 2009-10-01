@@ -105,7 +105,7 @@ class CmdAction(BaseAction):
             return self.action
 
         subs_dict = {'targets' : " ".join(self.task.targets),
-                     'dependencies': " ".join(self.task.dependencies)}
+                     'dependencies': " ".join(self.task.file_dep)}
         # just included changed if it is set
         if self.task.dep_changed is not None:
             subs_dict['changed'] = " ".join(self.task.dep_changed)
@@ -241,7 +241,6 @@ class Task(object):
 
     @ivar name string
     @ivar actions: (list) of L{BaseAction}
-    @ivar dependencies list of all dependencies
     @ivar targets list of targets
     @ivar folder_dep: (list - string)
     @ivar task_dep: (list - string)
@@ -270,7 +269,6 @@ class Task(object):
             raise InvalidTask(msg % (name, str(targets),type(targets)))
 
         self.name = name
-        self.dependencies = dependencies
         self.targets = targets
         self.setup = setup
         self.run_once = False
@@ -310,7 +308,7 @@ class Task(object):
         self.folder_dep = []
         self.task_dep = []
         self.file_dep = []
-        for dep in self.dependencies:
+        for dep in dependencies:
             # True on the list. set run_once
             if isinstance(dep,bool):
                 if not dep:
@@ -360,7 +358,7 @@ class Task(object):
 
         # A task that contains no actions at all
         # is used as group task
-        return "Group: %s" % ", ".join(self.dependencies)
+        return "Group: %s" % ", ".join(self.task_dep)
 
     def __repr__(self):
         return "<Task: %s>"% self.name
