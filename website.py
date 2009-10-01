@@ -14,6 +14,6 @@ def task_epydoc():
             'targets': [targetPath + 'index.html']}
 
 def task_sphinx():
-    return "sphinx-build -b html -d %s_build/doctrees %s %s" % \
-        (docRoot, docRoot, buildPath)
+    action = "sphinx-build -b html -d %s_build/doctrees %s %s"
+    return {'actions': [action % (docRoot, docRoot, buildPath)]}
 

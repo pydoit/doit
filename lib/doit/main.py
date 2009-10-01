@@ -136,10 +136,8 @@ def generate_tasks(name, gen_result, gen_doc=None):
         group_task.task_dep = [task.name for task in tasks[1:]]
         return tasks
 
-    # if not a dictionary nor a generator. "task" is the action itself.
-    # TODO remove task with implicit actions
-    actions = gen_result is not None and [gen_result] or None
-    return [dict_to_task({'name':name,'actions':actions})]
+    raise InvalidTask("Task %s. Must return a dictionary. got %s" %
+                      (name, type(gen_result)))
 
 
 # this name is confusing with task.setup which it doesnt have any relation...

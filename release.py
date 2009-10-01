@@ -4,11 +4,12 @@ This is "dodo" file (suposed to be run with doit).
 """
 
 def task_revision():
-    return "bzr version-info > revision.txt"
+    return {'actions': ["bzr version-info > revision.txt"]}
 
 def task_manifest():
-    return "bzr ls --versioned > MANIFEST;echo 'revision.txt' >> MANIFEST"
+    cmd = "bzr ls --versioned > MANIFEST;echo 'revision.txt' >> MANIFEST"
+    return {'actions': [cmd]}
 
 def task_sdist():
-    return "python setup.py sdist"
+    return {'actions': ["python setup.py sdist"]}
 

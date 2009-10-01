@@ -4,7 +4,7 @@ def task_xxx1():
     return {'actions':['do nothing']}
 
 def task_yyy2():
-    pass
+    return {'actions':None}
 
 def bad_seed():
     pass

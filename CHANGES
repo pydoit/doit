@@ -6,6 +6,7 @@ CHANGES
 0.4.0
 =====
 
+- remove support for task generators returning action (not documented behavior)
 - setup parameter for a task should be a list - single value deprecated (#437225)
 - PythonAction support 'dependencies', 'targets', 'changed' parameters
 - added tools.create_folder (#421453)

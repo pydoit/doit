@@ -26,13 +26,11 @@ class TestGenerateTasks(object):
 
     # name field is only for subtasks.
     def testInvalidNameField(self):
-        nose.tools.assert_raises(InvalidTask, generate_tasks,"dict",
+        nose.tools.assert_raises(InvalidTask, generate_tasks, "dict",
                                  {'actions':['xpto 14'],'name':'bla bla'})
 
-    def testActionAsString(self):
-        tasks = generate_tasks("dict",'xpto 14')
-        assert isinstance(tasks[0],Task)
-
+    def testInvalidValue(self):
+        nose.tools.assert_raises(InvalidTask, generate_tasks, "dict",'xpto 14')
 
     def testGenerator(self):
         def f_xpto():
