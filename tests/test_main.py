@@ -3,11 +3,11 @@ import sys, StringIO
 
 import nose.tools
 
+from doit.dependency import Dependency
 from doit.task import InvalidTask, Task
 from doit.main import InvalidDodoFile, InvalidCommand
 from doit.main import get_module, load_task_generators, generate_tasks
-from doit.main import TaskSetup, doit_list, doit_run, doit_forget
-from doit.dependency import Dependency
+from doit.main import TaskSetup, doit_list, doit_run, doit_forget, doit_clean
 
 
 TESTDB = os.path.join(os.path.dirname(__file__), "testdb")
@@ -360,3 +360,24 @@ class TestCmdRun(BaseTestOutput):
         doit_run(TESTDB, TASKS_SAMPLE, filter_=["g1.a"])
         got = sys.stdout.getvalue().split("\n")[:-1]
         assert ["g1.a => Cmd: "] == got, repr(sys.stdout.getvalue())
+
+
+class TestCmdClean(BaseTestOutput):
+
+    def setUp(self):
+        BaseTestOutput.setUp(self)
+        self.count = 0
+        self.tasks = [Task("t1", None, clean=[(self.increment,)]),
+                      Task("t2", None, clean=[(self.increment,)]),
+                      ]
+
+    def increment(self):
+        self.count += 1
+        return True
+
+    def test_clean_all(self):
+        doit_clean(self.tasks, [])
+        assert 2 == self.count
+
+    def test_clean_selected(self):
+        doit_clean(self.tasks, ['t2'])

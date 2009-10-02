@@ -284,6 +284,20 @@ def doit_run(dependencyFile, task_list, filter_=None,
                             verbosity, alwaysExecute)
 
 
+def doit_clean(task_list, clean_tasks):
+    """Clean tasks
+    @param task_list (list - L{Task}): list of all tasks from dodo file
+    @param clean_tasks (list - string): tasks bo be clean. clean all if
+                                        empty list.
+    """
+    if not clean_tasks:
+        for task_ in task_list:
+            task_.clean()
+    else:
+        tasks = dict([(t.name, t) for t in task_list])
+        for name in clean_tasks:
+            tasks[name].clean()
+
 
 def doit_list(task_list, printSubtasks, quiet=False):
     """List task generators, in the order they were defined.

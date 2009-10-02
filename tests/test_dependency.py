@@ -27,8 +27,7 @@ TESTDB = "testdb"
 
 class DependencyTestBase(object):
     def setUp(self):
-        if os.path.exists(TESTDB):
-            os.remove(TESTDB)
+        if os.path.exists(TESTDB): os.remove(TESTDB)
         self.d = Dependency(TESTDB)
 
     def tearDown(self):

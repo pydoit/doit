@@ -3,6 +3,7 @@ import subprocess, sys
 import StringIO
 import traceback
 import inspect
+import os
 
 from doit import logger
 
@@ -291,8 +292,9 @@ class Task(object):
     """Task
 
     @ivar name string
-    @ivar actions: (list) of L{BaseAction}
-    @ivar targets list of targets
+    @ivar actions: list - L{BaseAction}
+    @ivar clean_actions: list - L{BaseAction}
+    @ivar targets: (list -string)
     @ivar folder_dep: (list - string)
     @ivar task_dep: (list - string)
     @ivar file_dep: (list - string)
@@ -305,8 +307,8 @@ class Task(object):
     @ivar doc: (string) task documentation
     """
 
-    def __init__(self, name, actions, dependencies=(),targets=(),setup=(),
-                 is_subtask=False, doc=None):
+    def __init__(self, name, actions, dependencies=(), targets=(),
+                 setup=(), clean=(), is_subtask=False, doc=None):
         """sanity checks and initialization"""
 
         # dependencies parameter must be a list
@@ -329,12 +331,13 @@ class Task(object):
             msg = "DEPRECATION WARNING: %s 'setup' must be a sequence."
             print msg % name
 
+
+
         self.name = name
         self.targets = targets
         self.setup = setup
         self.run_once = False
         self.is_subtask = is_subtask
-        self.dep_changed = None
 
         if actions is None:
             self.actions = []
@@ -348,23 +351,19 @@ class Task(object):
             self.actions = [create_action(actions)]
         ## DEPRECATION END
 
-
-        # Store just first non-empty line as documentation string
-        if doc is None:
-            self.doc = ''
+        if clean == True:
+            self._remove_targets = True
+            self.clean_actions = ()
         else:
-            for line in doc.splitlines():
-                striped = line.strip()
-                if striped:
-                    self.doc = striped
-                    break
-            else:
-                self.doc = ''
+            self._remove_targets = False
+            self.clean_actions = [create_action(a) for a in clean]
+
 
         # set self as task for all actions
         for action in self.actions:
             action.task = self
 
+        self.dep_changed = None
         # there are 3 kinds of dependencies: file, task, and folder
         self.folder_dep = []
         self.task_dep = []
@@ -387,11 +386,25 @@ class Task(object):
             elif isinstance(dep,str):
                 self.file_dep.append(dep)
 
+
         # run_once can't be used together with file dependencies
         if self.run_once and self.file_dep:
             msg = ("%s. task cant have file and dependencies and True " +
                    "at the same time. (just remove True)")
             raise InvalidTask(msg % name)
+
+
+        # Store just first non-empty line as documentation string
+        if doc is None:
+            self.doc = ''
+        else:
+            for line in doc.splitlines():
+                striped = line.strip()
+                if striped:
+                    self.doc = striped
+                    break
+            else:
+                self.doc = ''
 
 
     def execute(self, capture_stdout=False, capture_stderr=False):
@@ -402,6 +415,20 @@ class Task(object):
         """
         for action in self.actions:
             action.execute(capture_stdout, capture_stderr)
+
+    def clean(self):
+        """Execute task's clean"""
+        # if clean is True remove all targets
+        if self._remove_targets is True:
+            # remove all files
+            for file_ in self.targets:
+                if not file_.endswith('/'):
+                    if os.path.exists(file_):
+                        os.remove(file_)
+        else:
+            # clean contains a list of actions...
+            for action in self.clean_actions:
+                action.execute(False, False)
 
 
     def title(self):
@@ -435,11 +462,11 @@ def dict_to_task(task_dict):
     @raise InvalidTask: If unexpected fields were passed in task_dict
     """
     # TASK_ATTRS: sequence of know attributes(keys) of a task dict.
-    TASK_ATTRS = ('name','actions','dependencies','targets','setup', 'doc')
+    TASK_ATTRS = ('name','actions','dependencies','targets','setup', 'doc',
+                  'clean')
     # FIXME check field 'name'
 
     # === DEPRECATED on 0.4 (to be removed on 0.5): START
-    # check required fields
     if 'action' in task_dict and 'actions' not in task_dict:
         #raise Exception("DEPRECATED action")
         task_dict['actions'] = task_dict['action']
@@ -449,6 +476,7 @@ def dict_to_task(task_dict):
                "please use 'actions' instead" % task_dict['name'])
     # === DEPRECATION: END
 
+    # check required fields
     if 'actions' not in task_dict:
         raise InvalidTask("Task %s must contain 'actions' field. %s" %
                           (task_dict['name'],task_dict))

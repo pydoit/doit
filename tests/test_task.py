@@ -505,6 +505,52 @@ class TestTaskActions(object):
         assert "hi_stdout_PY_hi_list" == got, repr(got)
 
 
+
+
+class TestTaskClean(object):
+    C_PATH = 'tclean.txt'
+
+    def setUp(self):
+        fh = file(self.C_PATH, 'a')
+        fh.close()
+
+    def tearDown(self):
+        if os.path.exists(self.C_PATH):
+            os.remove(self.C_PATH)
+
+    def test_clean_nothing(self):
+        t = task.Task("xxx", None)
+        assert False == t._remove_targets
+        assert 0 == len(t.clean_actions)
+        t.clean()
+        assert os.path.exists(self.C_PATH)
+
+    def test_clean_targets(self):
+        t = task.Task("xxx", None, targets=[self.C_PATH], clean=True)
+        assert True == t._remove_targets
+        assert 0 == len(t.clean_actions)
+        t.clean()
+        assert not os.path.exists(self.C_PATH)
+
+    def test_clean_actions(self):
+        # a clean action can be anything, it can even not clean anything!
+        def say_hello():
+            fh = file(self.C_PATH, 'a')
+            fh.write("hello!!!")
+            fh.close()
+            return True
+        t = task.Task("xxx", None, targets=[self.C_PATH], clean=[(say_hello,)])
+        assert False == t._remove_targets
+        assert 1 == len(t.clean_actions)
+        t.clean()
+        assert os.path.exists(self.C_PATH)
+        fh = file(self.C_PATH, 'r')
+        got = fh.read()
+        fh.close()
+        assert "hello!!!" == got
+
+
+
 class TestTaskDoc(object):
     def test_no_doc(self):
         t = task.Task("name", ["action"])

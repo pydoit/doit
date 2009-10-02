@@ -15,6 +15,7 @@ http://python-doit.sourceforge.net/
 
 Commands:
  doit [run]             run tasks
+ doit clean             clean action / remove targets
  doit list              list tasks from dodo file
  doit forget            clear successful run status from DB
  doit dodo-sample       create a sample dodo.py file
@@ -145,6 +146,19 @@ def cmd_list(params, args):
     dodo_tasks = main.load_task_generators(dodo_module, command_names)
     return main.doit_list(dodo_tasks['task_list'], params['all'],
                           params['quiet'])
+
+##########################################################
+########## clean
+
+clean_doc = {'purpose': "clean action / remove targets",
+             'usage': "[TASK ...]",
+             'description': None}
+
+def cmd_clean(params, args):
+    dodo_module = main.get_module(params['dodoFile'])
+    command_names = params['sub'].keys()
+    dodo_tasks = main.load_task_generators(dodo_module, command_names)
+    return main.doit_clean(dodo_tasks['task_list'], args)
 
 
 ##########################################################
@@ -311,12 +325,17 @@ def cmd_main():
                    opt_depfile, opt_always, opt_verbosity)
     subCmd['run'] = cmdparse.Command('run', run_options, cmd_run, run_doc)
 
+    # clean command
+    clean_options = (opt_dodo,)
+    subCmd['clean'] = cmdparse.Command('clean', clean_options, cmd_clean,
+                                       clean_doc)
+
     # list command
     list_options = (opt_dodo, opt_listall, opt_list_quiet)
     subCmd['list'] = cmdparse.Command('list', list_options, cmd_list, list_doc)
 
     # forget command
-    forget_options = (opt_depfile,)
+    forget_options = (opt_dodo, opt_depfile,)
     subCmd['forget'] = cmdparse.Command('forget', forget_options,
                                         cmd_forget, forget_doc)
 
