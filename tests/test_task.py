@@ -187,6 +187,12 @@ class TestPythonAction(object):
         assert  "<PythonAction: '%s'>" % repr(repr_sample) == repr(t), repr(t)
 
 
+    def test_deprecation_not_bool_returned(self):
+        def nobool(): return "asdf"
+        t = task.PythonAction(nobool)
+        t.execute()
+        # not really checking the depracation is printed,
+        # just check it doesnt blow
 
 class TestPythonVerbosityStderr(object):
     def setUp(self):
@@ -382,7 +388,7 @@ class TestTask(object):
         assert t.actions == []
 
     # DEPRECATED - simple action is transformed into a list
-    def test_mustSubclass(self):
+    def test_deprecation_mustSubclass(self):
         t = task.Task("MyName", "single_task")
         assert type(t.actions) is list
         assert 1 == len(t.actions)
@@ -422,7 +428,7 @@ class TestTask(object):
         assert_raises(task.InvalidTask, task.Task,
                       "Task X",["taskcmd"], targets=filePath)
 
-    def test_setupNotSequence(self):
+    def test_deprecation_setupNotSequence(self):
         t = task.Task("Task X",["taskcmd"], setup=str)
         # this is deprecated assert single value will be converted to list
         assert isinstance(t.setup, list)

@@ -249,6 +249,15 @@ class PythonAction(BaseAction):
                 sys.stderr.close()
                 sys.stderr = old_stderr
 
+        # DEPREATED on 0.4 - to be removed on 0.5
+        if not isinstance(result, bool):
+            msg = "DEPREACTION WARNING: PythonAction must return a boolean."
+            if self.task:
+                msg += "Task %s." % self.task.name
+            msg += "Function '%s' returned %s"
+            print  msg % (self.py_callable.__name__, type(result))
+        # DEPRECATED - END
+
         # if callable returns false. Task failed
         if not result:
             raise TaskFailed("Python Task failed: '%s' returned %s" %

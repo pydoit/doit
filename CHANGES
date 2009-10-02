@@ -6,6 +6,8 @@ CHANGES
 0.4.0
 =====
 
+- deprecate anything other than a boolean values as return of python actions
+- sub-cmd clean (#421450)
 - remove support for task generators returning action (not documented behavior)
 - setup parameter for a task should be a list - single value deprecated (#437225)
 - PythonAction support 'dependencies', 'targets', 'changed' parameters

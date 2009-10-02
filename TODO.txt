@@ -1,36 +1,22 @@
-0.4
----------------
-
-- action as list of commands/python (#421445)
-- deprecate "action" use "actions"
-- dodo.pyc unfriendly error message (#425553)
-- tools -> create folder (#421453)
-- deprecate folder-depenency
-. sub-cmd clean targets (#421450)
-- setup parameter for a task should support a list (#437225)
-
-
 0.5
 ------------
 
 . passing arguments on cmd line (#370914)
 . dont calculate hash of all files everytime. use timestamp/size/hash (see mercurial dirstate) (#370920)
-. dont get subtasks if task is not going to be executed (#370923)
-. task process isolation. (execute tasks in a different process)
 
 ----------
 
+. dont save successful results
+. dont get subtasks if task is not going to be executed (#370923)
+. task process isolation. (execute tasks in a different process)
 . test for cmdline
 . tools -> forget task
 . option to make sub-task not part of a group
-
 . list command improvements
 . forget a dependencies, not a tasks
 . opposite of forget. mark as up-to-date.
-
 . defer task generator
 . support for depedency scanner (lp - 218303)
-
 . continue execution even if one task fails
 . one .doit for each dodo file
 . multiple (include) dodo files (lp - 218279)
