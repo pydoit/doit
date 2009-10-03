@@ -207,17 +207,6 @@ class TestRunningTask(BaseRunner):
         assert tasks[0].title() == taskTitles[0]
 
 
-    def test_createFolderDependency(self):
-        def rm_dir():
-            if os.path.exists(DIR_DEP):
-                os.removedirs(DIR_DEP)
-
-        DIR_DEP = os.path.join(os.path.dirname(__file__),"parent/child/")+'/'
-        rm_dir()
-        tasks = [Task("taskX", [my_print], dependencies=[DIR_DEP])]
-        assert runner.SUCCESS == runner.run_tasks(TESTDB, tasks, 1)
-        assert os.path.exists(DIR_DEP)
-        rm_dir()
 
 
 class TestTaskSetup(BaseRunner):

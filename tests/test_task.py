@@ -112,17 +112,33 @@ class TestCmdVerbosityStdout(object):
 
 class TestPythonAction(object):
 
-    def test_success(self):
+    def test_success_bool(self):
         def success_sample():return True
         t = task.PythonAction(success_sample)
         t.execute() # nothing raised it was successful
 
-    def test_error(self):
+    def test_success_None(self):
+        def success_sample():return
+        t = task.PythonAction(success_sample)
+        t.execute() # nothing raised it was successful
+
+    def test_success_str(self):
+        def success_sample():return ""
+        t = task.PythonAction(success_sample)
+        t.execute() # nothing raised it was successful
+
+    def test_error_object(self):
+        # anthing but None, bool, or string
+        def error_sample(): return {}
+        t = task.PythonAction(error_sample)
+        assert_raises(task.TaskError, t.execute)
+
+    def test_error_exception(self):
         def error_sample(): raise Exception("asdf")
         t = task.PythonAction(error_sample)
         assert_raises(task.TaskError, t.execute)
 
-    def test_fail(self):
+    def test_fail_bool(self):
         def fail_sample():return False
         t = task.PythonAction(fail_sample)
         assert_raises(task.TaskFailed, t.execute)
@@ -187,12 +203,6 @@ class TestPythonAction(object):
         assert  "<PythonAction: '%s'>" % repr(repr_sample) == repr(t), repr(t)
 
 
-    def test_deprecation_not_bool_returned(self):
-        def nobool(): return "asdf"
-        t = task.PythonAction(nobool)
-        t.execute()
-        # not really checking the depracation is printed,
-        # just check it doesnt blow
 
 class TestPythonVerbosityStderr(object):
     def setUp(self):
@@ -387,11 +397,6 @@ class TestTask(object):
         t = task.Task("taskX", None)
         assert t.actions == []
 
-    # DEPRECATED - simple action is transformed into a list
-    def test_deprecation_mustSubclass(self):
-        t = task.Task("MyName", "single_task")
-        assert type(t.actions) is list
-        assert 1 == len(t.actions)
 
     def test_repr(self):
         t = task.Task("taskX",None,('t1','t2'))
@@ -428,10 +433,12 @@ class TestTask(object):
         assert_raises(task.InvalidTask, task.Task,
                       "Task X",["taskcmd"], targets=filePath)
 
-    def test_deprecation_setupNotSequence(self):
-        t = task.Task("Task X",["taskcmd"], setup=str)
-        # this is deprecated assert single value will be converted to list
-        assert isinstance(t.setup, list)
+    def test_setupNotSequence(self):
+        assert_raises(task.InvalidTask, task.Task,
+                      "Task X",["taskcmd"], setup=str)
+
+    def test_actionsNotSequence(self):
+        assert_raises(task.InvalidTask, task.Task, "MyName", "single_task")
 
     def test_title(self):
         t = task.Task("MyName",["MyAction"])
@@ -590,14 +597,6 @@ class TestDictToTask(object):
 
     def testDictMissingFieldAction(self):
         assert_raises(task.InvalidTask, task.dict_to_task, {'name':'xpto 14'})
-
-    # deprecated
-    def testDeprecatedAction(self):
-        dict_ = {'name':'simple','action':['xpto 14']}
-        t = task.dict_to_task(dict_)
-        assert isinstance(t, task.Task)
-        assert not hasattr(t, 'action')
-        assert hasattr(t, 'actions')
 
 
 class TestCmdFormatting(object):
