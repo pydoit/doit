@@ -206,8 +206,6 @@ class TestRunningTask(BaseRunner):
         assert tasks[0].title() == taskTitles[0]
 
 
-
-
 class TestTaskSetup(BaseRunner):
 
     class SetupSample(object):
@@ -254,6 +252,7 @@ class TestTaskSetup(BaseRunner):
         setup.setup = raise_something
         t1 = Task('t1', None, [], [], [setup])
         assert runner.ERROR == runner.run_tasks(TESTDB, [t1])
+        # TODO not checking error is written to output
 
     def testCleanupError(self):
         # ignore errors...

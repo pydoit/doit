@@ -8,6 +8,51 @@ from doit import logger
 from doit.task import TaskFailed, TaskError
 from doit.dependency import Dependency
 
+
+class SetupError(Exception):
+    """Error while trying to execute setup object"""
+    pass
+
+
+class SetupManager(object):
+    """Manage setup objects
+
+    Setup object is any object that implements 'setup' and/or 'cleanup'
+    @ivar _loaded (list): of loaded setup objects
+    """
+
+    def __init__(self):
+        self._loaded = set()
+
+
+    def load(self, setup_obj):
+        """run setup from a setup_obj if it is not loaded yet"""
+        if setup_obj in self._loaded:
+            return
+
+        try:
+            self._loaded.add(setup_obj)
+            if hasattr(setup_obj, 'setup'):
+                setup_obj.setup()
+        except Exception, exception:
+            error = SetupError(exception)
+            error.originalException = traceback.format_exception(\
+                exception.__class__, exception,sys.exc_info()[2])
+            raise error
+
+
+    def cleanup(self):
+        """run cleanup for all loaded objects"""
+        for setup_obj in self._loaded:
+            if hasattr(setup_obj, 'cleanup'):
+                try:
+                    setup_obj.cleanup()
+                # report error but keep result as successful.
+                except Exception, e:
+                    sys.stderr.write(traceback.format_exc())
+
+
+
 # execution result.
 SUCCESS = 0
 FAILURE = 1
@@ -30,8 +75,8 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
     capture_stdout = verbosity < 2
     capture_stderr = verbosity == 0
     dependencyManager = Dependency(dependencyFile)
+    setupManager = SetupManager()
     results = [] # save non-succesful result information
-    setup_loaded = set() # setups that were loaded already.
 
     for task in tasks:
         # clear previous output
@@ -40,59 +85,61 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
         logger.clear('stderr')
 
         # check if task is up-to-date
+        # TODO: raise inside up_to_date method
         try:
             task_uptodate, task.dep_changed = dependencyManager.up_to_date(
                 task.name, task.file_dep, task.targets, task.run_once)
-        # TODO: raise an exception here.
-        except:
+        except Exception, exception:
             msg = "ERROR checking dependencies for: %s\n"
-            results.append({'task': task, 'result':ERROR, 'msg':msg})
+            exception = traceback.format_exception(\
+                exception.__class__, exception,sys.exc_info()[2])
+            results.append({'task': task, 'result':ERROR, 'msg':msg,
+                            'exception': exception})
             break
 
         # if task id up to date just print title
         if not alwaysExecute and task_uptodate:
             print "---", task.title()
-        else:
-            print task.title()
+            continue
 
-            try:
-                # setup env
-                for setup_obj in task.setup:
-                    if setup_obj in setup_loaded:
-                        continue
-                    setup_loaded.add(setup_obj)
-                    if hasattr(setup_obj, 'setup'):
-                        setup_obj.setup()
+        # going to execute the task...
+        print task.title()
+        try:
+            # setup env
+            for setup_obj in task.setup:
+                setupManager.load(setup_obj)
 
-                # finally execute it
-                task.execute(capture_stdout, capture_stderr)
-                #save execution successful
-                if task.run_once:
-                    dependencyManager.save_run_once(task.name)
-                dependencyManager.save_dependencies(task.name,task.file_dep)
+            # finally execute it
+            task.execute(capture_stdout, capture_stderr)
 
-            # in python 2.4 SystemExit and KeyboardInterrupt subclass
-            # from Exception.
-            # specially a problem when a fork from the main process
-            # exit using sys.exit() instead of os._exit().
-            except (SystemExit, KeyboardInterrupt), exp:
-                raise
+            #save execution successful
+            if task.run_once:
+                dependencyManager.save_run_once(task.name)
+            dependencyManager.save_dependencies(task.name,task.file_dep)
 
-            # task failed
-            except TaskFailed:
-                msg = '\nTask failed => %s\n'
-                fr = {'task': task, 'result':FAILURE, 'msg':msg}
-                results.append(fr)
-                break
+        # in python 2.4 SystemExit and KeyboardInterrupt subclass
+        # from Exception.
+        # specially a problem when a fork from the main process
+        # exit using sys.exit() instead of os._exit().
+        except (SystemExit, KeyboardInterrupt), exp:
+            raise
 
-            # task error # Exception is necessary for setup errors
-            except (TaskError, Exception), errorException:
-                msg = '\nTask error => %s\n'
-                fr = {'task': task, 'result':ERROR, 'msg':msg}
-                if hasattr(errorException, 'originalException'):
-                    fr['exception'] = errorException.originalException
-                results.append(fr)
-                break
+        # task failed
+        except TaskFailed:
+            msg = '\nTask failed => %s\n'
+            fr = {'task': task, 'result':FAILURE, 'msg':msg}
+            results.append(fr)
+            break
+
+        # task error # Exception is necessary for setup errors
+        except (TaskError, SetupError), errorException:
+            msg = '\nTask error => %s\n'
+            fr = {'task': task, 'result':ERROR, 'msg':msg}
+            if hasattr(errorException, 'originalException'):
+                fr['exception'] = errorException.originalException
+            results.append(fr)
+            break
+
 
     ## done
     # flush update dependencies
@@ -105,24 +152,11 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
         for res in results:
             sys.stderr.write(res['msg'] % res['task'].name)
             # in case of error show traceback
-            if res['result'] == ERROR:
-                line = "#"*40 + "\n"
-                sys.stderr.write(line)
-                if 'exception' in res:
-                    sys.stderr.write("\n".join(res['exception']))
-                else:
-                    sys.stderr.write(traceback.format_exc())
+            if 'exception' in res:
+                sys.stderr.write("#"*40 + "\n")
+                sys.stderr.write("\n".join(res['exception']))
 
-    # run tasks cleanup.
-    for setup in setup_loaded:
-        if hasattr(setup, 'cleanup'):
-            try:
-                setup.cleanup()
-            # not sure what should be the behaviour of errors on
-            # cleanup.
-            # report error but keep result as successful.
-            except Exception, e:
-                sys.stderr.write(traceback.format_exc())
+    setupManager.cleanup()
 
     # there is not distcition between errors and failures on returned result
     if not results:
