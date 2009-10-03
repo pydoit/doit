@@ -109,7 +109,7 @@ class TestRunningTask(BaseRunner):
 
         tasks = [Task("taskX", [write_and_fail]),
                  Task("taskY", [write_and_fail])]
-        assert runner.FAILURE == runner.run_tasks(TESTDB, tasks, 0)
+        assert runner.ERROR == runner.run_tasks(TESTDB, tasks, 0)
         output = sys.stdout.getvalue().split('\n')
         errput = sys.stderr.getvalue().split('\n')
         assert tasks[0].title() == output[0], output
@@ -142,7 +142,7 @@ class TestRunningTask(BaseRunner):
         assert "stderr here." ==  errput[0]
         # final failed message
         assert "Task error => taskX" == errput[2], errput
-        assert 'Exception: I am the exception.' == errput[-3]
+        assert 'Exception: I am the exception.' == errput[-3], errput
 
 
 
@@ -178,10 +178,9 @@ class TestRunningTask(BaseRunner):
         tasks = [Task("taskX", [my_print], ["i_dont_exist.xxx"])]
         assert runner.ERROR == runner.run_tasks(TESTDB, tasks, 1)
         # only titles are printed.
-        output = sys.stdout.getvalue().split('\n')
-        title = tasks[0].title()
-        assert "" == output[0], output
-        assert "ERROR checking dependencies for: %s"% title == output[1]
+        errput = sys.stderr.getvalue().split('\n')
+        name = tasks[0].name
+        assert "ERROR checking dependencies for: %s" % name == errput[0]
 
 
     def test_ignoreNonFileDep(self):

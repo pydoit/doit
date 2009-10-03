@@ -3,6 +3,11 @@
 CHANGES
 =======
 
+0.5.0
+=====
+
+- doit process returns value 2 when a task is not successful (for both failures and errors - previously it would return 1 for failures and 2 for errors).
+
 0.4.0
 =====
 

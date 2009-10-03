@@ -1,13 +1,14 @@
 """Task runner."""
 
+import os
 import sys
 import traceback
 
 from doit import logger
-from doit.task import TaskFailed
+from doit.task import TaskFailed, TaskError
 from doit.dependency import Dependency
 
-#: execution result.
+# execution result.
 SUCCESS = 0
 FAILURE = 1
 ERROR = 2
@@ -29,8 +30,7 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
     capture_stdout = verbosity < 2
     capture_stderr = verbosity == 0
     dependencyManager = Dependency(dependencyFile)
-    errorException = None  # Exception instance, in case of error
-    result = SUCCESS
+    results = [] # save non-succesful result information
     setup_loaded = set() # setups that were loaded already.
 
     for task in tasks:
@@ -45,9 +45,8 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
                 task.name, task.file_dep, task.targets, task.run_once)
         # TODO: raise an exception here.
         except:
-            print
-            print "ERROR checking dependencies for: %s"% task.title()
-            result = ERROR
+            msg = "ERROR checking dependencies for: %s\n"
+            results.append({'task': task, 'result':ERROR, 'msg':msg})
             break
 
         # if task id up to date just print title
@@ -64,6 +63,7 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
                     setup_loaded.add(setup_obj)
                     if hasattr(setup_obj, 'setup'):
                         setup_obj.setup()
+
                 # finally execute it
                 task.execute(capture_stdout, capture_stderr)
                 #save execution successful
@@ -73,22 +73,25 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
 
             # in python 2.4 SystemExit and KeyboardInterrupt subclass
             # from Exception.
-            # specially a problem when the a fork from the main process
+            # specially a problem when a fork from the main process
             # exit using sys.exit() instead of os._exit().
             except (SystemExit, KeyboardInterrupt), exp:
                 raise
 
             # task failed
             except TaskFailed:
-                logger.log("stderr", '\nTask failed => %s\n'% task.name)
-                result = FAILURE
+                msg = '\nTask failed => %s\n'
+                fr = {'task': task, 'result':FAILURE, 'msg':msg}
+                results.append(fr)
                 break
 
-            # task error
-            except Exception, exception:
-                logger.log("stderr", '\nTask error => %s\n'% task.name)
-                result = ERROR
-                errorException = exception
+            # task error # Exception is necessary for setup errors
+            except (TaskError, Exception), errorException:
+                msg = '\nTask error => %s\n'
+                fr = {'task': task, 'result':ERROR, 'msg':msg}
+                if hasattr(errorException, 'originalException'):
+                    fr['exception'] = errorException.originalException
+                results.append(fr)
                 break
 
     ## done
@@ -96,18 +99,19 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
     dependencyManager.close()
 
     # if test fails print output from failed task
-    if result != SUCCESS:
+    if results:
         logger.flush('stdout',sys.stdout)
         logger.flush('stderr',sys.stderr)
-
-    # in case of error show traceback from last exception
-    if result == ERROR:
-        line = "="*40 + "\n"
-        sys.stderr.write(line)
-        if errorException and hasattr(errorException, "originalException"):
-            sys.stderr.write("\n".join(errorException.originalException))
-        else:
-            sys.stderr.write(traceback.format_exc())
+        for res in results:
+            sys.stderr.write(res['msg'] % res['task'].name)
+            # in case of error show traceback
+            if res['result'] == ERROR:
+                line = "#"*40 + "\n"
+                sys.stderr.write(line)
+                if 'exception' in res:
+                    sys.stderr.write("\n".join(res['exception']))
+                else:
+                    sys.stderr.write(traceback.format_exc())
 
     # run tasks cleanup.
     for setup in setup_loaded:
@@ -120,4 +124,9 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
             except Exception, e:
                 sys.stderr.write(traceback.format_exc())
 
-    return result
+    # there is not distcition between errors and failures on returned result
+    if not results:
+        return SUCCESS
+    else:
+        return ERROR
+
