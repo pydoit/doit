@@ -1,27 +1,16 @@
 """Task and actions classes."""
 import subprocess, sys
 import StringIO
-import traceback
 import inspect
 import os
 
 from doit import logger
-
+from doit import TaskFailed, TaskError
 
 # Exceptions
 class InvalidTask(Exception):
     """Invalid task instance. User error on specifying the task."""
     pass
-
-# TODO rename this?
-class TaskFailed(Exception):
-    """Task execution was not successful."""
-    pass
-
-class TaskError(Exception):
-    """Error while trying to execute task."""
-    pass
-
 
 
 
@@ -233,14 +222,10 @@ class PythonAction(BaseAction):
                 result = self.py_callable(*self.args,**kwargs)
             # in python 2.4 SystemExit and KeyboardInterrupt subclass
             # from Exception.
-            except (SystemExit, KeyboardInterrupt), exp:
+            except (SystemExit, KeyboardInterrupt), execption:
                 raise
-
             except Exception, exception:
-                error = TaskError(exception)
-                error.originalException = traceback.format_exception(\
-                    exception.__class__, exception,sys.exc_info()[2])
-                raise error
+                raise TaskError("PythonAction Error", exception)
         finally:
             # restore std streams /log captured streams
             if capture_stdout:

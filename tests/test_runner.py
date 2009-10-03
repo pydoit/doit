@@ -117,7 +117,7 @@ class TestRunningTask(BaseRunner):
         assert "stdout here." == output[1]
         assert "stderr here." == errput[0]
         # final failed message
-        assert "Task failed => taskX" == errput[2], errput
+        assert "Task => taskX" == errput[2], errput
         # nothing more (but the empty string)
         assert 3 == len(output)
 
@@ -141,7 +141,7 @@ class TestRunningTask(BaseRunner):
         # stderr
         assert "stderr here." ==  errput[0]
         # final failed message
-        assert "Task error => taskX" == errput[2], errput
+        assert "Task => taskX" == errput[2], errput
         assert 'Exception: I am the exception.' == errput[-3], errput
 
 
@@ -180,7 +180,7 @@ class TestRunningTask(BaseRunner):
         # only titles are printed.
         errput = sys.stderr.getvalue().split('\n')
         name = tasks[0].name
-        assert "ERROR checking dependencies for: %s" % name == errput[0]
+        assert "ERROR checking dependencies" == errput[3], errput
 
 
     def test_ignoreNonFileDep(self):

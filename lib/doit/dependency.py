@@ -1,7 +1,6 @@
 """Manage (save/check) task dependency-on-files data."""
 
 import os
-import sys
 
 # Use Python 2.6 json or simplejson
 try:

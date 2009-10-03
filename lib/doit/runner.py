@@ -1,17 +1,11 @@
 """Task runner."""
 
-import os
 import sys
 import traceback
 
 from doit import logger
-from doit.task import TaskFailed, TaskError
+from doit import TaskFailed, TaskError, SetupError, DependencyError
 from doit.dependency import Dependency
-
-
-class SetupError(Exception):
-    """Error while trying to execute setup object"""
-    pass
 
 
 class SetupManager(object):
@@ -35,10 +29,7 @@ class SetupManager(object):
             if hasattr(setup_obj, 'setup'):
                 setup_obj.setup()
         except Exception, exception:
-            error = SetupError(exception)
-            error.originalException = traceback.format_exception(\
-                exception.__class__, exception,sys.exc_info()[2])
-            raise error
+            raise SetupError(exception)
 
 
     def cleanup(self):
@@ -83,33 +74,27 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
         #TODO should find a way to put this on the bottom
         logger.clear('stdout')
         logger.clear('stderr')
-
-        # check if task is up-to-date
-        # TODO: raise inside up_to_date method
         try:
-            task_uptodate, task.dep_changed = dependencyManager.up_to_date(
-                task.name, task.file_dep, task.targets, task.run_once)
-        except Exception, exception:
-            msg = "ERROR checking dependencies for: %s\n"
-            exception = traceback.format_exception(\
-                exception.__class__, exception,sys.exc_info()[2])
-            results.append({'task': task, 'result':ERROR, 'msg':msg,
-                            'exception': exception})
-            break
+            # check if task is up-to-date
+            try:
+                task_uptodate, task.dep_changed = dependencyManager.up_to_date(
+                    task.name, task.file_dep, task.targets, task.run_once)
+            except Exception, exception:
+                raise DependencyError("ERROR checking dependencies", exception)
 
-        # if task id up to date just print title
-        if not alwaysExecute and task_uptodate:
-            print "---", task.title()
-            continue
+            # if task id up to date just print title
+            if not alwaysExecute and task_uptodate:
+                print "---", task.title()
+                continue
 
-        # going to execute the task...
-        print task.title()
-        try:
+            # going to execute the task...
+            print task.title()
+
             # setup env
             for setup_obj in task.setup:
                 setupManager.load(setup_obj)
 
-            # finally execute it
+            # finally execute it!
             task.execute(capture_stdout, capture_stderr)
 
             #save execution successful
@@ -124,20 +109,9 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
         except (SystemExit, KeyboardInterrupt), exp:
             raise
 
-        # task failed
-        except TaskFailed:
-            msg = '\nTask failed => %s\n'
-            fr = {'task': task, 'result':FAILURE, 'msg':msg}
-            results.append(fr)
-            break
-
         # task error # Exception is necessary for setup errors
-        except (TaskError, SetupError), errorException:
-            msg = '\nTask error => %s\n'
-            fr = {'task': task, 'result':ERROR, 'msg':msg}
-            if hasattr(errorException, 'originalException'):
-                fr['exception'] = errorException.originalException
-            results.append(fr)
+        except (TaskError, SetupError, TaskFailed, DependencyError), exception:
+            results.append({'task': task, 'exception': exception})
             break
 
 
@@ -150,11 +124,11 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
         logger.flush('stdout',sys.stdout)
         logger.flush('stderr',sys.stderr)
         for res in results:
-            sys.stderr.write(res['msg'] % res['task'].name)
+            sys.stderr.write('\nTask => %s\n' % res['task'].name)
             # in case of error show traceback
             if 'exception' in res:
                 sys.stderr.write("#"*40 + "\n")
-                sys.stderr.write("\n".join(res['exception']))
+                sys.stderr.write(res['exception'].get_msg())
 
     setupManager.cleanup()
 
