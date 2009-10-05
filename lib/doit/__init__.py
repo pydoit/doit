@@ -23,5 +23,52 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-#__version__ = (0,X,'dev')
-__version__ = (0,4,0)
+__version__ = (0,5,'dev')
+
+
+import sys
+import traceback
+
+
+class CatchedException(Exception):
+    """This used to create an exception from another one
+    The traceback from the original exception is saved
+    """
+    def __init__(self, msg, exception=None):
+        Exception.__init__(self, msg)
+
+        if exception is None:
+            self.originalException = None
+        else:
+            self.traceback = sys.exc_info()[2]
+            self.originalException = exception
+
+    def get_msg(self):
+        if self.originalException is None:
+            return "%s \n" % str(self)
+        else:
+            tb = traceback.format_exception(self.originalException.__class__,
+                           self.originalException, self.traceback)
+            return "%s\n%s" % (str(self), "".join(tb))
+
+
+
+# TODO rename this? should be ActionFailed?
+class TaskFailed(CatchedException):
+    """Task execution was not successful."""
+    pass
+
+
+class TaskError(CatchedException):
+    """Error while trying to execute task."""
+    pass
+
+
+class SetupError(CatchedException):
+    """Error while trying to execute setup object"""
+    pass
+
+
+class DependencyError(CatchedException):
+    """Error while trying to check if task is up-to-date"""
+    pass

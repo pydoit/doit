@@ -1,27 +1,16 @@
 """Task and actions classes."""
 import subprocess, sys
 import StringIO
-import traceback
 import inspect
 import os
 
 from doit import logger
-
+from doit import TaskFailed, TaskError
 
 # Exceptions
 class InvalidTask(Exception):
     """Invalid task instance. User error on specifying the task."""
     pass
-
-# TODO rename this?
-class TaskFailed(Exception):
-    """Task execution was not successful."""
-    pass
-
-class TaskError(Exception):
-    """Error while trying to execute task."""
-    pass
-
 
 
 
@@ -233,14 +222,10 @@ class PythonAction(BaseAction):
                 result = self.py_callable(*self.args,**kwargs)
             # in python 2.4 SystemExit and KeyboardInterrupt subclass
             # from Exception.
-            except (SystemExit, KeyboardInterrupt), exp:
+            except (SystemExit, KeyboardInterrupt), execption:
                 raise
-
             except Exception, exception:
-                error = TaskError(exception)
-                error.originalException = traceback.format_exception(\
-                    exception.__class__, exception,sys.exc_info()[2])
-                raise error
+                raise TaskError("PythonAction Error", exception)
         finally:
             # restore std streams /log captured streams
             if capture_stdout:
@@ -253,19 +238,19 @@ class PythonAction(BaseAction):
                 sys.stderr.close()
                 sys.stderr = old_stderr
 
-        # DEPREATED on 0.4 - to be removed on 0.5
-        if not isinstance(result, bool):
-            msg = "DEPREACTION WARNING: PythonAction must return a boolean."
-            if self.task:
-                msg += "Task %s." % self.task.name
-            msg += "Function '%s' returned %s"
-            print  msg % (self.py_callable.__name__, type(result))
-        # DEPRECATED - END
 
         # if callable returns false. Task failed
-        if not result:
+        if result == False:
             raise TaskFailed("Python Task failed: '%s' returned %s" %
                              (self.py_callable, result))
+        elif result == True or result is None or isinstance(result, str):
+            return
+        else:
+            raise TaskError("Python Task error: '%s'. It must return:\n"
+                            "False for failed task.\n"
+                            "True, None or string for successful task\n"
+                            "returned %s (%s)" %
+                            (self.py_callable, result, type(result)))
 
     def __str__(self):
         # get object description excluding runtime memory address
@@ -324,6 +309,7 @@ class Task(object):
                  setup=(), clean=(), is_subtask=False, doc=None):
         """sanity checks and initialization"""
 
+        # TODO DRY this is getting big and stupid...
         # dependencies parameter must be a list
         if not ((isinstance(dependencies,list)) or
                 (isinstance(dependencies,tuple))):
@@ -339,11 +325,17 @@ class Task(object):
 
         # setup parameter must be a list
         if not(isinstance(setup,list) or isinstance(setup,tuple)):
-            ## DEPREACTED ON 0.4 - REMOVE ON 0.5
-            setup = [setup]
-            msg = "DEPRECATION WARNING: %s 'setup' must be a sequence."
-            print msg % name
+            msg = ("%s. paramater 'setup' must be a list or tuple " +
+                   "got:'%s'%s")
+            raise InvalidTask(msg % (name, str(setup),type(setup)))
 
+        # actions parameter must be a list
+        if not (isinstance(actions, list) or
+                isinstance(actions, tuple) or
+                actions is None):
+            msg = ("%s. paramater 'actions' must be None, list or tuple " +
+                   "got:'%s'%s")
+            raise InvalidTask(msg % (name, str(actions),type(actions)))
 
 
         self.name = name
@@ -356,13 +348,6 @@ class Task(object):
             self.actions = []
         elif type(actions) is list:
             self.actions = [create_action(a) for a in actions]
-        else:
-        ## DEPREACTED ON 0.4 - REMOVE ON 0.5
-            #raise Exception("DEPRECATED must be list")
-            msg = "DEPRECATION WARNING: task %s actions must be a list."
-            print msg % self.name
-            self.actions = [create_action(actions)]
-        ## DEPRECATION END
 
         if clean == True:
             self._remove_targets = True
@@ -478,16 +463,6 @@ def dict_to_task(task_dict):
     TASK_ATTRS = ('name','actions','dependencies','targets','setup', 'doc',
                   'clean')
     # FIXME check field 'name'
-
-    # === DEPRECATED on 0.4 (to be removed on 0.5): START
-    if 'action' in task_dict and 'actions' not in task_dict:
-        #raise Exception("DEPRECATED action")
-        task_dict['actions'] = task_dict['action']
-        del task_dict['action']
-        print ("DEPRECATION WARNING: Task %s contains 'action' key. "
-               "This will be deprecated in future versions, "
-               "please use 'actions' instead" % task_dict['name'])
-    # === DEPRECATION: END
 
     # check required fields
     if 'actions' not in task_dict:

@@ -109,7 +109,7 @@ class TestRunningTask(BaseRunner):
 
         tasks = [Task("taskX", [write_and_fail]),
                  Task("taskY", [write_and_fail])]
-        assert runner.FAILURE == runner.run_tasks(TESTDB, tasks, 0)
+        assert runner.ERROR == runner.run_tasks(TESTDB, tasks, 0)
         output = sys.stdout.getvalue().split('\n')
         errput = sys.stderr.getvalue().split('\n')
         assert tasks[0].title() == output[0], output
@@ -117,7 +117,7 @@ class TestRunningTask(BaseRunner):
         assert "stdout here." == output[1]
         assert "stderr here." == errput[0]
         # final failed message
-        assert "Task failed => taskX" == errput[2], errput
+        assert "Task => taskX" == errput[2], errput
         # nothing more (but the empty string)
         assert 3 == len(output)
 
@@ -141,8 +141,8 @@ class TestRunningTask(BaseRunner):
         # stderr
         assert "stderr here." ==  errput[0]
         # final failed message
-        assert "Task error => taskX" == errput[2], errput
-        assert 'Exception: I am the exception.' == errput[-3]
+        assert "Task => taskX" == errput[2], errput
+        assert 'Exception: I am the exception.' == errput[-3], errput
 
 
 
@@ -178,10 +178,9 @@ class TestRunningTask(BaseRunner):
         tasks = [Task("taskX", [my_print], ["i_dont_exist.xxx"])]
         assert runner.ERROR == runner.run_tasks(TESTDB, tasks, 1)
         # only titles are printed.
-        output = sys.stdout.getvalue().split('\n')
-        title = tasks[0].title()
-        assert "" == output[0], output
-        assert "ERROR checking dependencies for: %s"% title == output[1]
+        errput = sys.stderr.getvalue().split('\n')
+        name = tasks[0].name
+        assert "ERROR checking dependencies" == errput[3], errput
 
 
     def test_ignoreNonFileDep(self):
@@ -205,19 +204,6 @@ class TestRunningTask(BaseRunner):
         assert runner.SUCCESS == runner.run_tasks(TESTDB, tasks2, 1,True)
         taskTitles = sys.stdout.getvalue().split('\n')
         assert tasks[0].title() == taskTitles[0]
-
-
-    def test_createFolderDependency(self):
-        def rm_dir():
-            if os.path.exists(DIR_DEP):
-                os.removedirs(DIR_DEP)
-
-        DIR_DEP = os.path.join(os.path.dirname(__file__),"parent/child/")+'/'
-        rm_dir()
-        tasks = [Task("taskX", [my_print], dependencies=[DIR_DEP])]
-        assert runner.SUCCESS == runner.run_tasks(TESTDB, tasks, 1)
-        assert os.path.exists(DIR_DEP)
-        rm_dir()
 
 
 class TestTaskSetup(BaseRunner):
@@ -266,6 +252,7 @@ class TestTaskSetup(BaseRunner):
         setup.setup = raise_something
         t1 = Task('t1', None, [], [], [setup])
         assert runner.ERROR == runner.run_tasks(TESTDB, [t1])
+        # TODO not checking error is written to output
 
     def testCleanupError(self):
         # ignore errors...

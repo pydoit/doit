@@ -1,28 +1,46 @@
 0.5
 ------------
 
+. continue execution even if tasks fails (#441081)
 . passing arguments on cmd line (#370914)
 . dont calculate hash of all files everytime. use timestamp/size/hash (see mercurial dirstate) (#370920)
+. dependency-checking functions (#438174)
 
+
+0.X
 ----------
 
-. dont save successful results
+. tests for cmdline (#441084)
+
 . dont get subtasks if task is not going to be executed (#370923)
 . task process isolation. (execute tasks in a different process)
-. test for cmdline
-. tools -> forget task
 . option to make sub-task not part of a group
+
+
+whishlist
+----------
+
 . list command improvements
-. forget a dependencies, not a tasks
+. dont save successful results
+. forget a dependency, not a task
 . opposite of forget. mark as up-to-date.
-. defer task generator
-. support for depedency scanner (lp - 218303)
-. continue execution even if one task fails
-. one .doit for each dodo file
-. multiple (include) dodo files (lp - 218279)
-. color output on the terminal. (lp - 263576)
+. color output on the terminal. (#263576)
 . use templates for output (see mercurial)
-. windows (lp - 218276)
+
+needs volunteer
+----------------
+
+. windows (#218276)
+
+
+not clear how to implement
+---------------------------
+
+. support for depedency scanner (#218303)
+. defer task generator - generator needs to run after a certain task
+. one .doit for each dodo file
+. multiple (include) dodo files (#218279)
+. sub-command/task unification. all sub-commands (but run) implemented as tasks
 
 
 Ideas

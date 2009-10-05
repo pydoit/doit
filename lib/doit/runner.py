@@ -2,13 +2,49 @@
 
 import sys
 import traceback
-import os
 
 from doit import logger
-from doit.task import TaskFailed
+from doit import TaskFailed, TaskError, SetupError, DependencyError
 from doit.dependency import Dependency
 
-#: execution result.
+
+class SetupManager(object):
+    """Manage setup objects
+
+    Setup object is any object that implements 'setup' and/or 'cleanup'
+    @ivar _loaded (list): of loaded setup objects
+    """
+
+    def __init__(self):
+        self._loaded = set()
+
+
+    def load(self, setup_obj):
+        """run setup from a setup_obj if it is not loaded yet"""
+        if setup_obj in self._loaded:
+            return
+
+        try:
+            self._loaded.add(setup_obj)
+            if hasattr(setup_obj, 'setup'):
+                setup_obj.setup()
+        except Exception, exception:
+            raise SetupError(exception)
+
+
+    def cleanup(self):
+        """run cleanup for all loaded objects"""
+        for setup_obj in self._loaded:
+            if hasattr(setup_obj, 'cleanup'):
+                try:
+                    setup_obj.cleanup()
+                # report error but keep result as successful.
+                except Exception, e:
+                    sys.stderr.write(traceback.format_exc())
+
+
+
+# execution result.
 SUCCESS = 0
 FAILURE = 1
 ERROR = 2
@@ -30,108 +66,75 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
     capture_stdout = verbosity < 2
     capture_stderr = verbosity == 0
     dependencyManager = Dependency(dependencyFile)
-    errorException = None  # Exception instance, in case of error
-    result = SUCCESS
-    setup_loaded = set() # setups that were loaded already.
+    setupManager = SetupManager()
+    results = [] # save non-succesful result information
 
     for task in tasks:
         # clear previous output
         #TODO should find a way to put this on the bottom
         logger.clear('stdout')
         logger.clear('stderr')
-
-        # check if task is up-to-date
         try:
-            task_uptodate, task.dep_changed = dependencyManager.up_to_date(
-                task.name, task.file_dep, task.targets, task.run_once)
-        # TODO: raise an exception here.
-        except:
-            print
-            print "ERROR checking dependencies for: %s"% task.title()
-            result = ERROR
-            break
+            # check if task is up-to-date
+            try:
+                task_uptodate, task.dep_changed = dependencyManager.up_to_date(
+                    task.name, task.file_dep, task.targets, task.run_once)
+            except Exception, exception:
+                raise DependencyError("ERROR checking dependencies", exception)
 
-        # if task id up to date just print title
-        if not alwaysExecute and task_uptodate:
-            print "---", task.title()
-        else:
+            # if task id up to date just print title
+            if not alwaysExecute and task_uptodate:
+                print "---", task.title()
+                continue
+
+            # going to execute the task...
             print task.title()
 
-            ### DEPRECATED ON 0.4 - REMOVE ON 0.5
-            if task.folder_dep:
-                msg = ("DEPRECATION WARNING: Task %s contains folder " +
-                       "dependencies: %s. Folder dependency support will be " +
-                       "removed. The same behaviour can be achieved using "
-                       "doit.tools.create as an action.")
-                print msg % (task.name, task.folder_dep)
-            # process folder dependency
-            for dep in task.folder_dep:
-                if not os.path.exists(dep):
-                    os.makedirs(dep)
-            ## DERECATED END
+            # setup env
+            for setup_obj in task.setup:
+                setupManager.load(setup_obj)
 
-            try:
-                # setup env
-                for setup_obj in task.setup:
-                    if setup_obj in setup_loaded:
-                        continue
-                    setup_loaded.add(setup_obj)
-                    if hasattr(setup_obj, 'setup'):
-                        setup_obj.setup()
-                # finally execute it
-                task.execute(capture_stdout, capture_stderr)
-                #save execution successful
-                if task.run_once:
-                    dependencyManager.save_run_once(task.name)
-                dependencyManager.save_dependencies(task.name,task.file_dep)
+            # finally execute it!
+            task.execute(capture_stdout, capture_stderr)
 
-            # in python 2.4 SystemExit and KeyboardInterrupt subclass
-            # from Exception.
-            # specially a problem when the a fork from the main process
-            # exit using sys.exit() instead of os._exit().
-            except (SystemExit, KeyboardInterrupt), exp:
-                raise
+            #save execution successful
+            if task.run_once:
+                dependencyManager.save_run_once(task.name)
+            dependencyManager.save_dependencies(task.name,task.file_dep)
 
-            # task failed
-            except TaskFailed:
-                logger.log("stderr", '\nTask failed => %s\n'% task.name)
-                result = FAILURE
-                break
+        # in python 2.4 SystemExit and KeyboardInterrupt subclass
+        # from Exception.
+        # specially a problem when a fork from the main process
+        # exit using sys.exit() instead of os._exit().
+        except (SystemExit, KeyboardInterrupt), exp:
+            raise
 
-            # task error
-            except Exception, exception:
-                logger.log("stderr", '\nTask error => %s\n'% task.name)
-                result = ERROR
-                errorException = exception
-                break
+        # task error # Exception is necessary for setup errors
+        except (TaskError, SetupError, TaskFailed, DependencyError), exception:
+            results.append({'task': task, 'exception': exception})
+            break
+
 
     ## done
     # flush update dependencies
     dependencyManager.close()
 
     # if test fails print output from failed task
-    if result != SUCCESS:
+    if results:
         logger.flush('stdout',sys.stdout)
         logger.flush('stderr',sys.stderr)
+        for res in results:
+            sys.stderr.write('\nTask => %s\n' % res['task'].name)
+            # in case of error show traceback
+            if 'exception' in res:
+                sys.stderr.write("#"*40 + "\n")
+                sys.stderr.write(res['exception'].get_msg())
 
-    # in case of error show traceback from last exception
-    if result == ERROR:
-        line = "="*40 + "\n"
-        sys.stderr.write(line)
-        if errorException and hasattr(errorException, "originalException"):
-            sys.stderr.write("\n".join(errorException.originalException))
-        else:
-            sys.stderr.write(traceback.format_exc())
+    setupManager.cleanup()
 
-    # run tasks cleanup.
-    for setup in setup_loaded:
-        if hasattr(setup, 'cleanup'):
-            try:
-                setup.cleanup()
-            # not sure what should be the behaviour of errors on
-            # cleanup.
-            # report error but keep result as successful.
-            except Exception, e:
-                sys.stderr.write(traceback.format_exc())
+    # there is not distcition between errors and failures on returned result
+    if not results:
+        return SUCCESS
+    else:
+        return ERROR
 
-    return result
