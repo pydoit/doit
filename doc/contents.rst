@@ -17,7 +17,9 @@ Contents:
    dependencies
    cmd_line
    env_setup
+   tools
    reference
+   faq
    changes
    developer
    related

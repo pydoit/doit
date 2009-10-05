@@ -43,7 +43,9 @@ Project Details
 
 * This is an open-source project (`MIT license <http://opensource.org/licenses/mit-license.php>`_) written in python.
 
-* Project management (bug tracker, feature requests and source code ) are available on `launchpad <https://launchpad.net/doit>`_.
+* Download from `PyPi <http://pypi.python.org/pypi/doit>`_
+
+* Project management (bug tracker, feature requests and source code ) on `launchpad <https://launchpad.net/doit>`_.
 
 * `Documentation <contents.html>`_
 

@@ -6,9 +6,6 @@ MANIFEST
 revision.txt
 temp
 _build
-doc/tutorial/build/count.txt
-doc/tutorial/build/files.txt
-shrinksafe.jar
 tests/testdbm
 doc/tutorial/python-logo.gif
 doc/tutorial/foo.tar

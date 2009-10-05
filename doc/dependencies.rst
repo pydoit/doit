@@ -21,7 +21,7 @@ up-to-date
 
 `doit` automatically keeps track of file-dependencies. It saves the signature (MD5) of the dependencies every time the task is completed successfully. In case there is no modification in the dependencies and the targets already exist, it skip the task execution to save time, as it would produce the same output from the previous run.
 
-So if there are no modifications to the dependencies and you run `doit` again. The execution of the task's actions is skiped.
+So if there are no modifications to the dependencies and you run `doit` again. The execution of the task's actions is skipped.
 
 
 .. code-block:: console
@@ -40,7 +40,7 @@ example - lint
 
 Different from most build-tools dependencies are on tasks not on targets. So `doit` can take advantage of the execute only if not up-to-date feature even for tasks that not define targets.
 
-Lets say you work with a dynamic language (python in this example). You dont need to compile anything but you probably wants to apply a lint-like tool (`PyChecker <http://pychecker.sourceforge.net/>`_) to your source code files. You can define the source code as a dependency to the task.
+Lets say you work with a dynamic language (python in this example). You don't need to compile anything but you probably wants to apply a lint-like tool (`PyChecker <http://pychecker.sourceforge.net/>`_) to your source code files. You can define the source code as a dependency to the task.
 
 .. literalinclude:: tutorial/checker.py
 
@@ -58,7 +58,7 @@ Note the ``---`` again.
 task-dependency
 ---------------
 
-We have seen only dependecies on files up to now. On `doit` you can also define **task-dependency**. To define a dependency on another task use the task name (whatever comes after ``task_`` on the function name) preceded by ":". It is used to enforce tasks are executed on the desired order. By default tasks are executed on the same order as they were defined in the `dodo` file.
+We have seen only dependencies on files up to now. On `doit` you can also define **task-dependency**. To define a dependency on another task use the task name (whatever comes after ``task_`` on the function name) preceded by ":". It is used to enforce tasks are executed on the desired order. By default tasks are executed on the same order as they were defined in the `dodo` file.
 
 
 This example we make sure we include a file with the latest revision number of the bazaar repository on the tar file.
@@ -82,7 +82,7 @@ Lets take the compilation example again.
 
 .. literalinclude:: tutorial/compile.py
 
-If there are no changes in the dependency the task execution is skiped. But if the target is removed the task is also executed again. But only if does not exist. If the target is modified but the dependencies do not change the task is not executed again.
+If there are no changes in the dependency the task execution is skipped. But if the target is removed the task is also executed again. But only if does not exist. If the target is modified but the dependencies do not change the task is not executed again.
 
 .. code-block:: console
 
@@ -128,7 +128,7 @@ keywords on actions
 
 It is common situation to use task information such as *targets*, *dependencies*, or *changed* in its own actions. Note: Dependencies are only *file-dependencies*.
 
-For *cmd-action* you can use the notations of python keyword substituion on strings. THe string will contain all values separated by a space (" ").
+For *cmd-action* you can use the notations of python keyword substitution on strings. The string will contain all values separated by a space (" ").
 
 For *python-action* create a parameter in the function `doit` will take care of passing the value when the function is called. The values are passed as list of strings.
 

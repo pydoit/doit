@@ -19,14 +19,14 @@ The result of the task follows the shell convention. If the process exits with t
 python-action
 ^^^^^^^^^^^^^^
 
-If `action` is a tuple `(callable, *args, **kwargs)` - only `callable` is required. ``args`` is a sequence and  ``kwargs`` is a dictionary that will be used as positional and keywaords arguments for the callable. see `*args <http://docs.python.org/tut/node6.html#SECTION006730000000000000000>`_ and `**kwargs <http://docs.python.org/tut/node6.html#SECTION006720000000000000000>`_.
+If `action` is a tuple `(callable, *args, **kwargs)` - only `callable` is required. ``args`` is a sequence and  ``kwargs`` is a dictionary that will be used as positional and keywords arguments for the callable. see `*args <http://docs.python.org/tut/node6.html#SECTION006730000000000000000>`_ and `**kwargs <http://docs.python.org/tut/node6.html#SECTION006720000000000000000>`_.
 
 The result of the task is given by the returned value of the ``action`` function. So it must return a *boolean* value `True` to indicate successful completion of the task. Or `False` to indicate task failed. If it raises an exception, it will be considered an error.
 
 example - dynamic
 ^^^^^^^^^^^^^^^^^^^
 
-It is easy to include dynamic (on-the-fly) behaviour to your tasks. Let's take a look at another example:
+It is easy to include dynamic (on-the-fly) behavior to your tasks. Let's take a look at another example:
 
 .. literalinclude:: tutorial/tutorial_02.py
 

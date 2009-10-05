@@ -18,9 +18,9 @@ setupY = SetupSample('y')
 def task_withenvX():
     for fin in ('a','b','c'):
         yield {'name': fin,
-               'action':'echo x',
-               'setup': setupX}
+               'actions':['echo x'],
+               'setup': [setupX]}
 
 def task_withenvY():
-    return {'action':'echo x',
-            'setup': setupY}
+    return {'actions':['echo y'],
+            'setup': [setupY]}

@@ -2,21 +2,9 @@
 Developer's docs
 ================
 
-This document presents a general overview of how `doit` works. If you just want to use `doit`, you better take a look at the tutorial_.
+This document presents a general overview of how `doit` internals works.
 
-
-Package modules
----------------
-
-- __init__.py: (empty) make a package
-- `dependency.py <api/doit.dependency-module.html>`_: Manage (save/check) task dependency-on-files data.
-- `logger.py <api/doit.logger-module.html>`_: Logger with channel support.
-- `main.py <api/doit.main-module.html>`_: Loads dodo file (a python module) and `doit` command line programs.
-- `runner.py <api/doit.runner-module.html>`_: Tasks runner.
-- `task.py <api/doit.task-module.html>`_: Task classes.
-- `util.py <api/doit.util-module.html>`_: Utility methods.
-- `cmdparse.py <api/doit.cmdparse-module.html>`_: Parse command line options and execute it. Built on top of getopt.
-
+`API docs <api/index.html>`_.
 
 Execution flow - command `run`
 ------------------------------
@@ -34,8 +22,6 @@ Execution flow - command `run`
 Load "task generators"
 ^^^^^^^^^^^^^^^^^^^^^^
 
-Tasks are defined on the configuration file (from now on called "dodo" file). The dodo file is a plain python module.
-
 First it imports the dodo file. Than it introspects the module collecting all functions named with a starting ``task_``. These functions are "task generators", they are not tasks on its own but they build tasks.
 
 The task generators are ordered by the line where they were defined. By default tasks are executed in this order.
@@ -47,7 +33,6 @@ Get tasks from task generators
 
 Generators return python dictionaries to represent tasks. The task name is given by function name of the task generator less the initial string ``task_``. For example the task name for "task_doXYZ" would be "doXYZ".
 
-As a convenience to users if the task only defines an ``action`` they don't need to return it in a dictionary.
 
 There are two kinds of tasks generators. Task generators that define a single a task, or define multiple sub-tasks. To define multiple sub-tasks instead of returning a single dictionary it must return a generator using `python-generator <http://docs.python.org/tut/node11.html#SECTION00111000000000000000000>`_
 
@@ -98,13 +83,3 @@ If a target does not exist the task is executed.
 If a task is a "run-once" (has a dependency True). It will not be executed after the first successful run. As long as its execution is not forced by a target.
 
 In case any task fails the whole execution is aborted.
-
-And, that's it :)
-
----------------------
-
-You can find details on how each module work in the `API docs <api/index.html>`_.
-
-
-.. _tutorial: tutorial1.html
-.. _reference: reference.html

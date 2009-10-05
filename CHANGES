@@ -12,7 +12,7 @@ Changes
 - setup parameter for a task should be a list - single value deprecated (#437225)
 - PythonAction support 'dependencies', 'targets', 'changed' parameters
 - added tools.create_folder (#421453)
-- deprecate folder-depenency
+- deprecate folder-dependency
 - CmdActions reference to dependencies, targets and changed dependencies (#434327)
 - print task description when printing through doit list (#425811)
 - action as list of commands/python (#421445)

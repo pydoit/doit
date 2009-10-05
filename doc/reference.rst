@@ -9,29 +9,20 @@ Tasks are defined by functions starting with the string ``task_``. It must retur
 
 action:
   - Required field
-  - type: Python-Task -> function(callable) reference.
+  - type: Python-Task -> tuple (callable, `*args`, `**kwargs`)
   - type: Cmd-Task -> string or list of strings (each item is a different command). to be executed by shell.
   - type: Group-Task -> None.
 
-args:
-  - Optional field - Python-Task only
-  - type: list of parameters to be passed to passed to "action" function
-
-kwargs:
-  - Optional field - Python-Task only
-  - type: dictionary of keyword parameters to be passed to "action" function
-
 name:
   - Required field - Sub-tasks only
-  - type: string. subtask identifier
+  - type: string. sub-task identifier
 
 dependencies:
   - Optional field
   - type: list. items:
     * file (string) path relative to the dodo file
-    * folder (string) must end with "/"
     * task (string) ":<task_name>"
-    * True (bool) run once
+    * run-once (True bool)
 
 targets:
   - Optional field
@@ -40,4 +31,13 @@ targets:
 
 setup:
  - Optional field
- - type: object with methods 'setup' and 'cleanup'
+ - type: list of objects with methods 'setup' and 'cleanup'
+
+doc:
+ - Optional field
+ - type: string -> the description text
+
+clean:
+ - Optional field
+ - type: (True bool) remove target files
+ - type: (list) of actions (see above)
