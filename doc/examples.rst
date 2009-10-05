@@ -17,7 +17,7 @@ This script is used to `pychecker <http://pychecker.sourceforge.net/>`_ and `nos
 `doit` website
 --------------
 
-This script is used to build this website. Build source code docs using epydoc. Build docs from ReST using sphinx. 
+This script is used to build this website. Build source code docs using epydoc. Build docs from ReST using sphinx.
 
 ``website.py``:
 

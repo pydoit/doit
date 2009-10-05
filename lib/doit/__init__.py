@@ -23,4 +23,5 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = (0,4,'dev')
+#__version__ = (0,X,'dev')
+__version__ = (0,4,0)

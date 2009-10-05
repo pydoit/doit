@@ -1,1 +1,1 @@
-x = 77
+print "hello"

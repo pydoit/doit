@@ -106,5 +106,5 @@ And, that's it :)
 You can find details on how each module work in the `API docs <api/index.html>`_.
 
 
-.. _tutorial: tutorial.html
+.. _tutorial: tutorial1.html
 .. _reference: reference.html

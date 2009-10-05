@@ -1,9 +1,9 @@
 def task_foo():
-    return {'action': "echo foo"}
+    return {'actions': ["echo foo"]}
 
 def task_bar():
-    return {'action': "echo bar"}
+    return {'actions': ["echo bar"]}
 
 def task_mygroup():
-    return {'action': None,
+    return {'actions': None,
            'dependencies': [':foo', ':bar']}

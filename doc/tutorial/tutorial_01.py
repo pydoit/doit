@@ -1,14 +1,13 @@
+def task_hello():
+    """hello from shell & python! """
 
+    def python_hello():
+        output = open("hello.txt", "a")
+        output.write("Python says Hello World!!!\n")
+        output.close()
+        return True
 
-def say_hello():
-    output = open("hello_python.txt","w")
-    output.write("Hello World.")
-    output.close()
-    return True
+    return {'actions': ['echo Hello World!!! > hello.txt',
+                        (python_hello,)]
+            }
 
-
-def task_hello_python():
-    return {'action':say_hello}
-
-def task_hello_sh():
-    return {'action':"echo 'Hello World' > hello_sh.txt"}

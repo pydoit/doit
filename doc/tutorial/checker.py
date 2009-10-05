@@ -1,5 +1,3 @@
-
-pyfile = "sample.py"
 def task_checker():
-    return {'action': "pychecker %s" % pyfile,
-            'dependencies': (pyfile,)}
+    return {'actions': ["pychecker sample.py"],
+            'dependencies': ["sample.py"]}

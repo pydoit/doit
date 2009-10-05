@@ -15,16 +15,19 @@ piwik_log(piwik_action_name, piwik_idsite, piwik_url);
 <!-- End Piwik Tag -->
 {% endblock %}
 
+
 {% block rootrellink %}
         <li><a href="{{ pathto('index') }}">Home</a>&nbsp;|&nbsp;</li>
         <li><a href="{{ pathto('contents') }}">Documentation</a>&raquo;</li>
 {% endblock %}
+
 
 {% block header %}
 <div style="background-color: white; text-align: left; padding: 10px 10px 15px 50px">
 <img src="{{ pathto("_static/doit.png", 1) }}" alt="doit logo" />
 </div>
 {% endblock %}
+
 
 {% block sidebarsearch %}
 {{ super() }}

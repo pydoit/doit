@@ -10,16 +10,32 @@ In `doit`, unlike most (all?) build-tools, a task doesn't need to define a targe
 If you are still wondering why someone would want to use this tool, check this blog `post <http://schettino72.wordpress.com/2008/04/14/doit-a-build-tool-tale/>`_.
 
 
-Status
-======
+Quick Start
+============
 
-`doit` is under active development. Version 0.3 released on 2009-08-30.
+install::
 
-While still a small project with room for lots of improvements and features. It is very stable and provides some great features not seen in any other project.
+  $ easy_install doit
 
-Development is done based on real world use cases. If I don't need a feature and nobody never asked for it, it is not implemented ;) It is well designed and have a very small code base so adding new features isn't hard.
+It looks like... python!
 
-If you use `doit` please drop me a line telling me your experience...
+`dodo.py`
+
+.. literalinclude:: tutorial/hello.py
+
+run
+
+.. code-block:: console
+
+  eduardo@eduardo~$ doit
+  hello => Cmd: echo Hello World!!! > hello.txt
+	Python: function python_hello
+  eduardo@eduardo~$ cat hello.txt
+  Hello World!!!
+  Python says Hello World!!!
+
+
+Go on, read the `documentation <contents.html>`_
 
 
 Project Details
@@ -29,36 +45,21 @@ Project Details
 
 * Project management (bug tracker, feature requests and source code ) are available on `launchpad <https://launchpad.net/doit>`_.
 
+* `Documentation <contents.html>`_
+
 * Questions and feedback on `google group <http://groups.google.co.in/group/python-doit>`_.
 
 * This web site is hosted on http://sourceforge.net.
 
 
 
-Installing
-==========
+Status
+======
 
-* Using `easy_install <http://peak.telecommunity.com/DevCenter/EasyInstall>`_::
+`doit` is under active development. Version 0.4 released on 2009-10.
 
-  $ easy_install doit
+While still a small project with room for lots of improvements and features. It is very stable and provides some great features not seen in any other project.
 
-* `Download <http://pypi.python.org/pypi/doit>`_ the source and::
+Development is done based on real world use cases. If I don't need a feature and nobody never asked for it, it is not implemented ;) It is well designed and have a very small code base so adding new features isn't hard.
 
-  $ python setup.py install
-
-* Get latest development version::
-
-  $ bzr branch lp:doit
-
-
-.. note::
-
-   for python2.4 and python2.5 users:
-   `doit` depends on the package `simplejson`. So you need to install it: `easy_install simplejson`
-
-   On python 2.6 the stdlib `json` is used.
-
-.. note::
-
-   for Windows users:
-   There is a bug on setup tools. Check this `bug <http://bugs.launchpad.net/doit/+bug/218276>`_ for instructions.
+If you use `doit` please drop me a line telling me your experience...

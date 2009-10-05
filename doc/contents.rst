@@ -11,7 +11,13 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   tutorial
+   install
+   intro
+   tasks
+   dependencies
+   cmd_line
+   env_setup
    reference
-   related
+   changes
    developer
+   related

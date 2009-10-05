@@ -1,7 +1,7 @@
 def task_tar():
-    return {'action': "tar -cf foo.tar *",
+    return {'actions': ["tar -cf foo.tar *"],
             'dependencies':[':version'],
             'targets':['foo.tar']}
 
 def task_version():
-    return {'action':"bzr version-info > revision.txt"}
+    return {'actions': ["bzr version-info > revision.txt"]}

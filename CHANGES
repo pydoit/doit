@@ -1,10 +1,10 @@
 
 =======
-CHANGES
+Changes
 =======
 
-0.4.0
-=====
+0.4.0 (*2009-10-05*)
+====================
 
 - deprecate anything other than a boolean values as return of python actions
 - sub-cmd clean (#421450)
@@ -18,8 +18,9 @@ CHANGES
 - action as list of commands/python (#421445)
 - deprecate "action" use "actions"
 
-0.3.0
-=====
+
+0.3.0 (*2009-08-30*)
+=====================
 
 - added subcommand "forget" to clear successful runs status (#370911)
 - save run results in text file using JSON. (removed dbm)
@@ -31,8 +32,9 @@ CHANGES
 - cmd-task supports a list of shell commands
 - setup/cleanup for task (#370905)
 
-0.2.0
-=====
+
+0.2.0 (*2009-04-16*)
+====================
 
 - docs generated using sphinx
 - execute once (dependency = True)
@@ -41,8 +43,8 @@ CHANGES
 - folder dependency
 
 
-0.1.0
-=====
+0.1.0 (*2008-04-14*)
+====================
 
 - initial release
 
