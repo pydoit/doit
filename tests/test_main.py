@@ -381,3 +381,14 @@ class TestCmdClean(BaseTestOutput):
 
     def test_clean_selected(self):
         doit_clean(self.tasks, ['t2'])
+
+
+class TestCmdCleanBadArgType(BaseTestOutput):
+    def test_clean_arg_string(self):
+        nose.tools.assert_raises(InvalidTask,  Task,
+                                 "string", None, clean="invalid")
+
+    def test_clean_arg_integer(self):
+        # Beware of 1==True
+        nose.tools.assert_raises(InvalidTask,  Task,
+                                 "integer", None, clean=1)

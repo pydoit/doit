@@ -364,13 +364,15 @@ class Task(object):
             self.actions = [create_action(actions)]
         ## DEPRECATION END
 
-        if clean == True:
+        if clean is True:
             self._remove_targets = True
             self.clean_actions = ()
-        else:
+        elif type(clean) in (list, tuple):
             self._remove_targets = False
             self.clean_actions = [create_action(a) for a in clean]
-
+        else:
+            raise InvalidTask("clean must be True to delete targets "
+                              "or a list/tuple of actions")
 
         # set self as task for all actions
         for action in self.actions:
