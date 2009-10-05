@@ -7,7 +7,7 @@ def task_revision():
     return {'actions': ["bzr version-info > revision.txt"]}
 
 def task_manifest():
-    cmd = "bzr ls --versioned > MANIFEST;echo 'revision.txt' >> MANIFEST"
+    cmd = "bzr ls --versioned --recursive > MANIFEST;echo 'revision.txt' >> MANIFEST"
     return {'actions': [cmd]}
 
 def task_sdist():
