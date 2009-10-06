@@ -132,9 +132,12 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
 
     setupManager.cleanup()
 
-    # there is not distcition between errors and failures on returned result
     if not results:
         return SUCCESS
     else:
-        return ERROR
+        # only return FAILURE if no errors happened.
+        for result in results:
+            if not isinstance(result['exception'], TaskFailed):
+                return ERROR
+        return FAILURE
 

@@ -109,7 +109,7 @@ class TestRunningTask(BaseRunner):
 
         tasks = [Task("taskX", [write_and_fail]),
                  Task("taskY", [write_and_fail])]
-        assert runner.ERROR == runner.run_tasks(TESTDB, tasks, 0)
+        assert runner.FAILURE == runner.run_tasks(TESTDB, tasks, 0)
         output = sys.stdout.getvalue().split('\n')
         errput = sys.stderr.getvalue().split('\n')
         assert tasks[0].title() == output[0], output
