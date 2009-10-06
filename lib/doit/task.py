@@ -240,10 +240,10 @@ class PythonAction(BaseAction):
 
 
         # if callable returns false. Task failed
-        if result == False:
+        if result is False:
             raise TaskFailed("Python Task failed: '%s' returned %s" %
                              (self.py_callable, result))
-        elif result == True or result is None or isinstance(result, str):
+        elif result is True or result is None or isinstance(result, str):
             return
         else:
             raise TaskError("Python Task error: '%s'. It must return:\n"
@@ -293,7 +293,6 @@ class Task(object):
     @ivar actions: list - L{BaseAction}
     @ivar clean_actions: list - L{BaseAction}
     @ivar targets: (list -string)
-    @ivar folder_dep: (list - string)
     @ivar task_dep: (list - string)
     @ivar file_dep: (list - string)
     @ivar dep_changed (list - string): list of file-dependencies that changed
@@ -305,38 +304,24 @@ class Task(object):
     @ivar doc: (string) task documentation
     """
 
+    # list of valid types/values for each task attribute.
+    valid_attr = {'name': [str],
+                  'actions': [list, tuple, None],
+                  'dependencies': [list, tuple],
+                  'targets': [list, tuple],
+                  'setup': [list, tuple],
+                  'clean': [list, tuple, True],
+                  'doc': [str, None]
+                  }
+
+
     def __init__(self, name, actions, dependencies=(), targets=(),
                  setup=(), clean=(), is_subtask=False, doc=None):
         """sanity checks and initialization"""
 
-        # TODO DRY this is getting big and stupid...
-        # dependencies parameter must be a list
-        if not ((isinstance(dependencies,list)) or
-                (isinstance(dependencies,tuple))):
-            msg = ("%s. paramater 'dependencies' must be a list or " +
-                   "tuple got:'%s'%s")
-            raise InvalidTask(msg%(name, str(dependencies),type(dependencies)))
-
-        # targets parameter must be a list
-        if not(isinstance(targets,list) or isinstance(targets,tuple)):
-            msg = ("%s. paramater 'targets' must be a list or tuple " +
-                   "got:'%s'%s")
-            raise InvalidTask(msg % (name, str(targets),type(targets)))
-
-        # setup parameter must be a list
-        if not(isinstance(setup,list) or isinstance(setup,tuple)):
-            msg = ("%s. paramater 'setup' must be a list or tuple " +
-                   "got:'%s'%s")
-            raise InvalidTask(msg % (name, str(setup),type(setup)))
-
-        # actions parameter must be a list
-        if not (isinstance(actions, list) or
-                isinstance(actions, tuple) or
-                actions is None):
-            msg = ("%s. paramater 'actions' must be None, list or tuple " +
-                   "got:'%s'%s")
-            raise InvalidTask(msg % (name, str(actions),type(actions)))
-
+        # check task attributes input
+        for attr, valid_list in self.valid_attr.iteritems():
+            self.check_attr_input(name, attr, locals()[attr], valid_list)
 
         self.name = name
         self.targets = targets
@@ -346,24 +331,22 @@ class Task(object):
 
         if actions is None:
             self.actions = []
-        elif type(actions) is list:
+        else:
             self.actions = [create_action(a) for a in actions]
 
-        if clean == True:
+        if clean is True:
             self._remove_targets = True
             self.clean_actions = ()
         else:
             self._remove_targets = False
             self.clean_actions = [create_action(a) for a in clean]
 
-
         # set self as task for all actions
         for action in self.actions:
             action.task = self
 
         self.dep_changed = None
-        # there are 3 kinds of dependencies: file, task, and folder
-        self.folder_dep = []
+        # there are 2 kinds of dependencies: file, task
         self.task_dep = []
         self.file_dep = []
         for dep in dependencies:
@@ -374,9 +357,6 @@ class Task(object):
                            "must be True got:'%s'")
                     raise InvalidTask(msg%(name, str(dep)))
                 self.run_once = True
-            # folder dep ends with a '/'
-            elif dep.endswith('/'):
-                self.folder_dep.append(dep)
             # task dep starts with a ':'
             elif dep.startswith(':'):
                 self.task_dep.append(dep[1:])
@@ -384,13 +364,11 @@ class Task(object):
             elif isinstance(dep,str):
                 self.file_dep.append(dep)
 
-
         # run_once can't be used together with file dependencies
         if self.run_once and self.file_dep:
             msg = ("%s. task cant have file and dependencies and True " +
                    "at the same time. (just remove True)")
             raise InvalidTask(msg % name)
-
 
         # Store just first non-empty line as documentation string
         if doc is None:
@@ -405,6 +383,32 @@ class Task(object):
                 self.doc = ''
 
 
+    @staticmethod
+    def check_attr_input(task, attr, value, valid):
+        """check input task attribute is correct type/value
+
+        @param task (string): task name
+        @param attr (string): attribute name
+        @param value: actual input from user
+        @param valid (list): of valid types/value accepted
+        @raises InvalidTask if invalid input
+        """
+        msg = "Task %s attribute '%s' must be {%s} got:%r %s"
+        for expected in valid:
+            # check expected type
+            if isinstance(expected, type):
+                if isinstance(value, expected):
+                    return
+            # check expected value
+            else:
+                if expected is value:
+                    return
+
+        # input value didnt match any valid type/value, raise execption
+        accept = ", ".join([getattr(v,'__name__',str(v)) for v in valid])
+        raise InvalidTask(msg % (task, attr, accept, str(value), type(value)))
+
+
     def execute(self, capture_stdout=False, capture_stderr=False):
         """Executes the task.
 
@@ -413,6 +417,7 @@ class Task(object):
         """
         for action in self.actions:
             action.execute(capture_stdout, capture_stderr)
+
 
     def clean(self):
         """Execute task's clean"""

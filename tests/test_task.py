@@ -389,9 +389,23 @@ class TestCreateAction(object):
 
 
 
+class TestTaskCheckInput(object):
+
+    def testOkType(self):
+        task.Task.check_attr_input('xxx', 'attr', [], [int, list])
+
+    def testOkValue(self):
+        task.Task.check_attr_input('xxx', 'attr', None, [list, None])
+
+    def testFailType(self):
+        assert_raises(task.InvalidTask, task.Task.check_attr_input, 'xxx',
+                      'attr', int, [list, False])
+
+    def testFailValue(self):
+        assert_raises(task.InvalidTask, task.Task.check_attr_input, 'xxx',
+                      'attr', True, [list, False])
 
 class TestTask(object):
-
 
     def test_groupTask(self):
         # group tasks have no action
@@ -427,20 +441,6 @@ class TestTask(object):
                       "Task X",["taskcmd"], dependencies=filePath)
 
 
-    # targets must be a sequence. give proper error message when anything
-    # else is used.
-    def test_targetNotSequence(self):
-        filePath = "data/target1"
-        assert_raises(task.InvalidTask, task.Task,
-                      "Task X",["taskcmd"], targets=filePath)
-
-    def test_setupNotSequence(self):
-        assert_raises(task.InvalidTask, task.Task,
-                      "Task X",["taskcmd"], setup=str)
-
-    def test_actionsNotSequence(self):
-        assert_raises(task.InvalidTask, task.Task, "MyName", "single_task")
-
     def test_title(self):
         t = task.Task("MyName",["MyAction"])
         assert "MyName => %s"%str(t) == t.title(), t.title()
@@ -453,11 +453,10 @@ class TestTask(object):
 
     # dependency types going to the write place
     def test_dependencyTypes(self):
-        dep = ["file1.txt",":taskX","folderA/","pathB/","file2"]
+        dep = ["file1.txt",":taskX","file2"]
         t = task.Task("MyName", ["MyAction"], dep)
-        assert t.folder_dep == [dep[2],dep[3]]
         assert t.task_dep == [dep[1][1:]]
-        assert t.file_dep == [dep[0],dep[4]]
+        assert t.file_dep == [dep[0],dep[2]]
 
 
 

@@ -184,13 +184,11 @@ class TestRunningTask(BaseRunner):
 
 
     def test_ignoreNonFileDep(self):
-        DIR_DEP = os.path.join(os.path.dirname(__file__),"folder_dep/")+'/'
-        dep = [DIR_DEP, ":taskY"]
+        dep = [":taskY"]
         tasks = [Task("taskX", [my_print], dep)]
         assert runner.SUCCESS == runner.run_tasks(TESTDB, tasks, 1)
         d = Dependency(TESTDB)
         assert 0 == len(d._db)
-        if os.path.exists(DIR_DEP): os.removedirs(DIR_DEP)
 
 
     def test_alwaysExecute(self):
