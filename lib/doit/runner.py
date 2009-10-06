@@ -2,9 +2,10 @@
 
 import sys
 import traceback
+import StringIO
 
 from doit import logger
-from doit import TaskFailed, TaskError, SetupError, DependencyError
+from doit import CatchedException, TaskFailed, SetupError, DependencyError
 from doit.dependency import Dependency
 
 
@@ -29,7 +30,7 @@ class SetupManager(object):
             if hasattr(setup_obj, 'setup'):
                 setup_obj.setup()
         except Exception, exception:
-            raise SetupError(exception)
+            raise SetupError("ERROR on object setup", exception)
 
 
     def cleanup(self):
@@ -110,8 +111,13 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
             raise
 
         # task error # Exception is necessary for setup errors
-        except (TaskError, SetupError, TaskFailed, DependencyError), exception:
-            results.append({'task': task, 'exception': exception})
+        except CatchedException, exception:
+            out = StringIO.StringIO()
+            logger.flush('stdout', out)
+            err = StringIO.StringIO()
+            logger.flush('stderr', err)
+            results.append({'task': task, 'exception': exception,
+                            'out': out, 'err': err})
             break
 
 
@@ -120,15 +126,15 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
     dependencyManager.close()
 
     # if test fails print output from failed task
-    if results:
-        logger.flush('stdout',sys.stdout)
-        logger.flush('stderr',sys.stderr)
-        for res in results:
-            sys.stderr.write('\nTask => %s\n' % res['task'].name)
-            # in case of error show traceback
-            if 'exception' in res:
-                sys.stderr.write("#"*40 + "\n")
-                sys.stderr.write(res['exception'].get_msg())
+    for res in results:
+        sys.stderr.write("#"*40 + "\n")
+        sys.stderr.write('%s: %s\n' % (res['exception'].get_name(),
+                                       res['task'].name))
+        sys.stderr.write(res['exception'].get_msg())
+        sys.stderr.write("\n")
+        sys.stderr.write("%s\n" % res['out'].getvalue())
+        sys.stderr.write("%s\n" % res['err'].getvalue())
+
 
     setupManager.cleanup()
 

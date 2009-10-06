@@ -45,13 +45,14 @@ class CatchedException(Exception):
 
     def get_msg(self):
         if self.originalException is None:
-            return "%s \n" % str(self)
+            return "%s\n" % (str(self))
         else:
             tb = traceback.format_exception(self.originalException.__class__,
                            self.originalException, self.traceback)
             return "%s\n%s" % (str(self), "".join(tb))
 
-
+    def get_name(self):
+        return self.__class__.__name__
 
 # TODO rename this? should be ActionFailed?
 class TaskFailed(CatchedException):

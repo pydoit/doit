@@ -111,15 +111,15 @@ class TestRunningTask(BaseRunner):
                  Task("taskY", [write_and_fail])]
         assert runner.FAILURE == runner.run_tasks(TESTDB, tasks, 0)
         output = sys.stdout.getvalue().split('\n')
-        errput = sys.stderr.getvalue().split('\n')
+        errput = sys.stderr.getvalue().strip().split('\n')
         assert tasks[0].title() == output[0], output
-        # captured output is displayed
-        assert "stdout here." == output[1]
-        assert "stderr here." == errput[0]
-        # final failed message
-        assert "Task => taskX" == errput[2], errput
         # nothing more (but the empty string)
-        assert 3 == len(output)
+        assert 2 == len(output)
+        # captured output is displayed on stderr
+        assert "stdout here." == errput[-3], errput
+        assert "stderr here." == errput[-1]
+        # final failed message
+        assert "TaskFailed: taskX" == errput[1], errput
 
 
     def test_errorOutput(self):
@@ -132,17 +132,17 @@ class TestRunningTask(BaseRunner):
                  Task("taskY", [write_and_error])]
         assert runner.ERROR == runner.run_tasks(TESTDB, tasks, 0)
         output = sys.stdout.getvalue().split('\n')
-        errput = sys.stderr.getvalue().split('\n')
+        errput = sys.stderr.getvalue().strip().split('\n')
         assert tasks[0].title() == output[0], output
-        # captured output is displayed
-        assert "stdout here." == output[1]
+        # captured output is displayed on stderr
+        assert "stdout here." == errput[-3], errput
         # nothing more (but the empty string)
-        assert 3 == len(output)
+        assert 2 == len(output)
         # stderr
-        assert "stderr here." ==  errput[0]
+        assert "stderr here." ==  errput[-1]
         # final failed message
-        assert "Task => taskX" == errput[2], errput
-        assert 'Exception: I am the exception.' == errput[-3], errput
+        assert "TaskError: taskX" == errput[1], errput
+        assert 'Exception: I am the exception.' == errput[-6], errput
 
 
 
@@ -180,7 +180,7 @@ class TestRunningTask(BaseRunner):
         # only titles are printed.
         errput = sys.stderr.getvalue().split('\n')
         name = tasks[0].name
-        assert "ERROR checking dependencies" == errput[3], errput
+        assert "ERROR checking dependencies" == errput[2], errput
 
 
     def test_ignoreNonFileDep(self):
