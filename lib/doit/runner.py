@@ -44,13 +44,57 @@ class SetupManager(object):
                     sys.stderr.write(traceback.format_exc())
 
 
-
 # execution result.
 SUCCESS = 0
 FAILURE = 1
 ERROR = 2
 
-def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
+class ConsoleReporter(object):
+
+    def __init__(self):
+        # save non-succesful result information
+        self.results = []
+
+
+    def start_task(self, task):
+        print task.title()
+
+
+    def complete_task(self, task, result):
+        self.results.append(result)
+
+
+    def skip_uptodate(self, task):
+        print "---", task.title()
+
+
+    def complete_run(self):
+        # if test fails print output from failed task
+        for res in self.results:
+            sys.stderr.write("#"*40 + "\n")
+            sys.stderr.write('%s: %s\n' % (res['exception'].get_name(),
+                                           res['task'].name))
+            sys.stderr.write(res['exception'].get_msg())
+            sys.stderr.write("\n")
+            sys.stderr.write("%s\n" % res['out'].getvalue())
+            sys.stderr.write("%s\n" % res['err'].getvalue())
+
+
+    def final_result(self):
+        if not self.results:
+            return SUCCESS
+        else:
+            # only return FAILURE if no errors happened.
+            for result in self.results:
+                if not isinstance(result['exception'], TaskFailed):
+                    return ERROR
+            return FAILURE
+
+
+
+
+def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False,
+              reporter=ConsoleReporter):
     """This will actually run/execute the tasks.
     It will check file dependencies to decide if task should be executed
     and save info on successful runs.
@@ -68,13 +112,9 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
     capture_stderr = verbosity == 0
     dependencyManager = Dependency(dependencyFile)
     setupManager = SetupManager()
-    results = [] # save non-succesful result information
+    resultReporter = reporter()
 
     for task in tasks:
-        # clear previous output
-        #TODO should find a way to put this on the bottom
-        logger.clear('stdout')
-        logger.clear('stderr')
         try:
             # check if task is up-to-date
             try:
@@ -85,17 +125,15 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
 
             # if task id up to date just print title
             if not alwaysExecute and task_uptodate:
-                print "---", task.title()
+                resultReporter.skip_uptodate(task)
                 continue
-
-            # going to execute the task...
-            print task.title()
 
             # setup env
             for setup_obj in task.setup:
                 setupManager.load(setup_obj)
 
             # finally execute it!
+            resultReporter.start_task(task)
             task.execute(capture_stdout, capture_stderr)
 
             #save execution successful
@@ -116,34 +154,22 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False):
             logger.flush('stdout', out)
             err = StringIO.StringIO()
             logger.flush('stderr', err)
-            results.append({'task': task, 'exception': exception,
-                            'out': out, 'err': err})
+            result = {'task': task, 'exception': exception,
+                      'out': out, 'err': err}
+            resultReporter.complete_task(task, result)
             break
+
+        # clear previous output
+        logger.clear('stdout')
+        logger.clear('stderr')
 
 
     ## done
     # flush update dependencies
     dependencyManager.close()
-
-    # if test fails print output from failed task
-    for res in results:
-        sys.stderr.write("#"*40 + "\n")
-        sys.stderr.write('%s: %s\n' % (res['exception'].get_name(),
-                                       res['task'].name))
-        sys.stderr.write(res['exception'].get_msg())
-        sys.stderr.write("\n")
-        sys.stderr.write("%s\n" % res['out'].getvalue())
-        sys.stderr.write("%s\n" % res['err'].getvalue())
-
-
+    # clean setup objects
     setupManager.cleanup()
 
-    if not results:
-        return SUCCESS
-    else:
-        # only return FAILURE if no errors happened.
-        for result in results:
-            if not isinstance(result['exception'], TaskFailed):
-                return ERROR
-        return FAILURE
-
+    # report final results
+    resultReporter.complete_run()
+    return resultReporter.final_result()
