@@ -1,5 +1,6 @@
 import os
 import sys, StringIO
+from subprocess import PIPE
 
 import nose
 
@@ -41,9 +42,9 @@ class BaseRunner(object):
 class TestVerbosity(BaseRunner):
 
     class FakeTask(Task):
-        def execute(self, capture_stdout = False, capture_stderr = False):
-            self.execute_args = {'capture_stdout': capture_stdout,
-                                 'capture_stderr': capture_stderr}
+        def execute(self, stdout, stderr):
+            self.execute_args = {'stdout': stdout,
+                                 'stderr': stderr}
 
     def setUp(self):
         BaseRunner.setUp(self)
@@ -52,20 +53,20 @@ class TestVerbosity(BaseRunner):
     # 0: capture stdout and stderr
     def test_verbosity0(self):
         runner.run_tasks(TESTDB, [self.fake_task], 0)
-        assert self.fake_task.execute_args['capture_stdout']
-        assert self.fake_task.execute_args['capture_stderr']
+        assert PIPE == self.fake_task.execute_args['stdout']
+        assert PIPE == self.fake_task.execute_args['stderr']
 
     # 1: capture stdout
     def test_verbosity1(self):
         runner.run_tasks(TESTDB, [self.fake_task], 1)
-        assert self.fake_task.execute_args['capture_stdout']
-        assert not self.fake_task.execute_args['capture_stderr']
+        assert PIPE == self.fake_task.execute_args['stdout']
+        assert None is self.fake_task.execute_args['stderr']
 
     # 2: capture -
     def test_verbosity2(self):
         runner.run_tasks(TESTDB, [self.fake_task], 2)
-        assert not self.fake_task.execute_args['capture_stdout']
-        assert not self.fake_task.execute_args['capture_stderr']
+        assert None is self.fake_task.execute_args['stdout']
+        assert None is self.fake_task.execute_args['stderr']
 
 
 class TestRunningTask(BaseRunner):

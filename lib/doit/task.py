@@ -195,15 +195,20 @@ class PythonAction(BaseAction):
 
         @raise TaskFailed: If py_callable returns False
         """
-        #FIXME support fd
         # set std stream
-        if stdout is subprocess.PIPE:
+        if stdout is not None:
             old_stdout = sys.stdout
-            sys.stdout = StringIO.StringIO()
+            if stdout is subprocess.PIPE:
+                sys.stdout = StringIO.StringIO()
+            else: # fd
+                sys.stdout = os.fdopen(os.dup(stdout), "w+b")
 
-        if stderr is subprocess.PIPE:
+        if stderr is not None:
             old_stderr = sys.stderr
-            sys.stderr = StringIO.StringIO()
+            if stderr is subprocess.PIPE:
+                sys.stderr = StringIO.StringIO()
+            else: # fd
+                sys.stderr = os.fdopen(os.dup(stderr), "w+b")
 
         kwargs = self._prepare_kwargs()
 
@@ -220,14 +225,18 @@ class PythonAction(BaseAction):
                 raise TaskError("PythonAction Error", exception)
         finally:
             # restore std streams /log captured streams
-            if stdout is subprocess.PIPE:
-                self.out = sys.stdout.getvalue()
-                sys.stdout.close()
+            if stdout is not None:
+                if stdout is subprocess.PIPE:
+                    self.out = sys.stdout.getvalue()
+                    sys.stdout.close()
+                #else: # fd
                 sys.stdout = old_stdout
 
-            if stderr is subprocess.PIPE:
-                self.err = sys.stderr.getvalue()
-                sys.stderr.close()
+            if stderr is not None:
+                if stderr is subprocess.PIPE:
+                    self.err = sys.stderr.getvalue()
+                    sys.stderr.close()
+                #else: # fd
                 sys.stderr = old_stderr
 
 
@@ -401,16 +410,13 @@ class Task(object):
         raise InvalidTask(msg % (task, attr, accept, str(value), type(value)))
 
 
-    def execute(self, capture_stdout=False, capture_stderr=False):
+    def execute(self, stdout=subprocess.PIPE, stderr=subprocess.PIPE):
         """Executes the task.
 
         @raise TaskFailed: If raised when executing an action
         @raise TaskError: If raised when executing an action
         """
-        #TODO folow action.execute API
         for action in self.actions:
-            stdout = subprocess.PIPE if capture_stdout else None
-            stderr = subprocess.PIPE if capture_stderr else None
             action.execute(stdout=stdout, stderr=stderr)
 
 
@@ -426,7 +432,7 @@ class Task(object):
         else:
             # clean contains a list of actions...
             for action in self.clean_actions:
-                action.execute(False, False)
+                action.execute()
 
 
     def title(self):

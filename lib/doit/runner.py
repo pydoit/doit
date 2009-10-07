@@ -2,6 +2,7 @@
 
 import sys
 import traceback
+from subprocess import PIPE
 
 from doit import CatchedException, TaskFailed, SetupError, DependencyError
 from doit.dependency import Dependency
@@ -109,8 +110,14 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False,
      - 2 => print stderr and stdout from all tasks
     @param alwaysExecute: (bool) execute even if up-to-date
     """
-    capture_stdout = verbosity < 2
-    capture_stderr = verbosity == 0
+    if verbosity < 2:
+        task_stdout = PIPE #capture
+    else:
+        task_stdout = None #use parent process
+    if verbosity == 0:
+        task_stderr = PIPE
+    else:
+        task_stderr = None
     dependencyManager = Dependency(dependencyFile)
     setupManager = SetupManager()
     resultReporter = reporter()
@@ -135,7 +142,7 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False,
 
             # finally execute it!
             resultReporter.start_task(task)
-            task.execute(capture_stdout, capture_stderr)
+            task.execute(task_stdout, task_stderr)
 
             #save execution successful
             if task.run_once:

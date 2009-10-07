@@ -8,8 +8,35 @@ from doit import task
 
 #path to test folder
 TEST_PATH = os.path.dirname(__file__)
+PROGRAM = "python %s/sample_process.py" % TEST_PATH
 
-class BaseTempFile(object):
+
+############# CmdAction
+class TestCmdAction(object):
+    # if nothing is raised it is successful
+    def test_success(self):
+        action = task.CmdAction(PROGRAM)
+        action.execute()
+
+    def test_error(self):
+        action = task.CmdAction("%s 1 2 3" % PROGRAM)
+        assert_raises(TaskError, action.execute)
+
+    def test_failure(self):
+        action = task.CmdAction("%s please fail" % PROGRAM)
+        assert_raises(TaskFailed, action.execute)
+
+    def test_str(self):
+        action = task.CmdAction(PROGRAM)
+        assert "Cmd: %s" % PROGRAM == str(action)
+
+    def test_repr(self):
+        action = task.CmdAction(PROGRAM)
+        expected = "<CmdAction: '%s'>" % PROGRAM
+        assert  expected == repr(action), repr(action)
+
+
+class TestCmdVerbosity(object):
     def setUp(self):
         self.tmp = os.tmpfile()
 
@@ -20,68 +47,33 @@ class BaseTempFile(object):
         self.tmp.seek(0)
         return self.tmp.read()
 
-
-
-
-############# CmdAction
-class TestCmdAction(object):
-    # if nothing is raised it is successful
-    def test_success(self):
-        action = task.CmdAction("python %s/sample_process.py"%TEST_PATH)
-        action.execute()
-
-    def test_error(self):
-        action = task.CmdAction("python %s/sample_process.py 1 2 3" %TEST_PATH)
-        assert_raises(TaskError, action.execute)
-
-    def test_failure(self):
-        cmd = "python %s/sample_process.py please fail" % TEST_PATH
-        action = task.CmdAction(cmd)
-        assert_raises(TaskFailed, action.execute)
-
-    def test_str(self):
-        action = task.CmdAction("python %s/sample_process.py"%TEST_PATH)
-        assert "Cmd: python %s/sample_process.py"%TEST_PATH == str(action)
-
-    def test_repr(self):
-        action = task.CmdAction("python %s/sample_process.py"%TEST_PATH)
-        expected = "<CmdAction: 'python %s/sample_process.py'>"%TEST_PATH
-        assert  expected == repr(action), repr(action)
-
-
-class TestCmdVerbosityStderr(BaseTempFile):
     # Capture stderr
-    def test_capture(self):
-        cmd = "python %s/sample_process.py please fail" % TEST_PATH
+    def test_captureStderr(self):
+        cmd = "%s please fail" % PROGRAM
         action = task.CmdAction(cmd)
         assert_raises(TaskFailed, action.execute)
         assert "err output on failure" == action.err, repr(action.err)
 
+    # Capture stdout
+    def test_captureStdout(self):
+        action = task.CmdAction("%s hi_stdout hi2" % PROGRAM)
+        action.execute()
+        assert "hi_stdout" == action.out, repr(action.out)
 
     # Do not capture stderr
-    def test_noCapture(self):
-        cmd = "python %s/sample_process.py please fail"
-        action = task.CmdAction(cmd % TEST_PATH)
+    # test using a tempfile. it is not possible (at least i dont know)
+    # how to test if the output went to the parent process,
+    # faking sys.stderr with a StringIO doesnt work.
+    def test_noCaptureStderr(self):
+        action = task.CmdAction("%s please fail" % PROGRAM)
         assert_raises(TaskFailed, action.execute, stderr=self.tmp.fileno())
         got = self.tmp_read()
         assert "err output on failure" == got, repr(got)
         assert None == action.err, repr(action.err)
 
-
-
-class TestCmdVerbosityStdout(BaseTempFile):
-    # Capture stdout
-    def test_capture(self):
-        cmd = "python %s/sample_process.py hi_stdout hi2" % TEST_PATH
-        action = task.CmdAction(cmd)
-        action.execute()
-        assert "hi_stdout" == action.out, repr(action.out)
-
-
     # Do not capture stdout
-    def test_noCapture(self):
-        cmd = "python %s/sample_process.py hi_stdout hi2" % TEST_PATH
-        action = task.CmdAction(cmd)
+    def test_noCaptureStdout(self):
+        action = task.CmdAction("%s hi_stdout hi2" % PROGRAM)
         action.execute(stdout=self.tmp.fileno())
         got = self.tmp_read()
         assert "hi_stdout" == got, repr(got)
@@ -190,144 +182,70 @@ class TestPythonAction(object):
 
 
 
-class TestPythonVerbosityStderr(object):
-    def setUp(self):
-        # capture stderr
-        self.oldErr = sys.stderr
-        sys.stderr = StringIO.StringIO()
-
-    def tearDown(self):
-        sys.stderr.close()
-        sys.stderr = self.oldErr
-
-    def write_and_error(self):
-        sys.stderr.write("this is stderr E\n")
-        raise Exception("Hi i am an exception")
-
-    def write_and_success(self):
+class TestPythonVerbosity(object):
+    def write_stderr(self):
         sys.stderr.write("this is stderr S\n")
-        return True
 
-    def write_and_fail(self):
-        sys.stderr.write("this is stderr F\n")
-        return False
+    def write_stdout(self):
+        sys.stdout.write("this is stdout S\n")
 
-    ##### Capture stderr
-    #
-    # success
-    def test_captureSuccess(self):
-        action = task.PythonAction(self.write_and_success)
+    def test_captureStderr(self):
+        action = task.PythonAction(self.write_stderr)
         action.execute()
-        assert "" == sys.stderr.getvalue()
         assert "this is stderr S\n" == action.err, repr(action.err)
 
-    # failure
-    def test_captureFail(self):
-        action = task.PythonAction(self.write_and_fail)
-        assert_raises(TaskFailed, action.execute)
-        assert "" == sys.stderr.getvalue()
-        assert "this is stderr F\n" == action.err, repr(action.err)
-
-    # error
-    def test_captureError(self):
-        action = task.PythonAction(self.write_and_error)
-        assert_raises(TaskError, action.execute)
-        assert "" == sys.stderr.getvalue()
-        assert "this is stderr E\n" == action.err, repr(action.err)
-
-    ##### Do not capture stderr
-    #
-    # success
-    def test_noCaptureSuccess(self):
-        t = task.PythonAction(self.write_and_success)
-        t.execute(stderr=None)
-        got = sys.stderr.getvalue()
-        assert "this is stderr S\n" == got, repr(got)
-
-    # failure
-    def test_noCaptureFail(self):
-        t = task.PythonAction(self.write_and_fail)
-        assert_raises(TaskFailed, t.execute, stderr=None)
-        got = sys.stderr.getvalue()
-        assert "this is stderr F\n" == got, repr(got)
-
-    # error
-    def test_noCaptureError(self):
-        t = task.PythonAction(self.write_and_error)
-        assert_raises(TaskError, t.execute, stderr=None)
-        got = sys.stderr.getvalue()
-        assert "this is stderr E\n" == got, repr(got)
-
-
-class TestPythonVerbosityStdout(object):
-    def setUp(self):
-        # capture stdout
-        self.oldOut = sys.stdout
-        sys.stdout = StringIO.StringIO()
-
-    def tearDown(self):
-        sys.stdout.close()
-        sys.stdout = self.oldOut
-
-    def write_and_error(self):
-        sys.stdout.write("this is stdout E\n")
-        raise Exception("Hi i am an exception")
-
-    def write_and_success(self):
-        sys.stdout.write("this is stdout S\n")
-        return True
-
-    def write_and_fail(self):
-        sys.stdout.write("this is stdout F\n")
-        return False
-
-    ##### Capture stdout
-    #
-    # success
-    def test_captureSuccess(self):
-        action = task.PythonAction(self.write_and_success)
+    def test_captureStdout(self):
+        action = task.PythonAction(self.write_stdout)
         action.execute()
-        assert "" == sys.stdout.getvalue()
         assert "this is stdout S\n" == action.out, repr(action.out)
 
-    # failure
-    def test_captureFail(self):
-        action = task.PythonAction(self.write_and_fail)
-        assert_raises(TaskFailed, action.execute)
-        assert "" == sys.stdout.getvalue()
-        assert "this is stdout F\n" == action.out, repr(action.out)
+    def test_noCaptureStderr(self):
+        # fake stderr
+        oldErr = sys.stderr
+        sys.stderr = StringIO.StringIO()
+        try:
+            # execute task
+            action = task.PythonAction(self.write_stderr)
+            action.execute(stderr=None)
+            got = sys.stderr.getvalue()
+        finally:
+            # restore stderr
+            sys.stderr.close()
+            sys.stderr = oldErr
+        assert "this is stderr S\n" == got, repr(got)
 
-    # error
-    def test_captureError(self):
-        action = task.PythonAction(self.write_and_error)
-        assert_raises(TaskError, action.execute)
-        assert "" == sys.stdout.getvalue()
-        assert "this is stdout E\n" == action.out, repr(action.out)
-
-
-    ##### Do not capture stdout
-    #
-    # success
-    def test_noCaptureSuccess(self):
-        action = task.PythonAction(self.write_and_success)
-        action.execute(stdout=None)
-        got = sys.stdout.getvalue()
+    def test_noCaptureStdout(self):
+        # fake stderr
+        oldOut = sys.stdout
+        sys.stdout = StringIO.StringIO()
+        try:
+            # execute task
+            action = task.PythonAction(self.write_stdout)
+            action.execute(stdout=None)
+            got = sys.stdout.getvalue()
+        finally:
+            # restore stderr
+            sys.stdout.close()
+            sys.stdout = oldOut
         assert "this is stdout S\n" == got, repr(got)
 
-    # failure
-    def test_noCaptureFail(self):
-        action = task.PythonAction(self.write_and_fail)
-        assert_raises(TaskFailed, action.execute, stdout=None)
-        got = sys.stdout.getvalue()
-        assert "this is stdout F\n" == got, repr(got)
+    def test_redirectStderr(self):
+        tmpfile = os.tmpfile()
+        action = task.PythonAction(self.write_stderr)
+        action.execute(stderr=tmpfile.fileno())
+        tmpfile.seek(0)
+        got = tmpfile.read()
+        tmpfile.close()
+        assert "this is stderr S\n" == got, got
 
-    # error
-    def test_noCaptureError(self):
-        action = task.PythonAction(self.write_and_error)
-        assert_raises(TaskError, action.execute, stdout=None)
-        got = sys.stdout.getvalue()
-        assert "this is stdout E\n" == got, repr(got)
-
+    def test_redirectStdout(self):
+        tmpfile = os.tmpfile()
+        action = task.PythonAction(self.write_stdout)
+        action.execute(stdout=tmpfile.fileno())
+        tmpfile.seek(0)
+        got = tmpfile.read()
+        tmpfile.close()
+        assert "this is stdout S\n" == got, got
 
 
 ##############
@@ -433,60 +351,42 @@ class TestTask(object):
 
 
 class TestTaskActions(object):
-    def setUp(self):
-        # capture stdout
-        self.oldOut = sys.stdout
-        sys.stdout = StringIO.StringIO()
-
-    def tearDown(self):
-        sys.stdout.close()
-        sys.stdout = self.oldOut
-
     def test_success(self):
-        t = task.Task("taskX", ["python %s/sample_process.py" % TEST_PATH])
+        t = task.Task("taskX", [PROGRAM])
         t.execute()
 
     def test_failure(self):
-        t = task.Task("taskX", ["python %s/sample_process.py 1 2 3" % TEST_PATH])
+        t = task.Task("taskX", ["%s 1 2 3" % PROGRAM])
         assert_raises(TaskError, t.execute)
 
     # make sure all cmds are being executed.
     def test_many(self):
-        t = task.Task("taskX",[
-                "python %s/sample_process.py hi_stdout hi2" % TEST_PATH,
-                "python %s/sample_process.py hi_list hi6" % TEST_PATH])
-        t.execute(capture_stdout=True, capture_stderr=True)
-        assert "" == sys.stdout.getvalue()
+        t = task.Task("taskX",["%s hi_stdout hi2" % PROGRAM,
+                               "%s hi_list hi6" % PROGRAM])
+        t.execute()
         got = "".join([a.out for a in t.actions])
         assert "hi_stdouthi_list" == got, repr(got)
 
 
     def test_fail_first(self):
-        t = task.Task("taskX", ["python %s/sample_process.py 1 2 3" % TEST_PATH,
-                                "python %s/sample_process.py " % TEST_PATH])
+        t = task.Task("taskX", ["%s 1 2 3" % PROGRAM, PROGRAM])
         assert_raises(TaskError, t.execute)
 
     def test_fail_second(self):
-        t = task.Task("taskX", ["python %s/sample_process.py 1 2" % TEST_PATH,
-                                "python %s/sample_process.py 1 2 3" % TEST_PATH])
-        assert_raises(TaskError, t.execute,
-                      capture_stdout=True, capture_stderr=True)
+        t = task.Task("taskX", ["%s 1 2" % PROGRAM, "%s 1 2 3" % PROGRAM])
+        assert_raises(TaskError, t.execute)
 
 
     # python and commands mixed on same task
     def test_mixed(self):
         def my_print(msg):
             print msg,
-            return True
-        t = task.Task("taskX",[
-                "python %s/sample_process.py hi_stdout hi2"%TEST_PATH,
-                (my_print,['_PY_']),
-                "python %s/sample_process.py hi_list hi6"%TEST_PATH])
-        t.execute(capture_stdout=True, capture_stderr=True)
-        assert "" == sys.stdout.getvalue()
+        t = task.Task("taskX",["%s hi_stdout hi2" % PROGRAM,
+                               (my_print,['_PY_']),
+                               "%s hi_list hi6" % PROGRAM])
+        t.execute()
         got = "".join([a.out for a in t.actions])
         assert "hi_stdout_PY_hi_list" == got, repr(got)
-
 
 
 
@@ -521,7 +421,6 @@ class TestTaskClean(object):
             fh = file(self.C_PATH, 'a')
             fh.write("hello!!!")
             fh.close()
-            return True
         t = task.Task("xxx", None, targets=[self.C_PATH], clean=[(say_hello,)])
         assert False == t._remove_targets
         assert 1 == len(t.clean_actions)
@@ -578,7 +477,7 @@ class TestCmdFormatting(object):
         targets = ["data/target", "data/targetXXX"]
         t = task.Task('formating', [cmd], dependencies, targets)
         t.dep_changed = ["data/dependency1"]
-        t.execute(capture_stdout=True)
+        t.execute()
 
         got = t.actions[0].out.split('-')
         assert t.file_dep == got[0].split(), got[0]
@@ -587,24 +486,9 @@ class TestCmdFormatting(object):
 
 
 class TestPythonActionExtraArgs(object):
-    class FakeTask(object):
-        def __init__(self):
-            self.name = 'name'
-            self.targets = 'targets'
-            self.file_dep = 'dependencies'
-            self.dep_changed = 'changed'
-
-    # TODO dont use sys.stdout on tests.
     def setUp(self):
-        self.task = self.FakeTask()
-
-        # capture stdout
-        self.oldOut = sys.stdout
-        sys.stdout = StringIO.StringIO()
-
-    def tearDown(self):
-        sys.stdout.close()
-        sys.stdout = self.oldOut
+        self.task = task.Task('name',None,['dependencies'],['targets'])
+        self.task.dep_changed = ['changed']
 
     def test_no_extra_args(self):
         def py_callable():
@@ -614,63 +498,58 @@ class TestPythonActionExtraArgs(object):
         action.execute()
 
     def test_keyword_extra_args(self):
+        got = []
         def py_callable(arg=None, **kwargs):
-            print kwargs['targets']
-            print kwargs['dependencies']
-            print kwargs['changed']
-            return True
+            got.append(kwargs['targets'])
+            got.append(kwargs['dependencies'])
+            got.append(kwargs['changed'])
         action = task.PythonAction(py_callable)
         action.task = self.task
-        action.execute(stdout=None)
-        got = sys.stdout.getvalue().splitlines()
-        assert got == ['targets', 'dependencies', 'changed']
+        action.execute()
+        assert got == [['targets'], ['dependencies'], ['changed']], got
 
     def test_named_extra_args(self):
+        got = []
         def py_callable(targets, dependencies, changed):
-            print targets
-            print dependencies
-            print changed
-            return True
+            got.append(targets)
+            got.append(dependencies)
+            got.append(changed)
         action = task.PythonAction(py_callable)
         action.task = self.task
-        action.execute(stdout=None)
-        got = sys.stdout.getvalue().splitlines()
-        assert got == ['targets', 'dependencies', 'changed']
+        action.execute()
+        assert got == [['targets'], ['dependencies'], ['changed']]
 
     def test_mixed_args(self):
+        got = []
         def py_callable(a, b, changed):
-            print a
-            print b
-            print changed
-            return True
+            got.append(a)
+            got.append(b)
+            got.append(changed)
         action = task.PythonAction(py_callable, ('a', 'b'))
         action.task = self.task
-        action.execute(stdout=None)
-        got = sys.stdout.getvalue().splitlines()
-        assert got == ['a', 'b', 'changed']
+        action.execute()
+        assert got == ['a', 'b', ['changed']]
 
     def test_extra_arg_overwritten(self):
+        got = []
         def py_callable(a, b, changed):
-            print a
-            print b
-            print changed
-            return True
+            got.append(a)
+            got.append(b)
+            got.append(changed)
         action = task.PythonAction(py_callable, ('a', 'b', 'c'))
         action.task = self.task
-        action.execute(stdout=None)
-        got = sys.stdout.getvalue().splitlines()
+        action.execute()
         assert got == ['a', 'b', 'c']
 
     def test_extra_kwarg_overwritten(self):
+        got = []
         def py_callable(a, b, **kwargs):
-            print a
-            print b
-            print kwargs['changed']
-            return True
+            got.append(a)
+            got.append(b)
+            got.append(kwargs['changed'])
         action = task.PythonAction(py_callable, ('a', 'b'), {'changed': 'c'})
         action.task = self.task
-        action.execute(stdout=None)
-        got = sys.stdout.getvalue().splitlines()
+        action.execute()
         assert got == ['a', 'b', 'c']
 
     def test_extra_arg_default_disallowed(self):
