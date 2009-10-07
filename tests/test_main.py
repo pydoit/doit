@@ -6,7 +6,8 @@ import nose.tools
 from doit.dependency import Dependency
 from doit.task import InvalidTask, Task
 from doit.main import InvalidDodoFile, InvalidCommand
-from doit.main import get_module, load_task_generators, generate_tasks
+from doit.main import isgenerator, get_module
+from doit.main import load_task_generators, generate_tasks
 from doit.main import TaskSetup, doit_list, doit_run, doit_forget, doit_clean
 
 
@@ -15,6 +16,21 @@ TESTDB = os.path.join(os.path.dirname(__file__), "testdb")
 def tearDownModule(self):
     if os.path.exists(TESTDB):
         os.remove(TESTDB)
+
+
+class TestIsGenerator(object):
+    def testIsGeneratorYes(self):
+        def giveme():
+            for i in range(3):
+                yield i
+        g = giveme()
+        assert isgenerator(g)
+        for i in g: pass # just to get coverage on the givme function
+
+    def testIsGeneratorNo(self):
+        def giveme():
+            return 5
+        assert not isgenerator(giveme())
 
 
 

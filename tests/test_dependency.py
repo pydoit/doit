@@ -1,11 +1,19 @@
 import os
 
-from doit.dependency import Dependency
+from doit.dependency import md5sum, Dependency
 
 
 def get_abspath(relativePath):
     """ return abs file path relative to this file"""
     return os.path.join(os.path.dirname(__file__), relativePath)
+
+
+
+def test_md5():
+    filePath = os.path.join(os.path.dirname(__file__),"sample_md5.txt")
+    # result got using command line md5sum
+    expected = "45d1503cb985898ab5bd8e58973007dd"
+    assert expected == md5sum(filePath)
 
 
 ####

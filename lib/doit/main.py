@@ -2,8 +2,8 @@
 import os
 import sys
 import inspect
+import types
 
-from doit.util import isgenerator
 from doit.task import InvalidTask, Task, dict_to_task
 from doit import dependency
 from doit import runner
@@ -19,6 +19,15 @@ class InvalidDodoFile(Exception):
 # TASK_STRING: (string) prefix used to identify python function
 # that are task generators in a dodo file.
 TASK_STRING = "task_"
+
+
+def isgenerator(object):
+    """Check if object type is a generator.
+
+    @param object: object to test.
+    @return: (bool) object is a generator?"""
+    return type(object) is types.GeneratorType
+
 
 def get_module(dodoFile):
     """
