@@ -9,98 +9,83 @@ from doit import task
 #path to test folder
 TEST_PATH = os.path.dirname(__file__)
 
+class BaseTempFile(object):
+    def setUp(self):
+        self.tmp = os.tmpfile()
+
+    def tearDown(self):
+        self.tmp.close()
+
+    def tmp_read(self):
+        self.tmp.seek(0)
+        return self.tmp.read()
+
+
+
 
 ############# CmdAction
-
 class TestCmdAction(object):
-
     # if nothing is raised it is successful
     def test_success(self):
-        t = task.CmdAction("python %s/sample_process.py"%TEST_PATH)
-        t.execute()
+        action = task.CmdAction("python %s/sample_process.py"%TEST_PATH)
+        action.execute()
 
     def test_error(self):
-        t = task.CmdAction("python %s/sample_process.py 1 2 3"%TEST_PATH)
-        assert_raises(TaskError, t.execute)
+        action = task.CmdAction("python %s/sample_process.py 1 2 3" %TEST_PATH)
+        assert_raises(TaskError, action.execute)
 
     def test_failure(self):
         cmd = "python %s/sample_process.py please fail" % TEST_PATH
-        t = task.CmdAction(cmd)
-        assert_raises(TaskFailed, t.execute)
+        action = task.CmdAction(cmd)
+        assert_raises(TaskFailed, action.execute)
 
     def test_str(self):
-        t = task.CmdAction("python %s/sample_process.py"%TEST_PATH)
-        assert "Cmd: python %s/sample_process.py"%TEST_PATH == str(t), str(t)
+        action = task.CmdAction("python %s/sample_process.py"%TEST_PATH)
+        assert "Cmd: python %s/sample_process.py"%TEST_PATH == str(action)
 
     def test_repr(self):
-        t = task.CmdAction("python %s/sample_process.py"%TEST_PATH)
+        action = task.CmdAction("python %s/sample_process.py"%TEST_PATH)
         expected = "<CmdAction: 'python %s/sample_process.py'>"%TEST_PATH
-        assert  expected == repr(t), repr(t)
+        assert  expected == repr(action), repr(action)
 
 
-class TestCmdVerbosityStderr(object):
-    def setUp(self):
-        # capture stderr
-        self.oldErr = sys.stderr
-        sys.stderr = StringIO.StringIO()
-
-    def tearDown(self):
-        sys.stderr.close()
-        sys.stderr = self.oldErr
-
+class TestCmdVerbosityStderr(BaseTempFile):
     # Capture stderr
     def test_capture(self):
         cmd = "python %s/sample_process.py please fail" % TEST_PATH
         action = task.CmdAction(cmd)
-        assert_raises(TaskFailed, action.execute, capture_stderr=True)
-        assert "" == sys.stderr.getvalue()
-        assert "err output on failure" == action.err, action.err
+        assert_raises(TaskFailed, action.execute)
+        assert "err output on failure" == action.err, repr(action.err)
 
 
     # Do not capture stderr
-    #
-    # i dont know how to test this (in a reasonable easy way).
-    # the stream is sent straight to the parent process from doit.
     def test_noCapture(self):
-        t = task.CmdAction("python %s/sample_process.py please fail"%TEST_PATH)
-        assert_raises(TaskFailed, t.execute, capture_stderr=False)
-        assert "" == sys.stderr.getvalue(),repr(sys.stderr.getvalue())
-        assert "" == sys.stderr.getvalue(),repr(sys.stderr.getvalue())
+        cmd = "python %s/sample_process.py please fail"
+        action = task.CmdAction(cmd % TEST_PATH)
+        assert_raises(TaskFailed, action.execute, stderr=self.tmp.fileno())
+        got = self.tmp_read()
+        assert "err output on failure" == got, repr(got)
+        assert None == action.err, repr(action.err)
 
 
 
-class TestCmdVerbosityStdout(object):
-    def setUp(self):
-        # capture stdout
-        self.oldOut = sys.stdout
-        sys.stdout = StringIO.StringIO()
-
-    def tearDown(self):
-        sys.stdout.close()
-        sys.stdout = self.oldOut
-
+class TestCmdVerbosityStdout(BaseTempFile):
     # Capture stdout
     def test_capture(self):
         cmd = "python %s/sample_process.py hi_stdout hi2" % TEST_PATH
         action = task.CmdAction(cmd)
-        action.execute(capture_stdout=True)
-        # nothing on stdout
-        assert "" == sys.stdout.getvalue()
-        # captured
+        action.execute()
         assert "hi_stdout" == action.out, repr(action.out)
 
 
     # Do not capture stdout
-    #
-    # i dont know how to test this (in a reasonable easy way).
-    # the stream is sent straight to the parent process from doit.
     def test_noCapture(self):
         cmd = "python %s/sample_process.py hi_stdout hi2" % TEST_PATH
         action = task.CmdAction(cmd)
-        action.execute(capture_stdout=False)
-        # FIXME what is this testing? should get the value here!
-        assert "" == sys.stdout.getvalue(),repr(sys.stdout.getvalue())
-        assert "" == sys.stdout.getvalue(),repr(sys.stdout.getvalue())
+        action.execute(stdout=self.tmp.fileno())
+        got = self.tmp_read()
+        assert "hi_stdout" == got, repr(got)
+        assert None == action.out, repr(action.out)
 
 
 
@@ -110,34 +95,37 @@ class TestPythonAction(object):
 
     def test_success_bool(self):
         def success_sample():return True
-        t = task.PythonAction(success_sample)
-        t.execute() # nothing raised it was successful
+        action = task.PythonAction(success_sample)
+        # nothing raised it was successful
+        action.execute()
 
     def test_success_None(self):
         def success_sample():return
-        t = task.PythonAction(success_sample)
-        t.execute() # nothing raised it was successful
+        action = task.PythonAction(success_sample)
+        # nothing raised it was successful
+        action.execute()
 
     def test_success_str(self):
         def success_sample():return ""
-        t = task.PythonAction(success_sample)
-        t.execute() # nothing raised it was successful
+        action = task.PythonAction(success_sample)
+        # nothing raised it was successful
+        action.execute()
 
     def test_error_object(self):
         # anthing but None, bool, or string
         def error_sample(): return {}
-        t = task.PythonAction(error_sample)
-        assert_raises(TaskError, t.execute)
+        action = task.PythonAction(error_sample)
+        assert_raises(TaskError, action.execute)
 
     def test_error_exception(self):
         def error_sample(): raise Exception("asdf")
-        t = task.PythonAction(error_sample)
-        assert_raises(TaskError, t.execute)
+        action = task.PythonAction(error_sample)
+        assert_raises(TaskError, action.execute)
 
     def test_fail_bool(self):
         def fail_sample():return False
-        t = task.PythonAction(fail_sample)
-        assert_raises(TaskFailed, t.execute)
+        action = task.PythonAction(fail_sample)
+        assert_raises(TaskFailed, action.execute)
 
     # any callable should work, not only functions
     def test_nonFunction(self):
@@ -145,8 +133,8 @@ class TestPythonAction(object):
             def __call__(self):
                 return False
 
-        t = task.PythonAction(CallMe())
-        assert_raises(TaskFailed, t.execute)
+        action= task.PythonAction(CallMe())
+        assert_raises(TaskFailed, action.execute)
 
     # helper to test callable with parameters
     def _func_par(self,par1,par2,par3=5):
@@ -158,9 +146,9 @@ class TestPythonAction(object):
 
     def test_init(self):
         # default values
-        t1 = task.PythonAction(self._func_par)
-        assert t1.args == []
-        assert t1.kwargs == {}
+        action1 = task.PythonAction(self._func_par)
+        assert action1.args == []
+        assert action1.kwargs == {}
 
         # not a callable
         assert_raises(task.InvalidTask, task.PythonAction, "abc")
@@ -172,31 +160,33 @@ class TestPythonAction(object):
 
 
     def test_functionParametersArgs(self):
-        t = task.PythonAction(self._func_par,args=(2,2,25))
-        t.execute()
+        action = task.PythonAction(self._func_par,args=(2,2,25))
+        action.execute()
 
     def test_functionParametersKwargs(self):
-        t = task.PythonAction(self._func_par,
+        action = task.PythonAction(self._func_par,
                               kwargs={'par1':2,'par2':2,'par3':25})
-        t.execute()
+        action.execute()
 
     def test_functionParameters(self):
-        t = task.PythonAction(self._func_par,args=(2,2), kwargs={'par3':25})
-        t.execute()
+        action = task.PythonAction(self._func_par,args=(2,2),
+                                   kwargs={'par3':25})
+        action.execute()
 
     def test_functionParametersFail(self):
-        t = task.PythonAction(self._func_par, args=(2,3), kwargs={'par3':25})
-        assert_raises(TaskFailed, t.execute)
+        action = task.PythonAction(self._func_par, args=(2,3),
+                                   kwargs={'par3':25})
+        assert_raises(TaskFailed, action.execute)
 
     def test_str(self):
         def str_sample(): return True
-        t = task.PythonAction(str_sample)
-        assert "Python: function str_sample" == str(t), "'%s'"%str(t)
+        action = task.PythonAction(str_sample)
+        assert "Python: function str_sample" == str(action), "'%s'"%str(action)
 
     def test_repr(self):
         def repr_sample(): return True
-        t = task.PythonAction(repr_sample)
-        assert  "<PythonAction: '%s'>" % repr(repr_sample) == repr(t), repr(t)
+        action = task.PythonAction(repr_sample)
+        assert  "<PythonAction: '%s'>" % repr(repr_sample) == repr(action)
 
 
 
@@ -227,21 +217,21 @@ class TestPythonVerbosityStderr(object):
     # success
     def test_captureSuccess(self):
         action = task.PythonAction(self.write_and_success)
-        action.execute(capture_stderr = True)
+        action.execute()
         assert "" == sys.stderr.getvalue()
         assert "this is stderr S\n" == action.err, repr(action.err)
 
     # failure
     def test_captureFail(self):
         action = task.PythonAction(self.write_and_fail)
-        assert_raises(TaskFailed, action.execute, capture_stderr=True)
+        assert_raises(TaskFailed, action.execute)
         assert "" == sys.stderr.getvalue()
         assert "this is stderr F\n" == action.err, repr(action.err)
 
     # error
     def test_captureError(self):
         action = task.PythonAction(self.write_and_error)
-        assert_raises(TaskError, action.execute, capture_stderr=True)
+        assert_raises(TaskError, action.execute)
         assert "" == sys.stderr.getvalue()
         assert "this is stderr E\n" == action.err, repr(action.err)
 
@@ -250,21 +240,21 @@ class TestPythonVerbosityStderr(object):
     # success
     def test_noCaptureSuccess(self):
         t = task.PythonAction(self.write_and_success)
-        t.execute(capture_stderr = False)
+        t.execute(stderr=None)
         got = sys.stderr.getvalue()
         assert "this is stderr S\n" == got, repr(got)
 
     # failure
     def test_noCaptureFail(self):
         t = task.PythonAction(self.write_and_fail)
-        assert_raises(TaskFailed, t.execute, capture_stderr=False)
+        assert_raises(TaskFailed, t.execute, stderr=None)
         got = sys.stderr.getvalue()
         assert "this is stderr F\n" == got, repr(got)
 
     # error
     def test_noCaptureError(self):
         t = task.PythonAction(self.write_and_error)
-        assert_raises(TaskError, t.execute, capture_stderr=False)
+        assert_raises(TaskError, t.execute, stderr=None)
         got = sys.stderr.getvalue()
         assert "this is stderr E\n" == got, repr(got)
 
@@ -296,21 +286,21 @@ class TestPythonVerbosityStdout(object):
     # success
     def test_captureSuccess(self):
         action = task.PythonAction(self.write_and_success)
-        action.execute(capture_stdout=True)
+        action.execute()
         assert "" == sys.stdout.getvalue()
         assert "this is stdout S\n" == action.out, repr(action.out)
 
     # failure
     def test_captureFail(self):
         action = task.PythonAction(self.write_and_fail)
-        assert_raises(TaskFailed, action.execute, capture_stdout=True)
+        assert_raises(TaskFailed, action.execute)
         assert "" == sys.stdout.getvalue()
         assert "this is stdout F\n" == action.out, repr(action.out)
 
     # error
     def test_captureError(self):
         action = task.PythonAction(self.write_and_error)
-        assert_raises(TaskError, action.execute, capture_stdout=True)
+        assert_raises(TaskError, action.execute)
         assert "" == sys.stdout.getvalue()
         assert "this is stdout E\n" == action.out, repr(action.out)
 
@@ -319,22 +309,22 @@ class TestPythonVerbosityStdout(object):
     #
     # success
     def test_noCaptureSuccess(self):
-        t = task.PythonAction(self.write_and_success)
-        t.execute(capture_stdout=False)
+        action = task.PythonAction(self.write_and_success)
+        action.execute(stdout=None)
         got = sys.stdout.getvalue()
         assert "this is stdout S\n" == got, repr(got)
 
     # failure
     def test_noCaptureFail(self):
-        t = task.PythonAction(self.write_and_fail)
-        assert_raises(TaskFailed, t.execute, capture_stdout=False)
+        action = task.PythonAction(self.write_and_fail)
+        assert_raises(TaskFailed, action.execute, stdout=None)
         got = sys.stdout.getvalue()
         assert "this is stdout F\n" == got, repr(got)
 
     # error
     def test_noCaptureError(self):
-        t = task.PythonAction(self.write_and_error)
-        assert_raises(TaskError, t.execute, capture_stdout=False)
+        action = task.PythonAction(self.write_and_error)
+        assert_raises(TaskError, action.execute, stdout=None)
         got = sys.stdout.getvalue()
         assert "this is stdout E\n" == got, repr(got)
 
@@ -465,7 +455,7 @@ class TestTaskActions(object):
         t = task.Task("taskX",[
                 "python %s/sample_process.py hi_stdout hi2" % TEST_PATH,
                 "python %s/sample_process.py hi_list hi6" % TEST_PATH])
-        t.execute(capture_stdout=True)
+        t.execute(capture_stdout=True, capture_stderr=True)
         assert "" == sys.stdout.getvalue()
         got = "".join([a.out for a in t.actions])
         assert "hi_stdouthi_list" == got, repr(got)
@@ -479,7 +469,8 @@ class TestTaskActions(object):
     def test_fail_second(self):
         t = task.Task("taskX", ["python %s/sample_process.py 1 2" % TEST_PATH,
                                 "python %s/sample_process.py 1 2 3" % TEST_PATH])
-        assert_raises(TaskError, t.execute)
+        assert_raises(TaskError, t.execute,
+                      capture_stdout=True, capture_stderr=True)
 
 
     # python and commands mixed on same task
@@ -491,7 +482,7 @@ class TestTaskActions(object):
                 "python %s/sample_process.py hi_stdout hi2"%TEST_PATH,
                 (my_print,['_PY_']),
                 "python %s/sample_process.py hi_list hi6"%TEST_PATH])
-        t.execute(capture_stdout=True)
+        t.execute(capture_stdout=True, capture_stderr=True)
         assert "" == sys.stdout.getvalue()
         got = "".join([a.out for a in t.actions])
         assert "hi_stdout_PY_hi_list" == got, repr(got)
@@ -630,7 +621,7 @@ class TestPythonActionExtraArgs(object):
             return True
         action = task.PythonAction(py_callable)
         action.task = self.task
-        action.execute()
+        action.execute(stdout=None)
         got = sys.stdout.getvalue().splitlines()
         assert got == ['targets', 'dependencies', 'changed']
 
@@ -642,7 +633,7 @@ class TestPythonActionExtraArgs(object):
             return True
         action = task.PythonAction(py_callable)
         action.task = self.task
-        action.execute()
+        action.execute(stdout=None)
         got = sys.stdout.getvalue().splitlines()
         assert got == ['targets', 'dependencies', 'changed']
 
@@ -654,7 +645,7 @@ class TestPythonActionExtraArgs(object):
             return True
         action = task.PythonAction(py_callable, ('a', 'b'))
         action.task = self.task
-        action.execute()
+        action.execute(stdout=None)
         got = sys.stdout.getvalue().splitlines()
         assert got == ['a', 'b', 'changed']
 
@@ -666,7 +657,7 @@ class TestPythonActionExtraArgs(object):
             return True
         action = task.PythonAction(py_callable, ('a', 'b', 'c'))
         action.task = self.task
-        action.execute()
+        action.execute(stdout=None)
         got = sys.stdout.getvalue().splitlines()
         assert got == ['a', 'b', 'c']
 
@@ -678,7 +669,7 @@ class TestPythonActionExtraArgs(object):
             return True
         action = task.PythonAction(py_callable, ('a', 'b'), {'changed': 'c'})
         action.task = self.task
-        action.execute()
+        action.execute(stdout=None)
         got = sys.stdout.getvalue().splitlines()
         assert got == ['a', 'b', 'c']
 

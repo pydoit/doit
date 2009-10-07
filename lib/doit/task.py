@@ -19,7 +19,7 @@ class BaseAction(object):
     """Base class for all actions"""
 
     # must implement:
-    # def execute(self, capture_stdout=False, capture_stderr=False)
+    # def execute(self, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     pass
 
@@ -42,31 +42,21 @@ class CmdAction(BaseAction):
         self.out = None
         self.err = None
 
-    def execute(self, capture_stdout=False, capture_stderr=False):
+    def execute(self, stdout=subprocess.PIPE, stderr=subprocess.PIPE):
         """
         Execute command action
 
-        @param capture_stdout(bool): Capture standard output
-        @param capture_err(bool): Capture standard error
+        @param capture_stdout: see subprocess.Popen
+        @param capture_err: see subprocess.Popen
 
         @raise TaskError: If subprocess return code is greater than 125
         @raise TaskFailed: If subprocess return code isn't zero (and
         not greater than 125)
         """
-        # set Popen stream parameters
-        if not capture_stdout:
-            stdout = None
-        else:
-            stdout = subprocess.PIPE
-        if not capture_stderr:
-            stderr = None
-        else:
-            stderr = subprocess.PIPE
-
         action = self.expand_action()
 
         # spawn task process
-        process = subprocess.Popen(action,stdout=stdout,
+        process = subprocess.Popen(action, stdout=stdout,
                                    stderr=stderr, shell=True)
         self.out, self.err = process.communicate()
 
@@ -192,21 +182,26 @@ class PythonAction(BaseAction):
         return kwargs
 
 
-    def execute(self, capture_stdout=False, capture_stderr=False):
+    def execute(self, stdout=subprocess.PIPE, stderr=subprocess.PIPE):
         """
         Execute command action
 
-        @param capture_stdout (bool): Capture standard output
-        @param capture_err (bool): Capture standard error
+        @param capture_stdout: see subprocess.Popen
+        @param capture_err: see subprocess.Popen
+           (same behavior as Popen even that we dont use Popen here.)
+        -1 capture (save data on instance)
+        None (use sys.std)
+        (int) fd
 
         @raise TaskFailed: If py_callable returns False
         """
+        #FIXME support fd
         # set std stream
-        if capture_stdout:
+        if stdout is subprocess.PIPE:
             old_stdout = sys.stdout
             sys.stdout = StringIO.StringIO()
 
-        if capture_stderr:
+        if stderr is subprocess.PIPE:
             old_stderr = sys.stderr
             sys.stderr = StringIO.StringIO()
 
@@ -225,12 +220,12 @@ class PythonAction(BaseAction):
                 raise TaskError("PythonAction Error", exception)
         finally:
             # restore std streams /log captured streams
-            if capture_stdout:
+            if stdout is subprocess.PIPE:
                 self.out = sys.stdout.getvalue()
                 sys.stdout.close()
                 sys.stdout = old_stdout
 
-            if capture_stderr:
+            if stderr is subprocess.PIPE:
                 self.err = sys.stderr.getvalue()
                 sys.stderr.close()
                 sys.stderr = old_stderr
@@ -412,8 +407,11 @@ class Task(object):
         @raise TaskFailed: If raised when executing an action
         @raise TaskError: If raised when executing an action
         """
+        #TODO folow action.execute API
         for action in self.actions:
-            action.execute(capture_stdout, capture_stderr)
+            stdout = subprocess.PIPE if capture_stdout else None
+            stderr = subprocess.PIPE if capture_stderr else None
+            action.execute(stdout=stdout, stderr=stderr)
 
 
     def clean(self):
