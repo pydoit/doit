@@ -4,7 +4,6 @@ import sys, StringIO
 from nose.tools import assert_raises
 
 from doit import TaskError, TaskFailed
-from doit import logger
 from doit import task
 
 #path to test folder
@@ -44,7 +43,6 @@ class TestCmdVerbosityStderr(object):
         # capture stderr
         self.oldErr = sys.stderr
         sys.stderr = StringIO.StringIO()
-        logger.clear("stderr")
 
     def tearDown(self):
         sys.stderr.close()
@@ -53,12 +51,10 @@ class TestCmdVerbosityStderr(object):
     # Capture stderr
     def test_capture(self):
         cmd = "python %s/sample_process.py please fail" % TEST_PATH
-        t = task.CmdAction(cmd)
-        assert_raises(TaskFailed, t.execute, capture_stderr=True)
+        action = task.CmdAction(cmd)
+        assert_raises(TaskFailed, action.execute, capture_stderr=True)
         assert "" == sys.stderr.getvalue()
-        logger.flush('stderr',sys.stderr)
-        got = sys.stderr.getvalue()
-        assert "err output on failure" == got, got
+        assert "err output on failure" == action.err, action.err
 
 
     # Do not capture stderr
@@ -69,7 +65,6 @@ class TestCmdVerbosityStderr(object):
         t = task.CmdAction("python %s/sample_process.py please fail"%TEST_PATH)
         assert_raises(TaskFailed, t.execute, capture_stderr=False)
         assert "" == sys.stderr.getvalue(),repr(sys.stderr.getvalue())
-        logger.flush('stderr',sys.stderr)
         assert "" == sys.stderr.getvalue(),repr(sys.stderr.getvalue())
 
 
@@ -79,7 +74,6 @@ class TestCmdVerbosityStdout(object):
         # capture stdout
         self.oldOut = sys.stdout
         sys.stdout = StringIO.StringIO()
-        logger.clear("stdout")
 
     def tearDown(self):
         sys.stdout.close()
@@ -88,11 +82,12 @@ class TestCmdVerbosityStdout(object):
     # Capture stdout
     def test_capture(self):
         cmd = "python %s/sample_process.py hi_stdout hi2" % TEST_PATH
-        t = task.CmdAction(cmd)
-        t.execute(capture_stdout = True)
+        action = task.CmdAction(cmd)
+        action.execute(capture_stdout=True)
+        # nothing on stdout
         assert "" == sys.stdout.getvalue()
-        logger.flush('stdout',sys.stdout)
-        assert "hi_stdout" == sys.stdout.getvalue(),repr(sys.stdout.getvalue())
+        # captured
+        assert "hi_stdout" == action.out, repr(action.out)
 
 
     # Do not capture stdout
@@ -101,10 +96,10 @@ class TestCmdVerbosityStdout(object):
     # the stream is sent straight to the parent process from doit.
     def test_noCapture(self):
         cmd = "python %s/sample_process.py hi_stdout hi2" % TEST_PATH
-        t = task.CmdAction(cmd)
-        t.execute(capture_stdout = False)
+        action = task.CmdAction(cmd)
+        action.execute(capture_stdout=False)
+        # FIXME what is this testing? should get the value here!
         assert "" == sys.stdout.getvalue(),repr(sys.stdout.getvalue())
-        logger.flush('stdout',sys.stdout)
         assert "" == sys.stdout.getvalue(),repr(sys.stdout.getvalue())
 
 
@@ -210,7 +205,6 @@ class TestPythonVerbosityStderr(object):
         # capture stderr
         self.oldErr = sys.stderr
         sys.stderr = StringIO.StringIO()
-        logger.clear("stderr")
 
     def tearDown(self):
         sys.stderr.close()
@@ -232,30 +226,24 @@ class TestPythonVerbosityStderr(object):
     #
     # success
     def test_captureSuccess(self):
-        t = task.PythonAction(self.write_and_success)
-        t.execute(capture_stderr = True)
+        action = task.PythonAction(self.write_and_success)
+        action.execute(capture_stderr = True)
         assert "" == sys.stderr.getvalue()
-        logger.flush('stderr',sys.stderr)
-        got = sys.stderr.getvalue()
-        assert "this is stderr S\n" == got, repr(got)
+        assert "this is stderr S\n" == action.err, repr(action.err)
 
     # failure
     def test_captureFail(self):
-        t = task.PythonAction(self.write_and_fail)
-        assert_raises(TaskFailed, t.execute, capture_stderr=True)
+        action = task.PythonAction(self.write_and_fail)
+        assert_raises(TaskFailed, action.execute, capture_stderr=True)
         assert "" == sys.stderr.getvalue()
-        logger.flush('stderr',sys.stderr)
-        got = sys.stderr.getvalue()
-        assert "this is stderr F\n" == got, repr(got)
+        assert "this is stderr F\n" == action.err, repr(action.err)
 
     # error
     def test_captureError(self):
-        t = task.PythonAction(self.write_and_error)
-        assert_raises(TaskError, t.execute, capture_stderr=True)
+        action = task.PythonAction(self.write_and_error)
+        assert_raises(TaskError, action.execute, capture_stderr=True)
         assert "" == sys.stderr.getvalue()
-        logger.flush('stderr',sys.stderr)
-        got = sys.stderr.getvalue()
-        assert "this is stderr E\n" == got, repr(got)
+        assert "this is stderr E\n" == action.err, repr(action.err)
 
     ##### Do not capture stderr
     #
@@ -286,7 +274,6 @@ class TestPythonVerbosityStdout(object):
         # capture stdout
         self.oldOut = sys.stdout
         sys.stdout = StringIO.StringIO()
-        logger.clear("stdout")
 
     def tearDown(self):
         sys.stdout.close()
@@ -308,30 +295,25 @@ class TestPythonVerbosityStdout(object):
     #
     # success
     def test_captureSuccess(self):
-        t = task.PythonAction(self.write_and_success)
-        t.execute(capture_stdout = True)
+        action = task.PythonAction(self.write_and_success)
+        action.execute(capture_stdout=True)
         assert "" == sys.stdout.getvalue()
-        logger.flush('stdout',sys.stdout)
-        got = sys.stdout.getvalue()
-        assert "this is stdout S\n" == got, repr(got)
+        assert "this is stdout S\n" == action.out, repr(action.out)
 
     # failure
     def test_captureFail(self):
-        t = task.PythonAction(self.write_and_fail)
-        assert_raises(TaskFailed, t.execute, capture_stdout=True)
+        action = task.PythonAction(self.write_and_fail)
+        assert_raises(TaskFailed, action.execute, capture_stdout=True)
         assert "" == sys.stdout.getvalue()
-        logger.flush('stdout',sys.stdout)
-        got = sys.stdout.getvalue()
-        assert "this is stdout F\n" == got, repr(got)
+        assert "this is stdout F\n" == action.out, repr(action.out)
 
     # error
     def test_captureError(self):
-        t = task.PythonAction(self.write_and_error)
-        assert_raises(TaskError, t.execute, capture_stdout=True)
+        action = task.PythonAction(self.write_and_error)
+        assert_raises(TaskError, action.execute, capture_stdout=True)
         assert "" == sys.stdout.getvalue()
-        logger.flush('stdout',sys.stdout)
-        got = sys.stdout.getvalue()
-        assert "this is stdout E\n" == got, repr(got)
+        assert "this is stdout E\n" == action.out, repr(action.out)
+
 
     ##### Do not capture stdout
     #
@@ -465,7 +447,6 @@ class TestTaskActions(object):
         # capture stdout
         self.oldOut = sys.stdout
         sys.stdout = StringIO.StringIO()
-        logger.clear("stdout")
 
     def tearDown(self):
         sys.stdout.close()
@@ -482,12 +463,11 @@ class TestTaskActions(object):
     # make sure all cmds are being executed.
     def test_many(self):
         t = task.Task("taskX",[
-                "python %s/sample_process.py hi_stdout hi2"%TEST_PATH,
-                "python %s/sample_process.py hi_list hi6"%TEST_PATH])
+                "python %s/sample_process.py hi_stdout hi2" % TEST_PATH,
+                "python %s/sample_process.py hi_list hi6" % TEST_PATH])
         t.execute(capture_stdout=True)
         assert "" == sys.stdout.getvalue()
-        logger.flush('stdout',sys.stdout)
-        got = sys.stdout.getvalue()
+        got = "".join([a.out for a in t.actions])
         assert "hi_stdouthi_list" == got, repr(got)
 
 
@@ -513,8 +493,7 @@ class TestTaskActions(object):
                 "python %s/sample_process.py hi_list hi6"%TEST_PATH])
         t.execute(capture_stdout=True)
         assert "" == sys.stdout.getvalue()
-        logger.flush('stdout',sys.stdout)
-        got = sys.stdout.getvalue()
+        got = "".join([a.out for a in t.actions])
         assert "hi_stdout_PY_hi_list" == got, repr(got)
 
 
@@ -600,14 +579,6 @@ class TestDictToTask(object):
 
 
 class TestCmdFormatting(object):
-    def setUp(self):
-        # capture stdout
-        self.oldOut = sys.stdout
-        sys.stdout = StringIO.StringIO()
-
-    def tearDown(self):
-        sys.stdout.close()
-        sys.stdout = self.oldOut
 
     def test_task_meta_reference(self):
         cmd = "python %s/myecho.py" % TEST_PATH
@@ -617,9 +588,8 @@ class TestCmdFormatting(object):
         t = task.Task('formating', [cmd], dependencies, targets)
         t.dep_changed = ["data/dependency1"]
         t.execute(capture_stdout=True)
-        logger.flush('stdout',sys.stdout)
 
-        got = sys.stdout.getvalue().split('-')
+        got = t.actions[0].out.split('-')
         assert t.file_dep == got[0].split(), got[0]
         assert t.dep_changed == got[1].split(), got[1]
         assert targets == got[2].split(), got[2]
@@ -633,6 +603,7 @@ class TestPythonActionExtraArgs(object):
             self.file_dep = 'dependencies'
             self.dep_changed = 'changed'
 
+    # TODO dont use sys.stdout on tests.
     def setUp(self):
         self.task = self.FakeTask()
 

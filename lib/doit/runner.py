@@ -2,9 +2,7 @@
 
 import sys
 import traceback
-import StringIO
 
-from doit import logger
 from doit import CatchedException, TaskFailed, SetupError, DependencyError
 from doit.dependency import Dependency
 
@@ -60,8 +58,8 @@ class ConsoleReporter(object):
         print task.title()
 
 
-    def complete_task(self, task, result):
-        self.results.append(result)
+    def complete_task(self, task, exception):
+        self.results.append({'task': task, 'exception':exception})
 
 
     def skip_uptodate(self, task):
@@ -70,14 +68,17 @@ class ConsoleReporter(object):
 
     def complete_run(self):
         # if test fails print output from failed task
-        for res in self.results:
+        for result in self.results:
             sys.stderr.write("#"*40 + "\n")
-            sys.stderr.write('%s: %s\n' % (res['exception'].get_name(),
-                                           res['task'].name))
-            sys.stderr.write(res['exception'].get_msg())
+            sys.stderr.write('%s: %s\n' % (result['exception'].get_name(),
+                                           result['task'].name))
+            sys.stderr.write(result['exception'].get_msg())
             sys.stderr.write("\n")
-            sys.stderr.write("%s\n" % res['out'].getvalue())
-            sys.stderr.write("%s\n" % res['err'].getvalue())
+            task = result['task']
+            out = "".join([a.out for a in task.actions if a.out])
+            sys.stderr.write("%s\n" % out)
+            err = "".join([a.err for a in task.actions if a.err])
+            sys.stderr.write("%s\n" % err)
 
 
     def final_result(self):
@@ -148,20 +149,10 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False,
         except (SystemExit, KeyboardInterrupt), exp:
             raise
 
-        # task error # Exception is necessary for setup errors
+        # task error
         except CatchedException, exception:
-            out = StringIO.StringIO()
-            logger.flush('stdout', out)
-            err = StringIO.StringIO()
-            logger.flush('stderr', err)
-            result = {'task': task, 'exception': exception,
-                      'out': out, 'err': err}
-            resultReporter.complete_task(task, result)
+            resultReporter.complete_task(task, exception)
             break
-
-        # clear previous output
-        logger.clear('stdout')
-        logger.clear('stderr')
 
 
     ## done

@@ -4,7 +4,6 @@ import StringIO
 import inspect
 import os
 
-from doit import logger
 from doit import TaskFailed, TaskError
 
 # Exceptions
@@ -40,7 +39,8 @@ class CmdAction(BaseAction):
         assert isinstance(action,str), "CmdAction must be a string."
         self.action = action
         self.task = None
-
+        self.out = None
+        self.err = None
 
     def execute(self, capture_stdout=False, capture_stderr=False):
         """
@@ -68,13 +68,7 @@ class CmdAction(BaseAction):
         # spawn task process
         process = subprocess.Popen(action,stdout=stdout,
                                    stderr=stderr, shell=True)
-
-        # log captured stream
-        out,err = process.communicate()
-        if out:
-            logger.log('stdout',out)
-        if err:
-            logger.log('stderr',err)
+        self.out, self.err = process.communicate()
 
         # task error - based on:
         # http://www.gnu.org/software/bash/manual/bashref.html#Exit-Status
@@ -87,6 +81,7 @@ class CmdAction(BaseAction):
         if process.returncode != 0:
             raise TaskFailed("Command failed: '%s' returned %s" %
                              (action,process.returncode))
+
 
     def expand_action(self):
         """expand action string using task meta informations
@@ -123,6 +118,8 @@ class PythonAction(BaseAction):
 
         self.py_callable = py_callable
         self.task = None
+        self.out = None
+        self.err = None
 
         if args is None:
             self.args = []
@@ -229,12 +226,12 @@ class PythonAction(BaseAction):
         finally:
             # restore std streams /log captured streams
             if capture_stdout:
-                logger.log('stdout',sys.stdout.getvalue())
+                self.out = sys.stdout.getvalue()
                 sys.stdout.close()
                 sys.stdout = old_stdout
 
             if capture_stderr:
-                logger.log('stderr',sys.stderr.getvalue())
+                self.err = sys.stderr.getvalue()
                 sys.stderr.close()
                 sys.stderr = old_stderr
 

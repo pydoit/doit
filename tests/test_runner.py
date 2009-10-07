@@ -21,8 +21,24 @@ def my_print(out="",err=""):
     sys.stderr.write(err)
     return True
 
+#FIXME: remove all references to stdout/stderr
+class BaseRunner(object):
+    def setUp(self):
+        self.oldOut = sys.stdout
+        sys.stdout = StringIO.StringIO()
+        self.oldErr = sys.stderr
+        sys.stderr = StringIO.StringIO()
+        if os.path.exists(TESTDB):
+            os.remove(TESTDB)
 
-class TestVerbosity(object):
+    def tearDown(self):
+        sys.stdout.close()
+        sys.stdout = self.oldOut
+        sys.stderr.close()
+        sys.stderr = self.oldErr
+
+
+class TestVerbosity(BaseRunner):
 
     class FakeTask(Task):
         def execute(self, capture_stdout = False, capture_stderr = False):
@@ -30,6 +46,7 @@ class TestVerbosity(object):
                                  'capture_stderr': capture_stderr}
 
     def setUp(self):
+        BaseRunner.setUp(self)
         self.fake_task = self.FakeTask('t1', None)
 
     # 0: capture stdout and stderr
@@ -50,21 +67,6 @@ class TestVerbosity(object):
         assert not self.fake_task.execute_args['capture_stdout']
         assert not self.fake_task.execute_args['capture_stderr']
 
-
-class BaseRunner(object):
-    def setUp(self):
-        self.oldOut = sys.stdout
-        sys.stdout = StringIO.StringIO()
-        self.oldErr = sys.stderr
-        sys.stderr = StringIO.StringIO()
-        if os.path.exists(TESTDB):
-            os.remove(TESTDB)
-
-    def tearDown(self):
-        sys.stdout.close()
-        sys.stdout = self.oldOut
-        sys.stderr.close()
-        sys.stderr = self.oldErr
 
 class TestRunningTask(BaseRunner):
 

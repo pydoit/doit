@@ -275,6 +275,7 @@ class TaskSetup(object):
 
 
 
+# FIXME put cmds in a different file
 ##################################
 
 def doit_run(dependencyFile, task_list, filter_=None,
@@ -344,4 +345,3 @@ def doit_forget(dbFileName, taskList, forgetTasks):
                 dependencyManager.remove(to_forget)
                 print "forgeting %s" % to_forget
     dependencyManager.close()
-
