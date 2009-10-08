@@ -1,11 +1,10 @@
 """Task runner."""
 
-import sys
-import traceback
 from subprocess import PIPE
 
 from doit import CatchedException, TaskFailed, SetupError, DependencyError
 from doit.dependency import Dependency
+from doit.reporter import ConsoleReporter
 
 
 class SetupManager(object):
@@ -40,7 +39,7 @@ class SetupManager(object):
                     setup_obj.cleanup()
                 # report error but keep result as successful.
                 except Exception, e:
-                    sys.stderr.write(traceback.format_exc())
+                    raise SetupError("ERROR on setup_obj cleanup", e)
 
 
 # execution result.
@@ -48,55 +47,8 @@ SUCCESS = 0
 FAILURE = 1
 ERROR = 2
 
-class ConsoleReporter(object):
-
-    def __init__(self):
-        # save non-succesful result information
-        self.results = []
-
-
-    def start_task(self, task):
-        print task.title()
-
-
-    def complete_task(self, task, exception):
-        self.results.append({'task': task, 'exception':exception})
-
-
-    def skip_uptodate(self, task):
-        print "---", task.title()
-
-
-    def complete_run(self):
-        # if test fails print output from failed task
-        for result in self.results:
-            sys.stderr.write("#"*40 + "\n")
-            sys.stderr.write('%s: %s\n' % (result['exception'].get_name(),
-                                           result['task'].name))
-            sys.stderr.write(result['exception'].get_msg())
-            sys.stderr.write("\n")
-            task = result['task']
-            out = "".join([a.out for a in task.actions if a.out])
-            sys.stderr.write("%s\n" % out)
-            err = "".join([a.err for a in task.actions if a.err])
-            sys.stderr.write("%s\n" % err)
-
-
-    def final_result(self):
-        if not self.results:
-            return SUCCESS
-        else:
-            # only return FAILURE if no errors happened.
-            for result in self.results:
-                if not isinstance(result['exception'], TaskFailed):
-                    return ERROR
-            return FAILURE
-
-
-
-
-def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False,
-              reporter=ConsoleReporter):
+def run_tasks(dependencyFile, tasks, verbosity=0, alwaysExecute=False,
+              reporter=None):
     """This will actually run/execute the tasks.
     It will check file dependencies to decide if task should be executed
     and save info on successful runs.
@@ -120,7 +72,9 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False,
         task_stderr = None
     dependencyManager = Dependency(dependencyFile)
     setupManager = SetupManager()
-    resultReporter = reporter()
+    final_result = SUCCESS # we are optmistic
+    if reporter is None:
+        reporter = ConsoleReporter()
 
     for task in tasks:
         try:
@@ -133,7 +87,7 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False,
 
             # if task id up to date just print title
             if not alwaysExecute and task_uptodate:
-                resultReporter.skip_uptodate(task)
+                reporter.skip_uptodate(task)
                 continue
 
             # setup env
@@ -141,7 +95,7 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False,
                 setupManager.load(setup_obj)
 
             # finally execute it!
-            resultReporter.start_task(task)
+            reporter.start_task(task)
             task.execute(task_stdout, task_stderr)
 
             #save execution successful
@@ -158,7 +112,13 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False,
 
         # task error
         except CatchedException, exception:
-            resultReporter.complete_task(task, exception)
+            reporter.add_failure(task, exception)
+            if final_result == SUCCESS:
+                final_result = FAILURE
+            # only return FAILURE if no errors happened.
+            if (final_result == FAILURE and
+                not isinstance(exception, TaskFailed)):
+                final_result = ERROR
             break
 
 
@@ -166,8 +126,11 @@ def run_tasks(dependencyFile, tasks, verbosity=1, alwaysExecute=False,
     # flush update dependencies
     dependencyManager.close()
     # clean setup objects
-    setupManager.cleanup()
+    try:
+        setupManager.cleanup()
+    except SetupError, e:
+        reporter.cleanup_error(e)
 
     # report final results
-    resultReporter.complete_run()
-    return resultReporter.final_result()
+    reporter.complete_run()
+    return final_result
