@@ -4,9 +4,12 @@ import sys
 import traceback
 import getopt
 
-import doit
+from doit import __version__ as doit_version
 from doit import main
+from doit import task
 from doit import cmdparse
+from doit.cmds import doit_run, doit_clean, doit_list, doit_forget
+
 
 # TODO cmd list should be automatically generated.
 DOIT_USAGE = """
@@ -94,7 +97,7 @@ def cmd_run(params, args):
 
     # special parameters that dont run anything
     if params["version"]:
-        print ".".join([str(i) for i in doit.__version__])
+        print ".".join([str(i) for i in doit_version])
         return 0
     if params["help"]:
         print DOIT_USAGE
@@ -107,8 +110,8 @@ def cmd_run(params, args):
         command_names = params['sub'].keys()
         dodo_tasks = main.load_task_generators(dodo_module, command_names)
         filter_ = args or dodo_tasks['default_tasks']
-        return main.doit_run(params['dep_file'], dodo_tasks['task_list'],
-                             filter_, params['verbosity'], params['always'])
+        return doit_run(params['dep_file'], dodo_tasks['task_list'],
+                        filter_, params['verbosity'], params['always'])
 
     # sub cmd different from "run" on cmd line. parse arguments again
     commands = params['sub']
@@ -144,8 +147,7 @@ def cmd_list(params, args):
     dodo_module = main.get_module(params['dodoFile'])
     command_names = params['sub'].keys()
     dodo_tasks = main.load_task_generators(dodo_module, command_names)
-    return main.doit_list(dodo_tasks['task_list'], params['all'],
-                          params['quiet'])
+    return doit_list(dodo_tasks['task_list'], params['all'], params['quiet'])
 
 ##########################################################
 ########## clean
@@ -158,7 +160,7 @@ def cmd_clean(params, args):
     dodo_module = main.get_module(params['dodoFile'])
     command_names = params['sub'].keys()
     dodo_tasks = main.load_task_generators(dodo_module, command_names)
-    return main.doit_clean(dodo_tasks['task_list'], args)
+    return doit_clean(dodo_tasks['task_list'], args)
 
 
 ##########################################################
@@ -172,7 +174,7 @@ def cmd_forget(params, args):
     dodo_module = main.get_module(params['dodoFile'])
     command_names = params['sub'].keys()
     dodo_tasks = main.load_task_generators(dodo_module, command_names)
-    return main.doit_forget(params['dep_file'], dodo_tasks['task_list'], args)
+    return doit_forget(params['dep_file'], dodo_tasks['task_list'], args)
 
 
 ##########################################################
@@ -361,8 +363,7 @@ def cmd_main():
         raise
 
     # dont show traceback for user errors.
-    except (doit.main.InvalidDodoFile, doit.main.InvalidCommand,
-            doit.task.InvalidTask), err:
+    except (main.InvalidDodoFile, main.InvalidCommand, task.InvalidTask), err:
         print "ERROR:", str(err)
         return 1
 
