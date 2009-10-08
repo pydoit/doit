@@ -39,7 +39,7 @@ def md5sum(path):
 def resultmd5sum(name):
     from task import Task
 
-    return get_md5(Task.get_task(name))
+    return get_md5(Task.get_task(name).value)
 
 
 class Dependency(object):
@@ -183,7 +183,7 @@ class Dependency(object):
         """
 
         # no dependencies means it is never up to date.
-        if (not dependencies) and (not runOnce):
+        if (not dependencies) and (not runOnce) and (not result_dep):
             return False, []
 
         # user managed dependency always up-to-date if it exists

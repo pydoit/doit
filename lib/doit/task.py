@@ -329,7 +329,7 @@ class Task(object):
     def _get_task(name):
         return Task._instances[name]
 
-    get_task = classmethod(_get_task)
+    get_task = staticmethod(_get_task)
 
 
     def __init__(self, name, actions, dependencies=(), targets=(),
