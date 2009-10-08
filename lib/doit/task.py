@@ -325,6 +325,12 @@ class Task(object):
                   'doc': [str, None]
                   }
 
+    _instances = {}
+    def _get_task(name):
+        return Task._instances[name]
+
+    get_task = classmethod(_get_task)
+
 
     def __init__(self, name, actions, dependencies=(), targets=(),
                  setup=(), clean=(), is_subtask=False, doc=None):
@@ -397,6 +403,7 @@ class Task(object):
                     break
             else:
                 self.doc = ''
+        Task._instances[name] = self
 
 
     @staticmethod

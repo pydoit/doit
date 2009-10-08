@@ -9,7 +9,6 @@ try:
 except ImportError:
     import simplejson as json
 
-
 ## use different md5 libraries depending on python version
 get_md5 = None # function return md5 from a string
 try:
@@ -37,6 +36,10 @@ def md5sum(path):
     f.close()
     return result
 
+def resultmd5sum(name):
+    from task import Task
+
+    return get_md5(Task.get_task(name))
 
 
 class Dependency(object):
@@ -93,6 +96,14 @@ class Dependency(object):
         """
         self._set(taskId,dependency,md5sum(dependency))
 
+    def resultsave(self, taskId, dependency):
+        """Save/update dependency on the DB.
+
+        this method will calculate the value to be stored using md5 and then
+        call the _set method.
+        """
+        self._set(taskId,dependency,resultmd5sum(dependency))
+
 
     def remove(self, taskId):
         """remove saved dependecies from DB for taskId"""
@@ -109,6 +120,13 @@ class Dependency(object):
         @return: (boolean)
         """
         return self._get(taskId,dependency) != md5sum(dependency)
+
+    def resultmodified(self, taskId, dependency):
+        """Check if dependency for task was modified.
+
+        @return: (boolean)
+        """
+        return self._get(taskId,dependency) != resultmd5sum(dependency)
 
 
     def close(self):
@@ -131,6 +149,18 @@ class Dependency(object):
         # list of files
         for dep in dependencies:
             self.save(taskId,dep)
+
+
+
+    def save_resultdependencies(self,taskId,dependencies):
+        """Save dependencies value.
+
+        @param taskId: (string)
+        @param dependencies: (list of string)
+        """
+        # list of files
+        for dep in dependencies:
+            self.resultsave(taskId,dep)
 
 
     def save_run_once(self,taskId):
@@ -171,6 +201,10 @@ class Dependency(object):
         for dep in tuple(dependencies):
             if self.modified(taskId,dep):
                 changed.append(dep)
+                buptod = False
+
+        for dep in tuple(result_dep):
+            if self.resultmodified(taskId,dep):
                 buptod = False
 
         return buptod, changed
