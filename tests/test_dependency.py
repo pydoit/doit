@@ -172,9 +172,9 @@ class TestTaskDependency(DependencyTestBase):
     def test_upToDate_noDependency(self):
         taskId = "task A"
         # first time execute
-        assert self.d.up_to_date(taskId,[],[],False) == (False, [])
+        assert self.d.up_to_date(taskId,[],[],False,[]) == (False, [])
         # second too
-        assert self.d.up_to_date(taskId,[],[],False) == (False, [])
+        assert self.d.up_to_date(taskId,[],[],False,[]) == (False, [])
 
 
     # if there is a dependency the task is executed only if one of
@@ -188,12 +188,12 @@ class TestTaskDependency(DependencyTestBase):
         taskId = "task X";
         dependencies = [filePath]
         # first time execute
-        up_to_date, changed = self.d.up_to_date(taskId,dependencies,[],False)
+        up_to_date, changed = self.d.up_to_date(taskId,dependencies,[],False,[])
         assert  (up_to_date, changed)== (False, dependencies)
 
         self.d.save_dependencies(taskId,dependencies)
         # second time no
-        assert self.d.up_to_date(taskId,dependencies,[],False) == (True, [])
+        assert self.d.up_to_date(taskId,dependencies,[],False,[]) == (True, [])
 
         # a small change on the file
         ff = open(filePath,"a")
@@ -201,7 +201,7 @@ class TestTaskDependency(DependencyTestBase):
         ff.close()
 
         # execute again
-        up_to_date3, changed3 = self.d.up_to_date(taskId,dependencies,[],False)
+        up_to_date3, changed3 = self.d.up_to_date(taskId,dependencies,[],False,[])
         assert  (up_to_date3, changed3) == (False, dependencies)
 
 
@@ -215,7 +215,7 @@ class TestTaskDependency(DependencyTestBase):
         if os.path.exists(filePath):
             os.remove(filePath)
 
-        uptodate,changed = self.d.up_to_date(taskId,deps,[filePath],False)
+        uptodate,changed = self.d.up_to_date(taskId,deps,[filePath],False,[])
         assert (uptodate, changed) == (False, deps)
 
     def test_upToDate_targets(self):
@@ -230,7 +230,7 @@ class TestTaskDependency(DependencyTestBase):
         self.d.save_dependencies(taskId,deps)
 
         # up-to-date because target exist
-        uptodate, changed = self.d.up_to_date(taskId,deps,targets,False)
+        uptodate, changed = self.d.up_to_date(taskId,deps,targets,False,[])
         assert (uptodate, changed) == (True, [])
 
     def test_upToDate_targetFolder(self):
@@ -241,17 +241,17 @@ class TestTaskDependency(DependencyTestBase):
         folderPath = get_abspath("data/target-folder")
         if os.path.exists(folderPath):
             os.rmdir(folderPath)
-        uptodate, changed = self.d.up_to_date(taskId,deps,[folderPath],False)
+        uptodate, changed = self.d.up_to_date(taskId,deps,[folderPath],False,[])
         assert (uptodate, changed) == (False, deps)
         # create folder. task is up-to-date
         os.mkdir(folderPath)
-        uptodate2, changed2 = self.d.up_to_date(taskId,deps,[folderPath],False)
+        uptodate2, changed2 = self.d.up_to_date(taskId,deps,[folderPath],False,[])
         assert (uptodate2, changed2) == (True, [])
 
 class TestRunOnceDependency(DependencyTestBase):
 
     def test_upToDate_BoolDependency(self):
         taskId = "task X"
-        assert self.d.up_to_date(taskId,[],[],True) == (False, [])
+        assert self.d.up_to_date(taskId,[],[],True,[]) == (False, [])
         self.d.save_run_once(taskId)
-        assert self.d.up_to_date(taskId,[],[],True) == (True, [])
+        assert self.d.up_to_date(taskId,[],[],True,[]) == (True, [])

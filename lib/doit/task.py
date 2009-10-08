@@ -361,6 +361,7 @@ class Task(object):
         # there are 2 kinds of dependencies: file, task
         self.task_dep = []
         self.file_dep = []
+        self.result_dep = []
         for dep in dependencies:
             # True on the list. set run_once
             if isinstance(dep,bool):
@@ -372,6 +373,9 @@ class Task(object):
             # task dep starts with a ':'
             elif dep.startswith(':'):
                 self.task_dep.append(dep[1:])
+            # task-result dep starts with a '?'
+            elif dep.startswith('?'):
+                self.result_dep.append(dep[1:])
             # file dep
             elif isinstance(dep,str):
                 self.file_dep.append(dep)

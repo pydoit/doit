@@ -81,7 +81,7 @@ def run_tasks(dependencyFile, tasks, verbosity=0, alwaysExecute=False,
             # check if task is up-to-date
             try:
                 task_uptodate, task.dep_changed = dependencyManager.up_to_date(
-                    task.name, task.file_dep, task.targets, task.run_once)
+                    task.name, task.file_dep, task.targets, task.run_once, task.result_dep)
             except Exception, exception:
                 raise DependencyError("ERROR checking dependencies", exception)
 

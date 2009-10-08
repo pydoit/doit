@@ -261,6 +261,9 @@ class TaskSetup(object):
             for dependency in self.tasks[task_name].task_dep:
                 add_task(dependency)
 
+            for dependency in self.tasks[task_name].result_dep:
+                add_task(dependency)
+
             # add itself
             task_in_order.append(self.tasks[task_name])
             status[task_name] = ADDED

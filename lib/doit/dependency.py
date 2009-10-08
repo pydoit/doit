@@ -138,7 +138,7 @@ class Dependency(object):
         self._set(taskId,'','1')# string could be any value
 
 
-    def up_to_date(self, taskId, dependencies, targets, runOnce):
+    def up_to_date(self, taskId, dependencies, targets, runOnce, result_dep):
         """Check if task is up to date.
 
         @param taskId: (string)
@@ -167,8 +167,10 @@ class Dependency(object):
 
         # check for modified dependencies
         changed = []
+        buptod = True
         for dep in tuple(dependencies):
             if self.modified(taskId,dep):
                 changed.append(dep)
+                buptod = False
 
-        return len(changed) == 0, changed
+        return buptod, changed
