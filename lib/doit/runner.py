@@ -27,6 +27,10 @@ class SetupManager(object):
             self._loaded.add(setup_obj)
             if hasattr(setup_obj, 'setup'):
                 setup_obj.setup()
+
+        except (SystemExit, KeyboardInterrupt), exp:
+            raise
+
         except Exception, exception:
             raise SetupError("ERROR on object setup", exception)
 
