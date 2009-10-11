@@ -23,10 +23,16 @@ class FakeReporter(object):
 
 
 class ConsoleReporter(object):
-    """Default reporter. print results on console/terminal (stdout/stderr)"""
-    def __init__(self):
+    """Default reporter. print results on console/terminal (stdout/stderr)
+
+    @ivar show_out (bool): include captured stdout on failure report
+    @ivar show_err (bool): include captured stderr on failure report
+    """
+    def __init__(self, show_out, show_err):
         # save non-succesful result information (include task errors)
         self.failures = []
+        self.show_out = show_out
+        self.show_err = show_err
 
 
     def start_task(self, task):
@@ -54,8 +60,10 @@ class ConsoleReporter(object):
             sys.stderr.write(result['exception'].get_msg())
             sys.stderr.write("\n")
             task = result['task']
-            out = "".join([a.out for a in task.actions if a.out])
-            sys.stderr.write("%s\n" % out)
-            err = "".join([a.err for a in task.actions if a.err])
-            sys.stderr.write("%s\n" % err)
+            if self.show_out:
+                out = "".join([a.out for a in task.actions if a.out])
+                sys.stderr.write("%s\n" % out)
+            if self.show_err:
+                err = "".join([a.err for a in task.actions if a.err])
+                sys.stderr.write("%s\n" % err)
 

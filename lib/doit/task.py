@@ -3,6 +3,7 @@ import subprocess, sys
 import StringIO
 import inspect
 import os
+from threading import Thread
 
 from doit import TaskFailed, TaskError
 
@@ -19,7 +20,7 @@ class BaseAction(object):
     """Base class for all actions"""
 
     # must implement:
-    # def execute(self, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    # def execute(self, out=None, err=None)
 
     pass
 
@@ -42,12 +43,15 @@ class CmdAction(BaseAction):
         self.out = None
         self.err = None
 
-    def execute(self, stdout=subprocess.PIPE, stderr=subprocess.PIPE):
+    def execute(self, out=None, err=None):
         """
         Execute command action
 
-        @param capture_stdout: see subprocess.Popen
-        @param capture_err: see subprocess.Popen
+        both stdout and stderr from the command are captured and saved
+        on self.out/err. Real time output is controlled by parameters
+        @param out: None - no real time output
+                    a file like object (has write method)
+        @param err: idem
 
         @raise TaskError: If subprocess return code is greater than 125
         @raise TaskFailed: If subprocess return code isn't zero (and
@@ -56,9 +60,34 @@ class CmdAction(BaseAction):
         action = self.expand_action()
 
         # spawn task process
-        process = subprocess.Popen(action, stdout=stdout,
-                                   stderr=stderr, shell=True)
-        self.out, self.err = process.communicate()
+        process = subprocess.Popen(action, shell=True,
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        def print_process_output(process, input, capture, realtime):
+            while True:
+                # line buffered
+                line = input.readline()
+                # unbuffered ? process.stdout.read(1)
+                if line:
+                    capture.write(line)
+                    if realtime:
+                        realtime.write(line)
+                if process.poll() != None:
+                    break
+
+        output = StringIO.StringIO()
+        errput = StringIO.StringIO()
+        t_out = Thread(target=print_process_output,
+                       args=(process, process.stdout, output, out))
+        t_err = Thread(target=print_process_output,
+                       args=(process, process.stderr, errput, err))
+        t_out.start()
+        t_err.start()
+        t_out.join()
+        t_err.join()
+
+        self.out = output.getvalue()
+        self.err = errput.getvalue()
 
         # task error - based on:
         # http://www.gnu.org/software/bash/manual/bashref.html#Exit-Status
@@ -93,6 +122,18 @@ class CmdAction(BaseAction):
 
     def __repr__(self):
         return "<CmdAction: '%s'>"  % self.expand_action()
+
+
+
+
+class Writer(object):
+    """write to many streams"""
+    def __init__(self, *writers) :
+        self.writers = writers
+
+    def write(self, text) :
+        for w in self.writers :
+                w.write(text)
 
 
 class PythonAction(BaseAction):
@@ -182,33 +223,32 @@ class PythonAction(BaseAction):
         return kwargs
 
 
-    def execute(self, stdout=subprocess.PIPE, stderr=subprocess.PIPE):
-        """
-        Execute command action
+    def execute(self, out=None, err=None):
+        """Execute command action
 
-        @param capture_stdout: see subprocess.Popen
-        @param capture_err: see subprocess.Popen
-           (same behavior as Popen even that we dont use Popen here.)
-        -1 capture (save data on instance)
-        None (use sys.std)
-        (int) fd
+        both stdout and stderr from the command are captured and saved
+        on self.out/err. Real time output is controlled by parameters
+        @param out: None - no real time output
+                    a file like object (has write method)
+        @param err: idem
 
         @raise TaskFailed: If py_callable returns False
         """
         # set std stream
-        if stdout is not None:
-            old_stdout = sys.stdout
-            if stdout is subprocess.PIPE:
-                sys.stdout = StringIO.StringIO()
-            else: # fd
-                sys.stdout = os.fdopen(os.dup(stdout), "w+b")
+        old_stdout = sys.stdout
+        output = StringIO.StringIO()
+        old_stderr = sys.stderr
+        errput = StringIO.StringIO()
 
-        if stderr is not None:
-            old_stderr = sys.stderr
-            if stderr is subprocess.PIPE:
-                sys.stderr = StringIO.StringIO()
-            else: # fd
-                sys.stderr = os.fdopen(os.dup(stderr), "w+b")
+        out_list = [output]
+        if out:
+            out_list.append(out)
+        err_list = [errput]
+        if err:
+            err_list.append(err)
+
+        sys.stdout = Writer(*out_list)
+        sys.stderr = Writer(*err_list)
 
         kwargs = self._prepare_kwargs()
 
@@ -225,20 +265,10 @@ class PythonAction(BaseAction):
                 raise TaskError("PythonAction Error", exception)
         finally:
             # restore std streams /log captured streams
-            if stdout is not None:
-                if stdout is subprocess.PIPE:
-                    self.out = sys.stdout.getvalue()
-                    sys.stdout.close()
-                #else: # fd
-                sys.stdout = old_stdout
-
-            if stderr is not None:
-                if stderr is subprocess.PIPE:
-                    self.err = sys.stderr.getvalue()
-                    sys.stderr.close()
-                #else: # fd
-                sys.stderr = old_stderr
-
+            sys.stdout = old_stdout
+            sys.stderr = old_stderr
+            self.out = output.getvalue()
+            self.err = errput.getvalue()
 
         # if callable returns false. Task failed
         if result is False:
@@ -410,14 +440,14 @@ class Task(object):
         raise InvalidTask(msg % (task, attr, accept, str(value), type(value)))
 
 
-    def execute(self, stdout=subprocess.PIPE, stderr=subprocess.PIPE):
+    def execute(self, out=None, err=None):
         """Executes the task.
 
         @raise TaskFailed: If raised when executing an action
         @raise TaskError: If raised when executing an action
         """
         for action in self.actions:
-            action.execute(stdout=stdout, stderr=stderr)
+            action.execute(out, err)
 
 
     def clean(self):

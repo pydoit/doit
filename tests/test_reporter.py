@@ -24,7 +24,7 @@ class BaseTestOutput(object):
 class TestConsoleReporter(BaseTestOutput):
     def setUp(self):
         BaseTestOutput.setUp(self)
-        self.rep = ConsoleReporter()
+        self.rep = ConsoleReporter(True, True)
         self.my_task = Task("t_name", None)
 
     def test_startTask(self):

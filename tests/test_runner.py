@@ -1,5 +1,5 @@
 import os
-from subprocess import PIPE
+import sys
 
 import nose
 
@@ -43,20 +43,20 @@ class TestVerbosity(BaseRunner):
     # 0: capture stdout and stderr
     def test_verbosity0(self):
         runner.run_tasks(TESTDB, [self.fake_task], 0, reporter=self.reporter)
-        assert PIPE == self.fake_task.execute_args['stdout']
-        assert PIPE == self.fake_task.execute_args['stderr']
+        assert None is self.fake_task.execute_args['stdout']
+        assert None is self.fake_task.execute_args['stderr']
 
     # 1: capture stdout
     def test_verbosity1(self):
         runner.run_tasks(TESTDB, [self.fake_task], 1, reporter=self.reporter)
-        assert PIPE == self.fake_task.execute_args['stdout']
-        assert None is self.fake_task.execute_args['stderr']
+        assert None is self.fake_task.execute_args['stdout']
+        assert sys.stderr is self.fake_task.execute_args['stderr']
 
     # 2: capture -
     def test_verbosity2(self):
         runner.run_tasks(TESTDB, [self.fake_task], 2, reporter=self.reporter)
-        assert None is self.fake_task.execute_args['stdout']
-        assert None is self.fake_task.execute_args['stderr']
+        assert sys.stdout is self.fake_task.execute_args['stdout']
+        assert sys.stderr is self.fake_task.execute_args['stderr']
 
 
 class TestRunningTask(BaseRunner):
