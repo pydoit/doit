@@ -1,6 +1,5 @@
 """Task runner."""
-
-from subprocess import PIPE
+import sys
 
 from doit import CatchedException, TaskFailed, SetupError, DependencyError
 from doit.dependency import Dependency
@@ -28,9 +27,7 @@ class SetupManager(object):
             if hasattr(setup_obj, 'setup'):
                 setup_obj.setup()
 
-        except (SystemExit, KeyboardInterrupt), exp:
-            raise
-
+        except (SystemExit, KeyboardInterrupt), exp: raise
         except Exception, exception:
             raise SetupError("ERROR on object setup", exception)
 
@@ -67,18 +64,18 @@ def run_tasks(dependencyFile, tasks, verbosity=0, alwaysExecute=False,
     @param alwaysExecute: (bool) execute even if up-to-date
     """
     if verbosity < 2:
-        task_stdout = PIPE #capture
+        task_stdout = None #capture
     else:
-        task_stdout = None #use parent process
+        task_stdout = sys.stdout #use parent process
     if verbosity == 0:
-        task_stderr = PIPE
-    else:
         task_stderr = None
+    else:
+        task_stderr = sys.stderr
     dependencyManager = Dependency(dependencyFile)
     setupManager = SetupManager()
     final_result = SUCCESS # we are optmistic
     if reporter is None:
-        reporter = ConsoleReporter()
+        reporter = ConsoleReporter(task_stdout is None, task_stderr is None)
 
     for task in tasks:
         try:
