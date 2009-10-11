@@ -66,19 +66,18 @@ class TestCmdVerbosity(object):
     # faking sys.stderr with a StringIO doesnt work.
     def test_noCaptureStderr(self):
         action = task.CmdAction("%s please fail" % PROGRAM)
-        assert_raises(TaskFailed, action.execute, stderr=self.tmp.fileno())
+        assert_raises(TaskFailed, action.execute, err=self.tmp)
         got = self.tmp_read()
         assert "err output on failure" == got, repr(got)
-        assert None == action.err, repr(action.err)
+        assert "err output on failure" == action.err, repr(action.err)
 
     # Do not capture stdout
     def test_noCaptureStdout(self):
         action = task.CmdAction("%s hi_stdout hi2" % PROGRAM)
-        action.execute(stdout=self.tmp.fileno())
+        action.execute(out=self.tmp)
         got = self.tmp_read()
         assert "hi_stdout" == got, repr(got)
-        assert None == action.out, repr(action.out)
-
+        assert "hi_stdout" == action.out, repr(action.out)
 
 
 ############# PythonAction
@@ -206,7 +205,7 @@ class TestPythonVerbosity(object):
         try:
             # execute task
             action = task.PythonAction(self.write_stderr)
-            action.execute(stderr=None)
+            action.execute(err=sys.stderr)
             got = sys.stderr.getvalue()
         finally:
             # restore stderr
@@ -221,7 +220,7 @@ class TestPythonVerbosity(object):
         try:
             # execute task
             action = task.PythonAction(self.write_stdout)
-            action.execute(stdout=None)
+            action.execute(out=sys.stdout)
             got = sys.stdout.getvalue()
         finally:
             # restore stderr
@@ -232,7 +231,7 @@ class TestPythonVerbosity(object):
     def test_redirectStderr(self):
         tmpfile = os.tmpfile()
         action = task.PythonAction(self.write_stderr)
-        action.execute(stderr=tmpfile.fileno())
+        action.execute(err=tmpfile)
         tmpfile.seek(0)
         got = tmpfile.read()
         tmpfile.close()
@@ -241,7 +240,7 @@ class TestPythonVerbosity(object):
     def test_redirectStdout(self):
         tmpfile = os.tmpfile()
         action = task.PythonAction(self.write_stdout)
-        action.execute(stdout=tmpfile.fileno())
+        action.execute(out=tmpfile)
         tmpfile.seek(0)
         got = tmpfile.read()
         tmpfile.close()
