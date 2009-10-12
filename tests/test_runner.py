@@ -236,6 +236,28 @@ class TestTaskSetup(BaseRunner):
         assert ('cleanup_error',) == self.reporter.log[1]
 
 
+class TestContinue(BaseRunner):
+    def test_(self):
+        def please_fail():
+            return False
+        def please_blow():
+            raise Exception("bum")
+        def ok():
+            pass
+        tasks = [Task("task1", [(please_fail,)] ),
+                 Task("task2", [(please_blow,)] ),
+                 Task("task3", [(ok,)])]
+        result = runner.run_tasks(TESTDB, tasks, continue_=True,
+                                  reporter=self.reporter)
+        assert runner.ERROR == result
+        assert ('start', tasks[0]) == self.reporter.log[0]
+        assert ('fail', tasks[0]) == self.reporter.log[1]
+        assert ('start', tasks[1]) == self.reporter.log[2]
+        assert ('fail', tasks[1]) == self.reporter.log[3]
+        assert ('start', tasks[2]) == self.reporter.log[4]
+        assert 5 == len(self.reporter.log)
+
+
 class TestSystemExit(BaseRunner):
 
     # SystemExit runner should interfere with SystemExit

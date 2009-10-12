@@ -49,7 +49,7 @@ FAILURE = 1
 ERROR = 2
 
 def run_tasks(dependencyFile, tasks, verbosity=0, alwaysExecute=False,
-              reporter=None):
+              continue_=False, reporter=None):
     """This will actually run/execute the tasks.
     It will check file dependencies to decide if task should be executed
     and save info on successful runs.
@@ -62,6 +62,7 @@ def run_tasks(dependencyFile, tasks, verbosity=0, alwaysExecute=False,
      - 1 => print stderr and (stdout from failed tasks)
      - 2 => print stderr and stdout from all tasks
     @param alwaysExecute: (bool) execute even if up-to-date
+    @param continue_: (bool) execute all tasks even after a task failure
     """
     if verbosity < 2:
         task_stdout = None #capture
@@ -120,7 +121,8 @@ def run_tasks(dependencyFile, tasks, verbosity=0, alwaysExecute=False,
             if (final_result == FAILURE and
                 not isinstance(exception, TaskFailed)):
                 final_result = ERROR
-            break
+            if not continue_:
+                break
 
 
     ## done

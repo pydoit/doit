@@ -76,6 +76,16 @@ opt_always = {'name': 'always',
                       "%(default)s]"
               }
 
+# continue executing tasks even after a failure
+opt_continue = {'name': 'continue',
+                'short': 'c',
+                'long': 'continue',
+                'type': bool,
+                'default': False,
+                'help': "continue executing tasks even after a failure "
+                        "[default: %(default)s]"
+                }
+
 # verbosity
 opt_verbosity = {'name':'verbosity',
                  'short':'v',
@@ -111,7 +121,8 @@ def cmd_run(params, args):
         dodo_tasks = main.load_task_generators(dodo_module, command_names)
         filter_ = args or dodo_tasks['default_tasks']
         return doit_run(params['dep_file'], dodo_tasks['task_list'],
-                        filter_, params['verbosity'], params['always'])
+                        filter_, params['verbosity'], params['always'],
+                        params['continue'])
 
     # sub cmd different from "run" on cmd line. parse arguments again
     commands = params['sub']
@@ -324,7 +335,7 @@ def cmd_main():
 
     # run command
     run_options = (opt_version, opt_help, opt_dodo,
-                   opt_depfile, opt_always, opt_verbosity)
+                   opt_depfile, opt_always, opt_continue, opt_verbosity)
     subCmd['run'] = cmdparse.Command('run', run_options, cmd_run, run_doc)
 
     # clean command
