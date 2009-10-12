@@ -259,7 +259,7 @@ class PythonAction(BaseAction):
                 result = self.py_callable(*self.args,**kwargs)
             # in python 2.4 SystemExit and KeyboardInterrupt subclass
             # from Exception.
-            except (SystemExit, KeyboardInterrupt), execption:
+            except (SystemExit, KeyboardInterrupt), exception:
                 raise
             except Exception, exception:
                 raise TaskError("PythonAction Error", exception)
