@@ -454,11 +454,19 @@ class Task(object):
         """Execute task's clean"""
         # if clean is True remove all targets
         if self._remove_targets is True:
+            files = filter(os.path.isfile, self.targets)
+            dirs = filter(os.path.isdir, self.targets)
+
             # remove all files
-            for file_ in self.targets:
-                if not file_.endswith('/'):
-                    if os.path.exists(file_):
-                        os.remove(file_)
+            for file_ in files:
+                os.remove(file_)
+
+            # remove all directories (if empty)
+            for dir in dirs:
+                try:
+                    os.rmdir(dir)
+                except OSError:
+                    sys.stderr.write("Warning: '%s' cannot be removed (is it empty?)\n" % dir)
         else:
             # clean contains a list of actions...
             for action in self.clean_actions:
