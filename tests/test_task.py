@@ -1,5 +1,5 @@
 import os
-import sys, StringIO
+import sys, StringIO, tempfile
 
 from nose.tools import assert_raises
 
@@ -390,46 +390,82 @@ class TestTaskActions(object):
 
 
 class TestTaskClean(object):
-    C_PATH = 'tclean.txt'
 
     def setUp(self):
-        fh = file(self.C_PATH, 'a')
-        fh.close()
+        self.dir = tempfile.mkdtemp(prefix='doit-')
+        self.filenames = [os.path.join(self.dir, fname)
+                          for fname in ['a.txt', 'b.txt']]
+        # create empty files
+        for filename in self.filenames:
+            file(filename, 'a').close()
+
 
     def tearDown(self):
-        if os.path.exists(self.C_PATH):
-            os.remove(self.C_PATH)
+        for filename in self.filenames:
+            if os.path.exists(filename):
+                os.remove(filename)
+        if os.path.exists(self.dir):
+            os.rmdir(self.dir)
 
     def test_clean_nothing(self):
         t = task.Task("xxx", None)
         assert False == t._remove_targets
         assert 0 == len(t.clean_actions)
         t.clean()
-        assert os.path.exists(self.C_PATH)
+        for filename in self.filenames:
+            assert os.path.exists(filename)
 
     def test_clean_targets(self):
-        t = task.Task("xxx", None, targets=[self.C_PATH], clean=True)
+        t = task.Task("xxx", None, targets=self.filenames, clean=True)
         assert True == t._remove_targets
         assert 0 == len(t.clean_actions)
         t.clean()
-        assert not os.path.exists(self.C_PATH)
+        for filename in self.filenames:
+            assert not os.path.exists(filename), filename
+
+    def test_clean_empty_dirs(self):
+        """
+        Remove empty directories listed in targets
+        """
+        t = task.Task("xxx", None, targets=self.filenames + [self.dir], clean=True)
+        assert True == t._remove_targets
+        assert 0 == len(t.clean_actions)
+        t.clean()
+        for filename in self.filenames:
+            assert not os.path.exists(filename)
+        assert not os.path.exists(self.dir)
+
+    def test_keep_non_empty_dirs(self):
+        """
+        Keep non empty directories listed in targets
+        """
+        targets = [self.filenames[0], self.dir]
+        t = task.Task("xxx", None, targets=targets, clean=True)
+        assert True == t._remove_targets
+        assert 0 == len(t.clean_actions)
+        t.clean()
+        for filename in self.filenames:
+            expected = not filename in targets
+            assert expected == os.path.exists(filename)
+        assert os.path.exists(self.dir)
 
     def test_clean_actions(self):
         # a clean action can be anything, it can even not clean anything!
+        c_path = self.filenames[0]
         def say_hello():
-            fh = file(self.C_PATH, 'a')
+            fh = file(c_path, 'a')
             fh.write("hello!!!")
             fh.close()
-        t = task.Task("xxx", None, targets=[self.C_PATH], clean=[(say_hello,)])
+        t = task.Task("xxx", None, targets=self.filenames, clean=[(say_hello,)])
         assert False == t._remove_targets
         assert 1 == len(t.clean_actions)
         t.clean()
-        assert os.path.exists(self.C_PATH)
-        fh = file(self.C_PATH, 'r')
+        for filename in self.filenames:
+            assert os.path.exists(filename)
+        fh = file(c_path, 'r')
         got = fh.read()
         fh.close()
         assert "hello!!!" == got
-
 
 
 class TestTaskDoc(object):
