@@ -105,6 +105,8 @@ def run_tasks(dependencyFile, tasks, verbosity=0, alwaysExecute=False,
                 dependencyManager.save_run_once(task.name)
             dependencyManager.save_dependencies(task.name,task.file_dep)
 
+            reporter.add_success(task)
+
         # in python 2.4 SystemExit and KeyboardInterrupt subclass
         # from Exception.
         # specially a problem when a fork from the main process

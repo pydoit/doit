@@ -66,9 +66,10 @@ class TestRunningTask(BaseRunner):
                  Task("taskY", [(my_print, ["out a"] )] )]
         result = runner.run_tasks(TESTDB, tasks, reporter=self.reporter)
         assert runner.SUCCESS == result
-        # only titles are printed.
         assert ('start', tasks[0]) == self.reporter.log[0]
-        assert ('start', tasks[1]) == self.reporter.log[1]
+        assert ('success', tasks[0]) == self.reporter.log[1]
+        assert ('start', tasks[1]) == self.reporter.log[2]
+        assert ('success', tasks[1]) == self.reporter.log[3]
 
     # if task is up to date, it is displayed in a different way.
     def test_successUpToDate(self):
@@ -233,7 +234,9 @@ class TestTaskSetup(BaseRunner):
         t1 = Task('t1', None, [], [], [setup])
         result = runner.run_tasks(TESTDB, [t1], reporter=self.reporter)
         assert runner.SUCCESS == result
-        assert ('cleanup_error',) == self.reporter.log[1]
+        assert ('start', t1) == self.reporter.log[0]
+        assert ('success', t1) == self.reporter.log[1]
+        assert ('cleanup_error',) == self.reporter.log[2]
 
 
 class TestContinue(BaseRunner):
@@ -255,7 +258,8 @@ class TestContinue(BaseRunner):
         assert ('start', tasks[1]) == self.reporter.log[2]
         assert ('fail', tasks[1]) == self.reporter.log[3]
         assert ('start', tasks[2]) == self.reporter.log[4]
-        assert 5 == len(self.reporter.log)
+        assert ('success', tasks[2]) == self.reporter.log[5]
+        assert 6 == len(self.reporter.log)
 
 
 class TestSystemExit(BaseRunner):
