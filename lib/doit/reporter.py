@@ -12,6 +12,9 @@ class FakeReporter(object):
     def add_failure(self, task, exception):
         self.log.append(('fail', task))
 
+    def add_success(self, task):
+        self.log.append(('success', task))
+
     def skip_uptodate(self, task):
         self.log.append(('skip', task))
 
@@ -42,6 +45,8 @@ class ConsoleReporter(object):
     def add_failure(self, task, exception):
         self.failures.append({'task': task, 'exception':exception})
 
+    def add_success(self,task):
+        pass
 
     def skip_uptodate(self, task):
         print "---", task.title()
@@ -66,4 +71,3 @@ class ConsoleReporter(object):
             if self.show_err:
                 err = "".join([a.err for a in task.actions if a.err])
                 sys.stderr.write("%s\n" % err)
-
