@@ -29,6 +29,11 @@ class TestConsoleReporter(BaseTestOutput):
 
     def test_startTask(self):
         self.rep.start_task(self.my_task)
+        # no output on start task
+        assert "" in sys.stdout.getvalue()
+
+    def test_executeTask(self):
+        self.rep.execute_task(self.my_task)
         assert "t_name" in sys.stdout.getvalue()
 
     def test_skipUptodate(self):

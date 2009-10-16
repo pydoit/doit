@@ -77,8 +77,11 @@ def run_tasks(dependencyFile, tasks, verbosity=0, alwaysExecute=False,
     final_result = SUCCESS # we are optmistic
     if reporter is None:
         reporter = ConsoleReporter(task_stdout is None, task_stderr is None)
+        #from doit.reporter import JsonReporter
+        #reporter = JsonReporter("first.json")
 
     for task in tasks:
+        reporter.start_task(task)
         try:
             # check if task is up-to-date
             try:
@@ -97,7 +100,7 @@ def run_tasks(dependencyFile, tasks, verbosity=0, alwaysExecute=False,
                 setupManager.load(setup_obj)
 
             # finally execute it!
-            reporter.start_task(task)
+            reporter.execute_task(task)
             task.execute(task_stdout, task_stderr)
 
             #save execution successful
