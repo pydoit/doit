@@ -102,14 +102,7 @@ class CmdAction(BaseAction):
             raise TaskFailed("Command failed: '%s' returned %s" %
                              (action,process.returncode))
 
-        if self.out is None and self.err is None:
-            return ""
-        elif self.out is None:
-            return self.err
-        elif self.err is None:
-            return self.out
-        else:
-            return self.out+self.err
+        return (self.out or "")+(self.err or "")
 
 
     def expand_action(self):
