@@ -49,7 +49,7 @@ FAILURE = 1
 ERROR = 2
 
 def run_tasks(dependencyFile, tasks, verbosity=0, alwaysExecute=False,
-              reporter=None):
+              continue_=False, reporter=None):
     """This will actually run/execute the tasks.
     It will check file dependencies to decide if task should be executed
     and save info on successful runs.
@@ -62,6 +62,7 @@ def run_tasks(dependencyFile, tasks, verbosity=0, alwaysExecute=False,
      - 1 => print stderr and (stdout from failed tasks)
      - 2 => print stderr and stdout from all tasks
     @param alwaysExecute: (bool) execute even if up-to-date
+    @param continue_: (bool) execute all tasks even after a task failure
     """
     if verbosity < 2:
         task_stdout = None #capture
@@ -76,8 +77,11 @@ def run_tasks(dependencyFile, tasks, verbosity=0, alwaysExecute=False,
     final_result = SUCCESS # we are optmistic
     if reporter is None:
         reporter = ConsoleReporter(task_stdout is None, task_stderr is None)
+        #from doit.reporter import JsonReporter
+        #reporter = JsonReporter("first.json")
 
     for task in tasks:
+        reporter.start_task(task)
         try:
             # check if task is up-to-date
             try:
@@ -96,7 +100,7 @@ def run_tasks(dependencyFile, tasks, verbosity=0, alwaysExecute=False,
                 setupManager.load(setup_obj)
 
             # finally execute it!
-            reporter.start_task(task)
+            reporter.execute_task(task)
             task.execute(task_stdout, task_stderr)
 
             #save execution successful
@@ -104,6 +108,8 @@ def run_tasks(dependencyFile, tasks, verbosity=0, alwaysExecute=False,
                 dependencyManager.save_run_once(task.name)
             dependencyManager.save_dependencies(task.name,task.file_dep)
             dependencyManager.save_resultdependencies(task.name,task.result_dep)
+
+            reporter.add_success(task)
 
         # in python 2.4 SystemExit and KeyboardInterrupt subclass
         # from Exception.
@@ -121,7 +127,8 @@ def run_tasks(dependencyFile, tasks, verbosity=0, alwaysExecute=False,
             if (final_result == FAILURE and
                 not isinstance(exception, TaskFailed)):
                 final_result = ERROR
-            break
+            if not continue_:
+                break
 
 
     ## done

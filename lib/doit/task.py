@@ -262,7 +262,7 @@ class PythonAction(BaseAction):
                 result = self.py_callable(*self.args,**kwargs)
             # in python 2.4 SystemExit and KeyboardInterrupt subclass
             # from Exception.
-            except (SystemExit, KeyboardInterrupt), execption:
+            except (SystemExit, KeyboardInterrupt), exception:
                 raise
             except Exception, exception:
                 raise TaskError("PythonAction Error", exception)
@@ -469,11 +469,21 @@ class Task(object):
         """Execute task's clean"""
         # if clean is True remove all targets
         if self._remove_targets is True:
+            files = filter(os.path.isfile, self.targets)
+            dirs = filter(os.path.isdir, self.targets)
+
             # remove all files
-            for file_ in self.targets:
-                if not file_.endswith('/'):
-                    if os.path.exists(file_):
-                        os.remove(file_)
+            for file_ in files:
+                os.remove(file_)
+
+            # remove all directories (if empty)
+            for dir_ in dirs:
+                if os.listdir(dir_):
+                    msg = "Warning: '%s' cannot be removed (it is not empty)\n"
+                    sys.stderr.write(msg % dir_)
+                else:
+                    os.rmdir(dir_)
+
         else:
             # clean contains a list of actions...
             for action in self.clean_actions:

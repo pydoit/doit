@@ -6,10 +6,10 @@ from doit.runner import run_tasks
 
 
 def doit_run(dependencyFile, task_list, filter_=None,
-             verbosity=0, alwaysExecute=False):
+             verbosity=0, alwaysExecute=False, continue_=False):
     selected_tasks = TaskSetup(task_list, filter_).process()
     return run_tasks(dependencyFile, selected_tasks,
-                     verbosity, alwaysExecute)
+                     verbosity, alwaysExecute, continue_)
 
 
 def doit_clean(task_list, clean_tasks):
