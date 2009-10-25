@@ -98,6 +98,23 @@ opt_verbosity = {'name':'verbosity',
 2 dont capture anything (print everything immediately).
 [default: %(default)s]"""
                  }
+
+# reporter
+opt_reporter = {'name':'reporter',
+                 'short':'r',
+                 'long':'reporter',
+                 'type':str, #TODO type choice
+                 'default': 'default',
+                 'help':
+"""Choose output reporter. Available:
+'default': report output on console
+'executed-only': no output for skiped (up-tp-date) and group tasks
+'json': output result in json format
+"""
+                 }
+
+
+
 run_doc = {'purpose': "run tasks",
            'usage': "[TASK/TARGET...]",
            'description': None}
@@ -122,7 +139,7 @@ def cmd_run(params, args):
         filter_ = args or dodo_tasks['default_tasks']
         return doit_run(params['dep_file'], dodo_tasks['task_list'],
                         filter_, params['verbosity'], params['always'],
-                        params['continue'])
+                        params['continue'], params['reporter'])
 
     # sub cmd different from "run" on cmd line. parse arguments again
     commands = params['sub']
@@ -334,8 +351,8 @@ def cmd_main():
     subCmd['help'] = cmdparse.Command('help', (), cmd_help, help_doc)
 
     # run command
-    run_options = (opt_version, opt_help, opt_dodo,
-                   opt_depfile, opt_always, opt_continue, opt_verbosity)
+    run_options = (opt_version, opt_help, opt_dodo, opt_depfile,
+                   opt_always, opt_continue, opt_verbosity, opt_reporter)
     subCmd['run'] = cmdparse.Command('run', run_options, cmd_run, run_doc)
 
     # clean command

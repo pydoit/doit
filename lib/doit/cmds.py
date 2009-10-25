@@ -23,6 +23,10 @@ def doit_run(dependencyFile, task_list, filter_=None,
     selected_tasks = TaskSetup(task_list, filter_).process()
     task_stdout, task_stderr = VERBOSITY[verbosity]
 
+    if reporter not in REPORTERS:
+        msg = ("No reporter named '%s'.\nType 'doit help run' to see a list "
+               "of available reporters.")
+        raise InvalidCommand(msg % reporter)
     reporter_cls = REPORTERS[reporter]
     reporter_obj = reporter_cls(task_stdout is None, task_stderr is None)
 
