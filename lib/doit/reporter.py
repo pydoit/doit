@@ -11,11 +11,10 @@ class FakeReporter(object):
         self.log = []
 
     def start_task(self, task):
-        pass
+        self.log.append(('start', task))
 
     def execute_task(self, task):
-        # FIXME
-        self.log.append(('start', task))
+        self.log.append(('execute', task))
 
     def add_failure(self, task, exception):
         self.log.append(('fail', task))
@@ -83,6 +82,19 @@ class ConsoleReporter(object):
                 sys.stderr.write("%s\n" % err)
 
 
+class ExecutedOnlyReporter(ConsoleReporter):
+    """No output for skiped (up-tp-date) and group tasks
+
+    Produces zero output unless a task is executed
+    """
+    def skip_uptodate(self,task):
+        pass
+
+    def execute_task(self, task):
+        # ignore tasks that do not define actions
+        if task.actions:
+            print task.title()
+
 
 
 class TaskResult(object):
@@ -119,8 +131,9 @@ class TaskResult(object):
 
 class JsonReporter(object):
     """save results in a file using JSON"""
-    def __init__(self, filename):
-        self._filename = filename
+    def __init__(self, show_out, show_err):
+        # show_out, show_err parameters are ignored.
+        # json result is sent to stdout when doit finishs running
         self.t_results = {}
 
     def start_task(self, task):
@@ -144,9 +157,14 @@ class JsonReporter(object):
 
     def complete_run(self):
         json_data = [tr.to_dict() for tr in self.t_results.itervalues()]
-        try:
-            fp = open(self._filename,'w')
-            json.dump(json_data, fp)
-        finally:
-            fp.close()
+        json.dump(json_data, sys.stdout, indent=4)
+
+
+
+# name of reporters class available to be selected on cmd line
+REPORTERS = {'default': ConsoleReporter,
+             'executed-only': ExecutedOnlyReporter,
+             'json': JsonReporter,
+             }
+
 

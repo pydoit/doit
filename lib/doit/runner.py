@@ -1,9 +1,7 @@
 """Task runner."""
-import sys
 
 from doit import CatchedException, TaskFailed, SetupError, DependencyError
 from doit.dependency import Dependency
-from doit.reporter import ConsoleReporter
 
 
 class SetupManager(object):
@@ -48,8 +46,8 @@ SUCCESS = 0
 FAILURE = 1
 ERROR = 2
 
-def run_tasks(dependencyFile, tasks, verbosity=0, alwaysExecute=False,
-              continue_=False, reporter=None):
+def run_tasks(dependencyFile, tasks, reporter, task_stdout=None,
+              task_stderr=None, alwaysExecute=False, continue_=False):
     """This will actually run/execute the tasks.
     It will check file dependencies to decide if task should be executed
     and save info on successful runs.
@@ -57,28 +55,15 @@ def run_tasks(dependencyFile, tasks, verbosity=0, alwaysExecute=False,
 
     @param dependencyFile: (string) file path of the db file
     @param tasks: (list) - L{Task} tasks to be executed
-    @param verbosity:
-     - 0 => print (stderr and stdout) from failed tasks
-     - 1 => print stderr and (stdout from failed tasks)
-     - 2 => print stderr and stdout from all tasks
+    @param reporter: reporter to be used. It can be a class or an object
+    @param task_stdout: file like obj or None to capture
+    @param task_stderr: file like obj or None to capture
     @param alwaysExecute: (bool) execute even if up-to-date
     @param continue_: (bool) execute all tasks even after a task failure
     """
-    if verbosity < 2:
-        task_stdout = None #capture
-    else:
-        task_stdout = sys.stdout #use parent process
-    if verbosity == 0:
-        task_stderr = None
-    else:
-        task_stderr = sys.stderr
     dependencyManager = Dependency(dependencyFile)
     setupManager = SetupManager()
     final_result = SUCCESS # we are optmistic
-    if reporter is None:
-        reporter = ConsoleReporter(task_stdout is None, task_stderr is None)
-        #from doit.reporter import JsonReporter
-        #reporter = JsonReporter("first.json")
 
     for task in tasks:
         reporter.start_task(task)
@@ -90,7 +75,7 @@ def run_tasks(dependencyFile, tasks, verbosity=0, alwaysExecute=False,
             except Exception, exception:
                 raise DependencyError("ERROR checking dependencies", exception)
 
-            # if task id up to date just print title
+            # if task id up-to-date skip it
             if not alwaysExecute and task_uptodate:
                 reporter.skip_uptodate(task)
                 continue
@@ -103,7 +88,7 @@ def run_tasks(dependencyFile, tasks, verbosity=0, alwaysExecute=False,
             reporter.execute_task(task)
             task.execute(task_stdout, task_stderr)
 
-            #save execution successful
+            # save execution successful
             if task.run_once:
                 dependencyManager.save_run_once(task.name)
             dependencyManager.save_dependencies(task.name,task.file_dep)
@@ -121,11 +106,10 @@ def run_tasks(dependencyFile, tasks, verbosity=0, alwaysExecute=False,
         # task error
         except CatchedException, exception:
             reporter.add_failure(task, exception)
-            if final_result == SUCCESS:
-                final_result = FAILURE
             # only return FAILURE if no errors happened.
-            if (final_result == FAILURE and
-                not isinstance(exception, TaskFailed)):
+            if isinstance(exception, TaskFailed):
+                final_result = FAILURE
+            else:
                 final_result = ERROR
             if not continue_:
                 break

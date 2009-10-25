@@ -1,15 +1,37 @@
 """cmd-line functions"""
+import sys
 
 from doit import dependency
 from doit.main import TaskSetup, InvalidCommand
 from doit.runner import run_tasks
+from doit.reporter import REPORTERS
 
+
+VERBOSITY = [(None, None), # None => capture
+             (None, sys.stderr),
+             (sys.stdout, sys.stderr)] # use parent process
+"""map verbosity to control capture of tasks' stdout and stderr
+ - 0 => print (stderr and stdout) from failed tasks
+ - 1 => print stderr and (stdout from failed tasks)
+ - 2 => print stderr and stdout from all tasks
+"""
 
 def doit_run(dependencyFile, task_list, filter_=None,
-             verbosity=0, alwaysExecute=False, continue_=False):
+             verbosity=0, alwaysExecute=False, continue_=False,
+             reporter='default'):
+    # get tasks to be executed
     selected_tasks = TaskSetup(task_list, filter_).process()
-    return run_tasks(dependencyFile, selected_tasks,
-                     verbosity, alwaysExecute, continue_)
+    task_stdout, task_stderr = VERBOSITY[verbosity]
+
+    if reporter not in REPORTERS:
+        msg = ("No reporter named '%s'.\nType 'doit help run' to see a list "
+               "of available reporters.")
+        raise InvalidCommand(msg % reporter)
+    reporter_cls = REPORTERS[reporter]
+    reporter_obj = reporter_cls(task_stdout is None, task_stderr is None)
+
+    return run_tasks(dependencyFile, selected_tasks, reporter_obj,
+                     task_stdout, task_stderr, alwaysExecute, continue_)
 
 
 def doit_clean(task_list, clean_tasks):
