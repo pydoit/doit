@@ -11,11 +11,10 @@ class FakeReporter(object):
         self.log = []
 
     def start_task(self, task):
-        pass
+        self.log.append(('start', task))
 
     def execute_task(self, task):
-        # FIXME
-        self.log.append(('start', task))
+        self.log.append(('execute', task))
 
     def add_failure(self, task, exception):
         self.log.append(('fail', task))

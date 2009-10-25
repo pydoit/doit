@@ -66,23 +66,27 @@ class TestRunningTask(BaseRunner):
                  Task("taskY", [(my_print, ["out a"] )] )]
         result = runner.run_tasks(TESTDB, tasks, reporter=self.reporter)
         assert runner.SUCCESS == result
-        assert ('start', tasks[0]) == self.reporter.log[0]
-        assert ('success', tasks[0]) == self.reporter.log[1]
-        assert ('start', tasks[1]) == self.reporter.log[2]
-        assert ('success', tasks[1]) == self.reporter.log[3]
+        assert ('start', tasks[0]) == self.reporter.log.pop(0)
+        assert ('execute', tasks[0]) == self.reporter.log.pop(0)
+        assert ('success', tasks[0]) == self.reporter.log.pop(0)
+        assert ('start', tasks[1]) == self.reporter.log.pop(0)
+        assert ('execute', tasks[1]) == self.reporter.log.pop(0)
+        assert ('success', tasks[1]) == self.reporter.log.pop(0)
 
     # if task is up to date, it is displayed in a different way.
     def test_successUpToDate(self):
         tasks = [Task("taskX", [my_print], dependencies=[__file__])]
         result = runner.run_tasks(TESTDB, tasks, reporter=self.reporter)
         assert runner.SUCCESS == result
-        assert ('start', tasks[0]) == self.reporter.log[0]
+        assert ('start', tasks[0]) == self.reporter.log.pop(0)
+        assert ('execute', tasks[0]) == self.reporter.log.pop(0)
         # again
         tasks2 = [Task("taskX", [my_print], dependencies=[__file__])]
         reporter2 = FakeReporter()
         result2 = runner.run_tasks(TESTDB, tasks2, reporter=reporter2)
         assert runner.SUCCESS == result2
-        assert ('skip', tasks2[0]) == reporter2.log[0]
+        assert ('start', tasks2[0]) == reporter2.log.pop(0)
+        assert ('skip', tasks2[0]) == reporter2.log.pop(0)
 
     # whenever a task fails remaining task are not executed
     def test_failureOutput(self):
@@ -93,10 +97,11 @@ class TestRunningTask(BaseRunner):
                  Task("taskY", [_fail])]
         result =  runner.run_tasks(TESTDB, tasks, reporter=self.reporter)
         assert runner.FAILURE == result
-        assert ('start', tasks[0]) == self.reporter.log[0]
-        assert ('fail', tasks[0]) == self.reporter.log[1]
+        assert ('start', tasks[0]) == self.reporter.log.pop(0)
+        assert ('execute', tasks[0]) == self.reporter.log.pop(0)
+        assert ('fail', tasks[0]) == self.reporter.log.pop(0)
         # second task is not executed
-        assert 2 == len(self.reporter.log)
+        assert 0 == len(self.reporter.log)
 
 
     def test_error(self):
@@ -107,10 +112,11 @@ class TestRunningTask(BaseRunner):
                  Task("taskY", [_error])]
         result = runner.run_tasks(TESTDB, tasks, reporter=self.reporter)
         assert runner.ERROR == result
-        assert ('start', tasks[0]) == self.reporter.log[0]
-        assert ('fail', tasks[0]) == self.reporter.log[1]
+        assert ('start', tasks[0]) == self.reporter.log.pop(0)
+        assert ('execute', tasks[0]) == self.reporter.log.pop(0)
+        assert ('fail', tasks[0]) == self.reporter.log.pop(0)
         # second task is not executed
-        assert 2 == len(self.reporter.log)
+        assert 0 == len(self.reporter.log)
 
 
     # when successful dependencies are updated
@@ -147,8 +153,9 @@ class TestRunningTask(BaseRunner):
         tasks = [Task("taskX", [my_print], ["i_dont_exist.xxx"])]
         result = runner.run_tasks(TESTDB, tasks, reporter=self.reporter)
         assert runner.ERROR == result
-        # TODO error on dependency is called before the call reporter start!
-        assert ('fail', tasks[0]) == self.reporter.log[0]
+        assert ('start', tasks[0]) == self.reporter.log.pop(0)
+        assert ('fail', tasks[0]) == self.reporter.log.pop(0)
+        assert 0 == len(self.reporter.log)
 
     def test_ignoreNonFileDep(self):
         dep = [":taskY"]
@@ -163,14 +170,16 @@ class TestRunningTask(BaseRunner):
         tasks = [Task("taskX", [my_print], dependencies=[__file__])]
         result = runner.run_tasks(TESTDB, tasks, reporter=self.reporter)
         assert runner.SUCCESS == result
-        assert ('start', tasks[0]) == self.reporter.log[0]
+        assert ('start', tasks[0]) == self.reporter.log.pop(0)
+        assert ('execute', tasks[0]) == self.reporter.log.pop(0)
         # again
         tasks2 = [Task("taskX", [my_print], dependencies=[__file__])]
         reporter2 = FakeReporter()
         result2 = runner.run_tasks(TESTDB, tasks2, alwaysExecute=True,
                                    reporter=reporter2)
         assert runner.SUCCESS == result2
-        assert ('start', tasks[0]) == self.reporter.log[0]
+        assert ('start', tasks2[0]) == reporter2.log.pop(0)
+        assert ('execute', tasks2[0]) == reporter2.log.pop(0)
 
 
 class TestTaskSetup(BaseRunner):
@@ -234,9 +243,10 @@ class TestTaskSetup(BaseRunner):
         t1 = Task('t1', None, [], [], [setup])
         result = runner.run_tasks(TESTDB, [t1], reporter=self.reporter)
         assert runner.SUCCESS == result
-        assert ('start', t1) == self.reporter.log[0]
-        assert ('success', t1) == self.reporter.log[1]
-        assert ('cleanup_error',) == self.reporter.log[2]
+        assert ('start', t1) == self.reporter.log.pop(0)
+        assert ('execute', t1) == self.reporter.log.pop(0)
+        assert ('success', t1) == self.reporter.log.pop(0)
+        assert ('cleanup_error',) == self.reporter.log.pop(0)
 
 
 class TestContinue(BaseRunner):
@@ -253,13 +263,16 @@ class TestContinue(BaseRunner):
         result = runner.run_tasks(TESTDB, tasks, continue_=True,
                                   reporter=self.reporter)
         assert runner.ERROR == result
-        assert ('start', tasks[0]) == self.reporter.log[0]
-        assert ('fail', tasks[0]) == self.reporter.log[1]
-        assert ('start', tasks[1]) == self.reporter.log[2]
-        assert ('fail', tasks[1]) == self.reporter.log[3]
-        assert ('start', tasks[2]) == self.reporter.log[4]
-        assert ('success', tasks[2]) == self.reporter.log[5]
-        assert 6 == len(self.reporter.log)
+        assert ('start', tasks[0]) == self.reporter.log.pop(0)
+        assert ('execute', tasks[0]) == self.reporter.log.pop(0)
+        assert ('fail', tasks[0]) == self.reporter.log.pop(0)
+        assert ('start', tasks[1]) == self.reporter.log.pop(0)
+        assert ('execute', tasks[1]) == self.reporter.log.pop(0)
+        assert ('fail', tasks[1]) == self.reporter.log.pop(0)
+        assert ('start', tasks[2]) == self.reporter.log.pop(0)
+        assert ('execute', tasks[2]) == self.reporter.log.pop(0)
+        assert ('success', tasks[2]) == self.reporter.log.pop(0)
+        assert 0 == len(self.reporter.log)
 
 
 class TestSystemExit(BaseRunner):
