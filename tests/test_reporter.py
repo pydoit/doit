@@ -1,7 +1,7 @@
 import sys
 import StringIO
 
-from doit.reporter import ConsoleReporter
+from doit.reporter import ConsoleReporter, ExecutedOnlyReporter
 from doit.task import Task
 from doit import CatchedException
 
@@ -61,3 +61,24 @@ class TestConsoleReporter(BaseTestOutput):
         assert """raise Exception("original exception message here")""" in got
         # catched message
         assert "catched exception there" in got
+
+
+class TestExecutedOnlyReporter(BaseTestOutput):
+    def setUp(self):
+        BaseTestOutput.setUp(self)
+        self.rep = ExecutedOnlyReporter(True, True)
+        self.my_task = Task("t_name", None)
+
+    def test_skipUptodate(self):
+        self.rep.skip_uptodate(self.my_task)
+        assert "" == sys.stdout.getvalue()
+
+    def test_executeGroupTask(self):
+        self.rep.execute_task(self.my_task)
+        assert "" == sys.stdout.getvalue()
+
+    def test_executeTask(self):
+        def do_nothing():pass
+        t1 = Task("with_action",[(do_nothing,)])
+        self.rep.execute_task(t1)
+        assert "with_action" in sys.stdout.getvalue()

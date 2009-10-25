@@ -153,6 +153,10 @@ class TestCmdRun(BaseTestOutput):
         got = sys.stdout.getvalue().split("\n")[:-1]
         assert ["g1.a => Cmd: "] == got, repr(sys.stdout.getvalue())
 
+    def testInvalidReporter(self):
+        nose.tools.assert_raises(InvalidCommand,
+               doit_run, TESTDB, TASKS_SAMPLE, reporter="i dont exist")
+
 
 class TestCmdClean(BaseTestOutput):
 
