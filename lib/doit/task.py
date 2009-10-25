@@ -56,7 +56,6 @@ class CmdAction(BaseAction):
         @raise TaskError: If subprocess return code is greater than 125
         @raise TaskFailed: If subprocess return code isn't zero (and
         not greater than 125)
-        @return The stdout+stderr of the subprocess
         """
         action = self.expand_action()
 
@@ -101,8 +100,6 @@ class CmdAction(BaseAction):
         if process.returncode != 0:
             raise TaskFailed("Command failed: '%s' returned %s" %
                              (action,process.returncode))
-
-        return (self.out or "")+(self.err or "")
 
 
     def expand_action(self):
@@ -278,7 +275,7 @@ class PythonAction(BaseAction):
             raise TaskFailed("Python Task failed: '%s' returned %s" %
                              (self.py_callable, result))
         elif result is True or result is None or isinstance(result, str):
-            return result
+            return
         else:
             raise TaskError("Python Task error: '%s'. It must return:\n"
                             "False for failed task.\n"
@@ -462,7 +459,8 @@ class Task(object):
         @raise TaskError: If raised when executing an action
         """
         for action in self.actions:
-            self.value = action.execute(out, err)
+            action.execute(out, err)
+            self.value = (action.out or "") + (action.err or "")
 
 
     def clean(self):
