@@ -71,7 +71,7 @@ def run_tasks(dependencyFile, tasks, reporter, task_stdout=None,
             # check if task is up-to-date
             try:
                 task_uptodate, task.dep_changed = dependencyManager.up_to_date(
-                    task.name, task.file_dep, task.targets, task.run_once, task.result_dep)
+                        task.name, task.file_dep, task.targets, task.run_once, task.result_dep)
             except Exception, exception:
                 raise DependencyError("ERROR checking dependencies", exception)
 
@@ -93,6 +93,7 @@ def run_tasks(dependencyFile, tasks, reporter, task_stdout=None,
                 dependencyManager.save_run_once(task.name)
             dependencyManager.save_dependencies(task.name,task.file_dep)
             dependencyManager.save_resultdependencies(task.name,task.result_dep)
+            dependencyManager.save_result(task.name, task.value)
 
             reporter.add_success(task)
 
@@ -109,6 +110,7 @@ def run_tasks(dependencyFile, tasks, reporter, task_stdout=None,
             # only return FAILURE if no errors happened.
             if isinstance(exception, TaskFailed):
                 final_result = FAILURE
+                dependencyManager.remove_value(task.name)
             else:
                 final_result = ERROR
             if not continue_:

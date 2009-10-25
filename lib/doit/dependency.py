@@ -36,10 +36,8 @@ def md5sum(path):
     f.close()
     return result
 
-def resultmd5sum(name):
-    from task import Task
-
-    return get_md5(Task.get_task(name).value)
+def resultmd5sum(value):
+    return get_md5(value)
 
 
 class Dependency(object):
@@ -102,13 +100,19 @@ class Dependency(object):
         this method will calculate the value to be stored using md5 and then
         call the _set method.
         """
-        self._set(taskId,dependency,resultmd5sum(dependency))
+        self._set(taskId,"task:" + dependency,self._get(dependency, "value"))
 
 
     def remove(self, taskId):
         """remove saved dependecies from DB for taskId"""
         if taskId in self._db:
             del self._db[taskId]
+
+
+    def remove_value(self, taskId):
+        if taskId in self._db:
+            del self._db[taskId]["value"]
+
 
     def remove_all(self):
         """remove saved dependecies from DB for all tasks"""
@@ -126,7 +130,7 @@ class Dependency(object):
 
         @return: (boolean)
         """
-        return self._get(taskId,dependency) != resultmd5sum(dependency)
+        return self._get(taskId, "task:" + dependency) != self._get(dependency, "value")
 
 
     def close(self):
@@ -160,7 +164,11 @@ class Dependency(object):
         """
         # list of files
         for dep in dependencies:
-            self.resultsave(taskId,dep)
+            self.resultsave(taskId, dep)
+
+
+    def save_result(self, taskId, value):
+        self._set(taskId,"value",resultmd5sum(value))
 
 
     def save_run_once(self,taskId):
@@ -204,7 +212,7 @@ class Dependency(object):
                 buptod = False
 
         for dep in tuple(result_dep):
-            if self.resultmodified(taskId,dep):
+            if self.resultmodified(taskId, dep):
                 buptod = False
 
         return buptod, changed
