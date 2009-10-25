@@ -149,3 +149,10 @@ class JsonReporter(object):
         finally:
             fp.close()
 
+
+# name of reporters class available to be selected on cmd line
+REPORTERS = {'default': ConsoleReporter,
+             'json': JsonReporter,
+             }
+
+
