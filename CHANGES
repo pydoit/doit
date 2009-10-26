@@ -11,6 +11,7 @@ Changes
 - added command line option --reporter to select result output reporter
 - added executed-only reporter
 - added json reporter
+- support for task-result dependency #438174
 
 
 0.4.0 (*2009-10-05*)

@@ -42,6 +42,7 @@ class CmdAction(BaseAction):
         self.task = None
         self.out = None
         self.err = None
+        self.value = None
 
     def execute(self, out=None, err=None):
         """
@@ -88,6 +89,7 @@ class CmdAction(BaseAction):
 
         self.out = output.getvalue()
         self.err = errput.getvalue()
+        self.value = self.out + self.err
 
         # task error - based on:
         # http://www.gnu.org/software/bash/manual/bashref.html#Exit-Status
@@ -151,6 +153,7 @@ class PythonAction(BaseAction):
         self.task = None
         self.out = None
         self.err = None
+        self.value = None
 
         if args is None:
             self.args = []
@@ -270,6 +273,7 @@ class PythonAction(BaseAction):
             self.out = output.getvalue()
             self.err = errput.getvalue()
 
+        self.value = result
         # if callable returns false. Task failed
         if result is False:
             raise TaskFailed("Python Task failed: '%s' returned %s" %
@@ -359,6 +363,7 @@ class Task(object):
         self.setup = setup
         self.run_once = False
         self.is_subtask = is_subtask
+        self.value = None
 
         if actions is None:
             self.actions = []
@@ -380,6 +385,7 @@ class Task(object):
         # there are 2 kinds of dependencies: file, task
         self.task_dep = []
         self.file_dep = []
+        self.result_dep = []
         for dep in dependencies:
             # True on the list. set run_once
             if isinstance(dep,bool):
@@ -391,6 +397,9 @@ class Task(object):
             # task dep starts with a ':'
             elif dep.startswith(':'):
                 self.task_dep.append(dep[1:])
+            # task-result dep starts with a '?'
+            elif dep.startswith('?'):
+                self.result_dep.append(dep[1:])
             # file dep
             elif isinstance(dep,str):
                 self.file_dep.append(dep)
@@ -448,6 +457,7 @@ class Task(object):
         """
         for action in self.actions:
             action.execute(out, err)
+            self.value = action.value
 
 
     def clean(self):

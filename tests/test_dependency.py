@@ -1,6 +1,7 @@
 import os
 
-from doit.dependency import md5sum, Dependency
+from doit.task import Task
+from doit.dependency import get_md5, md5sum, Dependency
 
 
 def get_abspath(relativePath):
@@ -44,10 +45,11 @@ class DependencyTestBase(object):
         if os.path.exists(TESTDB):
             os.remove(TESTDB)
 
+
 class TestDependencyDb(DependencyTestBase):
 
     # adding a new value to the DB
-    def test_getSet(self):
+    def test_get_set(self):
         self.d._set("taskId_X","dependency_A","da_md5")
         value = self.d._get("taskId_X","dependency_A")
         assert "da_md5" == value, value
@@ -78,19 +80,6 @@ class TestDependencyDb(DependencyTestBase):
         assert self.d._get("taskId_X","dependency_A") == None
 
 
-    def test_save(self):
-        # create a test dependency file
-        filePath = get_abspath("data/dependency1")
-        ff = open(filePath,"w")
-        ff.write("i am the first dependency ever for doit")
-        ff.close()
-
-        # save it
-        self.d.save("taskId_X",filePath)
-        expected = "a1bb792202ce163b4f0d17cb264c04e1"
-        value = self.d._get("taskId_X",filePath)
-        assert expected == value, value
-
     def test_remove(self):
         self.d._set("taskId_ZZZ","dep_1","12")
         self.d._set("taskId_ZZZ","dep_2","13")
@@ -99,6 +88,7 @@ class TestDependencyDb(DependencyTestBase):
         assert None == self.d._get("taskId_ZZZ","dep_1")
         assert None == self.d._get("taskId_ZZZ","dep_2")
         assert "14" == self.d._get("taskId_YYY","dep_1")
+
 
     def test_remove_all(self):
         self.d._set("taskId_ZZZ","dep_1","12")
@@ -110,49 +100,41 @@ class TestDependencyDb(DependencyTestBase):
         assert None == self.d._get("taskId_YYY","dep_1")
 
 
-    def test_notModified(self):
+
+
+class TestSaveSuccess(DependencyTestBase):
+
+    def test_save_result(self):
+        t1 = Task('t_name', None)
+        t1.value = "result"
+        self.d.save_success(t1)
+        assert get_md5("result") == self.d._get(t1.name, "result:")
+
+    def test_save_resultNone(self):
+        t1 = Task('t_name', None)
+        self.d.save_success(t1)
+        assert None is self.d._get(t1.name, "result:")
+
+    def test_save_runonce(self):
+        t1 = Task('t_name', None, [True])
+        self.d.save_success(t1)
+        assert self.d._get(t1.name, "run-once:")
+
+    def test_save_file_md5(self):
         # create a test dependency file
         filePath = get_abspath("data/dependency1")
         ff = open(filePath,"w")
         ff.write("i am the first dependency ever for doit")
         ff.close()
+
         # save it
-        self.d.save("taskId_X",filePath)
+        t1 = Task("taskId_X", None, [filePath])
+        self.d.save_success(t1)
+        expected = "a1bb792202ce163b4f0d17cb264c04e1"
+        value = self.d._get("taskId_X",filePath)
+        assert expected == value, value
 
-        assert not self.d.modified("taskId_X",filePath)
-
-    def test_yesModified(self):
-        # create a test dependency file
-        filePath = get_abspath("data/dependency1")
-        ff = open(filePath,"w")
-        ff.write("i am the first dependency ever for doit")
-        ff.close()
-        # save it
-        self.d.save("taskId_X",filePath)
-        # modifiy
-        ff = open(filePath,"a")
-        ff.write(" - with the first modification!")
-        ff.close()
-
-        assert self.d.modified("taskId_X",filePath)
-
-    # if there is no entry for dependency. it is like modified.
-    def test_notThereModified(self):
-        # create a test dependency file
-        filePath = get_abspath("data/dependency_notthere")
-        ff = open(filePath,"w")
-        ff.write("i am the first dependency ever for doit")
-        ff.close()
-        assert self.d.modified("taskId_X",filePath)
-
-
-
-class TestTaskDependency(DependencyTestBase):
-
-    # whenever a task has a dependency the runner checks if this dependency
-    # was modified since last successful run. if not the task is skipped.
-
-    def test_saveDependencies(self):
+    def test_save_files(self):
         filePath = get_abspath("data/dependency1")
         ff = open(filePath,"w")
         ff.write("part1")
@@ -163,37 +145,119 @@ class TestTaskDependency(DependencyTestBase):
         ff.close()
 
         assert 0 == len(self.d._db)
-        self.d.save_dependencies("taskId_X",[filePath,filePath2])
+        t1 = Task("taskId_X", None, [filePath,filePath2])
+        self.d.save_success(t1)
         assert self.d._get("taskId_X",filePath) is not None
         assert self.d._get("taskId_X",filePath2) is not None
 
+    def test_save_result_dep(self):
+        t1 = Task('t1', None)
+        t1.value = "result"
+        self.d.save_success(t1)
+        t2 = Task('t2', None, ['?t1'])
+        self.d.save_success(t2)
+        assert get_md5(t1.value) == self.d._get("t2", "task:t1")
+        t3 = Task('t3', None, [':t1'])
+        self.d.save_success(t3)
+        assert None is self.d._get("t3", "task:t1")
+
+
+class TestRemoveSuccess(DependencyTestBase):
+    def test_save_result(self):
+        t1 = Task('t_name', None)
+        t1.value = "result"
+        self.d.save_success(t1)
+        assert get_md5("result") == self.d._get(t1.name, "result:")
+        self.d.remove_success(t1)
+        assert None is self.d._get(t1.name, "result:")
+
+
+class TestUpToDate(DependencyTestBase):
 
     # if there is no dependency the task is always executed
-    def test_upToDate_noDependency(self):
-        taskId = "task A"
+    def test_noDependency(self):
+        t1 = Task("t1", None)
         # first time execute
-        assert self.d.up_to_date(taskId,[],[],False) == (False, [])
+        assert False == self.d.up_to_date(t1)
+        assert [] == t1.dep_changed
         # second too
-        assert self.d.up_to_date(taskId,[],[],False) == (False, [])
+        self.d.save_success(t1)
+        assert False == self.d.up_to_date(t1)
+        assert [] == t1.dep_changed
 
 
-    # if there is a dependency the task is executed only if one of
-    # the dependencies were modified
-    def test_upToDate_dependencies(self):
+    def test_runOnce(self):
+        t1 = Task("t1", None, [True])
+        assert False == self.d.up_to_date(t1)
+        assert [] == t1.dep_changed
+        self.d.save_success(t1)
+        assert True == self.d.up_to_date(t1)
+        assert [] == t1.dep_changed
+
+
+    # if target file does not exist, task is outdated.
+    def test_targets_notThere(self):
+        dep1 = get_abspath("data/dependency1")
+        target = get_abspath("data/target")
+        if os.path.exists(target):
+            os.remove(target)
+
+        t1 = Task("task x", None, [dep1], [target])
+        self.d.save_success(t1)
+        assert False == self.d.up_to_date(t1)
+        assert [dep1] == t1.dep_changed
+
+
+    def test_targets(self):
+        filePath = get_abspath("data/target")
+        ff = open(filePath,"w")
+        ff.write("part1")
+        ff.close()
+
+        deps = [get_abspath("data/dependency1")]
+        targets = [filePath]
+        t1 = Task("task X", None, deps, targets)
+
+        self.d.save_success(t1)
+        # up-to-date because target exist
+        assert True == self.d.up_to_date(t1)
+        assert [] == t1.dep_changed
+
+
+    def test_targetFolder(self):
+        # folder not there. task is not up-to-date
+        deps = [get_abspath("data/dependency1")]
+        folderPath = get_abspath("data/target-folder")
+        if os.path.exists(folderPath):
+            os.rmdir(folderPath)
+        t1 = Task("task x", None, deps, [folderPath])
+        self.d.save_success(t1)
+
+        assert False == self.d.up_to_date(t1)
+        assert deps == t1.dep_changed
+        # create folder. task is up-to-date
+        os.mkdir(folderPath)
+        assert True == self.d.up_to_date(t1)
+        assert [] == t1.dep_changed
+
+
+    def test_fileDependencies(self):
         filePath = get_abspath("data/dependency1")
         ff = open(filePath,"w")
         ff.write("part1")
         ff.close()
 
-        taskId = "task X";
         dependencies = [filePath]
-        # first time execute
-        up_to_date, changed = self.d.up_to_date(taskId,dependencies,[],False)
-        assert  (up_to_date, changed)== (False, dependencies)
+        t1 = Task("t1", None, dependencies)
 
-        self.d.save_dependencies(taskId,dependencies)
+        # first time execute
+        assert False == self.d.up_to_date(t1)
+        assert dependencies == t1.dep_changed
+
         # second time no
-        assert self.d.up_to_date(taskId,dependencies,[],False) == (True, [])
+        self.d.save_success(t1)
+        assert True == self.d.up_to_date(t1)
+        assert [] == t1.dep_changed
 
         # a small change on the file
         ff = open(filePath,"a")
@@ -201,57 +265,23 @@ class TestTaskDependency(DependencyTestBase):
         ff.close()
 
         # execute again
-        up_to_date3, changed3 = self.d.up_to_date(taskId,dependencies,[],False)
-        assert  (up_to_date3, changed3) == (False, dependencies)
+        assert False == self.d.up_to_date(t1)
+        assert dependencies == t1.dep_changed
 
 
-    # if target file does not exist, task is outdated.
-    def test_upToDate_targets_notThere(self):
-        deps = [get_abspath("data/dependency1")]
-        taskId = "task x"
-        self.d.save_dependencies(taskId,deps)
+    def test_resultDependencies(self):
+        # t1 ok, but t2 not saved
+        t1 = Task('t1', None)
+        t1.value = "result"
+        t2 = Task('t2', None, ['?t1'])
+        self.d.save_success(t1)
+        assert False == self.d.up_to_date(t2)
 
-        filePath = get_abspath("data/target")
-        if os.path.exists(filePath):
-            os.remove(filePath)
+        # save t2 - ok
+        self.d.save_success(t2)
+        assert True == self.d.up_to_date(t2)
 
-        uptodate,changed = self.d.up_to_date(taskId,deps,[filePath],False)
-        assert (uptodate, changed) == (False, deps)
-
-    def test_upToDate_targets(self):
-        filePath = get_abspath("data/target")
-        ff = open(filePath,"w")
-        ff.write("part1")
-        ff.close()
-
-        taskId = "task X";
-        deps = [get_abspath("data/dependency1")]
-        targets = [filePath]
-        self.d.save_dependencies(taskId,deps)
-
-        # up-to-date because target exist
-        uptodate, changed = self.d.up_to_date(taskId,deps,targets,False)
-        assert (uptodate, changed) == (True, [])
-
-    def test_upToDate_targetFolder(self):
-        # folder not there. task is not up-to-date
-        deps = [get_abspath("data/dependency1")]
-        taskId = "task x"
-        self.d.save_dependencies(taskId,deps)
-        folderPath = get_abspath("data/target-folder")
-        if os.path.exists(folderPath):
-            os.rmdir(folderPath)
-        uptodate, changed = self.d.up_to_date(taskId,deps,[folderPath],False)
-        assert (uptodate, changed) == (False, deps)
-        # create folder. task is up-to-date
-        os.mkdir(folderPath)
-        uptodate2, changed2 = self.d.up_to_date(taskId,deps,[folderPath],False)
-        assert (uptodate2, changed2) == (True, [])
-
-class TestRunOnceDependency(DependencyTestBase):
-
-    def test_upToDate_BoolDependency(self):
-        taskId = "task X"
-        assert self.d.up_to_date(taskId,[],[],True) == (False, [])
-        self.d.save_run_once(taskId)
-        assert self.d.up_to_date(taskId,[],[],True) == (True, [])
+        # change t1
+        t1.value = "another"
+        self.d.save_success(t1)
+        assert False == self.d.up_to_date(t2)

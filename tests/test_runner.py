@@ -151,6 +151,36 @@ class TestRunningTask(BaseRunner):
         assert ('execute', tasks2[0]) == reporter2.log.pop(0)
 
 
+    def test_resultDependency(self):
+        def ok(): return "ok"
+        t1 = Task("t1", [(ok,)])
+        t2 = Task("t2", [(ok,)], ['?t1'])
+        result = runner.run_tasks(TESTDB, [t1, t2], self.reporter)
+        assert ('start', t1) == self.reporter.log.pop(0)
+        assert ('execute', t1) == self.reporter.log.pop(0)
+        assert ('success', t1) == self.reporter.log.pop(0)
+        assert ('start', t2) == self.reporter.log.pop(0)
+        assert ('execute', t2) == self.reporter.log.pop(0)
+        assert ('success', t2) == self.reporter.log.pop(0)
+        # again
+        result = runner.run_tasks(TESTDB, [t1, t2], self.reporter)
+        assert ('start', t1) == self.reporter.log.pop(0)
+        assert ('execute', t1) == self.reporter.log.pop(0)
+        assert ('success', t1) == self.reporter.log.pop(0)
+        assert ('start', t2) == self.reporter.log.pop(0)
+        assert ('skip', t2) == self.reporter.log.pop(0)
+        # change t1, t2 executed again
+        def ok2(): return "different"
+        t1B = Task("t1", [(ok2,)])
+        result = runner.run_tasks(TESTDB, [t1B, t2], self.reporter)
+        assert ('start', t1B) == self.reporter.log.pop(0)
+        assert ('execute', t1B) == self.reporter.log.pop(0)
+        assert ('success', t1B) == self.reporter.log.pop(0)
+        assert ('start', t2) == self.reporter.log.pop(0)
+        assert ('execute', t2) == self.reporter.log.pop(0)
+        assert ('success', t2) == self.reporter.log.pop(0)
+
+
 class TestTaskSetup(BaseRunner):
 
     class SetupSample(object):

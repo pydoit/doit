@@ -33,7 +33,7 @@ def task_coverage_code():
                        "--cover-package=doit"]}
 
 def task_coverage_module():
-    """show coverage for all modules (exclude tests)"""
+    """show coverage for individual modules"""
     for test in testFiles:
         if not test.startswith('tests/test_'):
             continue

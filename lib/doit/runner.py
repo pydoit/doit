@@ -70,8 +70,7 @@ def run_tasks(dependencyFile, tasks, reporter, task_stdout=None,
         try:
             # check if task is up-to-date
             try:
-                task_uptodate, task.dep_changed = dependencyManager.up_to_date(
-                    task.name, task.file_dep, task.targets, task.run_once)
+                task_uptodate = dependencyManager.up_to_date(task)
             except Exception, exception:
                 raise DependencyError("ERROR checking dependencies", exception)
 
@@ -89,10 +88,7 @@ def run_tasks(dependencyFile, tasks, reporter, task_stdout=None,
             task.execute(task_stdout, task_stderr)
 
             # save execution successful
-            if task.run_once:
-                dependencyManager.save_run_once(task.name)
-            dependencyManager.save_dependencies(task.name,task.file_dep)
-
+            dependencyManager.save_success(task)
             reporter.add_success(task)
 
         # in python 2.4 SystemExit and KeyboardInterrupt subclass
@@ -104,6 +100,7 @@ def run_tasks(dependencyFile, tasks, reporter, task_stdout=None,
 
         # task error
         except CatchedException, exception:
+            dependencyManager.remove_success(task)
             reporter.add_failure(task, exception)
             # only return FAILURE if no errors happened.
             if isinstance(exception, TaskFailed):

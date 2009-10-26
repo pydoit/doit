@@ -35,6 +35,11 @@ class TestCmdAction(object):
         expected = "<CmdAction: '%s'>" % PROGRAM
         assert  expected == repr(action), repr(action)
 
+    def test_value(self):
+        action = task.CmdAction("%s 1 2" % PROGRAM)
+        action.execute()
+        assert "12" == action.value
+
 
 class TestCmdVerbosity(object):
     def setUp(self):
@@ -179,6 +184,11 @@ class TestPythonAction(object):
         action = task.PythonAction(repr_sample)
         assert  "<PythonAction: '%s'>" % repr(repr_sample) == repr(action)
 
+    def test_value(self):
+        def vvv(): return "my value"
+        action = task.PythonAction(vvv)
+        action.execute()
+        assert "my value" == action.value
 
 
 class TestPythonVerbosity(object):
@@ -342,10 +352,11 @@ class TestTask(object):
 
     # dependency types going to the write place
     def test_dependencyTypes(self):
-        dep = ["file1.txt",":taskX","file2"]
+        dep = ["file1.txt",":taskX","file2", "?res1"]
         t = task.Task("MyName", ["MyAction"], dep)
         assert t.task_dep == [dep[1][1:]]
         assert t.file_dep == [dep[0],dep[2]]
+        assert t.result_dep == [dep[3][1:]]
 
 
 
@@ -353,6 +364,13 @@ class TestTaskActions(object):
     def test_success(self):
         t = task.Task("taskX", [PROGRAM])
         t.execute()
+
+
+    def test_value(self):
+        #task.value is the value of last action
+        t = task.Task('t1', ["%s hi_list hi6" % PROGRAM,
+                             "%s hi_list hi6" % PROGRAM])
+        assert t.value == t.actions[-1].value
 
     def test_failure(self):
         t = task.Task("taskX", ["%s 1 2 3" % PROGRAM])

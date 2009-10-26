@@ -26,6 +26,7 @@ except ImportError:
         return out.hexdigest()
     get_md5 = get_md5_py4
 
+
 def md5sum(path):
     """Calculate the md5 sum from file content.
 
@@ -85,30 +86,15 @@ class Dependency(object):
             return self._db[taskId].get(dependency, None)
 
 
-    def save(self, taskId, dependency):
-        """Save/update dependency on the DB.
-
-        this method will calculate the value to be stored using md5 and then
-        call the _set method.
-        """
-        self._set(taskId,dependency,md5sum(dependency))
-
-
     def remove(self, taskId):
         """remove saved dependecies from DB for taskId"""
         if taskId in self._db:
             del self._db[taskId]
 
+
     def remove_all(self):
         """remove saved dependecies from DB for all tasks"""
         self._db = {}
-
-    def modified(self, taskId, dependency):
-        """Check if dependency for task was modified.
-
-        @return: (boolean)
-        """
-        return self._get(taskId,dependency) != md5sum(dependency)
 
 
     def close(self):
@@ -122,53 +108,75 @@ class Dependency(object):
             self._closed = True
 
 
-    def save_dependencies(self,taskId,dependencies):
-        """Save dependencies value.
+    ####### task specific
 
-        @param taskId: (string)
-        @param dependencies: (list of string)
+    def save_success(self, task):
+        """save info after a task is successfuly executed"""
+        # save self-result
+        if task.value is not None:
+            self._set(task.name, "result:", get_md5(task.value))
+
+        # run-once
+        if task.run_once:
+            self._set(task.name,'run-once:','1')# string could be any value
+
+        # file-dep
+        for dep in task.file_dep:
+            self._set(task.name, dep, md5sum(dep))
+
+        # result-dep
+        for dep in task.result_dep:
+            result = self._get(dep, "result:")
+            if result is not None:
+                self._set(task.name, "task:" + dep, result)
+
+
+    def remove_success(self, task):
+        if task.name in self._db and "result:" in self._db[task.name]:
+            del self._db[task.name]["result:"]
+
+
+    def up_to_date(self, task):
+        """Check if task is up to date. set task.dep_changed
+
+        @param task: (Task)
+        @return: (bool) True if up to date, False needs to re-execute.
+
+        task.dep_changed (list-strings): file-dependencies that are not
+        up-to-date if task not up-to-date because of a target, returned value
+        will contain all file-dependencies reagrdless they are up-to-date
+        or not.
         """
-        # list of files
-        for dep in dependencies:
-            self.save(taskId,dep)
-
-
-    def save_run_once(self,taskId):
-        """Save run_once task as executed"""
-        self._set(taskId,'','1')# string could be any value
-
-
-    def up_to_date(self, taskId, dependencies, targets, runOnce):
-        """Check if task is up to date.
-
-        @param taskId: (string)
-        @param dependencies: (list of string)
-        @param runOnce: (bool) task has dependencies but they are not managed
-        by doit. they can only be cleared manualy.
-        @return: (bool, changed) True if up to date, False needs to re-execute.
-            changed (list-strings): file-dependencies that are not up-to-date
-            if task not up-to-date because of a target, returned value
-            will contain all file-dependencies reagrdless they are up-to-date
-            or not.
-        """
-
+        task.dep_changed = []
         # no dependencies means it is never up to date.
-        if (not dependencies) and (not runOnce):
-            return False, []
+        if ((not task.file_dep) and (not task.result_dep)
+            and (not task.run_once)):
+            return False
 
-        # user managed dependency always up-to-date if it exists
-        if runOnce and not self._get(taskId,''):
-            return False, []
+        # user managed dependency not up-to-date if it doesnt exist
+        if task.run_once and not self._get(task.name, 'run-once:'):
+            return False
 
         # if target file is not there, task is not up to date
-        for targ in targets:
+        for targ in task.targets:
             if not os.path.exists(targ):
-                return False, dependencies
+                task.dep_changed = task.file_dep[:]
+                return False
 
         # check for modified dependencies
         changed = []
-        for dep in tuple(dependencies):
-            if self.modified(taskId,dep):
+        up_to_date = True
+        for dep in tuple(task.file_dep):
+            if self._get(task.name, dep) != md5sum(dep):
                 changed.append(dep)
+                up_to_date = False
 
-        return len(changed) == 0, changed
+        for dep in tuple(task.result_dep):
+            result = self._get(dep, "result:")
+            if ((result is None) or
+                (self._get(task.name,"task:" + dep) != result)):
+                up_to_date = False
+                break
+
+        task.dep_changed = changed #FIXME create a separate function for this
+        return up_to_date
