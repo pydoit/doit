@@ -1,10 +1,10 @@
 import sys
 import StringIO
 
-from doit.reporter import ConsoleReporter, ExecutedOnlyReporter
+from doit import reporter
 from doit.task import Task
 from doit import CatchedException
-
+from doit.dependency import json #FIXME move json import to __init__.py
 
 class BaseTestOutput(object):
     """base class for tests that use stdout"""
@@ -24,7 +24,7 @@ class BaseTestOutput(object):
 class TestConsoleReporter(BaseTestOutput):
     def setUp(self):
         BaseTestOutput.setUp(self)
-        self.rep = ConsoleReporter(True, True)
+        self.rep = reporter.ConsoleReporter(True, True)
         self.my_task = Task("t_name", None)
 
     def test_startTask(self):
@@ -66,7 +66,7 @@ class TestConsoleReporter(BaseTestOutput):
 class TestExecutedOnlyReporter(BaseTestOutput):
     def setUp(self):
         BaseTestOutput.setUp(self)
-        self.rep = ExecutedOnlyReporter(True, True)
+        self.rep = reporter.ExecutedOnlyReporter(True, True)
         self.my_task = Task("t_name", None)
 
     def test_skipUptodate(self):
@@ -82,3 +82,48 @@ class TestExecutedOnlyReporter(BaseTestOutput):
         t1 = Task("with_action",[(do_nothing,)])
         self.rep.execute_task(t1)
         assert "with_action" in sys.stdout.getvalue()
+
+
+
+class TestTaskResult(object):
+    def test(self):
+        def sample():
+            print "this is printed"
+        t1 = Task("t1", [(sample,)])
+        result = reporter.TaskResult(t1)
+        result.start()
+        t1.execute()
+        result.set_result('success')
+        got = result.to_dict()
+        assert t1.name == got['name'], got
+        assert 'success' == got['result'], got
+        assert "this is printed\n" == got['out'], got
+        assert "" == got['err'], got
+        assert got['started']
+        assert got['elapsed']
+
+
+class TestJsonReporter(BaseTestOutput):
+    def test(self):
+        rep = reporter.JsonReporter()
+        t1 = Task("t1", None)
+        t2 = Task("t2", None)
+        t3 = Task("t3", None)
+        expected = {'t1':'fail', 't2':'up-to-date', 't3':'success'}
+        # t1 fail
+        rep.start_task(t1)
+        rep.execute_task(t1)
+        rep.add_failure(t1, Exception('hi'))
+        # t2 skipped
+        rep.start_task(t2)
+        rep.skip_uptodate(t2)
+        # t3 success
+        rep.start_task(t3)
+        rep.execute_task(t3)
+        rep.add_success(t3)
+        # 
+        rep.complete_run()
+        got = json.loads(sys.stdout.getvalue())
+        assert expected[got[0]['name']] == got[0]['result'], got
+        assert expected[got[1]['name']] == got[1]['result'], got
+        assert expected[got[2]['name']] == got[2]['result'], got

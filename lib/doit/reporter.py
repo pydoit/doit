@@ -98,58 +98,63 @@ class ExecutedOnlyReporter(ConsoleReporter):
 
 
 class TaskResult(object):
-    def __init__(self, name):
-        self.name = name
-        self.result = None
-        self.log = None
-        self.started = None
-        self.elapsed = None
-        self._started_on = None
-        self._finished_on = None
+    # FIXME what about returned value from python-actions ?
+    # FIXME save raised exceptions
+    def __init__(self, task):
+        self.task = task
+        self.result = None # fail, success, up-to-date
+        self.out = None # stdout from task
+        self.err = None # stderr from task
+        self.started = None # datetime when task execution started
+        self.elapsed = None # time (in secs) taken to execute task
+        self._started_on = None # timestamp
+        self._finished_on = None # timestamp
 
-    def execute(self):
+    def start(self):
         self._started_on = time.time()
 
-    def set_result(self, task, result):
+    def set_result(self, result):
         self._finished_on = time.time()
         self.result = result
         # FIXME DRY
-        out = "".join([a.out for a in task.actions if a.out])
-        err = "".join([a.err for a in task.actions if a.err])
-        self.log = ("--err--\n" + err + "--out--\n" + out)
+        line_sep = "\n<------------------------------------------------>\n"
+        self.out = line_sep.join([a.out for a in self.task.actions if a.out])
+        self.err = line_sep.join([a.err for a in self.task.actions if a.err])
 
     def to_dict(self):
         if self._started_on is not None:
-            self.started =str(datetime.datetime.utcfromtimestamp(self._started_on))
+            started = datetime.datetime.utcfromtimestamp(self._started_on)
+            self.started = str(started)
             self.elapsed = self._finished_on - self._started_on
-        return {'name': self.name,
+        return {'name': self.task.name,
                 'result': self.result,
-                'log': self.log,
+                'out': self.out,
+                'err': self.err,
                 'started': self.started,
                 'elapsed': self.elapsed}
 
 
 class JsonReporter(object):
     """save results in a file using JSON"""
-    def __init__(self, show_out, show_err):
+    def __init__(self, show_out=None, show_err=None):
         # show_out, show_err parameters are ignored.
         # json result is sent to stdout when doit finishs running
         self.t_results = {}
 
     def start_task(self, task):
-        self.t_results[task.name] = TaskResult(task.name)
+        self.t_results[task.name] = TaskResult(task)
 
     def execute_task(self, task):
-        self.t_results[task.name].execute()
+        self.t_results[task.name].start()
 
     def add_failure(self, task, exception):
-        self.t_results[task.name].set_result(task, 'fail')
+        self.t_results[task.name].set_result('fail')
 
     def add_success(self, task):
-        self.t_results[task.name].set_result(task, 'success')
+        self.t_results[task.name].set_result('success')
 
     def skip_uptodate(self, task):
-        self.t_results[task.name].set_result(task, 'up-to-date')
+        self.t_results[task.name].set_result('up-to-date')
 
     def cleanup_error(self, exception):
         # TODO ???
@@ -157,8 +162,9 @@ class JsonReporter(object):
 
     def complete_run(self):
         json_data = [tr.to_dict() for tr in self.t_results.itervalues()]
-        json.dump(json_data, sys.stdout, indent=4)
-
+        # indent not available on simplejson 1.3 (debian etch)
+        # json.dump(json_data, sys.stdout, indent=4)
+        json.dump(json_data, sys.stdout)
 
 
 # name of reporters class available to be selected on cmd line
@@ -166,5 +172,3 @@ REPORTERS = {'default': ConsoleReporter,
              'executed-only': ExecutedOnlyReporter,
              'json': JsonReporter,
              }
-
-
