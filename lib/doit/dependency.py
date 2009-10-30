@@ -1,3 +1,4 @@
+
 """Manage (save/check) task dependency-on-files data."""
 
 import os
@@ -112,8 +113,8 @@ class Dependency(object):
 
     def save_success(self, task):
         """save info after a task is successfuly executed"""
-        # save self-result
-        if task.value is not None:
+        # save self-result - only strings can be saved.
+        if isinstance(task.value, str):
             self._set(task.name, "result:", get_md5(task.value))
 
         # run-once
