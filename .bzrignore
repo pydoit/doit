@@ -7,6 +7,7 @@ revision.txt
 temp
 _build
 tests/testdbm
+.svn
 doc/tutorial/python-logo.gif
 doc/tutorial/foo.tar
 doc/tutorial/hello.txt
