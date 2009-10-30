@@ -23,7 +23,10 @@ class FakeReporter(object):
         self.log.append(('success', task))
 
     def skip_uptodate(self, task):
-        self.log.append(('skip', task))
+        self.log.append(('up-to-date', task))
+
+    def skip_ignore(self, task):
+        self.log.append(('ignore', task))
 
     def cleanup_error(self, exception):
         self.log.append(('cleanup_error',))
@@ -60,6 +63,9 @@ class ConsoleReporter(object):
     def skip_uptodate(self, task):
         print "---", task.title()
 
+    def skip_ignore(self, task):
+        print "!!!", task.title()
+
 
     def cleanup_error(self, exception):
         sys.stderr.write(exception.get_msg())
@@ -90,6 +96,9 @@ class ExecutedOnlyReporter(ConsoleReporter):
     def skip_uptodate(self,task):
         pass
 
+    def skip_ignore(self,task):
+        pass
+
     def execute_task(self, task):
         # ignore tasks that do not define actions
         if task.actions:
@@ -102,7 +111,7 @@ class TaskResult(object):
     # FIXME save raised exceptions
     def __init__(self, task):
         self.task = task
-        self.result = None # fail, success, up-to-date
+        self.result = None # fail, success, up-to-date, ignore
         self.out = None # stdout from task
         self.err = None # stderr from task
         self.started = None # datetime when task execution started
@@ -155,6 +164,9 @@ class JsonReporter(object):
 
     def skip_uptodate(self, task):
         self.t_results[task.name].set_result('up-to-date')
+
+    def skip_ignore(self, task):
+        self.t_results[task.name].set_result('ignore')
 
     def cleanup_error(self, exception):
         # TODO ???

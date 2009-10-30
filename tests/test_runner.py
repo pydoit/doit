@@ -55,7 +55,17 @@ class TestRunningTask(BaseRunner):
         result2 = runner.run_tasks(TESTDB, tasks2, reporter2)
         assert runner.SUCCESS == result2
         assert ('start', tasks2[0]) == reporter2.log.pop(0)
-        assert ('skip', tasks2[0]) == reporter2.log.pop(0)
+        assert ('up-to-date', tasks2[0]) == reporter2.log.pop(0)
+
+    def test_ignore(self):
+        tasks = [Task("taskX", [my_print], dependencies=[__file__])]
+        dependencyManager = Dependency(TESTDB)
+        dependencyManager.ignore(tasks[0])
+        dependencyManager.close()
+        result = runner.run_tasks(TESTDB, tasks, self.reporter)
+        assert runner.SUCCESS == result
+        assert ('start', tasks[0]) == self.reporter.log.pop(0)
+        assert ('ignore', tasks[0]) == self.reporter.log.pop(0), self.reporter.log
 
     # whenever a task fails remaining task are not executed
     def test_failureOutput(self):
@@ -168,7 +178,7 @@ class TestRunningTask(BaseRunner):
         assert ('execute', t1) == self.reporter.log.pop(0)
         assert ('success', t1) == self.reporter.log.pop(0)
         assert ('start', t2) == self.reporter.log.pop(0)
-        assert ('skip', t2) == self.reporter.log.pop(0)
+        assert ('up-to-date', t2) == self.reporter.log.pop(0)
         # change t1, t2 executed again
         def ok2(): return "different"
         t1B = Task("t1", [(ok2,)])

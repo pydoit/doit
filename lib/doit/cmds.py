@@ -94,3 +94,35 @@ def doit_forget(dbFileName, taskList, forgetTasks):
                 dependencyManager.remove(to_forget)
                 print "forgeting %s" % to_forget
     dependencyManager.close()
+
+
+def doit_ignore(dbFileName, taskList, ignoreTasks):
+    """mark tasks to be ignored
+    @param dbFileName: (str)
+    @param taskList: (Task) tasks from dodo file
+    @param ignoreTasks: (list - str) tasks to be ignored.
+    """
+    # no task specified.
+    if not ignoreTasks:
+        print "You cant ignore all tasks! Please select a task."
+        return
+
+    dependencyManager = dependency.Dependency(dbFileName)
+    tasks = dict([(t.name, t) for t in taskList])
+    for taskName in ignoreTasks:
+        # check task exist
+        if taskName not in tasks:
+            msg = "'%s' is not a task."
+            raise InvalidCommand(msg % taskName)
+        # for group tasks also remove all tasks from group.
+        # FIXME: DRY
+        group = [taskName]
+        while group:
+            to_ignore = group.pop(0)
+            if not tasks[to_ignore].actions:
+                # get task dependencies only from group-task
+                group.extend(tasks[to_ignore].task_dep)
+            # ignore it - remove from dependency file
+            dependencyManager.ignore(tasks[to_ignore])
+            print "ignoring %s" % to_ignore
+    dependencyManager.close()

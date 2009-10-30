@@ -6,7 +6,6 @@
 . dont calculate hash of all files everytime. use timestamp/size/hash (see mercurial dirstate) (#370920)
 - dependency-checking functions (#438174)
 
-
 0.X
 ----------
 
@@ -23,7 +22,6 @@ whishlist
 . list command improvements
 . dont save successful results
 . forget a dependency, not a task
-. opposite of forget. mark as up-to-date.
 . color output on the terminal. (#263576)
 . use templates for output (see mercurial)
 

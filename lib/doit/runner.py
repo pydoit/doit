@@ -70,13 +70,18 @@ def run_tasks(dependencyFile, tasks, reporter, task_stdout=None,
         try:
             # check if task is up-to-date
             try:
-                task_uptodate = dependencyManager.up_to_date(task)
+                task_uptodate = dependencyManager.get_status(task)
             except Exception, exception:
                 raise DependencyError("ERROR checking dependencies", exception)
 
-            # if task id up-to-date skip it
-            if not alwaysExecute and task_uptodate:
+            # if task is up-to-date skip it
+            if not alwaysExecute and (task_uptodate=='up-to-date') :
                 reporter.skip_uptodate(task)
+                continue
+
+            # check if task should be ignored (user controlled)
+            if not alwaysExecute and (task_uptodate=='ignore') :
+                reporter.skip_ignore(task)
                 continue
 
             # setup env

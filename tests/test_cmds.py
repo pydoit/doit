@@ -6,7 +6,7 @@ import nose
 
 from doit.dependency import Dependency
 from doit.task import Task
-from doit.cmds import doit_list, doit_run, doit_clean, doit_forget
+from doit.cmds import doit_list, doit_run, doit_clean, doit_forget, doit_ignore
 from doit.main import InvalidCommand
 
 
@@ -177,3 +177,61 @@ class TestCmdClean(BaseTestOutput):
 
     def test_clean_selected(self):
         doit_clean(self.tasks, ['t2'])
+
+
+class TestCmdIgnore(BaseTestOutput):
+    def setUp(self):
+        BaseTestOutput.setUp(self)
+        if os.path.exists(TESTDB):
+            os.remove(TESTDB)
+
+        self.tasks = [Task("t1", [""]),
+                      Task("t2", [""]),
+                      Task("g1", None, (':g1.a',':g1.b')),
+                      Task("g1.a", [""]),
+                      Task("g1.b", [""]),
+                      Task("t3", [""], (':t1',)),
+                      Task("g2", None, (':t1',':g1'))]
+
+
+    def testIgnoreAll(self):
+        doit_ignore(TESTDB, self.tasks, [])
+        got = sys.stdout.getvalue().split("\n")[:-1]
+        assert ["You cant ignore all tasks! Please select a task."] == got, got
+        dep = Dependency(TESTDB)
+        for task in self.tasks:
+            assert None == dep._get(task.name, "ignore:")
+
+    def testIgnoreOne(self):
+        doit_ignore(TESTDB, self.tasks, ["t2", "t1"])
+        got = sys.stdout.getvalue().split("\n")[:-1]
+        assert ["ignoring t2", "ignoring t1"] == got
+        dep = Dependency(TESTDB)
+        assert '1' == dep._get("t1", "ignore:")
+        assert '1' == dep._get("t2", "ignore:")
+        assert None == dep._get("t3", "ignore:")
+
+    def testIgnoreGroup(self):
+        doit_ignore(TESTDB, self.tasks, ["g2"])
+        got = sys.stdout.getvalue().split("\n")[:-1]
+
+        dep = Dependency(TESTDB)
+        assert '1' == dep._get("t1", "ignore:"), got
+        assert None == dep._get("t2", "ignore:")
+        assert '1' == dep._get("g1", "ignore:")
+        assert '1' == dep._get("g1.a", "ignore:")
+        assert '1' == dep._get("g1.b", "ignore:")
+        assert '1' == dep._get("g2", "ignore:")
+
+    # if task dependency not from a group dont ignore it
+    def testDontIgnoreTaskDependency(self):
+        doit_ignore(TESTDB, self.tasks, ["t3"])
+        got = sys.stdout.getvalue().split("\n")[:-1]
+        dep = Dependency(TESTDB)
+        assert '1' == dep._get("t3", "ignore:")
+        assert None == dep._get("t1", "ignore:")
+
+    def testIgnoreInvalid(self):
+        nose.tools.assert_raises(InvalidCommand,
+                                 doit_ignore, TESTDB, self.tasks, ["XXX"])
+

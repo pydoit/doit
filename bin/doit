@@ -8,7 +8,7 @@ from doit import __version__ as doit_version
 from doit import main
 from doit import task
 from doit import cmdparse
-from doit.cmds import doit_run, doit_clean, doit_list, doit_forget
+from doit.cmds import doit_run, doit_clean, doit_list, doit_forget, doit_ignore
 
 
 # TODO cmd list should be automatically generated.
@@ -21,6 +21,7 @@ Commands:
  doit clean             clean action / remove targets
  doit list              list tasks from dodo file
  doit forget            clear successful run status from DB
+ doit ignore            ignore task (skip) on subsequent runs
  doit dodo-sample       create a sample dodo.py file
 
  doit help              show help / reference
@@ -206,6 +207,20 @@ def cmd_forget(params, args):
 
 
 ##########################################################
+########## ignore
+
+ignore_doc = {'purpose': "ignore task (skip) on subsequent runs",
+              'usage': "TASK [TASK ...]",
+              'description': None}
+
+def cmd_ignore(params, args):
+    dodo_module = main.get_module(params['dodoFile'])
+    command_names = params['sub'].keys()
+    dodo_tasks = main.load_task_generators(dodo_module, command_names)
+    return doit_ignore(params['dep_file'], dodo_tasks['task_list'], args)
+
+
+##########################################################
 ########## dodo-sample
 
 dodo_sample_description = \
@@ -368,6 +383,11 @@ def cmd_main():
     forget_options = (opt_dodo, opt_depfile,)
     subCmd['forget'] = cmdparse.Command('forget', forget_options,
                                         cmd_forget, forget_doc)
+
+    # ignore command
+    ignore_options = (opt_dodo, opt_depfile,)
+    subCmd['ignore'] = cmdparse.Command('ignore', ignore_options,
+                                        cmd_ignore, ignore_doc)
 
     # dodo-sample command
     subCmd['dodo-sample'] = cmdparse.Command('dodo-sample', () ,

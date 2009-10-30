@@ -12,6 +12,7 @@ Changes
 - added executed-only reporter
 - added json reporter
 - support for task-result dependency #438174
+- added sub-command ignore task
 
 
 0.4.0 (*2009-10-05*)

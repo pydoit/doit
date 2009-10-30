@@ -133,51 +133,60 @@ class Dependency(object):
 
 
     def remove_success(self, task):
+        """remove saved result from task"""
         if task.name in self._db and "result:" in self._db[task.name]:
             del self._db[task.name]["result:"]
 
 
-    def up_to_date(self, task):
+    def ignore(self, task):
+        """mark task to be ignored"""
+        self._set(task.name, 'ignore:', '1')
+
+
+    def get_status(self, task):
         """Check if task is up to date. set task.dep_changed
 
         @param task: (Task)
-        @return: (bool) True if up to date, False needs to re-execute.
+        @return: (str) one of up-to-date, ignore, run
 
         task.dep_changed (list-strings): file-dependencies that are not
         up-to-date if task not up-to-date because of a target, returned value
         will contain all file-dependencies reagrdless they are up-to-date
         or not.
         """
+        if self._get(task.name, "ignore:"):
+            return 'ignore'
+
         task.dep_changed = []
         # no dependencies means it is never up to date.
         if ((not task.file_dep) and (not task.result_dep)
             and (not task.run_once)):
-            return False
+            return 'run'
 
         # user managed dependency not up-to-date if it doesnt exist
         if task.run_once and not self._get(task.name, 'run-once:'):
-            return False
+            return 'run'
 
         # if target file is not there, task is not up to date
         for targ in task.targets:
             if not os.path.exists(targ):
                 task.dep_changed = task.file_dep[:]
-                return False
+                return 'run'
 
         # check for modified dependencies
         changed = []
-        up_to_date = True
+        status = 'up-to-date' # initial assumption
         for dep in tuple(task.file_dep):
             if self._get(task.name, dep) != md5sum(dep):
                 changed.append(dep)
-                up_to_date = False
+                status = 'run'
 
         for dep in tuple(task.result_dep):
             result = self._get(dep, "result:")
             if ((result is None) or
                 (self._get(task.name,"task:" + dep) != result)):
-                up_to_date = False
+                status = 'run'
                 break
 
         task.dep_changed = changed #FIXME create a separate function for this
-        return up_to_date
+        return status

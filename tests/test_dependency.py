@@ -172,26 +172,44 @@ class TestRemoveSuccess(DependencyTestBase):
         assert None is self.d._get(t1.name, "result:")
 
 
-class TestUpToDate(DependencyTestBase):
+class TestIgnore(DependencyTestBase):
+    def test_save_result(self):
+        t1 = Task('t_name', None)
+        self.d.ignore(t1)
+        assert '1' == self.d._get(t1.name, "ignore:")
+
+
+class TestGetStatus(DependencyTestBase):
+
+    def test_ignore(self):
+        t1 = Task("t1", None)
+        # before ignore
+        assert 'run' == self.d.get_status(t1)
+        assert [] == t1.dep_changed
+        # after ignote
+        self.d.ignore(t1)
+        assert 'ignore' == self.d.get_status(t1)
+        assert [] == t1.dep_changed
+
 
     # if there is no dependency the task is always executed
     def test_noDependency(self):
         t1 = Task("t1", None)
         # first time execute
-        assert False == self.d.up_to_date(t1)
+        assert 'run' == self.d.get_status(t1)
         assert [] == t1.dep_changed
         # second too
         self.d.save_success(t1)
-        assert False == self.d.up_to_date(t1)
+        assert 'run' == self.d.get_status(t1)
         assert [] == t1.dep_changed
 
 
     def test_runOnce(self):
         t1 = Task("t1", None, [True])
-        assert False == self.d.up_to_date(t1)
+        assert 'run' == self.d.get_status(t1)
         assert [] == t1.dep_changed
         self.d.save_success(t1)
-        assert True == self.d.up_to_date(t1)
+        assert 'up-to-date' == self.d.get_status(t1)
         assert [] == t1.dep_changed
 
 
@@ -204,7 +222,7 @@ class TestUpToDate(DependencyTestBase):
 
         t1 = Task("task x", None, [dep1], [target])
         self.d.save_success(t1)
-        assert False == self.d.up_to_date(t1)
+        assert 'run' == self.d.get_status(t1)
         assert [dep1] == t1.dep_changed
 
 
@@ -220,7 +238,7 @@ class TestUpToDate(DependencyTestBase):
 
         self.d.save_success(t1)
         # up-to-date because target exist
-        assert True == self.d.up_to_date(t1)
+        assert 'up-to-date' == self.d.get_status(t1)
         assert [] == t1.dep_changed
 
 
@@ -233,11 +251,11 @@ class TestUpToDate(DependencyTestBase):
         t1 = Task("task x", None, deps, [folderPath])
         self.d.save_success(t1)
 
-        assert False == self.d.up_to_date(t1)
+        assert 'run' == self.d.get_status(t1)
         assert deps == t1.dep_changed
         # create folder. task is up-to-date
         os.mkdir(folderPath)
-        assert True == self.d.up_to_date(t1)
+        assert 'up-to-date' == self.d.get_status(t1)
         assert [] == t1.dep_changed
 
 
@@ -251,12 +269,12 @@ class TestUpToDate(DependencyTestBase):
         t1 = Task("t1", None, dependencies)
 
         # first time execute
-        assert False == self.d.up_to_date(t1)
+        assert 'run' == self.d.get_status(t1)
         assert dependencies == t1.dep_changed
 
         # second time no
         self.d.save_success(t1)
-        assert True == self.d.up_to_date(t1)
+        assert 'up-to-date' == self.d.get_status(t1)
         assert [] == t1.dep_changed
 
         # a small change on the file
@@ -265,7 +283,7 @@ class TestUpToDate(DependencyTestBase):
         ff.close()
 
         # execute again
-        assert False == self.d.up_to_date(t1)
+        assert 'run' == self.d.get_status(t1)
         assert dependencies == t1.dep_changed
 
 
@@ -275,13 +293,13 @@ class TestUpToDate(DependencyTestBase):
         t1.value = "result"
         t2 = Task('t2', None, ['?t1'])
         self.d.save_success(t1)
-        assert False == self.d.up_to_date(t2)
+        assert 'run' == self.d.get_status(t2)
 
         # save t2 - ok
         self.d.save_success(t2)
-        assert True == self.d.up_to_date(t2)
+        assert 'up-to-date' == self.d.get_status(t2)
 
         # change t1
         t1.value = "another"
         self.d.save_success(t1)
-        assert False == self.d.up_to_date(t2)
+        assert 'run' == self.d.get_status(t2)

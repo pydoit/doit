@@ -41,6 +41,11 @@ class TestConsoleReporter(BaseTestOutput):
         assert "---" in sys.stdout.getvalue()
         assert "t_name" in sys.stdout.getvalue()
 
+    def test_skipIgnore(self):
+        self.rep.skip_ignore(self.my_task)
+        assert "!!!" in sys.stdout.getvalue()
+        assert "t_name" in sys.stdout.getvalue()
+
 
     def test_cleanupError(self):
         exception = CatchedException("I got you")
@@ -71,6 +76,10 @@ class TestExecutedOnlyReporter(BaseTestOutput):
 
     def test_skipUptodate(self):
         self.rep.skip_uptodate(self.my_task)
+        assert "" == sys.stdout.getvalue()
+
+    def test_skipIgnore(self):
+        self.rep.skip_ignore(self.my_task)
         assert "" == sys.stdout.getvalue()
 
     def test_executeGroupTask(self):
@@ -109,7 +118,9 @@ class TestJsonReporter(BaseTestOutput):
         t1 = Task("t1", None)
         t2 = Task("t2", None)
         t3 = Task("t3", None)
-        expected = {'t1':'fail', 't2':'up-to-date', 't3':'success'}
+        t4 = Task("t4", None)
+        expected = {'t1':'fail', 't2':'up-to-date',
+                    't3':'success', 't4':'ignore'}
         # t1 fail
         rep.start_task(t1)
         rep.execute_task(t1)
@@ -121,9 +132,16 @@ class TestJsonReporter(BaseTestOutput):
         rep.start_task(t3)
         rep.execute_task(t3)
         rep.add_success(t3)
-        # 
+        # t4 ignore
+        rep.start_task(t4)
+        rep.skip_ignore(t4)
+
         rep.complete_run()
         got = json.loads(sys.stdout.getvalue())
         assert expected[got[0]['name']] == got[0]['result'], got
         assert expected[got[1]['name']] == got[1]['result'], got
         assert expected[got[2]['name']] == got[2]['result'], got
+        assert expected[got[3]['name']] == got[3]['result'], got
+
+        # just ignore this
+        rep.cleanup_error(Exception('xx'))
