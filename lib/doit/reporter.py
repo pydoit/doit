@@ -83,7 +83,7 @@ class ConsoleReporter(object):
 
 
 class ExecutedOnlyReporter(ConsoleReporter):
-    """No output for skiped (up-tp-date) and group tasks
+    """No output for skipped (up-to-date) and group tasks
 
     Produces zero output unless a task is executed
     """

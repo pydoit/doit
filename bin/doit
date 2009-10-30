@@ -108,7 +108,7 @@ opt_reporter = {'name':'reporter',
                  'help':
 """Choose output reporter. Available:
 'default': report output on console
-'executed-only': no output for skiped (up-tp-date) and group tasks
+'executed-only': no output for skipped (up-to-date) and group tasks
 'json': output result in json format
 """
                  }
