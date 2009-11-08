@@ -138,10 +138,24 @@ class TestJsonReporter(BaseTestOutput):
 
         rep.complete_run()
         got = json.loads(sys.stdout.getvalue())
-        assert expected[got[0]['name']] == got[0]['result'], got
-        assert expected[got[1]['name']] == got[1]['result'], got
-        assert expected[got[2]['name']] == got[2]['result'], got
-        assert expected[got[3]['name']] == got[3]['result'], got
+        for task_result in got['tasks']:
+            assert expected[task_result['name']] == task_result['result'], got
 
         # just ignore this
         rep.cleanup_error(Exception('xx'))
+
+
+    def test_ignore_stdout(self):
+        rep = reporter.JsonReporter()
+        sys.stdout.write("info that doesnt belong to any task...")
+        sys.stderr.write('something on err')
+        t1 = Task("t1", None)
+        expected = {'t1':'success'}
+        rep.start_task(t1)
+        rep.execute_task(t1)
+        rep.add_success(t1)
+        rep.complete_run()
+        got = json.loads(sys.stdout.getvalue())
+        assert expected[got['tasks'][0]['name']] == got['tasks'][0]['result']
+        assert "info that doesnt belong to any task..." == got['out']
+        assert "something on err" == got['err']

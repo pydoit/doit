@@ -1,6 +1,7 @@
 import sys
 import time
 import datetime
+import StringIO
 
 from doit.dependency import json
 
@@ -147,8 +148,15 @@ class JsonReporter(object):
     """save results in a file using JSON"""
     def __init__(self, show_out=None, show_err=None):
         # show_out, show_err parameters are ignored.
-        # json result is sent to stdout when doit finishs running
+        # json result is sent to stdout when doit finishes running
         self.t_results = {}
+        # when using json reporter output can not contain any other output
+        # than the json data. so anything that is sent to stdout/err needs to
+        # be captured.
+        self._old_out = sys.stdout
+        sys.stdout = StringIO.StringIO()
+        self._old_err = sys.stderr
+        sys.stderr = StringIO.StringIO()
 
     def start_task(self, task):
         self.t_results[task.name] = TaskResult(task)
@@ -173,7 +181,16 @@ class JsonReporter(object):
         pass
 
     def complete_run(self):
-        json_data = [tr.to_dict() for tr in self.t_results.itervalues()]
+        # restore stdout
+        log_out = sys.stdout.getvalue()
+        sys.stdout = self._old_out
+        log_err = sys.stderr.getvalue()
+        sys.stderr = self._old_err
+
+        task_result_list = [tr.to_dict() for tr in self.t_results.itervalues()]
+        json_data = {'tasks': task_result_list,
+                     'out': log_out,
+                     'err': log_err}
         # indent not available on simplejson 1.3 (debian etch)
         # json.dump(json_data, sys.stdout, indent=4)
         json.dump(json_data, sys.stdout)
