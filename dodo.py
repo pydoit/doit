@@ -17,8 +17,10 @@ def task_checker():
 
 def task_nose():
     """run unit-tests"""
-    return {'actions':["nosetests"],
-            'dependencies':pyFiles}
+    for test in testFiles:
+        yield {'name': test,
+               'actions': ["nosetests %s" % test],
+               'dependencies': pyFiles}
 
 # TODO task should be able to control its default verbosity
 # this task will run but not show results by default! need to use -v2
