@@ -13,6 +13,7 @@ Changes
 - added json reporter
 - support for task-result dependency #438174
 - added sub-command ignore task
+- added command line option --outfile. write output to specified file path
 
 
 0.4.0 (*2009-10-05*)

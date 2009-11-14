@@ -58,6 +58,16 @@ opt_dodo = {'name': 'dodoFile',
             'help':"load task from dodo FILE [default: %(default)s]"
             }
 
+# select output file
+opt_outfile = {'name': 'outfile',
+            'short':'o',
+            'long': 'output-file',
+            'type': str,
+            'default': None,
+            'help':"write output into file [default: stdout]"
+            }
+
+
 # choose internal dependency file.
 opt_depfile = {'name': 'dep_file',
                'short':'',
@@ -140,7 +150,8 @@ def cmd_run(params, args):
         filter_ = args or dodo_tasks['default_tasks']
         return doit_run(params['dep_file'], dodo_tasks['task_list'],
                         filter_, params['verbosity'], params['always'],
-                        params['continue'], params['reporter'])
+                        params['continue'], params['reporter'],
+                        params['outfile'])
 
     # sub cmd different from "run" on cmd line. parse arguments again
     commands = params['sub']
@@ -367,7 +378,8 @@ def cmd_main():
 
     # run command
     run_options = (opt_version, opt_help, opt_dodo, opt_depfile,
-                   opt_always, opt_continue, opt_verbosity, opt_reporter)
+                   opt_always, opt_continue, opt_verbosity, opt_reporter,
+                   opt_outfile)
     subCmd['run'] = cmdparse.Command('run', run_options, cmd_run, run_doc)
 
     # clean command

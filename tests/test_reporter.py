@@ -1,3 +1,4 @@
+import os
 import sys
 import StringIO
 
@@ -19,6 +20,8 @@ class BaseTestOutput(object):
         sys.stdout = self.oldOut
         sys.stderr.close()
         sys.stderr = self.oldErr
+        if os.path.exists('test.out'):
+            os.remove('test.out')
 
 
 class TestConsoleReporter(BaseTestOutput):
@@ -59,13 +62,26 @@ class TestConsoleReporter(BaseTestOutput):
             catched = CatchedException("catched exception there", e)
         self.rep.add_failure(self.my_task, catched)
         self.rep.complete_run()
-        got = sys.stderr.getvalue()
+        got = sys.stdout.getvalue()
         # description
         assert "Exception: original exception message here" in got, got
         # traceback
         assert """raise Exception("original exception message here")""" in got
         # catched message
         assert "catched exception there" in got
+
+
+    def test_outfile(self):
+        rep = reporter.ConsoleReporter(True, True, 'test.out')
+        t1 = Task("t1", None)
+        rep.start_task(t1)
+        rep.execute_task(t1)
+        rep.add_success(t1)
+        rep.complete_run()
+        outfile = open('test.out', 'r')
+        got = outfile.read()
+        outfile.close()
+        assert "t1" in got, got
 
 
 class TestExecutedOnlyReporter(BaseTestOutput):
@@ -113,6 +129,7 @@ class TestTaskResult(object):
 
 
 class TestJsonReporter(BaseTestOutput):
+
     def test(self):
         rep = reporter.JsonReporter()
         t1 = Task("t1", None)
@@ -159,3 +176,19 @@ class TestJsonReporter(BaseTestOutput):
         assert expected[got['tasks'][0]['name']] == got['tasks'][0]['result']
         assert "info that doesnt belong to any task..." == got['out']
         assert "something on err" == got['err']
+
+
+    def test_outfile(self):
+        rep = reporter.JsonReporter(outfile='test.out')
+        t1 = Task("t1", None)
+        expected = {'t1':'success'}
+        rep.start_task(t1)
+        rep.execute_task(t1)
+        rep.add_success(t1)
+        rep.complete_run()
+        outfile = open('test.out', 'r')
+        out = outfile.read()
+        outfile.close()
+        got = json.loads(out)
+        assert expected[got['tasks'][0]['name']] == got['tasks'][0]['result']
+

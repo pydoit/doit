@@ -18,7 +18,7 @@ VERBOSITY = [(None, None), # None => capture
 
 def doit_run(dependencyFile, task_list, filter_=None,
              verbosity=0, alwaysExecute=False, continue_=False,
-             reporter='default'):
+             reporter='default', outfile=None):
     # get tasks to be executed
     selected_tasks = TaskSetup(task_list, filter_).process()
     task_stdout, task_stderr = VERBOSITY[verbosity]
@@ -28,7 +28,8 @@ def doit_run(dependencyFile, task_list, filter_=None,
                "of available reporters.")
         raise InvalidCommand(msg % reporter)
     reporter_cls = REPORTERS[reporter]
-    reporter_obj = reporter_cls(task_stdout is None, task_stderr is None)
+    reporter_obj = reporter_cls(task_stdout is None, task_stderr is None,
+                                outfile)
 
     return run_tasks(dependencyFile, selected_tasks, reporter_obj,
                      task_stdout, task_stderr, alwaysExecute, continue_)
