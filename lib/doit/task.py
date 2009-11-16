@@ -73,7 +73,7 @@ class CmdAction(BaseAction):
                     capture.write(line)
                     if realtime:
                         realtime.write(line)
-                if process.poll() != None:
+                if not line and process.poll() != None:
                     break
 
         output = StringIO.StringIO()
