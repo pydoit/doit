@@ -31,8 +31,9 @@ class Command(object):
         self.doc = doc
         # sanity checks
         # doc dict must contain all fields.
-        for field in self._doc_fields:
-            assert field in self.doc
+        if self.doc is not None:
+            for field in self._doc_fields:
+                assert field in self.doc
         # options must contain all fileds
         for opt in self.options:
             for field in ('name', 'short', 'long', 'type', 'default', 'help'):
@@ -40,6 +41,7 @@ class Command(object):
 
     def help(self):
         """return help text"""
+        assert self.doc is not None
         text = []
         text.append("Purpose: %s" % self.doc['purpose'])
         text.append("Usage:   doit %s %s" % (self.name, self.doc['usage']))
