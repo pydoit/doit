@@ -110,12 +110,12 @@ opt_verbosity = {'name':'verbosity',
                  'short':'v',
                  'long':'verbosity',
                  'type':int,
-                 'default': 0,
+                 'default': None,
                  'help':
 """0 capture (do not print) stdout/stderr from task.
 1 capture stdout only.
 2 dont capture anything (print everything immediately).
-[default: %(default)s]"""
+[default: 0]"""
                  }
 
 # reporter
@@ -155,9 +155,9 @@ def cmd_run(params, args):
         dodo_module = main.get_module(params['dodoFile'], params['cwdPath'])
         command_names = params['sub'].keys()
         dodo_tasks = main.load_task_generators(dodo_module, command_names)
-        filter_ = args or dodo_tasks['default_tasks']
+        options = args or dodo_tasks['default_tasks']
         return doit_run(params['dep_file'], dodo_tasks['task_list'],
-                        filter_, params['verbosity'], params['always'],
+                        options, params['verbosity'], params['always'],
                         params['continue'], params['reporter'],
                         params['outfile'])
 

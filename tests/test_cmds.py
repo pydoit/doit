@@ -149,13 +149,22 @@ class TestCmdRun(BaseTestOutput):
                 "t3 => Cmd: "] == got, repr(sys.stdout.getvalue())
 
     def testProcessRunFilter(self):
-        doit_run(TESTDB, TASKS_SAMPLE, filter_=["g1.a"])
+        doit_run(TESTDB, TASKS_SAMPLE, ["g1.a"])
         got = sys.stdout.getvalue().split("\n")[:-1]
         assert ["g1.a => Cmd: "] == got, repr(sys.stdout.getvalue())
 
     def testInvalidReporter(self):
         nose.tools.assert_raises(InvalidCommand,
                doit_run, TESTDB, TASKS_SAMPLE, reporter="i dont exist")
+
+    def testSetVerbosity(self):
+        t = Task('x', None)
+        used_verbosity = []
+        def my_execute(out, err, verbosity):
+            used_verbosity.append(verbosity)
+        t.execute = my_execute
+        doit_run(TESTDB, [t], verbosity=2)
+        assert 2 == used_verbosity[0], used_verbosity
 
 
 class TestCmdClean(BaseTestOutput):

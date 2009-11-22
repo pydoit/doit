@@ -348,6 +348,8 @@ class Task(object):
     @ivar taskopt: (cmdparse.Command)
     """
 
+    DEFAULT_VERBOSITY = 1
+
     # list of valid types/values for each task attribute.
     valid_attr = {'name': [str],
                   'actions': [list, tuple, None],
@@ -356,12 +358,14 @@ class Task(object):
                   'setup': [list, tuple],
                   'clean': [list, tuple, True],
                   'doc': [str, None],
-                  'params': [list, tuple]
+                  'params': [list, tuple],
+                  'verbosity': [None,0,1,2],
                   }
 
 
     def __init__(self, name, actions, dependencies=(), targets=(),
-                 setup=(), clean=(), is_subtask=False, doc=None, params=()):
+                 setup=(), clean=(), is_subtask=False, doc=None, params=(),
+                 verbosity=None):
         """sanity checks and initialization
 
         @param params: (list of option parameters) see cmdparse.Command.__init__
@@ -377,6 +381,7 @@ class Task(object):
         self.run_once = False
         self.is_subtask = is_subtask
         self.value = None #TODO document this
+        self.verbosity = verbosity
 
         # options
         self.taskcmd = cmdparse.TaskOption(name, params, None, None)
@@ -468,14 +473,24 @@ class Task(object):
         raise InvalidTask(msg % (task, attr, accept, str(value), type(value)))
 
 
-    def execute(self, out=None, err=None):
+    def execute(self, out=None, err=None, verbosity=None):
         """Executes the task.
 
         @raise TaskFailed: If raised when executing an action
         @raise TaskError: If raised when executing an action
         """
+        # select verbosity to be used
+        priority = (verbosity, # use command line option
+                    self.verbosity, # or task default from dodo file
+                    self.DEFAULT_VERBOSITY) # or global default
+        use_verbosity = [v for v in  priority if v is not None][0]
+
+        VERBOSITY = [(None, None), # 0
+                     (None, err),  # 1
+                     (out, err)]   # 2
+        task_stdout, task_stderr = VERBOSITY[use_verbosity]
         for action in self.actions:
-            action.execute(out, err)
+            action.execute(task_stdout, task_stderr)
             self.value = action.value
 
 
@@ -536,7 +551,7 @@ def dict_to_task(task_dict):
     """
     # TASK_ATTRS: sequence of know attributes(keys) of a task dict.
     TASK_ATTRS = ('name','actions','dependencies','targets','setup', 'doc',
-                  'clean', 'params')
+                  'clean', 'params', 'verbosity')
     # FIXME check field 'name'
 
     # check required fields
@@ -547,7 +562,7 @@ def dict_to_task(task_dict):
     # user friendly. dont go ahead with invalid input.
     for key in task_dict.keys():
         if key not in TASK_ATTRS:
-            raise InvalidTask("Task %s contains invalid field: %s"%
+            raise InvalidTask("Task %s contains invalid field: '%s'"%
                               (task_dict['name'],key))
 
     return Task(**task_dict)

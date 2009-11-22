@@ -20,19 +20,22 @@ def task_nose():
     for test in testFiles:
         yield {'name': test,
                'actions': ["nosetests %s" % test],
-               'dependencies': pyFiles}
+               'dependencies': pyFiles,
+               'verbosity': 0}
 
 # TODO task should be able to control its default verbosity
 # this task will run but not show results by default! need to use -v2
 def task_coverage():
     """show coverage for all modules including tests"""
     return {'actions':["nosetests --with-coverage --cover-erase "
-                       "--cover-package=doit,tests --cover-tests"]}
+                       "--cover-package=doit,tests --cover-tests"],
+            'verbosity': 2}
 
 def task_coverage_code():
     """show coverage for all modules (exclude tests)"""
     return {'actions':["nosetests --with-coverage --cover-erase "
-                       "--cover-package=doit"]}
+                       "--cover-package=doit"],
+            'verbosity': 2}
 
 def task_coverage_module():
     """show coverage for individual modules"""
@@ -41,4 +44,5 @@ def task_coverage_module():
             continue
         yield {'name': test,
                'actions':["nosetests --with-coverage --cover-erase "
-                          "--cover-package=doit,test --cover-tests %s" % test]}
+                          "--cover-package=doit,test --cover-tests %s" % test],
+               'verbosity': 2}

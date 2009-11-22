@@ -1,5 +1,7 @@
 """Task runner."""
 
+import sys
+
 from doit import CatchedException, TaskFailed, SetupError, DependencyError
 from doit.dependency import Dependency
 
@@ -46,8 +48,8 @@ SUCCESS = 0
 FAILURE = 1
 ERROR = 2
 
-def run_tasks(dependencyFile, tasks, reporter, task_stdout=None,
-              task_stderr=None, alwaysExecute=False, continue_=False):
+def run_tasks(dependencyFile, tasks, reporter, verbosity=None,
+              alwaysExecute=False, continue_=False):
     """This will actually run/execute the tasks.
     It will check file dependencies to decide if task should be executed
     and save info on successful runs.
@@ -56,8 +58,7 @@ def run_tasks(dependencyFile, tasks, reporter, task_stdout=None,
     @param dependencyFile: (string) file path of the db file
     @param tasks: (list) - L{Task} tasks to be executed
     @param reporter: reporter to be used. It can be a class or an object
-    @param task_stdout: file like obj or None to capture
-    @param task_stderr: file like obj or None to capture
+    @param verbosity: (int) 0,1,2 see Task.execute
     @param alwaysExecute: (bool) execute even if up-to-date
     @param continue_: (bool) execute all tasks even after a task failure
     """
@@ -90,7 +91,7 @@ def run_tasks(dependencyFile, tasks, reporter, task_stdout=None,
 
             # finally execute it!
             reporter.execute_task(task)
-            task.execute(task_stdout, task_stderr)
+            task.execute(sys.stdout, sys.stderr, verbosity)
 
             # save execution successful
             dependencyManager.save_success(task)
