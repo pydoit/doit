@@ -124,9 +124,22 @@ class TestLoadTaskGenerators(object):
         assert "task doc" == dodo['task_list'][0].doc, dodo['task_list'][0].doc
 
 
+    def testSetCwd(self):
+        fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
+        cwd = os.path.join(os.path.dirname(__file__), "data")
+        dodo_module = get_module(fileName, cwd)
+        assert os.getcwd() == cwd, os.getcwd()
+
+
+    def testInvalidCwd(self):
+        fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
+        cwd = os.path.join(os.path.dirname(__file__), "dataX")
+        nose.tools.assert_raises(InvalidCommand, get_module, fileName, cwd)
+
+
 class TestDodoDefaultTasks(object):
     # to avoid creating many files for testing i am modifying the module
-    # dinamically. but it is tricky because python optmizes it and loads
+    # dynamically. but it is tricky because python optmizes it and loads
     # it just once. so need to clean up variables that i messed up.
 
     def setUp(self):

@@ -21,7 +21,6 @@ Commands:
  doit list              list tasks from dodo file
  doit forget            clear successful run status from DB
  doit ignore            ignore task (skip) on subsequent runs
- doit dodo-sample       create a sample dodo.py file
 
  doit help              show help / reference
  doit help <command>    show command usage
@@ -56,6 +55,16 @@ opt_dodo = {'name': 'dodoFile',
             'default': 'dodo.py',
             'help':"load task from dodo FILE [default: %(default)s]"
             }
+
+# cwd
+opt_cwd = {'name': 'cwdPath',
+           'short':'d',
+           'long': 'dir',
+           'type': str,
+           'default': None,
+           'help':("set path to be used as cwd directory (file paths on " +
+                   "dodo file are relative to dodo.py location.")
+           }
 
 # select output file
 opt_outfile = {'name': 'outfile',
@@ -143,7 +152,7 @@ def cmd_run(params, args):
 
     # check if command is "run". default command is "run"
     if len(args) == 0 or args[0] not in params['sub']:
-        dodo_module = main.get_module(params['dodoFile'])
+        dodo_module = main.get_module(params['dodoFile'], params['cwdPath'])
         command_names = params['sub'].keys()
         dodo_tasks = main.load_task_generators(dodo_module, command_names)
         filter_ = args or dodo_tasks['default_tasks']
@@ -183,7 +192,7 @@ opt_list_quiet = {'name': 'quiet',
 
 # TODO list should support "args" as a filter.
 def cmd_list(params, args):
-    dodo_module = main.get_module(params['dodoFile'])
+    dodo_module = main.get_module(params['dodoFile'], params['cwdPath'])
     command_names = params['sub'].keys()
     dodo_tasks = main.load_task_generators(dodo_module, command_names)
     return doit_list(dodo_tasks['task_list'], params['all'], params['quiet'])
@@ -196,7 +205,7 @@ clean_doc = {'purpose': "clean action / remove targets",
              'description': None}
 
 def cmd_clean(params, args):
-    dodo_module = main.get_module(params['dodoFile'])
+    dodo_module = main.get_module(params['dodoFile'], params['cwdPath'])
     command_names = params['sub'].keys()
     dodo_tasks = main.load_task_generators(dodo_module, command_names)
     return doit_clean(dodo_tasks['task_list'], args)
@@ -210,7 +219,7 @@ forget_doc = {'purpose': "clear successful run status from internal DB",
               'description': None}
 
 def cmd_forget(params, args):
-    dodo_module = main.get_module(params['dodoFile'])
+    dodo_module = main.get_module(params['dodoFile'], params['cwdPath'])
     command_names = params['sub'].keys()
     dodo_tasks = main.load_task_generators(dodo_module, command_names)
     return doit_forget(params['dep_file'], dodo_tasks['task_list'], args)
@@ -224,130 +233,10 @@ ignore_doc = {'purpose': "ignore task (skip) on subsequent runs",
               'description': None}
 
 def cmd_ignore(params, args):
-    dodo_module = main.get_module(params['dodoFile'])
+    dodo_module = main.get_module(params['dodoFile'], params['cwdPath'])
     command_names = params['sub'].keys()
     dodo_tasks = main.load_task_generators(dodo_module, command_names)
     return doit_ignore(params['dep_file'], dodo_tasks['task_list'], args)
-
-
-##########################################################
-########## dodo-sample
-
-dodo_sample_description = \
-"""Print a commented sample dodo file to stdout.
-This file contains an example of all supported features."""
-
-dodo_sample_doc = {'purpose': "create a dodo file from command line",
-                   'usage': "",
-                   'description': dodo_sample_description}
-
-def cmd_dodo_sample(params, args):
-    print """
-## this is a quick reference. with small examples. for full instruction check
-## the tutorial on the website.
-## NOTE this file contains references for files that doesn't exist so you
-## can NOT run it!
-
-# name tasks that will be executed by default if nothing specified on
-# command line
-DEFAULT_TASKS = ['hello', 'py']
-
-
-### task actions
-
-# python-action
-def my_function(foo, bar=0, zeta=0):
-    # do whatever here
-    #must return True to indicate it was completed successfully
-    return True
-
-# command-action
-cmd_simple = "echo foo bar"
-cmd_two = "echo more"
-
-
-### tasks - a method that starts with the string "task_"
-# it is actually a task generator. tasks are described by
-# its: actions, dependencies, targets.
-
-def task_hello():
-    return {'actions': [cmd_simple, cmd_two],
-            'dependencies': ['file1.txt'],
-            'targets': ['target1.out']
-            }
-
-
-### python actions can also take args & kwargs passed in a tuple
-def task_py():
-    return {'actions': [(my_function, [5], {'zeta': 6})],
-            }
-
-
-### sub-task. create many tasks with same action. must have a name.
-MY_FILES = ['file1.txt', 'file2.txt', 'file3.txt']
-def task_many():
-    for fin in MY_FILES:
-        yield {'name': fin,
-               'actions': ["echo %s" % fin]}
-
-
-### dependencies can be another task. use ":" before task name
-def task_target_dep():
-    return {'actions': ["echo xxx"],
-            'dependencies': [':many']
-            }
-
-
-
-### run task only once if target exist. set dependency "True"
-def task_run_once():
-    return {'actions': ["echo xxx > out.txt"],
-            'dependencies': [True],
-            'targets': ['out.txt']
-            }
-
-
-### group tasks. just set action to None. add group as dependencies.
-def task_mygroup():
-    return {'actions': None,
-            'dependencies': [':py', ':run_once']
-            }
-
-
-### task setup env. good for functional tests!
-# pass an object that optionally defines methods: "setup" and
-# "cleanup". tasks can share the same object.
-class SetupSample(object):
-    def __init__(self, server):
-        self.server = server
-        self.executed = 0
-        self.cleaned = 0
-
-    def setup(self):
-        # start server
-        self.executed += 1
-
-    def cleanup(self):
-        # stop server
-        self.cleaned += 1
-
-setupX = SetupSample('x')
-setupY = SetupSample('y')
-
-def task_withenvX():
-    for fin in MY_FILES:
-        yield {'name': fin,
-               'actions':['echo x'],
-               'setup': setupX}
-
-def task_withenvY():
-    return {'actions':['echo x'],
-            'setup': setupY}
-
-"""
-    return 0
-
-
 
 
 ##########################################################
@@ -376,33 +265,29 @@ def cmd_main():
     subCmd['help'] = cmdparse.Command('help', (), cmd_help, help_doc)
 
     # run command
-    run_options = (opt_version, opt_help, opt_dodo, opt_depfile,
+    run_options = (opt_version, opt_help, opt_dodo, opt_cwd, opt_depfile,
                    opt_always, opt_continue, opt_verbosity, opt_reporter,
                    opt_outfile)
     subCmd['run'] = cmdparse.Command('run', run_options, cmd_run, run_doc)
 
     # clean command
-    clean_options = (opt_dodo,)
+    clean_options = (opt_dodo, opt_cwd)
     subCmd['clean'] = cmdparse.Command('clean', clean_options, cmd_clean,
                                        clean_doc)
 
     # list command
-    list_options = (opt_dodo, opt_listall, opt_list_quiet)
+    list_options = (opt_dodo, opt_cwd, opt_listall, opt_list_quiet)
     subCmd['list'] = cmdparse.Command('list', list_options, cmd_list, list_doc)
 
     # forget command
-    forget_options = (opt_dodo, opt_depfile,)
+    forget_options = (opt_dodo, opt_cwd, opt_depfile,)
     subCmd['forget'] = cmdparse.Command('forget', forget_options,
                                         cmd_forget, forget_doc)
 
     # ignore command
-    ignore_options = (opt_dodo, opt_depfile,)
+    ignore_options = (opt_dodo, opt_cwd, opt_depfile,)
     subCmd['ignore'] = cmdparse.Command('ignore', ignore_options,
                                         cmd_ignore, ignore_doc)
-
-    # dodo-sample command
-    subCmd['dodo-sample'] = cmdparse.Command('dodo-sample', () ,
-                                             cmd_dodo_sample, dodo_sample_doc)
 
 
     try:

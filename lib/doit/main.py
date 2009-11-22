@@ -27,22 +27,36 @@ def isgenerator(object):
     return type(object) is types.GeneratorType
 
 
-def get_module(dodoFile):
+def get_module(dodoFile, cwd=None):
     """
-    @param dodoFile: (string) path to file containing the tasks
+    @param dodoFile(str): path to file containing the tasks
+    @param cwd(str): path to be used cwd, if None use path from dodoFile
     @return (module) dodo module
     """
     ## load module dodo file and set environment
     base_path, file_name = os.path.split(os.path.abspath(dodoFile))
-    # make sure dir is on sys.path so we can import it
+    # make sure dodo path is on sys.path so we can import it
     sys.path.insert(0, base_path)
-    # file specified on dodo file are relative to itself.
-    os.chdir(base_path)
-    if not os.path.exists(file_name):
+
+    if cwd is None:
+        # by default cwd is same as dodo.py base path
+        full_cwd = base_path
+    else:
+        # insert specified cwd into sys.path
+        full_cwd = os.path.abspath(cwd)
+        if not os.path.isdir(full_cwd):
+            msg = "Specified 'dir' path must be a directory.\nGot '%s'(%s)."
+            raise InvalidCommand(msg % (cwd, full_cwd))
+        sys.path.insert(0, full_cwd)
+
+    if not os.path.exists(dodoFile):
         msg = ("Could not find dodo file '%s'.\n" +
-               "Please use '-f' to specify file name.\n" +
-               "Use the command 'dodo-sample' to view a sample dodo file.\n")
+               "Please use '-f' to specify file name.\n")
         raise InvalidDodoFile(msg % dodoFile)
+
+    # file specified on dodo file are relative to cwd
+    os.chdir(full_cwd)
+
     # get module containing the tasks
     return __import__(os.path.splitext(file_name)[0])
 
