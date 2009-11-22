@@ -152,7 +152,7 @@ class TaskSetup(object):
     """
     Process dependencies and targets to find out the order tasks
     should be executed. Also apply filter to exclude tasks from
-    execution.
+    execution. And parse task cmd line options.
 
     @ivar filter: (sequence of strings) selection of tasks to execute
     @ivar tasks: (dict) Key: task name ([taskgen.]name)
@@ -161,9 +161,8 @@ class TaskSetup(object):
                           Value: L{Task} instance
     """
 
-    def __init__(self, task_list, filter_=None):
+    def __init__(self, task_list, cmd_opt=None):
 
-        self.filter = filter_
         self.targets = {}
         # name of task in order to be executed
         # this the order as in the dodo file. the real execution
@@ -185,6 +184,23 @@ class TaskSetup(object):
 
             self.tasks[task.name] = task
             self.task_order.append(task.name)
+
+        # process cmd line task options
+        # [task_name [-task_opt [opt_value]] ...] ...
+        self.filter = None
+        if cmd_opt is not None:
+            self.filter = []
+            seq = cmd_opt[:]
+            # process cmd_opts until nothing left
+            while seq:
+                f_name = seq.pop(0) # always start with a task/target name
+                self.filter.append(f_name)
+                if f_name not in self.tasks:
+                    continue # target specified, dont accept opts
+                # parse cmd_opt
+                the_task = self.tasks[f_name]
+                # remaining items are other tasks not positional options
+                the_task.options, seq = the_task.taskcmd.parse(seq)
 
 
         # check task-dependencies exist.
@@ -213,6 +229,7 @@ class TaskSetup(object):
                 if (dep in self.targets and
                     self.targets[dep] not in task.task_dep):
                     task.task_dep.append(self.targets[dep].name)
+
 
 
     def _filter_tasks(self):

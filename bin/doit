@@ -2,7 +2,6 @@
 
 import sys
 import traceback
-import getopt
 
 from doit import __version__ as doit_version
 from doit import main
@@ -410,9 +409,8 @@ def cmd_main():
         return subCmd['run'](sys.argv[1:], sub=subCmd)
 
     # wrong command line usage. help user
-    except getopt.GetoptError, err:
+    except cmdparse.CmdParseError, err:
         print str(err)
-        print "see: doit help <cmd>"
         return 1
 
     # in python 2.4 SystemExit and KeyboardInterrupt subclass

@@ -304,6 +304,8 @@ class TestTaskCheckInput(object):
         assert_raises(task.InvalidTask, task.Task.check_attr_input, 'xxx',
                       'attr', True, [list, False])
 
+
+
 class TestTask(object):
 
     def test_groupTask(self):
@@ -358,6 +360,14 @@ class TestTask(object):
         assert t.file_dep == [dep[0],dep[2]]
         assert t.result_dep == [dep[3][1:]]
 
+
+    def test_options(self):
+        # when task is created, options contain the default values
+        p1 = {'name':'p1', 'default':'p1-default'}
+        p2 = {'name':'p2', 'default':'', 'short':'m'}
+        t = task.Task("MyName", None, params=[p1, p2])
+        assert 'p1-default' == t.options['p1']
+        assert '' == t.options['p2']
 
 
 class TestTaskActions(object):
@@ -526,7 +536,7 @@ class TestDictToTask(object):
         assert_raises(task.InvalidTask, task.dict_to_task, {'name':'xpto 14'})
 
 
-class TestCmdFormatting(object):
+class TestCmdExpandAction(object):
 
     def test_task_meta_reference(self):
         cmd = "python %s/myecho.py" % TEST_PATH
@@ -542,8 +552,17 @@ class TestCmdFormatting(object):
         assert t.dep_changed == got[1].split(), got[1]
         assert targets == got[2].split(), got[2]
 
+    def test_task_options(self):
+        cmd = "python %s/myecho.py" % TEST_PATH
+        cmd += " %(opt1)s - %(opt2)s"
+        t = task.Task('with_options', [cmd])
+        t.options = {'opt1':'3', 'opt2':'abc def'}
+        t.execute()
+        got = t.actions[0].out.strip()
+        assert "3 - abc def" == got, repr(got)
 
-class TestPythonActionExtraArgs(object):
+
+class TestPythonActionPrepareKwargsMeta(object):
     def setUp(self):
         self.task = task.Task('name',None,['dependencies'],['targets'])
         self.task.dep_changed = ['changed']
@@ -615,3 +634,15 @@ class TestPythonActionExtraArgs(object):
         action = task.PythonAction(py_callable, ('a', 'b'))
         action.task = self.task
         assert_raises(task.InvalidTask, action.execute)
+
+class TestPythonActionOptions(object):
+    def test_task_options(self):
+        got = []
+        def py_callable(opt1, opt3):
+            got.append(opt1)
+            got.append(opt3)
+        t = task.Task('with_options', [py_callable])
+        t.options = {'opt1':'1', 'opt2':'abc def', 'opt3':3}
+        t.execute()
+        assert ['1',3] == got, repr(got)
+

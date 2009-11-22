@@ -1,17 +1,14 @@
-import getopt
 import nose
 
 from doit import cmdparse
 
 opt_bool = {'name': 'flag',
             'short':'f',
-            'long': '',
             'type': bool,
             'default': False,
             'help': 'help for opt1'}
 
 opt_rare = {'name': 'rare',
-            'short':'',
             'long': 'rare-bool',
             'type': bool,
             'default': False,
@@ -33,6 +30,23 @@ opt_no = {'name': 'no',
 
 def cmd_xxx(params, args):
     return params, args
+
+class TestCommandInit(object):
+
+    def test_non_required_fields(self):
+        opt1 = {'name':'op1', 'default':''}
+        cmd = cmdparse.Command('xxx', [opt1], None, None)
+        assert 'long' in cmd.options[0]
+
+    def test_invalid_field(self):
+        opt1 = {'name':'op1', 'default':'', 'non_existent':''}
+        nose.tools.assert_raises(cmdparse.CmdParseError,
+                                 cmdparse.Command, 'xxx', [opt1], None, None)
+
+    def test_missing_field(self):
+        opt1 = {'name':'op1', 'long':'abc'}
+        nose.tools.assert_raises(cmdparse.CmdParseError,
+                                 cmdparse.Command, 'xxx', [opt1], None, None)
 
 
 class TestCommand(object):
@@ -60,10 +74,10 @@ class TestCommand(object):
         assert ["rare-bool", "number="] == self.cmd.get_long()
 
     def test_getOption(self):
-        assert opt_bool == self.cmd.get_option('-f')
-        assert opt_rare == self.cmd.get_option('--rare-bool')
-        assert opt_int == self.cmd.get_option('-n')
-        assert opt_int == self.cmd.get_option('--number')
+        assert opt_bool['name'] == self.cmd.get_option('-f')['name']
+        assert opt_rare['name'] == self.cmd.get_option('--rare-bool')['name']
+        assert opt_int['name'] == self.cmd.get_option('-n')['name']
+        assert opt_int['name'] == self.cmd.get_option('--number')['name']
         assert None == self.cmd.get_option('not-there')
 
 
@@ -96,4 +110,4 @@ class TestCommand(object):
         assert 7 == params['num']
 
     def test_failCall(self):
-        nose.tools.assert_raises(getopt.GetoptError, self.cmd,['-x','35'])
+        nose.tools.assert_raises(cmdparse.CmdParseError, self.cmd,['-x','35'])

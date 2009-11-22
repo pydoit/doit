@@ -191,10 +191,11 @@ TASKS_SAMPLE = [Task("t1", [""], doc="t1 doc string"),
                 Task("g1", None, doc="g1 doc string"),
                 Task("g1.a", [""], doc="g1.a doc string", is_subtask=True),
                 Task("g1.b", [""], doc="g1.b doc string", is_subtask=True),
-                Task("t3", [""], doc="t3 doc string")]
+                Task("t3", [""], doc="t3 doc string",
+                     params=[{'name':'opt1','long':'message','default':''}])]
 
 
-class TestTaskSetupFilter(object):
+class TestTaskSetupCmdOptions(object):
     def testFilter(self):
         filter_ = ['t2', 't3']
         ts = TaskSetup(TASKS_SAMPLE, filter_)
@@ -220,6 +221,12 @@ class TestTaskSetupFilter(object):
         filter_ = []
         ts = TaskSetup(TASKS_SAMPLE, filter_)
         assert filter_ == ts.process()
+
+    def testOptions(self):
+        options = ["t3", "--message", "hello option!", "t1"]
+        ts = TaskSetup(TASKS_SAMPLE, options)
+        assert ['t3', 't1'] == ts.filter
+        assert "hello option!" == ts.tasks['t3'].options['opt1']
 
 
 class TestOrderTasks(object):

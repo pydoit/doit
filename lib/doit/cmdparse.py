@@ -4,6 +4,10 @@ Built on top of getopt. optparse can't handle sub-commands.
 """
 import getopt
 
+class CmdParseError(Exception):
+    """Error parsing options """
+
+
 class Command(object):
     """
     @ivar name (string): command name
@@ -21,23 +25,52 @@ class Command(object):
                              with the result of the parse method.
     @ivar doc (dict): dictionary containing help information. see _doc_fields.
     """
+    _type = "Command option"
     # description can be None or string. other fields must be string.
     _doc_fields = ('purpose', 'usage', 'description')
+    _option_fields = ('name', 'default', 'short', 'long', 'type', 'help')
+    # default values for option meta data
+    _defaults = {'short': '',
+                 'long': '',
+                 'type': str,
+                 'help': ''}
+
 
     def __init__(self, name, options, do_cmd, doc):
         self.name = name
-        self.options = options
         self.do_cmd = do_cmd
-        self.doc = doc
-        # sanity checks
-        # doc dict must contain all fields.
-        if self.doc is not None:
+        self.options = []
+
+        for original_opt in options:
+            opt = dict(original_opt)
+
+            # options must contain these fields
+            for field in ('name', 'default',):
+                if field not in opt:
+                    msg = "%s dict from '%s' missing required property '%s'"
+                    raise CmdParseError(msg % (self._type ,self.name, field))
+
+            # options can not contain any unrecognized field
+            for field in opt.keys():
+                if field not in self._option_fields:
+                    msg = "%s dict from '%s' contains invalid property '%s'"
+                    raise CmdParseError(msg % (self._type ,self.name, field))
+
+            # add defaults
+            for key, value in self._defaults.iteritems():
+                if key not in opt:
+                    opt[key] = value
+            self.options.append(opt)
+
+        # doc must be None or dict contain all fields.
+        if doc is not None:
+            self.doc = dict(doc)
             for field in self._doc_fields:
                 assert field in self.doc
-        # options must contain all fileds
-        for opt in self.options:
-            for field in ('name', 'short', 'long', 'type', 'default', 'help'):
-                assert field in opt, "missing '%s' in %s" % (field, opt)
+        else:
+            self.doc = None
+
+
 
     def help(self):
         """return help text"""
@@ -126,7 +159,11 @@ class Command(object):
         params.update(kwargs)
 
         # parse options using getopt
-        opts,args = getopt.getopt(in_args,self.get_short(),self.get_long())
+        try:
+            opts,args = getopt.getopt(in_args,self.get_short(),self.get_long())
+        except Exception, e:
+            msg = "Error parsing %s for '%s': %s (parsing options: %s)"
+            raise CmdParseError(msg % (self._type, self.name, str(e), in_args))
 
         # update params with values from command line
         for opt, val in opts:
@@ -148,3 +185,7 @@ class Command(object):
         """
         params, args = self.parse(in_args, **kwargs)
         return self.do_cmd(params, args)
+
+
+class TaskOption(Command):
+    _type = "Task option"

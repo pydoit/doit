@@ -2,7 +2,7 @@
 ------------
 
 - continue execution even if tasks fails (#441081)
-. passing arguments on cmd line (#370914)
+- passing arguments on cmd line (#370914)
 . dont calculate hash of all files everytime. use timestamp/size/hash (see mercurial dirstate) (#370920)
 - dependency-checking functions (#438174)
 

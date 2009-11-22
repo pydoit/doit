@@ -6,6 +6,7 @@ import os
 from threading import Thread
 
 from doit import TaskFailed, TaskError
+from doit import cmdparse
 
 # Exceptions
 class InvalidTask(Exception):
@@ -116,6 +117,8 @@ class CmdAction(BaseAction):
         # just included changed if it is set
         if self.task.dep_changed is not None:
             subs_dict['changed'] = " ".join(self.task.dep_changed)
+        # task option parameters
+        subs_dict.update(self.task.options)
         return self.action % subs_dict
 
 
@@ -178,7 +181,8 @@ class PythonAction(BaseAction):
 
     def _prepare_kwargs(self):
         """
-        Prepare keyword arguments (targets, dependencies, changed)
+        Prepare keyword arguments (targets, dependencies, changed,
+        cmd line options)
         Inspect python callable and add missing arguments:
         - that the callable expects
         - have not been passed (as a regular arg or as keyword arg)
@@ -198,6 +202,9 @@ class PythonAction(BaseAction):
         extra_args = {'targets': self.task.targets,
                       'dependencies': self.task.file_dep,
                       'changed': self.task.dep_changed}
+
+        # tasks parameter options
+        extra_args.update(self.task.options)
         kwargs = self.kwargs.copy()
 
         for key in extra_args.keys():
@@ -222,7 +229,6 @@ class PythonAction(BaseAction):
             # if function has **kwargs include extra_arg on it
             elif argspec_keywords and key not in self.kwargs:
                 kwargs[key] = extra_args[key]
-
         return kwargs
 
 
@@ -337,6 +343,9 @@ class Task(object):
           (any object with setup or cleanup method)
     @ivar is_subtask: (bool) indicate this task is a subtask.
     @ivar doc: (string) task documentation
+
+    @ivar options: (dict) calculate params values
+    @ivar taskopt: (cmdparse.Command)
     """
 
     # list of valid types/values for each task attribute.
@@ -346,13 +355,17 @@ class Task(object):
                   'targets': [list, tuple],
                   'setup': [list, tuple],
                   'clean': [list, tuple, True],
-                  'doc': [str, None]
+                  'doc': [str, None],
+                  'params': [list, tuple]
                   }
 
 
     def __init__(self, name, actions, dependencies=(), targets=(),
-                 setup=(), clean=(), is_subtask=False, doc=None):
-        """sanity checks and initialization"""
+                 setup=(), clean=(), is_subtask=False, doc=None, params=()):
+        """sanity checks and initialization
+
+        @param params: (list of option parameters) see cmdparse.Command.__init__
+        """
 
         # check task attributes input
         for attr, valid_list in self.valid_attr.iteritems():
@@ -363,7 +376,13 @@ class Task(object):
         self.setup = setup
         self.run_once = False
         self.is_subtask = is_subtask
-        self.value = None
+        self.value = None #TODO document this
+
+        # options
+        self.taskcmd = cmdparse.TaskOption(name, params, None, None)
+        # put default values on options. this will be overwritten, if params
+        # options were passed on the command line.
+        self.options = self.taskcmd.parse('')[0] # ignore positional parameters
 
         if actions is None:
             self.actions = []
@@ -517,7 +536,7 @@ def dict_to_task(task_dict):
     """
     # TASK_ATTRS: sequence of know attributes(keys) of a task dict.
     TASK_ATTRS = ('name','actions','dependencies','targets','setup', 'doc',
-                  'clean')
+                  'clean', 'params')
     # FIXME check field 'name'
 
     # check required fields
@@ -528,7 +547,7 @@ def dict_to_task(task_dict):
     # user friendly. dont go ahead with invalid input.
     for key in task_dict.keys():
         if key not in TASK_ATTRS:
-            raise InvalidTask("Task %s contain invalid field: %s"%
+            raise InvalidTask("Task %s contains invalid field: %s"%
                               (task_dict['name'],key))
 
     return Task(**task_dict)
