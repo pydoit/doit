@@ -143,7 +143,6 @@ class TestCmdRun(BaseTestOutput):
 
         assert ["t1 => Cmd: ",
                 "t2 => Cmd: ",
-                "g1 => Group: ",
                 "g1.a => Cmd: ",
                 "g1.b => Cmd: ",
                 "t3 => Cmd: "] == got, repr(sys.stdout.getvalue())

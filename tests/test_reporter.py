@@ -36,8 +36,14 @@ class TestConsoleReporter(BaseTestOutput):
         assert "" in sys.stdout.getvalue()
 
     def test_executeTask(self):
+        def do_nothing():pass
+        t1 = Task("with_action",[(do_nothing,)])
+        self.rep.execute_task(t1)
+        assert "with_action" in sys.stdout.getvalue()
+
+    def test_executeGroupTask(self):
         self.rep.execute_task(self.my_task)
-        assert "t_name" in sys.stdout.getvalue()
+        assert "" == sys.stdout.getvalue()
 
     def test_skipUptodate(self):
         self.rep.skip_uptodate(self.my_task)
@@ -73,7 +79,8 @@ class TestConsoleReporter(BaseTestOutput):
 
     def test_outfile(self):
         rep = reporter.ConsoleReporter(True, True, 'test.out')
-        t1 = Task("t1", None)
+        def do_nothing():pass
+        t1 = Task("t1", [(do_nothing,)])
         rep.start_task(t1)
         rep.execute_task(t1)
         rep.add_success(t1)
@@ -97,16 +104,6 @@ class TestExecutedOnlyReporter(BaseTestOutput):
     def test_skipIgnore(self):
         self.rep.skip_ignore(self.my_task)
         assert "" == sys.stdout.getvalue()
-
-    def test_executeGroupTask(self):
-        self.rep.execute_task(self.my_task)
-        assert "" == sys.stdout.getvalue()
-
-    def test_executeTask(self):
-        def do_nothing():pass
-        t1 = Task("with_action",[(do_nothing,)])
-        self.rep.execute_task(t1)
-        assert "with_action" in sys.stdout.getvalue()
 
 
 
