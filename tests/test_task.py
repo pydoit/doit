@@ -347,6 +347,11 @@ class TestTask(object):
         assert "MyName => %s"%str(t) == t.title(), t.title()
 
 
+    def test_custom_title(self):
+        t = task.Task("MyName",["MyAction"], title=(lambda x: "X%sX" % x.name))
+        assert "X%sX"%str(t.name) == t.title(), t.title()
+
+
     def test_strGroup(self):
         t = task.Task("taskX",None,('file_foo', ':t1',':t2'))
         assert "Group: t1, t2" == str(t), "'%s'"%str(t)

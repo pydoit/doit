@@ -346,6 +346,8 @@ class Task(object):
 
     @ivar options: (dict) calculate params values
     @ivar taskopt: (cmdparse.Command)
+    @ivar custom_title: function reference that takes a task object as
+                        parameter and returns a string.
     """
 
     DEFAULT_VERBOSITY = 1
@@ -365,7 +367,7 @@ class Task(object):
 
     def __init__(self, name, actions, dependencies=(), targets=(),
                  setup=(), clean=(), is_subtask=False, doc=None, params=(),
-                 verbosity=None):
+                 verbosity=None, title=None):
         """sanity checks and initialization
 
         @param params: (list of option parameters) see cmdparse.Command.__init__
@@ -382,6 +384,7 @@ class Task(object):
         self.is_subtask = is_subtask
         self.value = None #TODO document this
         self.verbosity = verbosity
+        self.custom_title = title
 
         # options
         self.taskcmd = cmdparse.TaskOption(name, params, None, None)
@@ -518,13 +521,13 @@ class Task(object):
             for action in self.clean_actions:
                 action.execute()
 
-
     def title(self):
         """String representation on output.
 
-        @rtype: str
-        @return: Task name and actions
+        @return: (str) Task name and actions
         """
+        if self.custom_title:
+            return self.custom_title(self)
         return "%s => %s"% (self.name, str(self))
 
 
@@ -551,7 +554,7 @@ def dict_to_task(task_dict):
     """
     # TASK_ATTRS: sequence of know attributes(keys) of a task dict.
     TASK_ATTRS = ('name','actions','dependencies','targets','setup', 'doc',
-                  'clean', 'params', 'verbosity')
+                  'clean', 'params', 'verbosity', 'title')
     # FIXME check field 'name'
 
     # check required fields

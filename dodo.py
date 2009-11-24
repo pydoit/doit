@@ -13,7 +13,8 @@ def task_checker():
     for file in pyFiles:
         yield {'actions': ["pyflakes %s"% file],
                'name':file,
-               'dependencies':(file,)}
+               'dependencies':(file,),
+               'title': (lambda task: task.name)}
 
 def task_nose():
     """run unit-tests"""

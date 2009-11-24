@@ -18,6 +18,7 @@ Changes
 - added command line option --dir (-d) to set current working directory
 - removed dodo-sample sub-command
 - added task field 'verbosity'
+- added task field 'title'
 
 
 0.4.0 (*2009-10-05*)
