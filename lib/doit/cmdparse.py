@@ -124,13 +124,13 @@ class Command(object):
         """return list with long options for getopt"""
         long_list = []
         for opt in self.options:
-            long = opt['long']
-            if not long:
+            long_name = opt['long']
+            if not long_name:
                 continue
             # '=' means option takes a value
             if opt['type'] is not bool:
-                long += '='
-            long_list.append(long)
+                long_name += '='
+            long_list.append(long_name)
         return long_list
 
     def get_option(self, opt_str):

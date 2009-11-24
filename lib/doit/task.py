@@ -169,7 +169,7 @@ class PythonAction(BaseAction):
             self.kwargs = kwargs
 
         # check valid parameters
-        if not callable(self.py_callable):
+        if not hasattr(self.py_callable, '__call__'):
             raise InvalidTask("PythonAction must be a 'callable'.")
         if type(self.args) is not tuple and type(self.args) is not list:
             msg = "args must be a 'tuple' or a 'list'. got '%s'."
@@ -318,7 +318,7 @@ def create_action(action):
     if type(action) is tuple:
         return PythonAction(*action)
 
-    if callable(action):
+    if hasattr(action, '__call__'):
         return PythonAction(action)
 
     msg = "Invalid task action type. got %s"
