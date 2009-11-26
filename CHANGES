@@ -19,6 +19,7 @@ Changes
 - removed dodo-sample sub-command
 - added task field 'verbosity'
 - added task field 'title'
+- modified default way a task is printed on console (just show name), old way added to doit.tools.task_title_with_actions
 
 
 0.4.0 (*2009-10-05*)

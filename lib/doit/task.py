@@ -528,7 +528,7 @@ class Task(object):
         """
         if self.custom_title:
             return self.custom_title(self)
-        return "%s => %s"% (self.name, str(self))
+        return self.name
 
 
     def __str__(self):

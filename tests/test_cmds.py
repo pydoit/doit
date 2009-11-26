@@ -140,17 +140,12 @@ class TestCmdRun(BaseTestOutput):
     def testProcessRun(self):
         doit_run(TESTDB, TASKS_SAMPLE)
         got = sys.stdout.getvalue().split("\n")[:-1]
-
-        assert ["t1 => Cmd: ",
-                "t2 => Cmd: ",
-                "g1.a => Cmd: ",
-                "g1.b => Cmd: ",
-                "t3 => Cmd: "] == got, repr(sys.stdout.getvalue())
+        assert ["t1", "t2", "g1.a", "g1.b", "t3"] == got, repr(got)
 
     def testProcessRunFilter(self):
         doit_run(TESTDB, TASKS_SAMPLE, ["g1.a"])
         got = sys.stdout.getvalue().split("\n")[:-1]
-        assert ["g1.a => Cmd: "] == got, repr(sys.stdout.getvalue())
+        assert ["g1.a"] == got, repr(sys.stdout.getvalue())
 
     def testInvalidReporter(self):
         nose.tools.assert_raises(InvalidCommand,

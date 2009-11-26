@@ -344,7 +344,7 @@ class TestTask(object):
 
     def test_title(self):
         t = task.Task("MyName",["MyAction"])
-        assert "MyName => %s"%str(t) == t.title(), t.title()
+        assert "MyName" == t.title(), t.title()
 
 
     def test_custom_title(self):
