@@ -41,18 +41,13 @@ class ConsoleReporter(object):
 
     @ivar show_out (bool): include captured stdout on failure report
     @ivar show_err (bool): include captured stderr on failure report
-    @ivar outfile (string): file_path output is written to. None use stdout
     """
-    def __init__(self, show_out, show_err, outfile=None):
+    def __init__(self, outstream, show_out, show_err):
         # save non-succesful result information (include task errors)
         self.failures = []
         self.show_out = show_out
         self.show_err = show_err
-        self.outfile = outfile
-        if outfile is None:
-            self.outstream = sys.stdout
-        else:
-            self.outstream = open(outfile, 'w')
+        self.outstream = outstream
 
     def start_task(self, task):
         pass
@@ -94,8 +89,6 @@ class ConsoleReporter(object):
             if self.show_err:
                 err = "".join([a.err for a in task.actions if a.err])
                 self.outstream.write("%s\n" % err)
-        if self.outfile is not None:
-            self.outstream.close()
 
 
 
@@ -151,7 +144,7 @@ class TaskResult(object):
 
 class JsonReporter(object):
     """save results in a file using JSON"""
-    def __init__(self, show_out=None, show_err=None, outfile=None):
+    def __init__(self, outstream, show_out=None, show_err=None):
         # show_out, show_err parameters are ignored.
         # json result is sent to stdout when doit finishes running
         self.t_results = {}
@@ -162,7 +155,7 @@ class JsonReporter(object):
         sys.stdout = StringIO.StringIO()
         self._old_err = sys.stderr
         sys.stderr = StringIO.StringIO()
-        self.outfile = outfile
+        self.outstream = outstream
 
     def start_task(self, task):
         self.t_results[task.name] = TaskResult(task)
@@ -199,12 +192,7 @@ class JsonReporter(object):
                      'err': log_err}
         # indent not available on simplejson 1.3 (debian etch)
         # json.dump(json_data, sys.stdout, indent=4)
-        if self.outfile is None:
-            json.dump(json_data, sys.stdout)
-        else:
-            outstream = open(self.outfile, 'w')
-            json.dump(json_data, outstream)
-            outstream.close()
+        json.dump(json_data, self.outstream)
 
 
 # name of reporters class available to be selected on cmd line

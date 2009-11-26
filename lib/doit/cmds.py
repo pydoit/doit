@@ -1,4 +1,5 @@
 """cmd-line functions"""
+import sys
 
 from doit import dependency
 from doit.task import Task
@@ -24,11 +25,21 @@ def doit_run(dependencyFile, task_list, options=None,
     else:
         use_verbosity = verbosity
     show_out = use_verbosity < 2 # show on error report
-    # FIXME stderr will be shown twice in case of task error/failure
-    reporter_obj = reporter_cls(show_out , True, outfile)
 
-    return run_tasks(dependencyFile, selected_tasks, reporter_obj,
-                     verbosity, alwaysExecute, continue_)
+    if outfile is None:
+        outstream = sys.stdout
+    else:
+        outstream = open(outfile, 'w')
+    try:
+        # FIXME stderr will be shown twice in case of task error/failure
+        reporter_obj = reporter_cls(outstream, show_out , True)
+
+        return run_tasks(dependencyFile, selected_tasks, reporter_obj,
+                         verbosity, alwaysExecute, continue_)
+    finally:
+        if outfile is not None:
+            outstream.close()
+
 
 
 def doit_clean(task_list, outstream, clean_tasks):

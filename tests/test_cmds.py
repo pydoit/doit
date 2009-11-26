@@ -15,6 +15,8 @@ TESTDB = os.path.join(os.path.dirname(__file__), "testdb")
 def tearDownModule(self):
     if os.path.exists(TESTDB):
         os.remove(TESTDB)
+    if os.path.exists('test.out'):
+        os.remove('test.out')
 
 
 TASKS_SAMPLE = [Task("t1", [""], doc="t1 doc string"),
@@ -167,6 +169,14 @@ class TestCmdRun(BaseTestOutput):
         t.execute = my_execute
         doit_run(TESTDB, [t], verbosity=2)
         assert 2 == used_verbosity[0], used_verbosity
+
+
+    def test_outfile(self):
+        doit_run(TESTDB, TASKS_SAMPLE, ["g1.a"], outfile='test.out')
+        outfile = open('test.out', 'r')
+        got = outfile.read()
+        outfile.close()
+        assert "g1.a\n" == got, repr(got)
 
 
 class TestCmdClean(object):
