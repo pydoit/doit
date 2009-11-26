@@ -195,7 +195,8 @@ def cmd_list(params, args):
     dodo_module = main.get_module(params['dodoFile'], params['cwdPath'])
     command_names = params['sub'].keys()
     dodo_tasks = main.load_task_generators(dodo_module, command_names)
-    return doit_list(dodo_tasks['task_list'], params['all'], params['quiet'])
+    return doit_list(dodo_tasks['task_list'], sys.stdout, params['all'],
+                     params['quiet'])
 
 ##########################################################
 ########## clean
@@ -208,7 +209,7 @@ def cmd_clean(params, args):
     dodo_module = main.get_module(params['dodoFile'], params['cwdPath'])
     command_names = params['sub'].keys()
     dodo_tasks = main.load_task_generators(dodo_module, command_names)
-    return doit_clean(dodo_tasks['task_list'], args)
+    return doit_clean(dodo_tasks['task_list'], sys.stdout, args)
 
 
 ##########################################################
@@ -222,7 +223,8 @@ def cmd_forget(params, args):
     dodo_module = main.get_module(params['dodoFile'], params['cwdPath'])
     command_names = params['sub'].keys()
     dodo_tasks = main.load_task_generators(dodo_module, command_names)
-    return doit_forget(params['dep_file'], dodo_tasks['task_list'], args)
+    return doit_forget(params['dep_file'], dodo_tasks['task_list'],
+                       sys.stdout, args)
 
 
 ##########################################################
@@ -236,7 +238,8 @@ def cmd_ignore(params, args):
     dodo_module = main.get_module(params['dodoFile'], params['cwdPath'])
     command_names = params['sub'].keys()
     dodo_tasks = main.load_task_generators(dodo_module, command_names)
-    return doit_ignore(params['dep_file'], dodo_tasks['task_list'], args)
+    return doit_ignore(params['dep_file'], dodo_tasks['task_list'],
+                       sys.stdout, args)
 
 
 ##########################################################

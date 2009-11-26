@@ -38,40 +38,43 @@ class BaseTestOutput(object):
         sys.stdout = self.oldOut
 
 
-class TestCmdList(BaseTestOutput):
+class TestCmdList(object):
 
     def testListTasksWithDoc(self):
-        doit_list(TASKS_SAMPLE, False)
-        got = [line for line in sys.stdout.getvalue().split('\n') if line]
+        output = StringIO.StringIO()
+        doit_list(TASKS_SAMPLE, output, False)
+        got = [line for line in output.getvalue().split('\n') if line]
         expected = []
         for t in TASKS_SAMPLE:
             if not t.is_subtask:
                 expected.append("%s : %s" % (t.name, t.doc))
-        assert expected == got, sys.stdout.getvalue()
+        assert expected == got, output.getvalue()
 
     def testListTasksWithDocQuiet(self):
-        doit_list(TASKS_SAMPLE, False, True)
-        got = [line for line in sys.stdout.getvalue().split('\n') if line]
+        output = StringIO.StringIO()
+        doit_list(TASKS_SAMPLE, output, False, True)
+        got = [line for line in output.getvalue().split('\n') if line]
         expected = [t.name for t in TASKS_SAMPLE if not t.is_subtask]
-        assert expected == got, sys.stdout.getvalue()
+        assert expected == got, output.getvalue()
 
     def testListAllTasksWithDoc(self):
-        doit_list(TASKS_SAMPLE, True)
-        got = [line for line in sys.stdout.getvalue().split('\n') if line]
+        output = StringIO.StringIO()
+        doit_list(TASKS_SAMPLE, output, True)
+        got = [line for line in output.getvalue().split('\n') if line]
         expected = ["%s : %s" % (t.name, t.doc) for t in TASKS_SAMPLE]
-        assert expected == got, sys.stdout.getvalue()
+        assert expected == got, output.getvalue()
 
     def testListAllTasksWithDocQuiet(self):
-        doit_list(TASKS_SAMPLE, True, True)
-        got = [line for line in sys.stdout.getvalue().split('\n') if line]
+        output = StringIO.StringIO()
+        doit_list(TASKS_SAMPLE, output, True, True)
+        got = [line for line in output.getvalue().split('\n') if line]
         expected = [t.name for t in TASKS_SAMPLE]
-        assert expected == got, sys.stdout.getvalue()
+        assert expected == got, output.getvalue()
 
 
 
-class TestCmdForget(BaseTestOutput):
+class TestCmdForget(object):
     def setUp(self):
-        BaseTestOutput.setUp(self)
         if os.path.exists(TESTDB):
             os.remove(TESTDB)
 
@@ -90,24 +93,27 @@ class TestCmdForget(BaseTestOutput):
 
 
     def testForgetAll(self):
-        doit_forget(TESTDB, self.tasks, [])
-        got = sys.stdout.getvalue().split("\n")[:-1]
-        assert ["forgeting all tasks"] == got, repr(sys.stdout.getvalue())
+        output = StringIO.StringIO()
+        doit_forget(TESTDB, self.tasks, output, [])
+        got = output.getvalue().split("\n")[:-1]
+        assert ["forgeting all tasks"] == got, repr(output.getvalue())
         dep = Dependency(TESTDB)
         for task in self.tasks:
             assert None == dep._get(task.name, "dep")
 
     def testForgetOne(self):
-        doit_forget(TESTDB, self.tasks, ["t2", "t1"])
-        got = sys.stdout.getvalue().split("\n")[:-1]
+        output = StringIO.StringIO()
+        doit_forget(TESTDB, self.tasks, output, ["t2", "t1"])
+        got = output.getvalue().split("\n")[:-1]
         assert ["forgeting t2", "forgeting t1"] == got
         dep = Dependency(TESTDB)
         assert None == dep._get("t1", "dep")
         assert None == dep._get("t2", "dep")
 
     def testForgetGroup(self):
-        doit_forget(TESTDB, self.tasks, ["g2"])
-        got = sys.stdout.getvalue().split("\n")[:-1]
+        output = StringIO.StringIO()
+        doit_forget(TESTDB, self.tasks, output, ["g2"])
+        got = output.getvalue().split("\n")[:-1]
 
         dep = Dependency(TESTDB)
         assert None == dep._get("t1", "dep"), got
@@ -119,15 +125,17 @@ class TestCmdForget(BaseTestOutput):
 
     # if task dependency not from a group dont forget it
     def testDontForgetTaskDependency(self):
-        doit_forget(TESTDB, self.tasks, ["t3"])
-        got = sys.stdout.getvalue().split("\n")[:-1]
+        output = StringIO.StringIO()
+        doit_forget(TESTDB, self.tasks, output, ["t3"])
+        got = output.getvalue().split("\n")[:-1]
         dep = Dependency(TESTDB)
         assert None == dep._get("t3", "dep")
         assert "1" == dep._get("t1", "dep")
 
     def testForgetInvalid(self):
-        nose.tools.assert_raises(InvalidCommand,
-                                 doit_forget, TESTDB, self.tasks, ["XXX"])
+        output = StringIO.StringIO()
+        nose.tools.assert_raises(InvalidCommand, doit_forget,
+                                 TESTDB, self.tasks, output, ["XXX"])
 
 
 class TestCmdRun(BaseTestOutput):
@@ -161,10 +169,9 @@ class TestCmdRun(BaseTestOutput):
         assert 2 == used_verbosity[0], used_verbosity
 
 
-class TestCmdClean(BaseTestOutput):
+class TestCmdClean(object):
 
     def setUp(self):
-        BaseTestOutput.setUp(self)
         self.count = 0
         self.tasks = [Task("t1", None, clean=[(self.increment,)]),
                       Task("t2", None, clean=[(self.increment,)]),
@@ -175,16 +182,17 @@ class TestCmdClean(BaseTestOutput):
         return True
 
     def test_clean_all(self):
-        doit_clean(self.tasks, [])
+        output = StringIO.StringIO()
+        doit_clean(self.tasks, output, [])
         assert 2 == self.count
 
     def test_clean_selected(self):
-        doit_clean(self.tasks, ['t2'])
+        output = StringIO.StringIO()
+        doit_clean(self.tasks, output, ['t2'])
 
 
-class TestCmdIgnore(BaseTestOutput):
+class TestCmdIgnore(object):
     def setUp(self):
-        BaseTestOutput.setUp(self)
         if os.path.exists(TESTDB):
             os.remove(TESTDB)
 
@@ -198,16 +206,18 @@ class TestCmdIgnore(BaseTestOutput):
 
 
     def testIgnoreAll(self):
-        doit_ignore(TESTDB, self.tasks, [])
-        got = sys.stdout.getvalue().split("\n")[:-1]
+        output = StringIO.StringIO()
+        doit_ignore(TESTDB, self.tasks, output, [])
+        got = output.getvalue().split("\n")[:-1]
         assert ["You cant ignore all tasks! Please select a task."] == got, got
         dep = Dependency(TESTDB)
         for task in self.tasks:
             assert None == dep._get(task.name, "ignore:")
 
     def testIgnoreOne(self):
-        doit_ignore(TESTDB, self.tasks, ["t2", "t1"])
-        got = sys.stdout.getvalue().split("\n")[:-1]
+        output = StringIO.StringIO()
+        doit_ignore(TESTDB, self.tasks, output, ["t2", "t1"])
+        got = output.getvalue().split("\n")[:-1]
         assert ["ignoring t2", "ignoring t1"] == got
         dep = Dependency(TESTDB)
         assert '1' == dep._get("t1", "ignore:")
@@ -215,8 +225,9 @@ class TestCmdIgnore(BaseTestOutput):
         assert None == dep._get("t3", "ignore:")
 
     def testIgnoreGroup(self):
-        doit_ignore(TESTDB, self.tasks, ["g2"])
-        got = sys.stdout.getvalue().split("\n")[:-1]
+        output = StringIO.StringIO()
+        doit_ignore(TESTDB, self.tasks, output, ["g2"])
+        got = output.getvalue().split("\n")[:-1]
 
         dep = Dependency(TESTDB)
         assert '1' == dep._get("t1", "ignore:"), got
@@ -228,13 +239,15 @@ class TestCmdIgnore(BaseTestOutput):
 
     # if task dependency not from a group dont ignore it
     def testDontIgnoreTaskDependency(self):
-        doit_ignore(TESTDB, self.tasks, ["t3"])
-        got = sys.stdout.getvalue().split("\n")[:-1]
+        output = StringIO.StringIO()
+        doit_ignore(TESTDB, self.tasks, output, ["t3"])
+        got = output.getvalue().split("\n")[:-1]
         dep = Dependency(TESTDB)
         assert '1' == dep._get("t3", "ignore:")
         assert None == dep._get("t1", "ignore:")
 
     def testIgnoreInvalid(self):
-        nose.tools.assert_raises(InvalidCommand,
-                                 doit_ignore, TESTDB, self.tasks, ["XXX"])
+        output = StringIO.StringIO()
+        nose.tools.assert_raises(InvalidCommand, doit_ignore,
+                                 TESTDB, self.tasks, output, ["XXX"])
 

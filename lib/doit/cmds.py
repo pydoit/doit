@@ -31,7 +31,7 @@ def doit_run(dependencyFile, task_list, options=None,
                      verbosity, alwaysExecute, continue_)
 
 
-def doit_clean(task_list, clean_tasks):
+def doit_clean(task_list, outstream, clean_tasks):
     """Clean tasks
     @param task_list (list - L{Task}): list of all tasks from dodo file
     @param clean_tasks (list - string): tasks bo be clean. clean all if
@@ -46,21 +46,22 @@ def doit_clean(task_list, clean_tasks):
             tasks[name].clean()
 
 
-def doit_list(task_list, printSubtasks, quiet=False):
+def doit_list(task_list, outstream, printSubtasks, quiet=False):
     """List task generators, in the order they were defined.
 
     @param printSubtasks: (bool) print subtasks
+    @param outstream: (file-like) object
     """
     for task in task_list:
         if (not task.is_subtask) or printSubtasks:
             task_str = task.name
             if not quiet and task.doc:
                 task_str += " : %s" % task.doc
-            print task_str
+            outstream.write("%s\n" % task_str)
     return 0
 
 
-def doit_forget(dbFileName, taskList, forgetTasks):
+def doit_forget(dbFileName, taskList, outstream, forgetTasks):
     """remove saved data successful runs from DB
     @param dbFileName: (str)
     @param task_list: (Task) tasks from dodo file
@@ -71,7 +72,7 @@ def doit_forget(dbFileName, taskList, forgetTasks):
     # no task specified. forget all
     if not forgetTasks:
         dependencyManager.remove_all()
-        print "forgeting all tasks"
+        outstream.write("forgeting all tasks\n")
     # forget tasks from list
     else:
         tasks = dict([(t.name, t) for t in taskList])
@@ -89,11 +90,11 @@ def doit_forget(dbFileName, taskList, forgetTasks):
                     group.extend(tasks[to_forget].task_dep)
                 # forget it - remove from dependency file
                 dependencyManager.remove(to_forget)
-                print "forgeting %s" % to_forget
+                outstream.write("forgeting %s\n" % to_forget)
     dependencyManager.close()
 
 
-def doit_ignore(dbFileName, taskList, ignoreTasks):
+def doit_ignore(dbFileName, taskList, outstream, ignoreTasks):
     """mark tasks to be ignored
     @param dbFileName: (str)
     @param taskList: (Task) tasks from dodo file
@@ -101,7 +102,7 @@ def doit_ignore(dbFileName, taskList, ignoreTasks):
     """
     # no task specified.
     if not ignoreTasks:
-        print "You cant ignore all tasks! Please select a task."
+        outstream.write("You cant ignore all tasks! Please select a task.\n")
         return
 
     dependencyManager = dependency.Dependency(dbFileName)
@@ -121,5 +122,5 @@ def doit_ignore(dbFileName, taskList, ignoreTasks):
                 group.extend(tasks[to_ignore].task_dep)
             # ignore it - remove from dependency file
             dependencyManager.ignore(tasks[to_ignore])
-            print "ignoring %s" % to_ignore
+            outstream.write("ignoring %s\n" % to_ignore)
     dependencyManager.close()
