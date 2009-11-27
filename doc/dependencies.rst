@@ -27,9 +27,9 @@ So if there are no modifications to the dependencies and you run `doit` again. T
 .. code-block:: console
 
   eduardo@eduardo:~$ doit
-  compile => Cmd: cc -c main.c
+  compile
   eduardo@eduardo:~$ doit
-  --- compile => Cmd: cc -c main.c
+  --- compile
 
 Note the ``---`` (3 dashes) on the command output on the second time it is executed. It means, this task was up-to-date and not executed.
 
@@ -47,9 +47,9 @@ Lets say you work with a dynamic language (python in this example). You don't ne
 .. code-block:: console
 
    eduardo@eduardo:~$ doit
-   checker => Cmd: pychecker sample.py
+   checker
    eduardo@eduardo:~$ doit
-   --- checker => Cmd: pychecker sample.py
+   --- checker
 
 Note the ``---`` again.
 
@@ -68,8 +68,8 @@ This example we make sure we include a file with the latest revision number of t
 .. code-block:: console
 
     eduardo@eduardo:~$ doit
-    version => Cmd: bzr version-info > revision.txt
-    tar => Cmd: tar -cf foo.tar *
+    version
+    tar
 
 
 
@@ -87,15 +87,21 @@ If there are no changes in the dependency the task execution is skipped. But if 
 .. code-block:: console
 
     eduardo@eduardo:~$ doit
-    compile => Cmd: cc -c main.c
+    compile
     eduardo@eduardo:~$ doit
-    --- compile => Cmd: cc -c main.c
+    --- compile
     eduardo@eduardo:~$ rm main.o
     eduardo@eduardo:~$ doit
-    compile => Cmd: cc -c main.c
+    compile
     eduardo@eduardo:~$ echo xxx > main.o
     eduardo@eduardo:~$ doit
-    --- compile => Cmd: cc -c main.c
+    --- compile
+
+
+task-result
+-------------
+
+TODO
 
 
 run-once
@@ -112,16 +118,17 @@ Note that even with *run-once* the file will be downloaded again in case the tar
 .. code-block:: console
 
     eduardo@eduardo:~$ doit
-    get_pylogo => Cmd: wget http://python.org/images/python-logo.gif
+    get_pylogo
     eduardo@eduardo:~$ doit
-    --- get_pylogo => Cmd: wget http://python.org/images/python-logo.gif
+    --- get_pylogo
     eduardo@eduardo:~$ rm doc/tutorial/python-logo.gif
     eduardo@eduardo:~$ doit
-    get_pylogo => Cmd: wget http://python.org/images/python-logo.gif
+    get_pylogo
 
 .. note::
 
   Only *file-dependency* and *run-once* are used to determine if a task is up-to-date or not. If a task defines only *task-dependency* or no dependencies at all it will always be executed.
+
 
 keywords on actions
 --------------------

@@ -30,6 +30,9 @@ It is easy to include dynamic (on-the-fly) behavior to your tasks. Let's take a 
 
 .. literalinclude:: tutorial/tutorial_02.py
 
+.. note::
+  the function `task_hello` is a *task generator* not the task itself. The body of the task generator function is always executed when the dodo file is loaded. Even if the task is not going to be executed. So in this example the line `msg = 3 * "hi! "` will always be executed. From now on when it said that a *task* is executed, read the task's actions are executed.
+
 
 sub-tasks
 ---------
@@ -44,10 +47,9 @@ The task function can return a python-generator that yields dictionaries. Since 
 .. code-block:: console
 
     eduardo@eduardo:~$ doit
-    create_file:file0.txt => Cmd: touch file0.txt
-    create_file:file1.txt => Cmd: touch file1.txt
-    create_file:file2.txt => Cmd: touch file2.txt
-    create_file => Group: create_file:file0.txt, create_file:file1.txt, create_file:file2.txt
+    create_file:file0.txt
+    create_file:file1.txt
+    create_file:file2.txt
 
 
 
@@ -58,7 +60,5 @@ You can define group of tasks by adding tasks as dependencies and setting its `a
 
 .. literalinclude:: tutorial/group.py
 
-Note that task is never executed twice in the same "run".
-
-
+Note that tasks are never executed twice in the same "run".
 

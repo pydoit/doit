@@ -28,8 +28,7 @@ run
 .. code-block:: console
 
   eduardo@eduardo~$ doit
-  hello => Cmd: echo Hello World!!! > hello.txt
-	Python: function python_hello
+  hello
   eduardo@eduardo~$ cat hello.txt
   Hello World!!!
   Python says Hello World!!!
@@ -58,7 +57,7 @@ Project Details
 Status
 ======
 
-`doit` is under active development. Version 0.4 released on 2009-10.
+`doit` is under active development. Version 0.5 released on 2009-11.
 
 While still a small project with room for lots of improvements and features. It is very stable and provides some great features not seen in any other project.
 
