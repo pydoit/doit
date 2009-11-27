@@ -27,19 +27,6 @@ TASKS_SAMPLE = [Task("t1", [""], doc="t1 doc string"),
                 Task("t3", [""], doc="t3 doc string")]
 
 
-class BaseTestOutput(object):
-    """base class for tests that use stdout"""
-    def setUp(self):
-        #setup stdout
-        self.oldOut = sys.stdout
-        sys.stdout = StringIO.StringIO()
-
-    def tearDown(self):
-        #teardown stdout
-        sys.stdout.close()
-        sys.stdout = self.oldOut
-
-
 class TestCmdList(object):
 
     def testListTasksWithDoc(self):
@@ -140,39 +127,42 @@ class TestCmdForget(object):
                                  TESTDB, self.tasks, output, ["XXX"])
 
 
-class TestCmdRun(BaseTestOutput):
+class TestCmdRun(object):
 
     def setUp(self):
-        BaseTestOutput.setUp(self)
         if os.path.exists(TESTDB):
             os.remove(TESTDB)
 
     def testProcessRun(self):
-        doit_run(TESTDB, TASKS_SAMPLE)
-        got = sys.stdout.getvalue().split("\n")[:-1]
+        output = StringIO.StringIO()
+        doit_run(TESTDB, TASKS_SAMPLE, output)
+        got = output.getvalue().split("\n")[:-1]
         assert ["t1", "t2", "g1.a", "g1.b", "t3"] == got, repr(got)
 
     def testProcessRunFilter(self):
-        doit_run(TESTDB, TASKS_SAMPLE, ["g1.a"])
-        got = sys.stdout.getvalue().split("\n")[:-1]
-        assert ["g1.a"] == got, repr(sys.stdout.getvalue())
+        output = StringIO.StringIO()
+        doit_run(TESTDB, TASKS_SAMPLE, output, ["g1.a"])
+        got = output.getvalue().split("\n")[:-1]
+        assert ["g1.a"] == got, repr(got)
 
     def testInvalidReporter(self):
-        nose.tools.assert_raises(InvalidCommand,
-               doit_run, TESTDB, TASKS_SAMPLE, reporter="i dont exist")
+        output = StringIO.StringIO()
+        nose.tools.assert_raises(InvalidCommand, doit_run,
+                TESTDB, TASKS_SAMPLE, output, reporter="i dont exist")
 
     def testSetVerbosity(self):
+        output = StringIO.StringIO()
         t = Task('x', None)
         used_verbosity = []
         def my_execute(out, err, verbosity):
             used_verbosity.append(verbosity)
         t.execute = my_execute
-        doit_run(TESTDB, [t], verbosity=2)
+        doit_run(TESTDB, [t], output, verbosity=2)
         assert 2 == used_verbosity[0], used_verbosity
 
 
     def test_outfile(self):
-        doit_run(TESTDB, TASKS_SAMPLE, ["g1.a"], outfile='test.out')
+        doit_run(TESTDB, TASKS_SAMPLE, 'test.out', ["g1.a"])
         outfile = open('test.out', 'r')
         got = outfile.read()
         outfile.close()

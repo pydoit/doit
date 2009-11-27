@@ -8,9 +8,9 @@ from doit.runner import run_tasks
 from doit.reporter import REPORTERS
 
 
-def doit_run(dependencyFile, task_list, options=None,
+def doit_run(dependencyFile, task_list, output, options=None,
              verbosity=None, alwaysExecute=False, continue_=False,
-             reporter='default', outfile=None):
+             reporter='default'):
     # get tasks to be executed
     selected_tasks = TaskSetup(task_list, options).process()
 
@@ -26,10 +26,10 @@ def doit_run(dependencyFile, task_list, options=None,
         use_verbosity = verbosity
     show_out = use_verbosity < 2 # show on error report
 
-    if outfile is None:
-        outstream = sys.stdout
-    else:
-        outstream = open(outfile, 'w')
+    if isinstance(output, str):
+        outstream = open(output, 'w')
+    else: # outfile is a file-like object (like StringIO or sys.stdout)
+        outstream = output
     try:
         # FIXME stderr will be shown twice in case of task error/failure
         reporter_obj = reporter_cls(outstream, show_out , True)
@@ -37,7 +37,7 @@ def doit_run(dependencyFile, task_list, options=None,
         return run_tasks(dependencyFile, selected_tasks, reporter_obj,
                          verbosity, alwaysExecute, continue_)
     finally:
-        if outfile is not None:
+        if isinstance(output, str):
             outstream.close()
 
 

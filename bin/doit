@@ -71,7 +71,7 @@ opt_outfile = {'name': 'outfile',
             'short':'o',
             'long': 'output-file',
             'type': str,
-            'default': None,
+            'default': sys.stdout,
             'help':"write output into file [default: stdout]"
             }
 
@@ -157,9 +157,9 @@ def cmd_run(params, args):
         dodo_tasks = main.load_task_generators(dodo_module, command_names)
         options = args or dodo_tasks['default_tasks']
         return doit_run(params['dep_file'], dodo_tasks['task_list'],
-                        options, params['verbosity'], params['always'],
-                        params['continue'], params['reporter'],
-                        params['outfile'])
+                        params['outfile'], options, params['verbosity'],
+                        params['always'], params['continue'],
+                        params['reporter'])
 
     # sub cmd different from "run" on cmd line. parse arguments again
     commands = params['sub']
