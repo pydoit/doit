@@ -1,6 +1,6 @@
 import os
 
-import nose.tools
+import py.test
 
 from doit.task import InvalidTask, Task
 from doit.main import InvalidDodoFile, InvalidCommand
@@ -32,11 +32,11 @@ class TestGenerateTasks(object):
 
     # name field is only for subtasks.
     def testInvalidNameField(self):
-        nose.tools.assert_raises(InvalidTask, generate_tasks, "dict",
+        py.test.raises(InvalidTask, generate_tasks, "dict",
                                  {'actions':['xpto 14'],'name':'bla bla'})
 
     def testInvalidValue(self):
-        nose.tools.assert_raises(InvalidTask, generate_tasks, "dict",'xpto 14')
+        py.test.raises(InvalidTask, generate_tasks, "dict",'xpto 14')
 
     def testGenerator(self):
         def f_xpto():
@@ -53,21 +53,21 @@ class TestGenerateTasks(object):
         def f_xpto():
             for i in range(3):
                 yield "xpto -%d"%i
-        nose.tools.assert_raises(InvalidTask, generate_tasks,"xpto",
+        py.test.raises(InvalidTask, generate_tasks,"xpto",
                                  f_xpto())
 
     def testGeneratorDictMissingName(self):
         def f_xpto():
             for i in range(3):
                 yield {'actions' :["xpto -%d"%i]}
-        nose.tools.assert_raises(InvalidTask, generate_tasks,"xpto",
+        py.test.raises(InvalidTask, generate_tasks,"xpto",
                                  f_xpto())
 
     def testGeneratorDictMissingAction(self):
         def f_xpto():
             for i in range(3):
                 yield {'name':str(i)}
-        nose.tools.assert_raises(InvalidTask, generate_tasks,"xpto",
+        py.test.raises(InvalidTask, generate_tasks,"xpto",
                                  f_xpto())
 
     def testUseDocstring(self):
@@ -109,12 +109,12 @@ class TestLoadTaskGenerators(object):
     def testNameInBlacklist(self):
         fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
         dodo_module = get_module(fileName)
-        nose.tools.assert_raises(InvalidDodoFile, load_task_generators,
+        py.test.raises(InvalidDodoFile, load_task_generators,
                                  dodo_module, ['yyy2'])
 
     def testWrongFileName(self):
         fileName = os.path.join(os.path.dirname(__file__),"i_dont_exist.py")
-        nose.tools.assert_raises(InvalidDodoFile, get_module, fileName)
+        py.test.raises(InvalidDodoFile, get_module, fileName)
 
 
     def testDocString(self):
@@ -134,7 +134,7 @@ class TestLoadTaskGenerators(object):
     def testInvalidCwd(self):
         fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
         cwd = os.path.join(os.path.dirname(__file__), "dataX")
-        nose.tools.assert_raises(InvalidCommand, get_module, fileName, cwd)
+        py.test.raises(InvalidCommand, get_module, fileName, cwd)
 
 
 class TestDodoDefaultTasks(object):
@@ -142,27 +142,32 @@ class TestDodoDefaultTasks(object):
     # dynamically. but it is tricky because python optmizes it and loads
     # it just once. so need to clean up variables that i messed up.
 
-    def setUp(self):
-        fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
-        self.dodo_module = get_module(fileName)
+    def pytest_funcarg__dodo(self, request):
+        def get_dodo_module():
+            fileName = os.path.join(os.path.dirname(__file__),
+                                    "loader_sample.py")
+            return get_module(fileName)
+        def remove_dodo(dodo):
+            if hasattr(dodo, 'DEFAULT_TASKS'):
+                del dodo.DEFAULT_TASKS
+        return request.cached_setup(
+            setup=get_dodo_module,
+            teardown=remove_dodo,
+            scope="function")
 
-    def tearDown(self):
-        if hasattr(self.dodo_module, 'DEFAULT_TASKS'):
-            del self.dodo_module.DEFAULT_TASKS
 
-    def testDefaultTasks_None(self):
-        dodo = load_task_generators(self.dodo_module)
-        assert None == dodo['default_tasks']
+    def testDefaultTasks_None(self, dodo):
+        dodo_dict = load_task_generators(dodo)
+        assert None == dodo_dict['default_tasks']
 
-    def testDefaultTasks_Error(self):
-        self.dodo_module.DEFAULT_TASKS = "abcd"
-        nose.tools.assert_raises(InvalidDodoFile, load_task_generators,
-                                 self.dodo_module)
+    def testDefaultTasks_Error(self, dodo):
+        dodo.DEFAULT_TASKS = "abcd"
+        py.test.raises(InvalidDodoFile, load_task_generators, dodo)
 
-    def testDefaultTasks_Ok(self):
-        self.dodo_module.DEFAULT_TASKS = ["abcd", "add"]
-        dodo = load_task_generators(self.dodo_module)
-        assert ["abcd", "add"] == dodo['default_tasks']
+    def testDefaultTasks_Ok(self, dodo):
+        dodo.DEFAULT_TASKS = ["abcd", "add"]
+        dodo_dict = load_task_generators(dodo)
+        assert ["abcd", "add"] == dodo_dict['default_tasks']
 
 
 class TestTaskSetupInit(object):
@@ -183,19 +188,19 @@ class TestTaskSetupInit(object):
     def test_addTaskSameName(self):
         t1 = Task("taskX", None)
         t2 = Task("taskX", None)
-        nose.tools.assert_raises(InvalidDodoFile, TaskSetup, [t1, t2])
+        py.test.raises(InvalidDodoFile, TaskSetup, [t1, t2])
 
     def test_addInvalidTask(self):
-        nose.tools.assert_raises(InvalidTask, TaskSetup, [666])
+        py.test.raises(InvalidTask, TaskSetup, [666])
 
     def test_userErrorTaskDependency(self):
         tasks = [Task('wrong', None,[":typo"])]
-        nose.tools.assert_raises(InvalidTask, TaskSetup, tasks)
+        py.test.raises(InvalidTask, TaskSetup, tasks)
 
     def test_sameTarget(self):
         tasks = [Task('t1',None,[],["fileX"]),
                  Task('t2',None,[],["fileX"])]
-        nose.tools.assert_raises(InvalidTask, TaskSetup, tasks)
+        py.test.raises(InvalidTask, TaskSetup, tasks)
 
 
 
@@ -228,7 +233,7 @@ class TestTaskSetupCmdOptions(object):
     # filter a non-existent task raises an error
     def testFilterWrongName(self):
         ts =  TaskSetup(TASKS_SAMPLE, ['no'])
-        nose.tools.assert_raises(InvalidCommand, ts._filter_tasks)
+        py.test.raises(InvalidCommand, ts._filter_tasks)
 
     def testFilterEmptyList(self):
         filter_ = []
@@ -253,6 +258,6 @@ class TestOrderTasks(object):
         tasks = [Task("taskX",None,[":taskY"]),
                  Task("taskY",None,[":taskX"])]
         ts = TaskSetup(tasks)
-        nose.tools.assert_raises(InvalidDodoFile, ts._order_tasks,
+        py.test.raises(InvalidDodoFile, ts._order_tasks,
                                  ["taskX", "taskY"])
 

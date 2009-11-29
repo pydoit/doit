@@ -1,8 +1,7 @@
-import sys
 import os
 import StringIO
 
-import nose
+import py.test
 
 from doit.dependency import Dependency
 from doit.task import Task
@@ -12,11 +11,9 @@ from doit.main import InvalidCommand
 
 TESTDB = os.path.join(os.path.dirname(__file__), "testdb")
 
-def tearDownModule(self):
+def remove_testdb():
     if os.path.exists(TESTDB):
         os.remove(TESTDB)
-    if os.path.exists('test.out'):
-        os.remove('test.out')
 
 
 TASKS_SAMPLE = [Task("t1", [""], doc="t1 doc string"),
@@ -63,45 +60,48 @@ class TestCmdList(object):
 
 
 class TestCmdForget(object):
-    def setUp(self):
-        if os.path.exists(TESTDB):
-            os.remove(TESTDB)
 
-        self.tasks = [Task("t1", [""]),
-                      Task("t2", [""]),
-                      Task("g1", None, (':g1.a',':g1.b')),
-                      Task("g1.a", [""]),
-                      Task("g1.b", [""]),
-                      Task("t3", [""], (':t1',)),
-                      Task("g2", None, (':t1',':g1'))]
+    def pytest_funcarg__tasks(self, request):
+        def create_tasks():
+            remove_testdb()
+            tasks = [Task("t1", [""]),
+                     Task("t2", [""]),
+                     Task("g1", None, (':g1.a',':g1.b')),
+                     Task("g1.a", [""]),
+                     Task("g1.b", [""]),
+                     Task("t3", [""], (':t1',)),
+                     Task("g2", None, (':t1',':g1'))]
+            dep = Dependency(TESTDB)
+            for task in tasks:
+                dep._set(task.name,"dep","1")
+            dep.close()
+            return tasks
+        return request.cached_setup(
+            setup=create_tasks,
+            scope="function")
 
-        dep = Dependency(TESTDB)
-        for task in self.tasks:
-            dep._set(task.name,"dep","1")
-        dep.close()
 
-
-    def testForgetAll(self):
+    def testForgetAll(self, tasks):
         output = StringIO.StringIO()
-        doit_forget(TESTDB, self.tasks, output, [])
+        doit_forget(TESTDB, tasks, output, [])
         got = output.getvalue().split("\n")[:-1]
         assert ["forgeting all tasks"] == got, repr(output.getvalue())
         dep = Dependency(TESTDB)
-        for task in self.tasks:
+        for task in tasks:
             assert None == dep._get(task.name, "dep")
 
-    def testForgetOne(self):
+    def testForgetOne(self, tasks):
         output = StringIO.StringIO()
-        doit_forget(TESTDB, self.tasks, output, ["t2", "t1"])
+        doit_forget(TESTDB, tasks, output, ["t2", "t1"])
         got = output.getvalue().split("\n")[:-1]
         assert ["forgeting t2", "forgeting t1"] == got
         dep = Dependency(TESTDB)
         assert None == dep._get("t1", "dep")
         assert None == dep._get("t2", "dep")
 
-    def testForgetGroup(self):
+    def testForgetGroup(self, tasks):
         output = StringIO.StringIO()
-        doit_forget(TESTDB, self.tasks, output, ["g2"])
+        doit_forget(TESTDB, tasks, output, ["g2"])
         got = output.getvalue().split("\n")[:-1]
 
         dep = Dependency(TESTDB)
@@ -113,44 +113,44 @@ class TestCmdForget(object):
         assert None == dep._get("g2", "dep")
 
     # if task dependency not from a group dont forget it
-    def testDontForgetTaskDependency(self):
+    def testDontForgetTaskDependency(self, tasks):
         output = StringIO.StringIO()
-        doit_forget(TESTDB, self.tasks, output, ["t3"])
+        doit_forget(TESTDB, tasks, output, ["t3"])
         got = output.getvalue().split("\n")[:-1]
         dep = Dependency(TESTDB)
         assert None == dep._get("t3", "dep")
         assert "1" == dep._get("t1", "dep")
 
-    def testForgetInvalid(self):
+    def testForgetInvalid(self, tasks):
         output = StringIO.StringIO()
-        nose.tools.assert_raises(InvalidCommand, doit_forget,
-                                 TESTDB, self.tasks, output, ["XXX"])
+        py.test.raises(InvalidCommand, doit_forget,
+                       TESTDB, tasks, output, ["XXX"])
 
 
 class TestCmdRun(object):
 
-    def setUp(self):
-        if os.path.exists(TESTDB):
-            os.remove(TESTDB)
-
     def testProcessRun(self):
+        remove_testdb()
         output = StringIO.StringIO()
         doit_run(TESTDB, TASKS_SAMPLE, output)
         got = output.getvalue().split("\n")[:-1]
         assert ["t1", "t2", "g1.a", "g1.b", "t3"] == got, repr(got)
 
     def testProcessRunFilter(self):
+        remove_testdb()
         output = StringIO.StringIO()
         doit_run(TESTDB, TASKS_SAMPLE, output, ["g1.a"])
         got = output.getvalue().split("\n")[:-1]
         assert ["g1.a"] == got, repr(got)
 
     def testInvalidReporter(self):
+        remove_testdb()
         output = StringIO.StringIO()
-        nose.tools.assert_raises(InvalidCommand, doit_run,
+        py.test.raises(InvalidCommand, doit_run,
                 TESTDB, TASKS_SAMPLE, output, reporter="i dont exist")
 
     def testSetVerbosity(self):
+        remove_testdb()
         output = StringIO.StringIO()
         t = Task('x', None)
         used_verbosity = []
@@ -162,61 +162,75 @@ class TestCmdRun(object):
 
 
     def test_outfile(self):
+        remove_testdb()
         doit_run(TESTDB, TASKS_SAMPLE, 'test.out', ["g1.a"])
-        outfile = open('test.out', 'r')
-        got = outfile.read()
-        outfile.close()
-        assert "g1.a\n" == got, repr(got)
+        try:
+            outfile = open('test.out', 'r')
+            got = outfile.read()
+            outfile.close()
+            assert "g1.a\n" == got, repr(got)
+        finally:
+            if os.path.exists('test.out'):
+                os.remove('test.out')
 
 
 class TestCmdClean(object):
 
-    def setUp(self):
-        self.count = 0
-        self.tasks = [Task("t1", None, clean=[(self.increment,)]),
-                      Task("t2", None, clean=[(self.increment,)]),
-                      ]
+    def pytest_funcarg__tasks(self, request):
+        def create_tasks():
+            self.count = 0
+            self.tasks = [Task("t1", None, clean=[(self.increment,)]),
+                          Task("t2", None, clean=[(self.increment,)]),]
+        return request.cached_setup(
+            setup=create_tasks,
+            scope="function")
 
     def increment(self):
         self.count += 1
         return True
 
-    def test_clean_all(self):
+    def test_clean_all(self, tasks):
         output = StringIO.StringIO()
         doit_clean(self.tasks, output, [])
         assert 2 == self.count
 
-    def test_clean_selected(self):
+    def test_clean_selected(self, tasks):
         output = StringIO.StringIO()
         doit_clean(self.tasks, output, ['t2'])
 
 
 class TestCmdIgnore(object):
-    def setUp(self):
-        if os.path.exists(TESTDB):
-            os.remove(TESTDB)
 
-        self.tasks = [Task("t1", [""]),
-                      Task("t2", [""]),
-                      Task("g1", None, (':g1.a',':g1.b')),
-                      Task("g1.a", [""]),
-                      Task("g1.b", [""]),
-                      Task("t3", [""], (':t1',)),
-                      Task("g2", None, (':t1',':g1'))]
+    def pytest_funcarg__tasks(self, request):
+        def create_tasks():
+            # FIXME DRY
+            remove_testdb()
+            tasks = [Task("t1", [""]),
+                     Task("t2", [""]),
+                     Task("g1", None, (':g1.a',':g1.b')),
+                     Task("g1.a", [""]),
+                     Task("g1.b", [""]),
+                     Task("t3", [""], (':t1',)),
+                     Task("g2", None, (':t1',':g1'))]
+            return tasks
+        return request.cached_setup(
+            setup=create_tasks,
+            scope="function")
 
 
-    def testIgnoreAll(self):
+
+    def testIgnoreAll(self, tasks):
         output = StringIO.StringIO()
-        doit_ignore(TESTDB, self.tasks, output, [])
+        doit_ignore(TESTDB, tasks, output, [])
         got = output.getvalue().split("\n")[:-1]
         assert ["You cant ignore all tasks! Please select a task."] == got, got
         dep = Dependency(TESTDB)
-        for task in self.tasks:
+        for task in tasks:
             assert None == dep._get(task.name, "ignore:")
 
-    def testIgnoreOne(self):
+    def testIgnoreOne(self, tasks):
         output = StringIO.StringIO()
-        doit_ignore(TESTDB, self.tasks, output, ["t2", "t1"])
+        doit_ignore(TESTDB, tasks, output, ["t2", "t1"])
         got = output.getvalue().split("\n")[:-1]
         assert ["ignoring t2", "ignoring t1"] == got
         dep = Dependency(TESTDB)
@@ -224,9 +238,9 @@ class TestCmdIgnore(object):
         assert '1' == dep._get("t2", "ignore:")
         assert None == dep._get("t3", "ignore:")
 
-    def testIgnoreGroup(self):
+    def testIgnoreGroup(self, tasks):
         output = StringIO.StringIO()
-        doit_ignore(TESTDB, self.tasks, output, ["g2"])
+        doit_ignore(TESTDB, tasks, output, ["g2"])
         got = output.getvalue().split("\n")[:-1]
 
         dep = Dependency(TESTDB)
@@ -238,16 +252,16 @@ class TestCmdIgnore(object):
         assert '1' == dep._get("g2", "ignore:")
 
     # if task dependency not from a group dont ignore it
-    def testDontIgnoreTaskDependency(self):
+    def testDontIgnoreTaskDependency(self, tasks):
         output = StringIO.StringIO()
-        doit_ignore(TESTDB, self.tasks, output, ["t3"])
+        doit_ignore(TESTDB, tasks, output, ["t3"])
         got = output.getvalue().split("\n")[:-1]
         dep = Dependency(TESTDB)
         assert '1' == dep._get("t3", "ignore:")
         assert None == dep._get("t1", "ignore:")
 
-    def testIgnoreInvalid(self):
+    def testIgnoreInvalid(self, tasks):
         output = StringIO.StringIO()
-        nose.tools.assert_raises(InvalidCommand, doit_ignore,
-                                 TESTDB, self.tasks, output, ["XXX"])
+        py.test.raises(InvalidCommand, doit_ignore,
+                       TESTDB, tasks, output, ["XXX"])
 

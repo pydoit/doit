@@ -8,57 +8,54 @@ from doit.dependency import json #FIXME move json import to __init__.py
 
 
 class TestConsoleReporter(object):
-    def setUp(self):
-        self.output = StringIO.StringIO()
-        self.rep = reporter.ConsoleReporter(self.output, True, True)
-        self.my_task = Task("t_name", None)
 
     def test_startTask(self):
-        self.rep.start_task(self.my_task)
+        rep = reporter.ConsoleReporter(StringIO.StringIO(), True, True)
+        rep.start_task(Task("t_name", None))
         # no output on start task
-        assert "" in self.output.getvalue()
+        assert "" in rep.outstream.getvalue()
 
     def test_executeTask(self):
+        rep = reporter.ConsoleReporter(StringIO.StringIO(), True, True)
         def do_nothing():pass
         t1 = Task("with_action",[(do_nothing,)])
-        self.rep.execute_task(t1)
-        assert "with_action" in self.output.getvalue()
+        rep.execute_task(t1)
+        assert "with_action" in rep.outstream.getvalue()
 
     def test_executeGroupTask(self):
-        self.rep.execute_task(self.my_task)
-        assert "" == self.output.getvalue()
+        rep = reporter.ConsoleReporter(StringIO.StringIO(), True, True)
+        rep.execute_task(Task("t_name", None))
+        assert "" == rep.outstream.getvalue()
 
     def test_skipUptodate(self):
-        self.rep.skip_uptodate(self.my_task)
-        assert "---" in self.output.getvalue()
-        assert "t_name" in self.output.getvalue()
+        rep = reporter.ConsoleReporter(StringIO.StringIO(), True, True)
+        rep.skip_uptodate(Task("t_name", None))
+        assert "---" in rep.outstream.getvalue()
+        assert "t_name" in rep.outstream.getvalue()
 
     def test_skipIgnore(self):
-        self.rep.skip_ignore(self.my_task)
-        assert "!!!" in self.output.getvalue()
-        assert "t_name" in self.output.getvalue()
+        rep = reporter.ConsoleReporter(StringIO.StringIO(), True, True)
+        rep.skip_ignore(Task("t_name", None))
+        assert "!!!" in rep.outstream.getvalue()
+        assert "t_name" in rep.outstream.getvalue()
 
 
-    def test_cleanupError(self):
-        oldErr = sys.stderr
-        sys.stderr = StringIO.StringIO()
-        try:
-            exception = CatchedException("I got you")
-            self.rep.cleanup_error(exception)
-            assert "I got you" in sys.stderr.getvalue()
-        finally:
-            sys.stderr.close()
-            sys.stderr = oldErr
+    def test_cleanupError(self, capsys):
+        rep = reporter.ConsoleReporter(StringIO.StringIO(), True, True)
+        exception = CatchedException("I got you")
+        rep.cleanup_error(exception)
+        assert "I got you" in capsys.readouterr()[1]
 
 
     def test_addFailure(self):
+        rep = reporter.ConsoleReporter(StringIO.StringIO(), True, True)
         try:
             raise Exception("original exception message here")
         except Exception,e:
             catched = CatchedException("catched exception there", e)
-        self.rep.add_failure(self.my_task, catched)
-        self.rep.complete_run()
-        got = self.output.getvalue()
+        rep.add_failure(Task("t_name", None), catched)
+        rep.complete_run()
+        got = rep.outstream.getvalue()
         # description
         assert "Exception: original exception message here" in got, got
         # traceback
@@ -68,18 +65,15 @@ class TestConsoleReporter(object):
 
 
 class TestExecutedOnlyReporter(object):
-    def setUp(self):
-        self.output = StringIO.StringIO()
-        self.rep = reporter.ExecutedOnlyReporter(self.output, True, True)
-        self.my_task = Task("t_name", None)
-
     def test_skipUptodate(self):
-        self.rep.skip_uptodate(self.my_task)
-        assert "" == self.output.getvalue()
+        rep = reporter.ExecutedOnlyReporter(StringIO.StringIO(), True, True)
+        rep.skip_uptodate(Task("t_name", None))
+        assert "" == rep.outstream.getvalue()
 
     def test_skipIgnore(self):
-        self.rep.skip_ignore(self.my_task)
-        assert "" == self.output.getvalue()
+        rep = reporter.ExecutedOnlyReporter(StringIO.StringIO(), True, True)
+        rep.skip_ignore(Task("t_name", None))
+        assert "" == rep.outstream.getvalue()
 
 
 

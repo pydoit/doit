@@ -1,4 +1,4 @@
-import nose
+import py.test
 
 from doit import cmdparse
 
@@ -40,74 +40,82 @@ class TestCommandInit(object):
 
     def test_invalid_field(self):
         opt1 = {'name':'op1', 'default':'', 'non_existent':''}
-        nose.tools.assert_raises(cmdparse.CmdParseError,
-                                 cmdparse.Command, 'xxx', [opt1], None, None)
+        py.test.raises(cmdparse.CmdParseError,
+                       cmdparse.Command, 'xxx', [opt1], None, None)
 
     def test_missing_field(self):
         opt1 = {'name':'op1', 'long':'abc'}
-        nose.tools.assert_raises(cmdparse.CmdParseError,
-                                 cmdparse.Command, 'xxx', [opt1], None, None)
+        py.test.raises(cmdparse.CmdParseError,
+                       cmdparse.Command, 'xxx', [opt1], None, None)
+
 
 
 class TestCommand(object):
 
-    def setUp(self):
-        options = [opt_bool, opt_rare, opt_int, opt_no]
-        doc = {'purpose':'PURPOSE','usage':'USAGE','description':'DESCRIPTION'}
-        self.cmd = cmdparse.Command('xxx', options, cmd_xxx, doc)
+    def pytest_funcarg__cmd(self, request):
+        def create_sample_cmd():
+            options = [opt_bool, opt_rare, opt_int, opt_no]
+            doc = {'purpose':'PURPOSE','usage':'USAGE',
+                   'description':'DESCRIPTION'}
+            cmd = cmdparse.Command('xxx', options, cmd_xxx, doc)
+            return cmd
+        return request.cached_setup(
+            setup=create_sample_cmd,
+            scope="function")
 
-    def test_help(self):
-        text = self.cmd.help()
+
+    def test_help(self, cmd):
+        text = cmd.help()
         assert 'PURPOSE' in text
         assert 'USAGE' in text
         assert 'DESCRIPTION' in text
         assert '-f' in text
         assert '--rare-bool' in text
         assert 'help for opt1' in text
-        assert opt_no in self.cmd.options
+        assert opt_no in cmd.options
         assert 'user cant modify me' not in text
 
-    def test_short(self):
-        assert "fn:" == self.cmd.get_short(), self.cmd.get_short()
+    def test_short(self, cmd):
+        assert "fn:" == cmd.get_short(), cmd.get_short()
 
-    def test_long(self):
-        assert ["rare-bool", "number="] == self.cmd.get_long()
+    def test_long(self, cmd):
+        assert ["rare-bool", "number="] == cmd.get_long()
 
-    def test_getOption(self):
-        assert opt_bool['name'] == self.cmd.get_option('-f')['name']
-        assert opt_rare['name'] == self.cmd.get_option('--rare-bool')['name']
-        assert opt_int['name'] == self.cmd.get_option('-n')['name']
-        assert opt_int['name'] == self.cmd.get_option('--number')['name']
-        assert None == self.cmd.get_option('not-there')
+    def test_getOption(self, cmd):
+        assert opt_bool['name'] == cmd.get_option('-f')['name']
+        assert opt_rare['name'] == cmd.get_option('--rare-bool')['name']
+        assert opt_int['name'] == cmd.get_option('-n')['name']
+        assert opt_int['name'] == cmd.get_option('--number')['name']
+        assert None == cmd.get_option('not-there')
 
 
-    def test_parseDefaults(self):
-        params, args = self.cmd.parse([])
+    def test_parseDefaults(self, cmd):
+        params, args = cmd.parse([])
         assert False == params['flag']
         assert 5 == params['num']
 
-    def test_parseShortValues(self):
-        params, args = self.cmd.parse(['-n','89','-f'])
+    def test_parseShortValues(self, cmd):
+        params, args = cmd.parse(['-n','89','-f'])
         assert True == params['flag']
         assert 89 == params['num']
 
-    def test_parseLongValues(self):
-        params, args = self.cmd.parse(['--rare-bool','--num','89'])
+    def test_parseLongValues(self, cmd):
+        params, args = cmd.parse(['--rare-bool','--num','89'])
         assert True == params['rare']
         assert 89 == params['num']
 
-    def test_parsePositionalArgs(self):
-        params, args = self.cmd.parse(['-f','p1','p2','--sub-arg'])
+    def test_parsePositionalArgs(self, cmd):
+        params, args = cmd.parse(['-f','p1','p2','--sub-arg'])
         assert ['p1','p2','--sub-arg'] == args
 
-    def test_parseExtraParams(self):
-        params, args = self.cmd.parse([], new_param='ho')
+    def test_parseExtraParams(self, cmd):
+        params, args = cmd.parse([], new_param='ho')
         assert "ho" == params['new_param']
 
-    def test_call(self):
-        params, args = self.cmd(['-n','7','ppp'])
+    def test_call(self, cmd):
+        params, args = cmd(['-n','7','ppp'])
         assert ['ppp'] == args
         assert 7 == params['num']
 
-    def test_failCall(self):
-        nose.tools.assert_raises(cmdparse.CmdParseError, self.cmd,['-x','35'])
+    def test_failCall(self, cmd):
+        py.test.raises(cmdparse.CmdParseError, cmd,['-x','35'])

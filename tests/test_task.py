@@ -1,7 +1,7 @@
-import os
-import sys, StringIO, tempfile
+import os, shutil
+import sys, tempfile
 
-from nose.tools import assert_raises
+import py.test
 
 from doit import TaskError, TaskFailed
 from doit import task
@@ -9,6 +9,15 @@ from doit import task
 #path to test folder
 TEST_PATH = os.path.dirname(__file__)
 PROGRAM = "python %s/sample_process.py" % TEST_PATH
+
+
+
+def pytest_funcarg__tmpfile(request):
+    """crate a temporary file"""
+    return request.cached_setup(
+        setup=os.tmpfile,
+        teardown=(lambda tmpfile: tmpfile.close()),
+        scope="function")
 
 
 ############# CmdAction
@@ -20,11 +29,11 @@ class TestCmdAction(object):
 
     def test_error(self):
         action = task.CmdAction("%s 1 2 3" % PROGRAM)
-        assert_raises(TaskError, action.execute)
+        py.test.raises(TaskError, action.execute)
 
     def test_failure(self):
         action = task.CmdAction("%s please fail" % PROGRAM)
-        assert_raises(TaskFailed, action.execute)
+        py.test.raises(TaskFailed, action.execute)
 
     def test_str(self):
         action = task.CmdAction(PROGRAM)
@@ -42,21 +51,11 @@ class TestCmdAction(object):
 
 
 class TestCmdVerbosity(object):
-    def setUp(self):
-        self.tmp = os.tmpfile()
-
-    def tearDown(self):
-        self.tmp.close()
-
-    def tmp_read(self):
-        self.tmp.seek(0)
-        return self.tmp.read()
-
     # Capture stderr
     def test_captureStderr(self):
         cmd = "%s please fail" % PROGRAM
         action = task.CmdAction(cmd)
-        assert_raises(TaskFailed, action.execute)
+        py.test.raises(TaskFailed, action.execute)
         assert "err output on failure" == action.err, repr(action.err)
 
     # Capture stdout
@@ -69,20 +68,23 @@ class TestCmdVerbosity(object):
     # test using a tempfile. it is not possible (at least i dont know)
     # how to test if the output went to the parent process,
     # faking sys.stderr with a StringIO doesnt work.
-    def test_noCaptureStderr(self):
+    def test_noCaptureStderr(self, tmpfile):
         action = task.CmdAction("%s please fail" % PROGRAM)
-        assert_raises(TaskFailed, action.execute, err=self.tmp)
-        got = self.tmp_read()
+        py.test.raises(TaskFailed, action.execute, err=tmpfile)
+        tmpfile.seek(0)
+        got = tmpfile.read()
         assert "err output on failure" == got, repr(got)
         assert "err output on failure" == action.err, repr(action.err)
 
     # Do not capture stdout
-    def test_noCaptureStdout(self):
+    def test_noCaptureStdout(self, tmpfile):
         action = task.CmdAction("%s hi_stdout hi2" % PROGRAM)
-        action.execute(out=self.tmp)
-        got = self.tmp_read()
+        action.execute(out=tmpfile)
+        tmpfile.seek(0)
+        got = tmpfile.read()
         assert "hi_stdout" == got, repr(got)
         assert "hi_stdout" == action.out, repr(action.out)
+
 
 
 ############# PythonAction
@@ -111,17 +113,17 @@ class TestPythonAction(object):
         # anthing but None, bool, or string
         def error_sample(): return {}
         action = task.PythonAction(error_sample)
-        assert_raises(TaskError, action.execute)
+        py.test.raises(TaskError, action.execute)
 
     def test_error_exception(self):
         def error_sample(): raise Exception("asdf")
         action = task.PythonAction(error_sample)
-        assert_raises(TaskError, action.execute)
+        py.test.raises(TaskError, action.execute)
 
     def test_fail_bool(self):
         def fail_sample():return False
         action = task.PythonAction(fail_sample)
-        assert_raises(TaskFailed, action.execute)
+        py.test.raises(TaskFailed, action.execute)
 
     # any callable should work, not only functions
     def test_nonFunction(self):
@@ -130,7 +132,7 @@ class TestPythonAction(object):
                 return False
 
         action= task.PythonAction(CallMe())
-        assert_raises(TaskFailed, action.execute)
+        py.test.raises(TaskFailed, action.execute)
 
     # helper to test callable with parameters
     def _func_par(self,par1,par2,par3=5):
@@ -147,11 +149,11 @@ class TestPythonAction(object):
         assert action1.kwargs == {}
 
         # not a callable
-        assert_raises(task.InvalidTask, task.PythonAction, "abc")
+        py.test.raises(task.InvalidTask, task.PythonAction, "abc")
         # args not a list
-        assert_raises(task.InvalidTask, task.PythonAction, self._func_par, "c")
+        py.test.raises(task.InvalidTask, task.PythonAction, self._func_par, "c")
         # kwargs not a list
-        assert_raises(task.InvalidTask, task.PythonAction,
+        py.test.raises(task.InvalidTask, task.PythonAction,
                       self._func_par, None, "a")
 
 
@@ -172,7 +174,7 @@ class TestPythonAction(object):
     def test_functionParametersFail(self):
         action = task.PythonAction(self._func_par, args=(2,3),
                                    kwargs={'par3':25})
-        assert_raises(TaskFailed, action.execute)
+        py.test.raises(TaskFailed, action.execute)
 
     def test_str(self):
         def str_sample(): return True
@@ -208,34 +210,16 @@ class TestPythonVerbosity(object):
         action.execute()
         assert "this is stdout S\n" == action.out, repr(action.out)
 
-    def test_noCaptureStderr(self):
-        # fake stderr
-        oldErr = sys.stderr
-        sys.stderr = StringIO.StringIO()
-        try:
-            # execute task
-            action = task.PythonAction(self.write_stderr)
-            action.execute(err=sys.stderr)
-            got = sys.stderr.getvalue()
-        finally:
-            # restore stderr
-            sys.stderr.close()
-            sys.stderr = oldErr
+    def test_noCaptureStderr(self, capsys):
+        action = task.PythonAction(self.write_stderr)
+        action.execute(err=sys.stderr)
+        got = capsys.readouterr()[1]
         assert "this is stderr S\n" == got, repr(got)
 
-    def test_noCaptureStdout(self):
-        # fake stderr
-        oldOut = sys.stdout
-        sys.stdout = StringIO.StringIO()
-        try:
-            # execute task
-            action = task.PythonAction(self.write_stdout)
-            action.execute(out=sys.stdout)
-            got = sys.stdout.getvalue()
-        finally:
-            # restore stderr
-            sys.stdout.close()
-            sys.stdout = oldOut
+    def test_noCaptureStdout(self, capsys):
+        action = task.PythonAction(self.write_stdout)
+        action.execute(out=sys.stdout)
+        got = capsys.readouterr()[0]
         assert "this is stdout S\n" == got, repr(got)
 
     def test_redirectStderr(self):
@@ -281,10 +265,10 @@ class TestCreateAction(object):
         assert isinstance(action, task.PythonAction)
 
     def testInvalidActionNone(self):
-        assert_raises(task.InvalidTask, task.create_action, None)
+        py.test.raises(task.InvalidTask, task.create_action, None)
 
     def testInvalidActionObject(self):
-        assert_raises(task.InvalidTask, task.create_action, self)
+        py.test.raises(task.InvalidTask, task.create_action, self)
 
 
 
@@ -297,11 +281,11 @@ class TestTaskCheckInput(object):
         task.Task.check_attr_input('xxx', 'attr', None, [list, None])
 
     def testFailType(self):
-        assert_raises(task.InvalidTask, task.Task.check_attr_input, 'xxx',
+        py.test.raises(task.InvalidTask, task.Task.check_attr_input, 'xxx',
                       'attr', int, [list, False])
 
     def testFailValue(self):
-        assert_raises(task.InvalidTask, task.Task.check_attr_input, 'xxx',
+        py.test.raises(task.InvalidTask, task.Task.check_attr_input, 'xxx',
                       'attr', True, [list, False])
 
 
@@ -327,18 +311,18 @@ class TestTask(object):
         assert t.run_once
 
     def test_dependencyFalseIsNotValid(self):
-        assert_raises(task.InvalidTask, task.Task,
+        py.test.raises(task.InvalidTask, task.Task,
                       "Task X",["taskcmd"], dependencies=[False])
 
     def test_ruOnce_or_fileDependency(self):
-        assert_raises(task.InvalidTask, task.Task,
+        py.test.raises(task.InvalidTask, task.Task,
                       "Task X",["taskcmd"], dependencies=[True,"whatever"])
 
     # dependency must be a sequence or bool.
     # give proper error message when anything else is used.
     def test_dependencyNotSequence(self):
         filePath = "data/dependency1"
-        assert_raises(task.InvalidTask, task.Task,
+        py.test.raises(task.InvalidTask, task.Task,
                       "Task X",["taskcmd"], dependencies=filePath)
 
 
@@ -389,7 +373,7 @@ class TestTaskActions(object):
 
     def test_failure(self):
         t = task.Task("taskX", ["%s 1 2 3" % PROGRAM])
-        assert_raises(TaskError, t.execute)
+        py.test.raises(TaskError, t.execute)
 
     # make sure all cmds are being executed.
     def test_many(self):
@@ -402,11 +386,11 @@ class TestTaskActions(object):
 
     def test_fail_first(self):
         t = task.Task("taskX", ["%s 1 2 3" % PROGRAM, PROGRAM])
-        assert_raises(TaskError, t.execute)
+        py.test.raises(TaskError, t.execute)
 
     def test_fail_second(self):
         t = task.Task("taskX", ["%s 1 2" % PROGRAM, "%s 1 2 3" % PROGRAM])
-        assert_raises(TaskError, t.execute)
+        py.test.raises(TaskError, t.execute)
 
 
     # python and commands mixed on same task
@@ -422,38 +406,43 @@ class TestTaskActions(object):
 
 
 
+
 class TestTaskClean(object):
 
-    def setUp(self):
-        self.dir = tempfile.mkdtemp(prefix='doit-')
-        self.filenames = [os.path.join(self.dir, fname)
-                          for fname in ['a.txt', 'b.txt']]
-        # create empty files
-        for filename in self.filenames:
-            file(filename, 'a').close()
+    def pytest_funcarg__tmpdir(self, request):
+        def create_tmpdir():
+            tmpdir = {}
+            tmpdir['dir'] = tempfile.mkdtemp(prefix='doit-')
+            files = [os.path.join(tmpdir['dir'], fname)
+                     for fname in ['a.txt', 'b.txt']]
+            tmpdir['files'] = files
+            # create empty files
+            for filename in tmpdir['files']:
+                file(filename, 'a').close()
+            return tmpdir
+        def remove_tmpdir(tmpdir):
+            if os.path.exists(tmpdir['dir']):
+                shutil.rmtree(tmpdir['dir'])
+        return request.cached_setup(
+            setup=create_tmpdir,
+            teardown=remove_tmpdir,
+            scope="function")
 
 
-    def tearDown(self):
-        for filename in self.filenames:
-            if os.path.exists(filename):
-                os.remove(filename)
-        if os.path.exists(self.dir):
-            os.rmdir(self.dir)
-
-    def test_clean_nothing(self):
+    def test_clean_nothing(self, tmpdir):
         t = task.Task("xxx", None)
         assert False == t._remove_targets
         assert 0 == len(t.clean_actions)
         t.clean()
-        for filename in self.filenames:
+        for filename in tmpdir['files']:
             assert os.path.exists(filename)
 
-    def test_clean_targets(self):
-        t = task.Task("xxx", None, targets=self.filenames, clean=True)
+    def test_clean_targets(self, tmpdir):
+        t = task.Task("xxx", None, targets=tmpdir['files'], clean=True)
         assert True == t._remove_targets
         assert 0 == len(t.clean_actions)
         t.clean()
-        for filename in self.filenames:
+        for filename in tmpdir['files']:
             assert not os.path.exists(filename), filename
 
     def test_clean_non_existent_targets(self):
@@ -461,44 +450,45 @@ class TestTaskClean(object):
         t.clean()
         # nothing is raised
 
-    def test_clean_empty_dirs(self):
+    def test_clean_empty_dirs(self, tmpdir):
         """
         Remove empty directories listed in targets
         """
-        t = task.Task("xxx", None, targets=self.filenames + [self.dir], clean=True)
-        assert True == t._remove_targets
-        assert 0 == len(t.clean_actions)
-        t.clean()
-        for filename in self.filenames:
-            assert not os.path.exists(filename)
-        assert not os.path.exists(self.dir)
-
-    def test_keep_non_empty_dirs(self):
-        """
-        Keep non empty directories listed in targets
-        """
-        targets = [self.filenames[0], self.dir]
+        targets = tmpdir['files'] + [tmpdir['dir']]
         t = task.Task("xxx", None, targets=targets, clean=True)
         assert True == t._remove_targets
         assert 0 == len(t.clean_actions)
         t.clean()
-        for filename in self.filenames:
+        for filename in tmpdir['files']:
+            assert not os.path.exists(filename)
+        assert not os.path.exists(tmpdir['dir'])
+
+    def test_keep_non_empty_dirs(self, tmpdir):
+        """
+        Keep non empty directories listed in targets
+        """
+        targets = [tmpdir['files'][0], tmpdir['dir']]
+        t = task.Task("xxx", None, targets=targets, clean=True)
+        assert True == t._remove_targets
+        assert 0 == len(t.clean_actions)
+        t.clean()
+        for filename in tmpdir['files']:
             expected = not filename in targets
             assert expected == os.path.exists(filename)
-        assert os.path.exists(self.dir)
+        assert os.path.exists(tmpdir['dir'])
 
-    def test_clean_actions(self):
+    def test_clean_actions(self, tmpdir):
         # a clean action can be anything, it can even not clean anything!
-        c_path = self.filenames[0]
+        c_path = tmpdir['files'][0]
         def say_hello():
             fh = file(c_path, 'a')
             fh.write("hello!!!")
             fh.close()
-        t = task.Task("xxx", None, targets=self.filenames, clean=[(say_hello,)])
+        t = task.Task("xxx",None,targets=tmpdir['files'], clean=[(say_hello,)])
         assert False == t._remove_targets
         assert 1 == len(t.clean_actions)
         t.clean()
-        for filename in self.filenames:
+        for filename in tmpdir['files']:
             assert os.path.exists(filename)
         fh = file(c_path, 'r')
         got = fh.read()
@@ -535,10 +525,10 @@ class TestDictToTask(object):
 
     def testDictFieldTypo(self):
         dict_ = {'name':'z','actions':['xpto 14'],'typo_here':['xxx']}
-        assert_raises(task.InvalidTask, task.dict_to_task, dict_)
+        py.test.raises(task.InvalidTask, task.dict_to_task, dict_)
 
     def testDictMissingFieldAction(self):
-        assert_raises(task.InvalidTask, task.dict_to_task, {'name':'xpto 14'})
+        py.test.raises(task.InvalidTask, task.dict_to_task, {'name':'xpto 14'})
 
 
 class TestCmdExpandAction(object):
@@ -567,78 +557,85 @@ class TestCmdExpandAction(object):
         assert "3 - abc def" == got, repr(got)
 
 
-class TestPythonActionPrepareKwargsMeta(object):
-    def setUp(self):
-        self.task = task.Task('name',None,['dependencies'],['targets'])
-        self.task.dep_changed = ['changed']
 
-    def test_no_extra_args(self):
+class TestPythonActionPrepareKwargsMeta(object):
+
+    def pytest_funcarg__task_depchanged(self, request):
+        def create_task_depchanged():
+            t_depchanged = task.Task('name',None,['dependencies'],['targets'])
+            t_depchanged.dep_changed = ['changed']
+            return t_depchanged
+        return request.cached_setup(
+            setup=create_task_depchanged,
+            scope="function")
+
+    def test_no_extra_args(self, task_depchanged):
         def py_callable():
             return True
         action = task.PythonAction(py_callable)
-        action.task = self.task
+        action.task = task_depchanged
         action.execute()
 
-    def test_keyword_extra_args(self):
+    def test_keyword_extra_args(self, task_depchanged):
         got = []
         def py_callable(arg=None, **kwargs):
             got.append(kwargs['targets'])
             got.append(kwargs['dependencies'])
             got.append(kwargs['changed'])
         action = task.PythonAction(py_callable)
-        action.task = self.task
+        action.task = task_depchanged
         action.execute()
         assert got == [['targets'], ['dependencies'], ['changed']], got
 
-    def test_named_extra_args(self):
+    def test_named_extra_args(self, task_depchanged):
         got = []
         def py_callable(targets, dependencies, changed):
             got.append(targets)
             got.append(dependencies)
             got.append(changed)
         action = task.PythonAction(py_callable)
-        action.task = self.task
+        action.task = task_depchanged
         action.execute()
         assert got == [['targets'], ['dependencies'], ['changed']]
 
-    def test_mixed_args(self):
+    def test_mixed_args(self, task_depchanged):
         got = []
         def py_callable(a, b, changed):
             got.append(a)
             got.append(b)
             got.append(changed)
         action = task.PythonAction(py_callable, ('a', 'b'))
-        action.task = self.task
+        action.task = task_depchanged
         action.execute()
         assert got == ['a', 'b', ['changed']]
 
-    def test_extra_arg_overwritten(self):
+    def test_extra_arg_overwritten(self, task_depchanged):
         got = []
         def py_callable(a, b, changed):
             got.append(a)
             got.append(b)
             got.append(changed)
         action = task.PythonAction(py_callable, ('a', 'b', 'c'))
-        action.task = self.task
+        action.task = task_depchanged
         action.execute()
         assert got == ['a', 'b', 'c']
 
-    def test_extra_kwarg_overwritten(self):
+    def test_extra_kwarg_overwritten(self, task_depchanged):
         got = []
         def py_callable(a, b, **kwargs):
             got.append(a)
             got.append(b)
             got.append(kwargs['changed'])
         action = task.PythonAction(py_callable, ('a', 'b'), {'changed': 'c'})
-        action.task = self.task
+        action.task = task_depchanged
         action.execute()
         assert got == ['a', 'b', 'c']
 
-    def test_extra_arg_default_disallowed(self):
+    def test_extra_arg_default_disallowed(self, task_depchanged):
         def py_callable(a, b, changed=None): pass
         action = task.PythonAction(py_callable, ('a', 'b'))
-        action.task = self.task
-        assert_raises(task.InvalidTask, action.execute)
+        action.task = task_depchanged
+        py.test.raises(task.InvalidTask, action.execute)
 
 class TestPythonActionOptions(object):
     def test_task_options(self):

@@ -1,5 +1,4 @@
 """cmd-line functions"""
-import sys
 
 from doit import dependency
 from doit.task import Task

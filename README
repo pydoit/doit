@@ -46,7 +46,7 @@ Python 2.4 & 2.5:
 
 Tools required for development:
 
-- nose * unit tests
+- py.test * unit tests
 - bazaar * VCS
 - epydoc * API doc generator
 - sphinx * doc tool
@@ -57,9 +57,9 @@ Tools required for development:
 TESTS
 =====
 
-`nose <http://somethingaboutorange.com/mrl/projects/nose/>`_ is required to run the test suite.
+`py.test <http://codespeak.net/py/dist/test/index.html>`_ is required to run the test suite.
 
-``nosetests``
+``py.test``
 
 DOCUMENTATION
 =============
