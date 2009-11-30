@@ -1,6 +1,6 @@
 
 def show_cmd(task):
-    return "executing... %s" % str(task)
+    return "executing... %s" % task.name
 
 def task_custom_display():
     return {'actions':['echo abc efg'],

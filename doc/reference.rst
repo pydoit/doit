@@ -20,8 +20,10 @@ name:
 dependencies:
   - Optional field
   - type: list. items:
+
     * file (string) path relative to the dodo file
     * task (string) ":<task_name>"
+    * task-result (string) "?<task_name>"
     * run-once (True bool)
 
 targets:
@@ -45,6 +47,7 @@ clean:
 params:
  - Optional field
  - type: (list) of dictionaries containing:
+
    - name [required] (string) parameter identifier
    - default [required] default value for parameter
    - short [optional] (string - 1 letter) short option string
@@ -54,6 +57,7 @@ params:
 verbosity:
  - Optional field (default value 1)
  - type: int
+
    -  0: capture (do not print) stdout/stderr from task.
    -  1: (default) capture stdout only.
    -  2: do not capture anything (print everything immediately).

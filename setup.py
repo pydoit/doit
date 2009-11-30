@@ -30,9 +30,13 @@ setup(name = 'doit',
       scripts = ['bin/doit'],
 
       long_description = """
-        doit comes from the idea of bringing the power of build-tools to 
-        execute any kind of task. It will keep track of dependencies between 
-        "tasks" and execute them only when necessary. It was designed to be 
-        easy to use and "get out of your way"."""
+doit comes from the idea of bringing the power of build-tools to execute any kind of task. It will keep track of dependencies between "tasks" and execute them only when necessary. It was designed to be easy to use and "get out of your way".
+
+`doit` can be used as:
+
+ * a build tool (generic and flexible)
+ * home of your management scripts (it helps you organize and combine shell scripts and python scripts)
+ * a functional tests runner (combine together different tools)
+"""
       )
 

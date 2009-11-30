@@ -27,16 +27,16 @@ So if there are no modifications to the dependencies and you run `doit` again. T
 .. code-block:: console
 
   eduardo@eduardo:~$ doit
-  compile
+  .  compile
   eduardo@eduardo:~$ doit
-  --- compile
+  -- compile
 
-Note the ``---`` (3 dashes) on the command output on the second time it is executed. It means, this task was up-to-date and not executed.
+Note the ``-- `` (2 dashes, one space) on the command output on the second time it is executed. It means, this task was up-to-date and not executed.
 
 
 
-example - lint
---------------
+example - no targets
+---------------------
 
 Different from most build-tools dependencies are on tasks not on targets. So `doit` can take advantage of the "execute only if not up-to-date" feature even for tasks that not define targets.
 
@@ -47,9 +47,9 @@ Lets say you work with a dynamic language (python in this example). You don't ne
 .. code-block:: console
 
    eduardo@eduardo:~$ doit
-   checker
+   .  checker
    eduardo@eduardo:~$ doit
-   --- checker
+   -- checker
 
 Note the ``---`` again.
 
@@ -73,8 +73,8 @@ This example we make sure we include a file with the latest revision number of t
 .. code-block:: console
 
     eduardo@eduardo:~$ doit
-    version
-    tar
+    .  version
+    .  tar
 
 
 groups
@@ -101,21 +101,21 @@ If there are no changes in the dependency the task execution is skipped. But if 
 .. code-block:: console
 
     eduardo@eduardo:~$ doit
-    compile
+    .  compile
     eduardo@eduardo:~$ doit
-    --- compile
+    -- compile
     eduardo@eduardo:~$ rm main.o
     eduardo@eduardo:~$ doit
-    compile
+    .  compile
     eduardo@eduardo:~$ echo xxx > main.o
     eduardo@eduardo:~$ doit
-    --- compile
+    -- compile
 
 
 task-result-dependency
 ----------------------
 
-In some cases you can not determine if a task is "up-to-date" only based on some input files, you might need to run an external processto check that. *doit* defines a "task-result-dependency" to deal with these without need to create an intermediate file with the reulsts of the process.
+In some cases you can not determine if a task is "up-to-date" only based on some input files, you might need to run an external process to check that. *doit* defines a "task-result-dependency" to deal with these cases without need to create an intermediate file with the reulsts of the process.
 
 i.e. Suppose you want to send an email everytime you run *doit* on a bazaar repository that contains a new revision number.
 
@@ -139,12 +139,12 @@ Note that even with *run-once* the file will be downloaded again in case the tar
 .. code-block:: console
 
     eduardo@eduardo:~$ doit
-    get_pylogo
+    .  get_pylogo
     eduardo@eduardo:~$ doit
-    --- get_pylogo
+    -- get_pylogo
     eduardo@eduardo:~$ rm python-logo.gif
     eduardo@eduardo:~$ doit
-    get_pylogo
+    .  get_pylogo
 
 .. note::
 

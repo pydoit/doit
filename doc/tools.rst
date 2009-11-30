@@ -2,7 +2,7 @@
 Tools
 ======
 
-Following the *batteries-included* philosophy *doit* includes some common used actions.
+Following the *batteries-included* philosophy *doit* includes some common used actions. (well not many by now :p)
 
 create_folder
 --------------

@@ -148,7 +148,7 @@ By default relative paths of file used on the `dodo` file and the "current worki
 
 .. code-block:: console
 
-    eduardo@eduardo:~$ doit --dir
+    eduardo@eduardo:~$ doit --dir path/to/another/cwd
 
 
 continue
@@ -164,7 +164,7 @@ By default the execution of tasks is halted on the first task failure or error. 
 reporter
 ---------
 
-`doit` provides different "reporters" when running tasks. Use the option --reporter/-r Apart from the default it also includes:
+`doit` provides different "reporters" to dispalyin running tasks info on the console. Use the option --reporter/-r Apart from the default it also includes:
 
  * executed-only: Produces zero output unless a task is executed
  * json: Output results in JSON format

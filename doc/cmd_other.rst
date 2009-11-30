@@ -40,7 +40,7 @@ forget
 -------
 
 
-Suppose you change the compilation parameters in the compile action. *doit* will think your task is up-to-date but actually it is not. In this case you can use the *forget* command to make sure the given task will be executed again even with no changes in the dependencies.
+Suppose you change the compilation parameters in the compile action. Or you changed the code frmo a python-action. *doit* will think your task is up-to-date based on  the dependencies but actually it is not! In this case you can use the *forget* command to make sure the given task will be executed again even with no changes in the dependencies.
 
 If you do not specify any task, all tasks are "*forget*".
 
@@ -56,7 +56,7 @@ If you do not specify any task, all tasks are "*forget*".
 clean
 ------
 
-A common scenario is a task that needs to revert its actions. A task may include a *clean* attribute. This attribute can be ``True`` to remove all of its target files. If there is a folder as a target it will be removed if the folder is empty, otherwise it will display a warning message.
+A common scenario is a task that needs to "revert" its actions. A task may include a *clean* attribute. This attribute can be ``True`` to remove all of its target files. If there is a folder as a target it will be removed if the folder is empty, otherwise it will display a warning message.
 
 The *clean* attribute can be a list of actions, again, an action could be a string with a shell command or a tuple with a python callable.
 
@@ -78,14 +78,14 @@ It is possible to set a task to be ignored/skipped (that is not executed). This 
 .. code-block:: console
 
     eduardo@eduardo:~$ doit
-    create_file:file0.txt
-    create_file:file1.txt
-    create_file:file2.txt
+    .  create_file:file0.txt
+    .  create_file:file1.txt
+    .  create_file:file2.txt
     eduardo@eduardo:~$ doit ignore create_file:file1.txt
     ignoring create_file:file1.txt
     eduardo@eduardo:~$
-    create_file:file0.txt
-    !!!create_file:file1.txt
-    create_file:file2.txt
+    .  create_file:file0.txt
+    !! create_file:file1.txt
+    .  create_file:file2.txt
 
-Note the ``!!!``, it means that task was ignored. To reverse the `ignore` use `forget` sub-command.
+Note the ``!! ``, it means that task was ignored. To reverse the `ignore` use `forget` sub-command.
