@@ -30,13 +30,13 @@ class TestConsoleReporter(object):
     def test_skipUptodate(self):
         rep = reporter.ConsoleReporter(StringIO.StringIO(), True, True)
         rep.skip_uptodate(Task("t_name", None))
-        assert "---" in rep.outstream.getvalue()
+        assert "-- " in rep.outstream.getvalue()
         assert "t_name" in rep.outstream.getvalue()
 
     def test_skipIgnore(self):
         rep = reporter.ConsoleReporter(StringIO.StringIO(), True, True)
         rep.skip_ignore(Task("t_name", None))
-        assert "!!!" in rep.outstream.getvalue()
+        assert "!! " in rep.outstream.getvalue()
         assert "t_name" in rep.outstream.getvalue()
 
 

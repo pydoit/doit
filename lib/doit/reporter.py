@@ -64,10 +64,10 @@ class ConsoleReporter(object):
         pass
 
     def skip_uptodate(self, task):
-        self.outstream.write("---%s\n" % task.title())
+        self.outstream.write("-- %s\n" % task.title())
 
     def skip_ignore(self, task):
-        self.outstream.write("!!!%s\n" % task.title())
+        self.outstream.write("!! %s\n" % task.title())
 
 
     def cleanup_error(self, exception):
