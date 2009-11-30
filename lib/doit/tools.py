@@ -9,6 +9,6 @@ def create_folder(dir_path):
     return True
 
 
-def task_title_with_actions(task):
+def title_with_actions(task):
     """return task name task actions"""
     return "%s => %s"% (task.name, str(task))

@@ -15,5 +15,5 @@ def test_create_folder():
     rm_dir()
 
 def test_title():
-    t = task.Task("MyName",["MyAction"], title=tools.task_title_with_actions)
+    t = task.Task("MyName",["MyAction"], title=tools.title_with_actions)
     assert "MyName => %s"%str(t) == t.title(), t.title()

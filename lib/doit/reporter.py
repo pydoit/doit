@@ -143,7 +143,7 @@ class TaskResult(object):
 
 
 class JsonReporter(object):
-    """save results in a file using JSON"""
+    """output results in JSON format"""
     def __init__(self, outstream, show_out=None, show_err=None):
         # show_out, show_err parameters are ignored.
         # json result is sent to stdout when doit finishes running
