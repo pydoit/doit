@@ -15,9 +15,9 @@ Contents:
    intro
    tasks
    dependencies
+   env_setup
    cmd_run
    cmd_other
-   env_setup
    tools
    reference
    faq

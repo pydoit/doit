@@ -8,7 +8,14 @@ Lets use more complex example to demonstrate the command line features. The exam
 .. literalinclude:: tutorial/cproject.py
 
 
-`doit` comes with several commands. `doit help` will list all available commands. You can also get help from each available command. e.g. `doit help run`.
+help
+-------
+
+`doit` comes with several commands. `doit help` will list all available commands.
+
+You can also get help from each available command. e.g. `doit help run`.
+
+`doit help task` will deisplay information on all fields/attributes a task dictionary from a `dodo` file accepts.
 
 
 
@@ -51,7 +58,7 @@ clean
 
 A common scenario is a task that needs to revert its actions. A task may include a *clean* attribute. This attribute can be ``True`` to remove all of its target files. If there is a folder as a target it will be removed if the folder is empty, otherwise it will display a warning message.
 
-The *clean* attribute could be a list of actions, again action could be a string with a shell command or a tuple with a python callable.
+The *clean* attribute can be a list of actions, again, an action could be a string with a shell command or a tuple with a python callable.
 
 You can specify which task to *clean*. If no task is specified the clean operation of every task is executed.
 

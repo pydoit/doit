@@ -4,9 +4,6 @@ Tasks
 
 Every *task* must define **actions**. It can optionally defines other attributes like `targets`, `dependencies`, `doc` ...
 
-actions
------------
-
 Actions define what the task actually do. A task can define any number of actions. There 2 kinds of `actions`: *cmd-action* and *python-action*.
 
 cmd-action
@@ -19,9 +16,10 @@ The result of the task follows the shell convention. If the process exits with t
 python-action
 ^^^^^^^^^^^^^^
 
-If `action` is a tuple `(callable, *args, **kwargs)` - only `callable` is required. ``args`` is a sequence and  ``kwargs`` is a dictionary that will be used as positional and keywords arguments for the callable. see `*args <http://docs.python.org/tut/node6.html#SECTION006730000000000000000>`_ and `**kwargs <http://docs.python.org/tut/node6.html#SECTION006720000000000000000>`_.
+If `action` is a tuple `(callable, *args, **kwargs)` - only `callable` is required. ``args`` is a sequence and  ``kwargs`` is a dictionary that will be used as positional and keywords arguments for the callable. see `Keyword Arguments <http://docs.python.org/tutorial/controlflow.html#keyword-arguments>`_.
 
-The result of the task is given by the returned value of the ``action`` function. So it must return a *boolean* value `True` to indicate successful completion of the task. Or `False` to indicate task failed. If it raises an exception, it will be considered an error.
+The result of the task is given by the returned value of the ``action`` function. So it must return a *boolean* value `True`, `None` or a string to indicate successful completion of the task. Use `False` to indicate task failed. If it raises an exception, it will be considered an error. If it returns any other type it will also be considered an error but this behavior might change in future versions.
+
 
 example - dynamic
 ^^^^^^^^^^^^^^^^^^^
@@ -51,14 +49,4 @@ The task function can return a python-generator that yields dictionaries. Since 
     create_file:file1.txt
     create_file:file2.txt
 
-
-
-groups
-------
-
-You can define group of tasks by adding tasks as dependencies and setting its `actions` to ``None``.
-
-.. literalinclude:: tutorial/group.py
-
-Note that tasks are never executed twice in the same "run".
 

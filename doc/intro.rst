@@ -23,5 +23,4 @@ When `doit` is executed without any parameters it will look for tasks in a file 
   eduardo@eduardo~$ doit
   hello
 
-On the output it displays which tasks were executed.
-
+On the output it displays which tasks were executed. In this case the `dodo` file has only on task, `hello`.

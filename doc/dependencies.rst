@@ -38,7 +38,7 @@ Note the ``---`` (3 dashes) on the command output on the second time it is execu
 example - lint
 --------------
 
-Different from most build-tools dependencies are on tasks not on targets. So `doit` can take advantage of the execute only if not up-to-date feature even for tasks that not define targets.
+Different from most build-tools dependencies are on tasks not on targets. So `doit` can take advantage of the "execute only if not up-to-date" feature even for tasks that not define targets.
 
 Lets say you work with a dynamic language (python in this example). You don't need to compile anything but you probably wants to apply a lint-like tool (`PyChecker <http://pychecker.sourceforge.net/>`_) to your source code files. You can define the source code as a dependency to the task.
 
@@ -61,6 +61,11 @@ task-dependency
 We have seen only dependencies on files up to now. On `doit` you can also define **task-dependency**. To define a dependency on another task use the task name (whatever comes after ``task_`` on the function name) preceded by ":". It is used to enforce tasks are executed on the desired order. By default tasks are executed on the same order as they were defined in the `dodo` file.
 
 
+.. note::
+
+  A *task-dependency* **only** indicates that another task should be "executed" before itself. The task-dependency might not really be executed if it is *up-to-date*.
+
+
 This example we make sure we include a file with the latest revision number of the bazaar repository on the tar file.
 
 .. literalinclude:: tutorial/tar.py
@@ -71,6 +76,15 @@ This example we make sure we include a file with the latest revision number of t
     version
     tar
 
+
+groups
+^^^^^^^
+
+You can define group of tasks by adding tasks as dependencies and setting its `actions` to ``None``.
+
+.. literalinclude:: tutorial/group.py
+
+Note that tasks are never executed twice in the same "run".
 
 
 targets
@@ -98,11 +112,18 @@ If there are no changes in the dependency the task execution is skipped. But if 
     --- compile
 
 
-task-result
--------------
+task-result-dependency
+----------------------
 
-TODO
+In some cases you can not determine if a task is "up-to-date" only based on some input files, you might need to run an external processto check that. *doit* defines a "task-result-dependency" to deal with these without need to create an intermediate file with the reulsts of the process.
 
+i.e. Suppose you want to send an email everytime you run *doit* on a bazaar repository that contains a new revision number.
+
+.. literalinclude:: tutorial/taskresult.py
+
+Note the question mark "?" preeceds the name of the task (version). `doit` will keep track of the output of the task *version* and will execute *send_email* only when the bazaar repository has a new version since last time *doit* was executed.
+
+The "result" from the dependent task compared between different runs is given by its last action. The content for python-action is the value of the returned string. For cmd-actions is the output send to stdout plus stderr.
 
 run-once
 --------
@@ -121,13 +142,13 @@ Note that even with *run-once* the file will be downloaded again in case the tar
     get_pylogo
     eduardo@eduardo:~$ doit
     --- get_pylogo
-    eduardo@eduardo:~$ rm doc/tutorial/python-logo.gif
+    eduardo@eduardo:~$ rm python-logo.gif
     eduardo@eduardo:~$ doit
     get_pylogo
 
 .. note::
 
-  Only *file-dependency* and *run-once* are used to determine if a task is up-to-date or not. If a task defines only *task-dependency* or no dependencies at all it will always be executed.
+  *task-dependency* s are **not** used to determine if a task is up-to-date or not. If a task defines only *task-dependency* or no dependencies at all it will always be executed.
 
 
 keywords on actions
@@ -135,7 +156,7 @@ keywords on actions
 
 It is common situation to use task information such as *targets*, *dependencies*, or *changed* in its own actions. Note: Dependencies are only *file-dependencies*.
 
-For *cmd-action* you can use the notations of python keyword substitution on strings. The string will contain all values separated by a space (" ").
+For *cmd-action* you can use the python notation for keyword substitution on strings. The string will contain all values separated by a space (" ").
 
 For *python-action* create a parameter in the function `doit` will take care of passing the value when the function is called. The values are passed as list of strings.
 

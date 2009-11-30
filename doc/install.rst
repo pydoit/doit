@@ -18,7 +18,7 @@ Installing
 
   Add the following line to your system's software sources ::
 
-    deb http://ppa.launchpad.net/doit-team/ppa/ubuntu jaunty main
+    deb http://ppa.launchpad.net/doit-team/ppa/ubuntu karmic main
 
   `PPA archive <https://launchpad.net/~doit-team/+archive/ppa/>`_. (`help <https://launchpad.net/+help/soyuz/ppa-sources-list.html>`_)
 

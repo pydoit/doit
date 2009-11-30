@@ -41,3 +41,23 @@ clean:
  - Optional field
  - type: (True bool) remove target files
  - type: (list) of actions (see above)
+
+params:
+ - Optional field
+ - type: (list) of dictionaries containing:
+   - name [required] (string) parameter identifier
+   - default [required] default value for parameter
+   - short [optional] (string - 1 letter) short option string
+   - long [optional] (string) long option string
+   - type [optional] the option will be converted to this type
+
+verbosity:
+ - Optional field (default value 1)
+ - type: int
+   -  0: capture (do not print) stdout/stderr from task.
+   -  1: (default) capture stdout only.
+   -  2: do not capture anything (print everything immediately).
+
+title:
+ - Optional field
+ - type: callable taking one parameter as argument (the task reference)
