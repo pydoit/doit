@@ -99,7 +99,7 @@ opt_verbosity = {'name':'verbosity',
                  'help':
 """0 capture (do not print) stdout/stderr from task.
 1 capture stdout only.
-2 dont capture anything (print everything immediately).
+2 do not capture anything (print everything immediately).
 [default: 1]"""
                  }
 
@@ -142,6 +142,7 @@ Commands:
  doit ignore            ignore task (skip) on subsequent runs
 
  doit help              show help / reference
+ doit help task         show help on task dictionary fields
  doit help <command>    show command usage
 """
 
@@ -257,11 +258,69 @@ help_doc = {'purpose': "show help",
             'usage': "",
             'description': None}
 
+def print_task_help():
+    print """
+
+Task Dictionary parameters
+--------------------------
+
+Tasks are defined by functions starting with the string ``task_``. It must return a dictionary describing the task with the following fields:
+
+action [required]:
+  - type: Python-Task -> tuple (callable, `*args`, `**kwargs`)
+  - type: Cmd-Task -> string or list of strings (each item is a different command). to be executed by shell.
+  - type: Group-Task -> None.
+
+name [required for sub-task]:
+  - type: string. sub-task identifier
+
+dependencies:
+  - type: list. items:
+    * file (string) path relative to the dodo file
+    * task (string) ":<task_name>"
+    * run-once (True bool)
+
+targets:
+  - type: list of strings
+  - each item is file-path relative to the dodo file (accepts both files and folders)
+
+setup:
+ - type: list of objects with methods 'setup' and 'cleanup'
+
+doc:
+ - type: string -> the description text
+
+clean:
+ - type: (True bool) remove target files
+ - type: (list) of actions (see above)
+
+params:
+ - type: (list) of dictionaries containing:
+   - name [required] (string) parameter identifier
+   - default [required] default value for parameter
+   - short [optional] (string - 1 letter) short option string
+   - long [optional] (string) long option string
+   - type [optional] the option will be converted to this type
+
+verbosity:
+ - type: int
+   -  0: capture (do not print) stdout/stderr from task.
+   -  1: (default) capture stdout only.
+   -  2: do not capture anything (print everything immediately).
+
+title:
+ - type: callable taking one parameter as argument (the task reference)
+"""
+
 def cmd_help(params, args):
-    if len(args) == 1 and args[0] in params['sub']:
-        print params['sub'][args[0]].help()
-    else:
-        print_usage()
+    if len(args) == 1:
+        if args[0] in params['sub']:
+            print params['sub'][args[0]].help()
+            return 0
+        elif args[0] == 'task':
+            print_task_help()
+            return 0
+    print_usage()
     return 0
 
 
