@@ -55,7 +55,7 @@ class ConsoleReporter(object):
     def execute_task(self, task):
         # ignore tasks that do not define actions
         if task.actions:
-            self.outstream.write(task.title() + '\n')
+            self.outstream.write('.  %s\n' % task.title())
 
     def add_failure(self, task, exception):
         self.failures.append({'task': task, 'exception':exception})

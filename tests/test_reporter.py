@@ -20,7 +20,7 @@ class TestConsoleReporter(object):
         def do_nothing():pass
         t1 = Task("with_action",[(do_nothing,)])
         rep.execute_task(t1)
-        assert "with_action" in rep.outstream.getvalue()
+        assert ".  with_action\n" == rep.outstream.getvalue()
 
     def test_executeGroupTask(self):
         rep = reporter.ConsoleReporter(StringIO.StringIO(), True, True)

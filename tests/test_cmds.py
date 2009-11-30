@@ -134,14 +134,14 @@ class TestCmdRun(object):
         output = StringIO.StringIO()
         doit_run(TESTDB, TASKS_SAMPLE, output)
         got = output.getvalue().split("\n")[:-1]
-        assert ["t1", "t2", "g1.a", "g1.b", "t3"] == got, repr(got)
+        assert [".  t1", ".  t2", ".  g1.a", ".  g1.b", ".  t3"] == got
 
     def testProcessRunFilter(self):
         remove_testdb()
         output = StringIO.StringIO()
         doit_run(TESTDB, TASKS_SAMPLE, output, ["g1.a"])
         got = output.getvalue().split("\n")[:-1]
-        assert ["g1.a"] == got, repr(got)
+        assert [".  g1.a"] == got, repr(got)
 
     def testInvalidReporter(self):
         remove_testdb()
@@ -168,7 +168,7 @@ class TestCmdRun(object):
             outfile = open('test.out', 'r')
             got = outfile.read()
             outfile.close()
-            assert "g1.a\n" == got, repr(got)
+            assert ".  g1.a\n" == got, repr(got)
         finally:
             if os.path.exists('test.out'):
                 os.remove('test.out')
