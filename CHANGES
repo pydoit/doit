@@ -3,8 +3,8 @@
 Changes
 =======
 
-0.5.0
-=====
+0.5.0 (*2009-11-30*)
+=====================
 
 - task parameter 'clean' == True, cleans empty folders, and display warning for non-empty folders
 - added command line option --continue. Execute all tasks even if tasks fails
