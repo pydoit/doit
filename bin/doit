@@ -1,30 +1,15 @@
 #! /usr/bin/env python
 
+import os
 import sys
 import traceback
 
-from doit import __version__ as doit_version
+import doit
 from doit import main
 from doit import task
 from doit import cmdparse
 from doit.cmds import doit_run, doit_clean, doit_list, doit_forget, doit_ignore
 
-
-# TODO cmd list should be automatically generated.
-DOIT_USAGE = """
-doit -- automation tool
-http://python-doit.sourceforge.net/
-
-Commands:
- doit [run]             run tasks
- doit clean             clean action / remove targets
- doit list              list tasks from dodo file
- doit forget            clear successful run status from DB
- doit ignore            ignore task (skip) on subsequent runs
-
- doit help              show help / reference
- doit help <command>    show command usage
-"""
 
 ## cmd line options
 ##########################################################
@@ -138,15 +123,38 @@ run_doc = {'purpose': "run tasks",
            'usage': "[TASK/TARGET...]",
            'description': None}
 
+def print_version():
+    print ".".join([str(i) for i in doit.__version__])
+    print "bin @", os.path.abspath(__file__)
+    print "lib @", os.path.dirname(os.path.abspath(doit.__file__))
+
+def print_usage():
+    # TODO cmd list should be automatically generated.
+    print """
+doit -- automation tool
+http://python-doit.sourceforge.net/
+
+Commands:
+ doit [run]             run tasks
+ doit clean             clean action / remove targets
+ doit list              list tasks from dodo file
+ doit forget            clear successful run status from DB
+ doit ignore            ignore task (skip) on subsequent runs
+
+ doit help              show help / reference
+ doit help <command>    show command usage
+"""
+
+
 def cmd_run(params, args):
     """execute cmd run"""
 
     # special parameters that dont run anything
     if params["version"]:
-        print ".".join([str(i) for i in doit_version])
+        print_version()
         return 0
     if params["help"]:
-        print DOIT_USAGE
+        print_usage()
         return 0
 
 
@@ -253,7 +261,7 @@ def cmd_help(params, args):
     if len(args) == 1 and args[0] in params['sub']:
         print params['sub'][args[0]].help()
     else:
-        print DOIT_USAGE
+        print_usage()
     return 0
 
 
