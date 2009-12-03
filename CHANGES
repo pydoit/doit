@@ -3,6 +3,13 @@
 Changes
 =======
 
+
+0.5.1 (*2009-12-03*)
+=====================
+
+- fix. task-result-dependencies should be also added as task-dependency to force its execution.
+
+
 0.5.0 (*2009-11-30*)
 =====================
 

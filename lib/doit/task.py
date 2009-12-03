@@ -426,6 +426,8 @@ class Task(object):
                 self.task_dep.append(dep[1:])
             # task-result dep starts with a '?'
             elif dep.startswith('?'):
+                # result_dep are also task_dep.
+                self.task_dep.append(dep[1:])
                 self.result_dep.append(dep[1:])
             # file dep
             elif isinstance(dep,str):

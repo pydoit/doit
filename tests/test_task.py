@@ -345,7 +345,7 @@ class TestTask(object):
     def test_dependencyTypes(self):
         dep = ["file1.txt",":taskX","file2", "?res1"]
         t = task.Task("MyName", ["MyAction"], dep)
-        assert t.task_dep == [dep[1][1:]]
+        assert t.task_dep == [dep[1][1:], dep[3][1:]]
         assert t.file_dep == [dep[0],dep[2]]
         assert t.result_dep == [dep[3][1:]]
 
