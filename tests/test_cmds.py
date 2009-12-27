@@ -116,7 +116,6 @@ class TestCmdForget(object):
     def testDontForgetTaskDependency(self, tasks):
         output = StringIO.StringIO()
         doit_forget(TESTDB, tasks, output, ["t3"])
-        got = output.getvalue().split("\n")[:-1]
         dep = Dependency(TESTDB)
         assert None == dep._get("t3", "dep")
         assert "1" == dep._get("t1", "dep")
@@ -255,7 +254,6 @@ class TestCmdIgnore(object):
     def testDontIgnoreTaskDependency(self, tasks):
         output = StringIO.StringIO()
         doit_ignore(TESTDB, tasks, output, ["t3"])
-        got = output.getvalue().split("\n")[:-1]
         dep = Dependency(TESTDB)
         assert '1' == dep._get("t3", "ignore:")
         assert None == dep._get("t1", "ignore:")

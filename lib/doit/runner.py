@@ -27,7 +27,7 @@ class SetupManager(object):
             if hasattr(setup_obj, 'setup'):
                 setup_obj.setup()
 
-        except (SystemExit, KeyboardInterrupt), exp: raise
+        except (SystemExit, KeyboardInterrupt): raise
         except Exception, exception:
             raise SetupError("ERROR on object setup", exception)
 
@@ -101,7 +101,7 @@ def run_tasks(dependencyFile, tasks, reporter, verbosity=None,
         # from Exception.
         # specially a problem when a fork from the main process
         # exit using sys.exit() instead of os._exit().
-        except (SystemExit, KeyboardInterrupt), exp:
+        except (SystemExit, KeyboardInterrupt):
             raise
 
         # task error

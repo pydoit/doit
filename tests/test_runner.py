@@ -165,7 +165,7 @@ class TestRunningTask(object):
         def ok(): return "ok"
         t1 = Task("t1", [(ok,)])
         t2 = Task("t2", [(ok,)], ['?t1'])
-        result = runner.run_tasks(TESTDB, [t1, t2], reporter)
+        runner.run_tasks(TESTDB, [t1, t2], reporter)
         assert ('start', t1) == reporter.log.pop(0)
         assert ('execute', t1) == reporter.log.pop(0)
         assert ('success', t1) == reporter.log.pop(0)
@@ -173,7 +173,7 @@ class TestRunningTask(object):
         assert ('execute', t2) == reporter.log.pop(0)
         assert ('success', t2) == reporter.log.pop(0)
         # again
-        result = runner.run_tasks(TESTDB, [t1, t2], reporter)
+        runner.run_tasks(TESTDB, [t1, t2], reporter)
         assert ('start', t1) == reporter.log.pop(0)
         assert ('execute', t1) == reporter.log.pop(0)
         assert ('success', t1) == reporter.log.pop(0)
@@ -182,7 +182,7 @@ class TestRunningTask(object):
         # change t1, t2 executed again
         def ok2(): return "different"
         t1B = Task("t1", [(ok2,)])
-        result = runner.run_tasks(TESTDB, [t1B, t2], reporter)
+        runner.run_tasks(TESTDB, [t1B, t2], reporter)
         assert ('start', t1B) == reporter.log.pop(0)
         assert ('execute', t1B) == reporter.log.pop(0)
         assert ('success', t1B) == reporter.log.pop(0)

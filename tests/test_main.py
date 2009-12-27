@@ -127,7 +127,7 @@ class TestLoadTaskGenerators(object):
     def testSetCwd(self):
         fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
         cwd = os.path.join(os.path.dirname(__file__), "data")
-        dodo_module = get_module(fileName, cwd)
+        get_module(fileName, cwd)
         assert os.getcwd() == cwd, os.getcwd()
 
 
