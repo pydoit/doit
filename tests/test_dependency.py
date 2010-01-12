@@ -109,7 +109,7 @@ class TestSaveSuccess(object):
 
     def test_save_result(self, depfile):
         t1 = Task('t_name', None)
-        t1.value = "result"
+        t1.result = "result"
         depfile.save_success(t1)
         assert get_md5("result") == depfile._get(t1.name, "result:")
 
@@ -155,20 +155,27 @@ class TestSaveSuccess(object):
 
     def test_save_result_dep(self, depfile):
         t1 = Task('t1', None)
-        t1.value = "result"
+        t1.result = "result"
         depfile.save_success(t1)
         t2 = Task('t2', None, ['?t1'])
         depfile.save_success(t2)
-        assert get_md5(t1.value) == depfile._get("t2", "task:t1")
+        assert get_md5(t1.result) == depfile._get("t2", "task:t1")
         t3 = Task('t3', None, [':t1'])
         depfile.save_success(t3)
         assert None is depfile._get("t3", "task:t1")
+
+    def test_save_values(self, depfile):
+        t1 = Task('t1', None)
+        t1.values = {'x':5, 'y':10}
+        depfile.save_success(t1)
+        assert 5 == depfile._get("t1", ":x:")
+        assert 10 == depfile._get("t1", ":y:")
 
 
 class TestRemoveSuccess(object):
     def test_save_result(self, depfile):
         t1 = Task('t_name', None)
-        t1.value = "result"
+        t1.result = "result"
         depfile.save_success(t1)
         assert get_md5("result") == depfile._get(t1.name, "result:")
         depfile.remove_success(t1)
@@ -293,7 +300,7 @@ class TestGetStatus(object):
     def test_resultDependencies(self, depfile):
         # t1 ok, but t2 not saved
         t1 = Task('t1', None)
-        t1.value = "result"
+        t1.result = "result"
         t2 = Task('t2', None, ['?t1'])
         depfile.save_success(t1)
         assert 'run' == depfile.get_status(t2)
@@ -303,6 +310,6 @@ class TestGetStatus(object):
         assert 'up-to-date' == depfile.get_status(t2)
 
         # change t1
-        t1.value = "another"
+        t1.result = "another"
         depfile.save_success(t1)
         assert 'run' == depfile.get_status(t2)

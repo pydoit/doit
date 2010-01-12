@@ -44,10 +44,16 @@ class TestCmdAction(object):
         expected = "<CmdAction: '%s'>" % PROGRAM
         assert  expected == repr(action), repr(action)
 
-    def test_value(self):
+    def test_result(self):
         action = task.CmdAction("%s 1 2" % PROGRAM)
         action.execute()
-        assert "12" == action.value
+        assert "12" == action.result
+
+    def test_values(self):
+        # for cmdActions they are always empty
+        action = task.CmdAction("%s 1 2" % PROGRAM)
+        action.execute()
+        assert {} == action.values
 
 
 class TestCmdVerbosity(object):
@@ -192,11 +198,17 @@ class TestPythonAction(object):
         action = task.PythonAction(repr_sample)
         assert  "<PythonAction: '%s'>" % repr(repr_sample) == repr(action)
 
-    def test_value(self):
+    def test_result(self):
         def vvv(): return "my value"
         action = task.PythonAction(vvv)
         action.execute()
-        assert "my value" == action.value
+        assert "my value" == action.result
+
+    def test_values(self):
+        def vvv(): return {'x': 5, 'y':10}
+        action = task.PythonAction(vvv)
+        action.execute()
+        assert {'x': 5, 'y':10} == action.values
 
 
 class TestPythonVerbosity(object):
@@ -366,11 +378,20 @@ class TestTaskActions(object):
         t.execute()
 
 
-    def test_value(self):
-        #task.value is the value of last action
-        t = task.Task('t1', ["%s hi_list hi6" % PROGRAM,
-                             "%s hi_list hi6" % PROGRAM])
-        assert t.value == t.actions[-1].value
+    def test_result(self):
+        # task.result is the value of last action
+        t = task.Task('t1', ["%s hi_list hi1" % PROGRAM,
+                             "%s hi_list hi2" % PROGRAM])
+        t.execute()
+        assert "hi_listhi2" == t.result
+
+    def test_values(self):
+        def return_dict(d): return d
+        # task.result is the value of last action
+        t = task.Task('t1', [(return_dict, [{'x':5}]),
+                             (return_dict, [{'y':10}]),])
+        t.execute()
+        assert {'x':5, 'y':10} == t.values
 
     def test_failure(self):
         t = task.Task("taskX", ["%s 1 2 3" % PROGRAM])

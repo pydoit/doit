@@ -113,9 +113,13 @@ class Dependency(object):
 
     def save_success(self, task):
         """save info after a task is successfuly executed"""
-        # save self-result - only strings can be saved.
-        if isinstance(task.value, str):
-            self._set(task.name, "result:", get_md5(task.value))
+        # save task values
+        for key, value in task.values.iteritems():
+            self._set(task.name, (":%s:" % key), value)
+
+        # save task result md5
+        if task.result:
+            self._set(task.name, "result:", get_md5(task.result))
 
         # run-once
         if task.run_once:
@@ -133,9 +137,9 @@ class Dependency(object):
 
 
     def remove_success(self, task):
-        """remove saved result from task"""
-        if task.name in self._db and "result:" in self._db[task.name]:
-            del self._db[task.name]["result:"]
+        """remove saved info from task"""
+        if task.name in self._db:
+            del self._db[task.name]
 
 
     def ignore(self, task):

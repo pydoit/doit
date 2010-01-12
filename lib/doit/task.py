@@ -43,7 +43,8 @@ class CmdAction(BaseAction):
         self.task = None
         self.out = None
         self.err = None
-        self.value = None
+        self.result = None
+        self.values = {}
 
     def execute(self, out=None, err=None):
         """
@@ -90,7 +91,7 @@ class CmdAction(BaseAction):
 
         self.out = output.getvalue()
         self.err = errput.getvalue()
-        self.value = self.out + self.err
+        self.result = self.out + self.err
 
         # task error - based on:
         # http://www.gnu.org/software/bash/manual/bashref.html#Exit-Status
@@ -144,8 +145,7 @@ class Writer(object):
 class PythonAction(BaseAction):
     """Python action. Execute a python callable.
 
-    @ivar py_callable: (callable) Python callable that returns a boolean
-    result depending on the success of the action
+    @ivar py_callable: (callable) Python callable
     @ivar args: (sequence)  Extra arguments to be passed to py_callable
     @ivar kwargs: (dict) Extra keyword arguments to be passed to py_callable
     @ivar task(Task): reference to task that contains this action
@@ -156,7 +156,8 @@ class PythonAction(BaseAction):
         self.task = None
         self.out = None
         self.err = None
-        self.value = None
+        self.result = None
+        self.values = {}
 
         if args is None:
             self.args = []
@@ -241,7 +242,7 @@ class PythonAction(BaseAction):
                     a file like object (has write method)
         @param err: idem
 
-        @raise TaskFailed: If py_callable returns False
+        @raise TaskFailed: If py_callable returns False. or TaskError
         """
         # set std stream
         old_stdout = sys.stdout
@@ -265,7 +266,7 @@ class PythonAction(BaseAction):
         try:
             # Python2.4
             try:
-                result = self.py_callable(*self.args,**kwargs)
+                returned_value = self.py_callable(*self.args,**kwargs)
             # in python 2.4 SystemExit and KeyboardInterrupt subclass
             # from Exception.
             except (SystemExit, KeyboardInterrupt), exception:
@@ -279,21 +280,23 @@ class PythonAction(BaseAction):
             self.out = output.getvalue()
             self.err = errput.getvalue()
 
-        self.value = result
         # if callable returns false. Task failed
-        if result is False:
+        if returned_value is False:
             raise TaskFailed("Python Task failed: '%s' returned %s" %
-                             (self.py_callable, result))
-        elif result is True or result is None or isinstance(result, str):
-            return
-        elif isinstance(result, dict):
-            return result
+                             (self.py_callable, returned_value))
+        elif returned_value is True or returned_value is None:
+            pass
+        elif isinstance(returned_value, str):
+            self.result = returned_value
+        elif isinstance(returned_value, dict):
+            self.values = returned_value
         else:
             raise TaskError("Python Task error: '%s'. It must return:\n"
                             "False for failed task.\n"
                             "True, None, string or dict for successful task\n"
                             "returned %s (%s)" %
-                            (self.py_callable, result, type(result)))
+                            (self.py_callable, returned_value,
+                             type(returned_value)))
 
     def __str__(self):
         # get object description excluding runtime memory address
@@ -344,6 +347,8 @@ class Task(object):
     @ivar setup (list): List of setup objects
           (any object with setup or cleanup method)
     @ivar is_subtask: (bool) indicate this task is a subtask.
+    @ivar result: (str) last action "result". used to check task-result-dep
+    @ivar values: (dict) values saved by task that might be used by other tasks
     @ivar doc: (string) task documentation
 
     @ivar options: (dict) calculate params values
@@ -384,7 +389,8 @@ class Task(object):
         self.setup = setup
         self.run_once = False
         self.is_subtask = is_subtask
-        self.value = None #TODO document this
+        self.result = None
+        self.values = {}
         self.verbosity = verbosity
         self.custom_title = title
 
@@ -498,7 +504,8 @@ class Task(object):
         task_stdout, task_stderr = VERBOSITY[use_verbosity]
         for action in self.actions:
             action.execute(task_stdout, task_stderr)
-            self.value = action.value
+            self.result = action.result
+            self.values.update(action.values)
 
 
     def clean(self):
