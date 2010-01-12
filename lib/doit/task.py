@@ -286,10 +286,12 @@ class PythonAction(BaseAction):
                              (self.py_callable, result))
         elif result is True or result is None or isinstance(result, str):
             return
+        elif isinstance(result, dict):
+            return result
         else:
             raise TaskError("Python Task error: '%s'. It must return:\n"
                             "False for failed task.\n"
-                            "True, None or string for successful task\n"
+                            "True, None, string or dict for successful task\n"
                             "returned %s (%s)" %
                             (self.py_callable, result, type(result)))
 
@@ -532,14 +534,6 @@ class Task(object):
             return self.custom_title(self)
         return self.name
 
-
-    def __str__(self):
-        if self.actions:
-            return "\n\t".join([str(action) for action in self.actions])
-
-        # A task that contains no actions at all
-        # is used as group task
-        return "Group: %s" % ", ".join(self.task_dep)
 
     def __repr__(self):
         return "<Task: %s>"% self.name

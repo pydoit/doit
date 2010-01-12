@@ -109,9 +109,15 @@ class TestPythonAction(object):
         # nothing raised it was successful
         action.execute()
 
+    def test_success_dict(self):
+        def success_sample():return {}
+        action = task.PythonAction(success_sample)
+        # nothing raised it was successful
+        action.execute()
+
     def test_error_object(self):
-        # anthing but None, bool, or string
-        def error_sample(): return {}
+        # anthing but None, bool, string or dict
+        def error_sample(): return object()
         action = task.PythonAction(error_sample)
         py.test.raises(TaskError, action.execute)
 
@@ -328,17 +334,12 @@ class TestTask(object):
 
     def test_title(self):
         t = task.Task("MyName",["MyAction"])
-        assert "MyName" == t.title(), t.title()
+        assert "MyName" == t.name, t.name
 
 
     def test_custom_title(self):
         t = task.Task("MyName",["MyAction"], title=(lambda x: "X%sX" % x.name))
         assert "X%sX"%str(t.name) == t.title(), t.title()
-
-
-    def test_strGroup(self):
-        t = task.Task("taskX",None,('file_foo', ':t1',':t2'))
-        assert "Group: t1, t2" == str(t), "'%s'"%str(t)
 
 
     # dependency types going to the write place

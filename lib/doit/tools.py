@@ -11,4 +11,10 @@ def create_folder(dir_path):
 
 def title_with_actions(task):
     """return task name task actions"""
-    return "%s => %s"% (task.name, str(task))
+    if task.actions:
+        title = "\n\t".join([str(action) for action in task.actions])
+    # A task that contains no actions at all
+    # is used as group task
+    else:
+        title = "Group: %s" % ", ".join(task.task_dep)
+    return "%s => %s"% (task.name, title)

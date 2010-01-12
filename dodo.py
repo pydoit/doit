@@ -50,3 +50,6 @@ def task_coverage_module():
                'actions':["coverage run `which py.test` %s" % test,
                    "coverage report --show-missing %s %s" % (source, test)],
                'verbosity': 2}
+
+
+# sfood -i lib/doit/ | sfood-graph | dot -Tpng -o doit-dep.png

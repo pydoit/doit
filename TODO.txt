@@ -14,7 +14,7 @@ whishlist
 ----------
 
 . list command improvements
-. dont save successful results
+. option dont save successful results
 . forget a dependency, not a task
 . color output on the terminal. (#263576)
 . use templates for output (see mercurial)

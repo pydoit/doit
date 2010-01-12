@@ -284,7 +284,7 @@ class TaskSetup(object):
                 # detect cyclic/recursive dependencies
                 if status[task_name] == ADDING:
                     msg = "Cyclic/recursive dependencies for task %s"
-                    raise InvalidDodoFile(msg % self.tasks[task_name])
+                    raise InvalidDodoFile(msg % task_name)
 
             status[task_name] = ADDING
 

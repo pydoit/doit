@@ -3,6 +3,11 @@
 Changes
 =======
 
+0.6.0
+============
+
+- python-action might return a dictionary on success
+
 
 0.5.1 (*2009-12-03*)
 =====================

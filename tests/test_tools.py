@@ -14,6 +14,15 @@ def test_create_folder():
     assert os.path.exists(DIR_DEP)
     rm_dir()
 
-def test_title():
-    t = task.Task("MyName",["MyAction"], title=tools.title_with_actions)
-    assert "MyName => %s"%str(t) == t.title(), t.title()
+
+class TestTitleWithActions:
+    def test_actions(self):
+        t = task.Task("MyName",["MyAction"], title=tools.title_with_actions)
+        assert "MyName => Cmd: MyAction" == t.title()
+
+    def test_group(self):
+        t = task.Task("MyName", None, ('file_foo', ':t1',':t2'),
+                      title=tools.title_with_actions)
+        assert "MyName => Group: t1, t2" == t.title()
+
+
