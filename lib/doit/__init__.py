@@ -33,6 +33,7 @@ import traceback
 class CatchedException(Exception):
     """This used to create an exception from another one
     The traceback from the original exception is saved
+    TODO: study python exceptions. there is a better to do this!
     """
     def __init__(self, msg, exception=None):
         Exception.__init__(self, msg)

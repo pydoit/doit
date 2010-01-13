@@ -1,5 +1,7 @@
 import os
 
+import py.test
+
 from doit.task import Task
 from doit.dependency import get_md5, md5sum, Dependency
 
@@ -170,6 +172,23 @@ class TestSaveSuccess(object):
         depfile.save_success(t1)
         assert 5 == depfile._get("t1", ":x:")
         assert 10 == depfile._get("t1", ":y:")
+
+
+class TestGetValue(object):
+    def test_ok(self, depfile):
+        depfile._set('t1', ':x:', 5)
+        assert 5 == depfile.get_value('t1.x')
+
+    def test_invalid_string(self, depfile):
+        py.test.raises(Exception, depfile.get_value, 'nono')
+
+    def test_invalid_taskid(self, depfile):
+        depfile._set('t1', ':x:', 5)
+        py.test.raises(Exception, depfile.get_value, 'nonono.x')
+
+    def test_invalid_arg(self, depfile):
+        depfile._set('t1', ':x:', 5)
+        py.test.raises(Exception, depfile.get_value, 't1.y')
 
 
 class TestRemoveSuccess(object):

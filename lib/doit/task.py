@@ -349,9 +349,10 @@ class Task(object):
     @ivar is_subtask: (bool) indicate this task is a subtask.
     @ivar result: (str) last action "result". used to check task-result-dep
     @ivar values: (dict) values saved by task that might be used by other tasks
+    @ivar taskargs: (dict) values from other tasks
     @ivar doc: (string) task documentation
 
-    @ivar options: (dict) calculate params values
+    @ivar options: (dict) calculated params values (from taskargs and taskopt)
     @ivar taskopt: (cmdparse.Command)
     @ivar custom_title: function reference that takes a task object as
                         parameter and returns a string.
@@ -369,19 +370,24 @@ class Task(object):
                   'doc': [str, None],
                   'params': [list, tuple],
                   'verbosity': [None,0,1,2],
+                  'taskargs': [dict],
                   }
 
 
     def __init__(self, name, actions, dependencies=(), targets=(),
                  setup=(), clean=(), is_subtask=False, doc=None, params=(),
-                 verbosity=None, title=None):
+                 verbosity=None, title=None, taskargs=None):
         """sanity checks and initialization
 
         @param params: (list of option parameters) see cmdparse.Command.__init__
         """
 
+        #FIXME break this function and merge dict_to_task here
+
+        taskargs = taskargs or {} #default
         # check task attributes input
         for attr, valid_list in self.valid_attr.iteritems():
+            # FIXME dont use locals. use kwargs for __init__
             self.check_attr_input(name, attr, locals()[attr], valid_list)
 
         self.name = name
@@ -393,6 +399,7 @@ class Task(object):
         self.values = {}
         self.verbosity = verbosity
         self.custom_title = title
+        self.taskargs = taskargs
 
         # options
         self.taskcmd = cmdparse.TaskOption(name, params, None, None)
@@ -557,7 +564,7 @@ def dict_to_task(task_dict):
     """
     # TASK_ATTRS: sequence of know attributes(keys) of a task dict.
     TASK_ATTRS = ('name','actions','dependencies','targets','setup', 'doc',
-                  'clean', 'params', 'verbosity', 'title')
+                  'clean', 'params', 'taskargs', 'verbosity', 'title')
     # FIXME check field 'name'
 
     # check required fields

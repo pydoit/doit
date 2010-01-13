@@ -190,6 +190,28 @@ class TestRunningTask(object):
         assert ('execute', t2) == reporter.log.pop(0)
         assert ('success', t2) == reporter.log.pop(0)
 
+    def test_taskargs_ok(self, reporter):
+        def ok(): return {'x':1}
+        def check_x(my_x): return my_x == 1
+        t1 = Task('t1', [(ok,)])
+        t2 = Task('t2', [(check_x,)], taskargs={'my_x':'t1.x'})
+        # FIXME force t1 execution
+        runner.run_tasks(TESTDB, [t1,t2], reporter)
+        assert ('start', t1) == reporter.log.pop(0)
+        assert ('execute', t1) == reporter.log.pop(0)
+        assert ('success', t1) == reporter.log.pop(0)
+        assert ('start', t2) == reporter.log.pop(0)
+        assert ('execute', t2) == reporter.log.pop(0)
+        assert ('success', t2) == reporter.log.pop(0)
+
+    def test_taskargs_fail(self, reporter):
+        # invalid taskargs. Exception wil be raised and task will fail
+        def check_x(my_x): return True
+        t2 = Task('t2', [(check_x,)], taskargs={'my_x':'t1.x'})
+        runner.run_tasks(TESTDB, [t2], reporter)
+        assert ('start', t2) == reporter.log.pop(0)
+        assert ('fail', t2) == reporter.log.pop(0)
+
 
 class TestTaskSetup(object):
 

@@ -173,6 +173,7 @@ reporter
 
     eduardo@eduardo:~$ doit --reporter json
 
+
 output-file
 ------------
 

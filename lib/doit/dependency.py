@@ -46,10 +46,11 @@ class Dependency(object):
 
     Each dependency is a saved in "db". the "db" is a text file using json
     format where there is a dictionary for every task. each task has a
-    dictionary where key is  dependency (abs file path), and the value is the
+    dictionary where key is a dependency (abs file path), and the value is the
     dependency signature.
-    In case dependency is a bool value True it will be saved with key: ""
-    value: True.
+    Apart from dependencies onther values are also saved on the task dictionary
+     * 'result:', 'run-one:', 'task:<task-name>', 'ignore:'
+     * user(task) defined values in the format ':<key>:'
     """
 
     def __init__(self, name, new=False):
@@ -134,6 +135,26 @@ class Dependency(object):
             result = self._get(dep, "result:")
             if result is not None:
                 self._set(task.name, "task:" + dep, result)
+
+
+    def get_value(self, name):
+        """get saved value from task
+        @param name (str): taskid.argument-name
+        """
+        parts = name.split('.')
+        if len(parts) != 2:
+            msg = ('Invalid format. Should be <taskid>.<argument-name> ' +
+                   'got "%s"\n')
+            raise Exception(msg % name)
+        taskid, arg_name = parts
+        if taskid not in self._db:
+            raise Exception("Invalid taskid. '%s' not found." % taskid)
+        values = self._db[taskid]
+        arg_id = ':%s:' % arg_name
+        if arg_id not in values:
+            msg = "Invalid arg name. Task '%s' has no value for '%s'."
+            raise Exception(msg % (taskid, arg_name))
+        return values[arg_id]
 
 
     def remove_success(self, task):

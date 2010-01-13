@@ -78,8 +78,9 @@ class ConsoleReporter(object):
         # if test fails print output from failed task
         for result in self.failures:
             self.outstream.write("#"*40 + "\n")
-            self.outstream.write('%s: %s\n' % (result['exception'].get_name(),
-                                               result['task'].name))
+            msg = '%s - taskid:%s\n' % (result['exception'].get_name(),
+                                        result['task'].name)
+            self.outstream.write(msg)
             self.outstream.write(result['exception'].get_msg())
             self.outstream.write("\n")
             task = result['task']

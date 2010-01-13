@@ -89,6 +89,15 @@ def run_tasks(dependencyFile, tasks, reporter, verbosity=None,
             for setup_obj in task.setup:
                 setupManager.load(setup_obj)
 
+            # get values from other tasks
+            for arg, value in task.taskargs.iteritems():
+                try:
+                    task.options[arg] = dependencyManager.get_value(value)
+                except Exception, exception:
+                    msg = ("ERROR getting value for argument '%s'\n" % arg +
+                           str(exception))
+                    raise DependencyError(msg)
+
             # finally execute it!
             reporter.execute_task(task)
             task.execute(sys.stdout, sys.stderr, verbosity)
