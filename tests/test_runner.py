@@ -195,7 +195,6 @@ class TestRunningTask(object):
         def check_x(my_x): return my_x == 1
         t1 = Task('t1', [(ok,)])
         t2 = Task('t2', [(check_x,)], taskargs={'my_x':'t1.x'})
-        # FIXME force t1 execution
         runner.run_tasks(TESTDB, [t1,t2], reporter)
         assert ('start', t1) == reporter.log.pop(0)
         assert ('execute', t1) == reporter.log.pop(0)

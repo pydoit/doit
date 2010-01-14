@@ -425,7 +425,12 @@ class Task(object):
         for action in self.actions:
             action.task = self
 
-        # dependencies
+        self._init_dependencies(dependencies)
+        self._init_taskargs()
+        self._init_doc(doc)
+
+
+    def _init_dependencies(self, dependencies):
         self.dep_changed = None
         # there are 3 kinds of dependencies: file, task, result
         self.task_dep = []
@@ -437,7 +442,7 @@ class Task(object):
                 if not dep:
                     msg = ("%s. bool paramater in 'dependencies' "+
                            "must be True got:'%s'")
-                    raise InvalidTask(msg%(name, str(dep)))
+                    raise InvalidTask(msg%(self.name, str(dep)))
                 self.run_once = True
             # task dep starts with a ':'
             elif dep.startswith(':'):
@@ -451,6 +456,8 @@ class Task(object):
             elif isinstance(dep,str):
                 self.file_dep.append(dep)
 
+
+    def _init_taskargs(self):
         # taskargs also define implicit task dependencies
         for key, desc in self.taskargs.iteritems():
             # check format
@@ -467,8 +474,9 @@ class Task(object):
         if self.run_once and self.file_dep:
             msg = ("%s. task cant have file and dependencies and True " +
                    "at the same time. (just remove True)")
-            raise InvalidTask(msg % name)
+            raise InvalidTask(msg % self.name)
 
+    def _init_doc(self, doc):
         # Store just first non-empty line as documentation string
         if doc is None:
             self.doc = ''
