@@ -407,11 +407,13 @@ class Task(object):
         # options were passed on the command line.
         self.options = self.taskcmd.parse('')[0] # ignore positional parameters
 
+        # actions
         if actions is None:
             self.actions = []
         else:
             self.actions = [create_action(a) for a in actions]
 
+        # clean
         if clean is True:
             self._remove_targets = True
             self.clean_actions = ()
@@ -423,8 +425,9 @@ class Task(object):
         for action in self.actions:
             action.task = self
 
+        # dependencies
         self.dep_changed = None
-        # there are 2 kinds of dependencies: file, task
+        # there are 3 kinds of dependencies: file, task, result
         self.task_dep = []
         self.file_dep = []
         self.result_dep = []
@@ -447,6 +450,18 @@ class Task(object):
             # file dep
             elif isinstance(dep,str):
                 self.file_dep.append(dep)
+
+        # taskargs also define implicit task dependencies
+        for key, desc in self.taskargs.iteritems():
+            # check format
+            parts = desc.split('.')
+            if len(parts) != 2:
+                msg = ("Taskid '%s' - Invalid format for taskargs of '%s'.\n" %
+                       (self.name, key) +
+                       "Should be <taskid>.<argument-name> got '%s'\n" % desc)
+                raise InvalidTask(msg)
+            if parts[0] not in self.task_dep:
+                self.task_dep.append(parts[0])
 
         # run_once can't be used together with file dependencies
         if self.run_once and self.file_dep:

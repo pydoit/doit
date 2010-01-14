@@ -372,6 +372,19 @@ class TestTask(object):
         assert '' == t.options['p2']
 
 
+class TestTask_TaskArgs(object):
+    def test_ok(self):
+        taskargs = {'x' : 't1.x', 'y': 't2.z'}
+        t = task.Task('t3', None, taskargs=taskargs)
+        assert 't1' in t.task_dep
+        assert 't2' in t.task_dep
+
+    def test_invalid_desc(self):
+        taskargs = {'x' : 't1'}
+        assert py.test.raises(task.InvalidTask, task.Task,
+                              't3', None, taskargs=taskargs)
+
+
 class TestTaskActions(object):
     def test_success(self):
         t = task.Task("taskX", [PROGRAM])

@@ -7,7 +7,7 @@ import os
 try:
     import json
     json # keep pyflakes quiet
-except ImportError:
+except ImportError: # pragma: no cover
     import simplejson as json
 
 
@@ -19,7 +19,7 @@ try:
         return hashlib.md5(input).hexdigest()
     get_md5 = get_md5_py5
 # support python 2.4
-except ImportError:
+except ImportError: # pragma: no cover
     import md5
     def get_md5_py4(input):
         out = md5.new()
@@ -142,13 +142,10 @@ class Dependency(object):
         @param name (str): taskid.argument-name
         """
         parts = name.split('.')
-        if len(parts) != 2:
-            msg = ('Invalid format. Should be <taskid>.<argument-name> ' +
-                   'got "%s"\n')
-            raise Exception(msg % name)
+        assert len(parts) == 2
         taskid, arg_name = parts
         if taskid not in self._db:
-            raise Exception("Invalid taskid. '%s' not found." % taskid)
+            raise Exception("taskid '%s' has no computed value!" % taskid)
         values = self._db[taskid]
         arg_id = ':%s:' % arg_name
         if arg_id not in values:
