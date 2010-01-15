@@ -76,15 +76,6 @@ class TestDependencyDb(object):
         fd.close()
         py.test.raises(ValueError, Dependency, TESTDB)
 
-    def test_new(self, depfile):
-        # save and close db
-        depfile._set("taskId_X","dependency_A","da_md5")
-        depfile.close()
-
-        # open same file but with new parameter
-        d2 = Dependency(TESTDB, new=True)
-        assert 0 == len(d2._db)
-
 
     # _get must return None if entry doesnt exist.
     def test_getNonExistent(self, depfile):

@@ -53,16 +53,15 @@ class Dependency(object):
      * user(task) defined values in the format ':<key>:'
     """
 
-    def __init__(self, name, new=False):
+    def __init__(self, name):
         """Open/create a DB file.
 
         @param name: (string) filepath of the DB file
-        @param new: (boolean) always create a new empty database
         """
         self.name = name
         self._closed = False
 
-        if new or not os.path.exists(self.name):
+        if not os.path.exists(self.name):
             self._db = {}
         else:
             fp = open(self.name, 'r')
