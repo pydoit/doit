@@ -33,9 +33,3 @@ not clear how to implement
 . one .doit for each dodo file
 . multiple (include) dodo files (#218279)
 . sub-command/task unification. all sub-commands (but run) implemented as tasks
-
-
-Ideas
-------
-
-. it would be better if DoitTaks print the output not BaseTask, because ~~BaseTask doesnt know about task dependencies~~. another problem is the order in which the task are sent to stdout...

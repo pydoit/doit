@@ -65,9 +65,19 @@ class Dependency(object):
         if new or not os.path.exists(self.name):
             self._db = {}
         else:
+            fp = open(self.name, 'r')
             try:
-                fp = open(self.name,'r')
-                self._db = json.load(fp)
+                try:
+                    self._db = json.load(fp)
+                except ValueError, e:
+                    # file contains corrupted json data
+                    msg = (e.args[0] +
+                           "\nInvalid JSON data in %s\n" %
+                           os.path.abspath(self.name) +
+                           "To fix this problem, you can just remove the " +
+                           "corrupted file, a new one will be generated.\n")
+                    e.args = (msg,)
+                    raise
             finally:
                 fp.close()
 

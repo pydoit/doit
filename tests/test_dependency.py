@@ -70,6 +70,12 @@ class TestDependencyDb(object):
         value = d2._get("taskId_X","dependency_A")
         assert "da_md5" == value, value
 
+    def test_corrupted_file(self):
+        fd = open(TESTDB, 'w')
+        fd.write("""{"x": y}""")
+        fd.close()
+        py.test.raises(ValueError, Dependency, TESTDB)
+
     def test_new(self, depfile):
         # save and close db
         depfile._set("taskId_X","dependency_A","da_md5")
