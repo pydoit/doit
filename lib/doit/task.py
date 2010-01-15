@@ -2,6 +2,7 @@
 import subprocess, sys
 import StringIO
 import inspect
+import types
 import os
 from threading import Thread
 
@@ -371,6 +372,7 @@ class Task(object):
                   'params': [list, tuple],
                   'verbosity': [None,0,1,2],
                   'taskargs': [dict],
+                  'title': [None, types.FunctionType],
                   }
 
 
@@ -382,12 +384,9 @@ class Task(object):
         @param params: (list of option parameters) see cmdparse.Command.__init__
         """
 
-        #FIXME break this function and merge dict_to_task here
-
         taskargs = taskargs or {} #default
         # check task attributes input
         for attr, valid_list in self.valid_attr.iteritems():
-            # FIXME dont use locals. use kwargs for __init__
             self.check_attr_input(name, attr, locals()[attr], valid_list)
 
         self.name = name
@@ -585,10 +584,6 @@ def dict_to_task(task_dict):
     @param task_dict (dict): task representation as a dict.
     @raise InvalidTask: If unexpected fields were passed in task_dict
     """
-    # TASK_ATTRS: sequence of know attributes(keys) of a task dict.
-    TASK_ATTRS = ('name','actions','dependencies','targets','setup', 'doc',
-                  'clean', 'params', 'taskargs', 'verbosity', 'title')
-    # FIXME check field 'name'
 
     # check required fields
     if 'actions' not in task_dict:
@@ -597,7 +592,7 @@ def dict_to_task(task_dict):
 
     # user friendly. dont go ahead with invalid input.
     for key in task_dict.keys():
-        if key not in TASK_ATTRS:
+        if key not in Task.valid_attr.keys():
             raise InvalidTask("Task %s contains invalid field: '%s'"%
                               (task_dict['name'],key))
 
