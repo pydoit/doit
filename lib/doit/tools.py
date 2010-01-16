@@ -18,3 +18,14 @@ def title_with_actions(task):
     else:
         title = "Group: %s" % ", ".join(task.task_dep)
     return "%s => %s"% (task.name, title)
+
+
+def set_trace(): # pragma: no cover
+    """start debugger, make sure stdout shows pdb output.
+    output is not restored.
+    """
+    import pdb
+    import sys
+    sys.stdout = sys.__stdout__
+    pdb.Pdb().set_trace(sys._getframe().f_back)
+
