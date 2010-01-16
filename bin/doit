@@ -173,7 +173,7 @@ def cmd_run(params, args):
     # sub cmd different from "run" on cmd line. parse arguments again
     commands = params['sub']
     sub_cmd = args.pop(0)
-    return commands[sub_cmd](args, dodoFile=params['dodoFile'], sub=commands)
+    return commands[sub_cmd](args, **params)
 
 
 

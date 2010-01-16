@@ -15,3 +15,4 @@ doc/tutorial/file1.txt
 doc/tutorial/file2.txt
 doc/tutorial/edit
 pylintrc
+build
