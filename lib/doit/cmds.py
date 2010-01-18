@@ -56,18 +56,38 @@ def doit_clean(task_list, outstream, clean_tasks):
             tasks[name].clean()
 
 
-def doit_list(task_list, outstream, printSubtasks, quiet=False):
+
+def doit_list(task_list, outstream, filter_tasks, print_subtasks, quiet=False):
     """List task generators, in the order they were defined.
 
-    @param printSubtasks: (bool) print subtasks
-    @param outstream: (file-like) object
+    @param filter_tasks (list -str): print only tasks from this list
+    @param print_subtasks (bool): print subtasks
+    @param outstream (file-like): object
     """
-    for task in task_list:
-        if (not task.is_subtask) or printSubtasks:
-            task_str = task.name
-            if not quiet and task.doc:
-                task_str += " : %s" % task.doc
-            outstream.write("%s\n" % task_str)
+    def _list_print_task(task):
+        """print a single task"""
+        task_str = task.name
+        # add doc
+        if not quiet and task.doc:
+            task_str += " : %s" % task.doc
+        outstream.write("%s\n" % task_str)
+        # print subtasks
+        if print_subtasks:
+            for subt in task.task_dep:
+                if subt.startswith("%s" % task.name):
+                    _list_print_task(tasks[subt])
+
+    # dict of all tasks
+    tasks = dict([(t.name, t) for t in task_list])
+    # list only tasks passed on command line
+    if filter_tasks:
+        print_tasks = [tasks[name] for name in filter_tasks]
+    else:
+        print_tasks = task_list
+    for task in print_tasks:
+        if task.is_subtask:
+            continue
+        _list_print_task(task)
     return 0
 
 
