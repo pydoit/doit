@@ -5,6 +5,7 @@ from doit.task import Task
 from doit.main import TaskSetup, InvalidCommand
 from doit.runner import run_tasks
 from doit.reporter import REPORTERS
+from doit.dependency import Dependency
 
 
 def doit_run(dependencyFile, task_list, output, options=None,
@@ -57,19 +58,25 @@ def doit_clean(task_list, outstream, clean_tasks):
 
 
 
-def doit_list(task_list, outstream, filter_tasks, print_subtasks, quiet=False):
+def doit_list(dependencyFile, task_list, outstream, filter_tasks,
+              print_subtasks, quiet, print_status):
     """List task generators, in the order they were defined.
 
     @param filter_tasks (list -str): print only tasks from this list
     @param print_subtasks (bool): print subtasks
     @param outstream (file-like): object
     """
+    status_map = {'ignore': 'I', 'up-to-date': 'U', 'run': 'R'}
     def _list_print_task(task):
         """print a single task"""
         task_str = task.name
         # add doc
         if not quiet and task.doc:
             task_str += " : %s" % task.doc
+        if print_status:
+            task_uptodate = dependencyManager.get_status(task)
+            task_str = "%s %s" % (status_map[task_uptodate], task_str)
+
         outstream.write("%s\n" % task_str)
         # print subtasks
         if print_subtasks:
@@ -84,6 +91,10 @@ def doit_list(task_list, outstream, filter_tasks, print_subtasks, quiet=False):
         print_tasks = [tasks[name] for name in filter_tasks]
     else:
         print_tasks = task_list
+    # status
+    if print_status:
+        dependencyManager = Dependency(dependencyFile)
+
     for task in print_tasks:
         if task.is_subtask:
             continue

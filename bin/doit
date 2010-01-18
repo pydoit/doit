@@ -199,13 +199,20 @@ opt_list_quiet = {'name': 'quiet',
                   'default': False,
                   'help': 'print just task name (less verbose than default)'}
 
+opt_list_status = {'name': 'status',
+                   'short': 's',
+                   'long': 'status',
+                   'type': bool,
+                   'default': False,
+                   'help': 'print task status (R)un, (U)p-to-date, (I)gnored'}
+
 # TODO list should support "args" as a filter.
 def cmd_list(params, args):
     dodo_module = main.get_module(params['dodoFile'], params['cwdPath'])
     command_names = params['sub'].keys()
     dodo_tasks = main.load_task_generators(dodo_module, command_names)
-    return doit_list(dodo_tasks['task_list'], sys.stdout, args,
-                     params['all'], params['quiet'])
+    return doit_list(params['dep_file'], dodo_tasks['task_list'], sys.stdout,
+                     args, params['all'], params['quiet'], params['status'])
 
 ##########################################################
 ########## clean
@@ -346,7 +353,8 @@ def cmd_main():
                                        clean_doc)
 
     # list command
-    list_options = (opt_dodo, opt_cwd, opt_listall, opt_list_quiet)
+    list_options = (opt_dodo, opt_depfile, opt_cwd, opt_listall,
+                    opt_list_quiet, opt_list_status)
     subCmd['list'] = cmdparse.Command('list', list_options, cmd_list, list_doc)
 
     # forget command

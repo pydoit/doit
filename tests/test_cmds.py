@@ -28,7 +28,7 @@ class TestCmdList(object):
 
     def testListTasksWithDoc(self):
         output = StringIO.StringIO()
-        doit_list(TASKS_SAMPLE, output, [], False)
+        doit_list(TESTDB, TASKS_SAMPLE, output, [], False, False, False)
         got = [line for line in output.getvalue().split('\n') if line]
         expected = []
         for t in TASKS_SAMPLE:
@@ -38,37 +38,46 @@ class TestCmdList(object):
 
     def testListTasksWithDocQuiet(self):
         output = StringIO.StringIO()
-        doit_list(TASKS_SAMPLE, output, [], False, True)
+        doit_list(TESTDB, TASKS_SAMPLE, output, [], False, True, False)
         got = [line for line in output.getvalue().split('\n') if line]
         expected = [t.name for t in TASKS_SAMPLE if not t.is_subtask]
         assert expected == got, output.getvalue()
 
     def testListAllTasksWithDoc(self):
         output = StringIO.StringIO()
-        doit_list(TASKS_SAMPLE, output, [], True)
+        doit_list(TESTDB, TASKS_SAMPLE, output, [], True, False, False)
         got = [line for line in output.getvalue().split('\n') if line]
         expected = ["%s : %s" % (t.name, t.doc) for t in TASKS_SAMPLE]
         assert expected == got
 
     def testListAllTasksWithDocQuiet(self):
         output = StringIO.StringIO()
-        doit_list(TASKS_SAMPLE, output, [], True, True)
+        doit_list(TESTDB, TASKS_SAMPLE, output, [], True, True, False)
         got = [line for line in output.getvalue().split('\n') if line]
         expected = [t.name for t in TASKS_SAMPLE]
         assert expected == got
 
     def testListFilter(self):
         output = StringIO.StringIO()
-        doit_list(TASKS_SAMPLE, output, ['g1', 't2'], False, True)
+        doit_list(TESTDB, TASKS_SAMPLE, output, ['g1', 't2'],
+                  False, True, False)
         got = [line for line in output.getvalue().split('\n') if line]
         expected = ['g1', 't2']
         assert expected == got
 
     def testListFilterAll(self):
         output = StringIO.StringIO()
-        doit_list(TASKS_SAMPLE, output, ['g1'], True, True)
+        doit_list(TESTDB, TASKS_SAMPLE, output, ['g1'], True, True, False)
         got = [line for line in output.getvalue().split('\n') if line]
         expected = ['g1', 'g1.a', 'g1.b']
+        assert expected == got
+
+    def testStatus(self):
+        output = StringIO.StringIO()
+        doit_list(TESTDB, TASKS_SAMPLE, output, ['g1'],
+                  False, True, True)
+        got = [line for line in output.getvalue().split('\n') if line]
+        expected = ['R g1']
         assert expected == got
 
 
