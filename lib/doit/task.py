@@ -537,7 +537,7 @@ class Task(object):
             self.values.update(action.values)
 
 
-    def clean(self):
+    def clean(self, outstream):
         """Execute task's clean"""
         # if clean is True remove all targets
         if self._remove_targets is True:
@@ -546,20 +546,27 @@ class Task(object):
 
             # remove all files
             for file_ in files:
+                msg = "%s - removing file '%s'\n" % (self.name, file_)
+                outstream.write(msg)
                 os.remove(file_)
 
             # remove all directories (if empty)
             for dir_ in dirs:
                 if os.listdir(dir_):
-                    msg = "Warning: '%s' cannot be removed (it is not empty)\n"
-                    sys.stderr.write(msg % dir_)
+                    msg = "%s - cannot remove (it is not empty) '%s'\n"
+                    outstream.write(msg % (self.name, file_))
                 else:
+                    msg = "%s - removing dir '%s'\n"
+                    outstream.write(msg % (self.name, dir_))
                     os.rmdir(dir_)
 
         else:
             # clean contains a list of actions...
             for action in self.clean_actions:
+                msg = "%s - executing '%s'\n"
+                outstream.write(msg % (self.name, action))
                 action.execute()
+
 
     def title(self):
         """String representation on output.

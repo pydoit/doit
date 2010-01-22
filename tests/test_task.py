@@ -1,5 +1,6 @@
 import os, shutil
 import sys, tempfile
+from StringIO import StringIO
 
 import py.test
 
@@ -468,7 +469,7 @@ class TestTaskClean(object):
         t = task.Task("xxx", None)
         assert False == t._remove_targets
         assert 0 == len(t.clean_actions)
-        t.clean()
+        t.clean(StringIO())
         for filename in tmpdir['files']:
             assert os.path.exists(filename)
 
@@ -476,13 +477,13 @@ class TestTaskClean(object):
         t = task.Task("xxx", None, targets=tmpdir['files'], clean=True)
         assert True == t._remove_targets
         assert 0 == len(t.clean_actions)
-        t.clean()
+        t.clean(StringIO())
         for filename in tmpdir['files']:
             assert not os.path.exists(filename), filename
 
     def test_clean_non_existent_targets(self):
         t = task.Task('xxx', None, targets=["i_dont_exist"], clean=True)
-        t.clean()
+        t.clean(StringIO())
         # nothing is raised
 
     def test_clean_empty_dirs(self, tmpdir):
@@ -493,7 +494,7 @@ class TestTaskClean(object):
         t = task.Task("xxx", None, targets=targets, clean=True)
         assert True == t._remove_targets
         assert 0 == len(t.clean_actions)
-        t.clean()
+        t.clean(StringIO())
         for filename in tmpdir['files']:
             assert not os.path.exists(filename)
         assert not os.path.exists(tmpdir['dir'])
@@ -506,7 +507,7 @@ class TestTaskClean(object):
         t = task.Task("xxx", None, targets=targets, clean=True)
         assert True == t._remove_targets
         assert 0 == len(t.clean_actions)
-        t.clean()
+        t.clean(StringIO())
         for filename in tmpdir['files']:
             expected = not filename in targets
             assert expected == os.path.exists(filename)
@@ -522,7 +523,7 @@ class TestTaskClean(object):
         t = task.Task("xxx",None,targets=tmpdir['files'], clean=[(say_hello,)])
         assert False == t._remove_targets
         assert 1 == len(t.clean_actions)
-        t.clean()
+        t.clean(StringIO())
         for filename in tmpdir['files']:
             assert os.path.exists(filename)
         fh = file(c_path, 'r')

@@ -49,12 +49,13 @@ def doit_clean(task_list, outstream, clean_tasks):
                                         empty list.
     """
     if not clean_tasks:
+        # clean all tasks
         for task_ in task_list:
-            task_.clean()
+            task_.clean(outstream)
     else:
         tasks = dict([(t.name, t) for t in task_list])
         for name in clean_tasks:
-            tasks[name].clean()
+            tasks[name].clean(outstream)
 
 
 
