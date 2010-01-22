@@ -212,12 +212,12 @@ class TestCmdClean(object):
 
     def test_clean_all(self, tasks):
         output = StringIO.StringIO()
-        doit_clean(self.tasks, output, [])
+        doit_clean(self.tasks, output, False, [])
         assert 2 == self.count
 
     def test_clean_selected(self, tasks):
         output = StringIO.StringIO()
-        doit_clean(self.tasks, output, ['t2'])
+        doit_clean(self.tasks, output, False, ['t2'])
 
 
 class TestCmdIgnore(object):

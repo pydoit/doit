@@ -469,7 +469,7 @@ class TestTaskClean(object):
         t = task.Task("xxx", None)
         assert False == t._remove_targets
         assert 0 == len(t.clean_actions)
-        t.clean(StringIO())
+        t.clean(StringIO(), False)
         for filename in tmpdir['files']:
             assert os.path.exists(filename)
 
@@ -477,37 +477,33 @@ class TestTaskClean(object):
         t = task.Task("xxx", None, targets=tmpdir['files'], clean=True)
         assert True == t._remove_targets
         assert 0 == len(t.clean_actions)
-        t.clean(StringIO())
+        t.clean(StringIO(), False)
         for filename in tmpdir['files']:
             assert not os.path.exists(filename), filename
 
     def test_clean_non_existent_targets(self):
         t = task.Task('xxx', None, targets=["i_dont_exist"], clean=True)
-        t.clean(StringIO())
+        t.clean(StringIO(), False)
         # nothing is raised
 
     def test_clean_empty_dirs(self, tmpdir):
-        """
-        Remove empty directories listed in targets
-        """
+        # Remove empty directories listed in targets
         targets = tmpdir['files'] + [tmpdir['dir']]
         t = task.Task("xxx", None, targets=targets, clean=True)
         assert True == t._remove_targets
         assert 0 == len(t.clean_actions)
-        t.clean(StringIO())
+        t.clean(StringIO(), False)
         for filename in tmpdir['files']:
             assert not os.path.exists(filename)
         assert not os.path.exists(tmpdir['dir'])
 
     def test_keep_non_empty_dirs(self, tmpdir):
-        """
-        Keep non empty directories listed in targets
-        """
+        # Keep non empty directories listed in targets
         targets = [tmpdir['files'][0], tmpdir['dir']]
         t = task.Task("xxx", None, targets=targets, clean=True)
         assert True == t._remove_targets
         assert 0 == len(t.clean_actions)
-        t.clean(StringIO())
+        t.clean(StringIO(), False)
         for filename in tmpdir['files']:
             expected = not filename in targets
             assert expected == os.path.exists(filename)
@@ -523,13 +519,43 @@ class TestTaskClean(object):
         t = task.Task("xxx",None,targets=tmpdir['files'], clean=[(say_hello,)])
         assert False == t._remove_targets
         assert 1 == len(t.clean_actions)
-        t.clean(StringIO())
+        t.clean(StringIO(), False)
         for filename in tmpdir['files']:
             assert os.path.exists(filename)
         fh = file(c_path, 'r')
         got = fh.read()
         fh.close()
         assert "hello!!!" == got
+
+    def test_dryrun_file(self, tmpdir):
+        t = task.Task("xxx", None, targets=tmpdir['files'], clean=True)
+        assert True == t._remove_targets
+        assert 0 == len(t.clean_actions)
+        t.clean(StringIO(), True)
+        # files are NOT removed
+        for filename in tmpdir['files']:
+            assert os.path.exists(filename), filename
+
+    def test_dryrun_dir(self, tmpdir):
+        targets = tmpdir['files'] + [tmpdir['dir']]
+        for filename in tmpdir['files']:
+            os.remove(filename)
+        t = task.Task("xxx", None, targets=targets, clean=True)
+        assert True == t._remove_targets
+        assert 0 == len(t.clean_actions)
+        t.clean(StringIO(), True)
+        assert os.path.exists(tmpdir['dir'])
+
+    def test_dryrun_actions(self, tmpdir):
+        # a clean action can be anything, it can even not clean anything!
+        self.executed = False
+        def say_hello(): self.executed = True
+        t = task.Task("xxx",None,targets=tmpdir['files'], clean=[(say_hello,)])
+        assert False == t._remove_targets
+        assert 1 == len(t.clean_actions)
+        t.clean(StringIO(), True)
+        assert not self.executed
+
 
 
 class TestTaskDoc(object):

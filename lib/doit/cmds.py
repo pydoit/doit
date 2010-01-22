@@ -42,7 +42,7 @@ def doit_run(dependencyFile, task_list, output, options=None,
 
 
 
-def doit_clean(task_list, outstream, clean_tasks):
+def doit_clean(task_list, outstream, dryrun, clean_tasks):
     """Clean tasks
     @param task_list (list - L{Task}): list of all tasks from dodo file
     @param clean_tasks (list - string): tasks bo be clean. clean all if
@@ -51,11 +51,11 @@ def doit_clean(task_list, outstream, clean_tasks):
     if not clean_tasks:
         # clean all tasks
         for task_ in task_list:
-            task_.clean(outstream)
+            task_.clean(outstream, dryrun)
     else:
         tasks = dict([(t.name, t) for t in task_list])
         for name in clean_tasks:
-            tasks[name].clean(outstream)
+            tasks[name].clean(outstream, dryrun)
 
 
 
