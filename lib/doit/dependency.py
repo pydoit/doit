@@ -40,6 +40,25 @@ def md5sum(path):
     return result
 
 
+def check_modified(file_path, state):
+    """check if file in file_path is modified from previous "state"
+    @param file_path (string): file path
+    @param state (tuple), timestamp, size, md5
+    @returns (bool):
+    """
+    if state is None:
+        return True
+
+    timestamp, size, file_md5 = state
+    # 1 - if timestamp is not modified file is the same
+    if os.path.getmtime(file_path) == timestamp:
+        return False
+    # 2 - if size is different file is modified
+    if os.path.getsize(file_path) != size:
+        return True
+    # 3 - check md5
+    return file_md5 != md5sum(file_path)
+
 
 class Dependency(object):
     """Manage dependency on files.
@@ -137,7 +156,14 @@ class Dependency(object):
 
         # file-dep
         for dep in task.file_dep:
-            self._set(task.name, dep, md5sum(dep))
+            timestamp = os.path.getmtime(dep)
+            # time optimization. if dep is already saved with current timestamp
+            # skip calculating md5
+            current = self._get(task.name, dep)
+            if current and current[0] == timestamp:
+                continue
+            size = os.path.getsize(dep)
+            self._set(task.name, dep, (timestamp, size, md5sum(dep)))
 
         # result-dep
         for dep in task.result_dep:
@@ -208,7 +234,9 @@ class Dependency(object):
         changed = []
         status = 'up-to-date' # initial assumption
         for dep in tuple(task.file_dep):
-            if self._get(task.name, dep) != md5sum(dep):
+            if not os.path.exists(dep):
+                raise Exception("Dependent file '%s' does not exist." % dep)
+            if check_modified(dep, self._get(task.name, dep)):
                 changed.append(dep)
                 status = 'run'
 

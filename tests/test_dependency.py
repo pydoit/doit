@@ -1,9 +1,10 @@
 import os
+import time
 
 import py.test
 
 from doit.task import Task
-from doit.dependency import get_md5, md5sum, Dependency
+from doit.dependency import get_md5, md5sum, check_modified, Dependency
 
 
 def get_abspath(relativePath):
@@ -30,7 +31,7 @@ def test_md5():
 # might have different results (success/failure). the signature is associated
 # not only with the file, but also with the task.
 #
-# save in db (task - dependency - signature)
+# save in db (task - dependency - (timestamp, size, signature))
 # taskId_dependency => signature(dependency)
 # taskId is md5(CmdTask.task)
 
@@ -50,6 +51,24 @@ def pytest_funcarg__depfile(request):
         setup=create_depfile,
         teardown=remove_depfile,
         scope="function")
+
+
+def pytest_funcarg__dependency(request):
+    def create_dependency():
+        path = get_abspath("data/dependency1")
+        if os.path.exists(path): os.remove(path)
+        ff = open(path, "w")
+        ff.write("whatever")
+        ff.close()
+        return path
+    def remove_dependency(path):
+        if os.path.exists(path):
+            os.remove(path)
+    return request.cached_setup(
+        setup=create_dependency,
+        teardown=remove_dependency,
+        scope="function")
+
 
 class TestDependencyDb(object):
 
@@ -102,8 +121,6 @@ class TestDependencyDb(object):
         assert None == depfile._get("taskId_YYY","dep_1")
 
 
-
-
 class TestSaveSuccess(object):
 
     def test_save_result(self, depfile):
@@ -134,7 +151,11 @@ class TestSaveSuccess(object):
         depfile.save_success(t1)
         expected = "a1bb792202ce163b4f0d17cb264c04e1"
         value = depfile._get("taskId_X",filePath)
-        assert expected == value, value
+        assert os.path.getmtime(filePath) == value[0] # timestamp
+        assert 39 == value[1] # size
+        assert expected == value[2] # MD5
+
+    # TOJDO test skip md5 calculation
 
     def test_save_files(self, depfile):
         filePath = get_abspath("data/dependency1")
@@ -205,6 +226,27 @@ class TestIgnore(object):
         assert '1' == depfile._get(t1.name, "ignore:")
 
 
+class TestCheckModified(object):
+    def test_None(self, dependency):
+        assert check_modified(dependency, None)
+
+    def test_timestamp(self, dependency):
+        timestamp = os.path.getmtime(dependency)
+        assert not check_modified(dependency, (timestamp, 0, ''))
+        assert check_modified(dependency, (timestamp+1, 0, ''))
+
+    def test_size_md5(self, dependency):
+        timestamp = os.path.getmtime(dependency)
+        size = os.path.getsize(dependency)
+        md5 = md5sum(dependency)
+        # incorrect size dont check md5
+        assert check_modified(dependency, (timestamp+1, size+1, ''))
+        # correct size check md5
+        assert not check_modified(dependency, (timestamp+1, size, md5))
+        assert check_modified(dependency, (timestamp+1, size, ''))
+
+
+
 class TestGetStatus(object):
 
     def test_ignore(self, depfile):
@@ -240,25 +282,24 @@ class TestGetStatus(object):
 
 
     # if target file does not exist, task is outdated.
-    def test_targets_notThere(self, depfile):
-        dep1 = get_abspath("data/dependency1")
+    def test_targets_notThere(self, depfile, dependency):
         target = get_abspath("data/target")
         if os.path.exists(target):
             os.remove(target)
 
-        t1 = Task("task x", None, [dep1], [target])
+        t1 = Task("task x", None, [dependency], [target])
         depfile.save_success(t1)
         assert 'run' == depfile.get_status(t1)
-        assert [dep1] == t1.dep_changed
+        assert [dependency] == t1.dep_changed
 
 
-    def test_targets(self, depfile):
+    def test_targets(self, depfile, dependency):
         filePath = get_abspath("data/target")
         ff = open(filePath,"w")
         ff.write("part1")
         ff.close()
 
-        deps = [get_abspath("data/dependency1")]
+        deps = [dependency]
         targets = [filePath]
         t1 = Task("task X", None, deps, targets)
 
@@ -268,9 +309,9 @@ class TestGetStatus(object):
         assert [] == t1.dep_changed
 
 
-    def test_targetFolder(self, depfile):
+    def test_targetFolder(self, depfile, dependency):
         # folder not there. task is not up-to-date
-        deps = [get_abspath("data/dependency1")]
+        deps = [dependency]
         folderPath = get_abspath("data/target-folder")
         if os.path.exists(folderPath):
             os.rmdir(folderPath)
@@ -303,6 +344,7 @@ class TestGetStatus(object):
         assert 'up-to-date' == depfile.get_status(t1)
         assert [] == t1.dep_changed
 
+        time.sleep(0.01) # required otherwise timestamp is not modified!
         # a small change on the file
         ff = open(filePath,"a")
         ff.write(" part2")

@@ -1,23 +1,28 @@
+0.6
+----------
+
+. cache dir files
+
+
 0.X
 ----------
 
-. dont calculate hash of all files everytime. use timestamp/size/hash (see mercurial dirstate) (#370920)
+. tools - profile
+. tools - code coverage
+. 444247 	command clean follow dependencies
+. 444243 	clean and forget acts on all tasks, they should act only on default tasks
+. configure options on dodo file
 
 . tests for cmdline (#441084)
+. color output on the terminal. (#263576)
+. tab-complete
 
-. dont get subtasks if task is not going to be executed (#370923)
-. task process isolation. (execute tasks in a different process)
-. option to make sub-task not part of a group
-
-
-whishlist
-----------
-
-. list command improvements
 . option dont save successful results
 . forget a dependency, not a task
-. color output on the terminal. (#263576)
-. use templates for output (see mercurial)
+. task process isolation. (execute tasks in a different process)
+. option to make sub-task not part of a group
+. task name alias
+
 
 needs volunteer
 ----------------
@@ -29,6 +34,7 @@ not clear how to implement
 ---------------------------
 
 . support for depedency scanner (#218303)
+. dont get subtasks if task is not going to be executed (#370923)
 . defer task generator - generator needs to run after a certain task
 . one .doit for each dodo file
 . multiple (include) dodo files (#218279)
