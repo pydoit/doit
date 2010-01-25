@@ -90,7 +90,7 @@ def run_tasks(dependencyFile, tasks, reporter, verbosity=None,
                 setupManager.load(setup_obj)
 
             # get values from other tasks
-            for arg, value in task.taskargs.iteritems():
+            for arg, value in task.getargs.iteritems():
                 try:
                     task.options[arg] = dependencyManager.get_value(value)
                 except Exception, exception:

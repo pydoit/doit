@@ -6,6 +6,15 @@ Changes
 0.6.0
 ============
 
+- improve (speed optimization) of check if file modified (#370920)
+- sub-command "clean" dry-run option (-n/--dry-run) (#444246)
+- sub-command "clean" has a more verbose output (#444245)
+- sub-command "list" option to show task status (-s/--status) (#497661)
+- sub-command "list" filter tasks passed as positional parameters
+- tools.set_trace, PDB with stdout redirection (#494903)
+- accept command line optional parameters passed before sub-command (#494901)
+- give a clear errror message if .doit.db file is corrupted (#500269)
+- added task option "getargs". actions can use computed values from other tasks (#486569)
 - python-action might return a dictionary on success
 
 

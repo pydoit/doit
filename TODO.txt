@@ -1,9 +1,3 @@
-0.6
-----------
-
-. cache dir files
-
-
 0.X
 ----------
 
@@ -22,7 +16,7 @@
 . task process isolation. (execute tasks in a different process)
 . option to make sub-task not part of a group
 . task name alias
-
+. cache dir files (speed optimization)
 
 needs volunteer
 ----------------

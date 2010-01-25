@@ -350,10 +350,10 @@ class Task(object):
     @ivar is_subtask: (bool) indicate this task is a subtask.
     @ivar result: (str) last action "result". used to check task-result-dep
     @ivar values: (dict) values saved by task that might be used by other tasks
-    @ivar taskargs: (dict) values from other tasks
+    @ivar getargs: (dict) values from other tasks
     @ivar doc: (string) task documentation
 
-    @ivar options: (dict) calculated params values (from taskargs and taskopt)
+    @ivar options: (dict) calculated params values (from getargs and taskopt)
     @ivar taskopt: (cmdparse.Command)
     @ivar custom_title: function reference that takes a task object as
                         parameter and returns a string.
@@ -371,20 +371,20 @@ class Task(object):
                   'doc': [str, None],
                   'params': [list, tuple],
                   'verbosity': [None,0,1,2],
-                  'taskargs': [dict],
+                  'getargs': [dict],
                   'title': [None, types.FunctionType],
                   }
 
 
     def __init__(self, name, actions, dependencies=(), targets=(),
                  setup=(), clean=(), is_subtask=False, doc=None, params=(),
-                 verbosity=None, title=None, taskargs=None):
+                 verbosity=None, title=None, getargs=None):
         """sanity checks and initialization
 
         @param params: (list of option parameters) see cmdparse.Command.__init__
         """
 
-        taskargs = taskargs or {} #default
+        getargs = getargs or {} #default
         # check task attributes input
         for attr, valid_list in self.valid_attr.iteritems():
             self.check_attr_input(name, attr, locals()[attr], valid_list)
@@ -398,7 +398,7 @@ class Task(object):
         self.values = {}
         self.verbosity = verbosity
         self.custom_title = title
-        self.taskargs = taskargs
+        self.getargs = getargs
 
         # options
         self.taskcmd = cmdparse.TaskOption(name, params, None, None)
@@ -425,7 +425,7 @@ class Task(object):
             action.task = self
 
         self._init_dependencies(dependencies)
-        self._init_taskargs()
+        self._init_getargs()
         self._init_doc(doc)
 
 
@@ -456,13 +456,13 @@ class Task(object):
                 self.file_dep.append(dep)
 
 
-    def _init_taskargs(self):
-        # taskargs also define implicit task dependencies
-        for key, desc in self.taskargs.iteritems():
+    def _init_getargs(self):
+        # getargs also define implicit task dependencies
+        for key, desc in self.getargs.iteritems():
             # check format
             parts = desc.split('.')
             if len(parts) != 2:
-                msg = ("Taskid '%s' - Invalid format for taskargs of '%s'.\n" %
+                msg = ("Taskid '%s' - Invalid format for getargs of '%s'.\n" %
                        (self.name, key) +
                        "Should be <taskid>.<argument-name> got '%s'\n" % desc)
                 raise InvalidTask(msg)
