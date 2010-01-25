@@ -18,7 +18,6 @@ Contents:
    cmd_run
    cmd_other
    tools
-   reference
    faq
    changes
    developer

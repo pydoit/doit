@@ -296,6 +296,11 @@ dependencies:
     * task (string) ":<task_name>"
     * run-once (True bool)
 
+getargs:
+  - type: dictionary
+    * key: string with the name of the function parater (used in a python-action)
+    * value: string on the format <task-name>.<variable-name>
+
 targets:
   - type: list of strings
   - each item is file-path relative to the dodo file (accepts both files and folders)

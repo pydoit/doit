@@ -70,7 +70,7 @@ The selected tasks are sorted in the order they will be executed. If task has an
 Execute tasks
 ^^^^^^^^^^^^^
 
-The runner executes only tasks that are not up-to-date. A db file (using JSON format) is used to keep information on tasks and their file-dependencies. there is a dictionary for every task. each task has a dictionary where key is  dependency (abs file path), and the value is the dependency signature.
+The runner executes only tasks that are not up-to-date. A db file (using JSON format) is used to keep information on tasks and their file-dependencies. there is a dictionary for every task. each task has a dictionary where key is  dependency (abs file path), and the value is the dependency's modified timestamp, size and signature.
 
 The following rules apply to dependencies:
 

@@ -31,7 +31,7 @@ So if there are no modifications to the dependencies and you run `doit` again. T
   eduardo@eduardo:~$ doit
   -- compile
 
-Note the ``-- `` (2 dashes, one space) on the command output on the second time it is executed. It means, this task was up-to-date and not executed.
+Note the ``--`` (2 dashes, one space) on the command output on the second time it is executed. It means, this task was up-to-date and not executed.
 
 
 
@@ -124,6 +124,15 @@ i.e. Suppose you want to send an email everytime you run *doit* on a bazaar repo
 Note the question mark "?" preeceds the name of the task (version). `doit` will keep track of the output of the task *version* and will execute *send_email* only when the bazaar repository has a new version since last time *doit* was executed.
 
 The "result" from the dependent task compared between different runs is given by its last action. The content for python-action is the value of the returned string. For cmd-actions is the output send to stdout plus stderr.
+
+
+getargs
+--------
+
+`getargs` provides a way to use values computed in one task in another task.
+
+.. literalinclude:: tutorial/getargs.py
+
 
 run-once
 --------

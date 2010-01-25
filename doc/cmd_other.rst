@@ -88,4 +88,4 @@ It is possible to set a task to be ignored/skipped (that is not executed). This 
     !! create_file:file1.txt
     .  create_file:file2.txt
 
-Note the ``!! ``, it means that task was ignored. To reverse the `ignore` use `forget` sub-command.
+Note the ``!!``, it means that task was ignored. To reverse the `ignore` use `forget` sub-command.

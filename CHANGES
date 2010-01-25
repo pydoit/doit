@@ -3,8 +3,8 @@
 Changes
 =======
 
-0.6.0
-============
+0.6.0 (*2010-01-25*)
+=====================
 
 - improve (speed optimization) of check if file modified (#370920)
 - sub-command "clean" dry-run option (-n/--dry-run) (#444246)
