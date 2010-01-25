@@ -65,10 +65,8 @@ Project Details
 Status
 ======
 
-`doit` is under active development. Version 0.5 released on 2009-12.
+`doit` is under active development. Version 0.6 released on 2010-01.
 
-While still a small project with room for lots of improvements and features. It is very stable and provides some great features not seen in any other project.
-
-Development is done based on real world use cases. If I don't need a feature and nobody never asked for it, it is not implemented ;) It is well designed and have a very small code base so adding new features isn't hard.
+Development is done based on real world use cases. If I don't need a feature and nobody never asked for it, it is not implemented ;) It is well designed and have a very small code base so adding new features isn't hard. `doit` already provides most features I need, so the development of new features has slowed down.
 
 If you use `doit` please drop me a line telling me your experience...
