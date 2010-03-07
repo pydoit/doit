@@ -7,7 +7,7 @@ from doit import main
 from doit import task
 from doit import cmdparse
 from doit.cmds import doit_run, doit_clean, doit_list, doit_forget, doit_ignore
-
+from doit.cmds import doit_auto
 
 ## cmd line options
 ##########################################################
@@ -138,6 +138,7 @@ Commands:
  doit list              list tasks from dodo file
  doit forget            clear successful run status from DB
  doit ignore            ignore task (skip) on subsequent runs
+ doit auto              automatically run doit when a dependency changes
 
  doit help              show help / reference
  doit help task         show help on task dictionary fields
@@ -266,6 +267,20 @@ def cmd_ignore(params, args):
 
 
 ##########################################################
+########## auto
+
+auto_doc = {'purpose': "automatically execute tasks when a dependency changes",
+            'usage': "TASK [TASK ...]",
+            'description': None}
+
+def cmd_auto(params, args):
+    dodo_module = main.get_module(params['dodoFile'], params['cwdPath'])
+    command_names = params['sub'].keys()
+    dodo_tasks = main.load_task_generators(dodo_module, command_names)
+    return doit_auto(params['dep_file'], dodo_tasks['task_list'], args)
+
+
+##########################################################
 ########## help
 
 help_doc = {'purpose': "show help",
@@ -378,6 +393,11 @@ def cmd_main(cmd_args):
     ignore_options = (opt_dodo, opt_cwd, opt_depfile,)
     subCmd['ignore'] = cmdparse.Command('ignore', ignore_options,
                                         cmd_ignore, ignore_doc)
+
+    # auto command
+    auto_options = (opt_dodo, opt_cwd, opt_depfile,)
+    subCmd['auto'] = cmdparse.Command('auto', auto_options,
+                                        cmd_auto, auto_doc)
 
 
     try:

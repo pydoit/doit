@@ -1,5 +1,7 @@
 """cmd-line functions"""
 
+import os.path
+
 from doit import dependency
 from doit.task import Task
 from doit.main import TaskSetup, InvalidCommand
@@ -166,3 +168,52 @@ def doit_ignore(dbFileName, taskList, outstream, ignoreTasks):
             dependencyManager.ignore(tasks[to_ignore])
             outstream.write("ignoring %s\n" % to_ignore)
     dependencyManager.close()
+
+
+
+class FileModifyWatcher(object):
+
+    def __init__(self, file_list):
+        self.file_list = set([os.path.abspath(f) for f in file_list])
+        self.watch_dirs = set([os.path.dirname(f) for f in self.file_list])
+
+    def handle_event(self, event):
+        if event.pathname in self.file_list:
+            print "==> ", event.maskname, ": ", event.pathname
+
+    def loop(self):
+        import pyinotify
+        handle_event = self.handle_event
+        class EventHandler(pyinotify.ProcessEvent):
+            def process_default(self, event):
+                handle_event(event)
+
+        wm = pyinotify.WatchManager()  # Watch Manager
+        mask = pyinotify.IN_CLOSE_WRITE
+        ev = EventHandler()
+        notifier = pyinotify.Notifier(wm, ev)
+
+        for watch_this in self.watch_dirs:
+            wm.add_watch(watch_this, mask)
+
+        notifier.loop()
+
+def doit_auto(dependency_file, task_list, filter_tasks):
+    """Re-execute tasks automatically a depedency changes
+
+    @param filter_tasks (list -str): print only tasks from this list
+    """
+    import sys
+    class AutoRun(FileModifyWatcher):
+        def handle_event(self, event):
+            doit_run(dependency_file, task_list, sys.stdout, filter_tasks,
+                     reporter='executed-only')
+
+    watch_files = []
+    selected_tasks = TaskSetup(task_list, filter_tasks).process()
+    for st in selected_tasks:
+        watch_files.extend(st.file_dep)
+
+    fw = AutoRun(watch_files)
+    fw.loop()
+
