@@ -4,7 +4,7 @@ from distutils.core import setup
 
 setup(name = 'doit',
       description = 'doit - Automation Tool',
-      version = '0.6.0',
+      version = '0.7.dev',
       license= 'MIT',
       author = 'Eduardo Naufel Schettino',
       author_email = 'schettino72@gmail.com',
@@ -26,7 +26,6 @@ setup(name = 'doit',
                      ],
 
       packages = ['doit'],
-      package_dir = {'':'lib'},
       scripts = ['bin/doit'],
 
       long_description = """

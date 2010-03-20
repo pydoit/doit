@@ -3,6 +3,6 @@
 # this script is used by bzr a pre-commit hook.
 # see contrib/check_pre_commit.py
 
-PYTHONPATH=`pwd`/lib:$PYTHONPATH
+PYTHONPATH=`pwd`:$PYTHONPATH
 export PYTHONPATH
 python bin/doit

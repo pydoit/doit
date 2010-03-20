@@ -7,6 +7,9 @@ revision.txt
 temp
 _build
 .svn
+pip-log.txt
+doit.egg-info
+
 doc/tutorial/python-logo.gif
 doc/tutorial/foo.tar
 doc/tutorial/hello.txt
