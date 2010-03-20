@@ -4,7 +4,7 @@ import glob
 
 DEFAULT_TASKS = ['checker', 'ut']
 
-codeFiles = glob.glob("lib/doit/*.py")
+codeFiles = glob.glob("doit/*.py")
 testFiles = glob.glob("tests/test_*.py")
 pyFiles = codeFiles + testFiles
 
@@ -45,11 +45,11 @@ def task_coverage_module():
     for test in testFiles:
         if not test.startswith('tests/test_'):
             continue
-        source = "lib/doit/" + test[to_strip:]
+        source = "doit/" + test[to_strip:]
         yield {'name': test,
                'actions':["coverage run `which py.test` %s" % test,
                    "coverage report --show-missing %s %s" % (source, test)],
                'verbosity': 2}
 
 
-# sfood -i lib/doit/ | sfood-graph | dot -Tpng -o doit-dep.png
+# sfood -i doit/ | sfood-graph | dot -Tpng -o doit-dep.png

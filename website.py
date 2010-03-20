@@ -3,7 +3,7 @@
 import glob
 from doit.tools import create_folder
 
-srcFiles = glob.glob("lib/doit/*.py")
+srcFiles = glob.glob("doit/*.py")
 docRoot = 'doc/'
 buildPath = docRoot + '_build/html/'
 
