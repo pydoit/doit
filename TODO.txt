@@ -1,13 +1,18 @@
+0.7
+----------
+
+. 524387 configure options on dodo file
+. 444247 command clean follow dependencies
+. 444243 clean and forget acts on all tasks, they should act only on default tasks
+. 441084 tests for cmdline
+
+
 0.X
 ----------
 
 . tools - profile
 . tools - code coverage
-. 444247 	command clean follow dependencies
-. 444243 	clean and forget acts on all tasks, they should act only on default tasks
-. configure options on dodo file
 
-. tests for cmdline (#441084)
 . color output on the terminal. (#263576)
 . tab-complete
 

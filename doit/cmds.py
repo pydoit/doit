@@ -62,20 +62,24 @@ def doit_clean(task_list, outstream, dryrun, clean_tasks):
 
 
 def doit_list(dependencyFile, task_list, outstream, filter_tasks,
-              print_subtasks, quiet, print_status):
+              print_subtasks=False, print_doc=False, print_status=False,
+              print_private=False):
     """List task generators, in the order they were defined.
 
     @param filter_tasks (list -str): print only tasks from this list
-    @param print_subtasks (bool): print subtasks
     @param outstream (file-like): object
+    @param print_subtasks (bool)
+    @param print_doc(bool)
+    @param print_status(bool)
+    @param print_private(bool)
     """
     status_map = {'ignore': 'I', 'up-to-date': 'U', 'run': 'R'}
     def _list_print_task(task):
         """print a single task"""
         task_str = task.name
         # add doc
-        if not quiet and task.doc:
-            task_str += " : %s" % task.doc
+        if print_doc and task.doc:
+            task_str += "\t* %s" % task.doc
         if print_status:
             task_uptodate = dependencyManager.get_status(task)
             task_str = "%s %s" % (status_map[task_uptodate], task_str)
@@ -100,6 +104,8 @@ def doit_list(dependencyFile, task_list, outstream, filter_tasks,
 
     for task in print_tasks:
         if task.is_subtask:
+            continue
+        if (not print_private) and task.name.startswith('_'):
             continue
         _list_print_task(task)
     return 0

@@ -26,58 +26,69 @@ TASKS_SAMPLE[2].task_dep = ['g1.a', 'g1.b']
 
 class TestCmdList(object):
 
-    def testListTasksWithDoc(self):
+
+    def testDefault(self):
         output = StringIO.StringIO()
-        doit_list(TESTDB, TASKS_SAMPLE, output, [], False, False, False)
+        doit_list(TESTDB, TASKS_SAMPLE, output, [])
+        got = [line for line in output.getvalue().split('\n') if line]
+        expected = [t.name for t in TASKS_SAMPLE if not t.is_subtask]
+        assert expected == got
+
+
+    def testDoc(self):
+        output = StringIO.StringIO()
+        doit_list(TESTDB, TASKS_SAMPLE, output, [], print_doc=True)
         got = [line for line in output.getvalue().split('\n') if line]
         expected = []
         for t in TASKS_SAMPLE:
             if not t.is_subtask:
-                expected.append("%s : %s" % (t.name, t.doc))
-        assert expected == got, output.getvalue()
-
-    def testListTasksWithDocQuiet(self):
-        output = StringIO.StringIO()
-        doit_list(TESTDB, TASKS_SAMPLE, output, [], False, True, False)
-        got = [line for line in output.getvalue().split('\n') if line]
-        expected = [t.name for t in TASKS_SAMPLE if not t.is_subtask]
-        assert expected == got, output.getvalue()
-
-    def testListAllTasksWithDoc(self):
-        output = StringIO.StringIO()
-        doit_list(TESTDB, TASKS_SAMPLE, output, [], True, False, False)
-        got = [line for line in output.getvalue().split('\n') if line]
-        expected = ["%s : %s" % (t.name, t.doc) for t in TASKS_SAMPLE]
+                expected.append("%s\t* %s" % (t.name, t.doc))
         assert expected == got
 
-    def testListAllTasksWithDocQuiet(self):
+    def testSubTask(self):
         output = StringIO.StringIO()
-        doit_list(TESTDB, TASKS_SAMPLE, output, [], True, True, False)
+        doit_list(TESTDB, TASKS_SAMPLE, output, [], print_subtasks=True)
         got = [line for line in output.getvalue().split('\n') if line]
         expected = [t.name for t in TASKS_SAMPLE]
         assert expected == got
 
-    def testListFilter(self):
+    def testFilter(self):
         output = StringIO.StringIO()
-        doit_list(TESTDB, TASKS_SAMPLE, output, ['g1', 't2'],
-                  False, True, False)
+        doit_list(TESTDB, TASKS_SAMPLE, output, ['g1', 't2'])
         got = [line for line in output.getvalue().split('\n') if line]
         expected = ['g1', 't2']
         assert expected == got
 
-    def testListFilterAll(self):
+    def testFilterAll(self):
         output = StringIO.StringIO()
-        doit_list(TESTDB, TASKS_SAMPLE, output, ['g1'], True, True, False)
+        doit_list(TESTDB, TASKS_SAMPLE, output, ['g1'], print_subtasks=True)
         got = [line for line in output.getvalue().split('\n') if line]
         expected = ['g1', 'g1.a', 'g1.b']
         assert expected == got
 
     def testStatus(self):
         output = StringIO.StringIO()
-        doit_list(TESTDB, TASKS_SAMPLE, output, ['g1'],
-                  False, True, True)
+        doit_list(TESTDB, TASKS_SAMPLE, output, ['g1'], print_status=True)
         got = [line for line in output.getvalue().split('\n') if line]
         expected = ['R g1']
+        assert expected == got
+
+    def testNoPrivate(self):
+        task_list = list(TASKS_SAMPLE)
+        task_list.append(Task("_s3", [""]))
+        output = StringIO.StringIO()
+        doit_list(TESTDB, task_list, output, ['_s3'])
+        got = [line for line in output.getvalue().split('\n') if line]
+        expected = []
+        assert expected == got
+
+    def testWithPrivate(self):
+        task_list = list(TASKS_SAMPLE)
+        task_list.append(Task("_s3", [""]))
+        output = StringIO.StringIO()
+        doit_list(TESTDB, task_list, output, ['_s3'], print_private=True)
+        got = [line for line in output.getvalue().split('\n') if line]
+        expected = ['_s3']
         assert expected == got
 
 
