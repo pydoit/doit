@@ -103,8 +103,10 @@ def doit_list(dependencyFile, task_list, outstream, filter_tasks,
         dependencyManager = Dependency(dependencyFile)
 
     for task in print_tasks:
-        if task.is_subtask:
+        # exclude subtasks (never exclude if filter specified)
+        if (not filter_tasks) and task.is_subtask:
             continue
+        # exclude private tasks
         if (not print_private) and task.name.startswith('_'):
             continue
         _list_print_task(task)

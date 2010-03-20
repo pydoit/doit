@@ -24,8 +24,8 @@ TASKS_SAMPLE = [Task("t1", [""], doc="t1 doc string"),
                 Task("t3", [""], doc="t3 doc string")]
 TASKS_SAMPLE[2].task_dep = ['g1.a', 'g1.b']
 
-class TestCmdList(object):
 
+class TestCmdList(object):
 
     def testDefault(self):
         output = StringIO.StringIO()
@@ -33,7 +33,6 @@ class TestCmdList(object):
         got = [line for line in output.getvalue().split('\n') if line]
         expected = [t.name for t in TASKS_SAMPLE if not t.is_subtask]
         assert expected == got
-
 
     def testDoc(self):
         output = StringIO.StringIO()
@@ -57,6 +56,13 @@ class TestCmdList(object):
         doit_list(TESTDB, TASKS_SAMPLE, output, ['g1', 't2'])
         got = [line for line in output.getvalue().split('\n') if line]
         expected = ['g1', 't2']
+        assert expected == got
+
+    def testFilterSubtask(self):
+        output = StringIO.StringIO()
+        doit_list(TESTDB, TASKS_SAMPLE, output, ['g1.a'])
+        got = [line for line in output.getvalue().split('\n') if line]
+        expected = ['g1.a']
         assert expected == got
 
     def testFilterAll(self):
