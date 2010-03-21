@@ -220,6 +220,9 @@ class Dependency(object):
             and (not task.run_once)):
             return 'run'
 
+        if task.run_always:
+            return 'run'
+
         # user managed dependency not up-to-date if it doesnt exist
         if task.run_once and not self._get(task.name, 'run-once:'):
             return 'run'

@@ -345,6 +345,7 @@ class Task(object):
     @ivar dep_changed (list - string): list of file-dependencies that changed
           (are not up_to_date). this must be set before
     @ivar run_once: (bool) task without dependencies should run
+    @ivar run_always: (bool) task always run even if up-to-date
     @ivar setup (list): List of setup objects
           (any object with setup or cleanup method)
     @ivar is_subtask: (bool) indicate this task is a subtask.
@@ -393,6 +394,7 @@ class Task(object):
         self.targets = targets
         self.setup = setup
         self.run_once = False
+        self.run_always = False
         self.is_subtask = is_subtask
         self.result = None
         self.values = {}
@@ -436,24 +438,32 @@ class Task(object):
         self.file_dep = []
         self.result_dep = []
         for dep in dependencies:
-            # True on the list. set run_once
+            # bool
             if isinstance(dep,bool):
-                if not dep:
-                    msg = ("%s. bool paramater in 'dependencies' "+
-                           "must be True got:'%s'")
-                    raise InvalidTask(msg%(self.name, str(dep)))
-                self.run_once = True
-            # task dep starts with a ':'
-            elif dep.startswith(':'):
-                self.task_dep.append(dep[1:])
-            # task-result dep starts with a '?'
-            elif dep.startswith('?'):
-                # result_dep are also task_dep.
-                self.task_dep.append(dep[1:])
-                self.result_dep.append(dep[1:])
-            # file dep
+                if dep is True:
+                    self.run_once = True
+                if dep is False:
+                    self.run_always = True
+            # string
             elif isinstance(dep,str):
-                self.file_dep.append(dep)
+                # task dep starts with a ':'
+                if dep.startswith(':'):
+                    self.task_dep.append(dep[1:])
+                # task-result dep starts with a '?'
+                elif dep.startswith('?'):
+                    # result_dep are also task_dep.
+                    self.task_dep.append(dep[1:])
+                    self.result_dep.append(dep[1:])
+                # file dep
+                else:
+                    self.file_dep.append(dep)
+            # ignore None values
+            elif dep is None:
+                continue
+            else:
+                msg = ("%s. Invalid paramater in 'dependencies' "+
+                       "got:'%s(%s)'")
+                raise InvalidTask(msg%(self.name, str(dep), type(dep)))
 
 
     def _init_getargs(self):

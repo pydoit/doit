@@ -260,6 +260,36 @@ class TestGetStatus(object):
         assert [] == t1.dep_changed
 
 
+    def test_fileDependencies(self, depfile):
+        filePath = get_abspath("data/dependency1")
+        ff = open(filePath,"w")
+        ff.write("part1")
+        ff.close()
+
+        dependencies = [filePath]
+        t1 = Task("t1", None, dependencies)
+
+        # first time execute
+        assert 'run' == depfile.get_status(t1)
+        assert dependencies == t1.dep_changed
+
+        # second time no
+        depfile.save_success(t1)
+        assert 'up-to-date' == depfile.get_status(t1)
+        assert [] == t1.dep_changed
+
+        os.stat_float_times(True) # for python2.4
+        time.sleep(0.01) # required otherwise timestamp is not modified!
+        # a small change on the file
+        ff = open(filePath,"a")
+        ff.write(" part2")
+        ff.close()
+
+        # execute again
+        assert 'run' == depfile.get_status(t1)
+        assert dependencies == t1.dep_changed
+
+
     # if there is no dependency the task is always executed
     def test_noDependency(self, depfile):
         t1 = Task("t1", None)
@@ -278,6 +308,24 @@ class TestGetStatus(object):
         assert [] == t1.dep_changed
         depfile.save_success(t1)
         assert 'up-to-date' == depfile.get_status(t1)
+        assert [] == t1.dep_changed
+
+    def test_runAlways(self, depfile):
+        filePath = get_abspath("data/dependency1")
+        ff = open(filePath,"w")
+        ff.write("part1")
+        ff.close()
+
+        dependencies = [filePath, False]
+        t1 = Task("t1", None, dependencies)
+
+        # first time execute
+        assert 'run' == depfile.get_status(t1)
+        assert [] == t1.dep_changed
+
+        # second time execute too
+        depfile.save_success(t1)
+        assert 'run' == depfile.get_status(t1)
         assert [] == t1.dep_changed
 
 
@@ -324,36 +372,6 @@ class TestGetStatus(object):
         os.mkdir(folderPath)
         assert 'up-to-date' == depfile.get_status(t1)
         assert [] == t1.dep_changed
-
-
-    def test_fileDependencies(self, depfile):
-        filePath = get_abspath("data/dependency1")
-        ff = open(filePath,"w")
-        ff.write("part1")
-        ff.close()
-
-        dependencies = [filePath]
-        t1 = Task("t1", None, dependencies)
-
-        # first time execute
-        assert 'run' == depfile.get_status(t1)
-        assert dependencies == t1.dep_changed
-
-        # second time no
-        depfile.save_success(t1)
-        assert 'up-to-date' == depfile.get_status(t1)
-        assert [] == t1.dep_changed
-
-        os.stat_float_times(True) # for python2.4
-        time.sleep(0.01) # required otherwise timestamp is not modified!
-        # a small change on the file
-        ff = open(filePath,"a")
-        ff.write(" part2")
-        ff.close()
-
-        # execute again
-        assert 'run' == depfile.get_status(t1)
-        assert dependencies == t1.dep_changed
 
 
     def test_resultDependencies(self, depfile):
