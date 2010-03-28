@@ -382,3 +382,66 @@ class TestFileWatcher(object):
 
         assert os.path.abspath(file1) == events[0]
         assert os.path.abspath(file2) == events[1]
+
+
+class TestCmdAuto(object):
+    def test(self, cwd, capsys):
+        file1, file2, file3 = 'data/w1.txt', 'data/w2.txt', 'data/w3.txt'
+        stop_file = 'data/stop'
+        should_stop = []
+        started = []
+        # attach file watcher "stop" loop stuff
+        def _handle(self, event):
+            if event.pathname in self.file_list:
+                self.handle_event(event)
+                if event.pathname.endswith("stop"):
+                    should_stop.append(True)
+        cmds.FileModifyWatcher._handle = _handle
+        # stop file watcher
+        def loop_callback(notifier):
+            started.append(True)
+            if should_stop:
+                raise KeyboardInterrupt
+
+        remove_testdb()
+        # create files
+        for fx in (file1, file2, file2, stop_file):
+            fd = open(fx, 'w')
+            fd.write("hi")
+            fd.close()
+        #
+        task_list = [Task("t1", [""], [file1]),
+                     Task("t2", [""], [file2]),
+                     Task("stop", [""],  [stop_file]),]
+        run_args = (TESTDB, task_list, ["t1", "t2", "stop"], loop_callback)
+        loop_thread = threading.Thread(target=cmds.doit_auto, args=run_args)
+        loop_thread.start()
+
+        # wait watcher to be ready
+        while not started: pass
+
+        # write in watched file ====expected=====> .  t1
+        fd = open(file1, 'w')
+        fd.write("hi")
+        fd.close()
+        # write in non-watched file ============> None
+        fd = open(file3, 'w')
+        fd.write("hi")
+        fd.close()
+        # write in another watched file ========> .  t2
+        fd = open(file2, 'w')
+        fd.write("hi")
+        fd.close()
+
+        # tricky to stop watching
+        fd = open(stop_file, 'w')
+        fd.write("hi")
+        fd.close()
+        loop_thread.join(1)
+        assert not loop_thread.isAlive()
+
+        out, err = capsys.readouterr()
+        out_lines = out.splitlines()
+        assert '.  t1' == out_lines[0]
+        assert '.  t2' == out_lines[1]
+

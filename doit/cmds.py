@@ -203,7 +203,7 @@ class FileModifyWatcher(object):
 
     def loop(self, loop_callback=None):
         """Infinite loop
-        @loop_callback: if present and returns True stops the loop
+        @loop_callback: used to stop loop on unittests
         """
         import pyinotify
         handler = self._handle
@@ -222,13 +222,14 @@ class FileModifyWatcher(object):
         self.notifier.loop(loop_callback)
 
 
-def doit_auto(dependency_file, task_list, filter_tasks):
+def doit_auto(dependency_file, task_list, filter_tasks, loop_callback=None):
     """Re-execute tasks automatically a depedency changes
 
     @param filter_tasks (list -str): print only tasks from this list
+    @loop_callback: used to stop loop on unittests
     """
     selected_tasks = TaskSetup(task_list, filter_tasks).process()
-    watch_files = itertools.chain([st.file_dep for st in selected_tasks])
+    watch_files = list(itertools.chain(*[s.file_dep for s in selected_tasks]))
 
     class DoitAutoRun(FileModifyWatcher):
         def handle_event(self, event):
@@ -236,5 +237,5 @@ def doit_auto(dependency_file, task_list, filter_tasks):
                      filter_tasks, reporter='executed-only')
 
     fw = DoitAutoRun(watch_files)
-    fw.loop()
+    fw.loop(loop_callback)
 
