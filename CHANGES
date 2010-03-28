@@ -6,7 +6,8 @@ Changes
 0.7.0
 =======
 
-- task dependency "False" means never up-to-date
+- 
+- task dependency "False" means never up-to-date, "None" ignored
 - sub-command "list" by default do not show tasks starting with an underscore, added option (-p/--private)
 - new sub-coomand "auto"
 

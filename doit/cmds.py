@@ -1,6 +1,7 @@
 """cmd-line functions"""
-
+import sys
 import os.path
+import itertools
 
 from doit import dependency
 from doit.task import Task
@@ -15,7 +16,6 @@ def doit_run(dependencyFile, task_list, output, options=None,
              reporter='default'):
     # get tasks to be executed
     selected_tasks = TaskSetup(task_list, options).process()
-
     if reporter not in REPORTERS:
         msg = ("No reporter named '%s'.\nType 'doit help run' to see a list "
                "of available reporters.")
@@ -180,48 +180,61 @@ def doit_ignore(dbFileName, taskList, outstream, ignoreTasks):
 
 
 class FileModifyWatcher(object):
+    """Use inotify to watch file-system for file modifications
 
+    Usage:
+    1) subclass the method handle_event, action to be performed
+    2) create an object passing a list of files to be watched
+    3) call the loop method
+    """
     def __init__(self, file_list):
+        """@param file_list (list-str): files to be watched"""
         self.file_list = set([os.path.abspath(f) for f in file_list])
         self.watch_dirs = set([os.path.dirname(f) for f in self.file_list])
+        self.notifier = None
+
+    def _handle(self, event):
+        if event.pathname in self.file_list:
+            self.handle_event(event)
 
     def handle_event(self, event):
-        if event.pathname in self.file_list:
-            print "==> ", event.maskname, ": ", event.pathname
+        """this should be sub-classed """
+        raise NotImplementedError
 
-    def loop(self):
+    def loop(self, loop_callback=None):
+        """Infinite loop
+        @loop_callback: if present and returns True stops the loop
+        """
         import pyinotify
-        handle_event = self.handle_event
+        handler = self._handle
         class EventHandler(pyinotify.ProcessEvent):
             def process_default(self, event):
-                handle_event(event)
+                handler(event)
 
         wm = pyinotify.WatchManager()  # Watch Manager
         mask = pyinotify.IN_CLOSE_WRITE
         ev = EventHandler()
-        notifier = pyinotify.Notifier(wm, ev)
+        self.notifier = pyinotify.Notifier(wm, ev)
 
         for watch_this in self.watch_dirs:
             wm.add_watch(watch_this, mask)
 
-        notifier.loop()
+        self.notifier.loop(loop_callback)
+
 
 def doit_auto(dependency_file, task_list, filter_tasks):
     """Re-execute tasks automatically a depedency changes
 
     @param filter_tasks (list -str): print only tasks from this list
     """
-    import sys
-    class AutoRun(FileModifyWatcher):
-        def handle_event(self, event):
-            doit_run(dependency_file, task_list, sys.stdout, filter_tasks,
-                     reporter='executed-only')
-
-    watch_files = []
     selected_tasks = TaskSetup(task_list, filter_tasks).process()
-    for st in selected_tasks:
-        watch_files.extend(st.file_dep)
+    watch_files = itertools.chain([st.file_dep for st in selected_tasks])
 
-    fw = AutoRun(watch_files)
+    class DoitAutoRun(FileModifyWatcher):
+        def handle_event(self, event):
+            doit_run(dependency_file, task_list, sys.stdout,
+                     filter_tasks, reporter='executed-only')
+
+    fw = DoitAutoRun(watch_files)
     fw.loop()
 

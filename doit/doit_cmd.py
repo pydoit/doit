@@ -285,7 +285,8 @@ def cmd_auto(params, args):
     dodo_module = main.get_module(params['dodoFile'], params['cwdPath'])
     command_names = params['sub'].keys()
     dodo_tasks = main.load_task_generators(dodo_module, command_names)
-    return doit_auto(params['dep_file'], dodo_tasks['task_list'], args)
+    filter_tasks = args or dodo_tasks['default_tasks']
+    return doit_auto(params['dep_file'], dodo_tasks['task_list'], filter_tasks)
 
 
 ##########################################################
