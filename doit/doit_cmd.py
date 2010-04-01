@@ -247,8 +247,9 @@ def cmd_clean(params, args):
     dodo_module = main.get_module(params['dodoFile'], params['cwdPath'])
     command_names = params['sub'].keys()
     dodo_tasks = main.load_task_generators(dodo_module, command_names)
+    options = args or dodo_tasks['default_tasks']
     return doit_clean(dodo_tasks['task_list'], sys.stdout, params['dryrun'],
-                      params['cleandep'], args)
+                      params['cleandep'], options)
 
 
 ##########################################################
@@ -262,8 +263,9 @@ def cmd_forget(params, args):
     dodo_module = main.get_module(params['dodoFile'], params['cwdPath'])
     command_names = params['sub'].keys()
     dodo_tasks = main.load_task_generators(dodo_module, command_names)
+    options = args or dodo_tasks['default_tasks']
     return doit_forget(params['dep_file'], dodo_tasks['task_list'],
-                       sys.stdout, args)
+                       sys.stdout, options)
 
 
 ##########################################################

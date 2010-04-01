@@ -2,7 +2,6 @@
 ----------
 
 . 524387 configure options on dodo file
-. 444243 clean and forget acts on all tasks, they should act only on default tasks
 . 441084 tests for cmdline
 
 
