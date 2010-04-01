@@ -362,7 +362,7 @@ class TestTask(object):
 
     def test_title(self):
         t = task.Task("MyName",["MyAction"])
-        assert "MyName" == t.name, t.name
+        assert "MyName" == t.title()
 
 
     def test_custom_title(self):

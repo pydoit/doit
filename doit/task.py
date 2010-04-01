@@ -548,7 +548,11 @@ class Task(object):
 
 
     def clean(self, outstream, dryrun):
-        """Execute task's clean"""
+        """Execute task's clean
+        @ivar outstream: 'write' output into this stream
+        @ivar dryrun (bool): if True clean tasks are not executed
+                             (just print out what would be executed)
+        """
         # if clean is True remove all targets
         if self._remove_targets is True:
             files = filter(os.path.isfile, self.targets)

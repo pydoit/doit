@@ -212,7 +212,7 @@ opt_list_private = {'name': 'private',
                     'default': False,
                     'help': "print private tasks (start with '_')"}
 
-# TODO list should support "args" as a filter.
+
 def cmd_list(params, args):
     dodo_module = main.get_module(params['dodoFile'], params['cwdPath'])
     command_names = params['sub'].keys()
@@ -236,12 +236,19 @@ opt_clean_dryrun = {'name': 'dryrun',
                     'default': False,
                     'help': 'print actions without really executing them'}
 
+opt_clean_cleandep = {'name': 'cleandep',
+                    'short': 'c', # clean
+                    'long': 'clean-dep',
+                    'type': bool,
+                    'default': False,
+                    'help': 'clean task dependencies too'}
+
 def cmd_clean(params, args):
     dodo_module = main.get_module(params['dodoFile'], params['cwdPath'])
     command_names = params['sub'].keys()
     dodo_tasks = main.load_task_generators(dodo_module, command_names)
     return doit_clean(dodo_tasks['task_list'], sys.stdout, params['dryrun'],
-                      args)
+                      params['cleandep'], args)
 
 
 ##########################################################
@@ -384,7 +391,7 @@ def cmd_main(cmd_args):
     subCmd['run'] = cmdparse.Command('run', run_options, cmd_run, run_doc)
 
     # clean command
-    clean_options = (opt_dodo, opt_cwd, opt_clean_dryrun)
+    clean_options = (opt_dodo, opt_cwd, opt_clean_cleandep, opt_clean_dryrun)
     subCmd['clean'] = cmdparse.Command('clean', clean_options, cmd_clean,
                                        clean_doc)
 

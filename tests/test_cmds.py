@@ -218,25 +218,35 @@ class TestCmdClean(object):
 
     def pytest_funcarg__tasks(self, request):
         def create_tasks():
-            self.count = 0
-            self.tasks = [Task("t1", None, clean=[(self.increment,)]),
-                          Task("t2", None, clean=[(self.increment,)]),]
+            self.cleaned = []
+            def myclean(name):
+                self.cleaned.append(name)
+            self.tasks = [Task("t1", None, dependencies=[':t2'],
+                               clean=[(myclean,('t1',))]),
+                          Task("t2", None, clean=[(myclean,('t2',))]),]
         return request.cached_setup(
             setup=create_tasks,
             scope="function")
 
-    def increment(self):
-        self.count += 1
-        return True
-
     def test_clean_all(self, tasks):
         output = StringIO.StringIO()
-        cmds.doit_clean(self.tasks, output, False, [])
-        assert 2 == self.count
+        cmds.doit_clean(self.tasks, output, False, False, [])
+        assert ['t1','t2'] == self.cleaned
 
     def test_clean_selected(self, tasks):
         output = StringIO.StringIO()
-        cmds.doit_clean(self.tasks, output, False, ['t2'])
+        cmds.doit_clean(self.tasks, output, False, False, ['t2'])
+        assert ['t2'] == self.cleaned
+
+    def test_clean_taskdep(self, tasks):
+        output = StringIO.StringIO()
+        cmds.doit_clean(self.tasks, output, False, True, ['t1'])
+        assert ['t2', 't1'] == self.cleaned
+
+    def test_clean_taskdep_once(self, tasks):
+        output = StringIO.StringIO()
+        cmds.doit_clean(self.tasks, output, False, True, ['t1', 't2'])
+        assert ['t2', 't1'] == self.cleaned
 
 
 class TestCmdIgnore(object):

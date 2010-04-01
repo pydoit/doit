@@ -6,7 +6,7 @@ Changes
 0.7.0
 =======
 
-- 
+- sub-command "clean" option "clean-dep" to follow dependencies (#444247)
 - task dependency "False" means never up-to-date, "None" ignored
 - sub-command "list" by default do not show tasks starting with an underscore, added option (-p/--private)
 - new sub-coomand "auto"

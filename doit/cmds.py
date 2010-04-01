@@ -44,20 +44,34 @@ def doit_run(dependencyFile, task_list, output, options=None,
 
 
 
-def doit_clean(task_list, outstream, dryrun, clean_tasks):
+def doit_clean(task_list, outstream, dryrun, clean_dep, clean_tasks):
     """Clean tasks
     @param task_list (list - L{Task}): list of all tasks from dodo file
+    @ivar dryrun (bool): if True clean tasks are not executed
+                        (just print out what would be executed)
     @param clean_tasks (list - string): tasks bo be clean. clean all if
                                         empty list.
+    @param clean_dep (bool): execute clean from task_dep
+
     """
+    tasks = dict([(t.name, t) for t in task_list])
+    cleaned = set()
+
+    def clean_task(task_name):
+        if task_name not in cleaned:
+            cleaned.add(task_name)
+            tasks[task_name].clean(outstream, dryrun)
+
+    # clean all tasks if none specified
     if not clean_tasks:
-        # clean all tasks
-        for task_ in task_list:
-            task_.clean(outstream, dryrun)
-    else:
-        tasks = dict([(t.name, t) for t in task_list])
-        for name in clean_tasks:
-            tasks[name].clean(outstream, dryrun)
+        clean_tasks = [t.name for t in task_list]
+
+    for name in clean_tasks:
+        if clean_dep:
+            for td in tasks[name].task_dep:
+                clean_task(td)
+        clean_task(name)
+
 
 
 
