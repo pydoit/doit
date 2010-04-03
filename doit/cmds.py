@@ -251,5 +251,7 @@ def doit_auto(dependency_file, task_list, filter_tasks, loop_callback=None):
                      filter_tasks, reporter='executed-only')
 
     fw = DoitAutoRun(watch_files)
+    # always run once when started
+    fw.handle_event(None)
     fw.loop(loop_callback)
 
