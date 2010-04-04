@@ -39,14 +39,16 @@ DEPENDENCIES
 ============
 
 Python 2.6:
-  There are no external dependencies to install and use doit.
+- pyinotify
 
 Python 2.4 & 2.5:
+- pyinotify
 - simplejson
 
 Tools required for development:
 
-- py.test * unit tests
+- py.test * unit-tests
+- mock * unit-tests
 - bazaar * VCS
 - epydoc * API doc generator
 - sphinx * doc tool
@@ -76,6 +78,6 @@ LICENSE
 =======
 
 The MIT License
-Copyright (c) 2008 Eduardo Naufel Schettino
+Copyright (c) 2008-2010 Eduardo Naufel Schettino
 
 see LICENSE file
