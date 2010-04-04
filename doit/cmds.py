@@ -127,21 +127,21 @@ def doit_list(dependencyFile, task_list, outstream, filter_tasks,
     return 0
 
 
-def doit_forget(dbFileName, taskList, outstream, forgetTasks):
+def doit_forget(dependencyFile, task_list, outstream, forgetTasks):
     """remove saved data successful runs from DB
-    @param dbFileName: (str)
+    @param dependencyFile: (str)
     @param task_list: (Task) tasks from dodo file
     @param forget_tasks: (list - str) tasks to be removed. remove all if
                          empty list.
     """
-    dependencyManager = dependency.Dependency(dbFileName)
+    dependencyManager = dependency.Dependency(dependencyFile)
     # no task specified. forget all
     if not forgetTasks:
         dependencyManager.remove_all()
         outstream.write("forgeting all tasks\n")
     # forget tasks from list
     else:
-        tasks = dict([(t.name, t) for t in taskList])
+        tasks = dict([(t.name, t) for t in task_list])
         for taskName in forgetTasks:
             # check task exist
             if taskName not in tasks:
@@ -160,10 +160,10 @@ def doit_forget(dbFileName, taskList, outstream, forgetTasks):
     dependencyManager.close()
 
 
-def doit_ignore(dbFileName, taskList, outstream, ignoreTasks):
+def doit_ignore(dependencyFile, task_list, outstream, ignoreTasks):
     """mark tasks to be ignored
-    @param dbFileName: (str)
-    @param taskList: (Task) tasks from dodo file
+    @param dependencyFile: (str)
+    @param task_list: (Task) tasks from dodo file
     @param ignoreTasks: (list - str) tasks to be ignored.
     """
     # no task specified.
@@ -171,8 +171,8 @@ def doit_ignore(dbFileName, taskList, outstream, ignoreTasks):
         outstream.write("You cant ignore all tasks! Please select a task.\n")
         return
 
-    dependencyManager = dependency.Dependency(dbFileName)
-    tasks = dict([(t.name, t) for t in taskList])
+    dependencyManager = dependency.Dependency(dependencyFile)
+    tasks = dict([(t.name, t) for t in task_list])
     for taskName in ignoreTasks:
         # check task exist
         if taskName not in tasks:

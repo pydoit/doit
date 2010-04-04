@@ -2,7 +2,6 @@
 ----------
 
 . 524387 configure options on dodo file
-. 441084 tests for cmdline
 
 
 0.X

@@ -161,6 +161,12 @@ def generate_tasks(name, gen_result, gen_doc=None):
                       (name, type(gen_result)))
 
 
+def get_tasks(dodo_file, cwd, command_names):
+    """get tasks from dodo_file"""
+    dodo_module = get_module(dodo_file, cwd)
+    return load_task_generators(dodo_module, command_names)
+
+
 # this name is confusing with task.setup which it doesnt have any relation...
 class TaskSetup(object):
     """

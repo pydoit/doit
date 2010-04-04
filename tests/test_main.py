@@ -6,6 +6,7 @@ from doit.task import InvalidTask, Task
 from doit.main import InvalidDodoFile, InvalidCommand
 from doit.main import isgenerator, get_module
 from doit.main import load_task_generators, generate_tasks, TaskSetup
+from doit.main import get_tasks
 
 
 
@@ -135,6 +136,14 @@ class TestLoadTaskGenerators(object):
         fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
         cwd = os.path.join(os.path.dirname(__file__), "dataX")
         py.test.raises(InvalidCommand, get_module, fileName, cwd)
+
+
+class TestGetTasks(object):
+    def test(self):
+        fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
+        expected = ["xxx1","yyy2"]
+        dodo = get_tasks(fileName, None, [])
+        assert expected == [t.name for t in dodo['task_list']]
 
 
 class TestDodoDefaultTasks(object):

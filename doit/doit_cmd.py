@@ -145,7 +145,6 @@ Commands:
  doit help <command>    show command usage
 """
 
-
 def cmd_run(params, args):
     """execute cmd run"""
 
@@ -158,18 +157,17 @@ def cmd_run(params, args):
         return 0
 
 
-    # check if command is "run". default command is "run"
+    # check if no sub-command specified. default command is "run"
     if len(args) == 0 or args[0] not in params['sub']:
-        dodo_module = main.get_module(params['dodoFile'], params['cwdPath'])
-        command_names = params['sub'].keys()
-        dodo_tasks = main.load_task_generators(dodo_module, command_names)
+        dodo_tasks = main.get_tasks(params['dodoFile'], params['cwdPath'],
+                                    params['sub'].keys())
         options = args or dodo_tasks['default_tasks']
         return doit_run(params['dep_file'], dodo_tasks['task_list'],
                         params['outfile'], options, params['verbosity'],
                         params['always'], params['continue'],
                         params['reporter'])
 
-    # sub cmd different from "run" on cmd line. parse arguments again
+    # explicit sub-cmd. parse arguments again
     commands = params['sub']
     sub_cmd = args.pop(0)
     return commands[sub_cmd](args, **params)
@@ -214,9 +212,8 @@ opt_list_private = {'name': 'private',
 
 
 def cmd_list(params, args):
-    dodo_module = main.get_module(params['dodoFile'], params['cwdPath'])
-    command_names = params['sub'].keys()
-    dodo_tasks = main.load_task_generators(dodo_module, command_names)
+    dodo_tasks = main.get_tasks(params['dodoFile'], params['cwdPath'],
+                                params['sub'].keys())
     return doit_list(params['dep_file'], dodo_tasks['task_list'], sys.stdout,
                      args, params['all'], not params['quiet'],
                      params['status'], params['private'])
@@ -244,9 +241,8 @@ opt_clean_cleandep = {'name': 'cleandep',
                     'help': 'clean task dependencies too'}
 
 def cmd_clean(params, args):
-    dodo_module = main.get_module(params['dodoFile'], params['cwdPath'])
-    command_names = params['sub'].keys()
-    dodo_tasks = main.load_task_generators(dodo_module, command_names)
+    dodo_tasks = main.get_tasks(params['dodoFile'], params['cwdPath'],
+                                params['sub'].keys())
     options = args or dodo_tasks['default_tasks']
     return doit_clean(dodo_tasks['task_list'], sys.stdout, params['dryrun'],
                       params['cleandep'], options)
@@ -260,9 +256,8 @@ forget_doc = {'purpose': "clear successful run status from internal DB",
               'description': None}
 
 def cmd_forget(params, args):
-    dodo_module = main.get_module(params['dodoFile'], params['cwdPath'])
-    command_names = params['sub'].keys()
-    dodo_tasks = main.load_task_generators(dodo_module, command_names)
+    dodo_tasks = main.get_tasks(params['dodoFile'], params['cwdPath'],
+                                params['sub'].keys())
     options = args or dodo_tasks['default_tasks']
     return doit_forget(params['dep_file'], dodo_tasks['task_list'],
                        sys.stdout, options)
@@ -276,9 +271,8 @@ ignore_doc = {'purpose': "ignore task (skip) on subsequent runs",
               'description': None}
 
 def cmd_ignore(params, args):
-    dodo_module = main.get_module(params['dodoFile'], params['cwdPath'])
-    command_names = params['sub'].keys()
-    dodo_tasks = main.load_task_generators(dodo_module, command_names)
+    dodo_tasks = main.get_tasks(params['dodoFile'], params['cwdPath'],
+                                params['sub'].keys())
     return doit_ignore(params['dep_file'], dodo_tasks['task_list'],
                        sys.stdout, args)
 
@@ -291,9 +285,8 @@ auto_doc = {'purpose': "automatically execute tasks when a dependency changes",
             'description': None}
 
 def cmd_auto(params, args):
-    dodo_module = main.get_module(params['dodoFile'], params['cwdPath'])
-    command_names = params['sub'].keys()
-    dodo_tasks = main.load_task_generators(dodo_module, command_names)
+    dodo_tasks = main.get_tasks(params['dodoFile'], params['cwdPath'],
+                                params['sub'].keys())
     filter_tasks = args or dodo_tasks['default_tasks']
     return doit_auto(params['dep_file'], dodo_tasks['task_list'], filter_tasks)
 
@@ -326,6 +319,8 @@ dependencies:
     * file (string) path relative to the dodo file
     * task (string) ":<task_name>"
     * run-once (True bool)
+    * never up-to-date (False bool)
+    * None values will be just ignored
 
 getargs:
   - type: dictionary
@@ -421,11 +416,6 @@ def cmd_main(cmd_args):
     try:
         return subCmd['run'](cmd_args, sub=subCmd)
 
-    # wrong command line usage. help user
-    except cmdparse.CmdParseError, err:
-        print str(err)
-        return 1
-
     # in python 2.4 SystemExit and KeyboardInterrupt subclass
     # from Exception.
     # TODO maybe I should do something to help the user find out who
@@ -434,7 +424,8 @@ def cmd_main(cmd_args):
         raise
 
     # dont show traceback for user errors.
-    except (main.InvalidDodoFile, main.InvalidCommand, task.InvalidTask), err:
+    except (cmdparse.CmdParseError, main.InvalidDodoFile,
+            main.InvalidCommand, task.InvalidTask), err:
         print "ERROR:", str(err)
         return 1
 
