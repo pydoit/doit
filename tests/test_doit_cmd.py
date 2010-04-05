@@ -9,8 +9,9 @@ from doit import main
 
 
 def mock_get_tasks(*args, **kwargs):
-    return {'default_tasks': ['a','c'],
-            'task_list': ['a','b','c']}
+    return {'task_list': ['a','b','c'],
+            'config': {'default_tasks': ['a','c']},
+            }
 
 class TestRun(object):
     def test_version(self, capsys):
@@ -66,7 +67,7 @@ class TestInterface(object):
         expected = [('dependencyFile', '.doit.db'),
                     ('task_list', mock_get_tasks()['task_list']),
                     ('output', 'mylog.txt'),
-                    ('options', mock_get_tasks()['default_tasks']),
+                    ('options', mock_get_tasks()['config']['default_tasks']),
                     ('verbosity', 2),
                     ('alwaysExecute', False),
                     ('continue_', True),
@@ -76,6 +77,27 @@ class TestInterface(object):
         assert len(expected) == len(mock_run.call_args[0])
         for exp,got in zip(expected, zip(argspec[0], mock_run.call_args[0])):
             assert exp == got
+
+    def test_config(self, monkeypatch):
+        get_tasks_result = {'task_list': ['a','b','c'],
+                            'config': {'reporter': 'config_reporter',
+                                       'outfile': 'config_outfile'}}
+        monkeypatch.setattr(main, "get_tasks",
+                            Mock(return_value=get_tasks_result))
+        argspec = inspect.getargspec(doit_cmd.doit_run)
+        mock_run = Mock()
+        monkeypatch.setattr(doit_cmd, "doit_run", mock_run)
+        doit_cmd.cmd_main(["--reporter", "cmdline_reporter"])
+        assert 1 == mock_run.call_count
+
+        # check config value is used
+        outfile_index = argspec[0].index('output')
+        assert "config_outfile" == mock_run.call_args[0][outfile_index]
+
+        # check cmd line has the final value
+        reporter_index = argspec[0].index('reporter')
+        assert "cmdline_reporter" == mock_run.call_args[0][reporter_index]
+
 
 
     def test_doit_list_args(self, monkeypatch):
@@ -113,8 +135,8 @@ class TestInterface(object):
                     ('outstream', sys.stdout),
                     ('dryrun', True),
                     ('clean_dep', False),
-                    ('clean_tasks', mock_get_tasks()['default_tasks']),]
-
+                    ('clean_tasks', mock_get_tasks()['config']['default_tasks'])
+                    ]
 
         assert len(expected) == len(argspec[0])
         assert len(expected) == len(mock_clean.call_args[0])
@@ -132,7 +154,7 @@ class TestInterface(object):
         expected = [('dependencyFile', '.doit.db'),
                     ('task_list', mock_get_tasks()['task_list']),
                     ('outstream', sys.stdout),
-                    ('forgetTasks', mock_get_tasks()['default_tasks']),
+                    ('forgetTasks', mock_get_tasks()['config']['default_tasks']),
                     ]
 
         assert len(expected) == len(argspec[0])

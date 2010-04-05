@@ -146,7 +146,7 @@ class TestGetTasks(object):
         assert expected == [t.name for t in dodo['task_list']]
 
 
-class TestDodoDefaultTasks(object):
+class TestDodoConfig(object):
     # to avoid creating many files for testing i am modifying the module
     # dynamically. but it is tricky because python optmizes it and loads
     # it just once. so need to clean up variables that i messed up.
@@ -157,6 +157,8 @@ class TestDodoDefaultTasks(object):
                                     "loader_sample.py")
             return get_module(fileName)
         def remove_dodo(dodo):
+            if hasattr(dodo, 'DOIT_CONFIG'):
+                del dodo.DOIT_CONFIG
             if hasattr(dodo, 'DEFAULT_TASKS'):
                 del dodo.DEFAULT_TASKS
         return request.cached_setup(
@@ -165,18 +167,24 @@ class TestDodoDefaultTasks(object):
             scope="function")
 
 
-    def testDefaultTasks_None(self, dodo):
+    def testDefaultConfig_Dict(self, dodo):
         dodo_dict = load_task_generators(dodo)
-        assert None == dodo_dict['default_tasks']
+        assert {} == dodo_dict['config']
 
-    def testDefaultTasks_Error(self, dodo):
-        dodo.DEFAULT_TASKS = "abcd"
+    def testConfigType_Error(self, dodo):
+        dodo.DOIT_CONFIG = "abcd"
         py.test.raises(InvalidDodoFile, load_task_generators, dodo)
 
-    def testDefaultTasks_Ok(self, dodo):
+    def testConfigDict_Ok(self, dodo):
+        dodo.DOIT_CONFIG = {"abcd": "add"}
+        dodo_dict = load_task_generators(dodo)
+        assert {"abcd": "add"} == dodo_dict['config']
+
+    # default_tasks deprecation
+    def testDefaultTasks(self, dodo):
         dodo.DEFAULT_TASKS = ["abcd", "add"]
         dodo_dict = load_task_generators(dodo)
-        assert ["abcd", "add"] == dodo_dict['default_tasks']
+        assert ["abcd", "add"] == dodo_dict['config']['default_tasks']
 
 
 class TestTaskSetupInit(object):

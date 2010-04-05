@@ -2,6 +2,23 @@ import py.test
 
 from doit import cmdparse
 
+
+class TestDefaultUpdate(object):
+    def test(self):
+        du = cmdparse.DefaultUpdate()
+
+        du.set_default('a', 0)
+        du.set_default('b', 0)
+
+        assert 0 == du['a']
+        assert 0 == du['b']
+
+        du['b'] = 1
+        du.update_defaults({'a':2, 'b':2})
+        assert 2 == du['a']
+        assert 1 == du['b']
+
+
 opt_bool = {'name': 'flag',
             'short':'f',
             'type': bool,

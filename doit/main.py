@@ -102,15 +102,21 @@ def load_task_generators(dodo_module, command_names=()):
     for name, ref, line in funcs:
         task_list.extend(generate_tasks(name, ref(), ref.__doc__))
 
+    doit_config = getattr(dodo_module, 'DOIT_CONFIG', {})
+    if not isinstance(doit_config, dict):
+        msg = ("DOIT_CONFIG  must be a dict. got:'%s'%s")
+        raise InvalidDodoFile(msg % (repr(doit_config),type(doit_config)))
+
+    # DEPRECATION on doit 0.7 - TODO remove this on doit 0.8
     # get default tasks
-    default_tasks = getattr(dodo_module, 'DEFAULT_TASKS', None)
-    if default_tasks is not None and (not isinstance(default_tasks, list)):
-        msg = ("DEFAULT_TASKS  paramater 'dependencies' must be a list." +
-               "got:'%s'%s")
-        raise InvalidDodoFile(msg % (str(default_tasks),type(default_tasks)))
+    if getattr(dodo_module, 'DEFAULT_TASKS', None):
+        msg = ("DEFAULT_TASKS usage is deprecated. Please use DOIT_CONFIG = {" +
+               "'default_tasks': [<task_list>]}")
+        sys.stderr.write("DEPRECATION WARNING: %s\n" % msg)
+        doit_config['default_tasks'] = dodo_module.DEFAULT_TASKS
 
     return {'task_list': task_list,
-            'default_tasks': default_tasks}
+            'config': doit_config}
 
 def generate_tasks(name, gen_result, gen_doc=None):
     """Create tasks from a task generator result.

@@ -6,6 +6,7 @@ Changes
 0.7.0
 =======
 
+- configure options on dodo file (deprecate DEFAULT_TASKS)(#524387)
 - clean and forget act act only on default tasks (not all tasks) (#444243)
 - sub-command "clean" option "clean-dep" to follow dependencies (#444247)
 - task dependency "False" means never up-to-date, "None" ignored

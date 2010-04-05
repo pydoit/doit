@@ -4,6 +4,32 @@ Built on top of getopt. optparse can't handle sub-commands.
 """
 import getopt
 
+
+class DefaultUpdate(dict):
+    """A dictionary with support that has an "update_defaults" method where
+    only items with default values are updated. A default value is added with
+    the method "set_default".
+    """
+    def __init__(self, *args, **kwargs):
+        dict.__init__(self, *args, **kwargs)
+        # set of keys that have a non-default value
+        self._non_default_keys = set()
+
+    def set_default(self, key, value):
+        dict.__setitem__(self, key, value)
+
+    def update_defaults(self, update_dict):
+        """do not update items that already have a non-default value"""
+        for k,v in update_dict.iteritems():
+            if k in self._non_default_keys:
+                continue
+            self[k] = v
+
+    def __setitem__(self, key, value):
+        self._non_default_keys.add(key)
+        dict.__setitem__(self, key, value)
+
+
 class CmdParseError(Exception):
     """Error parsing options """
 
@@ -150,10 +176,10 @@ class Command(object):
                            where the key is the name of the option.
              args (list - string): positional arguments
         """
-        params = {}
+        params = DefaultUpdate()
         # add default values
         for opt in self.options:
-            params[opt['name']] = opt.get('default', None)
+            params.set_default(opt['name'], opt.get('default', None))
 
         # global parameters (got from main command options)
         params.update(kwargs)

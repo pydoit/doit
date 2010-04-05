@@ -2,7 +2,7 @@
 
 import glob
 
-DEFAULT_TASKS = ['checker', 'ut']
+DOIT_CONFIG = {'default_tasks': ['checker', 'ut']}
 
 codeFiles = glob.glob("doit/*.py")
 testFiles = glob.glob("tests/test_*.py")

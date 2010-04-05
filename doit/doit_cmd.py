@@ -161,11 +161,12 @@ def cmd_run(params, args):
     if len(args) == 0 or args[0] not in params['sub']:
         dodo_tasks = main.get_tasks(params['dodoFile'], params['cwdPath'],
                                     params['sub'].keys())
-        options = args or dodo_tasks['default_tasks']
+        params.update_defaults(dodo_tasks['config'])
+        default_tasks = args or dodo_tasks['config'].get('default_tasks')
         return doit_run(params['dep_file'], dodo_tasks['task_list'],
-                        params['outfile'], options, params['verbosity'],
-                        params['always'], params['continue'],
-                        params['reporter'])
+                        params['outfile'], default_tasks,
+                        params['verbosity'], params['always'],
+                        params['continue'], params['reporter'])
 
     # explicit sub-cmd. parse arguments again
     commands = params['sub']
@@ -214,6 +215,7 @@ opt_list_private = {'name': 'private',
 def cmd_list(params, args):
     dodo_tasks = main.get_tasks(params['dodoFile'], params['cwdPath'],
                                 params['sub'].keys())
+    params.update_defaults(dodo_tasks['config'])
     return doit_list(params['dep_file'], dodo_tasks['task_list'], sys.stdout,
                      args, params['all'], not params['quiet'],
                      params['status'], params['private'])
@@ -243,7 +245,8 @@ opt_clean_cleandep = {'name': 'cleandep',
 def cmd_clean(params, args):
     dodo_tasks = main.get_tasks(params['dodoFile'], params['cwdPath'],
                                 params['sub'].keys())
-    options = args or dodo_tasks['default_tasks']
+    params.update_defaults(dodo_tasks['config'])
+    options = args or dodo_tasks['config'].get('default_tasks')
     return doit_clean(dodo_tasks['task_list'], sys.stdout, params['dryrun'],
                       params['cleandep'], options)
 
@@ -258,7 +261,8 @@ forget_doc = {'purpose': "clear successful run status from internal DB",
 def cmd_forget(params, args):
     dodo_tasks = main.get_tasks(params['dodoFile'], params['cwdPath'],
                                 params['sub'].keys())
-    options = args or dodo_tasks['default_tasks']
+    params.update_defaults(dodo_tasks['config'])
+    options = args or dodo_tasks['config'].get('default_tasks')
     return doit_forget(params['dep_file'], dodo_tasks['task_list'],
                        sys.stdout, options)
 
@@ -273,6 +277,7 @@ ignore_doc = {'purpose': "ignore task (skip) on subsequent runs",
 def cmd_ignore(params, args):
     dodo_tasks = main.get_tasks(params['dodoFile'], params['cwdPath'],
                                 params['sub'].keys())
+    params.update_defaults(dodo_tasks['config'])
     return doit_ignore(params['dep_file'], dodo_tasks['task_list'],
                        sys.stdout, args)
 
@@ -287,7 +292,8 @@ auto_doc = {'purpose': "automatically execute tasks when a dependency changes",
 def cmd_auto(params, args):
     dodo_tasks = main.get_tasks(params['dodoFile'], params['cwdPath'],
                                 params['sub'].keys())
-    filter_tasks = args or dodo_tasks['default_tasks']
+    params.update_defaults(dodo_tasks['config'])
+    filter_tasks = args or dodo_tasks['config'].get('default_tasks')
     return doit_auto(params['dep_file'], dodo_tasks['task_list'], filter_tasks)
 
 

@@ -1,9 +1,3 @@
-0.7
-----------
-
-. 524387 configure options on dodo file
-
-
 0.X
 ----------
 
