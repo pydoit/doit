@@ -365,11 +365,13 @@ class TestFileWatcher(object):
             if should_stop:
                 raise KeyboardInterrupt
         loop_thread = threading.Thread(target=fw.loop, args=(loop_callback,))
+        loop_thread.daemon = True
         loop_thread.start()
 
         # wait watcher to be ready
         while not started:
-            pass
+            assert loop_thread.isAlive()
+
         # write in watched file
         fd = open(file1, 'w')
         fd.write("hi")
@@ -425,10 +427,11 @@ class TestCmdAuto(object):
                      Task("stop", [""],  [stop_file]),]
         run_args = (TESTDB, task_list, ["t1", "t2", "stop"], loop_callback)
         loop_thread = threading.Thread(target=cmds.doit_auto, args=run_args)
+        loop_thread.daemon = True
         loop_thread.start()
 
         # wait watcher to be ready
-        while not started: pass
+        while not started: assert loop_thread.isAlive()
 
         # write in watched file ====expected=====> .  t1
         fd = open(file1, 'w')
