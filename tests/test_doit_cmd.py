@@ -105,7 +105,8 @@ class TestInterface(object):
         monkeypatch.setattr(main, "get_tasks", mock_get_tasks)
         mock_list = Mock()
         monkeypatch.setattr(doit_cmd, "doit_list", mock_list)
-        doit_cmd.cmd_main(["list", "--all", "--quiet", "--status", "c", "a"])
+        doit_cmd.cmd_main(["list", "--all", "--quiet", "--status", "--deps",
+                           "c", "a"])
         assert mock_list.called
 
         expected = [('dependencyFile', '.doit.db'),
@@ -115,7 +116,8 @@ class TestInterface(object):
                     ('print_subtasks', True),
                     ('print_doc', False),
                     ('print_status', True),
-                    ('print_private', False),]
+                    ('print_private', False),
+                    ('print_dependencies', True),]
 
         assert len(expected) == len(argspec[0])
         assert len(expected) == len(mock_list.call_args[0])

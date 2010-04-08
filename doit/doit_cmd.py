@@ -211,6 +211,13 @@ opt_list_private = {'name': 'private',
                     'default': False,
                     'help': "print private tasks (start with '_')"}
 
+opt_list_dependencies = {'name': 'list_deps',
+                         'short': '',
+                         'long': 'deps',
+                         'type': bool,
+                         'default': False,
+                         'help': "print list of dependencies (file dependencies only)"}
+
 
 def cmd_list(params, args):
     dodo_tasks = main.get_tasks(params['dodoFile'], params['cwdPath'],
@@ -218,7 +225,7 @@ def cmd_list(params, args):
     params.update_defaults(dodo_tasks['config'])
     return doit_list(params['dep_file'], dodo_tasks['task_list'], sys.stdout,
                      args, params['all'], not params['quiet'],
-                     params['status'], params['private'])
+                     params['status'], params['private'], params['list_deps'])
 
 ##########################################################
 ########## clean
@@ -324,6 +331,7 @@ dependencies:
   - type: list. items:
     * file (string) path relative to the dodo file
     * task (string) ":<task_name>"
+    * TODO "?<task_name>"
     * run-once (True bool)
     * never up-to-date (False bool)
     * None values will be just ignored
@@ -400,7 +408,8 @@ def cmd_main(cmd_args):
 
     # list command
     list_options = (opt_dodo, opt_depfile, opt_cwd, opt_listall,
-                    opt_list_quiet, opt_list_status, opt_list_private)
+                    opt_list_quiet, opt_list_status, opt_list_private,
+                    opt_list_dependencies)
     subCmd['list'] = cmdparse.Command('list', list_options, cmd_list, list_doc)
 
     # forget command

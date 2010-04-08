@@ -46,6 +46,13 @@ class TestCmdList(object):
                 expected.append("%s\t* %s" % (t.name, t.doc))
         assert expected == got
 
+    def testDependencies(self):
+        my_task = Task("t2", [""], dependencies=['d2.txt'])
+        output = StringIO.StringIO()
+        cmds.doit_list(TESTDB, [my_task], output, [], print_dependencies=True)
+        got = output.getvalue()
+        assert "d2.txt" in got
+
     def testSubTask(self):
         output = StringIO.StringIO()
         cmds.doit_list(TESTDB, TASKS_SAMPLE, output, [], print_subtasks=True)

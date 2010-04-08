@@ -77,7 +77,7 @@ def doit_clean(task_list, outstream, dryrun, clean_dep, clean_tasks):
 
 def doit_list(dependencyFile, task_list, outstream, filter_tasks,
               print_subtasks=False, print_doc=False, print_status=False,
-              print_private=False):
+              print_private=False, print_dependencies=False):
     """List task generators, in the order they were defined.
 
     @param filter_tasks (list -str): print only tasks from this list
@@ -86,6 +86,7 @@ def doit_list(dependencyFile, task_list, outstream, filter_tasks,
     @param print_doc(bool)
     @param print_status(bool)
     @param print_private(bool)
+    @param print_dependencies(bool)
     """
     status_map = {'ignore': 'I', 'up-to-date': 'U', 'run': 'R'}
     def _list_print_task(task):
@@ -99,6 +100,13 @@ def doit_list(dependencyFile, task_list, outstream, filter_tasks,
             task_str = "%s %s" % (status_map[task_uptodate], task_str)
 
         outstream.write("%s\n" % task_str)
+
+        # print dependencies
+        if print_dependencies:
+            for dep in task.file_dep:
+                outstream.write(" -  %s\n" % dep)
+            outstream.write("\n")
+
         # print subtasks
         if print_subtasks:
             for subt in task.task_dep:

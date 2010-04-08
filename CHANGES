@@ -3,6 +3,11 @@
 Changes
 =======
 
+0.8.0
+===========
+
+- sub-command "list" option "--deps", show list of file dependencies
+
 0.7.0 (*2010-04-08*)
 =====================
 
