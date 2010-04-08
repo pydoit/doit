@@ -3,8 +3,8 @@
 Changes
 =======
 
-0.7.0
-=======
+0.7.0 (*2010-04-08*)
+=====================
 
 - configure options on dodo file (deprecate DEFAULT_TASKS)(#524387)
 - clean and forget act act only on default tasks (not all tasks) (#444243)
