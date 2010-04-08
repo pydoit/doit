@@ -4,6 +4,8 @@ Command run
 
 Most of the time you just want to execute your tasks that's what *run* does. Since it is by far the most common operation it is also the default, so if you don't specify any sub-command to *doit* it will *run*. So ``$ doit`` and ``$ doit run`` are the same thing.
 
+The basics of task selection were introduced in :ref:`Task Selection <task-selection>`.
+
 
 dodo file
 ----------
@@ -53,49 +55,6 @@ You can control the verbosity by:
     eduardo@eduardo:~$ doit
     .  print
     hello
-
-
-Task selection
-----------------
-
-
-By default all tasks are executed in the same order as they were defined (the order may change to satisfy dependencies). You can control which tasks will run in 2 ways.
-
-Another example
-
-.. literalinclude:: tutorial/selecttasks.py
-
-DEFAULT_TASKS
-^^^^^^^^^^^^^^
-
-*dodo* file defines a variable ``DEFAULT_TASKS``. A list of strings where each element is a task name. In the example above we don't want to "install" by default.
-
-.. code-block:: console
-
-    eduardo@eduardo:~$ doit
-    .  t1
-    .  t3
-
-Note that the only the task *t3* was specified to be executed. But its dependencies include a target of another task. So those tasks were automatically executed also.
-
-
-command line selection
-^^^^^^^^^^^^^^^^^^^^^^^
-
-From the command line you can control which tasks are going to be execute by passing its task name.
-
-.. code-block:: console
-
-    eduardo@eduardo:~$ doit t2
-    .  t2
-
-
-You can also specify which task to execute by its target:
-
-.. code-block:: console
-
-    eduardo@eduardo:~$ doit task1
-    .  t1
 
 
 parameters

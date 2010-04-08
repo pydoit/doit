@@ -1,4 +1,4 @@
-DEFAULT_TASKS = ['link']
+DOIT_CONFIG = {'default_tasks': ['link']}
 
 # map source file to dependencies
 SOURCE = {

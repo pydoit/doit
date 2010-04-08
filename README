@@ -32,18 +32,16 @@ Project Details
 INSTALL
 =======
 
+doit is tested on python 2.4, 2.5, 2.6.
+
 ``python setup.py install``
 
 
 DEPENDENCIES
 ============
 
-Python 2.6:
-- pyinotify
-
-Python 2.4 & 2.5:
-- pyinotify
-- simplejson
+- pyinotify [all python versions] (requires ctypes - not in python2.4 stdlib)
+- simplejson [python 2.4 & 2.5]
 
 Tools required for development:
 

@@ -65,6 +65,10 @@ We have seen only dependencies on files up to now. On `doit` you can also define
 
   A *task-dependency* **only** indicates that another task should be "executed" before itself. The task-dependency might not really be executed if it is *up-to-date*.
 
+.. note::
+
+  *task-dependency* s are **not** used to determine if a task is up-to-date or not. If a task defines only *task-dependency* or no dependencies at all it will always be executed.
+
 
 This example we make sure we include a file with the latest revision number of the bazaar repository on the tar file.
 
@@ -129,7 +133,7 @@ The "result" from the dependent task compared between different runs is given by
 getargs
 --------
 
-`getargs` provides a way to use values computed in one task in another task.
+`getargs` provides a way to use values computed in one task from another task.
 
 .. literalinclude:: tutorial/getargs.py
 
@@ -155,9 +159,18 @@ Note that even with *run-once* the file will be downloaded again in case the tar
     eduardo@eduardo:~$ doit
     .  get_pylogo
 
-.. note::
 
-  *task-dependency* s are **not** used to determine if a task is up-to-date or not. If a task defines only *task-dependency* or no dependencies at all it will always be executed.
+
+never-upto-date
+-----------------
+
+A value ``False`` can also be used in a dependency list to indicate that task should never be considered up-to-date.
+
+None
+------
+
+``None`` values will just be ignored. This is used when the value is dinamically calculated.
+
 
 
 keywords on actions

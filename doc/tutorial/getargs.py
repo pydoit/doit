@@ -1,4 +1,4 @@
-DEFAULT_TASKS = ['use']
+DOIT_CONFIG = {'default_tasks': ['use']}
 
 def task_compute():
    def comp():

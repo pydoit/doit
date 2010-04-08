@@ -5,7 +5,7 @@ from distutils.core import setup
 setup(name = 'doit',
       description = 'doit - Automation Tool',
       version = '0.7.dev',
-      license= 'MIT',
+      license = 'MIT',
       author = 'Eduardo Naufel Schettino',
       author_email = 'schettino72@gmail.com',
       url = 'http://python-doit.sourceforge.net/',
@@ -27,6 +27,7 @@ setup(name = 'doit',
 
       packages = ['doit'],
       scripts = ['bin/doit'],
+      requires = ['pyinotify'],
 
       long_description = """
 doit comes from the idea of bringing the power of build-tools to execute any kind of task. It will keep track of dependencies between "tasks" and execute them only when necessary. It was designed to be easy to use and "get out of your way".

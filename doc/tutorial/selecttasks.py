@@ -1,5 +1,5 @@
 
-DEFAULT_TASKS = ['t3']
+DOIT_CONFIG = {'default_tasks': ['t3']}
 
 def task_t1():
     return {'actions': ["touch task1"],

@@ -81,3 +81,60 @@ The task function can return a python-generator that yields dictionaries. Since 
     .  create_file:file2.txt
 
 
+.. _task-selection:
+
+Task selection
+----------------
+
+
+By default all tasks are executed in the same order as they were defined (the order may change to satisfy dependencies). You can control which tasks will run in 2 ways.
+
+Another example
+
+.. literalinclude:: tutorial/selecttasks.py
+
+DOIT_CONFIG -> default_tasks
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+*dodo* file defines a dictionary ``DOIT_CONFIG`` with ``default_tasks``, a list of strings where each element is a task name. In the example above we don't want to "install" by default.
+
+.. code-block:: console
+
+    eduardo@eduardo:~$ doit
+    .  t1
+    .  t3
+
+Note that the only the task *t3* was specified to be executed. But its dependencies include a target of another task. So those tasks were automatically executed also.
+
+
+command line selection
+^^^^^^^^^^^^^^^^^^^^^^^
+
+From the command line you can control which tasks are going to be execute by passing its task name.
+
+.. code-block:: console
+
+    eduardo@eduardo:~$ doit t2
+    .  t2
+
+
+You can also specify which task to execute by its target:
+
+.. code-block:: console
+
+    eduardo@eduardo:~$ doit task1
+    .  t1
+
+
+sub-task selection
+^^^^^^^^^^^^^^^^^^^^^
+
+You can select sub-tasks from the command line specifying its full name.
+
+.. literalinclude:: tutorial/subtasks.py
+
+
+.. code-block:: console
+
+    eduardo@eduardo:~$ doit create_file:file2.txt
+    .  create_file:file2.txt

@@ -2,8 +2,9 @@
 Installing
 ==========
 
-* Using `easy_install <http://peak.telecommunity.com/DevCenter/EasyInstall>`_::
+* Using `pip <http://pip.openplans.org/>`_ or `easy_install <http://peak.telecommunity.com/DevCenter/EasyInstall>`_::
 
+  $ pip install doit
   $ easy_install doit
 
 * `Download <http://pypi.python.org/pypi/doit>`_ the source and::
@@ -23,11 +24,8 @@ Installing
   `PPA archive <https://launchpad.net/~doit-team/+archive/ppa/>`_. (`help <https://launchpad.net/+help/soyuz/ppa-sources-list.html>`_)
 
 .. note::
-
-   for python2.4 and python2.5 users:
-   `doit` depends on the package `simplejson`. So you need to install it: `easy_install simplejson`
-
-   On python 2.6 the stdlib `json` is used.
+  * `doit` dependends on the packages `pyinotify <http://trac.dbzteam.org/pyinotify>`_
+  * for python2.4 and python2.5 users `doit` depends on the package `simplejson`. On python 2.6 the stdlib `json` is used.
 
 .. note::
 
