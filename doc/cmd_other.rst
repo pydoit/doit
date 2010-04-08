@@ -100,10 +100,3 @@ auto
 
     eduardo@eduardo:~$ doit auto
 
-You need to check `doit_cmd.py <http://bazaar.launchpad.net/~schettino72/doit/trunk/annotate/head%3A/doit/doit_cmd.py>`_ to find out how parameter maps to config names.
-
-.. note::
-
-  The parameters `--file` and `--dir` can not be used on config because they control how the dodo file itself is loaded.
-
-

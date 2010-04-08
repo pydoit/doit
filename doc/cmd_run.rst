@@ -161,3 +161,11 @@ it will have the same effect as executing
 .. code-block:: console
 
    eduardo@eduardo:~$ doit --continue --reporter json my_task_1 my_task_2
+
+You need to check `doit_cmd.py <http://bazaar.launchpad.net/~schettino72/doit/trunk/annotate/head%3A/doit/doit_cmd.py>`_ to find out how parameter maps to config names.
+
+.. note::
+
+  The parameters `--file` and `--dir` can not be used on config because they control how the dodo file itself is loaded.
+
+
