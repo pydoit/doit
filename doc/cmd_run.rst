@@ -141,3 +141,23 @@ The option --output-file/-o let you output the result to a file.
 .. code-block:: console
 
     eduardo@eduardo:~$ doit --output-file result.txt
+
+
+config
+--------
+
+Command line parameters can be set straight on a `dodo` file. This example below sets the default tasks to be run, the `continue` option, and a different reporter.
+
+.. literalinclude:: tutorial/doit_config.py
+
+So if you just execute
+
+.. code-block:: console
+
+   eduardo@eduardo:~$ doit
+
+it will have the same effect as executing
+
+.. code-block:: console
+
+   eduardo@eduardo:~$ doit --continue --reporter json my_task_1 my_task_2

@@ -164,12 +164,12 @@ Note that even with *run-once* the file will be downloaded again in case the tar
 never-upto-date
 -----------------
 
-A value ``False`` can also be used in a dependency list to indicate that task should never be considered up-to-date.
+A dependency value ``False`` can also be used in a dependency list to indicate that task should never be considered up-to-date.
 
-None
-------
+Dependency None
+----------------
 
-``None`` values will just be ignored. This is used when the value is dinamically calculated.
+``None`` values as dependency will just be ignored. This is used when the value is dinamically calculated.
 
 
 
