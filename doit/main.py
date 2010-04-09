@@ -3,6 +3,7 @@ import os
 import sys
 import inspect
 import types
+import fnmatch
 
 from doit.task import InvalidTask, Task, dict_to_task
 
@@ -181,13 +182,14 @@ class TaskSetup(object):
     execution. And parse task cmd line options.
 
     @ivar filter: (sequence of strings) selection of tasks to execute
+                                        (task/target names)
     @ivar tasks: (dict) Key: task name ([taskgen.]name)
                                Value: L{Task} instance
     @ivar targets: (dict) Key: fileName
                           Value: L{Task} instance
     """
 
-    def __init__(self, task_list, cmd_opt=None):
+    def __init__(self, task_list, task_selection=None):
 
         self.targets = {}
         # name of task in order to be executed
@@ -213,21 +215,33 @@ class TaskSetup(object):
 
         # process cmd line task options
         # [task_name [-task_opt [opt_value]] ...] ...
-        self.filter = None
-        if cmd_opt is not None:
-            self.filter = []
-            seq = cmd_opt[:]
-            # process cmd_opts until nothing left
-            while seq:
-                f_name = seq.pop(0) # always start with a task/target name
-                self.filter.append(f_name)
-                if f_name not in self.tasks:
-                    continue # target specified, dont accept opts
-                # parse cmd_opt
+        def add_filtered_task(seq, f_name):
+            self.filter.append(f_name)
+            # select task by target
+            if f_name not in self.tasks:
+                pass
+            # select task by task-name
+            else:
+                # parse task_selection
                 the_task = self.tasks[f_name]
                 # remaining items are other tasks not positional options
                 the_task.options, seq = the_task.taskcmd.parse(seq)
-
+            return seq
+        # process...
+        self.filter = None
+        if task_selection is not None:
+            self.filter = []
+            seq = task_selection[:]
+            # process cmd_opts until nothing left
+            while seq:
+                f_name = seq.pop(0) # always start with a task/target name
+                # select tasks by task-name pattern
+                if '*' in f_name:
+                    for task in task_list:
+                        if fnmatch.fnmatch(task.name, f_name):
+                            add_filtered_task((), task.name)
+                else:
+                    seq = add_filtered_task(seq, f_name)
 
         # check task-dependencies exist.
         for task in self.tasks.itervalues():

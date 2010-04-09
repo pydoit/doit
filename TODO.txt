@@ -1,3 +1,11 @@
+0.8
+------
+
+. support for depedency scanner (#218303)
+  - dependencies are calculated just before task is executed possibly by other tasks, not on load time
+. multi-process support
+
+
 0.X
 ----------
 
@@ -23,7 +31,6 @@ needs volunteer
 not clear how to implement
 ---------------------------
 
-. support for depedency scanner (#218303)
 . dont get subtasks if task is not going to be executed (#370923)
 . defer task generator - generator needs to run after a certain task
 . one .doit for each dodo file

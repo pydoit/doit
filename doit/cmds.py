@@ -16,6 +16,7 @@ def doit_run(dependencyFile, task_list, output, options=None,
              reporter='default'):
     # get tasks to be executed
     selected_tasks = TaskSetup(task_list, options).process()
+
     if reporter not in REPORTERS:
         msg = ("No reporter named '%s'.\nType 'doit help run' to see a list "
                "of available reporters.")

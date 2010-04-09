@@ -236,6 +236,10 @@ class TestTaskSetupCmdOptions(object):
         ts = TaskSetup(TASKS_SAMPLE, filter_)
         assert filter_ == ts._filter_tasks()
 
+    def testFilterPattern(self):
+        ts = TaskSetup(TASKS_SAMPLE, ['*1*'])
+        assert ['t1', 'g1', 'g1.a', 'g1.b'] == ts._filter_tasks()
+
     def testFilterSubtask(self):
         filter_ = ["t1", "g1.b"]
         ts =  TaskSetup(TASKS_SAMPLE, filter_)

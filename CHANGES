@@ -7,6 +7,7 @@ Changes
 ===========
 
 - sub-command "list" option "--deps", show list of file dependencies
+- select task by wildcard (fnmatch) i.e. test:folderXXX/*
 
 0.7.0 (*2010-04-08*)
 =====================
