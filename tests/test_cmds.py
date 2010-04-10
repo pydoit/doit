@@ -179,7 +179,8 @@ class TestCmdRun(object):
     def testProcessRun(self):
         remove_testdb()
         output = StringIO.StringIO()
-        cmds.doit_run(TESTDB, TASKS_SAMPLE, output)
+        result = cmds.doit_run(TESTDB, TASKS_SAMPLE, output)
+        assert 0 == result
         got = output.getvalue().split("\n")[:-1]
         assert [".  t1", ".  t2", ".  g1.a", ".  g1.b", ".  t3"] == got
 

@@ -33,8 +33,9 @@ class TestRunningTask(object):
     def test_success(self, reporter):
         tasks = [Task("taskX", [(my_print, ["out a"] )] ),
                  Task("taskY", [(my_print, ["out a"] )] )]
-        result = runner.run_tasks(TESTDB, tasks, reporter)
-        assert runner.SUCCESS == result
+        my_runner = runner.Runner(TESTDB, reporter)
+        my_runner.run_tasks(tasks)
+        assert runner.SUCCESS == my_runner.finish()
         assert ('start', tasks[0]) == reporter.log.pop(0)
         assert ('execute', tasks[0]) == reporter.log.pop(0)
         assert ('success', tasks[0]) == reporter.log.pop(0)
@@ -45,15 +46,17 @@ class TestRunningTask(object):
     # if task is up to date, it is displayed in a different way.
     def test_successUpToDate(self, reporter):
         tasks = [Task("taskX", [my_print], dependencies=[__file__])]
-        result = runner.run_tasks(TESTDB, tasks, reporter)
-        assert runner.SUCCESS == result
+        my_runner = runner.Runner(TESTDB, reporter)
+        my_runner.run_tasks(tasks)
+        assert runner.SUCCESS == my_runner.finish()
         assert ('start', tasks[0]) == reporter.log.pop(0)
         assert ('execute', tasks[0]) == reporter.log.pop(0)
         # again
         tasks2 = [Task("taskX", [my_print], dependencies=[__file__])]
         reporter2 = FakeReporter()
-        result2 = runner.run_tasks(TESTDB, tasks2, reporter2)
-        assert runner.SUCCESS == result2
+        my_runner2 = runner.Runner(TESTDB, reporter2)
+        my_runner2.run_tasks(tasks2)
+        assert runner.SUCCESS == my_runner2.finish()
         assert ('start', tasks2[0]) == reporter2.log.pop(0)
         assert ('up-to-date', tasks2[0]) == reporter2.log.pop(0)
 
@@ -62,8 +65,9 @@ class TestRunningTask(object):
         dependencyManager = Dependency(TESTDB)
         dependencyManager.ignore(tasks[0])
         dependencyManager.close()
-        result = runner.run_tasks(TESTDB, tasks, reporter)
-        assert runner.SUCCESS == result
+        my_runner = runner.Runner(TESTDB, reporter)
+        my_runner.run_tasks(tasks)
+        assert runner.SUCCESS == my_runner.finish()
         assert ('start', tasks[0]) == reporter.log.pop(0)
         assert ('ignore', tasks[0]) == reporter.log.pop(0), reporter.log
 
@@ -74,8 +78,9 @@ class TestRunningTask(object):
 
         tasks = [Task("taskX", [_fail]),
                  Task("taskY", [_fail])]
-        result =  runner.run_tasks(TESTDB, tasks, reporter)
-        assert runner.FAILURE == result
+        my_runner = runner.Runner(TESTDB, reporter)
+        my_runner.run_tasks(tasks)
+        assert runner.FAILURE == my_runner.finish()
         assert ('start', tasks[0]) == reporter.log.pop(0)
         assert ('execute', tasks[0]) == reporter.log.pop(0)
         assert ('fail', tasks[0]) == reporter.log.pop(0)
@@ -89,8 +94,9 @@ class TestRunningTask(object):
 
         tasks = [Task("taskX", [_error]),
                  Task("taskY", [_error])]
-        result = runner.run_tasks(TESTDB, tasks, reporter)
-        assert runner.ERROR == result
+        my_runner = runner.Runner(TESTDB, reporter)
+        my_runner.run_tasks(tasks)
+        assert runner.ERROR == my_runner.finish()
         assert ('start', tasks[0]) == reporter.log.pop(0)
         assert ('execute', tasks[0]) == reporter.log.pop(0)
         assert ('fail', tasks[0]) == reporter.log.pop(0)
@@ -113,8 +119,9 @@ class TestRunningTask(object):
         targets = [filePath]
 
         tasks = [Task("taskX", [my_print], dependencies, targets)]
-        result = runner.run_tasks(TESTDB, tasks, reporter)
-        assert runner.SUCCESS == result
+        my_runner = runner.Runner(TESTDB, reporter)
+        my_runner.run_tasks(tasks)
+        assert runner.SUCCESS == my_runner.finish()
         d = Dependency(TESTDB)
         # there is only one dependency. targets md5 are not saved.
         assert 1 == len(d._db)
@@ -122,16 +129,18 @@ class TestRunningTask(object):
     # when successful and run_once is updated
     def test_successRunOnce(self, reporter):
         tasks = [Task("taskX", [my_print], [True], [])]
-        result = runner.run_tasks(TESTDB, tasks, reporter)
-        assert runner.SUCCESS == result
+        my_runner = runner.Runner(TESTDB, reporter)
+        my_runner.run_tasks(tasks)
+        assert runner.SUCCESS == my_runner.finish()
         d = Dependency(TESTDB)
         assert 1 == len(d._db)
 
 
     def test_errorDependency(self, reporter):
         tasks = [Task("taskX", [my_print], ["i_dont_exist.xxx"])]
-        result = runner.run_tasks(TESTDB, tasks, reporter)
-        assert runner.ERROR == result
+        my_runner = runner.Runner(TESTDB, reporter)
+        my_runner.run_tasks(tasks)
+        assert runner.ERROR == my_runner.finish()
         assert ('start', tasks[0]) == reporter.log.pop(0)
         assert ('fail', tasks[0]) == reporter.log.pop(0)
         assert 0 == len(reporter.log)
@@ -139,24 +148,26 @@ class TestRunningTask(object):
     def test_ignoreNonFileDep(self, reporter):
         dep = [":taskY"]
         tasks = [Task("taskX", [my_print], dep)]
-        result = runner.run_tasks(TESTDB, tasks, reporter)
-        assert runner.SUCCESS == result
+        my_runner = runner.Runner(TESTDB, reporter)
+        my_runner.run_tasks(tasks)
+        assert runner.SUCCESS == my_runner.finish()
         d = Dependency(TESTDB)
         assert 0 == len(d._db)
 
 
     def test_alwaysExecute(self, reporter):
         tasks = [Task("taskX", [my_print], dependencies=[__file__])]
-        result = runner.run_tasks(TESTDB, tasks, reporter)
-        assert runner.SUCCESS == result
+        my_runner = runner.Runner(TESTDB, reporter)
+        my_runner.run_tasks(tasks)
+        assert runner.SUCCESS == my_runner.finish()
         assert ('start', tasks[0]) == reporter.log.pop(0)
         assert ('execute', tasks[0]) == reporter.log.pop(0)
         # again
         tasks2 = [Task("taskX", [my_print], dependencies=[__file__])]
         reporter2 = FakeReporter()
-        result2 = runner.run_tasks(TESTDB, tasks2, reporter2,
-                                    alwaysExecute=True)
-        assert runner.SUCCESS == result2
+        my_runner2 = runner.Runner(TESTDB, reporter2)
+        my_runner2.run_tasks(tasks2, alwaysExecute=True)
+        assert runner.SUCCESS == my_runner2.finish()
         assert ('start', tasks2[0]) == reporter2.log.pop(0)
         assert ('execute', tasks2[0]) == reporter2.log.pop(0)
 
@@ -165,7 +176,9 @@ class TestRunningTask(object):
         def ok(): return "ok"
         t1 = Task("t1", [(ok,)])
         t2 = Task("t2", [(ok,)], ['?t1'])
-        runner.run_tasks(TESTDB, [t1, t2], reporter)
+        my_runner = runner.Runner(TESTDB, reporter)
+        my_runner.run_tasks([t1, t2])
+        my_runner.finish()
         assert ('start', t1) == reporter.log.pop(0)
         assert ('execute', t1) == reporter.log.pop(0)
         assert ('success', t1) == reporter.log.pop(0)
@@ -173,7 +186,9 @@ class TestRunningTask(object):
         assert ('execute', t2) == reporter.log.pop(0)
         assert ('success', t2) == reporter.log.pop(0)
         # again
-        runner.run_tasks(TESTDB, [t1, t2], reporter)
+        my_runner2 = runner.Runner(TESTDB, reporter)
+        my_runner2.run_tasks([t1, t2])
+        my_runner2.finish()
         assert ('start', t1) == reporter.log.pop(0)
         assert ('execute', t1) == reporter.log.pop(0)
         assert ('success', t1) == reporter.log.pop(0)
@@ -182,7 +197,9 @@ class TestRunningTask(object):
         # change t1, t2 executed again
         def ok2(): return "different"
         t1B = Task("t1", [(ok2,)])
-        runner.run_tasks(TESTDB, [t1B, t2], reporter)
+        my_runner3 = runner.Runner(TESTDB, reporter)
+        my_runner3.run_tasks([t1B, t2])
+        my_runner3.finish()
         assert ('start', t1B) == reporter.log.pop(0)
         assert ('execute', t1B) == reporter.log.pop(0)
         assert ('success', t1B) == reporter.log.pop(0)
@@ -195,7 +212,9 @@ class TestRunningTask(object):
         def check_x(my_x): return my_x == 1
         t1 = Task('t1', [(ok,)])
         t2 = Task('t2', [(check_x,)], getargs={'my_x':'t1.x'})
-        runner.run_tasks(TESTDB, [t1,t2], reporter)
+        my_runner = runner.Runner(TESTDB, reporter)
+        my_runner.run_tasks([t1,t2])
+        my_runner.finish()
         assert ('start', t1) == reporter.log.pop(0)
         assert ('execute', t1) == reporter.log.pop(0)
         assert ('success', t1) == reporter.log.pop(0)
@@ -207,7 +226,9 @@ class TestRunningTask(object):
         # invalid getargs. Exception wil be raised and task will fail
         def check_x(my_x): return True
         t2 = Task('t2', [(check_x,)], getargs={'my_x':'t1.x'})
-        runner.run_tasks(TESTDB, [t2], reporter)
+        my_runner = runner.Runner(TESTDB, reporter)
+        my_runner.run_tasks([t2])
+        my_runner.finish()
         assert ('start', t2) == reporter.log.pop(0)
         assert ('fail', t2) == reporter.log.pop(0)
 
@@ -228,8 +249,9 @@ class TestTaskSetup(object):
     def testExecuted(self, reporter):
         setup = self.SetupSample()
         t = Task("ss", None, [], [], [setup])
-        result = runner.run_tasks(TESTDB, [t], reporter)
-        assert runner.SUCCESS == result
+        my_runner = runner.Runner(TESTDB, reporter)
+        my_runner.run_tasks([t])
+        assert runner.SUCCESS == my_runner.finish()
         assert 1 == setup.executed
         assert 1 == setup.cleaned
 
@@ -237,8 +259,9 @@ class TestTaskSetup(object):
         setup = self.SetupSample()
         t1 = Task("ss", None, [], [], [setup])
         t2 = Task("ss2", None, [], [], [setup])
-        result = runner.run_tasks(TESTDB, [t1, t2], reporter)
-        assert runner.SUCCESS == result
+        my_runner = runner.Runner(TESTDB, reporter)
+        my_runner.run_tasks([t1, t2])
+        assert runner.SUCCESS == my_runner.finish()
         assert 1 == setup.executed
         assert 1 == setup.cleaned
 
@@ -248,8 +271,9 @@ class TestTaskSetup(object):
             raise Exception("rrrr")
         t1 = Task("ss", [bad_seed], [], [], [setup])
         t2 = Task("ss2", None, [], [], [setup])
-        result = runner.run_tasks(TESTDB, [t1, t2], reporter)
-        assert runner.ERROR == result
+        my_runner = runner.Runner(TESTDB, reporter)
+        my_runner.run_tasks([t1, t2])
+        assert runner.ERROR == my_runner.finish()
         assert 1 == setup.executed
         assert 1 == setup.cleaned
 
@@ -260,8 +284,9 @@ class TestTaskSetup(object):
         setup = self.SetupSample()
         setup.setup = raise_something
         t1 = Task('t1', None, [], [], [setup])
-        result = runner.run_tasks(TESTDB, [t1], reporter)
-        assert runner.ERROR == result
+        my_runner = runner.Runner(TESTDB, reporter)
+        my_runner.run_tasks([t1])
+        assert runner.ERROR == my_runner.finish()
         # TODO not checking error is written to output
 
     def testCleanupError(self, reporter):
@@ -271,8 +296,9 @@ class TestTaskSetup(object):
         setup = self.SetupSample()
         setup.cleanup = raise_something
         t1 = Task('t1', None, [], [], [setup])
-        result = runner.run_tasks(TESTDB, [t1], reporter)
-        assert runner.SUCCESS == result
+        my_runner = runner.Runner(TESTDB, reporter)
+        my_runner.run_tasks([t1])
+        assert runner.SUCCESS == my_runner.finish()
         assert ('start', t1) == reporter.log.pop(0)
         assert ('execute', t1) == reporter.log.pop(0)
         assert ('success', t1) == reporter.log.pop(0)
@@ -290,8 +316,9 @@ class TestContinue(object):
         tasks = [Task("task1", [(please_fail,)] ),
                  Task("task2", [(please_blow,)] ),
                  Task("task3", [(ok,)])]
-        result = runner.run_tasks(TESTDB,tasks, reporter, continue_=True)
-        assert runner.ERROR == result
+        my_runner = runner.Runner(TESTDB, reporter)
+        my_runner.run_tasks(tasks, continue_=True)
+        assert runner.ERROR == my_runner.finish()
         assert ('start', tasks[0]) == reporter.log.pop(0)
         assert ('execute', tasks[0]) == reporter.log.pop(0)
         assert ('fail', tasks[0]) == reporter.log.pop(0)
@@ -311,4 +338,5 @@ class TestSystemExit(object):
         def i_raise():
             raise SystemExit()
         t1 = Task("x", [i_raise])
-        py.test.raises(SystemExit, runner.run_tasks, TESTDB, [t1], reporter)
+        my_runner = runner.Runner(TESTDB, reporter)
+        py.test.raises(SystemExit, my_runner.run_tasks, [t1])

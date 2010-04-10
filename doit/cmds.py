@@ -6,7 +6,7 @@ import itertools
 from doit import dependency
 from doit.task import Task
 from doit.main import TaskSetup, InvalidCommand
-from doit.runner import run_tasks
+from doit.runner import Runner
 from doit.reporter import REPORTERS
 from doit.dependency import Dependency
 
@@ -17,28 +17,34 @@ def doit_run(dependencyFile, task_list, output, options=None,
     # get tasks to be executed
     selected_tasks = TaskSetup(task_list, options).process()
 
+    # reporter
     if reporter not in REPORTERS:
         msg = ("No reporter named '%s'.\nType 'doit help run' to see a list "
                "of available reporters.")
         raise InvalidCommand(msg % reporter)
     reporter_cls = REPORTERS[reporter]
 
+    # verbosity
     if verbosity is None:
         use_verbosity = Task.DEFAULT_VERBOSITY
     else:
         use_verbosity = verbosity
     show_out = use_verbosity < 2 # show on error report
 
+    # outstream
     if isinstance(output, str):
         outstream = open(output, 'w')
     else: # outfile is a file-like object (like StringIO or sys.stdout)
         outstream = output
+
+    # run
     try:
         # FIXME stderr will be shown twice in case of task error/failure
         reporter_obj = reporter_cls(outstream, show_out , True)
 
-        return run_tasks(dependencyFile, selected_tasks, reporter_obj,
-                         verbosity, alwaysExecute, continue_)
+        runner = Runner(dependencyFile, reporter_obj)
+        runner.run_tasks(selected_tasks, verbosity, alwaysExecute, continue_)
+        return runner.finish()
     finally:
         if isinstance(output, str):
             outstream.close()
