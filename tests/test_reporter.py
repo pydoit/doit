@@ -44,7 +44,8 @@ class TestConsoleReporter(object):
         rep = reporter.ConsoleReporter(StringIO.StringIO(), True, True)
         exception = CatchedException("I got you")
         rep.cleanup_error(exception)
-        assert "I got you" in capsys.readouterr()[1]
+        err = capsys.readouterr()[1]
+        assert "I got you" in err
 
 
     def test_addFailure(self):

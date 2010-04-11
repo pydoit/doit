@@ -30,11 +30,13 @@ class TestCmdAction(object):
 
     def test_error(self):
         action = task.CmdAction("%s 1 2 3" % PROGRAM)
-        py.test.raises(TaskError, action.execute)
+        got = action.execute()
+        assert isinstance(got, TaskError)
 
     def test_failure(self):
         action = task.CmdAction("%s please fail" % PROGRAM)
-        py.test.raises(TaskFailed, action.execute)
+        got = action.execute()
+        assert isinstance(got, TaskFailed)
 
     def test_str(self):
         action = task.CmdAction(PROGRAM)
@@ -62,7 +64,8 @@ class TestCmdVerbosity(object):
     def test_captureStderr(self):
         cmd = "%s please fail" % PROGRAM
         action = task.CmdAction(cmd)
-        py.test.raises(TaskFailed, action.execute)
+        got = action.execute()
+        assert isinstance(got, TaskFailed)
         assert "err output on failure" == action.err, repr(action.err)
 
     # Capture stdout
@@ -77,7 +80,8 @@ class TestCmdVerbosity(object):
     # faking sys.stderr with a StringIO doesnt work.
     def test_noCaptureStderr(self, tmpfile):
         action = task.CmdAction("%s please fail" % PROGRAM)
-        py.test.raises(TaskFailed, action.execute, err=tmpfile)
+        action_result = action.execute(err=tmpfile)
+        assert isinstance(action_result, TaskFailed)
         tmpfile.seek(0)
         got = tmpfile.read()
         assert "err output on failure" == got, repr(got)
@@ -126,17 +130,20 @@ class TestPythonAction(object):
         # anthing but None, bool, string or dict
         def error_sample(): return object()
         action = task.PythonAction(error_sample)
-        py.test.raises(TaskError, action.execute)
+        got = action.execute()
+        assert isinstance(got, TaskError)
 
     def test_error_exception(self):
         def error_sample(): raise Exception("asdf")
         action = task.PythonAction(error_sample)
-        py.test.raises(TaskError, action.execute)
+        got = action.execute()
+        assert isinstance(got, TaskError)
 
     def test_fail_bool(self):
         def fail_sample():return False
         action = task.PythonAction(fail_sample)
-        py.test.raises(TaskFailed, action.execute)
+        got = action.execute()
+        assert isinstance(got, TaskFailed)
 
     # any callable should work, not only functions
     def test_nonFunction(self):
@@ -144,8 +151,9 @@ class TestPythonAction(object):
             def __call__(self):
                 return False
 
-        action= task.PythonAction(CallMe())
-        py.test.raises(TaskFailed, action.execute)
+        action = task.PythonAction(CallMe())
+        got = action.execute()
+        assert isinstance(got, TaskFailed)
 
     # helper to test callable with parameters
     def _func_par(self,par1,par2,par3=5):
@@ -187,7 +195,8 @@ class TestPythonAction(object):
     def test_functionParametersFail(self):
         action = task.PythonAction(self._func_par, args=(2,3),
                                    kwargs={'par3':25})
-        py.test.raises(TaskFailed, action.execute)
+        got = action.execute()
+        assert isinstance(got, TaskFailed)
 
     def test_str(self):
         def str_sample(): return True
@@ -414,7 +423,8 @@ class TestTaskActions(object):
 
     def test_failure(self):
         t = task.Task("taskX", ["%s 1 2 3" % PROGRAM])
-        py.test.raises(TaskError, t.execute)
+        got = t.execute()
+        assert isinstance(got, TaskError)
 
     # make sure all cmds are being executed.
     def test_many(self):
@@ -427,11 +437,13 @@ class TestTaskActions(object):
 
     def test_fail_first(self):
         t = task.Task("taskX", ["%s 1 2 3" % PROGRAM, PROGRAM])
-        py.test.raises(TaskError, t.execute)
+        got = t.execute()
+        assert isinstance(got, TaskError)
 
     def test_fail_second(self):
         t = task.Task("taskX", ["%s 1 2" % PROGRAM, "%s 1 2 3" % PROGRAM])
-        py.test.raises(TaskError, t.execute)
+        got = t.execute()
+        assert isinstance(got, TaskError)
 
 
     # python and commands mixed on same task

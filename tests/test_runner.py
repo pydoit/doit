@@ -316,8 +316,8 @@ class TestContinue(object):
         tasks = [Task("task1", [(please_fail,)] ),
                  Task("task2", [(please_blow,)] ),
                  Task("task3", [(ok,)])]
-        my_runner = runner.Runner(TESTDB, reporter)
-        my_runner.run_tasks(tasks, continue_=True)
+        my_runner = runner.Runner(TESTDB, reporter, continue_=True)
+        my_runner.run_tasks(tasks)
         assert runner.ERROR == my_runner.finish()
         assert ('start', tasks[0]) == reporter.log.pop(0)
         assert ('execute', tasks[0]) == reporter.log.pop(0)
@@ -332,8 +332,7 @@ class TestContinue(object):
 
 
 class TestSystemExit(object):
-
-    # SystemExit runner should interfere with SystemExit
+    # SystemExit runner should not interfere with SystemExit
     def testRaises(self, reporter):
         def i_raise():
             raise SystemExit()

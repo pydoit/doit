@@ -30,30 +30,24 @@ import sys
 import traceback
 
 
-class CatchedException(Exception):
-    """This used to create an exception from another one
+class CatchedException(object):
+    """This used to save info from catched exceptions
     The traceback from the original exception is saved
-    TODO: study python exceptions. there is a better to do this!
     """
     def __init__(self, msg, exception=None):
-        Exception.__init__(self, msg)
+        self.message = msg
+        self.traceback = ''
 
-        if exception is None:
-            self.originalException = None
-        else:
-            self.traceback = sys.exc_info()[2]
-            self.originalException = exception
+        if exception is not None:
+            self.traceback = traceback.format_exception(
+                exception.__class__, exception, sys.exc_info()[2])
 
     def get_msg(self):
-        if self.originalException is None:
-            return "%s\n" % (str(self))
-        else:
-            tb = traceback.format_exception(self.originalException.__class__,
-                                            self.originalException, self.traceback)
-            return "%s\n%s" % (str(self), "".join(tb))
+        return "%s\n%s" % (self.message, "".join(self.traceback))
 
     def get_name(self):
         return self.__class__.__name__
+
 
 # TODO rename this? should be ActionFailed?
 class TaskFailed(CatchedException):

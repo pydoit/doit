@@ -6,7 +6,7 @@ import types
 import os
 from threading import Thread
 
-from doit import TaskFailed, TaskError
+from doit import CatchedException, TaskFailed, TaskError
 from doit import cmdparse
 
 # Exceptions
@@ -56,9 +56,10 @@ class CmdAction(BaseAction):
         @param out: None - no real time output
                     a file like object (has write method)
         @param err: idem
-
-        @raise TaskError: If subprocess return code is greater than 125
-        @raise TaskFailed: If subprocess return code isn't zero (and
+        @return failure:
+            - None: if successful
+            - TaskError: If subprocess return code is greater than 125
+            - TaskFailed: If subprocess return code isn't zero (and
         not greater than 125)
         """
         action = self.expand_action()
@@ -98,12 +99,12 @@ class CmdAction(BaseAction):
         # http://www.gnu.org/software/bash/manual/bashref.html#Exit-Status
         # it doesnt make so much difference to return as Error or Failed anyway
         if process.returncode > 125:
-            raise TaskError("Command error: '%s' returned %s" %
+            return TaskError("Command error: '%s' returned %s" %
                             (action,process.returncode))
 
         # task failure
         if process.returncode != 0:
-            raise TaskFailed("Command failed: '%s' returned %s" %
+            return TaskFailed("Command failed: '%s' returned %s" %
                              (action,process.returncode))
 
 
@@ -243,7 +244,7 @@ class PythonAction(BaseAction):
                     a file like object (has write method)
         @param err: idem
 
-        @raise TaskFailed: If py_callable returns False. or TaskError
+        @return failure: see CmdAction.execute
         """
         # set std stream
         old_stdout = sys.stdout
@@ -273,7 +274,7 @@ class PythonAction(BaseAction):
             except (SystemExit, KeyboardInterrupt), exception:
                 raise
             except Exception, exception:
-                raise TaskError("PythonAction Error", exception)
+                return TaskError("PythonAction Error", exception)
         finally:
             # restore std streams /log captured streams
             sys.stdout = old_stdout
@@ -283,8 +284,8 @@ class PythonAction(BaseAction):
 
         # if callable returns false. Task failed
         if returned_value is False:
-            raise TaskFailed("Python Task failed: '%s' returned %s" %
-                             (self.py_callable, returned_value))
+            return TaskFailed("Python Task failed: '%s' returned %s" %
+                              (self.py_callable, returned_value))
         elif returned_value is True or returned_value is None:
             pass
         elif isinstance(returned_value, str):
@@ -292,12 +293,12 @@ class PythonAction(BaseAction):
         elif isinstance(returned_value, dict):
             self.values = returned_value
         else:
-            raise TaskError("Python Task error: '%s'. It must return:\n"
-                            "False for failed task.\n"
-                            "True, None, string or dict for successful task\n"
-                            "returned %s (%s)" %
-                            (self.py_callable, returned_value,
-                             type(returned_value)))
+            return TaskError("Python Task error: '%s'. It must return:\n"
+                             "False for failed task.\n"
+                             "True, None, string or dict for successful task\n"
+                             "returned %s (%s)" %
+                             (self.py_callable, returned_value,
+                              type(returned_value)))
 
     def __str__(self):
         # get object description excluding runtime memory address
@@ -527,9 +528,7 @@ class Task(object):
 
     def execute(self, out=None, err=None, verbosity=None):
         """Executes the task.
-
-        @raise TaskFailed: If raised when executing an action
-        @raise TaskError: If raised when executing an action
+        @return failure: see CmdAction.execute
         """
         # select verbosity to be used
         priority = (verbosity, # use command line option
@@ -542,7 +541,9 @@ class Task(object):
                      (out, err)]   # 2
         task_stdout, task_stderr = VERBOSITY[use_verbosity]
         for action in self.actions:
-            action.execute(task_stdout, task_stderr)
+            action_return = action.execute(task_stdout, task_stderr)
+            if isinstance(action_return, CatchedException):
+                return action_return
             self.result = action.result
             self.values.update(action.values)
 

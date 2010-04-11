@@ -22,14 +22,9 @@ class SetupManager(object):
         if setup_obj in self._loaded:
             return
 
-        try:
-            self._loaded.add(setup_obj)
-            if hasattr(setup_obj, 'setup'):
-                setup_obj.setup()
-
-        except (SystemExit, KeyboardInterrupt): raise
-        except Exception, exception:
-            raise SetupError("ERROR on object setup", exception)
+        self._loaded.add(setup_obj)
+        if hasattr(setup_obj, 'setup'):
+            setup_obj.setup()
 
 
     def cleanup(self):
@@ -39,8 +34,10 @@ class SetupManager(object):
                 try:
                     setup_obj.cleanup()
                 # report error but keep result as successful.
+                # FIXME should execute all cleanup's even with errors
+                # TODO caller should handle the exception
                 except Exception, e:
-                    raise SetupError("ERROR on setup_obj cleanup", e)
+                    return SetupError("ERROR on setup_obj cleanup", e)
 
 
 # execution result.
@@ -52,28 +49,48 @@ class Runner(object):
     """Task runner
 
     """
-    def __init__(self, dependencyFile, reporter):
+    def __init__(self, dependencyFile, reporter, continue_=False):
         """@param dependencyFile: (string) file path of the db file
         @param reporter: reporter to be used. It can be a class or an object
+        @param continue_: (bool) execute all tasks even after a task failure
         """
         self.dependencyManager = Dependency(dependencyFile)
         self.reporter = reporter
+        self.continue_ = continue_ #FIXME mv to __init__
+
         self.setupManager = SetupManager()
         self.final_result = SUCCESS # until something fails
+        self._stop_running = False
 
 
     def execute_task(self, task, verbosity):
         # setup env
         for setup_obj in task.setup:
-            self.setupManager.load(setup_obj)
+            try:
+                self.setupManager.load(setup_obj)
+            except (SystemExit, KeyboardInterrupt): raise
+            except Exception, exception:
+                return SetupError("ERROR on object setup", exception)
 
         # finally execute it!
         self.reporter.execute_task(task)
-        task.execute(sys.stdout, sys.stderr, verbosity)
+        return task.execute(sys.stdout, sys.stderr, verbosity)
 
 
-    def run_tasks(self, tasks, verbosity=None, alwaysExecute=False,
-                  continue_=False):
+    def handle_task_error(self, task, catched_excp):
+        assert isinstance(catched_excp, CatchedException)
+        self.dependencyManager.remove_success(task)
+        self.reporter.add_failure(task, catched_excp)
+        # only return FAILURE if no errors happened.
+        if isinstance(catched_excp, TaskFailed):
+            self.final_result = FAILURE
+        else:
+            self.final_result = ERROR
+        if not self.continue_:
+            self._stop_running = True
+
+
+    def run_tasks(self, tasks, verbosity=None, alwaysExecute=False):
         """This will actually run/execute the tasks.
         It will check file dependencies to decide if task should be executed
         and save info on successful runs.
@@ -82,70 +99,59 @@ class Runner(object):
         @param tasks: (list) - L{Task} tasks to be executed
         @param verbosity: (int) 0,1,2 see Task.execute
         @param alwaysExecute: (bool) execute even if up-to-date
-        @param continue_: (bool) execute all tasks even after a task failure
         """
         for task in tasks:
+            if self._stop_running:
+                break
             self.reporter.start_task(task)
+
+            # check if task is up-to-date
             try:
-                # check if task is up-to-date
+                task_uptodate = self.dependencyManager.get_status(task)
+            except Exception, exception:
+                de = DependencyError("ERROR checking dependencies", exception)
+                self.handle_task_error(task, de)
+                continue
+
+            # if task is up-to-date skip it
+            if not alwaysExecute and (task_uptodate=='up-to-date') :
+                self.reporter.skip_uptodate(task)
+                continue
+
+            # check if task should be ignored (user controlled)
+            if not alwaysExecute and (task_uptodate=='ignore') :
+                self.reporter.skip_ignore(task)
+                continue
+
+            # get values from other tasks
+            for arg, value in task.getargs.iteritems():
                 try:
-                    task_uptodate = self.dependencyManager.get_status(task)
+                    task.options[arg] = self.dependencyManager.get_value(value)
                 except Exception, exception:
-                    raise DependencyError("ERROR checking dependencies", exception)
-
-                # if task is up-to-date skip it
-                if not alwaysExecute and (task_uptodate=='up-to-date') :
-                    self.reporter.skip_uptodate(task)
+                    msg = ("ERROR getting value for argument '%s'\n" % arg +
+                           str(exception))
+                    self.handle_task_error(task, DependencyError(msg))
                     continue
 
-                # check if task should be ignored (user controlled)
-                if not alwaysExecute and (task_uptodate=='ignore') :
-                    self.reporter.skip_ignore(task)
-                    continue
+            catched_excp = self.execute_task(task, verbosity)
 
-                # get values from other tasks
-                for arg, value in task.getargs.iteritems():
-                    try:
-                        task.options[arg] = self.dependencyManager.get_value(value)
-                    except Exception, exception:
-                        msg = ("ERROR getting value for argument '%s'\n" % arg +
-                               str(exception))
-                        raise DependencyError(msg)
-
-                self.execute_task(task, verbosity)
-
-                # save execution successful
+            # save execution successful
+            if catched_excp is None:
                 self.dependencyManager.save_success(task)
                 self.reporter.add_success(task)
-
-            # in python 2.4 SystemExit and KeyboardInterrupt subclass
-            # from Exception.
-            # specially a problem when a fork from the main process
-            # exit using sys.exit() instead of os._exit().
-            except (SystemExit, KeyboardInterrupt):
-                raise
-
             # task error
-            except CatchedException, exception:
-                self.dependencyManager.remove_success(task)
-                self.reporter.add_failure(task, exception)
-                # only return FAILURE if no errors happened.
-                if isinstance(exception, TaskFailed):
-                    self.final_result = FAILURE
-                else:
-                    self.final_result = ERROR
-                if not continue_:
-                    break
+            else:
+                self.handle_task_error(task, catched_excp)
+
 
     def finish(self):
         """finish running tasks"""
         # flush update dependencies
         self.dependencyManager.close()
         # clean setup objects
-        try:
-            self.setupManager.cleanup()
-        except SetupError, e:
-            self.reporter.cleanup_error(e)
+        error = self.setupManager.cleanup()
+        if error:
+            self.reporter.cleanup_error(error)
 
         # report final results
         self.reporter.complete_run()
