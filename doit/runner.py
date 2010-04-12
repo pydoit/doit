@@ -63,6 +63,41 @@ class Runner(object):
         self._stop_running = False
 
 
+    def select_task(self, task, alwaysExecute):
+        """Returns bool, task should be executed
+         * side-effect: set task.options
+        """
+        self.reporter.start_task(task)
+        # check if task is up-to-date
+        try:
+            task_uptodate = self.dependencyManager.get_status(task)
+        except Exception, exception:
+            de = DependencyError("ERROR checking dependencies", exception)
+            self.handle_task_error(task, de)
+            return False
+
+        # if task is up-to-date skip it
+        if not alwaysExecute and (task_uptodate=='up-to-date') :
+            self.reporter.skip_uptodate(task)
+            return False
+
+        # check if task should be ignored (user controlled)
+        if not alwaysExecute and (task_uptodate=='ignore') :
+            self.reporter.skip_ignore(task)
+            return False
+
+        # get values from other tasks
+        for arg, value in task.getargs.iteritems():
+            try:
+                task.options[arg] = self.dependencyManager.get_value(value)
+            except Exception, exception:
+                msg = ("ERROR getting value for argument '%s'\n" % arg +
+                       str(exception))
+                self.handle_task_error(task, DependencyError(msg))
+                return False
+        return True
+
+
     def execute_task(self, task, verbosity):
         # setup env
         for setup_obj in task.setup:
@@ -75,6 +110,16 @@ class Runner(object):
         # finally execute it!
         self.reporter.execute_task(task)
         return task.execute(sys.stdout, sys.stderr, verbosity)
+
+
+    def process_task_result(self, task, catched_excp):
+        # save execution successful
+        if catched_excp is None:
+            self.dependencyManager.save_success(task)
+            self.reporter.add_success(task)
+        # task error
+        else:
+            self.handle_task_error(task, catched_excp)
 
 
     def handle_task_error(self, task, catched_excp):
@@ -103,45 +148,10 @@ class Runner(object):
         for task in tasks:
             if self._stop_running:
                 break
-            self.reporter.start_task(task)
-
-            # check if task is up-to-date
-            try:
-                task_uptodate = self.dependencyManager.get_status(task)
-            except Exception, exception:
-                de = DependencyError("ERROR checking dependencies", exception)
-                self.handle_task_error(task, de)
+            if not self.select_task(task, alwaysExecute):
                 continue
-
-            # if task is up-to-date skip it
-            if not alwaysExecute and (task_uptodate=='up-to-date') :
-                self.reporter.skip_uptodate(task)
-                continue
-
-            # check if task should be ignored (user controlled)
-            if not alwaysExecute and (task_uptodate=='ignore') :
-                self.reporter.skip_ignore(task)
-                continue
-
-            # get values from other tasks
-            for arg, value in task.getargs.iteritems():
-                try:
-                    task.options[arg] = self.dependencyManager.get_value(value)
-                except Exception, exception:
-                    msg = ("ERROR getting value for argument '%s'\n" % arg +
-                           str(exception))
-                    self.handle_task_error(task, DependencyError(msg))
-                    continue
-
             catched_excp = self.execute_task(task, verbosity)
-
-            # save execution successful
-            if catched_excp is None:
-                self.dependencyManager.save_success(task)
-                self.reporter.add_success(task)
-            # task error
-            else:
-                self.handle_task_error(task, catched_excp)
+            self.process_task_result(task, catched_excp)
 
 
     def finish(self):
