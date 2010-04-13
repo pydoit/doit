@@ -191,6 +191,13 @@ class TestCmdRun(object):
         got = output.getvalue().split("\n")[:-1]
         assert [".  g1.a"] == got, repr(got)
 
+    def testProcessRunEmptyFilter(self):
+        remove_testdb()
+        output = StringIO.StringIO()
+        cmds.doit_run(TESTDB, TASKS_SAMPLE, output, [])
+        got = output.getvalue().split("\n")[:-1]
+        assert [] == got
+
     def testInvalidReporter(self):
         remove_testdb()
         output = StringIO.StringIO()

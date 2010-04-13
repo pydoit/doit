@@ -233,38 +233,38 @@ TASKS_SAMPLE = [Task("t1", [""], doc="t1 doc string"),
 class TestTaskSetupCmdOptions(object):
     def testFilter(self):
         filter_ = ['t2', 't3']
-        ts = TaskSetup(TASKS_SAMPLE, filter_)
-        assert filter_ == ts._filter_tasks()
+        ts = TaskSetup(TASKS_SAMPLE)
+        assert filter_ == ts.filter_tasks(filter_)
 
     def testFilterPattern(self):
-        ts = TaskSetup(TASKS_SAMPLE, ['*1*'])
-        assert ['t1', 'g1', 'g1.a', 'g1.b'] == ts._filter_tasks()
+        ts = TaskSetup(TASKS_SAMPLE)
+        assert ['t1', 'g1', 'g1.a', 'g1.b'] == ts.filter_tasks(['*1*'])
 
     def testFilterSubtask(self):
         filter_ = ["t1", "g1.b"]
-        ts =  TaskSetup(TASKS_SAMPLE, filter_)
-        assert filter_ == ts._filter_tasks()
+        ts =  TaskSetup(TASKS_SAMPLE)
+        assert filter_ == ts.filter_tasks(filter_)
 
     def testFilterTarget(self):
         tasks = list(TASKS_SAMPLE)
         tasks.append(Task("tX", [""],[],["targetX"]))
-        ts =  TaskSetup(tasks, ["targetX"])
-        assert ['tX'] == ts._filter_tasks()
+        ts =  TaskSetup(tasks)
+        assert ['tX'] == ts.filter_tasks(["targetX"])
 
     # filter a non-existent task raises an error
     def testFilterWrongName(self):
-        ts =  TaskSetup(TASKS_SAMPLE, ['no'])
-        py.test.raises(InvalidCommand, ts._filter_tasks)
+        ts =  TaskSetup(TASKS_SAMPLE)
+        py.test.raises(InvalidCommand, ts.filter_tasks, ['no'])
 
     def testFilterEmptyList(self):
         filter_ = []
-        ts = TaskSetup(TASKS_SAMPLE, filter_)
-        assert filter_ == ts.process()
+        ts = TaskSetup(TASKS_SAMPLE)
+        assert filter_ == ts.filter_tasks(filter_)
 
     def testOptions(self):
         options = ["t3", "--message", "hello option!", "t1"]
-        ts = TaskSetup(TASKS_SAMPLE, options)
-        assert ['t3', 't1'] == ts.filter
+        ts = TaskSetup(TASKS_SAMPLE)
+        assert ['t3', 't1'] == ts.filter_tasks(options)
         assert "hello option!" == ts.tasks['t3'].options['opt1']
 
 
