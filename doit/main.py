@@ -174,8 +174,7 @@ def get_tasks(dodo_file, cwd, command_names):
     return load_task_generators(dodo_module, command_names)
 
 
-# this name is confusing with task.setup which it doesnt have any relation...
-class TaskSetup(object):
+class TaskControl(object):
     """
     Process dependencies and targets to find out the order tasks
     should be executed. Also apply filter to exclude tasks from

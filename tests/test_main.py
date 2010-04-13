@@ -5,7 +5,7 @@ import py.test
 from doit.task import InvalidTask, Task
 from doit.main import InvalidDodoFile, InvalidCommand
 from doit.main import isgenerator, get_module
-from doit.main import load_task_generators, generate_tasks, TaskSetup
+from doit.main import load_task_generators, generate_tasks, TaskControl
 from doit.main import get_tasks
 
 
@@ -187,37 +187,37 @@ class TestDodoConfig(object):
         assert ["abcd", "add"] == dodo_dict['config']['default_tasks']
 
 
-class TestTaskSetupInit(object):
+class TestTaskControlInit(object):
 
     def test_addTask(self):
         t1 = Task("taskX", None)
         t2 = Task("taskY", None)
-        ts = TaskSetup([t1, t2])
-        assert 2 == len(ts.tasks)
+        tc = TaskControl([t1, t2])
+        assert 2 == len(tc.tasks)
 
     def test_targetDependency(self):
         t1 = Task("taskX", None,[],['intermediate'])
         t2 = Task("taskY", None,['intermediate'],[])
-        TaskSetup([t1,t2])
+        TaskControl([t1,t2])
         assert ['taskX'] == t2.task_dep
 
     # 2 tasks can not have the same name
     def test_addTaskSameName(self):
         t1 = Task("taskX", None)
         t2 = Task("taskX", None)
-        py.test.raises(InvalidDodoFile, TaskSetup, [t1, t2])
+        py.test.raises(InvalidDodoFile, TaskControl, [t1, t2])
 
     def test_addInvalidTask(self):
-        py.test.raises(InvalidTask, TaskSetup, [666])
+        py.test.raises(InvalidTask, TaskControl, [666])
 
     def test_userErrorTaskDependency(self):
         tasks = [Task('wrong', None,[":typo"])]
-        py.test.raises(InvalidTask, TaskSetup, tasks)
+        py.test.raises(InvalidTask, TaskControl, tasks)
 
     def test_sameTarget(self):
         tasks = [Task('t1',None,[],["fileX"]),
                  Task('t2',None,[],["fileX"])]
-        py.test.raises(InvalidTask, TaskSetup, tasks)
+        py.test.raises(InvalidTask, TaskControl, tasks)
 
 
 
@@ -230,55 +230,55 @@ TASKS_SAMPLE = [Task("t1", [""], doc="t1 doc string"),
                      params=[{'name':'opt1','long':'message','default':''}])]
 
 
-class TestTaskSetupCmdOptions(object):
+class TestTaskControlCmdOptions(object):
     def testFilter(self):
         filter_ = ['t2', 't3']
-        ts = TaskSetup(TASKS_SAMPLE)
-        assert filter_ == ts.filter_tasks(filter_)
+        tc = TaskControl(TASKS_SAMPLE)
+        assert filter_ == tc.filter_tasks(filter_)
 
     def testFilterPattern(self):
-        ts = TaskSetup(TASKS_SAMPLE)
-        assert ['t1', 'g1', 'g1.a', 'g1.b'] == ts.filter_tasks(['*1*'])
+        tc = TaskControl(TASKS_SAMPLE)
+        assert ['t1', 'g1', 'g1.a', 'g1.b'] == tc.filter_tasks(['*1*'])
 
     def testFilterSubtask(self):
         filter_ = ["t1", "g1.b"]
-        ts =  TaskSetup(TASKS_SAMPLE)
-        assert filter_ == ts.filter_tasks(filter_)
+        tc =  TaskControl(TASKS_SAMPLE)
+        assert filter_ == tc.filter_tasks(filter_)
 
     def testFilterTarget(self):
         tasks = list(TASKS_SAMPLE)
         tasks.append(Task("tX", [""],[],["targetX"]))
-        ts =  TaskSetup(tasks)
-        assert ['tX'] == ts.filter_tasks(["targetX"])
+        tc =  TaskControl(tasks)
+        assert ['tX'] == tc.filter_tasks(["targetX"])
 
     # filter a non-existent task raises an error
     def testFilterWrongName(self):
-        ts =  TaskSetup(TASKS_SAMPLE)
-        py.test.raises(InvalidCommand, ts.filter_tasks, ['no'])
+        tc =  TaskControl(TASKS_SAMPLE)
+        py.test.raises(InvalidCommand, tc.filter_tasks, ['no'])
 
     def testFilterEmptyList(self):
         filter_ = []
-        ts = TaskSetup(TASKS_SAMPLE)
-        assert filter_ == ts.filter_tasks(filter_)
+        tc = TaskControl(TASKS_SAMPLE)
+        assert filter_ == tc.filter_tasks(filter_)
 
     def testOptions(self):
         options = ["t3", "--message", "hello option!", "t1"]
-        ts = TaskSetup(TASKS_SAMPLE)
-        assert ['t3', 't1'] == ts.filter_tasks(options)
-        assert "hello option!" == ts.tasks['t3'].options['opt1']
+        tc = TaskControl(TASKS_SAMPLE)
+        assert ['t3', 't1'] == tc.filter_tasks(options)
+        assert "hello option!" == tc.tasks['t3'].options['opt1']
 
 
 class TestOrderTasks(object):
     # same task is not added twice
     def testAddJustOnce(self):
-        ts = TaskSetup([Task("taskX", None)])
-        result = ts._order_tasks(["taskX"]*2)
+        tc = TaskControl([Task("taskX", None)])
+        result = tc._order_tasks(["taskX"]*2)
         assert 1 == len(result)
 
     def testDetectCyclicReference(self):
         tasks = [Task("taskX",None,[":taskY"]),
                  Task("taskY",None,[":taskX"])]
-        ts = TaskSetup(tasks)
-        py.test.raises(InvalidDodoFile, ts._order_tasks,
+        tc = TaskControl(tasks)
+        py.test.raises(InvalidDodoFile, tc._order_tasks,
                                  ["taskX", "taskY"])
 
