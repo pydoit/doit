@@ -165,8 +165,8 @@ class TestRunningTask(object):
         # again
         tasks2 = [Task("taskX", [my_print], dependencies=[__file__])]
         reporter2 = FakeReporter()
-        my_runner2 = runner.Runner(TESTDB, reporter2)
-        my_runner2.run_tasks(tasks2, alwaysExecute=True)
+        my_runner2 = runner.Runner(TESTDB, reporter2, always_execute=True)
+        my_runner2.run_tasks(tasks2)
         assert runner.SUCCESS == my_runner2.finish()
         assert ('start', tasks2[0]) == reporter2.log.pop(0)
         assert ('execute', tasks2[0]) == reporter2.log.pop(0)
