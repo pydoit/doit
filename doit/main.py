@@ -194,9 +194,11 @@ class TaskControl(object):
         # name of task in order to be executed
         # this the order as in the dodo file. the real execution
         # order might be different if the dependecies require so.
-        self.task_order = []
+        self._def_order = []
         # dict of tasks by name
         self.tasks = {}
+        # list of tasks selected to be executed
+        self.selected_tasks = None
 
         # sanity check and create tasks dict
         for task in task_list:
@@ -210,7 +212,7 @@ class TaskControl(object):
                 raise InvalidDodoFile(msg % task.name)
 
             self.tasks[task.name] = task
-            self.task_order.append(task.name)
+            self._def_order.append(task.name)
 
         # check task-dependencies exist.
         for task in self.tasks.itervalues():
@@ -261,7 +263,7 @@ class TaskControl(object):
             f_name = seq.pop(0) # always start with a task/target name
             # select tasks by task-name pattern
             if '*' in f_name:
-                for t_name in self.task_order:
+                for t_name in self._def_order:
                     task = self.tasks[t_name]
                     if fnmatch.fnmatch(task.name, f_name):
                         add_filtered_task((), task.name)
@@ -292,6 +294,10 @@ class TaskControl(object):
                        'Type "doit list" to see available tasks')
                 raise InvalidCommand(msg % filter_)
         return selectedTask
+
+    def order_tasks(self):
+        assert self.selected_tasks is not None, "must call 'process' before this"
+        return self._order_tasks(self.selected_tasks)
 
     def _order_tasks(self, to_add):
         """put tasks in an order so that dependencies are executed before.
@@ -329,10 +335,10 @@ class TaskControl(object):
 
     def process(self, task_selection):
         """@return (list - string) each element is the name of a task"""
-        # if no filter is defined execute all tasks
-        # in the order they were defined.
-        selectedTask = self.task_order
         # execute only tasks in the filter in the order specified by filter
         if task_selection is not None:
-            selectedTask = self.filter_tasks(task_selection)
-        return self._order_tasks(selectedTask)
+            self.selected_tasks = self.filter_tasks(task_selection)
+        else:
+            # if no filter is defined execute all tasks
+            # in the order they were defined.
+            self.selected_tasks = self._def_order

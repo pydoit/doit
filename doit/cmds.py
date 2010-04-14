@@ -15,7 +15,8 @@ def doit_run(dependencyFile, task_list, output, options=None,
              verbosity=None, alwaysExecute=False, continue_=False,
              reporter='default'):
     # get tasks to be executed
-    selected_tasks = TaskControl(task_list).process(options)
+    task_control = TaskControl(task_list)
+    task_control.process(options)
 
     # reporter
     if reporter not in REPORTERS:
@@ -43,7 +44,7 @@ def doit_run(dependencyFile, task_list, output, options=None,
         reporter_obj = reporter_cls(outstream, show_out , True)
 
         runner = Runner(dependencyFile, reporter_obj, continue_, alwaysExecute)
-        runner.run_tasks(selected_tasks, verbosity)
+        runner.run_tasks(task_control, verbosity)
         return runner.finish()
     finally:
         if isinstance(output, str):
@@ -257,8 +258,10 @@ def doit_auto(dependency_file, task_list, filter_tasks, loop_callback=None):
     @param filter_tasks (list -str): print only tasks from this list
     @loop_callback: used to stop loop on unittests
     """
-    selected_tasks = TaskControl(task_list).process(filter_tasks)
-    watch_files = list(itertools.chain(*[s.file_dep for s in selected_tasks]))
+    task_control = TaskControl(task_list)
+    task_control.process(filter_tasks)
+    tasks_to_run = task_control.order_tasks()
+    watch_files = list(itertools.chain(*[s.file_dep for s in tasks_to_run]))
 
     class DoitAutoRun(FileModifyWatcher):
         def handle_event(self, event):

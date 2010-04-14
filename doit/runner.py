@@ -138,15 +138,16 @@ class Runner(object):
             self._stop_running = True
 
 
-    def run_tasks(self, tasks, verbosity=None):
+    def run_tasks(self, task_control, verbosity=None):
         """This will actually run/execute the tasks.
         It will check file dependencies to decide if task should be executed
         and save info on successful runs.
         It also deals with output to stdout/stderr.
 
-        @param tasks: (list) - L{Task} tasks to be executed
+        @param task_control: L{TaskControl}
         @param verbosity: (int) 0,1,2 see Task.execute
         """
+        tasks = task_control.order_tasks()
         for task in tasks:
             if self._stop_running:
                 break

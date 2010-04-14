@@ -279,6 +279,7 @@ class TestOrderTasks(object):
         tasks = [Task("taskX",None,[":taskY"]),
                  Task("taskY",None,[":taskX"])]
         tc = TaskControl(tasks)
-        py.test.raises(InvalidDodoFile, tc._order_tasks,
-                                 ["taskX", "taskY"])
+        tc.process(None)
+        py.test.raises(InvalidDodoFile, tc.order_tasks)
+
 
