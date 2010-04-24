@@ -147,8 +147,7 @@ class Runner(object):
         @param task_control: L{TaskControl}
         @param verbosity: (int) 0,1,2 see Task.execute
         """
-        tasks = task_control.order_tasks()
-        for task in tasks:
+        for task in task_control.get_next_task():
             if self._stop_running:
                 break
             if not self.select_task(task):

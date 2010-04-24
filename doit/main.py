@@ -295,6 +295,18 @@ class TaskControl(object):
                 raise InvalidCommand(msg % filter_)
         return selectedTask
 
+
+    def process(self, task_selection):
+        """@return (list - string) each element is the name of a task"""
+        # execute only tasks in the filter in the order specified by filter
+        if task_selection is not None:
+            self.selected_tasks = self.filter_tasks(task_selection)
+        else:
+            # if no filter is defined execute all tasks
+            # in the order they were defined.
+            self.selected_tasks = self._def_order
+
+
     def order_tasks(self):
         assert self.selected_tasks is not None, "must call 'process' before this"
         return self._order_tasks(self.selected_tasks)
@@ -333,12 +345,33 @@ class TaskControl(object):
         return task_in_order
 
 
-    def process(self, task_selection):
-        """@return (list - string) each element is the name of a task"""
-        # execute only tasks in the filter in the order specified by filter
-        if task_selection is not None:
-            self.selected_tasks = self.filter_tasks(task_selection)
-        else:
-            # if no filter is defined execute all tasks
-            # in the order they were defined.
-            self.selected_tasks = self._def_order
+    # this is replacement for order_tasks
+    def get_next_task(self):
+        assert self.selected_tasks is not None, "must call 'process' before this"
+        ADDING, ADDED = 0, 1
+        status = {}
+        task_in_order = []
+        def add_task(task_name):
+            if task_name in status:
+                # check task was alaready added
+                if status[task_name] == ADDED:
+                    return
+                # detect cyclic/recursive dependencies
+                if status[task_name] == ADDING:
+                    msg = "Cyclic/recursive dependencies for task %s"
+                    raise InvalidDodoFile(msg % task_name)
+
+            status[task_name] = ADDING
+            # add dependencies first
+            for dependency in self.tasks[task_name].task_dep:
+                for tk in add_task(dependency):
+                    yield tk
+
+            # add itself
+            task_in_order.append(self.tasks[task_name])
+            status[task_name] = ADDED
+            yield task_name
+
+        for name in self.selected_tasks:
+            for x in add_task(name):
+                yield self.tasks[x]

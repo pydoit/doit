@@ -269,11 +269,19 @@ class TestTaskControlCmdOptions(object):
 
 
 class TestOrderTasks(object):
-    # same task is not added twice
-    def testAddJustOnce(self):
-        tc = TaskControl([Task("taskX", None)])
-        result = tc._order_tasks(["taskX"]*2)
-        assert 1 == len(result)
+    def testChangeOrder_AddJustOnce(self):
+        tasks = [Task("taskX",None,[":taskY"]),
+                 Task("taskY",None,)]
+        tc = TaskControl(tasks)
+        tc.process(None)
+        assert [tasks[1], tasks[0]] == tc.order_tasks()
+
+    def testAddNotSelected(self):
+        tasks = [Task("taskX",None,[":taskY"]),
+                 Task("taskY",None,)]
+        tc = TaskControl(tasks)
+        tc.process(['taskX'])
+        assert [tasks[1], tasks[0]] == tc.order_tasks()
 
     def testDetectCyclicReference(self):
         tasks = [Task("taskX",None,[":taskY"]),
@@ -281,5 +289,28 @@ class TestOrderTasks(object):
         tc = TaskControl(tasks)
         tc.process(None)
         py.test.raises(InvalidDodoFile, tc.order_tasks)
+
+class TestGetNext(object):
+    def testChangeOrder_AddJustOnce(self):
+        tasks = [Task("taskX",None,[":taskY"]),
+                 Task("taskY",None,)]
+        tc = TaskControl(tasks)
+        tc.process(None)
+        assert [tasks[1], tasks[0]] == [x for x in tc.get_next_task()]
+
+    def testAddNotSelected(self):
+        tasks = [Task("taskX",None,[":taskY"]),
+                 Task("taskY",None,)]
+        tc = TaskControl(tasks)
+        tc.process(['taskX'])
+        assert [tasks[1], tasks[0]] == [x for x in tc.get_next_task()]
+
+    def testDetectCyclicReference(self):
+        tasks = [Task("taskX",None,[":taskY"]),
+                 Task("taskY",None,[":taskX"])]
+        tc = TaskControl(tasks)
+        tc.process(None)
+        gen = tc.get_next_task()
+        py.test.raises(InvalidDodoFile, gen.next)
 
 
