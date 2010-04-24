@@ -180,12 +180,6 @@ class TestDodoConfig(object):
         dodo_dict = load_task_generators(dodo)
         assert {"abcd": "add"} == dodo_dict['config']
 
-    # default_tasks deprecation
-    def testDefaultTasks(self, dodo):
-        dodo.DEFAULT_TASKS = ["abcd", "add"]
-        dodo_dict = load_task_generators(dodo)
-        assert ["abcd", "add"] == dodo_dict['config']['default_tasks']
-
 
 class TestTaskControlInit(object):
 
