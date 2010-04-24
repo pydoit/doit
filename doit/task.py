@@ -349,6 +349,7 @@ class Task(object):
     @ivar run_always: (bool) task always run even if up-to-date
     @ivar setup (list): List of setup objects
           (any object with setup or cleanup method)
+    @ivar setup_tasks (list - string): references to task-names
     @ivar is_subtask: (bool) indicate this task is a subtask.
     @ivar result: (str) last action "result". used to check task-result-dep
     @ivar values: (dict) values saved by task that might be used by other tasks
@@ -359,6 +360,8 @@ class Task(object):
     @ivar taskopt: (cmdparse.Command)
     @ivar custom_title: function reference that takes a task object as
                         parameter and returns a string.
+    @ivar run_status (str): contains the result of Dependency.get_status
+            modified by runner, value can be: None, run, ignore, up-to-date
     """
 
     DEFAULT_VERBOSITY = 1
@@ -393,7 +396,6 @@ class Task(object):
 
         self.name = name
         self.targets = targets
-        self.setup = setup
         self.run_once = False
         self.run_always = False
         self.is_subtask = is_subtask
@@ -402,6 +404,14 @@ class Task(object):
         self.verbosity = verbosity
         self.custom_title = title
         self.getargs = getargs
+
+        self.setup = [] # old setup objects
+        self.setup_tasks = [] # new setup tasks
+        for setup_item in setup:
+            if isinstance(setup_item, str):
+                self.setup_tasks.append(setup_item)
+            else:
+                self.setup.append(setup_item)
 
         # options
         self.taskcmd = cmdparse.TaskOption(name, params, None, None)
@@ -430,6 +440,8 @@ class Task(object):
         self._init_dependencies(dependencies)
         self._init_getargs()
         self._init_doc(doc)
+
+        self.run_status = None
 
 
     def _init_dependencies(self, dependencies):

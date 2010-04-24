@@ -313,4 +313,30 @@ class TestGetNext(object):
         gen = tc.get_next_task()
         py.test.raises(InvalidDodoFile, gen.next)
 
+    def testSetupTasksDontRun(self):
+        tasks = [Task("taskX",None,setup=["taskY"]),
+                 Task("taskY",None,)]
+        tc = TaskControl(tasks)
+        tc.process(['taskX'])
 
+        gen = tc.get_next_task()
+        assert tasks[0] == gen.next()
+        # X is up-to-date
+        tasks[0].run_status = 'up-to-date'
+        py.test.raises(StopIteration, gen.next)
+
+    def testSetupTasksRun(self):
+        tasks = [Task("taskX",None,setup=["taskY"]),
+                 Task("taskY",None,)]
+        tc = TaskControl(tasks)
+        tc.process(['taskX'])
+
+        gen = tc.get_next_task()
+        assert tasks[0] == gen.next()
+        # X should run
+        tasks[0].run_status = 'run'
+        # but it was deferred because it has setup tasks
+        assert tasks[1] == gen.next()
+        # send X again, now it is ready
+        assert tasks[0] == gen.next()
+        py.test.raises(StopIteration, gen.next)

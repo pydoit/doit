@@ -349,8 +349,7 @@ class TaskControl(object):
     def get_next_task(self):
         assert self.selected_tasks is not None, "must call 'process' before this"
         ADDING, ADDED = 0, 1
-        status = {}
-        task_in_order = []
+        status = {} # key task-name, value: ADDING, ADDED
         def add_task(task_name):
             if task_name in status:
                 # check task was alaready added
@@ -362,15 +361,24 @@ class TaskControl(object):
                     raise InvalidDodoFile(msg % task_name)
 
             status[task_name] = ADDING
+            this_task = self.tasks[task_name]
             # add dependencies first
-            for dependency in self.tasks[task_name].task_dep:
+            for dependency in this_task.task_dep:
                 for tk in add_task(dependency):
                     yield tk
 
             # add itself
-            task_in_order.append(self.tasks[task_name])
-            status[task_name] = ADDED
             yield task_name
+            # add setup-tasks
+            if this_task.run_status == 'run':
+                for st in this_task.setup_tasks:
+                    # TODO check st is a valid task name
+                    for tk in add_task(st):
+                        yield tk
+                # re-send this task after setup_tasks are sent
+                yield task_name
+            status[task_name] = ADDED
+
 
         for name in self.selected_tasks:
             for x in add_task(name):

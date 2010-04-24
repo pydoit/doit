@@ -28,6 +28,8 @@ except ImportError: # pragma: no cover
     get_md5 = get_md5_py4
 
 
+USE_FILE_TIMESTAMP = True
+
 def md5sum(path):
     """Calculate the md5 sum from file content.
 
@@ -51,7 +53,7 @@ def check_modified(file_path, state):
 
     timestamp, size, file_md5 = state
     # 1 - if timestamp is not modified file is the same
-    if os.path.getmtime(file_path) == timestamp:
+    if USE_FILE_TIMESTAMP and os.path.getmtime(file_path) == timestamp:
         return False
     # 2 - if size is different file is modified
     if os.path.getsize(file_path) != size:

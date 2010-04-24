@@ -48,6 +48,13 @@ ERROR = 2
 class Runner(object):
     """Task runner
 
+    run_tasks():
+        for each task:
+            select_task()
+            execute_task()
+            process_task_result()
+    finish()
+
     """
     def __init__(self, dependencyFile, reporter, continue_=False,
                  always_execute=False):
@@ -66,30 +73,56 @@ class Runner(object):
         self._stop_running = False
 
 
+    def handle_task_error(self, task, catched_excp):
+        assert isinstance(catched_excp, CatchedException)
+        self.dependencyManager.remove_success(task)
+        self.reporter.add_failure(task, catched_excp)
+        # only return FAILURE if no errors happened.
+        if isinstance(catched_excp, TaskFailed):
+            self.final_result = FAILURE
+        else:
+            self.final_result = ERROR
+        if not self.continue_:
+            self._stop_running = True
+
+
     def select_task(self, task):
         """Returns bool, task should be executed
          * side-effect: set task.options
         """
-        self.reporter.start_task(task)
-        # check if task is up-to-date
-        try:
-            task_uptodate = self.dependencyManager.get_status(task)
-        except Exception, exception:
-            de = DependencyError("ERROR checking dependencies", exception)
-            self.handle_task_error(task, de)
-            return False
 
-        if not self.always_execute:
-            # if task is up-to-date skip it
-            if task_uptodate == 'up-to-date':
-                self.reporter.skip_uptodate(task)
-                return False
-            # check if task should be ignored (user controlled)
-            if task_uptodate == 'ignore':
-                self.reporter.skip_ignore(task)
+        # check if run_status was already calculated
+        if task.run_status is None:
+            # TODO reporter.start_task rename to get_status
+            self.reporter.start_task(task)
+            # check if task is up-to-date
+            try:
+                task.run_status = self.dependencyManager.get_status(task)
+            except Exception, exception:
+                de = DependencyError("ERROR checking dependencies", exception)
+                self.handle_task_error(task, de)
                 return False
 
-        # get values from other tasks
+            if not self.always_execute:
+                # if task is up-to-date skip it
+                if task.run_status == 'up-to-date':
+                    self.reporter.skip_uptodate(task)
+                    return False
+                # check if task should be ignored (user controlled)
+                if task.run_status == 'ignore':
+                    self.reporter.skip_ignore(task)
+                    return False
+
+            if task.setup_tasks:
+                # dont execute now, execute setup first...
+                return False
+        else:
+            assert task.run_status == 'run'
+            # check if already executed
+            if not task.setup_tasks:
+                return False
+
+        # selected just need to get values from other tasks
         for arg, value in task.getargs.iteritems():
             try:
                 task.options[arg] = self.dependencyManager.get_value(value)
@@ -98,10 +131,12 @@ class Runner(object):
                        str(exception))
                 self.handle_task_error(task, DependencyError(msg))
                 return False
+
         return True
 
 
     def execute_task(self, task, verbosity):
+        """execute task's actions"""
         # setup env
         for setup_obj in task.setup:
             try:
@@ -123,19 +158,6 @@ class Runner(object):
         # task error
         else:
             self.handle_task_error(task, catched_excp)
-
-
-    def handle_task_error(self, task, catched_excp):
-        assert isinstance(catched_excp, CatchedException)
-        self.dependencyManager.remove_success(task)
-        self.reporter.add_failure(task, catched_excp)
-        # only return FAILURE if no errors happened.
-        if isinstance(catched_excp, TaskFailed):
-            self.final_result = FAILURE
-        else:
-            self.final_result = ERROR
-        if not self.continue_:
-            self._stop_running = True
 
 
     def run_tasks(self, task_control, verbosity=None):

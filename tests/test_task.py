@@ -364,7 +364,7 @@ class TestTask(object):
         py.test.raises(task.InvalidTask, task.Task,
                       "Task X",["taskcmd"], dependencies=[123])
 
-    def test_ruOnce_or_fileDependency(self):
+    def test_runOnce_or_fileDependency(self):
         py.test.raises(task.InvalidTask, task.Task,
                       "Task X",["taskcmd"], dependencies=[True,"whatever"])
 
@@ -385,6 +385,18 @@ class TestTask(object):
         t = task.Task("MyName", None, params=[p1, p2])
         assert 'p1-default' == t.options['p1']
         assert '' == t.options['p2']
+
+    def test_setup(self):
+        # 2 kinds of setup: old-object, new-task_name
+        class MySetup:pass
+        setup_obj = MySetup()
+        t = task.Task("task5", ['action'], setup=[setup_obj, "task2"])
+        assert [setup_obj] == t.setup
+        assert ["task2"] == t.setup_tasks
+
+    def test_run_status(self):
+        t = task.Task("t", ["q"])
+        assert t.run_status is None
 
 
 class TestTask_Getargs(object):

@@ -1,6 +1,7 @@
 import os
 import StringIO
 import threading
+import time
 
 import py.test
 
@@ -17,31 +18,35 @@ def remove_testdb():
     if os.path.exists(TESTDB):
         os.remove(TESTDB)
 
-
-TASKS_SAMPLE = [Task("t1", [""], doc="t1 doc string"),
-                Task("t2", [""], doc="t2 doc string"),
-                Task("g1", None, doc="g1 doc string"),
-                Task("g1.a", [""], doc="g1.a doc string", is_subtask=True),
-                Task("g1.b", [""], doc="g1.b doc string", is_subtask=True),
-                Task("t3", [""], doc="t3 doc string")]
-TASKS_SAMPLE[2].task_dep = ['g1.a', 'g1.b']
+def tasks_sample():
+    tasks_sample = [
+        Task("t1", [""], doc="t1 doc string"),
+        Task("t2", [""], doc="t2 doc string"),
+        Task("g1", None, doc="g1 doc string"),
+        Task("g1.a", [""], doc="g1.a doc string", is_subtask=True),
+        Task("g1.b", [""], doc="g1.b doc string", is_subtask=True),
+        Task("t3", [""], doc="t3 doc string")]
+    tasks_sample[2].task_dep = ['g1.a', 'g1.b']
+    return tasks_sample
 
 
 class TestCmdList(object):
 
     def testDefault(self):
         output = StringIO.StringIO()
-        cmds.doit_list(TESTDB, TASKS_SAMPLE, output, [])
+        tasks = tasks_sample()
+        cmds.doit_list(TESTDB, tasks, output, [])
         got = [line for line in output.getvalue().split('\n') if line]
-        expected = [t.name for t in TASKS_SAMPLE if not t.is_subtask]
+        expected = [t.name for t in tasks if not t.is_subtask]
         assert expected == got
 
     def testDoc(self):
         output = StringIO.StringIO()
-        cmds.doit_list(TESTDB, TASKS_SAMPLE, output, [], print_doc=True)
+        tasks = tasks_sample()
+        cmds.doit_list(TESTDB, tasks, output, [], print_doc=True)
         got = [line for line in output.getvalue().split('\n') if line]
         expected = []
-        for t in TASKS_SAMPLE:
+        for t in tasks:
             if not t.is_subtask:
                 expected.append("%s\t* %s" % (t.name, t.doc))
         assert expected == got
@@ -55,41 +60,42 @@ class TestCmdList(object):
 
     def testSubTask(self):
         output = StringIO.StringIO()
-        cmds.doit_list(TESTDB, TASKS_SAMPLE, output, [], print_subtasks=True)
+        tasks = tasks_sample()
+        cmds.doit_list(TESTDB, tasks, output, [], print_subtasks=True)
         got = [line for line in output.getvalue().split('\n') if line]
-        expected = [t.name for t in TASKS_SAMPLE]
+        expected = [t.name for t in tasks]
         assert expected == got
 
     def testFilter(self):
         output = StringIO.StringIO()
-        cmds.doit_list(TESTDB, TASKS_SAMPLE, output, ['g1', 't2'])
+        cmds.doit_list(TESTDB, tasks_sample(), output, ['g1', 't2'])
         got = [line for line in output.getvalue().split('\n') if line]
         expected = ['g1', 't2']
         assert expected == got
 
     def testFilterSubtask(self):
         output = StringIO.StringIO()
-        cmds.doit_list(TESTDB, TASKS_SAMPLE, output, ['g1.a'])
+        cmds.doit_list(TESTDB, tasks_sample(), output, ['g1.a'])
         got = [line for line in output.getvalue().split('\n') if line]
         expected = ['g1.a']
         assert expected == got
 
     def testFilterAll(self):
         output = StringIO.StringIO()
-        cmds.doit_list(TESTDB, TASKS_SAMPLE, output, ['g1'], print_subtasks=True)
+        cmds.doit_list(TESTDB, tasks_sample(), output, ['g1'], print_subtasks=True)
         got = [line for line in output.getvalue().split('\n') if line]
         expected = ['g1', 'g1.a', 'g1.b']
         assert expected == got
 
     def testStatus(self):
         output = StringIO.StringIO()
-        cmds.doit_list(TESTDB, TASKS_SAMPLE, output, ['g1'], print_status=True)
+        cmds.doit_list(TESTDB, tasks_sample(), output, ['g1'], print_status=True)
         got = [line for line in output.getvalue().split('\n') if line]
         expected = ['R g1']
         assert expected == got
 
     def testNoPrivate(self):
-        task_list = list(TASKS_SAMPLE)
+        task_list = list(tasks_sample())
         task_list.append(Task("_s3", [""]))
         output = StringIO.StringIO()
         cmds.doit_list(TESTDB, task_list, output, ['_s3'])
@@ -98,7 +104,7 @@ class TestCmdList(object):
         assert expected == got
 
     def testWithPrivate(self):
-        task_list = list(TASKS_SAMPLE)
+        task_list = list(tasks_sample())
         task_list.append(Task("_s3", [""]))
         output = StringIO.StringIO()
         cmds.doit_list(TESTDB, task_list, output, ['_s3'], print_private=True)
@@ -179,7 +185,7 @@ class TestCmdRun(object):
     def testProcessRun(self):
         remove_testdb()
         output = StringIO.StringIO()
-        result = cmds.doit_run(TESTDB, TASKS_SAMPLE, output)
+        result = cmds.doit_run(TESTDB, tasks_sample(), output)
         assert 0 == result
         got = output.getvalue().split("\n")[:-1]
         assert [".  t1", ".  t2", ".  g1.a", ".  g1.b", ".  t3"] == got
@@ -187,14 +193,14 @@ class TestCmdRun(object):
     def testProcessRunFilter(self):
         remove_testdb()
         output = StringIO.StringIO()
-        cmds.doit_run(TESTDB, TASKS_SAMPLE, output, ["g1.a"])
+        cmds.doit_run(TESTDB, tasks_sample(), output, ["g1.a"])
         got = output.getvalue().split("\n")[:-1]
         assert [".  g1.a"] == got, repr(got)
 
     def testProcessRunEmptyFilter(self):
         remove_testdb()
         output = StringIO.StringIO()
-        cmds.doit_run(TESTDB, TASKS_SAMPLE, output, [])
+        cmds.doit_run(TESTDB, tasks_sample(), output, [])
         got = output.getvalue().split("\n")[:-1]
         assert [] == got
 
@@ -202,7 +208,7 @@ class TestCmdRun(object):
         remove_testdb()
         output = StringIO.StringIO()
         py.test.raises(InvalidCommand, cmds.doit_run,
-                TESTDB, TASKS_SAMPLE, output, reporter="i dont exist")
+                TESTDB, tasks_sample(), output, reporter="i dont exist")
 
     def testSetVerbosity(self):
         remove_testdb()
@@ -218,7 +224,7 @@ class TestCmdRun(object):
 
     def test_outfile(self):
         remove_testdb()
-        cmds.doit_run(TESTDB, TASKS_SAMPLE, 'test.out', ["g1.a"])
+        cmds.doit_run(TESTDB, tasks_sample(), 'test.out', ["g1.a"])
         try:
             outfile = open('test.out', 'r')
             got = outfile.read()
@@ -412,7 +418,7 @@ class TestFileWatcher(object):
 
 
 class TestCmdAuto(object):
-    def test(self, cwd, capsys):
+    def test(self, cwd, capsys, monkeypatch):
         file1, file2, file3 = 'data/w1.txt', 'data/w2.txt', 'data/w3.txt'
         stop_file = 'data/stop'
         should_stop = []
@@ -423,7 +429,10 @@ class TestCmdAuto(object):
                 self.handle_event(event)
                 if event.pathname.endswith("stop"):
                     should_stop.append(True)
-        cmds.FileModifyWatcher._handle = _handle
+        monkeypatch.setattr(cmds.FileModifyWatcher, "_handle", _handle)
+        from doit import dependency
+        monkeypatch.setattr(dependency, "USE_FILE_TIMESTAMP", False)
+
         # stop file watcher
         def loop_callback(notifier):
             started.append(True)
@@ -432,14 +441,16 @@ class TestCmdAuto(object):
 
         remove_testdb()
         # create files
-        for fx in (file1, file2, file2, stop_file):
+        for fx in (file1, file2, file3, stop_file):
             fd = open(fx, 'w')
             fd.write("hi")
             fd.close()
         #
-        task_list = [Task("t1", [""], [file1]),
-                     Task("t2", [""], [file2]),
-                     Task("stop", [""],  [stop_file]),]
+        def hi():
+            print "hello"
+        task_list = [Task("t1", [(hi,)], [file1]),
+                     Task("t2", [(hi,)], [file2]),
+                     Task("stop", [(hi,)],  [stop_file]),]
         run_args = (TESTDB, task_list, ["t1", "t2", "stop"], loop_callback)
         loop_thread = threading.Thread(target=cmds.doit_auto, args=run_args)
         loop_thread.daemon = True
@@ -447,29 +458,42 @@ class TestCmdAuto(object):
 
         # wait watcher to be ready
         while not started: assert loop_thread.isAlive()
-
         # write in watched file ====expected=====> .  t1
         fd = open(file1, 'w')
-        fd.write("hi")
+        fd.write("mod1")
         fd.close()
         # write in non-watched file ============> None
         fd = open(file3, 'w')
-        fd.write("hi")
+        fd.write("mod2")
         fd.close()
+
+        time.sleep(0.01)
         # write in another watched file ========> .  t2
         fd = open(file2, 'w')
-        fd.write("hi")
+        fd.write("mod3")
+        fd.close()
+
+        time.sleep(0.01)
+        # write in watched file ====expected=====> .  t1
+        fd = open(file1, 'w')
+        fd.write("mod4")
         fd.close()
 
         # tricky to stop watching
         fd = open(stop_file, 'w')
-        fd.write("hi")
+        fd.write("mod5")
         fd.close()
-        loop_thread.join(1)
+        loop_thread.join(10)
         assert not loop_thread.isAlive()
 
         out, err = capsys.readouterr()
         out_lines = out.splitlines()
+        # always execute once all tasks
         assert '.  t1' == out_lines[0]
         assert '.  t2' == out_lines[1]
-
+        assert '.  stop' == out_lines[2]
+        assert '.  t1' == out_lines[3]
+        assert '.  t2' == out_lines[4]
+        assert '.  t1' == out_lines[5]
+        assert '.  stop' == out_lines[6]
+        assert 7 == len(out_lines)

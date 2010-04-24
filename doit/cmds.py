@@ -267,6 +267,9 @@ def doit_auto(dependency_file, task_list, filter_tasks, loop_callback=None):
         def handle_event(self, event):
             doit_run(dependency_file, task_list, sys.stdout,
                      filter_tasks, reporter='executed-only')
+            # reset run_status
+            for task in task_list:
+                task.run_status = None
 
     fw = DoitAutoRun(watch_files)
     # always run once when started

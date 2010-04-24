@@ -27,7 +27,7 @@ setup(name = 'doit',
 
       packages = ['doit'],
       scripts = ['bin/doit'],
-      requires = ['pyinotify'],
+      install_requires = ['pyinotify'],
 
       long_description = """
 doit comes from the idea of bringing the power of build-tools to execute any kind of task. It will keep track of dependencies between "tasks" and execute them only when necessary. It was designed to be easy to use and "get out of your way".
