@@ -260,15 +260,15 @@ def doit_auto(dependency_file, task_list, filter_tasks, loop_callback=None):
     """
     task_control = TaskControl(task_list)
     task_control.process(filter_tasks)
-    tasks_to_run = [t for t in task_control.get_next_task(True)]
+    tasks_to_run = list(set([t for t in task_control.get_next_task(True)]))
+    watch_tasks = [t.name for t in tasks_to_run]
     watch_files = list(itertools.chain(*[s.file_dep for s in tasks_to_run]))
+    watch_files = list(set(watch_files))
 
     class DoitAutoRun(FileModifyWatcher):
         def handle_event(self, event):
-            # FIXME how to handle setup-tasks ?
-
             doit_run(dependency_file, task_list, sys.stdout,
-                     filter_tasks, reporter='executed-only')
+                     watch_tasks, reporter='executed-only')
             # reset run_status
             for task in task_list:
                 task.run_status = None
