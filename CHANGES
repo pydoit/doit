@@ -8,7 +8,7 @@ Changes
 
 - sub-command "list" option "--deps", show list of file dependencies
 - select task by wildcard (fnmatch) i.e. test:folderXXX/*
-- task-setup now can be another task
+- task-setup can be another task
 
 0.7.0 (*2010-04-08*)
 =====================

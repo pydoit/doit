@@ -268,28 +268,6 @@ class TestTaskControlCmdOptions(object):
         assert "hello option!" == tc.tasks['t3'].options['opt1']
 
 
-class TestOrderTasks(object):
-    def testChangeOrder_AddJustOnce(self):
-        tasks = [Task("taskX",None,[":taskY"]),
-                 Task("taskY",None,)]
-        tc = TaskControl(tasks)
-        tc.process(None)
-        assert [tasks[1], tasks[0]] == tc.order_tasks()
-
-    def testAddNotSelected(self):
-        tasks = [Task("taskX",None,[":taskY"]),
-                 Task("taskY",None,)]
-        tc = TaskControl(tasks)
-        tc.process(['taskX'])
-        assert [tasks[1], tasks[0]] == tc.order_tasks()
-
-    def testDetectCyclicReference(self):
-        tasks = [Task("taskX",None,[":taskY"]),
-                 Task("taskY",None,[":taskX"])]
-        tc = TaskControl(tasks)
-        tc.process(None)
-        py.test.raises(InvalidDodoFile, tc.order_tasks)
-
 class TestGetNext(object):
     def testChangeOrder_AddJustOnce(self):
         tasks = [Task("taskX",None,[":taskY"]),
@@ -324,6 +302,15 @@ class TestGetNext(object):
         # X is up-to-date
         tasks[0].run_status = 'up-to-date'
         py.test.raises(StopIteration, gen.next)
+
+    def testIncludeSetup(self):
+        tasks = [Task("taskX",None,setup=["taskY"]),
+                 Task("taskY",None,)]
+        tc = TaskControl(tasks)
+        tc.process(['taskX'])
+
+        task_list = [t for t in tc.get_next_task(True)]
+        assert [tasks[0], tasks[1], tasks[0]] == task_list
 
     def testSetupTasksRun(self):
         tasks = [Task("taskX",None,setup=["taskY"]),
