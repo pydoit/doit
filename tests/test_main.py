@@ -159,8 +159,6 @@ class TestDodoConfig(object):
         def remove_dodo(dodo):
             if hasattr(dodo, 'DOIT_CONFIG'):
                 del dodo.DOIT_CONFIG
-            if hasattr(dodo, 'DEFAULT_TASKS'):
-                del dodo.DEFAULT_TASKS
         return request.cached_setup(
             setup=get_dodo_module,
             teardown=remove_dodo,

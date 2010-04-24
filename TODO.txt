@@ -12,6 +12,9 @@
 0.X
 ----------
 
+. --enable/--disable cmd line options
+. reporter plugin
+
 . tools - profile
 . tools - code coverage
 

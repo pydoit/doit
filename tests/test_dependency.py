@@ -155,7 +155,16 @@ class TestSaveSuccess(object):
         assert 39 == value[1] # size
         assert expected == value[2] # MD5
 
-    # TOJDO test skip md5 calculation
+    def test_save_skip(self, depfile, monkeypatch):
+        #self.test_save_file_md5(depfile)
+        filePath = get_abspath("data/dependency1")
+        t1 = Task("taskId_X", None, [filePath])
+        depfile._set(t1.name, filePath, (345, 0, "fake"))
+        monkeypatch.setattr(os.path, 'getmtime', lambda x: 345)
+        # save but md5 is not modified
+        depfile.save_success(t1)
+        got = depfile._get("taskId_X", filePath)
+        assert "fake" == got[2]
 
     def test_save_files(self, depfile):
         filePath = get_abspath("data/dependency1")
