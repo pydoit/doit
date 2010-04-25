@@ -145,6 +145,42 @@ class TestRunner_SelectTask(object):
         assert not reporter.log
 
 
+class TestRunner_ExecuteTask(object):
+    def test_teardown(self, reporter):
+        t1 = Task('t1', [], teardown=['a'])
+        t2 = Task('t2', [])
+        my_runner = runner.Runner(TESTDB, reporter)
+        assert [] == my_runner.teardown_list
+        my_runner.execute_task(t1,0)
+        my_runner.execute_task(t2,0)
+        assert [t1] == my_runner.teardown_list
+
+
+class TestTask_Teardown(object):
+    def test_ok(self, reporter):
+        touched = []
+        def touch():
+            touched.append(1)
+        t1 = Task('t1', [], teardown=[(touch,)])
+        my_runner = runner.Runner(TESTDB, reporter)
+        my_runner.teardown_list = [t1]
+        my_runner.teardown()
+        assert 1 == len(touched)
+        assert not reporter.log
+
+    def test_errors(self, reporter):
+        def raise_something(x):
+            raise Exception(x)
+        t1 = Task('t1', [], teardown=[(raise_something,['t1 blow'])])
+        t2 = Task('t2', [], teardown=[(raise_something,['t2 blow'])])
+        my_runner = runner.Runner(TESTDB, reporter)
+        my_runner.teardown_list = [t1, t2]
+        my_runner.teardown()
+        assert ('cleanup_error',) == reporter.log.pop(0)
+        assert ('cleanup_error',) == reporter.log.pop(0)
+        assert not reporter.log
+
+
 
 #TODO unit-test individual methods: handle_task_error, ...
 class TestRunner_All(object):

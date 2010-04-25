@@ -299,7 +299,6 @@ class TaskControl(object):
             self.selected_tasks = self._def_order
 
 
-    # this is replacement for order_tasks
     def get_next_task(self, include_setup=False):
         assert self.selected_tasks is not None, "must call 'process' before this"
         ADDING, ADDED = 0, 1

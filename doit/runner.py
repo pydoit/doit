@@ -67,13 +67,15 @@ class Runner(object):
         self.reporter = reporter
         self.continue_ = continue_
         self.always_execute = always_execute
+        self.verbosity = 0
 
         self.setupManager = SetupManager()
+        self.teardown_list = [] # list of tasks to be teardown
         self.final_result = SUCCESS # until something fails
         self._stop_running = False
 
 
-    def handle_task_error(self, task, catched_excp):
+    def _handle_task_error(self, task, catched_excp):
         assert isinstance(catched_excp, CatchedException)
         self.dependencyManager.remove_success(task)
         self.reporter.add_failure(task, catched_excp)
@@ -100,7 +102,7 @@ class Runner(object):
                 task.run_status = self.dependencyManager.get_status(task)
             except Exception, exception:
                 de = DependencyError("ERROR checking dependencies", exception)
-                self.handle_task_error(task, de)
+                self._handle_task_error(task, de)
                 return False
 
             if not self.always_execute:
@@ -129,7 +131,7 @@ class Runner(object):
             except Exception, exception:
                 msg = ("ERROR getting value for argument '%s'\n" % arg +
                        str(exception))
-                self.handle_task_error(task, DependencyError(msg))
+                self._handle_task_error(task, DependencyError(msg))
                 return False
 
         return True
@@ -145,6 +147,10 @@ class Runner(object):
             except Exception, exception:
                 return SetupError("ERROR on object setup", exception)
 
+        # new style cleanup/teardown
+        if task.teardown:
+            self.teardown_list.append(task)
+
         # finally execute it!
         self.reporter.execute_task(task)
         return task.execute(sys.stdout, sys.stderr, verbosity)
@@ -157,7 +163,7 @@ class Runner(object):
             self.reporter.add_success(task)
         # task error
         else:
-            self.handle_task_error(task, catched_excp)
+            self._handle_task_error(task, catched_excp)
 
 
     def run_tasks(self, task_control, verbosity=None):
@@ -169,6 +175,7 @@ class Runner(object):
         @param task_control: L{TaskControl}
         @param verbosity: (int) 0,1,2 see Task.execute
         """
+        self.verbosity = verbosity # FIXME move to init
         for task in task_control.get_next_task():
             if self._stop_running:
                 break
@@ -178,14 +185,28 @@ class Runner(object):
             self.process_task_result(task, catched_excp)
 
 
+    def teardown(self):
+        """run teardown from all tasks"""
+        for task in self.teardown_list:
+            catched = task.execute_teardown(sys.stdout, sys.stderr,
+                                            self.verbosity)
+            if catched:
+                error = SetupError("ERROR on setup_obj cleanup", catched)
+                self.reporter.cleanup_error(error)
+
+
     def finish(self):
         """finish running tasks"""
         # flush update dependencies
         self.dependencyManager.close()
+
         # clean setup objects
         error = self.setupManager.cleanup()
         if error:
             self.reporter.cleanup_error(error)
+
+        # new style teardown
+        self.teardown()
 
         # report final results
         self.reporter.complete_run()

@@ -42,11 +42,19 @@ class CatchedException(object):
             self.traceback = traceback.format_exception(
                 exception.__class__, exception, sys.exc_info()[2])
 
+        #FIXME support exception parameter to be a CatchedException
+
     def get_msg(self):
         return "%s\n%s" % (self.message, "".join(self.traceback))
 
     def get_name(self):
         return self.__class__.__name__
+
+    def __repr__(self):
+        return "(<%s> %s)" % (self.get_name(), self.message)
+
+    def __str__(self):
+        return "%s\n%s" % (self.get_name(), self.get_msg())
 
 
 # TODO rename this? should be ActionFailed?

@@ -11,6 +11,7 @@ class Task(object):
     @ivar name string
     @ivar actions: list - L{BaseAction}
     @ivar clean_actions: list - L{BaseAction}
+    @ivar teardown (list - L{BaseAction})
     @ivar targets: (list -string)
     @ivar task_dep: (list - string)
     @ivar file_dep: (list - string)
@@ -44,6 +45,7 @@ class Task(object):
                   'targets': [list, tuple],
                   'setup': [list, tuple],
                   'clean': [list, tuple, True],
+                  'teardown': [list, tuple],
                   'doc': [str, None],
                   'params': [list, tuple],
                   'verbosity': [None,0,1,2],
@@ -53,8 +55,8 @@ class Task(object):
 
 
     def __init__(self, name, actions, dependencies=(), targets=(),
-                 setup=(), clean=(), is_subtask=False, doc=None, params=(),
-                 verbosity=None, title=None, getargs=None):
+                 setup=(), clean=(), teardown=(), is_subtask=False, doc=None,
+                 params=(), verbosity=None, title=None, getargs=None):
         """sanity checks and initialization
 
         @param params: (list of option parameters) see cmdparse.Command.__init__
@@ -103,6 +105,9 @@ class Task(object):
         else:
             self._remove_targets = False
             self.clean_actions = [create_action(a) for a in clean]
+
+        # teardown
+        self.teardown = [create_action(a) for a in teardown]
 
         # set self as task for all actions
         for action in self.actions:
@@ -229,6 +234,26 @@ class Task(object):
                 return action_return
             self.result = action.result
             self.values.update(action.values)
+
+
+    def execute_teardown(self, out=None, err=None, verbosity=None):
+        """Executes task's teardown
+        @return failure: see CmdAction.execute
+        """
+        # select verbosity to be used
+        priority = (verbosity, # use command line option
+                    self.verbosity, # or task default from dodo file
+                    self.DEFAULT_VERBOSITY) # or global default
+        use_verbosity = [v for v in  priority if v is not None][0]
+
+        VERBOSITY = [(None, None), # 0
+                     (None, err),  # 1
+                     (out, err)]   # 2
+        task_stdout, task_stderr = VERBOSITY[use_verbosity]
+        for action in self.teardown:
+            action_return = action.execute(task_stdout, task_stderr)
+            if isinstance(action_return, CatchedException):
+                return action_return
 
 
     def clean(self, outstream, dryrun):

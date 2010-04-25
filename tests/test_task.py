@@ -5,6 +5,7 @@ from StringIO import StringIO
 import py.test
 
 from doit import TaskError
+from doit import CatchedException
 from doit import action
 from doit import task
 
@@ -185,6 +186,21 @@ class TestTaskActions(object):
         assert "hi_stdout_PY_hi_list" == got, repr(got)
 
 
+class TestTaskTeardown(object):
+    def test_ok(self):
+        got = []
+        def put(x):
+            got.append(x)
+        t = task.Task('t1', [], teardown=[(put, [1]), (put, [2])])
+        assert None == t.execute_teardown()
+        assert [1,2] == got
+
+    def test_fail(self):
+        def my_raise():
+            raise Exception('hoho')
+        t = task.Task('t1', [], teardown=[(my_raise,)])
+        got = t.execute_teardown()
+        assert isinstance(got, CatchedException)
 
 
 class TestTaskClean(object):
