@@ -3,7 +3,7 @@ import StringIO
 
 from doit import reporter
 from doit.task import Task
-from doit import CatchedException
+from doit.exceptions import CatchedException
 from doit.dependency import json #FIXME move json import to __init__.py
 
 

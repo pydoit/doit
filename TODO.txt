@@ -1,7 +1,6 @@
 0.8
 ------
 
-. task cleanup property
 . deprecate setup objects
 
 . support for depedency scanner (#218303)

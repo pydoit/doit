@@ -4,7 +4,7 @@ import sys
 import py.test
 
 from doit import action
-from doit import TaskError, TaskFailed
+from doit.exceptions import TaskError, TaskFailed
 
 #path to test folder
 TEST_PATH = os.path.dirname(__file__)

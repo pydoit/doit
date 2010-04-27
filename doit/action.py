@@ -3,7 +3,7 @@ import StringIO
 import inspect
 from threading import Thread
 
-from doit import TaskFailed, TaskError
+from doit.exceptions import TaskFailed, TaskError
 
 # Exceptions
 class InvalidTask(Exception):

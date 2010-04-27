@@ -2,7 +2,8 @@
 
 import sys
 
-from doit import CatchedException, TaskFailed, SetupError, DependencyError
+from doit.exceptions import CatchedException
+from doit.exceptions import TaskFailed, SetupError, DependencyError
 from doit.dependency import Dependency
 
 
@@ -190,7 +191,7 @@ class Runner(object):
             catched = task.execute_teardown(sys.stdout, sys.stderr,
                                             self.verbosity)
             if catched:
-                error = SetupError("ERROR on setup_obj cleanup", catched)
+                error = SetupError("ERROR on teardown action", catched)
                 self.reporter.cleanup_error(error)
 
 

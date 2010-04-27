@@ -1,9 +1,10 @@
 import types
 import os
 
-from doit import CatchedException
 from doit import cmdparse
+from doit.exceptions import CatchedException
 from doit.action import create_action, InvalidTask
+
 
 class Task(object):
     """Task

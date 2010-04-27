@@ -4,8 +4,8 @@ from StringIO import StringIO
 
 import py.test
 
-from doit import TaskError
-from doit import CatchedException
+from doit.exceptions import TaskError
+from doit.exceptions import CatchedException
 from doit import action
 from doit import task
 
