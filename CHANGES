@@ -10,6 +10,7 @@ Changes
 - select task by wildcard (fnmatch) i.e. test:folderXXX/*
 - task-setup can be another task
 - task property "teardown" substitute of setup-objects cleanup
+- deprecate setup-objects
 
 0.7.0 (*2010-04-08*)
 =====================

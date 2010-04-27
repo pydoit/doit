@@ -85,6 +85,8 @@ class Task(object):
             if isinstance(setup_item, str):
                 self.setup_tasks.append(setup_item)
             else:
+                print "DEPRECATION WARNING: Setup-objects are deprecated. ",
+                print "Use setup-tasks and task.teardown instead."
                 self.setup.append(setup_item)
 
         # options
