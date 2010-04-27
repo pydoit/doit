@@ -15,6 +15,7 @@ class Task(object):
     @ivar teardown (list - L{BaseAction})
     @ivar targets: (list -string)
     @ivar task_dep: (list - string)
+    @ivar wild_dep: (list - string) task dependency using wildcard *
     @ivar file_dep: (list - string)
     @ivar dep_changed (list - string): list of file-dependencies that changed
           (are not up_to_date). this must be set before
@@ -127,6 +128,7 @@ class Task(object):
         self.dep_changed = None
         # there are 3 kinds of dependencies: file, task, result
         self.task_dep = []
+        self.wild_dep = []
         self.file_dep = []
         self.result_dep = []
         for dep in dependencies:
@@ -140,7 +142,10 @@ class Task(object):
             elif isinstance(dep,str):
                 # task dep starts with a ':'
                 if dep.startswith(':'):
-                    self.task_dep.append(dep[1:])
+                    if "*" in dep:
+                        self.wild_dep.append(dep[1:])
+                    else:
+                        self.task_dep.append(dep[1:])
                 # task-result dep starts with a '?'
                 elif dep.startswith('?'):
                     # result_dep are also task_dep.

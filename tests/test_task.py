@@ -57,11 +57,12 @@ class TestTask(object):
 
     # dependency types going to the write place
     def test_dependencyTypes(self):
-        dep = ["file1.txt",":taskX","file2", "?res1"]
+        dep = ["file1.txt",":taskX","file2", "?res1", ":stu*"]
         t = task.Task("MyName", ["MyAction"], dep)
         assert t.task_dep == [dep[1][1:], dep[3][1:]]
         assert t.file_dep == [dep[0],dep[2]]
         assert t.result_dep == [dep[3][1:]]
+        assert t.wild_dep == [dep[4][1:]]
 
     def test_dependencyTrueRunonce(self):
         t = task.Task("Task X",["taskcmd"], dependencies=[True])

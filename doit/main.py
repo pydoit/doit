@@ -206,6 +206,11 @@ class TaskControl(object):
             self.tasks[task.name] = task
             self._def_order.append(task.name)
 
+        # expand wild-card task-dependencies
+        for task in self.tasks.itervalues():
+            for pattern in task.wild_dep:
+                task.task_dep.extend(self._get_wild_tasks(pattern))
+
         # check task-dependencies exist.
         for task in self.tasks.itervalues():
             for dep in task.task_dep:
@@ -234,6 +239,15 @@ class TaskControl(object):
                     task.task_dep.append(self.targets[dep].name)
 
 
+    def _get_wild_tasks(self, pattern):
+        """get list of tasks that match pattern"""
+        wild_list = []
+        for t_name in self._def_order:
+            if fnmatch.fnmatch(t_name, pattern):
+                wild_list.append(t_name)
+        return wild_list
+
+
     def _process_filter(self, task_selection):
         # process cmd line task options
         # [task_name [-task_opt [opt_value]] ...] ...
@@ -255,10 +269,8 @@ class TaskControl(object):
             f_name = seq.pop(0) # always start with a task/target name
             # select tasks by task-name pattern
             if '*' in f_name:
-                for t_name in self._def_order:
-                    task = self.tasks[t_name]
-                    if fnmatch.fnmatch(task.name, f_name):
-                        add_filtered_task((), task.name)
+                for task_name in self._get_wild_tasks(f_name):
+                    add_filtered_task((), task_name)
             else:
                 seq = add_filtered_task(seq, f_name)
         return filter_list

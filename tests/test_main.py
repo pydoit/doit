@@ -212,6 +212,13 @@ class TestTaskControlInit(object):
         py.test.raises(InvalidTask, TaskControl, tasks)
 
 
+    def test_wild(self):
+        tasks = [Task('t1',None,[':foo*']),
+                 Task('foo4',None,)]
+        tc = TaskControl(tasks)
+        assert 'foo4' in tasks[0].task_dep
+
+
 
 TASKS_SAMPLE = [Task("t1", [""], doc="t1 doc string"),
                 Task("t2", [""], doc="t2 doc string"),
