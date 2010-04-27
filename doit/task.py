@@ -214,20 +214,24 @@ class Task(object):
         raise InvalidTask(msg % (task, attr, accept, str(value), type(value)))
 
 
-    def execute(self, out=None, err=None, verbosity=None):
-        """Executes the task.
-        @return failure: see CmdAction.execute
-        """
+    def _get_out_err(self, out, err, verbosity):
         # select verbosity to be used
         priority = (verbosity, # use command line option
                     self.verbosity, # or task default from dodo file
                     self.DEFAULT_VERBOSITY) # or global default
         use_verbosity = [v for v in  priority if v is not None][0]
 
-        VERBOSITY = [(None, None), # 0
-                     (None, err),  # 1
-                     (out, err)]   # 2
-        task_stdout, task_stderr = VERBOSITY[use_verbosity]
+        out_err = [(None, None), # 0
+                   (None, err),  # 1
+                   (out, err)]   # 2
+        return out_err[use_verbosity]
+
+
+    def execute(self, out=None, err=None, verbosity=None):
+        """Executes the task.
+        @return failure: see CmdAction.execute
+        """
+        task_stdout, task_stderr = self._get_out_err(out, err, verbosity)
         for action in self.actions:
             action_return = action.execute(task_stdout, task_stderr)
             if isinstance(action_return, CatchedException):
@@ -240,16 +244,7 @@ class Task(object):
         """Executes task's teardown
         @return failure: see CmdAction.execute
         """
-        # select verbosity to be used
-        priority = (verbosity, # use command line option
-                    self.verbosity, # or task default from dodo file
-                    self.DEFAULT_VERBOSITY) # or global default
-        use_verbosity = [v for v in  priority if v is not None][0]
-
-        VERBOSITY = [(None, None), # 0
-                     (None, err),  # 1
-                     (out, err)]   # 2
-        task_stdout, task_stderr = VERBOSITY[use_verbosity]
+        task_stdout, task_stderr = self._get_out_err(out, err, verbosity)
         for action in self.teardown:
             action_return = action.execute(task_stdout, task_stderr)
             if isinstance(action_return, CatchedException):
