@@ -57,17 +57,18 @@ class Runner(object):
 
     """
     def __init__(self, dependencyFile, reporter, continue_=False,
-                 always_execute=False):
+                 always_execute=False, verbosity=0):
         """@param dependencyFile: (string) file path of the db file
         @param reporter: reporter to be used. It can be a class or an object
         @param continue_: (bool) execute all tasks even after a task failure
         @param always_execute: (bool) execute even if up-to-date or ignored
+        @param verbosity: (int) 0,1,2 see Task.execute
         """
         self.dependencyManager = Dependency(dependencyFile)
         self.reporter = reporter
         self.continue_ = continue_
         self.always_execute = always_execute
-        self.verbosity = 0
+        self.verbosity = verbosity
 
         self.setupManager = SetupManager()
         self.teardown_list = [] # list of tasks to be teardown
@@ -137,7 +138,7 @@ class Runner(object):
         return True
 
 
-    def execute_task(self, task, verbosity):
+    def execute_task(self, task):
         """execute task's actions"""
         # setup env
         for setup_obj in task.setup:
@@ -153,7 +154,7 @@ class Runner(object):
 
         # finally execute it!
         self.reporter.execute_task(task)
-        return task.execute(sys.stdout, sys.stderr, verbosity)
+        return task.execute(sys.stdout, sys.stderr, self.verbosity)
 
 
     def process_task_result(self, task, catched_excp):
@@ -166,22 +167,20 @@ class Runner(object):
             self._handle_task_error(task, catched_excp)
 
 
-    def run_tasks(self, task_control, verbosity=None):
+    def run_tasks(self, task_control):
         """This will actually run/execute the tasks.
         It will check file dependencies to decide if task should be executed
         and save info on successful runs.
         It also deals with output to stdout/stderr.
 
         @param task_control: L{TaskControl}
-        @param verbosity: (int) 0,1,2 see Task.execute
         """
-        self.verbosity = verbosity # FIXME move to init
         for task in task_control.get_next_task():
             if self._stop_running:
                 break
             if not self.select_task(task):
                 continue
-            catched_excp = self.execute_task(task, verbosity)
+            catched_excp = self.execute_task(task)
             self.process_task_result(task, catched_excp)
 
 

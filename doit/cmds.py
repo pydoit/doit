@@ -43,8 +43,9 @@ def doit_run(dependencyFile, task_list, output, options=None,
         # FIXME stderr will be shown twice in case of task error/failure
         reporter_obj = reporter_cls(outstream, show_out , True)
 
-        runner = Runner(dependencyFile, reporter_obj, continue_, alwaysExecute)
-        runner.run_tasks(task_control, verbosity)
+        runner = Runner(dependencyFile, reporter_obj, continue_, alwaysExecute,
+                        verbosity)
+        runner.run_tasks(task_control)
         return runner.finish()
     finally:
         if isinstance(output, str):

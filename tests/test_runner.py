@@ -111,7 +111,7 @@ class TestRunner_SelectTask(object):
         # execute task t1 to calculate value
         assert True == my_runner.select_task(t1)
         assert ('start', t1) == reporter.log.pop(0)
-        t1_result = my_runner.execute_task(t1, 0)
+        t1_result = my_runner.execute_task(t1)
         assert ('execute', t1) == reporter.log.pop(0)
         my_runner.process_task_result(t1, t1_result)
         assert ('success', t1) == reporter.log.pop(0)
@@ -133,7 +133,7 @@ class TestRunner_SelectTask(object):
         # execute task t1 to calculate value
         assert True == my_runner.select_task(t1)
         assert ('start', t1) == reporter.log.pop(0)
-        t1_result = my_runner.execute_task(t1, 0)
+        t1_result = my_runner.execute_task(t1)
         assert ('execute', t1) == reporter.log.pop(0)
         my_runner.process_task_result(t1, t1_result)
         assert ('success', t1) == reporter.log.pop(0)
@@ -151,8 +151,8 @@ class TestRunner_ExecuteTask(object):
         t2 = Task('t2', [])
         my_runner = runner.Runner(TESTDB, reporter)
         assert [] == my_runner.teardown_list
-        my_runner.execute_task(t1,0)
-        my_runner.execute_task(t2,0)
+        my_runner.execute_task(t1)
+        my_runner.execute_task(t2)
         assert [t1] == my_runner.teardown_list
 
 
