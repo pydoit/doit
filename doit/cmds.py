@@ -6,14 +6,14 @@ import itertools
 from doit import dependency
 from doit.task import Task
 from doit.main import TaskControl, InvalidCommand
-from doit.runner import Runner
+from doit.runner import Runner, MP_Runner
 from doit.reporter import REPORTERS
 from doit.dependency import Dependency
 
 
 def doit_run(dependencyFile, task_list, output, options=None,
              verbosity=None, alwaysExecute=False, continue_=False,
-             reporter='default'):
+             reporter='default', num_process=0):
     # get tasks to be executed
     task_control = TaskControl(task_list)
     task_control.process(options)
@@ -43,8 +43,13 @@ def doit_run(dependencyFile, task_list, output, options=None,
         # FIXME stderr will be shown twice in case of task error/failure
         reporter_obj = reporter_cls(outstream, show_out , True)
 
-        runner = Runner(dependencyFile, reporter_obj, continue_, alwaysExecute,
-                        verbosity)
+        if num_process == 0:
+            runner = Runner(dependencyFile, reporter_obj, continue_,
+                            alwaysExecute, verbosity)
+        else:
+            runner = MP_Runner(dependencyFile, reporter_obj, continue_,
+                               alwaysExecute, verbosity, num_process)
+
         runner.run_tasks(task_control)
         return runner.finish()
     finally:

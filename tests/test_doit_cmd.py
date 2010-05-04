@@ -62,7 +62,7 @@ class TestInterface(object):
         mock_run = Mock()
         monkeypatch.setattr(doit_cmd, "doit_run", mock_run)
         doit_cmd.cmd_main(["--output-file", "mylog.txt",
-                                 "-v2", "--continue", "--reporter", "myr"])
+                         "-v2", "--continue", "--reporter", "myr", "-n", "4"])
 
         expected = [('dependencyFile', '.doit.db'),
                     ('task_list', mock_get_tasks()['task_list']),
@@ -71,7 +71,8 @@ class TestInterface(object):
                     ('verbosity', 2),
                     ('alwaysExecute', False),
                     ('continue_', True),
-                    ('reporter', "myr"),]
+                    ('reporter', "myr"),
+                    ('num_process', 4),]
 
         assert len(expected) == len(argspec[0])
         assert len(expected) == len(mock_run.call_args[0])

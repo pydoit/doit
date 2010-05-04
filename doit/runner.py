@@ -2,6 +2,8 @@
 
 import sys
 
+from multiprocessing import Process, Queue
+
 from doit.exceptions import CatchedException
 from doit.exceptions import TaskFailed, SetupError, DependencyError
 from doit.dependency import Dependency
@@ -212,3 +214,103 @@ class Runner(object):
         # report final results
         self.reporter.complete_run()
         return self.final_result
+
+
+
+class MP_Runner(Runner):
+    """MultiProcessing Runner """
+
+    def __init__(self, dependencyFile, reporter, continue_=False,
+                 always_execute=False, verbosity=0, num_process=1):
+        Runner.__init__(self, dependencyFile, reporter, continue_,
+                        always_execute, verbosity)
+        self.num_process = num_process
+
+
+    def get_next_task(self, task_gen):
+        #FIXME can not start task if one of its dependencies has not finished yet
+        if self._stop_running:
+            return None # gentle stop
+
+        while True:
+            try:
+                task = task_gen.next()
+                if self.select_task(task):
+                    return task
+            except StopIteration:
+                return None
+
+
+    def run_tasks(self, task_control):
+        result_q = Queue()
+        task_q = Queue()
+        proc_list = []
+        task_gen = task_control.get_next_task()
+
+        # create and start processes
+        for p_id in xrange(self.num_process):
+            next_task = self.get_next_task(task_gen)
+            if next_task is None:
+                break
+            task_q.put(next_task)
+            process = Process(target=self.execute_task,
+                              args=(task_q, self.verbosity, result_q))
+            process.start()
+            proc_list.append(process)
+
+        # wait for all processes terminate
+        proc_count = len(proc_list)
+        while proc_count:
+            result = result_q.get()
+
+            task = task_control.tasks[result['name']]
+            if 'reporter' in result:
+                self.reporter.execute_task(task)
+                continue
+            elif 'failure' in result:
+                catched_excp = result['failure']
+            elif 'exit' in result:
+                raise result['exit'](result['exception'])
+            else:
+                catched_excp = None
+                task.result = result['result']
+                task.values = result['values']
+
+            # completed one task, dispatch next one
+            self.process_task_result(task, catched_excp)
+            next_task = self.get_next_task(task_gen)
+            if next_task is None:
+                proc_count -= 1
+            task_q.put(next_task)
+
+        # we are done, join all process
+        for proc in proc_list:
+            proc.join()
+
+    def execute_task(self, task_q, verbosity, result_q):
+        """executed on child processes"""
+        try:
+            while True:
+                task = task_q.get()
+                if task is None:
+                    return # no more tasks to execute finish this process
+                result = {'name': task.name}
+                # FIXME support setup objects with 2 "scopes" (global and process)
+                if task.setup:
+                    raise Exception("Setup Objects not supported on MP")
+
+                # execute it!
+                result_q.put({'name':task.name, 'reporter':'execute'})
+                t_result = task.execute(sys.stdout, sys.stderr, verbosity)
+                if t_result is None:
+                    result['result'] = task.result
+                    result['values'] = task.values
+                else:
+                    result['failure'] = t_result
+
+                result_q.put(result)
+        except (SystemExit, KeyboardInterrupt, Exception), e:
+            # error, blow-up everything
+            result_q.put({'name': task.name,
+                          'exit': e.__class__,
+                          'exception': str(e)})

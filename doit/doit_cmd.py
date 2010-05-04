@@ -88,6 +88,17 @@ opt_continue = {'name': 'continue',
                         "[default: %(default)s]"
                 }
 
+
+opt_num_process = {'name': 'num_process',
+                   'short': 'n',
+                   'long': 'process',
+                   'type': int,
+                   'default': 0,
+                   'help': "number of subprocesses"
+                   "[default: %(default)s]"
+                   }
+
+
 # verbosity
 opt_verbosity = {'name':'verbosity',
                  'short':'v',
@@ -166,7 +177,8 @@ def cmd_run(params, args):
         return doit_run(params['dep_file'], dodo_tasks['task_list'],
                         params['outfile'], default_tasks,
                         params['verbosity'], params['always'],
-                        params['continue'], params['reporter'])
+                        params['continue'], params['reporter'],
+                        params['num_process'])
 
     # explicit sub-cmd. parse arguments again
     commands = params['sub']
@@ -398,7 +410,7 @@ def cmd_main(cmd_args):
     # run command
     run_options = (opt_version, opt_help, opt_dodo, opt_cwd, opt_depfile,
                    opt_always, opt_continue, opt_verbosity, opt_reporter,
-                   opt_outfile)
+                   opt_outfile, opt_num_process)
     subCmd['run'] = cmdparse.Command('run', run_options, cmd_run, run_doc)
 
     # clean command

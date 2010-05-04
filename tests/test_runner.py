@@ -12,8 +12,15 @@ from doit import runner
 TESTDB = "testdb"
 
 
+# sample actions
 def my_print(*args):
     pass
+def _fail():
+    return False
+def _error():
+    raise Exception("I am the exception.\n")
+def _exit():
+    raise SystemExit()
 
 
 def pytest_funcarg__reporter(request):
@@ -182,18 +189,28 @@ class TestTask_Teardown(object):
 
 
 
+def pytest_generate_tests(metafunc):
+    if TestRunner_All == metafunc.cls:
+        for RunnerClass in (runner.Runner, runner.MP_Runner):
+            metafunc.addcall(id=RunnerClass.__name__,
+                             funcargs=dict(RunnerClass=RunnerClass))
+# TODO test action is picklable (closures are not)
+
+def ok(): return "ok"
+def ok2(): return "different"
+
 #TODO unit-test individual methods: handle_task_error, ...
 class TestRunner_All(object):
     # testing whole process/API
-    def test_success(self, reporter):
+    def test_success(self, reporter, RunnerClass):
         tasks = [Task("taskX", [(my_print, ["out a"] )] ),
                  Task("taskY", [(my_print, ["out a"] )] )]
-        my_runner = runner.Runner(TESTDB, reporter)
+        my_runner = RunnerClass(TESTDB, reporter)
         tc = TaskControl(tasks)
         tc.process(None)
         my_runner.run_tasks(tc)
         assert runner.SUCCESS == my_runner.finish()
-        assert ('start', tasks[0]) == reporter.log.pop(0)
+        assert ('start', tasks[0]) == reporter.log.pop(0), reporter.log
         assert ('execute', tasks[0]) == reporter.log.pop(0)
         assert ('success', tasks[0]) == reporter.log.pop(0)
         assert ('start', tasks[1]) == reporter.log.pop(0)
@@ -201,13 +218,10 @@ class TestRunner_All(object):
         assert ('success', tasks[1]) == reporter.log.pop(0)
 
     # whenever a task fails remaining task are not executed
-    def test_failureOutput(self, reporter):
-        def _fail():
-            return False
-
+    def test_failureOutput(self, reporter, RunnerClass):
         tasks = [Task("taskX", [_fail]),
                  Task("taskY", [_fail])]
-        my_runner = runner.Runner(TESTDB, reporter)
+        my_runner = RunnerClass(TESTDB, reporter)
         tc = TaskControl(tasks)
         tc.process(None)
         my_runner.run_tasks(tc)
@@ -219,13 +233,10 @@ class TestRunner_All(object):
         assert 0 == len(reporter.log)
 
 
-    def test_error(self, reporter):
-        def _error():
-            raise Exception("I am the exception.\n")
-
+    def test_error(self, reporter, RunnerClass):
         tasks = [Task("taskX", [_error]),
                  Task("taskY", [_error])]
-        my_runner = runner.Runner(TESTDB, reporter)
+        my_runner = RunnerClass(TESTDB, reporter)
         tc = TaskControl(tasks)
         tc.process(None)
         my_runner.run_tasks(tc)
@@ -238,7 +249,7 @@ class TestRunner_All(object):
 
 
     # when successful dependencies are updated
-    def test_updateDependencies(self, reporter):
+    def test_updateDependencies(self, reporter, RunnerClass):
         filePath = os.path.join(os.path.dirname(__file__),"data/dependency1")
         ff = open(filePath,"a")
         ff.write("xxx")
@@ -252,7 +263,7 @@ class TestRunner_All(object):
         targets = [filePath]
 
         tasks = [Task("taskX", [my_print], dependencies, targets)]
-        my_runner = runner.Runner(TESTDB, reporter)
+        my_runner = RunnerClass(TESTDB, reporter)
         tc = TaskControl(tasks)
         tc.process(None)
         my_runner.run_tasks(tc)
@@ -262,9 +273,9 @@ class TestRunner_All(object):
         assert 1 == len(d._db)
 
     # when successful and run_once is updated
-    def test_successRunOnce(self, reporter):
+    def test_successRunOnce(self, reporter, RunnerClass):
         tasks = [Task("taskX", [my_print], [True], [])]
-        my_runner = runner.Runner(TESTDB, reporter)
+        my_runner = RunnerClass(TESTDB, reporter)
         tc = TaskControl(tasks)
         tc.process(None)
         my_runner.run_tasks(tc)
@@ -272,12 +283,10 @@ class TestRunner_All(object):
         d = Dependency(TESTDB)
         assert 1 == len(d._db)
 
-
-    def test_resultDependency(self, reporter):
-        def ok(): return "ok"
+    def test_resultDependency(self, reporter, RunnerClass):
         t1 = Task("t1", [(ok,)])
         t2 = Task("t2", [(ok,)], ['?t1'])
-        my_runner = runner.Runner(TESTDB, reporter)
+        my_runner = RunnerClass(TESTDB, reporter)
         tc = TaskControl([t1, t2])
         tc.process(None)
         my_runner.run_tasks(tc)
@@ -292,7 +301,7 @@ class TestRunner_All(object):
         # again
         t1 = Task("t1", [(ok,)])
         t2 = Task("t2", [(ok,)], ['?t1'])
-        my_runner2 = runner.Runner(TESTDB, reporter)
+        my_runner2 = RunnerClass(TESTDB, reporter)
         tc2 = TaskControl([t1, t2])
         tc2.process(None)
         my_runner2.run_tasks(tc2)
@@ -304,10 +313,9 @@ class TestRunner_All(object):
         assert ('up-to-date', t2) == reporter.log.pop(0)
 
         # change t1, t2 executed again
-        def ok2(): return "different"
         t1B = Task("t1", [(ok2,)])
         t2 = Task("t2", [(ok,)], ['?t1'])
-        my_runner3 = runner.Runner(TESTDB, reporter)
+        my_runner3 = RunnerClass(TESTDB, reporter)
         tc3 = TaskControl([t1B, t2])
         tc3.process(None)
         my_runner3.run_tasks(tc3)
@@ -320,17 +328,11 @@ class TestRunner_All(object):
         assert ('success', t2) == reporter.log.pop(0)
 
 
-    def test_continue(self, reporter):
-        def please_fail():
-            return False
-        def please_blow():
-            raise Exception("bum")
-        def ok():
-            pass
-        tasks = [Task("task1", [(please_fail,)] ),
-                 Task("task2", [(please_blow,)] ),
+    def test_continue(self, reporter, RunnerClass):
+        tasks = [Task("task1", [(_fail,)] ),
+                 Task("task2", [(_error,)] ),
                  Task("task3", [(ok,)])]
-        my_runner = runner.Runner(TESTDB, reporter, continue_=True)
+        my_runner = RunnerClass(TESTDB, reporter, continue_=True)
         tc = TaskControl(tasks)
         tc.process(None)
         my_runner.run_tasks(tc)
@@ -348,11 +350,9 @@ class TestRunner_All(object):
 
 
     # SystemExit runner should not interfere with SystemExit
-    def testSystemExitRaises(self, reporter):
-        def i_raise():
-            raise SystemExit()
-        t1 = Task("x", [i_raise])
-        my_runner = runner.Runner(TESTDB, reporter)
+    def testSystemExitRaises(self, reporter, RunnerClass):
+        t1 = Task("x", [_exit])
+        my_runner = RunnerClass(TESTDB, reporter)
         tc = TaskControl([t1])
         tc.process(None)
         py.test.raises(SystemExit, my_runner.run_tasks, tc)

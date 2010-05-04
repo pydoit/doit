@@ -20,7 +20,7 @@ def task_ut():
     """run unit-tests"""
     for test in testFiles:
         yield {'name': test,
-               'actions': ["py.test %s" % test],
+               'actions': ["py.test -s %s" % test],
                'dependencies': pyFiles,
                'verbosity': 0}
 
@@ -29,13 +29,13 @@ def task_ut():
 
 def task_coverage():
     """show coverage for all modules including tests"""
-    return {'actions':["coverage run `which py.test`",
+    return {'actions':["coverage run `which py.test` -s",
                    "coverage report --show-missing %s" % " ".join(pyFiles)],
             'verbosity': 2}
 
 def task_coverage_code():
     """show coverage for all modules (exclude tests)"""
-    return {'actions':["coverage run `which py.test`",
+    return {'actions':["coverage run `which py.test` -s",
                   "coverage report --show-missing %s" % " ".join(codeFiles)],
             'verbosity': 2}
 
@@ -47,7 +47,7 @@ def task_coverage_module():
             continue
         source = "doit/" + test[to_strip:]
         yield {'name': test,
-               'actions':["coverage run `which py.test` %s" % test,
+               'actions':["coverage run `which py.test` -s %s" % test,
                    "coverage report --show-missing %s %s" % (source, test)],
                'verbosity': 2}
 

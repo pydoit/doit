@@ -215,7 +215,7 @@ class TestTaskControlInit(object):
     def test_wild(self):
         tasks = [Task('t1',None,[':foo*']),
                  Task('foo4',None,)]
-        tc = TaskControl(tasks)
+        TaskControl(tasks)
         assert 'foo4' in tasks[0].task_dep
 
 
