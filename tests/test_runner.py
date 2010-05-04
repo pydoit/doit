@@ -152,17 +152,6 @@ class TestRunner_SelectTask(object):
         assert not reporter.log
 
 
-class TestRunner_ExecuteTask(object):
-    def test_teardown(self, reporter):
-        t1 = Task('t1', [], teardown=['a'])
-        t2 = Task('t2', [])
-        my_runner = runner.Runner(TESTDB, reporter)
-        assert [] == my_runner.teardown_list
-        my_runner.execute_task(t1)
-        my_runner.execute_task(t2)
-        assert [t1] == my_runner.teardown_list
-
-
 class TestTask_Teardown(object):
     def test_ok(self, reporter):
         touched = []
@@ -173,6 +162,7 @@ class TestTask_Teardown(object):
         my_runner.teardown_list = [t1]
         my_runner.teardown()
         assert 1 == len(touched)
+        assert ('teardown', t1) == reporter.log.pop(0)
         assert not reporter.log
 
     def test_errors(self, reporter):
@@ -183,11 +173,11 @@ class TestTask_Teardown(object):
         my_runner = runner.Runner(TESTDB, reporter)
         my_runner.teardown_list = [t1, t2]
         my_runner.teardown()
+        assert ('teardown', t1) == reporter.log.pop(0)
         assert ('cleanup_error',) == reporter.log.pop(0)
+        assert ('teardown', t2) == reporter.log.pop(0)
         assert ('cleanup_error',) == reporter.log.pop(0)
         assert not reporter.log
-
-
 
 def pytest_generate_tests(metafunc):
     if TestRunner_All == metafunc.cls:
@@ -196,11 +186,24 @@ def pytest_generate_tests(metafunc):
                              funcargs=dict(RunnerClass=RunnerClass))
 # TODO test action is picklable (closures are not)
 
+
 def ok(): return "ok"
 def ok2(): return "different"
 
 #TODO unit-test individual methods: handle_task_error, ...
 class TestRunner_All(object):
+
+    def test_teardown(self, reporter, RunnerClass):
+        t1 = Task('t1', [], teardown=[ok])
+        t2 = Task('t2', [])
+        my_runner = RunnerClass(TESTDB, reporter)
+        tc = TaskControl([t1, t2])
+        tc.process(None)
+        assert [] == my_runner.teardown_list
+        my_runner.run_tasks(tc)
+        my_runner.finish()
+        assert ('teardown', t1) == reporter.log[-1]
+
     # testing whole process/API
     def test_success(self, reporter, RunnerClass):
         tasks = [Task("taskX", [(my_print, ["out a"] )] ),

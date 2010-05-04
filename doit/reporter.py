@@ -32,6 +32,9 @@ class FakeReporter(object):
     def cleanup_error(self, exception):
         self.log.append(('cleanup_error',))
 
+    def teardown_task(self, task):
+        self.log.append(('teardown', task))
+
     def complete_run(self):
         pass
 
@@ -73,6 +76,8 @@ class ConsoleReporter(object):
     def cleanup_error(self, exception):
         sys.stderr.write(exception.get_msg())
 
+    def teardown_task(self, task):
+        pass
 
     def complete_run(self):
         # if test fails print output from failed task
@@ -189,6 +194,9 @@ class JsonReporter(object):
 
     def cleanup_error(self, exception):
         # TODO ???
+        pass
+
+    def teardown_task(self, task):
         pass
 
     def complete_run(self):

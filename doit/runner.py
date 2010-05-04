@@ -190,6 +190,7 @@ class Runner(object):
     def teardown(self):
         """run teardown from all tasks"""
         for task in self.teardown_list:
+            self.reporter.teardown_task(task)
             catched = task.execute_teardown(sys.stdout, sys.stderr,
                                             self.verbosity)
             if catched:
@@ -219,6 +220,19 @@ class Runner(object):
 
 class MP_Runner(Runner):
     """MultiProcessing Runner """
+
+    class MP_Reporter(object):
+        def __init__(self, runner, original_reporter):
+            self.runner = runner
+            self.original_reporter = original_reporter
+
+        def __getattr__(self, method_name):
+            if not getattr(self.original_reporter, method_name):
+                raise AttributeError(method_name)
+            def rep_method(task):
+                self.runner.result_q.put({'name':task.name,
+                                          'reporter':method_name})
+            return rep_method
 
     def __init__(self, dependencyFile, reporter, continue_=False,
                  always_execute=False, verbosity=0, num_process=1):
@@ -254,7 +268,7 @@ class MP_Runner(Runner):
                 break
             task_q.put(next_task)
             process = Process(target=self.execute_task,
-                              args=(task_q, self.verbosity, result_q))
+                              args=(task_q, result_q))
             process.start()
             proc_list.append(process)
 
@@ -265,7 +279,7 @@ class MP_Runner(Runner):
 
             task = task_control.tasks[result['name']]
             if 'reporter' in result:
-                self.reporter.execute_task(task)
+                getattr(self.reporter, result['reporter'])(task)
                 continue
             elif 'failure' in result:
                 catched_excp = result['failure']
@@ -287,21 +301,34 @@ class MP_Runner(Runner):
         for proc in proc_list:
             proc.join()
 
-    def execute_task(self, task_q, verbosity, result_q):
+        # get teardown results
+        while not result_q.empty(): # safe because subprocess joined
+            result = result_q.get()
+            assert 'reporter' in result
+            task = task_control.tasks[result['name']]
+            getattr(self.reporter, result['reporter'])(task)
+
+
+    def execute_task(self, task_q, result_q):
         """executed on child processes"""
+        self.result_q = result_q
+        self.reporter = self.MP_Reporter(self, self.reporter)
+
         try:
             while True:
                 task = task_q.get()
                 if task is None:
+                    self.teardown()
                     return # no more tasks to execute finish this process
                 result = {'name': task.name}
                 # FIXME support setup objects with 2 "scopes" (global and process)
                 if task.setup:
-                    raise Exception("Setup Objects not supported on MP")
+                    raise Exception("Task '%s' has Setup-objects. " % task.name +
+                                    "Setup-objects are deprecated and not" +
+                                    " supported with Multi-processing.")
 
-                # execute it!
-                result_q.put({'name':task.name, 'reporter':'execute'})
-                t_result = task.execute(sys.stdout, sys.stderr, verbosity)
+                t_result = Runner.execute_task(self, task)
+
                 if t_result is None:
                     result['result'] = task.result
                     result['values'] = task.values

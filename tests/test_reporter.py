@@ -47,6 +47,17 @@ class TestConsoleReporter(object):
         err = capsys.readouterr()[1]
         assert "I got you" in err
 
+    def test_teardownTask(self):
+        rep = reporter.ConsoleReporter(StringIO.StringIO(), True, True)
+        rep.teardown_task(Task("t_name", None))
+        # no output on teardown task
+        assert "" in rep.outstream.getvalue()
+
+    def test_addSuccess(self):
+        rep = reporter.ConsoleReporter(StringIO.StringIO(), True, True)
+        rep.add_success(Task("t_name", None))
+        # no output on success task
+        assert "" in rep.outstream.getvalue()
 
     def test_addFailure(self):
         rep = reporter.ConsoleReporter(StringIO.StringIO(), True, True)
@@ -122,13 +133,15 @@ class TestJsonReporter(object):
         rep.start_task(t4)
         rep.skip_ignore(t4)
 
+        # just ignore these
+        rep.cleanup_error(Exception('xx'))
+        rep.teardown_task(t4)
+
         rep.complete_run()
         got = json.loads(output.getvalue())
         for task_result in got['tasks']:
             assert expected[task_result['name']] == task_result['result'], got
 
-        # just ignore this
-        rep.cleanup_error(Exception('xx'))
 
 
     def test_ignore_stdout(self):
