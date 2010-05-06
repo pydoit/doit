@@ -217,6 +217,9 @@ class Runner(object):
         return self.final_result
 
 
+class Hold(object):
+    """Sentinel class: No task ready to be executed"""
+    pass
 
 class MP_Runner(Runner):
     """MultiProcessing Runner """
@@ -234,25 +237,51 @@ class MP_Runner(Runner):
                                           'reporter':method_name})
             return rep_method
 
+
     def __init__(self, dependencyFile, reporter, continue_=False,
                  always_execute=False, verbosity=0, num_process=1):
         Runner.__init__(self, dependencyFile, reporter, continue_,
                         always_execute, verbosity)
         self.num_process = num_process
-
+        self.waiting = {}
+        self.ready_queue = []
+        self.free_proc = 0
 
     def get_next_task(self, task_gen):
-        #FIXME can not start task if one of its dependencies has not finished yet
         if self._stop_running:
             return None # gentle stop
 
+        def nothing_ready():
+            if self.waiting:
+                self.free_proc += 1
+                return Hold()
+            else:
+                return None
+
         while True:
-            try:
-                task = task_gen.next()
+            # get new task
+            if self.ready_queue:
+                task_name = self.ready_queue.pop(0)
+                task = self.tasks[task_name]
+            else:
+                try:
+                    task = task_gen.next()
+                except StopIteration:
+                    return nothing_ready()
+
+            # check task-dependencies are done
+            for dep in task.task_dep:
+                if self.tasks[dep].run_status == 'run':
+                    print task.name, "wait dude"
+                    if dep in self.waiting:
+                        self.waiting[dep].append(task.name)
+                    else:
+                        self.waiting[dep] = [task.name]
+                    break
+            # dont need to wait for another task
+            else:
                 if self.select_task(task):
                     return task
-            except StopIteration:
-                return None
 
 
     def run_tasks(self, task_control):
@@ -260,6 +289,7 @@ class MP_Runner(Runner):
         task_q = Queue()
         proc_list = []
         task_gen = task_control.get_next_task()
+        self.tasks = task_control.tasks
 
         # create and start processes
         for p_id in xrange(self.num_process):
@@ -292,10 +322,19 @@ class MP_Runner(Runner):
 
             # completed one task, dispatch next one
             self.process_task_result(task, catched_excp)
-            next_task = self.get_next_task(task_gen)
-            if next_task is None:
-                proc_count -= 1
-            task_q.put(next_task)
+            task.run_status = "done"
+            if task.name in self.waiting:
+                for ready_task in self.waiting[task.name]:
+                    self.ready_queue.append(ready_task)
+                del self.waiting[task.name]
+
+            free_proc = self.free_proc
+            self.free_proc = 0
+            for get_one_more in range(1 + free_proc):
+                next_task = self.get_next_task(task_gen)
+                if next_task is None:
+                    proc_count -= 1
+                task_q.put(next_task)
 
         # we are done, join all process
         for proc in proc_list:
@@ -320,6 +359,10 @@ class MP_Runner(Runner):
                 if task is None:
                     self.teardown()
                     return # no more tasks to execute finish this process
+
+                if isinstance(task, Hold):
+                    continue
+
                 result = {'name': task.name}
                 # FIXME support setup objects with 2 "scopes" (global and process)
                 if task.setup:

@@ -336,7 +336,7 @@ class TaskControl(object):
             yield task_name
             # add setup-tasks
             if this_task.setup_tasks:
-                if this_task.run_status == 'run' or include_setup:
+                if this_task.run_status in ('run','done') or include_setup:
                     for st in this_task.setup_tasks:
                         # TODO check st is a valid task name
                         for tk in add_task(st):
