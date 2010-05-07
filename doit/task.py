@@ -55,6 +55,7 @@ class Task(object):
                   'title': [None, types.FunctionType],
                   }
 
+    setup_warned = False # print setup-object deprecation warning just once
 
     def __init__(self, name, actions, dependencies=(), targets=(),
                  setup=(), clean=(), teardown=(), is_subtask=False, doc=None,
@@ -86,9 +87,11 @@ class Task(object):
             if isinstance(setup_item, str):
                 self.setup_tasks.append(setup_item)
             else:
-                print "DEPRECATION WARNING: Setup-objects are deprecated. ",
-                print "Use setup-tasks and task.teardown instead."
                 self.setup.append(setup_item)
+                if not self.__class__.setup_warned:
+                    print "DEPRECATION WARNING: Setup-objects are deprecated. ",
+                    print "Use setup-tasks and task.teardown instead."
+                    self.__class__.setup_warned = True
 
         # options
         self.taskcmd = cmdparse.TaskOption(name, params, None, None)
