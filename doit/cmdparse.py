@@ -26,9 +26,17 @@ class DefaultUpdate(dict):
             self[k] = v
 
     def __setitem__(self, key, value):
-        self._non_default_keys.add(key)
+        try:
+            self._non_default_keys.add(key)
+        # http://bugs.python.org/issue826897
+        except AttributeError:
+            self._non_default_keys = set()
+            self._non_default_keys.add(key)
         dict.__setitem__(self, key, value)
 
+    # http://bugs.python.org/issue826897
+    def __setstate__(self, adict):
+        pass
 
 class CmdParseError(Exception):
     """Error parsing options """
