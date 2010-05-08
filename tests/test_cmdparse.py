@@ -1,3 +1,5 @@
+import pickle
+
 import py.test
 
 from doit import cmdparse
@@ -17,6 +19,13 @@ class TestDefaultUpdate(object):
         du.update_defaults({'a':2, 'b':2})
         assert 2 == du['a']
         assert 1 == du['b']
+
+    # http://bugs.python.org/issue826897
+    def test_pickle(self):
+        du = cmdparse.DefaultUpdate()
+        du.set_default('x', 0)
+        dump = pickle.dumps(du,2)
+        restored = pickle.loads(dump)
 
 
 opt_bool = {'name': 'flag',
