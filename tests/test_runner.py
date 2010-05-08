@@ -1,4 +1,5 @@
 import os
+from multiprocessing import Queue
 
 import py.test
 
@@ -441,3 +442,78 @@ class TestTaskSetupObject(object):
         assert ('execute', t1) == reporter.log.pop(0)
         assert ('success', t1) == reporter.log.pop(0)
         assert ('cleanup_error',) == reporter.log.pop(0)
+
+
+class TestMP_Reporter(object):
+    class MyRunner(object):
+        def __init__(self):
+            self.result_q = Queue()
+
+    def testReporterMethod(self, reporter):
+        fake_runner = self.MyRunner()
+        mp_reporter = runner.MP_Runner.MP_Reporter(fake_runner, reporter)
+        my_task = Task("task x", [])
+        mp_reporter.add_success(my_task)
+        got = fake_runner.result_q.get(True, 1)
+        assert {'name': "task x", "reporter": 'add_success'} == got
+
+    def testNonReporterMethod(self, reporter):
+        fake_runner = self.MyRunner()
+        mp_reporter = runner.MP_Runner.MP_Reporter(fake_runner, reporter)
+        assert hasattr(mp_reporter, 'add_success')
+        assert not hasattr(mp_reporter, 'no_existent_method')
+
+
+class TestMP_Runner_get_next_task(object):
+    # simple normal case
+    def test_run_task(self, reporter):
+        t1 = Task('t1', [])
+        t2 = Task('t2', [])
+        tc = TaskControl([t1, t2])
+        tc.process(None)
+        run = runner.MP_Runner(TESTDB, reporter)
+        run.set_tasks(tc)
+        assert t1 == run.get_next_task()
+        assert t2 == run.get_next_task()
+        assert None == run.get_next_task()
+
+    def test_stop_running(self, reporter):
+        t1 = Task('t1', [])
+        t2 = Task('t2', [])
+        tc = TaskControl([t1, t2])
+        tc.process(None)
+        run = runner.MP_Runner(TESTDB, reporter)
+        run.set_tasks(tc)
+        assert t1 == run.get_next_task()
+        run._stop_running = True
+        assert None == run.get_next_task()
+
+    def test_waiting(self, reporter):
+        t1 = Task('t1', [])
+        t2a = Task('t2A', [], dependencies=(':t1',))
+        t2b = Task('t2B', [], dependencies=(':t1',))
+        tc = TaskControl([t1, t2a, t2b])
+        tc.process(None)
+        run = runner.MP_Runner(TESTDB, reporter)
+        run.set_tasks(tc)
+
+        # first task ok
+        assert t1 == run.get_next_task()
+
+        # hold until t1 finishes
+        assert 0 == run.free_proc
+        assert isinstance(run.get_next_task(), runner.Hold)
+        assert {'t1':['t2A', 't2B']} == run.waiting
+        assert 1 == run.free_proc
+
+        # ready for t2x
+        assert [] == run.ready_queue
+        run._finished_running_task(t1)
+        assert ['t2A', 't2B'] == run.ready_queue
+        assert {} == run.waiting
+
+        # t2
+        assert t2a == run.get_next_task()
+        assert t2b == run.get_next_task()
+        assert None == run.get_next_task()
+

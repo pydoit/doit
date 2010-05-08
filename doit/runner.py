@@ -225,12 +225,19 @@ class MP_Runner(Runner):
     """MultiProcessing Runner """
 
     class MP_Reporter(object):
+        """send reported messages to master process
+
+        puts a dictionary {'name': <task-name>,
+                           'reporter': <reporter-method-name>}
+        on runner's 'result_q'
+        """
         def __init__(self, runner, original_reporter):
             self.runner = runner
             self.original_reporter = original_reporter
 
         def __getattr__(self, method_name):
-            if not getattr(self.original_reporter, method_name):
+            """substitute any reporter method with a dispatching method"""
+            if not hasattr(self.original_reporter, method_name):
                 raise AttributeError(method_name)
             def rep_method(task):
                 self.runner.result_q.put({'name':task.name,
@@ -246,8 +253,11 @@ class MP_Runner(Runner):
         self.waiting = {}
         self.ready_queue = []
         self.free_proc = 0
+        self.task_gen = None
+        self.tasks = None
 
-    def get_next_task(self, task_gen):
+
+    def get_next_task(self):
         if self._stop_running:
             return None # gentle stop
 
@@ -265,14 +275,13 @@ class MP_Runner(Runner):
                 task = self.tasks[task_name]
             else:
                 try:
-                    task = task_gen.next()
+                    task = self.task_gen.next()
                 except StopIteration:
                     return nothing_ready()
 
             # check task-dependencies are done
             for dep in task.task_dep:
                 if self.tasks[dep].run_status == 'run':
-                    print task.name, "wait dude"
                     if dep in self.waiting:
                         self.waiting[dep].append(task.name)
                     else:
@@ -283,19 +292,28 @@ class MP_Runner(Runner):
                 if self.select_task(task):
                     return task
 
+    def set_tasks(self, task_control):
+        self.task_gen = task_control.get_next_task()
+        self.tasks = task_control.tasks
+
+    def _finished_running_task(self, task):
+        task.run_status = "done"
+        if task.name in self.waiting:
+            for ready_task in self.waiting[task.name]:
+                self.ready_queue.append(ready_task)
+            del self.waiting[task.name]
 
     def run_tasks(self, task_control):
         result_q = Queue()
         task_q = Queue()
         proc_list = []
-        task_gen = task_control.get_next_task()
-        self.tasks = task_control.tasks
+        self.set_tasks(task_control)
 
         # create and start processes
         for p_id in xrange(self.num_process):
-            next_task = self.get_next_task(task_gen)
+            next_task = self.get_next_task()
             if next_task is None:
-                break
+                break # do not start more processes than tasks
             task_q.put(next_task)
             process = Process(target=self.execute_task,
                               args=(task_q, result_q))
@@ -322,16 +340,12 @@ class MP_Runner(Runner):
 
             # completed one task, dispatch next one
             self.process_task_result(task, catched_excp)
-            task.run_status = "done"
-            if task.name in self.waiting:
-                for ready_task in self.waiting[task.name]:
-                    self.ready_queue.append(ready_task)
-                del self.waiting[task.name]
+            self._finished_running_task(task)
 
             free_proc = self.free_proc
             self.free_proc = 0
             for get_one_more in range(1 + free_proc):
-                next_task = self.get_next_task(task_gen)
+                next_task = self.get_next_task()
                 if next_task is None:
                     proc_count -= 1
                 task_q.put(next_task)
