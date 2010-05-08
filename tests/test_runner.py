@@ -491,8 +491,9 @@ class TestMP_Runner_get_next_task(object):
     def test_waiting(self, reporter):
         t1 = Task('t1', [])
         t2a = Task('t2A', [], dependencies=(':t1',))
-        t2b = Task('t2B', [], dependencies=(':t1',))
-        tc = TaskControl([t1, t2a, t2b])
+        t2b = Task('t2B', [], setup=('t1',))
+        t3 = Task('t3', [], setup=('t2B',))
+        tc = TaskControl([t1, t2a, t2b, t3])
         tc.process(None)
         run = runner.MP_Runner(TESTDB, reporter)
         run.set_tasks(tc)
@@ -515,5 +516,9 @@ class TestMP_Runner_get_next_task(object):
         # t2
         assert t2a == run.get_next_task()
         assert t2b == run.get_next_task()
-        assert None == run.get_next_task()
 
+        # t3
+        assert isinstance(run.get_next_task(), runner.Hold)
+        run._finished_running_task(t2b)
+        assert t3 == run.get_next_task()
+        assert None == run.get_next_task()

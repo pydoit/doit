@@ -313,10 +313,16 @@ class TaskControl(object):
 
     def get_next_task(self, include_setup=False):
         assert self.selected_tasks is not None, "must call 'process' before this"
-        ADDING, ADDED = 0, 1
+        ADDING, WAITING, ADDED = 0, 1, 2
         status = {} # key task-name, value: ADDING, ADDED
         def add_task(task_name):
+            """generator of tasks to be executed
+            @return Task if ready. or task's name that should be put on hold
+            """
             if task_name in status:
+                # TODO cyclic dependencies can not be detected on MP!
+                if status[task_name] == WAITING:
+                    yield task_name
                 # check task was alaready added
                 if status[task_name] == ADDED:
                     return
@@ -333,19 +339,62 @@ class TaskControl(object):
                     yield tk
 
             # add itself
-            yield task_name
+            yield self.tasks[task_name]
             # add setup-tasks
             if this_task.setup_tasks:
+                if this_task.run_status is None and not include_setup:
+                    status[task_name] = WAITING
+                    yield task_name
                 if this_task.run_status in ('run','done') or include_setup:
                     for st in this_task.setup_tasks:
                         # TODO check st is a valid task name
                         for tk in add_task(st):
                             yield tk
                     # re-send this task after setup_tasks are sent
-                    yield task_name
+                    yield self.tasks[task_name]
             status[task_name] = ADDED
 
 
-        for name in self.selected_tasks:
-            for x in add_task(name):
-                yield self.tasks[x]
+        tasks_to_run = self.selected_tasks[:]
+        task_gens = {}
+        current_gen = None
+        while tasks_to_run or task_gens or current_gen:
+            # get task group from waiting queue
+            if not current_gen:
+                select_waiting = None
+                for wt in task_gens.iterkeys():
+                    if self.tasks[wt].run_status is not None:
+                        select_waiting = wt
+                if select_waiting:
+                    current_gen = task_gens[select_waiting].pop(0)
+                    if not task_gens[select_waiting]:
+                        del task_gens[select_waiting]
+
+            # get task group from tasks_to_run
+            if not current_gen:
+                # all task are waiting, hold on
+                if not tasks_to_run:
+                    yield "hold on"
+                    continue
+                task_name = tasks_to_run.pop(0)
+                current_gen = add_task(task_name)
+
+            # get next task from group
+            try:
+                next = current_gen.next()
+            except StopIteration:
+                current_gen = None
+                continue
+
+            # get task from current group
+            if isinstance(next, str):
+                # this group is on hold
+                if next not in task_gens:
+                    task_gens[next] = [current_gen]
+                else:
+                    task_gens[next].append(current_gen)
+                current_gen = None
+            else:
+                # got a task
+                yield next
+

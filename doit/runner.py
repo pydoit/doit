@@ -7,7 +7,7 @@ from multiprocessing import Process, Queue
 from doit.exceptions import CatchedException
 from doit.exceptions import TaskFailed, SetupError, DependencyError
 from doit.dependency import Dependency
-
+from doit.task import Task
 
 class SetupManager(object):
     """Manage setup objects
@@ -123,7 +123,7 @@ class Runner(object):
                 # dont execute now, execute setup first...
                 return False
         else:
-            assert task.run_status == 'run'
+            assert task.run_status == 'run', "%s:%s" % (task.name, task.run_status)
             # check if already executed
             if not task.setup_tasks:
                 return False
@@ -256,8 +256,14 @@ class MP_Runner(Runner):
         self.task_gen = None
         self.tasks = None
 
-
     def get_next_task(self):
+        """get next task to be dispatched to sub-process
+
+        On MP needs to check if the dependencies finished its execution
+        @returns: - a task
+                  - None -> no more tasks to be executed
+                  - Hold object, all tasks are waiting for dependencies
+        """
         if self._stop_running:
             return None # gentle stop
 
@@ -276,11 +282,14 @@ class MP_Runner(Runner):
             else:
                 try:
                     task = self.task_gen.next()
+                    if not isinstance(task, Task):
+                        self.free_proc += 1
+                        return Hold()
                 except StopIteration:
                     return nothing_ready()
 
             # check task-dependencies are done
-            for dep in task.task_dep:
+            for dep in task.task_dep + task.setup_tasks:
                 if self.tasks[dep].run_status == 'run':
                     if dep in self.waiting:
                         self.waiting[dep].append(task.name)
@@ -324,7 +333,6 @@ class MP_Runner(Runner):
         proc_count = len(proc_list)
         while proc_count:
             result = result_q.get()
-
             task = task_control.tasks[result['name']]
             if 'reporter' in result:
                 getattr(self.reporter, result['reporter'])(task)
