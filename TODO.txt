@@ -1,10 +1,10 @@
-0.8
+0.9
 ------
 
 . support for depedency scanner (#218303)
   . dependencies are calculated just before task is executed possibly by other tasks, not on load time
-. multi-process support
-  . setup/task  single process/all procces
+. setup/task  single process/all procces
+
 
 0.X
 ----------

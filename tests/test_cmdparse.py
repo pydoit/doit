@@ -25,7 +25,7 @@ class TestDefaultUpdate(object):
         du = cmdparse.DefaultUpdate()
         du.set_default('x', 0)
         dump = pickle.dumps(du,2)
-        restored = pickle.loads(dump)
+        pickle.loads(dump)
 
 
 opt_bool = {'name': 'flag',
