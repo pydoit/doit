@@ -1,3 +1,7 @@
+wildcard
+parallel
+summary
+
 0.9
 ------
 

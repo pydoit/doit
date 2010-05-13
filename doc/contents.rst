@@ -14,7 +14,6 @@ Contents:
    install
    tasks
    dependencies
-   env_setup
    cmd_run
    cmd_other
    tools

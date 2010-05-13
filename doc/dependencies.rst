@@ -183,3 +183,19 @@ For *cmd-action* you can use the python notation for keyword substitution on str
 For *python-action* create a parameter in the function `doit` will take care of passing the value when the function is called. The values are passed as list of strings.
 
 .. literalinclude:: tutorial/hello.py
+
+
+
+Environment setup
+---------------------
+
+Some tasks require some kind of environment setup. Tasks may have a list of "setup" task.
+
+* the setup-task will be executed only if the task is to be executed (not up-to-date)
+* setup-tasks are just normal tasks that follow all other task behavior
+
+Task may also define a 'teardown' actions. These actions are executed after all tasks have finished their execution.
+
+Example:
+
+.. literalinclude:: tutorial/setup.py
