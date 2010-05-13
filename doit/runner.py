@@ -1,7 +1,6 @@
 """Task runner."""
 
 import sys
-
 from multiprocessing import Process, Queue
 
 from doit.exceptions import CatchedException
@@ -323,7 +322,10 @@ class MP_Runner(Runner):
             next_task = self.get_next_task()
             if next_task is None:
                 break # do not start more processes than tasks
-            task_q.put(next_task)
+            if isinstance(next_task, Task):
+                task_q.put(next_task.name)
+            else:
+                task_q.put(next_task)
             process = Process(target=self.execute_task,
                               args=(task_q, result_q))
             process.start()
@@ -356,7 +358,10 @@ class MP_Runner(Runner):
                 next_task = self.get_next_task()
                 if next_task is None:
                     proc_count -= 1
-                task_q.put(next_task)
+                if isinstance(next_task, Task):
+                    task_q.put(next_task.name)
+                else:
+                    task_q.put(next_task)
 
         # we are done, join all process
         for proc in proc_list:
@@ -377,14 +382,15 @@ class MP_Runner(Runner):
 
         try:
             while True:
-                task = task_q.get()
-                if task is None:
+                task_name = task_q.get()
+                if task_name is None:
                     self.teardown()
                     return # no more tasks to execute finish this process
 
-                if isinstance(task, Hold):
+                if isinstance(task_name, Hold):
                     continue
 
+                task = self.tasks[task_name]
                 result = {'name': task.name}
                 # FIXME support setup objects with 2 "scopes" (global and process)
                 if task.setup:

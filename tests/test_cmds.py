@@ -467,13 +467,13 @@ class TestCmdAuto(object):
         fd.write("mod2")
         fd.close()
 
-        time.sleep(0.01)
+        time.sleep(0.5)
         # write in another watched file ========> .  t2
         fd = open(file2, 'w')
         fd.write("mod3")
         fd.close()
 
-        time.sleep(0.01)
+        time.sleep(0.5)
         # write in watched file ====expected=====> .  t1
         fd = open(file1, 'w')
         fd.write("mod4")
