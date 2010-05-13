@@ -138,6 +138,10 @@ class Writer(object):
         for w in self.writers :
                 w.write(text)
 
+    def flush(self) :
+        for w in self.writers :
+                w.flush()
+
 
 class PythonAction(BaseAction):
     """Python action. Execute a python callable.
