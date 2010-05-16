@@ -120,6 +120,18 @@ By default the execution of tasks is halted on the first task failure or error. 
     eduardo@eduardo:~$ doit --continue
 
 
+
+parallel execution
+-------------------
+
+`doit` supports parallel execution (using multiple processes) --process/-n. The `multiprocessing <http://docs.python.org/library/multiprocessing.html>`_ module is used. So the same restrictions also apply to the use of multiprocessing in `doit`.
+
+.. code-block:: console
+
+    eduardo@eduardo:~$ doit -n 3
+
+
+
 reporter
 ---------
 

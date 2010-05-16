@@ -25,9 +25,12 @@ Installing
 
 .. note::
   * `doit` dependends on the packages `pyinotify <http://trac.dbzteam.org/pyinotify>`_
-  * for python2.4 and python2.5 users `doit` depends on the package `simplejson`. On python 2.6 the stdlib `json` is used.
+  * for python2.4 and python2.5 users `doit` depends on the packages `simplejson` and `multiprocessing`. On python 2.6 the stdlib `json` and `multiprocessing` are used.
 
-.. note::
+.. warning::
 
    for Windows users:
-   There is a bug on setup tools. Check this `bug <http://bugs.launchpad.net/doit/+bug/218276>`_ for instructions.
+
+   * There is a bug on setup tools. Check this `bug <http://bugs.launchpad.net/doit/+bug/218276>`_ for instructions.
+
+   * New releases are not activelly tested on Windows.

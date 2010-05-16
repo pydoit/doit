@@ -110,7 +110,7 @@ Note that the only the task *t3* was specified to be executed. But its dependenc
 command line selection
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-From the command line you can control which tasks are going to be execute by passing its task name.
+From the command line you can control which tasks are going to be execute by passing its task name. Any number of tasks can be passed as positional arguments.
 
 .. code-block:: console
 
@@ -138,3 +138,16 @@ You can select sub-tasks from the command line specifying its full name.
 
     eduardo@eduardo:~$ doit create_file:file2.txt
     .  create_file:file2.txt
+
+
+wildcard selection
+^^^^^^^^^^^^^^^^^^^^
+
+You can also select tasks to be executed using a `glob <http://docs.python.org/library/glob.html>`_ like syntax (it must contais a ``*``).
+
+.. code-block:: console
+
+    eduardo@eduardo:~$ doit create_file:file*
+    .  create_file:file1.txt
+    .  create_file:file2.txt
+    .  create_file:file3.txt

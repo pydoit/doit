@@ -3,7 +3,7 @@
 Changes
 =======
 
-0.8.0 (*2010-05-??*)
+0.8.0 (*2010-05-16*)
 =======================
 
 - parallel execution of tasks (multi-process support)
