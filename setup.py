@@ -4,7 +4,7 @@ from distutils.core import setup
 
 setup(name = 'doit',
       description = 'doit - Automation Tool',
-      version = '0.8.0',
+      version = '0.9.x',
       license = 'MIT',
       author = 'Eduardo Naufel Schettino',
       author_email = 'schettino72@gmail.com',

@@ -8,39 +8,6 @@ from doit.exceptions import TaskFailed, SetupError, DependencyError
 from doit.dependency import Dependency
 from doit.task import Task
 
-class SetupManager(object):
-    """Manage setup objects
-
-    Setup object is any object that implements 'setup' and/or 'cleanup'
-    @ivar _loaded (list): of loaded setup objects
-    """
-
-    def __init__(self):
-        self._loaded = set()
-
-
-    def load(self, setup_obj):
-        """run setup from a setup_obj if it is not loaded yet"""
-        if setup_obj in self._loaded:
-            return
-
-        self._loaded.add(setup_obj)
-        if hasattr(setup_obj, 'setup'):
-            setup_obj.setup()
-
-
-    def cleanup(self):
-        """run cleanup for all loaded objects"""
-        for setup_obj in self._loaded:
-            if hasattr(setup_obj, 'cleanup'):
-                try:
-                    setup_obj.cleanup()
-                # report error but keep result as successful.
-                # FIXME should execute all cleanup's even with errors
-                # TODO caller should handle the exception
-                except Exception, e:
-                    return SetupError("ERROR on setup_obj cleanup", e)
-
 
 # execution result.
 SUCCESS = 0
@@ -72,7 +39,6 @@ class Runner(object):
         self.always_execute = always_execute
         self.verbosity = verbosity
 
-        self.setupManager = SetupManager()
         self.teardown_list = [] # list of tasks to be teardown
         self.final_result = SUCCESS # until something fails
         self._stop_running = False
@@ -142,15 +108,7 @@ class Runner(object):
 
     def execute_task(self, task):
         """execute task's actions"""
-        # setup env
-        for setup_obj in task.setup:
-            try:
-                self.setupManager.load(setup_obj)
-            except (SystemExit, KeyboardInterrupt): raise
-            except Exception, exception:
-                return SetupError("ERROR on object setup", exception)
-
-        # new style cleanup/teardown
+        # register cleanup/teardown
         if task.teardown:
             self.teardown_list.append(task)
 
@@ -202,11 +160,6 @@ class Runner(object):
         """finish running tasks"""
         # flush update dependencies
         self.dependencyManager.close()
-
-        # clean setup objects
-        error = self.setupManager.cleanup()
-        if error:
-            self.reporter.cleanup_error(error)
 
         # new style teardown
         self.teardown()
@@ -393,11 +346,6 @@ class MP_Runner(Runner):
                 task = self.tasks[task_name]
                 result = {'name': task.name}
                 # FIXME support setup objects with 2 "scopes" (global and process)
-                if task.setup:
-                    raise Exception("Task '%s' has Setup-objects. " % task.name +
-                                    "Setup-objects are deprecated and not" +
-                                    " supported with Multi-processing.")
-
                 t_result = Runner.execute_task(self, task)
 
                 if t_result is None:

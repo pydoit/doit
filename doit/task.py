@@ -21,8 +21,6 @@ class Task(object):
           (are not up_to_date). this must be set before
     @ivar run_once: (bool) task without dependencies should run
     @ivar run_always: (bool) task always run even if up-to-date
-    @ivar setup (list): List of setup objects
-          (any object with setup or cleanup method)
     @ivar setup_tasks (list - string): references to task-names
     @ivar is_subtask: (bool) indicate this task is a subtask.
     @ivar result: (str) last action "result". used to check task-result-dep
@@ -81,17 +79,9 @@ class Task(object):
         self.custom_title = title
         self.getargs = getargs
 
-        self.setup = [] # old setup objects
         self.setup_tasks = [] # new setup tasks
         for setup_item in setup:
-            if isinstance(setup_item, str):
-                self.setup_tasks.append(setup_item)
-            else:
-                self.setup.append(setup_item)
-                if not self.__class__.setup_warned:
-                    print "DEPRECATION WARNING: Setup-objects are deprecated. ",
-                    print "Use setup-tasks and task.teardown instead."
-                    self.__class__.setup_warned = True
+            self.setup_tasks.append(setup_item)
 
         # options
         self.taskcmd = cmdparse.TaskOption(name, params, None, None)

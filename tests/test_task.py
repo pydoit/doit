@@ -104,11 +104,7 @@ class TestTask(object):
         assert '' == t.options['p2']
 
     def test_setup(self):
-        # 2 kinds of setup: old-object, new-task_name
-        class MySetup:pass
-        setup_obj = MySetup()
-        t = task.Task("task5", ['action'], setup=[setup_obj, "task2"])
-        assert [setup_obj] == t.setup
+        t = task.Task("task5", ['action'], setup=["task2"])
         assert ["task2"] == t.setup_tasks
 
     def test_run_status(self):
