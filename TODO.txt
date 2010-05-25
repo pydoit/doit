@@ -4,13 +4,14 @@
 . support for depedency scanner (#218303)
   . dependencies are calculated just before task is executed possibly by other tasks, not on load time
 . setup/task  single process/all procces
+. --enable/--disable cmd line options
+. reporter plugin
 
 
 0.X
 ----------
 
-. --enable/--disable cmd line options
-. reporter plugin
+. GLOBAL vars from cmd line
 
 . tools - profile
 . tools - code coverage
@@ -20,7 +21,6 @@
 
 . option dont save successful results
 . forget a dependency, not a task
-. task process isolation. (execute tasks in a different process)
 . option to make sub-task not part of a group
 . task name alias
 . cache dir files (speed optimization)
@@ -29,13 +29,12 @@ needs volunteer
 ----------------
 
 . windows (#218276)
-
+. mac
 
 not clear how to implement
 ---------------------------
 
 . dont get subtasks if task is not going to be executed (#370923)
-. defer task generator - generator needs to run after a certain task
 . one .doit for each dodo file
 . multiple (include) dodo files (#218279)
 . sub-command/task unification. all sub-commands (but run) implemented as tasks

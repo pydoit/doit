@@ -60,12 +60,23 @@ class Runner(object):
     def select_task(self, task):
         """Returns bool, task should be executed
          * side-effect: set task.options
+
+         Tasks should be executed if they are not up-to-date.
+         Tasks that cointains setup-tasks must be selected twice,
+         so it gives chance for other tasks to be executed after
+         checking it is not up-to-date.
         """
 
-        # check if run_status was already calculated
+        # if run_status is not None, it was already calculated
         if task.run_status is None:
             # TODO reporter.start_task rename to get_status
             self.reporter.start_task(task)
+
+            # # add dynamic dependencies
+            # for ddt in task.dyn_dep:
+            #     dfd = self.dependencyManager.get_value('%s.dd' % ddt)
+            #     task.file_dep.extend(dfd)
+
             # check if task is up-to-date
             try:
                 task.run_status = self.dependencyManager.get_status(task)
@@ -88,10 +99,9 @@ class Runner(object):
                 # dont execute now, execute setup first...
                 return False
         else:
+            # sanity checks
             assert task.run_status == 'run', "%s:%s" % (task.name, task.run_status)
-            # check if already executed
-            if not task.setup_tasks:
-                return False
+            assert task.setup_tasks
 
         # selected just need to get values from other tasks
         for arg, value in task.getargs.iteritems():
@@ -243,6 +253,8 @@ class MP_Runner(Runner):
             # check task-dependencies are done
             for dep in task.task_dep + task.setup_tasks:
                 if self.tasks[dep].run_status == 'run':
+                    # not ready yet, add to waiting dict and re-start loop
+                    # to get another task
                     if dep in self.waiting:
                         self.waiting[dep].append(task.name)
                     else:

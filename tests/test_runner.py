@@ -93,9 +93,6 @@ class TestRunner_SelectTask(object):
         assert True == my_runner.select_task(t1)
         assert ('start', t1) == reporter.log.pop(0)
         assert not reporter.log
-        # trying to select again fails and prints nothing
-        assert False == my_runner.select_task(t1)
-        assert not reporter.log
 
     def test_withSetup(self, reporter):
         t1 = Task("taskX", [(my_print, ["out a"] )], setup=["taskY"])
