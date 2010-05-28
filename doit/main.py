@@ -167,13 +167,17 @@ def get_tasks(dodo_file, cwd, command_names):
 
 
 class TaskControl(object):
-    """
+    """Manages tasks inter-relationship
+
+    There are 3 phases
+      1) the constructor gets a list of tasks and do initialization
+      2) 'process' the command line options for tasks are processed
+      3) 'get_next_task' dispatch tasks to runner
+
     Process dependencies and targets to find out the order tasks
     should be executed. Also apply filter to exclude tasks from
     execution. And parse task cmd line options.
 
-    @ivar filter: (sequence of strings) selection of tasks to execute
-                                        (task/target names)
     @ivar tasks: (dict) Key: task name ([taskgen.]name)
                                Value: L{Task} instance
     @ivar targets: (dict) Key: fileName
@@ -181,16 +185,18 @@ class TaskControl(object):
     """
 
     def __init__(self, task_list):
-
+        self.tasks = {}
         self.targets = {}
+
         # name of task in order to be executed
         # this the order as in the dodo file. the real execution
         # order might be different if the dependecies require so.
         self._def_order = []
-        # dict of tasks by name
-        self.tasks = {}
         # list of tasks selected to be executed
         self.selected_tasks = None
+
+        # FIXME doc
+        self._add_status = {} # key task-name, value: generato_id
 
         # sanity check and create tasks dict
         for task in task_list:
@@ -276,7 +282,7 @@ class TaskControl(object):
         return filter_list
 
 
-    def filter_tasks(self, task_selection):
+    def _filter_tasks(self, task_selection):
         """Select tasks specified by filter.
 
         filter can specify tasks to be execute by task name or target.
@@ -304,88 +310,95 @@ class TaskControl(object):
         """@return (list - string) each element is the name of a task"""
         # execute only tasks in the filter in the order specified by filter
         if task_selection is not None:
-            self.selected_tasks = self.filter_tasks(task_selection)
+            self.selected_tasks = self._filter_tasks(task_selection)
         else:
             # if no filter is defined execute all tasks
             # in the order they were defined.
             self.selected_tasks = self._def_order
 
 
-    def get_next_task(self, include_setup=False):
+    def _add_task(self, gen_id, task_name, include_setup):
+        """generator of tasks to be executed
+        @return Task if ready. or task's name that should be put on hold
+        """
+        # used in the place of gen_id to indicate task was "completely"  added
+        ADDED = -1
+
+        # check if this was already added
+        if task_name in self._add_status:
+            # check task was alaready added, nothing to do. stop iteration
+            if self._add_status[task_name] == ADDED:
+                return
+            # detect cyclic/recursive dependencies
+            if self._add_status[task_name] == gen_id:
+                msg = "Cyclic/recursive dependencies for task %s"
+                raise InvalidDodoFile(msg % task_name)
+            # is running on another generator
+            if self._add_status[task_name] != gen_id:
+                return
+
+        self._add_status[task_name] = gen_id
+        this_task = self.tasks[task_name]
+
+        # # execute dynamic tasks
+        # dyn_tasks = this_task.dyn_dep
+        # while dyn_tasks:
+        #     dyn = self.tasks[dyn_tasks.pop(0)]
+        #     for tk in self._add_task(gen_id, dyn.name, include_setup):
+        #         yield tk
+
+        #     # FIXME might hold MP
+        #     self._add_status[dyn.name] = WAITING
+        #     yield dyn.name
+        #     if 'dd' in dyn.values:
+        #         this_task._init_dependencies(dyn.values['dd'])
+
+        # add dependencies first
+        for dependency in this_task.task_dep:
+            for tk in self._add_task(gen_id, dependency, include_setup):
+                yield tk
+
+        # add itself
+        yield self.tasks[task_name]
+
+        # tasks that contain setup-tasks need to be yielded twice
+        if this_task.setup_tasks:
+            # run_status None means task is waiting for other tasks
+            # in order to check if up-to-date. so it needs to wait
+            # before scheduling its setup-tasks.
+            if this_task.run_status is None and not include_setup:
+                yield task_name
+
+            # this task should run, so schedule setup-tasks before itself
+            if this_task.run_status == 'run' or include_setup:
+                for st in this_task.setup_tasks:
+                    # TODO check st is a valid task name
+                    for tk in self._add_task(gen_id, st, include_setup):
+                        yield tk
+                # re-send this task after setup_tasks are sent
+                yield self.tasks[task_name]
+
+        # done with this task
+        self._add_status[task_name] = ADDED
+
+
+    def task_dispatcher(self, include_setup=False):
+        """Dispatch another task to be executed, mostly handle with MP
+
+        Note that a dispatched task might not be ready to be executed.
+        """
         assert self.selected_tasks is not None, "must call 'process' before this"
-        ADDING, WAITING, ADDED = 0, 1, 2
-        status = {} # key task-name, value: ADDING, ADDED
-        def add_task(task_name):
-            """generator of tasks to be executed
-            @return Task if ready. or task's name that should be put on hold
-            """
-            # check if this was already added
-            if task_name in status:
-                # TODO cyclic dependencies can not be detected on MP!
-                if status[task_name] == WAITING:
-                    # waiting for setup, return str to put on hold
-                    yield task_name
-                    assert status[task_name] == ADDED
-                    return
-                # check task was alaready added, nothing to do. stop iteration
-                if status[task_name] == ADDED:
-                    return
-                # detect cyclic/recursive dependencies
-                if status[task_name] == ADDING:
-                    msg = "Cyclic/recursive dependencies for task %s"
-                    raise InvalidDodoFile(msg % task_name)
-
-            status[task_name] = ADDING
-            this_task = self.tasks[task_name]
-
-            # dyn_tasks = this_task.dyn_dep
-            # while dyn_tasks:
-            #     dyn = dyn_tasks.pop(0)
-            #     for tk in add_task(dyn):
-            #         yield tk
-            #     # FIXME might hold MP
-            #     status[dyn.name] = WAITING
-            #     yield dyn.name
-            #     expanding all its xxx_dep fields
-
-            # add dependencies first
-            for dependency in this_task.task_dep:
-                for tk in add_task(dependency):
-                    yield tk
-
-            # add itself
-            yield self.tasks[task_name]
-
-            # tasks that contain setup-tasks need to be yielded twice
-            if this_task.setup_tasks:
-                # run_status None means task is waiting for other tasks
-                # in order to check if up-to-date. so it needs to wait
-                # before scheduling its setup-tasks.
-                if this_task.run_status is None and not include_setup:
-                    status[task_name] = WAITING
-                    yield task_name
-
-                # this task should run, so schedule setup-tasks before itself
-                if this_task.run_status == 'run' or include_setup:
-                    for st in this_task.setup_tasks:
-                        # TODO check st is a valid task name
-                        for tk in add_task(st):
-                            yield tk
-                    # re-send this task after setup_tasks are sent
-                    yield self.tasks[task_name]
-
-            # done with this task
-            status[task_name] = ADDED
 
         # each selected task will create a tree (from dependencies) of
         # tasks to be processed
         tasks_to_run = self.selected_tasks[:]
         # waiting task generators
         # key (str): name of the task to wait for
-        # value (list): list of task generators waiting for this task
+        # value (list): add_task generator waiting for this task
         task_gens = {}
         # current active task generator
         current_gen = None
+        gen_id = 1
         while tasks_to_run or task_gens or current_gen:
             ## get task from (in order):
             # 1 - current task generator
@@ -396,10 +409,9 @@ class TaskControl(object):
             if not current_gen:
                 for wt in task_gens.iterkeys():
                     if self.tasks[wt].run_status is not None:
-                        current_gen = task_gens[wt].pop(0)
-                        if not task_gens[wt]:
-                            del task_gens[wt]
-                    break
+                        current_gen = task_gens[wt]
+                        del task_gens[wt]
+                        break
 
             # get task group from tasks_to_run
             if not current_gen:
@@ -409,7 +421,8 @@ class TaskControl(object):
                     continue
                 task_name = tasks_to_run.pop(0)
                 # seed task generator
-                current_gen = add_task(task_name)
+                current_gen = self._add_task(gen_id, task_name, include_setup)
+                gen_id += 1
 
             # get next task from current generator
             try:
@@ -419,15 +432,12 @@ class TaskControl(object):
                 current_gen = None
                 continue
 
-            # get task from current group
+            # str means this generator is on hold, add to waiting dict
             if isinstance(next, str):
-                # str means this generator is on hold, add to waiting dict
                 if next not in task_gens:
-                    task_gens[next] = [current_gen]
-                else:
-                    task_gens[next].append(current_gen)
+                    task_gens[next] = current_gen
                 current_gen = None
+            # get task from current group
             else:
-                # got a task
                 yield next
 

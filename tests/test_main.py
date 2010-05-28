@@ -233,38 +233,130 @@ class TestTaskControlCmdOptions(object):
     def testFilter(self):
         filter_ = ['t2', 't3']
         tc = TaskControl(TASKS_SAMPLE)
-        assert filter_ == tc.filter_tasks(filter_)
+        assert filter_ == tc._filter_tasks(filter_)
+
+    def testProcess(self):
+        filter_ = ['t2', 't3']
+        tc = TaskControl(TASKS_SAMPLE)
+        tc.process(filter_)
+        assert filter_ == tc.selected_tasks
 
     def testFilterPattern(self):
         tc = TaskControl(TASKS_SAMPLE)
-        assert ['t1', 'g1', 'g1.a', 'g1.b'] == tc.filter_tasks(['*1*'])
+        assert ['t1', 'g1', 'g1.a', 'g1.b'] == tc._filter_tasks(['*1*'])
 
     def testFilterSubtask(self):
         filter_ = ["t1", "g1.b"]
         tc =  TaskControl(TASKS_SAMPLE)
-        assert filter_ == tc.filter_tasks(filter_)
+        assert filter_ == tc._filter_tasks(filter_)
 
     def testFilterTarget(self):
         tasks = list(TASKS_SAMPLE)
         tasks.append(Task("tX", [""],[],["targetX"]))
         tc =  TaskControl(tasks)
-        assert ['tX'] == tc.filter_tasks(["targetX"])
+        assert ['tX'] == tc._filter_tasks(["targetX"])
 
     # filter a non-existent task raises an error
     def testFilterWrongName(self):
         tc =  TaskControl(TASKS_SAMPLE)
-        py.test.raises(InvalidCommand, tc.filter_tasks, ['no'])
+        py.test.raises(InvalidCommand, tc._filter_tasks, ['no'])
 
     def testFilterEmptyList(self):
         filter_ = []
         tc = TaskControl(TASKS_SAMPLE)
-        assert filter_ == tc.filter_tasks(filter_)
+        assert filter_ == tc._filter_tasks(filter_)
 
     def testOptions(self):
         options = ["t3", "--message", "hello option!", "t1"]
         tc = TaskControl(TASKS_SAMPLE)
-        assert ['t3', 't1'] == tc.filter_tasks(options)
+        assert ['t3', 't1'] == tc._filter_tasks(options)
         assert "hello option!" == tc.tasks['t3'].options['opt1']
+
+
+class TestAddTask(object):
+    def testChangeOrder_AddJustOnce(self):
+        tasks = [Task("taskX",None,[":taskY"]),
+                 Task("taskY",None,)]
+        tc = TaskControl(tasks)
+        tc.process(None)
+        assert [tasks[1], tasks[0]] == [x for x in tc._add_task(0, 'taskX', False)]
+        # both tasks were already added. so no tasks left..
+        assert [] == [x for x in tc._add_task(0, 'taskY', False)]
+
+    def testAddNotSelected(self):
+        tasks = [Task("taskX",None,[":taskY"]),
+                 Task("taskY",None,)]
+        tc = TaskControl(tasks)
+        tc.process(['taskX'])
+        assert [tasks[1], tasks[0]] == [x for x in tc._add_task(0, 'taskX',False)]
+
+    def testDetectCyclicReference(self):
+        tasks = [Task("taskX",None,[":taskY"]),
+                 Task("taskY",None,[":taskX"])]
+        tc = TaskControl(tasks)
+        tc.process(None)
+        gen = tc._add_task(0, "taskX", False)
+        py.test.raises(InvalidDodoFile, gen.next)
+
+    def testParallel(self):
+        tasks = [Task("taskX",None,[":taskY"]),
+                 Task("taskY",None)]
+        tc = TaskControl(tasks)
+        tc.process(None)
+        gen1 = tc._add_task(0, "taskX", False)
+        assert tasks[1] == gen1.next()
+        # gen2 wont get any task, because it was already being processed
+        gen2 = tc._add_task(1, "taskY", False)
+        py.test.raises(StopIteration, gen2.next)
+
+    def testSetupTasksDontRun(self):
+        tasks = [Task("taskX",None,setup=["taskY"]),
+                 Task("taskY",None,)]
+        tc = TaskControl(tasks)
+        tc.process(['taskX'])
+        gen = tc._add_task(0, 'taskX', False)
+        assert tasks[0] == gen.next()
+        # X is up-to-date
+        tasks[0].run_status = 'up-to-date'
+        py.test.raises(StopIteration, gen.next)
+
+    def testIncludeSetup(self):
+        # with include_setup yield all tasks without waiting for setup tasks to
+        # be ready
+        tasks = [Task("taskX",None,setup=["taskY"]),
+                 Task("taskY",None,)]
+        tc = TaskControl(tasks)
+        tc.process(['taskX'])
+        gen = tc._add_task(0, 'taskX', True) # <== include_setup
+        assert tasks[0] == gen.next() # tasks with setup are yield twice
+        assert tasks[1] == gen.next() # execute setup before
+        assert tasks[0] == gen.next() # second time, ok
+        py.test.raises(StopIteration, gen.next) # nothing left
+
+    def testSetupTasksRun(self):
+        tasks = [Task("taskX",None,setup=["taskY"]),
+                 Task("taskY",None,)]
+        tc = TaskControl(tasks)
+        tc.process(['taskX'])
+        gen = tc._add_task(0, 'taskX', False)
+        assert tasks[0] == gen.next() # tasks with setup are yield twice
+        tasks[0].run_status = 'run' # should be executed
+        assert tasks[1] == gen.next() # execute setup before
+        assert tasks[0] == gen.next() # second time, ok
+        py.test.raises(StopIteration, gen.next) # nothing left
+
+    def testWaitSetup(self):
+        tasks = [Task("taskX",None,setup=["taskY"]),
+                 Task("taskY",None,)]
+        tc = TaskControl(tasks)
+        tc.process(['taskX'])
+        gen = tc._add_task(0, 'taskX', False)
+        assert tasks[0] == gen.next() # tasks with setup are yield twice
+        assert tasks[0].name == gen.next() # wait for run_status
+        tasks[0].run_status = 'run' # should be executed
+        assert tasks[1] == gen.next() # execute setup before
+        assert tasks[0] == gen.next() # second time, ok
+        py.test.raises(StopIteration, gen.next) # nothing left
 
 
 class TestGetNext(object):
@@ -273,56 +365,20 @@ class TestGetNext(object):
                  Task("taskY",None,)]
         tc = TaskControl(tasks)
         tc.process(None)
-        assert [tasks[1], tasks[0]] == [x for x in tc.get_next_task()]
+        assert [tasks[1], tasks[0]] == [x for x in tc.task_dispatcher()]
 
-    def testAddNotSelected(self):
-        tasks = [Task("taskX",None,[":taskY"]),
-                 Task("taskY",None,)]
-        tc = TaskControl(tasks)
-        tc.process(['taskX'])
-        assert [tasks[1], tasks[0]] == [x for x in tc.get_next_task()]
-
-    def testDetectCyclicReference(self):
-        tasks = [Task("taskX",None,[":taskY"]),
-                 Task("taskY",None,[":taskX"])]
-        tc = TaskControl(tasks)
-        tc.process(None)
-        gen = tc.get_next_task()
-        py.test.raises(InvalidDodoFile, gen.next)
-
-    def testSetupTasksDontRun(self):
+    def testAllTasksWaiting(self):
         tasks = [Task("taskX",None,setup=["taskY"]),
                  Task("taskY",None,)]
         tc = TaskControl(tasks)
         tc.process(['taskX'])
+        gen = tc.task_dispatcher()
+        assert tasks[0] == gen.next() # tasks with setup are yield twice
+        assert "hold on" == gen.next() # nothing else really available
+        tasks[0].run_status = 'run' # should be executed
+        assert tasks[1] == gen.next() # execute setup before
+        assert tasks[0] == gen.next() # second time, ok
+        py.test.raises(StopIteration, gen.next) # nothing left
 
-        gen = tc.get_next_task()
-        assert tasks[0] == gen.next()
-        # X is up-to-date
-        tasks[0].run_status = 'up-to-date'
-        py.test.raises(StopIteration, gen.next)
+# TODO get task from waiting queue before new gen
 
-    def testIncludeSetup(self):
-        tasks = [Task("taskX",None,setup=["taskY"]),
-                 Task("taskY",None,)]
-        tc = TaskControl(tasks)
-        tc.process(['taskX'])
-
-        task_list = [t for t in tc.get_next_task(True)]
-        assert [tasks[0], tasks[1], tasks[0]] == task_list
-
-    def testSetupTasksRun(self):
-        tasks = [Task("taskX",None,setup=["taskY"]),
-                 Task("taskY",None,)]
-        tc = TaskControl(tasks)
-        tc.process(['taskX'])
-
-        gen = tc.get_next_task()
-        assert tasks[0] == gen.next()
-        # X should run
-        tasks[0].run_status = 'run'
-        # but it was deferred because it has setup tasks
-        assert tasks[1] == gen.next()
-        # send X again, now it is ready
-        assert tasks[0] == gen.next()
-        py.test.raises(StopIteration, gen.next)

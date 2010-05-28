@@ -79,10 +79,7 @@ class Task(object):
         self.verbosity = verbosity
         self.custom_title = title
         self.getargs = getargs
-
-        self.setup_tasks = [] # new setup tasks
-        for setup_item in setup:
-            self.setup_tasks.append(setup_item)
+        self.setup_tasks = list(setup)
 
         # options
         self.taskcmd = cmdparse.TaskOption(name, params, None, None)
@@ -111,7 +108,15 @@ class Task(object):
         for action in self.actions:
             action.task = self
 
+        # dependencies
+        self.dep_changed = None
+        self.task_dep = []
+        self.wild_dep = []
+        self.file_dep = []
+        self.result_dep = []
+        self.dyn_dep = []
         self._init_dependencies(dependencies)
+
         self._init_getargs()
         self._init_doc(doc)
 
@@ -119,13 +124,6 @@ class Task(object):
 
 
     def _init_dependencies(self, dependencies):
-        self.dep_changed = None
-        # there are 3 kinds of dependencies: file, task, result
-        self.task_dep = []
-        self.wild_dep = []
-        self.file_dep = []
-        self.result_dep = []
-        self.dyn_dep = []
         for dep in dependencies:
             # bool
             if isinstance(dep,bool):
@@ -134,7 +132,7 @@ class Task(object):
                 if dep is False:
                     self.run_always = True
             # string
-            elif isinstance(dep,str):
+            elif isinstance(dep, str) or isinstance(dep, unicode):
                 # task dep starts with a ':'
                 if dep.startswith(':'):
                     if "*" in dep:
@@ -148,8 +146,6 @@ class Task(object):
                     self.result_dep.append(dep[1:])
                 # dynamic dep starts with a '!'
                 elif dep.startswith('!'):
-                    # dyn_dep are also task_dep.
-                    self.task_dep.append(dep[1:])
                     self.dyn_dep.append(dep[1:])
                 # file dep
                 else:

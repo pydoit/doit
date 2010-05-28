@@ -419,14 +419,14 @@ class TestMP_Runner_get_next_task(object):
         # hold until t1 finishes
         assert 0 == run.free_proc
         assert isinstance(run.get_next_task(), runner.Hold)
-        assert {'t1':['t2A', 't2B']} == run.waiting
+        assert {'t1':['t2A', 't2B'], 't2B': ['t3']} == run.waiting
         assert 1 == run.free_proc
 
         # ready for t2x
         assert [] == run.ready_queue
         run._finished_running_task(t1)
         assert ['t2A', 't2B'] == run.ready_queue
-        assert {} == run.waiting
+        assert {'t2B': ['t3']} == run.waiting
 
         # t2
         assert t2a == run.get_next_task()
@@ -435,5 +435,9 @@ class TestMP_Runner_get_next_task(object):
         # t3
         assert isinstance(run.get_next_task(), runner.Hold)
         run._finished_running_task(t2b)
+        assert ['t3'] == run.ready_queue
+        assert {} == run.waiting
         assert t3 == run.get_next_task()
         assert None == run.get_next_task()
+
+# test cyclic dependency on MP

@@ -72,11 +72,6 @@ class Runner(object):
             # TODO reporter.start_task rename to get_status
             self.reporter.start_task(task)
 
-            # # add dynamic dependencies
-            # for ddt in task.dyn_dep:
-            #     dfd = self.dependencyManager.get_value('%s.dd' % ddt)
-            #     task.file_dep.extend(dfd)
-
             # check if task is up-to-date
             try:
                 task.run_status = self.dependencyManager.get_status(task)
@@ -145,10 +140,11 @@ class Runner(object):
 
         @param task_control: L{TaskControl}
         """
-        for task in task_control.get_next_task():
+        for task in task_control.task_dispatcher():
             if self._stop_running:
                 break
             if not self.select_task(task):
+#                task.values['dd'] = self.dependencyManager.get_value('%s.dd' % task.name)
                 continue
             catched_excp = self.execute_task(task)
             self.process_task_result(task, catched_excp)
@@ -252,7 +248,8 @@ class MP_Runner(Runner):
 
             # check task-dependencies are done
             for dep in task.task_dep + task.setup_tasks:
-                if self.tasks[dep].run_status == 'run':
+                if (self.tasks[dep].run_status is None or
+                    self.tasks[dep].run_status == 'run'):
                     # not ready yet, add to waiting dict and re-start loop
                     # to get another task
                     if dep in self.waiting:
@@ -266,7 +263,7 @@ class MP_Runner(Runner):
                     return task
 
     def set_tasks(self, task_control):
-        self.task_gen = task_control.get_next_task()
+        self.task_gen = task_control.task_dispatcher()
         self.tasks = task_control.tasks
 
     def _finished_running_task(self, task):
@@ -290,6 +287,8 @@ class MP_Runner(Runner):
             if isinstance(next_task, Task):
                 task_q.put(next_task.name)
             else:
+                # no task ready to be executed but some are on the queue
+                # awaiting to be executed
                 task_q.put(next_task)
             process = Process(target=self.execute_task,
                               args=(task_q, result_q))

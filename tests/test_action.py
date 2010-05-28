@@ -1,5 +1,6 @@
 import os
 import sys
+import StringIO
 
 import py.test
 
@@ -95,6 +96,17 @@ class TestCmdVerbosity(object):
         assert "hi_stdout" == got, repr(got)
         assert "hi_stdout" == my_action.out, repr(my_action.out)
 
+
+
+class TestWriter(object):
+    def test_writer(self):
+        w1 = StringIO.StringIO()
+        w2 = StringIO.StringIO()
+        writer = action.Writer(w1, w2)
+        writer.flush() # make sure flush is supported
+        writer.write("hello")
+        assert "hello" == w1.getvalue()
+        assert "hello" == w2.getvalue()
 
 
 ############# PythonAction

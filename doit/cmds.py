@@ -266,7 +266,7 @@ def doit_auto(dependency_file, task_list, filter_tasks, loop_callback=None):
     """
     task_control = TaskControl(task_list)
     task_control.process(filter_tasks)
-    tasks_to_run = list(set([t for t in task_control.get_next_task(True)]))
+    tasks_to_run = list(set([t for t in task_control.task_dispatcher(True)]))
     watch_tasks = [t.name for t in tasks_to_run]
     watch_files = list(itertools.chain(*[s.file_dep for s in tasks_to_run]))
     watch_files = list(set(watch_files))
