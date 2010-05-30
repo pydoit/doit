@@ -59,6 +59,20 @@ class TestConsoleReporter(object):
         # no output on success task
         assert "" in rep.outstream.getvalue()
 
+    def test_runtimeError(self):
+        msg = "runtime error"
+        rep = reporter.ConsoleReporter(StringIO.StringIO(), True, True)
+        assert None == rep.aborted
+        # no imediate output
+        rep.runtime_error(msg)
+        assert msg == rep.aborted
+        assert "" in rep.outstream.getvalue()
+        # runtime errors abort execution
+        rep.complete_run()
+        got = rep.outstream.getvalue()
+        assert msg in got
+        assert "abort" in got
+
     def test_addFailure(self):
         rep = reporter.ConsoleReporter(StringIO.StringIO(), True, True)
         try:
@@ -109,7 +123,7 @@ class TestTaskResult(object):
 
 class TestJsonReporter(object):
 
-    def test(self):
+    def test_normal(self):
         output = StringIO.StringIO()
         rep = reporter.JsonReporter(output)
         t1 = Task("t1", None)
@@ -142,6 +156,22 @@ class TestJsonReporter(object):
         for task_result in got['tasks']:
             assert expected[task_result['name']] == task_result['result'], got
 
+    def test_runtime_error(self):
+        output = StringIO.StringIO()
+        rep = reporter.JsonReporter(output)
+        t1 = Task("t1", None)
+        msg = "runtime error"
+        assert None == rep.aborted
+        rep.start_task(t1)
+        rep.execute_task(t1)
+        rep.add_success(t1)
+        rep.runtime_error(msg)
+        assert msg == rep.aborted
+        assert "" in rep.outstream.getvalue()
+        # runtime errors abort execution
+        rep.complete_run()
+        got = json.loads(output.getvalue())
+        assert msg in got['err']
 
 
     def test_ignore_stdout(self):

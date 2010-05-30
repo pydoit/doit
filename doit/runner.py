@@ -273,13 +273,8 @@ class MP_Runner(Runner):
                 self.ready_queue.append(ready_task)
             del self.waiting[task.name]
 
-    def run_tasks(self, task_control):
-        result_q = Queue()
-        task_q = Queue()
+    def _run_start_processes(self, task_q, result_q):
         proc_list = []
-        self.set_tasks(task_control)
-
-        # create and start processes
         for p_id in xrange(self.num_process):
             next_task = self.get_next_task()
             if next_task is None:
@@ -294,6 +289,14 @@ class MP_Runner(Runner):
                               args=(task_q, result_q))
             process.start()
             proc_list.append(process)
+        return proc_list
+
+    def run_tasks(self, task_control):
+        result_q = Queue()
+        task_q = Queue()
+        self.set_tasks(task_control)
+        # create and start processes
+        proc_list = self._run_start_processes(task_q, result_q)
 
         # wait for all processes terminate
         proc_count = len(proc_list)
@@ -326,6 +329,19 @@ class MP_Runner(Runner):
                     task_q.put(next_task.name)
                 else:
                     task_q.put(next_task)
+
+            # check for cyclic dependencies
+            if len(proc_list) == self.free_proc:
+                msg = "Cyclic dependencies on tasks:\n"
+                for task_name, wait_list in self.waiting.iteritems():
+                    msg += (" * Task %s is waiting for tasks %s\n" %
+                            (task_name, ", ".join(wait_list)))
+                self.final_result = ERROR
+                self.reporter.runtime_error(msg)
+                # terminate all child process
+                proc_count = 0
+                for proc in proc_list:
+                    task_q.put(None)
 
         # we are done, join all process
         for proc in proc_list:

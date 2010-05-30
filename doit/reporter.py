@@ -11,6 +11,9 @@ class FakeReporter(object):
     def __init__(self):
         self.log = []
 
+    def runtime_error(self, msg):
+        self.log.append(('run_error', msg))
+
     def start_task(self, task):
         self.log.append(('start', task))
 
@@ -48,6 +51,7 @@ class ConsoleReporter(object):
     def __init__(self, outstream, show_out, show_err):
         # save non-succesful result information (include task errors)
         self.failures = []
+        self.aborted = None
         self.show_out = show_out
         self.show_err = show_err
         self.outstream = outstream
@@ -79,6 +83,9 @@ class ConsoleReporter(object):
     def teardown_task(self, task):
         pass
 
+    def runtime_error(self, msg):
+        self.aborted = msg
+
     def complete_run(self):
         # if test fails print output from failed task
         for result in self.failures:
@@ -96,7 +103,10 @@ class ConsoleReporter(object):
                 err = "".join([a.err for a in task.actions if a.err])
                 self.outstream.write("%s\n" % err)
 
-
+        if self.aborted is not None:
+            self.outstream.write("#"*40 + "\n")
+            self.outstream.write("Execution aborted.\n")
+            self.outstream.write(self.aborted)
 
 class ExecutedOnlyReporter(ConsoleReporter):
     """No output for skipped (up-to-date) and group tasks
@@ -173,6 +183,7 @@ class JsonReporter(object):
         self._old_err = sys.stderr
         sys.stderr = StringIO.StringIO()
         self.outstream = outstream
+        self.aborted = None
 
     def start_task(self, task):
         self.t_results[task.name] = TaskResult(task)
@@ -193,11 +204,14 @@ class JsonReporter(object):
         self.t_results[task.name].set_result('ignore')
 
     def cleanup_error(self, exception):
-        # TODO ???
+        # TODO same as runtime_error
         pass
 
     def teardown_task(self, task):
         pass
+
+    def runtime_error(self, msg):
+        self.aborted = msg
 
     def complete_run(self):
         # restore stdout
@@ -205,6 +219,9 @@ class JsonReporter(object):
         sys.stdout = self._old_out
         log_err = sys.stderr.getvalue()
         sys.stderr = self._old_err
+
+        if self.aborted is not None:
+            log_err += self.aborted
 
         task_result_list = [tr.to_dict() for tr in self.t_results.itervalues()]
         json_data = {'tasks': task_result_list,

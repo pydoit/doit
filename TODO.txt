@@ -1,3 +1,11 @@
+ - cyclilc test
+ - get task values re-do
+ - dynamic dep
+ - more MP (tree)
+ - cyclic dynamic dep
+ - dynamic task
+ - cache file MD5
+
 0.9
 ------
 
