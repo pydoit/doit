@@ -424,7 +424,7 @@ class TestMP_Runner_get_next_task(object):
 
         # ready for t2x
         assert [] == run.ready_queue
-        run._finished_running_task(t1)
+        run.process_task_result(t1, None)
         assert ['t2A', 't2B'] == run.ready_queue
         assert {'t2B': ['t3']} == run.waiting
 
@@ -434,7 +434,7 @@ class TestMP_Runner_get_next_task(object):
 
         # t3
         assert isinstance(run.get_next_task(), runner.Hold)
-        run._finished_running_task(t2b)
+        run.process_task_result(t2b, None)
         assert ['t3'] == run.ready_queue
         assert {} == run.waiting
         assert t3 == run.get_next_task()

@@ -18,6 +18,7 @@ class Task(object):
     @ivar wild_dep: (list - string) task dependency using wildcard *
     @ivar file_dep: (list - string)
     @ivar dyn_dep: (list - string) reference to a task
+    self.dyn_dep_stack
     @ivar dep_changed (list - string): list of file-dependencies that changed
           (are not up_to_date). this must be set before
     @ivar run_once: (bool) task without dependencies should run
@@ -115,6 +116,7 @@ class Task(object):
         self.file_dep = []
         self.result_dep = []
         self.dyn_dep = []
+        self.dyn_dep_stack = []
         self._init_dependencies(dependencies)
 
         self._init_getargs()
@@ -147,6 +149,7 @@ class Task(object):
                 # dynamic dep starts with a '!'
                 elif dep.startswith('!'):
                     self.dyn_dep.append(dep[1:])
+                    self.dyn_dep_stack.append(dep[1:])
                 # file dep
                 else:
                     self.file_dep.append(dep)

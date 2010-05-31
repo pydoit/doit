@@ -84,6 +84,7 @@ class Runner(object):
                 # if task is up-to-date skip it
                 if task.run_status == 'up-to-date':
                     self.reporter.skip_uptodate(task)
+                    task.values = self.dependencyManager.get_values(task.name)
                     return False
                 # check if task should be ignored (user controlled)
                 if task.run_status == 'ignore':
@@ -123,6 +124,7 @@ class Runner(object):
 
 
     def process_task_result(self, task, catched_excp):
+        task.run_status = "done"
         # save execution successful
         if catched_excp is None:
             self.dependencyManager.save_success(task)
@@ -144,7 +146,6 @@ class Runner(object):
             if self._stop_running:
                 break
             if not self.select_task(task):
-#                task.values['dd'] = self.dependencyManager.get_value('%s.dd' % task.name)
                 continue
             catched_excp = self.execute_task(task)
             self.process_task_result(task, catched_excp)
@@ -233,7 +234,7 @@ class MP_Runner(Runner):
                 return None
 
         while True:
-            # get new task
+            # get new task from ready queue
             if self.ready_queue:
                 task_name = self.ready_queue.pop(0)
                 task = self.tasks[task_name]
@@ -247,7 +248,7 @@ class MP_Runner(Runner):
                     return nothing_ready()
 
             # check task-dependencies are done
-            for dep in task.task_dep + task.setup_tasks:
+            for dep in task.task_dep + task.setup_tasks + task.dyn_dep:
                 if (self.tasks[dep].run_status is None or
                     self.tasks[dep].run_status == 'run'):
                     # not ready yet, add to waiting dict and re-start loop
@@ -266,8 +267,8 @@ class MP_Runner(Runner):
         self.task_gen = task_control.task_dispatcher()
         self.tasks = task_control.tasks
 
-    def _finished_running_task(self, task):
-        task.run_status = "done"
+    def process_task_result(self, task, catched_excp):
+        Runner.process_task_result(self, task, catched_excp)
         if task.name in self.waiting:
             for ready_task in self.waiting[task.name]:
                 self.ready_queue.append(ready_task)
@@ -280,11 +281,11 @@ class MP_Runner(Runner):
             if next_task is None:
                 break # do not start more processes than tasks
             if isinstance(next_task, Task):
-                task_q.put(next_task.name)
-            else:
+                task_q.put((next_task.name, next_task.file_dep))
+            else: # next_task is a string
                 # no task ready to be executed but some are on the queue
                 # awaiting to be executed
-                task_q.put(next_task)
+                task_q.put((next_task, None))
             process = Process(target=self.execute_task,
                               args=(task_q, result_q))
             process.start()
@@ -317,7 +318,6 @@ class MP_Runner(Runner):
 
             # completed one task, dispatch next one
             self.process_task_result(task, catched_excp)
-            self._finished_running_task(task)
 
             free_proc = self.free_proc
             self.free_proc = 0
@@ -326,9 +326,10 @@ class MP_Runner(Runner):
                 if next_task is None:
                     proc_count -= 1
                 if isinstance(next_task, Task):
-                    task_q.put(next_task.name)
+                    task_q.put((next_task.name, next_task.file_dep))
                 else:
-                    task_q.put(next_task)
+                    task_q.put((next_task, None))
+
 
             # check for cyclic dependencies
             if len(proc_list) == self.free_proc:
@@ -341,7 +342,7 @@ class MP_Runner(Runner):
                 # terminate all child process
                 proc_count = 0
                 for proc in proc_list:
-                    task_q.put(None)
+                    task_q.put((None, None))
 
         # we are done, join all process
         for proc in proc_list:
@@ -362,7 +363,7 @@ class MP_Runner(Runner):
 
         try:
             while True:
-                task_name = task_q.get()
+                task_name, file_dep = task_q.get()
                 if task_name is None:
                     self.teardown()
                     return # no more tasks to execute finish this process
@@ -371,6 +372,7 @@ class MP_Runner(Runner):
                     continue
 
                 task = self.tasks[task_name]
+                task.file_dep = file_dep
                 result = {'name': task.name}
                 # FIXME support setup objects with 2 "scopes" (global and process)
                 t_result = Runner.execute_task(self, task)
@@ -380,7 +382,6 @@ class MP_Runner(Runner):
                     result['values'] = task.values
                 else:
                     result['failure'] = t_result
-
                 result_q.put(result)
         except (SystemExit, KeyboardInterrupt, Exception), e:
             # error, blow-up everything

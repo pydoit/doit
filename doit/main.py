@@ -166,6 +166,19 @@ def get_tasks(dodo_file, cwd, command_names):
     return load_task_generators(dodo_module, command_names)
 
 
+
+class WaitTask(object):
+    def __init__(self, task_name):
+        self.task_name = task_name
+
+class WaitSelectTask(WaitTask):
+    def ready(self, status):
+        return status is not None
+
+class WaitRunTask(WaitTask):
+    def ready(self, status):
+        return status in ('done', 'up-to-date')
+
 class TaskControl(object):
     """Manages tasks inter-relationship
 
@@ -340,18 +353,18 @@ class TaskControl(object):
         self._add_status[task_name] = gen_id
         this_task = self.tasks[task_name]
 
-        # # execute dynamic tasks
-        # dyn_tasks = this_task.dyn_dep
-        # while dyn_tasks:
-        #     dyn = self.tasks[dyn_tasks.pop(0)]
-        #     for tk in self._add_task(gen_id, dyn.name, include_setup):
-        #         yield tk
-
-        #     # FIXME might hold MP
-        #     self._add_status[dyn.name] = WAITING
-        #     yield dyn.name
-        #     if 'dd' in dyn.values:
-        #         this_task._init_dependencies(dyn.values['dd'])
+        # execute dynamic tasks
+        while this_task.dyn_dep_stack:
+            # get next dynamic task
+            dyn = self.tasks[this_task.dyn_dep_stack.pop(0)]
+            # add dependencies from dynamic task
+            for tk in self._add_task(gen_id, dyn.name, include_setup):
+                yield tk
+            # wait for dynamic task to complete
+            yield WaitRunTask(dyn.name)
+            # refresh this task dependencies
+            if 'dd' in dyn.values:
+                this_task._init_dependencies(dyn.values['dd'])
 
         # add dependencies first
         for dependency in this_task.task_dep:
@@ -367,7 +380,7 @@ class TaskControl(object):
             # in order to check if up-to-date. so it needs to wait
             # before scheduling its setup-tasks.
             if this_task.run_status is None and not include_setup:
-                yield task_name
+                yield WaitSelectTask(task_name)
 
             # this task should run, so schedule setup-tasks before itself
             if this_task.run_status == 'run' or include_setup:
@@ -407,9 +420,9 @@ class TaskControl(object):
 
             # get task group from waiting queue
             if not current_gen:
-                for wt in task_gens.iterkeys():
-                    if self.tasks[wt].run_status is not None:
-                        current_gen = task_gens[wt]
+                for wt, wait in task_gens.iteritems():
+                    if wait.ready(self.tasks[wt].run_status):
+                        current_gen = task_gens[wt].task_gen
                         del task_gens[wt]
                         break
 
@@ -433,11 +446,13 @@ class TaskControl(object):
                 continue
 
             # str means this generator is on hold, add to waiting dict
-            if isinstance(next, str):
+            if isinstance(next, WaitTask):
                 if next not in task_gens:
-                    task_gens[next] = current_gen
+                    next.task_gen = current_gen
+                    task_gens[next.task_name] = next
                 current_gen = None
             # get task from current group
             else:
+                assert isinstance(next,Task), next
                 yield next
 

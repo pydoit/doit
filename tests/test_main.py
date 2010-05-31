@@ -6,7 +6,7 @@ from doit.task import InvalidTask, Task
 from doit.main import InvalidDodoFile, InvalidCommand
 from doit.main import isgenerator, get_module
 from doit.main import load_task_generators, generate_tasks, TaskControl
-from doit.main import get_tasks
+from doit.main import get_tasks, WaitSelectTask
 
 
 
@@ -352,7 +352,10 @@ class TestAddTask(object):
         tc.process(['taskX'])
         gen = tc._add_task(0, 'taskX', False)
         assert tasks[0] == gen.next() # tasks with setup are yield twice
-        assert tasks[0].name == gen.next() # wait for run_status
+         # wait for taskX run_status
+        wait = gen.next()
+        assert wait.task_name == 'taskX'
+        assert isinstance(wait, WaitSelectTask)
         tasks[0].run_status = 'run' # should be executed
         assert tasks[1] == gen.next() # execute setup before
         assert tasks[0] == gen.next() # second time, ok
