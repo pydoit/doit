@@ -71,7 +71,7 @@ class Dependency(object):
     dependency signature.
     Apart from dependencies onther values are also saved on the task dictionary
      * 'result:', 'run-one:', 'task:<task-name>', 'ignore:'
-     * user(task) defined values in the format ':<key>:'
+     * user(task) defined values are defined in '_values_:' sub-dict
     """
 
     def __init__(self, name):
@@ -145,8 +145,7 @@ class Dependency(object):
     def save_success(self, task):
         """save info after a task is successfuly executed"""
         # save task values
-        for key, value in task.values.iteritems():
-            self._set(task.name, (":%s:" % key), value)
+        self._set(task.name, "_values_:", task.values)
 
         # save task result md5
         if task.result:
@@ -174,6 +173,10 @@ class Dependency(object):
                 self._set(task.name, "task:" + dep, result)
 
 
+    def get_values(self, task_name):
+        """get all saved values from a task"""
+        return self._db[task_name]['_values_:']
+
     def get_value(self, name):
         """get saved value from task
         @param name (str): taskid.argument-name
@@ -183,12 +186,11 @@ class Dependency(object):
         taskid, arg_name = parts
         if taskid not in self._db:
             raise Exception("taskid '%s' has no computed value!" % taskid)
-        values = self._db[taskid]
-        arg_id = ':%s:' % arg_name
-        if arg_id not in values:
+        values = self._db[taskid]['_values_:']
+        if arg_name not in values:
             msg = "Invalid arg name. Task '%s' has no value for '%s'."
             raise Exception(msg % (taskid, arg_name))
-        return values[arg_id]
+        return values[arg_name]
 
 
     def remove_success(self, task):

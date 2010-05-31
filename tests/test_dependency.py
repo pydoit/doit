@@ -197,25 +197,39 @@ class TestSaveSuccess(object):
         t1 = Task('t1', None)
         t1.values = {'x':5, 'y':10}
         depfile.save_success(t1)
-        assert 5 == depfile._get("t1", ":x:")
-        assert 10 == depfile._get("t1", ":y:")
+        assert {'x':5, 'y':10} == depfile._get("t1", "_values_:")
 
 
 class TestGetValue(object):
+    def test_all_values(self, depfile):
+        t1 = Task('t1', None)
+        t1.values = {'x':5, 'y':10}
+        depfile.save_success(t1)
+        assert {'x':5, 'y':10} == depfile.get_values('t1')
+
     def test_ok(self, depfile):
-        depfile._set('t1', ':x:', 5)
+        t1 = Task('t1', None)
+        t1.values = {'x':5, 'y':10}
+        depfile.save_success(t1)
         assert 5 == depfile.get_value('t1.x')
 
     def test_invalid_string(self, depfile):
+        t1 = Task('t1', None)
+        t1.values = {'x':5, 'y':10}
+        depfile.save_success(t1)
         py.test.raises(Exception, depfile.get_value, 'nono')
 
     def test_invalid_taskid(self, depfile):
-        depfile._set('t1', ':x:', 5)
+        t1 = Task('t1', None)
+        t1.values = {'x':5, 'y':10}
+        depfile.save_success(t1)
         py.test.raises(Exception, depfile.get_value, 'nonono.x')
 
     def test_invalid_arg(self, depfile):
-        depfile._set('t1', ':x:', 5)
-        py.test.raises(Exception, depfile.get_value, 't1.y')
+        t1 = Task('t1', None)
+        t1.values = {'x':5, 'y':10}
+        depfile.save_success(t1)
+        py.test.raises(Exception, depfile.get_value, 't1.z')
 
 
 class TestRemoveSuccess(object):
