@@ -247,8 +247,14 @@ class MP_Runner(Runner):
                 except StopIteration:
                     return nothing_ready()
 
+
+            # task with setup must be selected twice
+            wait_for = task.task_dep + task.dyn_dep
+            if not (task.setup_tasks and task.run_status is None):
+                wait_for += task.setup_tasks
+
             # check task-dependencies are done
-            for dep in task.task_dep + task.setup_tasks + task.dyn_dep:
+            for dep in  wait_for:
                 if (self.tasks[dep].run_status is None or
                     self.tasks[dep].run_status == 'run'):
                     # not ready yet, add to waiting dict and re-start loop
@@ -385,6 +391,6 @@ class MP_Runner(Runner):
                 result_q.put(result)
         except (SystemExit, KeyboardInterrupt, Exception), e:
             # error, blow-up everything
-            result_q.put({'name': task.name,
+            result_q.put({'name': task_name,
                           'exit': e.__class__,
                           'exception': str(e)})
