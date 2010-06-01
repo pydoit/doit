@@ -9,7 +9,7 @@ from doit.dependency import Dependency
 from doit.task import Task
 from doit.main import InvalidCommand
 from doit import cmds
-
+from doit import reporter
 
 
 TESTDB = os.path.join(os.path.dirname(__file__), "testdb")
@@ -209,6 +209,16 @@ class TestCmdRun(object):
         output = StringIO.StringIO()
         py.test.raises(InvalidCommand, cmds.doit_run,
                 TESTDB, tasks_sample(), output, reporter="i dont exist")
+
+    def testCustomReporter(self):
+        remove_testdb()
+        output = StringIO.StringIO()
+        class MyReporter(reporter.ConsoleReporter):
+            def start_task(self, task):
+                self.outstream.write('MyReporter.start %s\n' % task.name)
+        cmds.doit_run(TESTDB, [tasks_sample()[0]], output, reporter=MyReporter)
+        got = output.getvalue().split("\n")[:-1]
+        assert 'MyReporter.start t1' == got[0]
 
     def testSetVerbosity(self):
         remove_testdb()

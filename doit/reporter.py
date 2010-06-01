@@ -8,7 +8,7 @@ from doit.dependency import json
 
 class FakeReporter(object):
     """Just log everything in internal attribute - used on tests"""
-    def __init__(self):
+    def __init__(self, outstream=None, show_out=None, show_err=None):
         self.log = []
 
     def runtime_error(self, msg):

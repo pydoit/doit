@@ -14,16 +14,25 @@ from doit.dependency import Dependency
 def doit_run(dependencyFile, task_list, output, options=None,
              verbosity=None, alwaysExecute=False, continue_=False,
              reporter='default', num_process=0):
+    """
+    @param reporter: (str) one of provided reporters or ...
+                     (class) user defined reporter class (can only be specified
+           from DOIT_CONFIG - never from command line)
+    """
     # get tasks to be executed
     task_control = TaskControl(task_list)
     task_control.process(options)
 
     # reporter
-    if reporter not in REPORTERS:
-        msg = ("No reporter named '%s'.\nType 'doit help run' to see a list "
-               "of available reporters.")
-        raise InvalidCommand(msg % reporter)
-    reporter_cls = REPORTERS[reporter]
+    if isinstance(reporter, str):
+        if reporter not in REPORTERS:
+            msg = ("No reporter named '%s'.\nType 'doit help run' to see a list "
+                   "of available reporters.")
+            raise InvalidCommand(msg % reporter)
+        reporter_cls = REPORTERS[reporter]
+    else:
+        # user defined class
+        reporter_cls = reporter
 
     # verbosity
     if verbosity is None:
