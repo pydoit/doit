@@ -363,8 +363,7 @@ class TaskControl(object):
             # wait for dynamic task to complete
             yield WaitRunTask(dyn.name)
             # refresh this task dependencies
-            if 'dd' in dyn.values:
-                this_task._init_dependencies(dyn.values['dd'])
+            this_task.update_deps(dyn.values)
 
         # add dependencies first
         for dependency in this_task.task_dep:

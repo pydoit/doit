@@ -6,7 +6,7 @@ from doit.task import InvalidTask, Task
 from doit.main import InvalidDodoFile, InvalidCommand
 from doit.main import isgenerator, get_module
 from doit.main import load_task_generators, generate_tasks, TaskControl
-from doit.main import get_tasks, WaitSelectTask
+from doit.main import get_tasks, WaitSelectTask, WaitRunTask
 
 
 
@@ -360,6 +360,23 @@ class TestAddTask(object):
         assert tasks[1] == gen.next() # execute setup before
         assert tasks[0] == gen.next() # second time, ok
         py.test.raises(StopIteration, gen.next) # nothing left
+
+
+    def testCalcDep(self):
+        def get_deps():
+            print "gget"
+            return {'file_dep': ('a', 'b')}
+        tasks = [Task("taskX", None, calc_dep=['task_dep']),
+                 Task("task_dep", [(get_deps,)]),
+                 ]
+        tc = TaskControl(tasks)
+        tc.process(['taskX'])
+        gen = tc._add_task(0, 'taskX', False)
+        assert tasks[1] == gen.next()
+        assert isinstance(gen.next(), WaitRunTask)
+        tasks[1].execute()
+        assert tasks[0] == gen.next()
+        assert ['a', 'b'] == tasks[0].file_dep
 
 
 class TestGetNext(object):

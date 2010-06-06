@@ -117,6 +117,28 @@ class Task(object):
         self.dep_changed = None
 
         self.file_dep = []
+        self._expand_file_dep(file_dep)
+
+        # task_dep
+        self.task_dep = []
+        self.wild_dep = []
+        self._expand_task_dep(task_dep)
+
+        # result_dep
+        self.result_dep = []
+        self._expand_result_dep(result_dep)
+
+        # calc_dep
+        self.calc_dep = []
+        self.calc_dep_stack = []
+        self._expand_calc_dep(calc_dep)
+
+        self._init_getargs()
+        self._init_doc(doc)
+
+        self.run_status = None
+
+    def _expand_file_dep(self, file_dep):
         for dep in file_dep:
             # bool
             if isinstance(dep,bool):
@@ -130,32 +152,33 @@ class Task(object):
             else:
                 self.file_dep.append(dep)
 
-        # task_dep
-        self.task_dep = []
-        self.wild_dep = []
+    def _expand_task_dep(self, task_dep):
         for dep in task_dep:
             if "*" in dep:
                 self.wild_dep.append(dep)
             else:
                 self.task_dep.append(dep)
 
-        # result_dep
-        self.result_dep = list(result_dep)
-        self.task_dep.extend(self.result_dep) # result_dep are also task_dep
+    def _expand_result_dep(self, result_dep):
+        self.result_dep.extend(result_dep)
+        # result_dep are also task_dep
+        self.task_dep.extend(self.result_dep)
+
+    def _expand_calc_dep(self, calc_dep):
+        self.calc_dep.extend(calc_dep)
+        self.calc_dep_stack.extend(calc_dep)
 
 
-        # calc_dep
-        self.calc_dep = list(calc_dep)
-        self.calc_dep_stack = calc_dep[:]
-
-        self._init_getargs()
-        self._init_doc(doc)
-
-        self.run_status = None
-
-
-    def _init_dependencies(self, dependencies):
-        raise Exception("gone")
+    def update_deps(self, deps):
+        for dep, dep_values in deps.iteritems():
+            if dep == 'task_dep':
+                self._expand_task_dep(dep_values)
+            elif dep == 'file_dep':
+                self._expand_file_dep(dep_values)
+            elif dep == 'result_dep':
+                self._expand_result_dep(dep_values)
+            elif dep == 'calc_dep':
+                self._expand_calc_dep(dep_values)
 
 
     def _init_getargs(self):
