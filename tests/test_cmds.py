@@ -52,7 +52,7 @@ class TestCmdList(object):
         assert expected == got
 
     def testDependencies(self):
-        my_task = Task("t2", [""], dependencies=['d2.txt'])
+        my_task = Task("t2", [""], file_dep=['d2.txt'])
         output = StringIO.StringIO()
         cmds.doit_list(TESTDB, [my_task], output, [], print_dependencies=True)
         got = output.getvalue()
@@ -120,11 +120,11 @@ class TestCmdForget(object):
             remove_testdb()
             tasks = [Task("t1", [""]),
                      Task("t2", [""]),
-                     Task("g1", None, (':g1.a',':g1.b')),
+                     Task("g1", None, task_dep=['g1.a','g1.b']),
                      Task("g1.a", [""]),
                      Task("g1.b", [""]),
-                     Task("t3", [""], (':t1',)),
-                     Task("g2", None, (':t1',':g1'))]
+                     Task("t3", [""], task_dep=['t1']),
+                     Task("g2", None, task_dep=['t1','g1'])]
             dep = Dependency(TESTDB)
             for task in tasks:
                 dep._set(task.name,"dep","1")
@@ -157,9 +157,10 @@ class TestCmdForget(object):
         output = StringIO.StringIO()
         cmds.doit_forget(TESTDB, tasks, output, ["g2"])
         got = output.getvalue().split("\n")[:-1]
+        assert "forgeting g2" == got[0]
 
         dep = Dependency(TESTDB)
-        assert None == dep._get("t1", "dep"), got
+        assert None == dep._get("t1", "dep")
         assert "1" == dep._get("t2", "dep")
         assert None == dep._get("g1", "dep")
         assert None == dep._get("g1.a", "dep")
@@ -252,7 +253,7 @@ class TestCmdClean(object):
             self.cleaned = []
             def myclean(name):
                 self.cleaned.append(name)
-            self.tasks = [Task("t1", None, dependencies=[':t2'],
+            self.tasks = [Task("t1", None, task_dep=['t2'],
                                clean=[(myclean,('t1',))]),
                           Task("t2", None, clean=[(myclean,('t2',))]),]
         return request.cached_setup(
@@ -288,11 +289,11 @@ class TestCmdIgnore(object):
             remove_testdb()
             tasks = [Task("t1", [""]),
                      Task("t2", [""]),
-                     Task("g1", None, (':g1.a',':g1.b')),
+                     Task("g1", None, task_dep=['g1.a','g1.b']),
                      Task("g1.a", [""]),
                      Task("g1.b", [""]),
-                     Task("t3", [""], (':t1',)),
-                     Task("g2", None, (':t1',':g1'))]
+                     Task("t3", [""], task_dep=['t1']),
+                     Task("g2", None, task_dep=['t1','g1'])]
             return tasks
         return request.cached_setup(
             setup=create_tasks,

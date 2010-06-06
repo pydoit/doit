@@ -1,24 +1,19 @@
- - cyclilc test
- - get task values re-do
- - dynamic dep
- - more MP (tree)
- - cyclic dynamic dep
- - dynamic task
- - cache file MD5
-
-0.9
+0.10
 ------
 
-. support for depedency scanner (#218303)
-  . dependencies are calculated just before task is executed possibly by other tasks, not on load time
-. setup/task  single process/all procces
-. --enable/--disable cmd line options
-. reporter plugin
-
+. cyclilc MP test
+. more MP (tree)
+. cyclic dynamic dep
+. cache file MD5 (on read & write)
+. key/value storage
 
 0.X
 ----------
 
+. setup/task  single process/all procces
+. --enable/--disable cmd line options
+
+. dynamic task
 . GLOBAL vars from cmd line
 
 . tools - profile

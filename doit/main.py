@@ -354,9 +354,9 @@ class TaskControl(object):
         this_task = self.tasks[task_name]
 
         # execute dynamic tasks
-        while this_task.dyn_dep_stack:
+        while this_task.calc_dep_stack:
             # get next dynamic task
-            dyn = self.tasks[this_task.dyn_dep_stack.pop(0)]
+            dyn = self.tasks[this_task.calc_dep_stack.pop(0)]
             # add dependencies from dynamic task
             for tk in self._add_task(gen_id, dyn.name, include_setup):
                 yield tk

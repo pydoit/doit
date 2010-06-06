@@ -186,10 +186,10 @@ class TestSaveSuccess(object):
         t1 = Task('t1', None)
         t1.result = "result"
         depfile.save_success(t1)
-        t2 = Task('t2', None, ['?t1'])
+        t2 = Task('t2', None, result_dep=['t1'])
         depfile.save_success(t2)
         assert get_md5(t1.result) == depfile._get("t2", "task:t1")
-        t3 = Task('t3', None, [':t1'])
+        t3 = Task('t3', None, task_dep=['t1'])
         depfile.save_success(t3)
         assert None is depfile._get("t3", "task:t1")
 
@@ -401,7 +401,7 @@ class TestGetStatus(object):
         # t1 ok, but t2 not saved
         t1 = Task('t1', None)
         t1.result = "result"
-        t2 = Task('t2', None, ['?t1'])
+        t2 = Task('t2', None, result_dep=['t1'])
         depfile.save_success(t1)
         assert 'run' == depfile.get_status(t2)
 

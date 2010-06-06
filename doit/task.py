@@ -17,8 +17,8 @@ class Task(object):
     @ivar task_dep: (list - string)
     @ivar wild_dep: (list - string) task dependency using wildcard *
     @ivar file_dep: (list - string)
-    @ivar dyn_dep: (list - string) reference to a task
-    self.dyn_dep_stack
+    @ivar calc_dep: (list - string) reference to a task
+    @ivar calc_dep_stack: (list - string) unprocessed calc_dep
     @ivar dep_changed (list - string): list of file-dependencies that changed
           (are not up_to_date). this must be set before
     @ivar run_once: (bool) task without dependencies should run
@@ -43,7 +43,10 @@ class Task(object):
     # list of valid types/values for each task attribute.
     valid_attr = {'name': [str],
                   'actions': [list, tuple, None],
-                  'dependencies': [list, tuple],
+                  'file_dep': [list, tuple],
+                  'task_dep': [list, tuple],
+                  'result_dep': [list, tuple],
+                  'calc_dep': [list, tuple],
                   'targets': [list, tuple],
                   'setup': [list, tuple],
                   'clean': [list, tuple, True],
@@ -57,7 +60,8 @@ class Task(object):
 
     setup_warned = False # print setup-object deprecation warning just once
 
-    def __init__(self, name, actions, dependencies=(), targets=(),
+    def __init__(self, name, actions, file_dep=(), targets=(),
+                 task_dep=(), result_dep=(), calc_dep=(),
                  setup=(), clean=(), teardown=(), is_subtask=False, doc=None,
                  params=(), verbosity=None, title=None, getargs=None):
         """sanity checks and initialization
@@ -111,13 +115,38 @@ class Task(object):
 
         # dependencies
         self.dep_changed = None
+
+        self.file_dep = []
+        for dep in file_dep:
+            # bool
+            if isinstance(dep,bool):
+                if dep is True:
+                    self.run_once = True
+                if dep is False:
+                    self.run_always = True
+            # ignore None values
+            elif dep is None:
+                continue
+            else:
+                self.file_dep.append(dep)
+
+        # task_dep
         self.task_dep = []
         self.wild_dep = []
-        self.file_dep = []
-        self.result_dep = []
-        self.dyn_dep = []
-        self.dyn_dep_stack = []
-        self._init_dependencies(dependencies)
+        for dep in task_dep:
+            if "*" in dep:
+                self.wild_dep.append(dep)
+            else:
+                self.task_dep.append(dep)
+
+        # result_dep
+        self.result_dep = list(result_dep)
+        self.task_dep.extend(self.result_dep) # result_dep are also task_dep
+
+
+        # calc_dep
+        self.calc_dep = list(calc_dep)
+        self.calc_dep_stack = calc_dep[:]
 
         self._init_getargs()
         self._init_doc(doc)
@@ -126,40 +155,7 @@ class Task(object):
 
 
     def _init_dependencies(self, dependencies):
-        for dep in dependencies:
-            # bool
-            if isinstance(dep,bool):
-                if dep is True:
-                    self.run_once = True
-                if dep is False:
-                    self.run_always = True
-            # string
-            elif isinstance(dep, str) or isinstance(dep, unicode):
-                # task dep starts with a ':'
-                if dep.startswith(':'):
-                    if "*" in dep:
-                        self.wild_dep.append(dep[1:])
-                    else:
-                        self.task_dep.append(dep[1:])
-                # task-result dep starts with a '?'
-                elif dep.startswith('?'):
-                    # result_dep are also task_dep.
-                    self.task_dep.append(dep[1:])
-                    self.result_dep.append(dep[1:])
-                # dynamic dep starts with a '!'
-                elif dep.startswith('!'):
-                    self.dyn_dep.append(dep[1:])
-                    self.dyn_dep_stack.append(dep[1:])
-                # file dep
-                else:
-                    self.file_dep.append(dep)
-            # ignore None values
-            elif dep is None:
-                continue
-            else:
-                msg = ("%s. Invalid paramater in 'dependencies' "+
-                       "got:'%s(%s)'")
-                raise InvalidTask(msg%(self.name, str(dep), type(dep)))
+        raise Exception("gone")
 
 
     def _init_getargs(self):
@@ -310,6 +306,7 @@ class Task(object):
         return "<Task: %s>"% self.name
 
 
+DEPRECATION = False # already printed deprecation?
 def dict_to_task(task_dict):
     """Create a task instance from dictionary.
 
@@ -319,6 +316,7 @@ def dict_to_task(task_dict):
     @param task_dict (dict): task representation as a dict.
     @raise InvalidTask: If unexpected fields were passed in task_dict
     """
+    global DEPRECATION
 
     # check required fields
     if 'actions' not in task_dict:
@@ -326,8 +324,35 @@ def dict_to_task(task_dict):
                           (task_dict['name'],task_dict))
 
     # user friendly. dont go ahead with invalid input.
-    for key in task_dict.keys():
-        if key not in Task.valid_attr.keys():
+    task_attrs = task_dict.keys()
+    for key in task_attrs:
+
+        if key == 'dependencies':
+            if not DEPRECATION:
+                print ("DEPRECATION WARNING: task attribute 'dependencies': "
+                       "use 'file_dep', 'task_dep', 'result_dep' or 'calc_dep'.")
+                DEPRECATION = True
+            task_dict['file_dep'] = []
+            task_dict['task_dep'] = []
+            task_dict['result_dep'] = []
+            task_dict['calc_dep'] = []
+            for dep in task_dict['dependencies']:
+                if isinstance(dep, str) or isinstance(dep, unicode):
+                    # task dep starts with a ':'
+                    if dep.startswith(':'):
+                        task_dict['task_dep'].append(dep[1:])
+                    # task-result dep starts with a '?'
+                    elif dep.startswith('?'):
+                        task_dict['result_dep'].append(dep[1:])
+                    # file dep
+                    else:
+                        task_dict['file_dep'].append(dep)
+                else:
+                    # bool or None
+                    task_dict['file_dep'].append(dep)
+            del task_dict['dependencies']
+
+        elif key not in Task.valid_attr.keys():
             raise InvalidTask("Task %s contains invalid field: '%s'"%
                               (task_dict['name'],key))
 

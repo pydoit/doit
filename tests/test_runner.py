@@ -54,7 +54,7 @@ class TestRunner_SelectTask(object):
 
     def test_DependencyError(self,reporter):
         t1 = Task("taskX", [(my_print, ["out a"] )],
-                  dependencies=["i_dont_exist"])
+                  file_dep=["i_dont_exist"])
         my_runner = runner.Runner(TESTDB, reporter)
         assert False == my_runner.select_task(t1)
         assert ('start', t1) == reporter.log.pop(0)
@@ -62,7 +62,7 @@ class TestRunner_SelectTask(object):
         assert not reporter.log
 
     def test_upToDate(self,reporter):
-        t1 = Task("taskX", [(my_print, ["out a"] )], dependencies=[__file__])
+        t1 = Task("taskX", [(my_print, ["out a"] )], file_dep=[__file__])
         my_runner = runner.Runner(TESTDB, reporter)
         my_runner.dependencyManager.save_success(t1)
         assert False == my_runner.select_task(t1)
@@ -286,7 +286,7 @@ class TestRunner_All(object):
 
     def test_resultDependency(self, reporter, RunnerClass):
         t1 = Task("t1", [(ok,)])
-        t2 = Task("t2", [(ok,)], ['?t1'])
+        t2 = Task("t2", [(ok,)], result_dep=['t1'])
         my_runner = RunnerClass(TESTDB, reporter)
         tc = TaskControl([t1, t2])
         tc.process(None)
@@ -301,7 +301,7 @@ class TestRunner_All(object):
 
         # again
         t1 = Task("t1", [(ok,)])
-        t2 = Task("t2", [(ok,)], ['?t1'])
+        t2 = Task("t2", [(ok,)], result_dep=['t1'])
         my_runner2 = RunnerClass(TESTDB, reporter)
         tc2 = TaskControl([t1, t2])
         tc2.process(None)
@@ -315,7 +315,7 @@ class TestRunner_All(object):
 
         # change t1, t2 executed again
         t1B = Task("t1", [(ok2,)])
-        t2 = Task("t2", [(ok,)], ['?t1'])
+        t2 = Task("t2", [(ok,)], result_dep=['t1'])
         my_runner3 = RunnerClass(TESTDB, reporter)
         tc3 = TaskControl([t1B, t2])
         tc3.process(None)
@@ -405,7 +405,7 @@ class TestMP_Runner_get_next_task(object):
 
     def test_waiting(self, reporter):
         t1 = Task('t1', [])
-        t2a = Task('t2A', [], dependencies=(':t1',))
+        t2a = Task('t2A', [], task_dep=('t1',))
         t2b = Task('t2B', [], setup=('t1',))
         t3 = Task('t3', [], setup=('t2B',))
         tc = TaskControl([t1, t2a, t2b, t3])

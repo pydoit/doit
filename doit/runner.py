@@ -248,8 +248,9 @@ class MP_Runner(Runner):
                     return nothing_ready()
 
 
-            # task with setup must be selected twice
-            wait_for = task.task_dep + task.dyn_dep
+            # task with setup must be selected twice...
+            wait_for = task.task_dep + task.calc_dep
+            # must wait for setup_tasks too if on second select.
             if not (task.setup_tasks and task.run_status is None):
                 wait_for += task.setup_tasks
 

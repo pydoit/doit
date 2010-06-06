@@ -203,7 +203,7 @@ class TestTaskControlInit(object):
         py.test.raises(InvalidTask, TaskControl, [666])
 
     def test_userErrorTaskDependency(self):
-        tasks = [Task('wrong', None,[":typo"])]
+        tasks = [Task('wrong', None, task_dep=["typo"])]
         py.test.raises(InvalidTask, TaskControl, tasks)
 
     def test_sameTarget(self):
@@ -213,7 +213,7 @@ class TestTaskControlInit(object):
 
 
     def test_wild(self):
-        tasks = [Task('t1',None,[':foo*']),
+        tasks = [Task('t1',None, task_dep=['foo*']),
                  Task('foo4',None,)]
         TaskControl(tasks)
         assert 'foo4' in tasks[0].task_dep
@@ -275,7 +275,7 @@ class TestTaskControlCmdOptions(object):
 
 class TestAddTask(object):
     def testChangeOrder_AddJustOnce(self):
-        tasks = [Task("taskX",None,[":taskY"]),
+        tasks = [Task("taskX",None,task_dep=["taskY"]),
                  Task("taskY",None,)]
         tc = TaskControl(tasks)
         tc.process(None)
@@ -284,22 +284,22 @@ class TestAddTask(object):
         assert [] == [x for x in tc._add_task(0, 'taskY', False)]
 
     def testAddNotSelected(self):
-        tasks = [Task("taskX",None,[":taskY"]),
+        tasks = [Task("taskX",None,task_dep=["taskY"]),
                  Task("taskY",None,)]
         tc = TaskControl(tasks)
         tc.process(['taskX'])
         assert [tasks[1], tasks[0]] == [x for x in tc._add_task(0, 'taskX',False)]
 
     def testDetectCyclicReference(self):
-        tasks = [Task("taskX",None,[":taskY"]),
-                 Task("taskY",None,[":taskX"])]
+        tasks = [Task("taskX",None,task_dep=["taskY"]),
+                 Task("taskY",None,task_dep=["taskX"])]
         tc = TaskControl(tasks)
         tc.process(None)
         gen = tc._add_task(0, "taskX", False)
         py.test.raises(InvalidDodoFile, gen.next)
 
     def testParallel(self):
-        tasks = [Task("taskX",None,[":taskY"]),
+        tasks = [Task("taskX",None,task_dep=["taskY"]),
                  Task("taskY",None)]
         tc = TaskControl(tasks)
         tc.process(None)
@@ -364,7 +364,7 @@ class TestAddTask(object):
 
 class TestGetNext(object):
     def testChangeOrder_AddJustOnce(self):
-        tasks = [Task("taskX",None,[":taskY"]),
+        tasks = [Task("taskX",None,task_dep=["taskY"]),
                  Task("taskY",None,)]
         tc = TaskControl(tasks)
         tc.process(None)

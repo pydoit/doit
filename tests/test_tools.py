@@ -21,8 +21,8 @@ class TestTitleWithActions:
         assert "MyName => Cmd: MyAction" == t.title()
 
     def test_group(self):
-        t = task.Task("MyName", None, ('file_foo', ':t1',':t2'),
-                      title=tools.title_with_actions)
+        t = task.Task("MyName", None, file_dep=['file_foo'],
+                      task_dep=['t1','t2'], title=tools.title_with_actions)
         assert "MyName => Group: t1, t2" == t.title()
 
 

@@ -46,45 +46,43 @@ class TestTask(object):
         assert "<Task: taskX>" == repr(t), repr(t)
 
     def test_dependencySequenceIsValid(self):
-        task.Task("Task X", ["taskcmd"], dependencies=["123","456"])
+        task.Task("Task X", ["taskcmd"], file_dep=["123","456"])
 
     # dependency must be a sequence or bool.
     # give proper error message when anything else is used.
     def test_dependencyNotSequence(self):
         filePath = "data/dependency1"
         py.test.raises(task.InvalidTask, task.Task,
-                      "Task X",["taskcmd"], dependencies=filePath)
+                      "Task X",["taskcmd"], file_dep=filePath)
 
     # dependency types going to the write place
     def test_dependencyTypes(self):
-        dep = ["file1.txt",":taskX","file2", "?res1", ":stu*", "!dyndyn"]
-        t = task.Task("MyName", ["MyAction"], dep)
+        dep = ["file1.txt",":taskX","file2", "?res1", ":stu*"]
+        task_dict = {'name': "MyName",
+                     'actions': ["MyAction"],
+                     'dependencies': dep}
+        t = task.dict_to_task(task_dict)
         assert t.task_dep == [dep[1][1:], dep[3][1:]]
         assert t.file_dep == [dep[0],dep[2]]
         assert t.result_dep == [dep[3][1:]]
         assert t.wild_dep == [dep[4][1:]]
-        assert t.dyn_dep == [dep[5][1:]]
 
     def test_dependencyTrueRunonce(self):
-        t = task.Task("Task X",["taskcmd"], dependencies=[True])
+        t = task.Task("Task X",["taskcmd"], file_dep=[True])
         assert t.run_once
 
     def test_dependencyFalseRunalways(self):
-        t = task.Task("Task X",["taskcmd"], dependencies=[False])
+        t = task.Task("Task X",["taskcmd"], file_dep=[False])
         assert t.run_always
 
     def test_dependencyNoneIgnored(self):
-        t = task.Task("Task X",["taskcmd"], dependencies=[None])
+        t = task.Task("Task X",["taskcmd"], file_dep=[None])
         assert not t.run_once
         assert not t.run_always
 
-    def test_dependencyValueInvalid(self):
-        py.test.raises(task.InvalidTask, task.Task,
-                      "Task X",["taskcmd"], dependencies=[123])
-
     def test_runOnce_or_fileDependency(self):
         py.test.raises(task.InvalidTask, task.Task,
-                      "Task X",["taskcmd"], dependencies=[True,"whatever"])
+                      "Task X",["taskcmd"], file_dep=[True,"whatever"])
 
 
     def test_title(self):
