@@ -2,6 +2,7 @@
 import sys
 import os.path
 import itertools
+import platform
 
 from doit import dependency
 from doit.task import Task
@@ -239,8 +240,12 @@ class FileModifyWatcher(object):
         self.notifier = None
 
     def _handle(self, event):
-        if event.pathname in self.file_list:
-            self.handle_event(event)
+        if platform.system() == 'Darwin':
+            if event.name in self.file_list:
+                self.handle_event(event)
+        else:
+            if event.pathname in self.file_list:
+                self.handle_event(event)
 
     def handle_event(self, event):
         """this should be sub-classed """
@@ -250,21 +255,47 @@ class FileModifyWatcher(object):
         """Infinite loop
         @loop_callback: used to stop loop on unittests
         """
-        import pyinotify
-        handler = self._handle
-        class EventHandler(pyinotify.ProcessEvent):
-            def process_default(self, event):
-                handler(event)
 
-        wm = pyinotify.WatchManager()  # Watch Manager
-        mask = pyinotify.IN_CLOSE_WRITE
-        ev = EventHandler()
-        self.notifier = pyinotify.Notifier(wm, ev)
+        if platform.system() == 'Darwin':
+            from fsevents import Observer
+            from fsevents import Stream
+            from fsevents import IN_MODIFY
 
-        for watch_this in self.watch_dirs:
-            wm.add_watch(watch_this, mask)
+            observer = Observer()
+            handler = self._handle
+            def fsevent_callback(event):
+                if event.mask == IN_MODIFY:
+                    handler(event)
 
-        self.notifier.loop(loop_callback)
+            for watch_this in self.watch_dirs:
+                stream = Stream(fsevent_callback, watch_this, file_events=True)
+                observer.schedule(stream)
+
+            observer.daemon = True
+            observer.start()
+            try:
+                # hack to keep main thread running...
+                import time
+                while True:
+                    time.sleep(99999)
+            except (SystemExit, KeyboardInterrupt):
+                pass
+        else:
+            import pyinotify
+            handler = self._handle
+            class EventHandler(pyinotify.ProcessEvent):
+                def process_default(self, event):
+                    handler(event)
+
+            wm = pyinotify.WatchManager()  # Watch Manager
+            mask = pyinotify.IN_CLOSE_WRITE
+            ev = EventHandler()
+            self.notifier = pyinotify.Notifier(wm, ev)
+
+            for watch_this in self.watch_dirs:
+                wm.add_watch(watch_this, mask)
+
+            self.notifier.loop(loop_callback)
 
 
 def doit_auto(dependency_file, task_list, filter_tasks, loop_callback=None):
