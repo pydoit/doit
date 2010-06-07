@@ -22,7 +22,7 @@ if python_version[0] == '2':
 
 setup(name = 'doit',
       description = 'doit - Automation Tool',
-      version = '0.9.x',
+      version = '0.9.0',
       license = 'MIT',
       author = 'Eduardo Naufel Schettino',
       author_email = 'schettino72@gmail.com',

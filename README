@@ -36,9 +36,10 @@ doit is tested on python 2.4, 2.5, 2.6.
 DEPENDENCIES
 ============
 
-- pyinotify [all python versions] (requires ctypes - not in python2.4 stdlib)
 - simplejson [python 2.4 & 2.5]
 - multiprocessing [python 2.4 & 2.5]
+- pyinotify (linux) [all python versions] (requires ctypes - not in python2.4 stdlib)
+- macfsevents (mac)
 
 Tools required for development:
 
