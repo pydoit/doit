@@ -353,7 +353,7 @@ class TaskControl(object):
         self._add_status[task_name] = gen_id
         this_task = self.tasks[task_name]
 
-        # execute dynamic tasks
+        # execute dynamic calculated tasks
         while this_task.calc_dep_stack:
             # get next dynamic task
             dyn = self.tasks[this_task.calc_dep_stack.pop(0)]

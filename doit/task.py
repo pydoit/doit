@@ -150,7 +150,9 @@ class Task(object):
             elif dep is None:
                 continue
             else:
-                self.file_dep.append(dep)
+                # TODO store file_deps in a set
+                if dep not in self.file_dep:
+                    self.file_dep.append(dep)
 
     def _expand_task_dep(self, task_dep):
         for dep in task_dep:
@@ -165,8 +167,10 @@ class Task(object):
         self.task_dep.extend(self.result_dep)
 
     def _expand_calc_dep(self, calc_dep):
-        self.calc_dep.extend(calc_dep)
-        self.calc_dep_stack.extend(calc_dep)
+        for dep in calc_dep:
+            if dep not in self.calc_dep:
+                self.calc_dep.extend(calc_dep)
+                self.calc_dep_stack.extend(calc_dep)
 
 
     def update_deps(self, deps):

@@ -3,7 +3,6 @@
 
 . cyclilc MP test
 . more MP (tree)
-. cyclic dynamic dep
 . cache file MD5 (on read & write)
 . key/value storage
 
@@ -32,7 +31,6 @@ needs volunteer
 ----------------
 
 . windows (#218276)
-. mac
 
 not clear how to implement
 ---------------------------
