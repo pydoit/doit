@@ -12,7 +12,7 @@ def task_epydoc():
     targetPath = buildPath + 'api/'
     return {'actions':[(create_folder, [targetPath]),
                        "epydoc --config epydoc.config -o %(targets)s"],
-            'dependencies': srcFiles,
+            'file_dep': srcFiles,
             'targets': [targetPath]}
 
 def task_sphinx():

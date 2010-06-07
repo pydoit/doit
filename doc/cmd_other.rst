@@ -94,6 +94,10 @@ Note the ``!!``, it means that task was ignored. To reverse the `ignore` use `fo
 auto
 -------
 
+.. warning::
+
+   Supported on Linux and Mac only.
+
 `auto` sub-command is an alternative way of executing your tasks. It is a long running process that only terminates when it is interrupted (Ctrl-C). When started it will execute the given tasks. After that it will watch the file system for modifications in the file-dependencies.  When a file is modified the tasks are re-executed.
 
 .. code-block:: console

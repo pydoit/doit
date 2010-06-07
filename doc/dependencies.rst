@@ -51,14 +51,14 @@ Lets say you work with a dynamic language (python in this example). You don't ne
    eduardo@eduardo:~$ doit
    -- checker
 
-Note the ``---`` again.
+Note the ``--`` again.
 
 
 
 task-dependency
 ---------------
 
-We have seen only dependencies on files up to now. On `doit` you can also define **task-dependency**. To define a dependency on another task use the task name (whatever comes after ``task_`` on the function name) preceded by ":". It is used to enforce tasks are executed on the desired order. By default tasks are executed on the same order as they were defined in the `dodo` file.
+We have seen only dependencies on files up to now. On `doit` you can also define **task-dependency**. To define a dependency on another task use the task name (whatever comes after ``task_`` on the function name) in the "task_dep" attribute. It is used to enforce tasks are executed on the desired order. By default tasks are executed on the same order as they were defined in the `dodo` file.
 
 
 .. note::
@@ -116,16 +116,16 @@ If there are no changes in the dependency the task execution is skipped. But if 
     -- compile
 
 
-task-result-dependency
+result-dependency
 ----------------------
 
-In some cases you can not determine if a task is "up-to-date" only based on some input files, you might need to run an external process to check that. *doit* defines a "task-result-dependency" to deal with these cases without need to create an intermediate file with the reulsts of the process.
+In some cases you can not determine if a task is "up-to-date" only based on some input files, you might need to run an external process to check that. *doit* defines a "result-dependency" to deal with these cases without need to create an intermediate file with the reulsts of the process.
 
 i.e. Suppose you want to send an email everytime you run *doit* on a bazaar repository that contains a new revision number.
 
 .. literalinclude:: tutorial/taskresult.py
 
-Note the question mark "?" preeceds the name of the task (version). `doit` will keep track of the output of the task *version* and will execute *send_email* only when the bazaar repository has a new version since last time *doit* was executed.
+Note the "restul_dep" with the name of the task (version). `doit` will keep track of the output of the task *version* and will execute *send_email* only when the bazaar repository has a new version since last time *doit* was executed.
 
 The "result" from the dependent task compared between different runs is given by its last action. The content for python-action is the value of the returned string. For cmd-actions is the output send to stdout plus stderr.
 
@@ -141,7 +141,7 @@ getargs
 run-once
 --------
 
-Sometimes there is no dependency for a task but you do not want to execute it all the time. If you use ``True`` as dependency the task will not be executed again after the first successful run. This is mostly used together with targets.
+Sometimes there is no dependency for a task but you do not want to execute it all the time. If you use ``True`` as dependency (in "file_dep") the task will not be executed again after the first successful run. This is mostly used together with targets.
 
 Suppose you need to download something from internet. There is no dependency though you do not want to download it many times.
 
@@ -164,12 +164,12 @@ Note that even with *run-once* the file will be downloaded again in case the tar
 never-upto-date
 -----------------
 
-A dependency value ``False`` can also be used in a dependency list to indicate that task should never be considered up-to-date.
+A dependency (file_dep) value ``False`` can also be used in a dependency list to indicate that task should never be considered up-to-date.
 
 Dependency None
 ----------------
 
-``None`` values as dependency will just be ignored. This is used when the value is dinamically calculated.
+``None`` values as "file_dep" will just be ignored. This is used when the value is dinamically calculated.
 
 
 
@@ -198,4 +198,4 @@ Task may also define a 'teardown' actions. These actions are executed after all 
 
 Example:
 
-.. literalinclude:: tutorial/setup.py
+.. literalinclude:: tutorial/tsetup.py

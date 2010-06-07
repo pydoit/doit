@@ -9,7 +9,7 @@ Features:
  * Use python to dynamically create tasks on-the-fly
  * Flexible, adapts to many workflows for creation of tasks/rules/recipes
  * Support for multi-process parallel execution
- * Built-in integration of inotify (automatically re-execution)
+ * Built-in integration of inotify (automatically re-execution) (linux/mac only)
 
 `doit` can be used as:
 
@@ -19,10 +19,6 @@ Features:
 
  * a functional tests runner (combine together different tools)
 
-
-In `doit`, unlike most (all?) build-tools, a task doesn't need to define a target file to use the execute only if not up-to-date feature. This make `doit` specially suitable for running a sub-set of your test suites.
-
-`doit` like most build tools is used to execute tasks defined in a configuration file. Configuration files are python modules. The tasks can be python functions or an external shell script/command. `doit` automatically keeps track of declared dependencies executing only tasks that needs to be updated
 
 If you are still wondering why someone would want to use this tool, check this blog `post <http://schettino72.wordpress.com/2008/04/14/doit-a-build-tool-tale/>`_.
 
@@ -74,7 +70,7 @@ Project Details
 Status
 ======
 
-`doit` is under active development. Version 0.8 released on 2010-05.
+`doit` is under active development. Version 0.9 released on 2010-06.
 
 Development is done based on real world use cases. If I don't need a feature and nobody never asked for it, it is not implemented ;) It is well designed and have a very small code base so adding new features isn't hard. `doit` already provides most features I need, so the development of new features has slowed down.
 

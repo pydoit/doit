@@ -10,4 +10,4 @@ def task_t2():
 
 def task_t3():
     return {'actions': ["echo task3"],
-            'dependencies': ['task1']}
+            'file_dep': ['task1']}

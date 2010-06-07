@@ -1,6 +1,6 @@
 def task_tar():
     return {'actions': ["tar -cf foo.tar *"],
-            'dependencies':[':version'],
+            'task_dep':['version'],
             'targets':['foo.tar']}
 
 def task_version():

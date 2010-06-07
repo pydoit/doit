@@ -3,4 +3,4 @@ def task_version():
 
 def task_send_email():
 	return {'actions': ['echo "TODO: send an email"'],
-	        'dependencies': ['?version']}
+	        'result_dep': ['version']}

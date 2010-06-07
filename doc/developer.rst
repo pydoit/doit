@@ -43,11 +43,13 @@ Sub-tasks must include the field ``name`` on its dictionary representation. A su
 Set task's task-dependencies
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Collect all task-dependencies for every task. task-dependencies can come from 3 sources.
+Collect all task-dependencies for every task. task-dependencies can come from:
 
 #. A task generator that return multiple sub-tasks creates a dumb task with no action that depends on all sub-tasks.
 
-#. A task-dependency explicit defined in the 'dependencies' as ":<depends-on-task_name>".
+#. A task-dependency explicit defined in the 'task_dep' as "<depends-on-task_name>".
+
+#. result_dep are also implicit task_dep.
 
 #. A file-dependency where the file is also a target from another task. If task-B depends on file-TA and file-TA is a target of task-A, task-B depends on task-A. Or task-A is a task-dependency of task-B.
 

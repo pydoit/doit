@@ -6,4 +6,4 @@ def task_bar():
 
 def task_mygroup():
     return {'actions': None,
-           'dependencies': [':foo', ':bar']}
+            'task_dep': ['foo', 'bar']}

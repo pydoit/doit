@@ -9,6 +9,6 @@ def task_compute():
 def task_use():
    return {'actions': ['echo %(x)s %(z)s - 5 20'],
            'getargs': {'x':'compute.x',
-                        'z':'compute.z'},
+                       'z':'compute.z'},
            'verbosity': 2,
            }
