@@ -130,6 +130,17 @@ Note the "restul_dep" with the name of the task (version). `doit` will keep trac
 The "result" from the dependent task compared between different runs is given by its last action. The content for python-action is the value of the returned string. For cmd-actions is the output send to stdout plus stderr.
 
 
+calculated-dependencies
+------------------------
+
+Calculation of dependencies might be an expensive opration, so not suitable to be done on task-generators. For this situation is better to delegate the calculation of depencies to another task. The task calcutating dependencies must have a python-action returning a dictionary with 'file_dep', 'task_dep', result_dep, or another 'calc_dep'.
+
+On the example below ``mod_deps`` prints on the screen all direct dependencies from a module. The depencies itself are calculated on task ``get_dep`` (note: get_dep has a fake implementation where the results are taken from a dict).
+
+
+.. literalinclude:: tutorial/calc_dep.py
+
+
 getargs
 --------
 

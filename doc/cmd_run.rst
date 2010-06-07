@@ -135,7 +135,7 @@ parallel execution
 reporter
 ---------
 
-`doit` provides different "reporters" to dispalyin running tasks info on the console. Use the option --reporter/-r Apart from the default it also includes:
+`doit` provides different "reporters" to display running tasks info on the console. Use the option --reporter/-r to choose a reporter. Apart from the default it also includes:
 
  * executed-only: Produces zero output unless a task is executed
  * json: Output results in JSON format
@@ -143,6 +143,15 @@ reporter
 .. code-block:: console
 
     eduardo@eduardo:~$ doit --reporter json
+
+
+custom_reporter
+-----------------
+
+It is possible to define your own custom reporter. Check the code on doit/reorter.py... It is easy to get started by sub-classing the default reporter as shown below. The custom reporter must be configured using DOIT_CONFIG dict.
+
+.. literalinclude:: tutorial/custom_reporter.py
+
 
 
 output-file
