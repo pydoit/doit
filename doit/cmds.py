@@ -233,17 +233,25 @@ class FileModifyWatcher(object):
     2) create an object passing a list of files to be watched
     3) call the loop method
     """
+    supported_platforms = ('Darwin', 'Linux')
+
     def __init__(self, file_list):
         """@param file_list (list-str): files to be watched"""
         self.file_list = set([os.path.abspath(f) for f in file_list])
         self.watch_dirs = set([os.path.dirname(f) for f in self.file_list])
         self.notifier = None
+        self.platform = platform.system()
+        if self.platform not in self.supported_platforms:
+            msg = "Unsupported platform '%s'\n" % self.platform
+            msg += ("'auto' command is supported only on %s" %
+                    (self.supported_platforms,))
+            raise Exception(msg)
 
     def _handle(self, event):
-        if platform.system() == 'Darwin':
+        if self.platform == 'Darwin':
             if event.name in self.file_list:
                 self.handle_event(event)
-        else:
+        elif self.platform == 'Linux':
             if event.pathname in self.file_list:
                 self.handle_event(event)
 
@@ -256,7 +264,7 @@ class FileModifyWatcher(object):
         @loop_callback: used to stop loop on unittests
         """
 
-        if platform.system() == 'Darwin':
+        if self.platform == 'Darwin':
             from fsevents import Observer
             from fsevents import Stream
             from fsevents import IN_MODIFY
@@ -280,7 +288,8 @@ class FileModifyWatcher(object):
                     time.sleep(99999)
             except (SystemExit, KeyboardInterrupt):
                 pass
-        else:
+
+        elif self.platform == 'Linux':
             import pyinotify
             handler = self._handle
             class EventHandler(pyinotify.ProcessEvent):

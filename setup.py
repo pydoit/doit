@@ -2,6 +2,24 @@
 
 from distutils.core import setup
 
+import platform
+python_version = platform.python_version().split('.')
+platform_system = platform.system()
+
+
+install_requires = []
+
+# auto command dependencies to watch file-system
+if platform_system == "Darwin":
+    install_requires.append('macfsevents')
+elif platform_system == "Linux":
+    install_requires.append('pyinotify')
+
+if python_version[0] == '2':
+    if python_version[1] < '6':
+        install_requires.append('multiprocessing')
+        install_requires.append('simplejson')
+
 setup(name = 'doit',
       description = 'doit - Automation Tool',
       version = '0.9.x',
@@ -27,8 +45,7 @@ setup(name = 'doit',
 
       packages = ['doit'],
       scripts = ['bin/doit'],
-      #pyinotify
-      install_requires = ['multiprocessing'],
+      install_requires = install_requires,
 
       long_description = """
 `doit` comes from the idea of bringing the power of build-tools to execute any kind of task. It will keep track of dependencies between "tasks" and execute them only when necessary. It was designed to be easy to use and "get out of your way".
