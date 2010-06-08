@@ -145,7 +145,7 @@ reporter
     eduardo@eduardo:~$ doit --reporter json
 
 
-custom_reporter
+custom reporter
 -----------------
 
 It is possible to define your own custom reporter. Check the code on doit/reorter.py... It is easy to get started by sub-classing the default reporter as shown below. The custom reporter must be configured using DOIT_CONFIG dict.

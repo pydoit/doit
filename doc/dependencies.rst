@@ -2,15 +2,15 @@
 Dependencies & Targets
 ======================
 
-`dependencies` and `targets` are optional attributes of a task.
+`file_dep` (dependencies) and `targets` are optional attributes of a task.
 
 Dependency
-  A *dependency* indicates an input to the task execution.
+  A *file_dep* indicates a file input to the task execution.
 
 Target
   A *target* is the result/output produced by the task execution.
 
-i.e. In a compilation task the source file is a *dependency*, the object file is a *target*.
+i.e. In a compilation task the source file is a *file_dep*, the object file is a *target*.
 
 
 .. literalinclude:: tutorial/compile.py
