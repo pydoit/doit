@@ -341,8 +341,6 @@ def dict_to_task(task_dict):
     @param task_dict (dict): task representation as a dict.
     @raise InvalidTask: If unexpected fields were passed in task_dict
     """
-    global DEPRECATION
-
     # check required fields
     if 'actions' not in task_dict:
         raise InvalidTask("Task %s must contain 'actions' field. %s" %
@@ -352,33 +350,7 @@ def dict_to_task(task_dict):
     task_attrs = task_dict.keys()
     valid_attrs = set(Task.valid_attr.iterkeys())
     for key in task_attrs:
-
-        if key == 'dependencies':
-            if not DEPRECATION:
-                print ("DEPRECATION WARNING: task attribute 'dependencies': "
-                       "use 'file_dep', 'task_dep', 'result_dep' or 'calc_dep'.")
-                DEPRECATION = True
-            task_dict['file_dep'] = []
-            task_dict['task_dep'] = []
-            task_dict['result_dep'] = []
-            task_dict['calc_dep'] = []
-            for dep in task_dict['dependencies']:
-                if isinstance(dep, str) or isinstance(dep, unicode):
-                    # task dep starts with a ':'
-                    if dep.startswith(':'):
-                        task_dict['task_dep'].append(dep[1:])
-                    # task-result dep starts with a '?'
-                    elif dep.startswith('?'):
-                        task_dict['result_dep'].append(dep[1:])
-                    # file dep
-                    else:
-                        task_dict['file_dep'].append(dep)
-                else:
-                    # bool or None
-                    task_dict['file_dep'].append(dep)
-            del task_dict['dependencies']
-
-        elif key not in valid_attrs:
+        if key not in valid_attrs:
             raise InvalidTask("Task %s contains invalid field: '%s'"%
                               (task_dict['name'],key))
 
