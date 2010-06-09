@@ -41,21 +41,21 @@ class Task(object):
     DEFAULT_VERBOSITY = 1
 
     # list of valid types/values for each task attribute.
-    valid_attr = {'name': [str],
-                  'actions': [list, tuple, None],
-                  'file_dep': [list, tuple],
-                  'task_dep': [list, tuple],
-                  'result_dep': [list, tuple],
-                  'calc_dep': [list, tuple],
-                  'targets': [list, tuple],
-                  'setup': [list, tuple],
-                  'clean': [list, tuple, True],
-                  'teardown': [list, tuple],
-                  'doc': [str, None],
-                  'params': [list, tuple],
-                  'verbosity': [None,0,1,2],
-                  'getargs': [dict],
-                  'title': [None, types.FunctionType],
+    valid_attr = {'name': ([str],[]),
+                  'actions': ([list, tuple], [None]),
+                  'file_dep': ([list, tuple], []),
+                  'task_dep': ([list, tuple], []),
+                  'result_dep': ([list, tuple], []),
+                  'calc_dep': ([list, tuple], []),
+                  'targets': ([list, tuple], []),
+                  'setup': ([list, tuple], []),
+                  'clean': ([list, tuple], [True]),
+                  'teardown': ([list, tuple], []),
+                  'doc': ([str], [None]),
+                  'params': ([list, tuple], []),
+                  'verbosity': ([], [None,0,1,2]),
+                  'getargs': ([dict], []),
+                  'title': ([types.FunctionType], [None]),
                   }
 
     setup_warned = False # print setup-object deprecation warning just once
@@ -71,8 +71,9 @@ class Task(object):
 
         getargs = getargs or {} #default
         # check task attributes input
+        my_locals = locals()
         for attr, valid_list in self.valid_attr.iteritems():
-            self.check_attr_input(name, attr, locals()[attr], valid_list)
+            self.check_attr_input(name, attr, my_locals[attr], valid_list)
 
         self.name = name
         self.targets = targets
@@ -137,6 +138,7 @@ class Task(object):
         self._init_doc(doc)
 
         self.run_status = None
+
 
     def _expand_file_dep(self, file_dep):
         for dep in file_dep:
@@ -229,15 +231,11 @@ class Task(object):
         @raises InvalidTask if invalid input
         """
         msg = "Task %s attribute '%s' must be {%s} got:%r %s"
-        for expected in valid:
-            # check expected type
-            if isinstance(expected, type):
-                if isinstance(value, expected):
-                    return
-            # check expected value
-            else:
-                if expected is value:
-                    return
+        value_type = type(value)
+        if value_type in valid[0]:
+            return
+        if value in valid[1]:
+            return
 
         # input value didnt match any valid type/value, raise execption
         accept = ", ".join([getattr(v,'__name__',str(v)) for v in valid])
@@ -352,6 +350,7 @@ def dict_to_task(task_dict):
 
     # user friendly. dont go ahead with invalid input.
     task_attrs = task_dict.keys()
+    valid_attrs = set(Task.valid_attr.iterkeys())
     for key in task_attrs:
 
         if key == 'dependencies':
@@ -379,7 +378,7 @@ def dict_to_task(task_dict):
                     task_dict['file_dep'].append(dep)
             del task_dict['dependencies']
 
-        elif key not in Task.valid_attr.keys():
+        elif key not in valid_attrs:
             raise InvalidTask("Task %s contains invalid field: '%s'"%
                               (task_dict['name'],key))
 
