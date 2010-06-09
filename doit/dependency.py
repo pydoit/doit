@@ -3,12 +3,13 @@
 
 import os
 
-# Use Python 2.6 json or simplejson
+# Use simplejson or Python 2.6 json
+# simplejson is much faster that py26:json. so use simplejson if available
 try:
-    import json
-    json # keep pyflakes quiet
+    import simplejson
+    json = simplejson
 except ImportError: # pragma: no cover
-    import simplejson as json
+    import json
 
 
 ## use different md5 libraries depending on python version
