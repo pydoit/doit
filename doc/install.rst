@@ -17,9 +17,17 @@ Installing
 
 * Ubuntu packages
 
-  Add the following line to your system's software sources ::
+  Add the doit team PPA to your system's software sources ::
 
-    deb http://ppa.launchpad.net/doit-team/ppa/ubuntu karmic main
+    sudo add-apt-repository ppa:doit-team/ppa
+
+  Update your package index data ::
+
+    sudo aptitude update
+
+  Install doit ::
+
+    sudo aptitude install doit
 
   `PPA archive <https://launchpad.net/~doit-team/+archive/ppa/>`_. (`help <https://launchpad.net/+help/soyuz/ppa-sources-list.html>`_)
 
