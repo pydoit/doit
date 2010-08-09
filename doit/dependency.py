@@ -12,21 +12,28 @@ except ImportError: # pragma: no cover
     import json
 
 
+############ md5
+def get_md5_py5(input_data):
+    """return md5 from string (python 2.5 and above)"""
+    return hashlib.md5(input_data).hexdigest()
+
+def get_md5_py4(input_data):
+    """return md5 from string"""
+    out = md5.new()
+    out.update(input_data)
+    return out.hexdigest()
+
 ## use different md5 libraries depending on python version
 get_md5 = None # function return md5 from a string
 try:
     import hashlib
-    def get_md5_py5(input):
-        return hashlib.md5(input).hexdigest()
     get_md5 = get_md5_py5
 # support python 2.4
 except ImportError: # pragma: no cover
     import md5
-    def get_md5_py4(input):
-        out = md5.new()
-        out.update(input)
-        return out.hexdigest()
     get_md5 = get_md5_py4
+#########################################################
+
 
 
 USE_FILE_TIMESTAMP = True
@@ -37,9 +44,9 @@ def md5sum(path):
     @param path: (string) file path
     @return: (string) md5
     """
-    f = open(path,'rb')
-    result = get_md5(f.read())
-    f.close()
+    file_data = open(path,'rb')
+    result = get_md5(file_data.read())
+    file_data.close()
     return result
 
 
@@ -63,22 +70,53 @@ def check_modified(file_path, state):
     return file_md5 != md5sum(file_path)
 
 
+class JsonDB(object):
+    @staticmethod
+    def load(name):
+        db_file = open(name, 'r')
+        try:
+            try:
+                return json.load(db_file)
+            except ValueError, error:
+                # file contains corrupted json data
+                msg = (error.args[0] +
+                       "\nInvalid JSON data in %s\n" %
+                       os.path.abspath(name) +
+                       "To fix this problem, you can just remove the " +
+                       "corrupted file, a new one will be generated.\n")
+                error.args = (msg,)
+                raise
+        finally:
+            db_file.close()
+
+    @staticmethod
+    def dump(name, data):
+        try:
+            db_file = open(name, 'w')
+            json.dump(data, db_file)
+        finally:
+            db_file.close()
+
+
+
 class Dependency(object):
-    """Manage dependency on files.
+    """Manage tasks dependencies
 
     Each dependency is a saved in "db". the "db" is a text file using json
     format where there is a dictionary for every task. each task has a
     dictionary where key is a dependency (abs file path), and the value is the
     dependency signature.
     Apart from dependencies onther values are also saved on the task dictionary
-     * 'result:', 'run-one:', 'task:<task-name>', 'ignore:'
+     * 'result:', 'run-once:', 'task:<task-name>', 'ignore:'
      * user(task) defined values are defined in '_values_:' sub-dict
+
+    @ivar name: (string) filepath of the DB file
+    @ivar _closed: (bool) DB was flushed to file
+    @ivar _db: (dict)
     """
 
     def __init__(self, name):
         """Open/create a DB file.
-
-        @param name: (string) filepath of the DB file
         """
         self.name = name
         self._closed = False
@@ -86,43 +124,33 @@ class Dependency(object):
         if not os.path.exists(self.name):
             self._db = {}
         else:
-            fp = open(self.name, 'r')
-            try:
-                try:
-                    self._db = json.load(fp)
-                except ValueError, e:
-                    # file contains corrupted json data
-                    msg = (e.args[0] +
-                           "\nInvalid JSON data in %s\n" %
-                           os.path.abspath(self.name) +
-                           "To fix this problem, you can just remove the " +
-                           "corrupted file, a new one will be generated.\n")
-                    e.args = (msg,)
-                    raise
-            finally:
-                fp.close()
+            self._db = JsonDB.load(self.name)
 
 
-    def _set(self, taskId, dependency, value):
+    def _set(self, task_id, dependency, value):
         """Store value in the DB."""
-        if taskId not in self._db:
-            self._db[taskId] = {}
-        self._db[taskId][dependency] = value
+        if task_id not in self._db:
+            self._db[task_id] = {}
+        self._db[task_id][dependency] = value
 
 
-    def _get(self, taskId, dependency):
+    def _get(self, task_id, dependency):
         """Get value stored in the DB.
 
         @return: (string) or (None) if entry not found
         """
-        if taskId in self._db:
-            return self._db[taskId].get(dependency, None)
+        if task_id in self._db:
+            return self._db[task_id].get(dependency, None)
 
 
-    def remove(self, taskId):
+    def _in(self, task_id):
+        return task_id in self._db
+
+
+    def remove(self, task_id):
         """remove saved dependecies from DB for taskId"""
-        if taskId in self._db:
-            del self._db[taskId]
+        if task_id in self._db:
+            del self._db[task_id]
 
 
     def remove_all(self):
@@ -133,11 +161,7 @@ class Dependency(object):
     def close(self):
         """Write DB in file"""
         if not self._closed:
-            try:
-                fp = open(self.name,'w')
-                json.dump(self._db, fp)
-            finally:
-                fp.close()
+            JsonDB.dump(self.name, self._db)
             self._closed = True
 
 
@@ -154,7 +178,7 @@ class Dependency(object):
 
         # run-once
         if task.run_once:
-            self._set(task.name,'run-once:','1')# string could be any value
+            self._set(task.name, 'run-once:', '1') # string could be any value
 
         # file-dep
         for dep in task.file_dep:
@@ -176,7 +200,7 @@ class Dependency(object):
 
     def get_values(self, task_name):
         """get all saved values from a task"""
-        return self._db[task_name]['_values_:']
+        return self._get(task_name, '_values_:')
 
     def get_value(self, name):
         """get saved value from task
@@ -185,9 +209,9 @@ class Dependency(object):
         parts = name.split('.')
         assert len(parts) == 2
         taskid, arg_name = parts
-        if taskid not in self._db:
+        if not self._in(taskid):
             raise Exception("taskid '%s' has no computed value!" % taskid)
-        values = self._db[taskid]['_values_:']
+        values = self.get_values(taskid)
         if arg_name not in values:
             msg = "Invalid arg name. Task '%s' has no value for '%s'."
             raise Exception(msg % (taskid, arg_name))
@@ -196,8 +220,7 @@ class Dependency(object):
 
     def remove_success(self, task):
         """remove saved info from task"""
-        if task.name in self._db:
-            del self._db[task.name]
+        self.remove(task.name)
 
 
     def ignore(self, task):
