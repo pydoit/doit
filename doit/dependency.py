@@ -2,6 +2,7 @@
 """Manage (save/check) task dependency-on-files data."""
 
 import os
+import anydbm
 
 # Use simplejson or Python 2.6 json
 # simplejson is much faster that py26:json. so use simplejson if available
@@ -17,7 +18,7 @@ def get_md5_py5(input_data):
     """return md5 from string (python 2.5 and above)"""
     return hashlib.md5(input_data).hexdigest()
 
-def get_md5_py4(input_data):
+def get_md5_py4(input_data): # pragma: no cover
     """return md5 from string"""
     out = md5.new()
     out.update(input_data)
@@ -71,9 +72,16 @@ def check_modified(file_path, state):
 
 
 class JsonDB(object):
-    @staticmethod
-    def load(name):
-        db_file = open(name, 'r')
+    def __init__(self, name):
+        """Open/create a DB file"""
+        self.name = name
+        if not os.path.exists(self.name):
+            self._db = {}
+        else:
+            self._db = self.load()
+
+    def load(self):
+        db_file = open(self.name, 'r')
         try:
             try:
                 return json.load(db_file)
@@ -81,7 +89,7 @@ class JsonDB(object):
                 # file contains corrupted json data
                 msg = (error.args[0] +
                        "\nInvalid JSON data in %s\n" %
-                       os.path.abspath(name) +
+                       os.path.abspath(self.name) +
                        "To fix this problem, you can just remove the " +
                        "corrupted file, a new one will be generated.\n")
                 error.args = (msg,)
@@ -89,43 +97,12 @@ class JsonDB(object):
         finally:
             db_file.close()
 
-    @staticmethod
-    def dump(name, data):
+    def dump(self):
         try:
-            db_file = open(name, 'w')
-            json.dump(data, db_file)
+            db_file = open(self.name, 'w')
+            json.dump(self._db, db_file)
         finally:
             db_file.close()
-
-
-
-class Dependency(object):
-    """Manage tasks dependencies
-
-    Each dependency is a saved in "db". the "db" is a text file using json
-    format where there is a dictionary for every task. each task has a
-    dictionary where key is a dependency (abs file path), and the value is the
-    dependency signature.
-    Apart from dependencies onther values are also saved on the task dictionary
-     * 'result:', 'run-once:', 'task:<task-name>', 'ignore:'
-     * user(task) defined values are defined in '_values_:' sub-dict
-
-    @ivar name: (string) filepath of the DB file
-    @ivar _closed: (bool) DB was flushed to file
-    @ivar _db: (dict)
-    """
-
-    def __init__(self, name):
-        """Open/create a DB file.
-        """
-        self.name = name
-        self._closed = False
-
-        if not os.path.exists(self.name):
-            self._db = {}
-        else:
-            self._db = JsonDB.load(self.name)
-
 
     def _set(self, task_id, dependency, value):
         """Store value in the DB."""
@@ -152,16 +129,90 @@ class Dependency(object):
         if task_id in self._db:
             del self._db[task_id]
 
-
     def remove_all(self):
         """remove saved dependecies from DB for all tasks"""
         self._db = {}
 
 
+class DBM_DB(object):
+    def __init__(self, name):
+        """Open/create a DB file"""
+        self.name = name
+        self._dbm = anydbm.open(self.name, 'c')
+        self._db = {}
+        self.dirty = set()
+
+    def dump(self):
+        for task_id in self.dirty:
+            self._dbm[task_id] = json.dumps(self._db[task_id])
+        self._dbm.close()
+
+    def _set(self, task_id, dependency, value):
+        """Store value in the DB."""
+        if task_id not in self._db:
+            self._db[task_id] = {}
+        self._db[task_id][dependency] = value
+        self.dirty.add(task_id)
+
+
+    def _get(self, task_id, dependency):
+        """Get value stored in the DB.
+
+        @return: (string) or (None) if entry not found
+        """
+        # optimization. check this after reduce call count
+        if task_id in self._db:
+            return self._db[task_id].get(dependency, None)
+
+        if task_id not in self._db and task_id in self._dbm:
+            self._db[task_id] = json.loads(self._dbm[task_id])
+        if task_id in self._db:
+            return self._db[task_id].get(dependency, None)
+
+
+    def _in(self, task_id):
+        return task_id in self._db
+
+
+    def remove(self, task_id):
+        """remove saved dependecies from DB for taskId"""
+        if task_id in self._db:
+            del self._db[task_id]
+        if task_id in self._dbm:
+            del self._dbm[task_id]
+        if task_id in self.dirty:
+            self.dirty.remove(task_id)
+
+    def remove_all(self):
+        """remove saved dependecies from DB for all tasks"""
+        self._db = {}
+        self._dbm = anydbm.open(self.name, 'n')
+        self.dirty = set()
+
+
+
+class DependencyBase(object):
+    """Manage tasks dependencies (abstract class)
+
+    Each dependency is a saved in "db". the "db" is a text file using json
+    format where there is a dictionary for every task. each task has a
+    dictionary where key is a dependency (abs file path), and the value is the
+    dependency signature.
+    Apart from dependencies onther values are also saved on the task dictionary
+     * 'result:', 'run-once:', 'task:<task-name>', 'ignore:'
+     * user(task) defined values are defined in '_values_:' sub-dict
+
+    @ivar name: (string) filepath of the DB file
+    @ivar _closed: (bool) DB was flushed to file
+    """
+
+    def __init__(self):
+        self._closed = False
+
     def close(self):
         """Write DB in file"""
         if not self._closed:
-            JsonDB.dump(self.name, self._db)
+            self.dump()
             self._closed = True
 
 
@@ -280,3 +331,17 @@ class Dependency(object):
 
         task.dep_changed = changed #FIXME create a separate function for this
         return status
+
+
+class JsonDependency(JsonDB, DependencyBase):
+    def __init__(self, name):
+        JsonDB.__init__(self, name)
+        DependencyBase.__init__(self)
+
+class DBM_Dependency(DBM_DB, DependencyBase):
+    def __init__(self, name):
+        DBM_DB.__init__(self, name)
+        DependencyBase.__init__(self)
+
+# default "Dependency" implementation to be used
+Dependency = DBM_Dependency

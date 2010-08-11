@@ -251,11 +251,11 @@ class TestRunner_All(object):
 
     # when successful dependencies are updated
     def test_updateDependencies(self, reporter, RunnerClass):
-        filePath = os.path.join(os.path.dirname(__file__),"data/dependency1")
-        ff = open(filePath,"a")
+        depPath = os.path.join(os.path.dirname(__file__),"data/dependency1")
+        ff = open(depPath,"a")
         ff.write("xxx")
         ff.close()
-        dependencies = [filePath]
+        dependencies = [depPath]
 
         filePath = os.path.join(os.path.dirname(__file__),"data/target")
         ff = open(filePath,"a")
@@ -270,8 +270,7 @@ class TestRunner_All(object):
         my_runner.run_tasks(tc)
         assert runner.SUCCESS == my_runner.finish()
         d = Dependency(TESTDB)
-        # there is only one dependency. targets md5 are not saved.
-        assert 1 == len(d._db)
+        assert d._get("taskX", os.path.abspath(depPath))
 
     # when successful and run_once is updated
     def test_successRunOnce(self, reporter, RunnerClass):
@@ -282,7 +281,7 @@ class TestRunner_All(object):
         my_runner.run_tasks(tc)
         assert runner.SUCCESS == my_runner.finish()
         d = Dependency(TESTDB)
-        assert 1 == len(d._db)
+        assert '1' == d._get('taskX', 'run-once:')
 
     def test_resultDependency(self, reporter, RunnerClass):
         t1 = Task("t1", [(ok,)])

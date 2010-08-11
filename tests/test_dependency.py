@@ -1,10 +1,12 @@
 import os
 import time
+import anydbm
 
 import py.test
 
 from doit.task import Task
-from doit.dependency import get_md5, md5sum, check_modified, Dependency
+from doit.dependency import get_md5, md5sum, check_modified
+from doit.dependency import JsonDependency, DBM_Dependency
 
 
 def get_abspath(relativePath):
@@ -37,11 +39,12 @@ def test_md5():
 
 TESTDB = "testdb"
 
-
+# fixture for "doit.db". create/remove for every test
 def pytest_funcarg__depfile(request):
     def create_depfile():
+        dep_class = request.param
         if os.path.exists(TESTDB): os.remove(TESTDB)
-        return Dependency(TESTDB)
+        return dep_class(TESTDB)
     def remove_depfile(depfile):
         if not depfile._closed:
             depfile.close()
@@ -53,6 +56,7 @@ def pytest_funcarg__depfile(request):
         scope="function")
 
 
+# fixture to create a sample file to be used as file_dep
 def pytest_funcarg__dependency(request):
     def create_dependency():
         path = get_abspath("data/dependency1")
@@ -70,6 +74,13 @@ def pytest_funcarg__dependency(request):
         scope="function")
 
 
+# test parametrization, execute tests for all DB backends
+def pytest_generate_tests(metafunc):
+    if "depfile" in metafunc.funcargnames:
+        metafunc.addcall(id='JsonDependency', param=JsonDependency)
+        metafunc.addcall(id='DBM_Dependency', param=DBM_Dependency)
+
+
 class TestDependencyDb(object):
 
     # adding a new value to the DB
@@ -85,15 +96,15 @@ class TestDependencyDb(object):
         depfile.close()
 
         # open it again and check the value
-        d2 = Dependency(TESTDB)
+        d2 = depfile.__class__(TESTDB)
         value = d2._get("taskId_X","dependency_A")
         assert "da_md5" == value, value
 
-    def test_corrupted_file(self):
+    def test_corrupted_file(self, depfile):
         fd = open(TESTDB, 'w')
         fd.write("""{"x": y}""")
         fd.close()
-        py.test.raises(ValueError, Dependency, TESTDB)
+        py.test.raises((ValueError, anydbm.error), depfile.__class__, TESTDB)
 
 
     # _get must return None if entry doesnt exist.
