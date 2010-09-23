@@ -8,12 +8,15 @@ platform_system = platform.system()
 
 
 install_requires = []
+scripts = ['bin/doit']
 
 # auto command dependencies to watch file-system
 if platform_system == "Darwin":
     install_requires.append('macfsevents')
 elif platform_system == "Linux":
     install_requires.append('pyinotify')
+elif platform_system == "Windows":
+    scripts.append('bin/doit.bat')
 
 if python_version[0] == '2':
     if python_version[1] < '6':
@@ -44,7 +47,7 @@ setup(name = 'doit',
                      ],
 
       packages = ['doit'],
-      scripts = ['bin/doit'],
+      scripts = scripts,
       install_requires = install_requires,
 
       long_description = """
