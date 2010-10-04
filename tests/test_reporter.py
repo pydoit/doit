@@ -118,7 +118,7 @@ class TestTaskResult(object):
         assert "this is printed\n" == got['out'], got
         assert "" == got['err'], got
         assert got['started']
-        assert got['elapsed']
+        assert 'elapsed' in got
 
 
 class TestJsonReporter(object):
