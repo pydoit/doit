@@ -64,7 +64,7 @@ class TestRunner_SelectTask(object):
     def test_upToDate(self,reporter):
         t1 = Task("taskX", [(my_print, ["out a"] )], file_dep=[__file__])
         my_runner = runner.Runner(TESTDB, reporter)
-        my_runner.dependencyManager.save_success(t1)
+        my_runner.dependency_manager.save_success(t1)
         assert False == my_runner.select_task(t1)
         assert ('start', t1) == reporter.log.pop(0)
         assert ('up-to-date', t1) == reporter.log.pop(0)
@@ -73,7 +73,7 @@ class TestRunner_SelectTask(object):
     def test_ignore(self,reporter):
         t1 = Task("taskX", [(my_print, ["out a"] )])
         my_runner = runner.Runner(TESTDB, reporter)
-        my_runner.dependencyManager.ignore(t1)
+        my_runner.dependency_manager.ignore(t1)
         assert False == my_runner.select_task(t1)
         assert ('start', t1) == reporter.log.pop(0)
         assert ('ignore', t1) == reporter.log.pop(0)
@@ -82,7 +82,7 @@ class TestRunner_SelectTask(object):
     def test_alwaysExecute(self, reporter):
         t1 = Task("taskX", [(my_print, ["out a"] )])
         my_runner = runner.Runner(TESTDB, reporter, always_execute=True)
-        my_runner.dependencyManager.ignore(t1)
+        my_runner.dependency_manager.ignore(t1)
         assert True == my_runner.select_task(t1)
         assert ('start', t1) == reporter.log.pop(0)
         assert not reporter.log

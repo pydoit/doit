@@ -12,8 +12,8 @@ from doit.reporter import REPORTERS
 from doit.dependency import Dependency
 
 
-def doit_run(dependencyFile, task_list, output, options=None,
-             verbosity=None, alwaysExecute=False, continue_=False,
+def doit_run(dependency_file, task_list, output, options=None,
+             verbosity=None, always_execute=False, continue_=False,
              reporter='default', num_process=0):
     """
     @param reporter: (str) one of provided reporters or ...
@@ -27,7 +27,8 @@ def doit_run(dependencyFile, task_list, output, options=None,
     # reporter
     if isinstance(reporter, str):
         if reporter not in REPORTERS:
-            msg = ("No reporter named '%s'.\nType 'doit help run' to see a list "
+            msg = ("No reporter named '%s'."
+                   " Type 'doit help run' to see a list "
                    "of available reporters.")
             raise InvalidCommand(msg % reporter)
         reporter_cls = REPORTERS[reporter]
@@ -54,11 +55,11 @@ def doit_run(dependencyFile, task_list, output, options=None,
         reporter_obj = reporter_cls(outstream, show_out , True)
 
         if num_process == 0:
-            runner = Runner(dependencyFile, reporter_obj, continue_,
-                            alwaysExecute, verbosity)
+            runner = Runner(dependency_file, reporter_obj, continue_,
+                            always_execute, verbosity)
         else:
-            runner = MP_Runner(dependencyFile, reporter_obj, continue_,
-                               alwaysExecute, verbosity, num_process)
+            runner = MP_Runner(dependency_file, reporter_obj, continue_,
+                               always_execute, verbosity, num_process)
 
         runner.run_tasks(task_control)
         return runner.finish()
@@ -82,6 +83,7 @@ def doit_clean(task_list, outstream, dryrun, clean_dep, clean_tasks):
     cleaned = set()
 
     def clean_task(task_name):
+        """wrapper to ensure task clean-action is executed only once"""
         if task_name not in cleaned:
             cleaned.add(task_name)
             tasks[task_name].clean(outstream, dryrun)
@@ -92,14 +94,14 @@ def doit_clean(task_list, outstream, dryrun, clean_dep, clean_tasks):
 
     for name in clean_tasks:
         if clean_dep:
-            for td in tasks[name].task_dep:
-                clean_task(td)
+            for task_dep in tasks[name].task_dep:
+                clean_task(task_dep)
         clean_task(name)
 
 
 
 
-def doit_list(dependencyFile, task_list, outstream, filter_tasks,
+def doit_list(dependency_file, task_list, outstream, filter_tasks,
               print_subtasks=False, print_doc=False, print_status=False,
               print_private=False, print_dependencies=False):
     """List task generators, in the order they were defined.
@@ -120,7 +122,7 @@ def doit_list(dependencyFile, task_list, outstream, filter_tasks,
         if print_doc and task.doc:
             task_str += "\t* %s" % task.doc
         if print_status:
-            task_uptodate = dependencyManager.get_status(task)
+            task_uptodate = dependency_manager.get_status(task)
             task_str = "%s %s" % (status_map[task_uptodate], task_str)
 
         outstream.write("%s\n" % task_str)
@@ -146,7 +148,7 @@ def doit_list(dependencyFile, task_list, outstream, filter_tasks,
         print_tasks = task_list
     # status
     if print_status:
-        dependencyManager = Dependency(dependencyFile)
+        dependency_manager = Dependency(dependency_file)
 
     for task in print_tasks:
         # exclude subtasks (never exclude if filter specified)
@@ -159,69 +161,69 @@ def doit_list(dependencyFile, task_list, outstream, filter_tasks,
     return 0
 
 
-def doit_forget(dependencyFile, task_list, outstream, forgetTasks):
+def doit_forget(dependency_file, task_list, outstream, forget_tasks):
     """remove saved data successful runs from DB
-    @param dependencyFile: (str)
+    @param dependency_file: (str)
     @param task_list: (Task) tasks from dodo file
     @param forget_tasks: (list - str) tasks to be removed. remove all if
                          empty list.
     """
-    dependencyManager = dependency.Dependency(dependencyFile)
+    dependency_manager = dependency.Dependency(dependency_file)
     # no task specified. forget all
-    if not forgetTasks:
-        dependencyManager.remove_all()
+    if not forget_tasks:
+        dependency_manager.remove_all()
         outstream.write("forgeting all tasks\n")
     # forget tasks from list
     else:
         tasks = dict([(t.name, t) for t in task_list])
-        for taskName in forgetTasks:
+        for task_name in forget_tasks:
             # check task exist
-            if taskName not in tasks:
+            if task_name not in tasks:
                 msg = "'%s' is not a task."
-                raise InvalidCommand(msg % taskName)
+                raise InvalidCommand(msg % task_name)
             # for group tasks also remove all tasks from group.
-            group = [taskName]
+            group = [task_name]
             while group:
                 to_forget = group.pop(0)
                 if not tasks[to_forget].actions:
                     # get task dependencies only from group-task
                     group.extend(tasks[to_forget].task_dep)
                 # forget it - remove from dependency file
-                dependencyManager.remove(to_forget)
+                dependency_manager.remove(to_forget)
                 outstream.write("forgeting %s\n" % to_forget)
-    dependencyManager.close()
+    dependency_manager.close()
 
 
-def doit_ignore(dependencyFile, task_list, outstream, ignoreTasks):
+def doit_ignore(dependency_file, task_list, outstream, ignore_tasks):
     """mark tasks to be ignored
-    @param dependencyFile: (str)
+    @param dependency_file: (str)
     @param task_list: (Task) tasks from dodo file
-    @param ignoreTasks: (list - str) tasks to be ignored.
+    @param ignore_tasks: (list - str) tasks to be ignored.
     """
     # no task specified.
-    if not ignoreTasks:
+    if not ignore_tasks:
         outstream.write("You cant ignore all tasks! Please select a task.\n")
         return
 
-    dependencyManager = dependency.Dependency(dependencyFile)
+    dependency_manager = dependency.Dependency(dependency_file)
     tasks = dict([(t.name, t) for t in task_list])
-    for taskName in ignoreTasks:
+    for task_name in ignore_tasks:
         # check task exist
-        if taskName not in tasks:
+        if task_name not in tasks:
             msg = "'%s' is not a task."
-            raise InvalidCommand(msg % taskName)
+            raise InvalidCommand(msg % task_name)
         # for group tasks also remove all tasks from group.
         # FIXME: DRY
-        group = [taskName]
+        group = [task_name]
         while group:
             to_ignore = group.pop(0)
             if not tasks[to_ignore].actions:
                 # get task dependencies only from group-task
                 group.extend(tasks[to_ignore].task_dep)
             # ignore it - remove from dependency file
-            dependencyManager.ignore(tasks[to_ignore])
+            dependency_manager.ignore(tasks[to_ignore])
             outstream.write("ignoring %s\n" % to_ignore)
-    dependencyManager.close()
+    dependency_manager.close()
 
 
 
@@ -259,53 +261,63 @@ class FileModifyWatcher(object):
         """this should be sub-classed """
         raise NotImplementedError
 
+
+    def _loop_darwin(self):
+        """loop implementation for darwin platform"""
+        from fsevents import Observer
+        from fsevents import Stream
+        from fsevents import IN_MODIFY
+
+        observer = Observer()
+        handler = self._handle
+        def fsevent_callback(event):
+            if event.mask == IN_MODIFY:
+                handler(event)
+
+        for watch_this in self.watch_dirs:
+            stream = Stream(fsevent_callback, watch_this, file_events=True)
+            observer.schedule(stream)
+
+        observer.daemon = True
+        observer.start()
+        try:
+            # hack to keep main thread running...
+            import time
+            while True:
+                time.sleep(99999)
+        except (SystemExit, KeyboardInterrupt):
+            pass
+
+
+    def _loop_linux(self, loop_callback):
+        """loop implementation for linux platform"""
+        import pyinotify
+        handler = self._handle
+        class EventHandler(pyinotify.ProcessEvent):
+            def process_default(self, event):
+                handler(event)
+
+        watch_manager = pyinotify.WatchManager()
+        mask = pyinotify.IN_CLOSE_WRITE
+        event_handler = EventHandler()
+        self.notifier = pyinotify.Notifier(watch_manager, event_handler)
+
+        for watch_this in self.watch_dirs:
+            watch_manager.add_watch(watch_this, mask)
+
+        self.notifier.loop(loop_callback)
+
+
     def loop(self, loop_callback=None):
-        """Infinite loop
+        """Infinite loop watching for file modifications
         @loop_callback: used to stop loop on unittests
         """
 
         if self.platform == 'Darwin':
-            from fsevents import Observer
-            from fsevents import Stream
-            from fsevents import IN_MODIFY
-
-            observer = Observer()
-            handler = self._handle
-            def fsevent_callback(event):
-                if event.mask == IN_MODIFY:
-                    handler(event)
-
-            for watch_this in self.watch_dirs:
-                stream = Stream(fsevent_callback, watch_this, file_events=True)
-                observer.schedule(stream)
-
-            observer.daemon = True
-            observer.start()
-            try:
-                # hack to keep main thread running...
-                import time
-                while True:
-                    time.sleep(99999)
-            except (SystemExit, KeyboardInterrupt):
-                pass
+            self._loop_darwin()
 
         elif self.platform == 'Linux':
-            import pyinotify
-            handler = self._handle
-            class EventHandler(pyinotify.ProcessEvent):
-                def process_default(self, event):
-                    handler(event)
-
-            wm = pyinotify.WatchManager()  # Watch Manager
-            mask = pyinotify.IN_CLOSE_WRITE
-            ev = EventHandler()
-            self.notifier = pyinotify.Notifier(wm, ev)
-
-            for watch_this in self.watch_dirs:
-                wm.add_watch(watch_this, mask)
-
-            self.notifier.loop(loop_callback)
-
+            self._loop_linux(loop_callback)
 
 def doit_auto(dependency_file, task_list, filter_tasks, loop_callback=None):
     """Re-execute tasks automatically a depedency changes
@@ -321,6 +333,7 @@ def doit_auto(dependency_file, task_list, filter_tasks, loop_callback=None):
     watch_files = list(set(watch_files))
 
     class DoitAutoRun(FileModifyWatcher):
+        """Execute doit on event handler of file changes """
         def handle_event(self, event):
             doit_run(dependency_file, task_list, sys.stdout,
                      watch_tasks, reporter='executed-only')
@@ -328,8 +341,8 @@ def doit_auto(dependency_file, task_list, filter_tasks, loop_callback=None):
             for task in task_list:
                 task.run_status = None
 
-    fw = DoitAutoRun(watch_files)
+    file_watcher = DoitAutoRun(watch_files)
     # always run once when started
-    fw.handle_event(None)
-    fw.loop(loop_callback)
+    file_watcher.handle_event(None)
+    file_watcher.loop(loop_callback)
 

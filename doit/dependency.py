@@ -334,11 +334,13 @@ class DependencyBase(object):
 
 
 class JsonDependency(JsonDB, DependencyBase):
+    """Task dependency manager with JSON backend"""
     def __init__(self, name):
         JsonDB.__init__(self, name)
         DependencyBase.__init__(self)
 
 class DBM_Dependency(DBM_DB, DependencyBase):
+    """Task dependency manager with DBM backend"""
     def __init__(self, name):
         DBM_DB.__init__(self, name)
         DependencyBase.__init__(self)

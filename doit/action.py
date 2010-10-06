@@ -1,3 +1,6 @@
+"""Implements actions used by doit tasks
+"""
+
 import subprocess, sys
 import StringIO
 import inspect
@@ -34,7 +37,7 @@ class CmdAction(BaseAction):
     """
 
     def __init__(self, action):
-        assert isinstance(action,str), "CmdAction must be a string."
+        assert isinstance(action, str), "CmdAction must be a string."
         self.action = action
         self.task = None
         self.out = None
@@ -63,10 +66,13 @@ class CmdAction(BaseAction):
         process = subprocess.Popen(action, shell=True,
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        def print_process_output(process, input, capture, realtime):
+        def print_process_output(process, input_, capture, realtime):
+            """read 'input_' untill process is terminated
+            write 'input_' content to 'capture' and 'realtime' streams
+            """
             while True:
                 # line buffered
-                line = input.readline()
+                line = input_.readline()
                 # unbuffered ? process.stdout.read(1)
                 if line:
                     capture.write(line)
@@ -131,16 +137,16 @@ class CmdAction(BaseAction):
 
 class Writer(object):
     """write to many streams"""
-    def __init__(self, *writers) :
+    def __init__(self, *writers):
         self.writers = writers
 
-    def write(self, text) :
-        for w in self.writers :
-                w.write(text)
+    def write(self, text):
+        for stream in self.writers:
+            stream.write(text)
 
-    def flush(self) :
-        for w in self.writers :
-                w.flush()
+    def flush(self):
+        for stream in self.writers:
+            stream.flush()
 
 
 class PythonAction(BaseAction):
@@ -267,7 +273,7 @@ class PythonAction(BaseAction):
         try:
             # Python2.4
             try:
-                returned_value = self.py_callable(*self.args,**kwargs)
+                returned_value = self.py_callable(*self.args, **kwargs)
             # in python 2.4 SystemExit and KeyboardInterrupt subclass
             # from Exception.
             except (SystemExit, KeyboardInterrupt), exception:

@@ -1,4 +1,4 @@
-"""Task runner."""
+"""Task runner"""
 
 import sys
 from multiprocessing import Process, Queue
@@ -25,15 +25,15 @@ class Runner(object):
     finish()
 
     """
-    def __init__(self, dependencyFile, reporter, continue_=False,
+    def __init__(self, dependency_file, reporter, continue_=False,
                  always_execute=False, verbosity=0):
-        """@param dependencyFile: (string) file path of the db file
+        """@param dependency_file: (string) file path of the db file
         @param reporter: reporter to be used. It can be a class or an object
         @param continue_: (bool) execute all tasks even after a task failure
         @param always_execute: (bool) execute even if up-to-date or ignored
         @param verbosity: (int) 0,1,2 see Task.execute
         """
-        self.dependencyManager = Dependency(dependencyFile)
+        self.dependency_manager = Dependency(dependency_file)
         self.reporter = reporter
         self.continue_ = continue_
         self.always_execute = always_execute
@@ -46,7 +46,7 @@ class Runner(object):
 
     def _handle_task_error(self, task, catched_excp):
         assert isinstance(catched_excp, CatchedException)
-        self.dependencyManager.remove_success(task)
+        self.dependency_manager.remove_success(task)
         self.reporter.add_failure(task, catched_excp)
         # only return FAILURE if no errors happened.
         if isinstance(catched_excp, TaskFailed):
@@ -74,17 +74,18 @@ class Runner(object):
 
             # check if task is up-to-date
             try:
-                task.run_status = self.dependencyManager.get_status(task)
+                task.run_status = self.dependency_manager.get_status(task)
             except Exception, exception:
-                de = DependencyError("ERROR checking dependencies", exception)
-                self._handle_task_error(task, de)
+                dep_error = DependencyError("ERROR checking dependencies",
+                                            exception)
+                self._handle_task_error(task, dep_error)
                 return False
 
             if not self.always_execute:
                 # if task is up-to-date skip it
                 if task.run_status == 'up-to-date':
                     self.reporter.skip_uptodate(task)
-                    task.values = self.dependencyManager.get_values(task.name)
+                    task.values = self.dependency_manager.get_values(task.name)
                     return False
                 # check if task should be ignored (user controlled)
                 if task.run_status == 'ignore':
@@ -96,13 +97,14 @@ class Runner(object):
                 return False
         else:
             # sanity checks
-            assert task.run_status == 'run', "%s:%s" % (task.name, task.run_status)
+            assert task.run_status == 'run', \
+                "%s:%s" % (task.name, task.run_status)
             assert task.setup_tasks
 
         # selected just need to get values from other tasks
         for arg, value in task.getargs.iteritems():
             try:
-                task.options[arg] = self.dependencyManager.get_value(value)
+                task.options[arg] = self.dependency_manager.get_value(value)
             except Exception, exception:
                 msg = ("ERROR getting value for argument '%s'\n" % arg +
                        str(exception))
@@ -127,7 +129,7 @@ class Runner(object):
         task.run_status = "done"
         # save execution successful
         if catched_excp is None:
-            self.dependencyManager.save_success(task)
+            self.dependency_manager.save_success(task)
             self.reporter.add_success(task)
         # task error
         else:
@@ -166,7 +168,7 @@ class Runner(object):
     def finish(self):
         """finish running tasks"""
         # flush update dependencies
-        self.dependencyManager.close()
+        self.dependency_manager.close()
 
         # new style teardown
         self.teardown()
@@ -204,9 +206,9 @@ class MP_Runner(Runner):
             return rep_method
 
 
-    def __init__(self, dependencyFile, reporter, continue_=False,
+    def __init__(self, dependency_file, reporter, continue_=False,
                  always_execute=False, verbosity=0, num_process=1):
-        Runner.__init__(self, dependencyFile, reporter, continue_,
+        Runner.__init__(self, dependency_file, reporter, continue_,
                         always_execute, verbosity)
         self.num_process = num_process
         self.waiting = {}
@@ -214,6 +216,7 @@ class MP_Runner(Runner):
         self.free_proc = 0
         self.task_gen = None
         self.tasks = None
+        self.result_q = None
 
     def get_next_task(self):
         """get next task to be dispatched to sub-process
@@ -381,7 +384,8 @@ class MP_Runner(Runner):
                 task = self.tasks[task_name]
                 task.file_dep = file_dep
                 result = {'name': task.name}
-                # FIXME support setup objects with 2 "scopes" (global and process)
+                # FIXME support setup objects with 2 "scopes"
+                # global and process scopes
                 t_result = Runner.execute_task(self, task)
 
                 if t_result is None:
@@ -390,8 +394,8 @@ class MP_Runner(Runner):
                 else:
                     result['failure'] = t_result
                 result_q.put(result)
-        except (SystemExit, KeyboardInterrupt, Exception), e:
+        except (SystemExit, KeyboardInterrupt, Exception), exception:
             # error, blow-up everything
             result_q.put({'name': task_name,
-                          'exit': e.__class__,
-                          'exception': str(e)})
+                          'exit': exception.__class__,
+                          'exception': str(exception)})

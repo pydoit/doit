@@ -1,3 +1,5 @@
+"""Handle exceptions generated from 'user' code"""
+
 import sys
 import traceback
 
@@ -22,6 +24,7 @@ class CatchedException(object):
         return "%s\n%s" % (self.message, "".join(self.traceback))
 
     def get_name(self):
+        """get Exception name"""
         return self.__class__.__name__
 
     def __repr__(self):

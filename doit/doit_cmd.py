@@ -1,3 +1,5 @@
+"""doit CLI (command line interface)"""
+
 import os
 import sys
 import traceback
@@ -133,11 +135,13 @@ run_doc = {'purpose': "run tasks",
            'description': None}
 
 def print_version():
+    """print doit version (includes path location)"""
     print ".".join([str(i) for i in doit.__version__])
     print "bin @", os.path.abspath(__file__)
     print "lib @", os.path.dirname(os.path.abspath(doit.__file__))
 
 def print_usage():
+    """print doit "usage" (basic help) instructions"""
     # TODO cmd list should be automatically generated.
     print """
 doit -- automation tool
@@ -157,7 +161,7 @@ Commands:
 """
 
 def cmd_run(params, args):
-    """execute cmd run"""
+    """execute cmd 'run' """
 
     # special parameters that dont run anything
     if params["version"]:
@@ -228,10 +232,13 @@ opt_list_dependencies = {'name': 'list_deps',
                          'long': 'deps',
                          'type': bool,
                          'default': False,
-                         'help': "print list of dependencies (file dependencies only)"}
+                         'help': ("print list of dependencies "
+                                  "(file dependencies only)")
+}
 
 
 def cmd_list(params, args):
+    """execute cmd 'list' """
     dodo_tasks = main.get_tasks(params['dodoFile'], params['cwdPath'],
                                 params['sub'].keys())
     params.update_defaults(dodo_tasks['config'])
@@ -262,6 +269,7 @@ opt_clean_cleandep = {'name': 'cleandep',
                     'help': 'clean task dependencies too'}
 
 def cmd_clean(params, args):
+    """execute cmd 'clean' """
     dodo_tasks = main.get_tasks(params['dodoFile'], params['cwdPath'],
                                 params['sub'].keys())
     params.update_defaults(dodo_tasks['config'])
@@ -278,6 +286,7 @@ forget_doc = {'purpose': "clear successful run status from internal DB",
               'description': None}
 
 def cmd_forget(params, args):
+    """execute cmd 'forget' """
     dodo_tasks = main.get_tasks(params['dodoFile'], params['cwdPath'],
                                 params['sub'].keys())
     params.update_defaults(dodo_tasks['config'])
@@ -294,6 +303,7 @@ ignore_doc = {'purpose': "ignore task (skip) on subsequent runs",
               'description': None}
 
 def cmd_ignore(params, args):
+    """execute cmd 'ignore' """
     dodo_tasks = main.get_tasks(params['dodoFile'], params['cwdPath'],
                                 params['sub'].keys())
     params.update_defaults(dodo_tasks['config'])
@@ -309,6 +319,7 @@ auto_doc = {'purpose': "automatically execute tasks when a dependency changes",
             'description': None}
 
 def cmd_auto(params, args):
+    """execute cmd 'auto' """
     dodo_tasks = main.get_tasks(params['dodoFile'], params['cwdPath'],
                                 params['sub'].keys())
     params.update_defaults(dodo_tasks['config'])
@@ -323,7 +334,9 @@ help_doc = {'purpose': "show help",
             'usage': "",
             'description': None}
 
+#FIXME dependencies descriptions is outdated
 def print_task_help():
+    """print help for 'task' usage """
     print """
 
 Task Dictionary parameters
@@ -386,6 +399,7 @@ title:
 """
 
 def cmd_help(params, args):
+    """execute cmd 'help' """
     if len(args) == 1:
         if args[0] in params['sub']:
             print params['sub'][args[0]].help()
@@ -402,46 +416,47 @@ def cmd_help(params, args):
 
 
 def cmd_main(cmd_args):
-    subCmd = {} # all sub-commands
+    """entry point for all commands"""
+    sub_cmd = {} # all sub-commands
 
     # help command
-    subCmd['help'] = cmdparse.Command('help', (), cmd_help, help_doc)
+    sub_cmd['help'] = cmdparse.Command('help', (), cmd_help, help_doc)
 
     # run command
     run_options = (opt_version, opt_help, opt_dodo, opt_cwd, opt_depfile,
                    opt_always, opt_continue, opt_verbosity, opt_reporter,
                    opt_outfile, opt_num_process)
-    subCmd['run'] = cmdparse.Command('run', run_options, cmd_run, run_doc)
+    sub_cmd['run'] = cmdparse.Command('run', run_options, cmd_run, run_doc)
 
     # clean command
     clean_options = (opt_dodo, opt_cwd, opt_clean_cleandep, opt_clean_dryrun)
-    subCmd['clean'] = cmdparse.Command('clean', clean_options, cmd_clean,
+    sub_cmd['clean'] = cmdparse.Command('clean', clean_options, cmd_clean,
                                        clean_doc)
 
     # list command
     list_options = (opt_dodo, opt_depfile, opt_cwd, opt_listall,
                     opt_list_quiet, opt_list_status, opt_list_private,
                     opt_list_dependencies)
-    subCmd['list'] = cmdparse.Command('list', list_options, cmd_list, list_doc)
+    sub_cmd['list'] = cmdparse.Command('list', list_options, cmd_list, list_doc)
 
     # forget command
     forget_options = (opt_dodo, opt_cwd, opt_depfile,)
-    subCmd['forget'] = cmdparse.Command('forget', forget_options,
+    sub_cmd['forget'] = cmdparse.Command('forget', forget_options,
                                         cmd_forget, forget_doc)
 
     # ignore command
     ignore_options = (opt_dodo, opt_cwd, opt_depfile,)
-    subCmd['ignore'] = cmdparse.Command('ignore', ignore_options,
+    sub_cmd['ignore'] = cmdparse.Command('ignore', ignore_options,
                                         cmd_ignore, ignore_doc)
 
     # auto command
     auto_options = (opt_dodo, opt_cwd, opt_depfile,)
-    subCmd['auto'] = cmdparse.Command('auto', auto_options,
+    sub_cmd['auto'] = cmdparse.Command('auto', auto_options,
                                         cmd_auto, auto_doc)
 
 
     try:
-        return subCmd['run'](cmd_args, sub=subCmd)
+        return sub_cmd['run'](cmd_args, sub=sub_cmd)
 
     # in python 2.4 SystemExit and KeyboardInterrupt subclass
     # from Exception.

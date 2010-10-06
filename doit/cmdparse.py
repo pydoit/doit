@@ -16,14 +16,15 @@ class DefaultUpdate(dict):
         self._non_default_keys = set()
 
     def set_default(self, key, value):
+        """set default value for given key"""
         dict.__setitem__(self, key, value)
 
     def update_defaults(self, update_dict):
         """do not update items that already have a non-default value"""
-        for k,v in update_dict.iteritems():
-            if k in self._non_default_keys:
+        for key, value in update_dict.iteritems():
+            if key in self._non_default_keys:
                 continue
-            self[k] = v
+            self[key] = value
 
     def __setitem__(self, key, value):
         try:
@@ -43,7 +44,8 @@ class CmdParseError(Exception):
 
 
 class Command(object):
-    """
+    """Process string with command options
+
     @ivar name (string): command name
     @ivar options (dict): command line options/arguments
        - name (string) : variable name
@@ -82,13 +84,13 @@ class Command(object):
             for field in ('name', 'default',):
                 if field not in opt:
                     msg = "%s dict from '%s' missing required property '%s'"
-                    raise CmdParseError(msg % (self._type ,self.name, field))
+                    raise CmdParseError(msg % (self._type, self.name, field))
 
             # options can not contain any unrecognized field
             for field in opt.keys():
                 if field not in self._option_fields:
                     msg = "%s dict from '%s' contains invalid property '%s'"
-                    raise CmdParseError(msg % (self._type ,self.name, field))
+                    raise CmdParseError(msg % (self._type, self.name, field))
 
             # add defaults
             for key, value in self._defaults.iteritems():
@@ -133,7 +135,7 @@ class Command(object):
             opt_help = opt['help'] % {'default':opt['default']}
             # arrange in 2 columns
             left = (', '.join(opts_str)).ljust(24)
-            right = opt_help.replace('\n','\n'+ 28*' ')
+            right = opt_help.replace('\n', '\n'+ 28*' ')
             text.append("  %s  %s" % (left, right))
 
         if self.doc['description'] is not None:
@@ -194,10 +196,12 @@ class Command(object):
 
         # parse options using getopt
         try:
-            opts,args = getopt.getopt(in_args,self.get_short(),self.get_long())
-        except Exception, e:
+            opts, args = getopt.getopt(in_args, self.get_short(),
+                                       self.get_long())
+        except Exception, error:
             msg = "Error parsing %s for '%s': %s (parsing options: %s)"
-            raise CmdParseError(msg % (self._type, self.name, str(e), in_args))
+            raise CmdParseError(msg % (self._type, self.name,
+                                       str(error), in_args))
 
         # update params with values from command line
         for opt, val in opts:
@@ -222,4 +226,5 @@ class Command(object):
 
 
 class TaskOption(Command):
+    """Process string with command options (for tasks)"""
     _type = "Task option"

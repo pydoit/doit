@@ -1,3 +1,5 @@
+"""Reports doit execution status/results"""
+
 import sys
 import time
 import datetime
@@ -67,7 +69,7 @@ class ConsoleReporter(object):
     def add_failure(self, task, exception):
         self.failures.append({'task': task, 'exception':exception})
 
-    def add_success(self,task):
+    def add_success(self, task):
         pass
 
     def skip_uptodate(self, task):
@@ -113,10 +115,10 @@ class ExecutedOnlyReporter(ConsoleReporter):
 
     Produces zero output unless a task is executed
     """
-    def skip_uptodate(self,task):
+    def skip_uptodate(self, task):
         pass
 
-    def skip_ignore(self,task):
+    def skip_ignore(self, task):
         pass
 
 

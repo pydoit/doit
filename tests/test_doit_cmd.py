@@ -64,12 +64,12 @@ class TestInterface(object):
         doit_cmd.cmd_main(["--output-file", "mylog.txt",
                          "-v2", "--continue", "--reporter", "myr", "-n", "4"])
 
-        expected = [('dependencyFile', '.doit.db'),
+        expected = [('dependency_file', '.doit.db'),
                     ('task_list', mock_get_tasks()['task_list']),
                     ('output', 'mylog.txt'),
                     ('options', mock_get_tasks()['config']['default_tasks']),
                     ('verbosity', 2),
-                    ('alwaysExecute', False),
+                    ('always_execute', False),
                     ('continue_', True),
                     ('reporter', "myr"),
                     ('num_process', 4),]
@@ -110,7 +110,7 @@ class TestInterface(object):
                            "c", "a"])
         assert mock_list.called
 
-        expected = [('dependencyFile', '.doit.db'),
+        expected = [('dependency_file', '.doit.db'),
                     ('task_list', mock_get_tasks()['task_list']),
                     ('outstream', sys.stdout),
                     ('filter_tasks', ["c", "a"]),
@@ -154,10 +154,10 @@ class TestInterface(object):
         monkeypatch.setattr(doit_cmd, "doit_forget", mock_forget)
         doit_cmd.cmd_main(["forget",])
 
-        expected = [('dependencyFile', '.doit.db'),
+        expected = [('dependency_file', '.doit.db'),
                     ('task_list', mock_get_tasks()['task_list']),
                     ('outstream', sys.stdout),
-                    ('forgetTasks', mock_get_tasks()['config']['default_tasks']),
+                    ('forget_tasks', mock_get_tasks()['config']['default_tasks']),
                     ]
 
         assert len(expected) == len(argspec[0])
@@ -173,10 +173,10 @@ class TestInterface(object):
         monkeypatch.setattr(doit_cmd, "doit_ignore", mock_ignore)
         doit_cmd.cmd_main(["ignore", "b"])
 
-        expected = [('dependencyFile', '.doit.db'),
+        expected = [('dependency_file', '.doit.db'),
                     ('task_list', mock_get_tasks()['task_list']),
                     ('outstream', sys.stdout),
-                    ('ignoreTasks', ['b']),
+                    ('ignore_tasks', ['b']),
                     ]
 
         assert len(expected) == len(argspec[0])

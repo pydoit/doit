@@ -20,22 +20,23 @@ class InvalidDodoFile(Exception):
 TASK_STRING = "task_"
 
 
-def isgenerator(object):
+# python2.6 added isgenerator
+def isgenerator(obj):
     """Check if object type is a generator.
 
     @param object: object to test.
     @return: (bool) object is a generator?"""
-    return type(object) is types.GeneratorType
+    return type(obj) is types.GeneratorType
 
 
-def get_module(dodoFile, cwd=None):
+def get_module(dodo_file, cwd=None):
     """
-    @param dodoFile(str): path to file containing the tasks
-    @param cwd(str): path to be used cwd, if None use path from dodoFile
+    @param dodo_file(str): path to file containing the tasks
+    @param cwd(str): path to be used cwd, if None use path from dodo_file
     @return (module) dodo module
     """
     ## load module dodo file and set environment
-    base_path, file_name = os.path.split(os.path.abspath(dodoFile))
+    base_path, file_name = os.path.split(os.path.abspath(dodo_file))
     # make sure dodo path is on sys.path so we can import it
     sys.path.insert(0, base_path)
 
@@ -50,10 +51,10 @@ def get_module(dodoFile, cwd=None):
             raise InvalidCommand(msg % (cwd, full_cwd))
         sys.path.insert(0, full_cwd)
 
-    if not os.path.exists(dodoFile):
+    if not os.path.exists(dodo_file):
         msg = ("Could not find dodo file '%s'.\n" +
                "Please use '-f' to specify file name.\n")
-        raise InvalidDodoFile(msg % dodoFile)
+        raise InvalidDodoFile(msg % dodo_file)
 
     # file specified on dodo file are relative to cwd
     os.chdir(full_cwd)
@@ -106,7 +107,7 @@ def load_task_generators(dodo_module, command_names=()):
     doit_config = getattr(dodo_module, 'DOIT_CONFIG', {})
     if not isinstance(doit_config, dict):
         msg = ("DOIT_CONFIG  must be a dict. got:'%s'%s")
-        raise InvalidDodoFile(msg % (repr(doit_config),type(doit_config)))
+        raise InvalidDodoFile(msg % (repr(doit_config), type(doit_config)))
 
     return {'task_list': task_list,
             'config': doit_config}
@@ -120,7 +121,7 @@ def generate_tasks(name, gen_result, gen_doc=None):
     @return: (tuple) task,list of subtasks
     """
     # task described as a dictionary
-    if isinstance(gen_result,dict):
+    if isinstance(gen_result, dict):
         if 'name' in gen_result:
             raise InvalidTask("Task %s. Only subtasks use field name."%name)
 
@@ -147,7 +148,7 @@ def generate_tasks(name, gen_result, gen_doc=None):
                 raise InvalidTask("Task %s must contain field name. %s"%
                                   (name,task_dict))
             # name is task.subtask
-            task_dict['name'] = "%s:%s"% (name,task_dict.get('name'))
+            task_dict['name'] = "%s:%s"% (name, task_dict.get('name'))
             sub_task = dict_to_task(task_dict)
             sub_task.is_subtask = True
             tasks.append(sub_task)
@@ -235,7 +236,7 @@ class TaskControl(object):
             for dep in task.task_dep:
                 if dep not in self.tasks:
                     msg = "%s. Task dependency '%s' does not exist."
-                    raise InvalidTask(msg% (task.name,dep))
+                    raise InvalidTask(msg% (task.name, dep))
 
         # get target dependecies on other tasks based on file dependency on
         # a target.
@@ -301,22 +302,22 @@ class TaskControl(object):
         filter can specify tasks to be execute by task name or target.
         @return (list) of string. where elements are task name.
         """
-        selectedTask = []
+        selected_task = []
 
         filter_list = self._process_filter(task_selection)
         for filter_ in filter_list:
             # by task name
             if filter_ in self.tasks:
-                selectedTask.append(filter_)
+                selected_task.append(filter_)
             # by target
             elif filter_ in self.targets:
-                selectedTask.append(self.targets[filter_].name)
+                selected_task.append(self.targets[filter_].name)
             else:
                 msg = ('"%s" must be a sub-command, a task, or a target.\n' +
                        'Type "doit help" to see available sub-commands.\n' +
                        'Type "doit list" to see available tasks')
                 raise InvalidCommand(msg % filter_)
-        return selectedTask
+        return selected_task
 
 
     def process(self, task_selection):
@@ -399,7 +400,8 @@ class TaskControl(object):
 
         Note that a dispatched task might not be ready to be executed.
         """
-        assert self.selected_tasks is not None, "must call 'process' before this"
+        assert self.selected_tasks is not None, \
+            "must call 'process' before this"
 
         # each selected task will create a tree (from dependencies) of
         # tasks to be processed
@@ -419,10 +421,10 @@ class TaskControl(object):
 
             # get task group from waiting queue
             if not current_gen:
-                for wt, wait in task_gens.iteritems():
-                    if wait.ready(self.tasks[wt].run_status):
-                        current_gen = task_gens[wt].task_gen
-                        del task_gens[wt]
+                for wait_name, wait in task_gens.iteritems():
+                    if wait.ready(self.tasks[wait_name].run_status):
+                        current_gen = task_gens[wait_name].task_gen
+                        del task_gens[wait_name]
                         break
 
             # get task group from tasks_to_run
@@ -438,20 +440,20 @@ class TaskControl(object):
 
             # get next task from current generator
             try:
-                next = current_gen.next()
+                next_task = current_gen.next()
             except StopIteration:
                 # nothing left for this generator
                 current_gen = None
                 continue
 
             # str means this generator is on hold, add to waiting dict
-            if isinstance(next, WaitTask):
-                if next not in task_gens:
-                    next.task_gen = current_gen
-                    task_gens[next.task_name] = next
+            if isinstance(next_task, WaitTask):
+                if next_task not in task_gens:
+                    next_task.task_gen = current_gen
+                    task_gens[next_task.task_name] = next_task
                 current_gen = None
             # get task from current group
             else:
-                assert isinstance(next,Task), next
-                yield next
+                assert isinstance(next_task, Task), next_task
+                yield next_task
 
