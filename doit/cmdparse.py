@@ -209,8 +209,12 @@ class Command(object):
             if this['type'] is bool:
                 params[this['name']] = True
             else:
-                # FIXME check for errors
-                params[this['name']] = this['type'](val)
+                try:
+                    params[this['name']] = this['type'](val)
+                except ValueError, exception:
+                    msg = "Error parsing parameter '%s' %s.\n%s\n"
+                    raise CmdParseError(msg % (this['name'], this['type'],
+                                               str(exception)))
 
         return params, args
 

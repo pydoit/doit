@@ -138,6 +138,9 @@ class TestCommand(object):
         params, args = cmd.parse([], new_param='ho')
         assert "ho" == params['new_param']
 
+    def test_parseWrongType(self, cmd):
+        py.test.raises(cmdparse.CmdParseError, cmd.parse, ['--num','oi'])
+
     def test_call(self, cmd):
         params, args = cmd(['-n','7','ppp'])
         assert ['ppp'] == args
