@@ -187,7 +187,7 @@ class TestSaveSuccess(object):
         ff.write("part2")
         ff.close()
 
-        assert 0 == len(depfile._db)
+        assert 0 == len(depfile.backend._db)
         t1 = Task("taskId_X", None, [filePath,filePath2])
         depfile.save_success(t1)
         assert depfile._get("taskId_X",filePath) is not None

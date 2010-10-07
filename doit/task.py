@@ -60,7 +60,6 @@ class Task(object):
                   'title': ([types.FunctionType], [None]),
                   }
 
-    setup_warned = False # print setup-object deprecation warning just once
 
     def __init__(self, name, actions, file_dep=(), targets=(),
                  task_dep=(), result_dep=(), calc_dep=(),

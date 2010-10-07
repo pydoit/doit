@@ -72,15 +72,18 @@ def check_modified(file_path, state):
 
 
 class JsonDB(object):
+    """Backend using a single text file with JSON content"""
+
     def __init__(self, name):
         """Open/create a DB file"""
         self.name = name
         if not os.path.exists(self.name):
             self._db = {}
         else:
-            self._db = self.load()
+            self._db = self._load()
 
-    def load(self):
+    def _load(self):
+        """load db content from file"""
         db_file = open(self.name, 'r')
         try:
             try:
@@ -98,20 +101,21 @@ class JsonDB(object):
             db_file.close()
 
     def dump(self):
+        """save DB content in file"""
         try:
             db_file = open(self.name, 'w')
             json.dump(self._db, db_file)
         finally:
             db_file.close()
 
-    def _set(self, task_id, dependency, value):
+    def set(self, task_id, dependency, value):
         """Store value in the DB."""
         if task_id not in self._db:
             self._db[task_id] = {}
         self._db[task_id][dependency] = value
 
 
-    def _get(self, task_id, dependency):
+    def get(self, task_id, dependency):
         """Get value stored in the DB.
 
         @return: (string) or (None) if entry not found
@@ -120,7 +124,8 @@ class JsonDB(object):
             return self._db[task_id].get(dependency, None)
 
 
-    def _in(self, task_id):
+    def in_(self, task_id):
+        """@return bool if task_id is in DB"""
         return task_id in self._db
 
 
@@ -135,6 +140,7 @@ class JsonDB(object):
 
 
 class DBM_DB(object):
+    """Backend using a DBM file with individual values encoded in JSON"""
     def __init__(self, name):
         """Open/create a DB file"""
         self.name = name
@@ -143,11 +149,12 @@ class DBM_DB(object):
         self.dirty = set()
 
     def dump(self):
+        """save/close DBM file"""
         for task_id in self.dirty:
             self._dbm[task_id] = json.dumps(self._db[task_id])
         self._dbm.close()
 
-    def _set(self, task_id, dependency, value):
+    def set(self, task_id, dependency, value):
         """Store value in the DB."""
         if task_id not in self._db:
             self._db[task_id] = {}
@@ -155,7 +162,7 @@ class DBM_DB(object):
         self.dirty.add(task_id)
 
 
-    def _get(self, task_id, dependency):
+    def get(self, task_id, dependency):
         """Get value stored in the DB.
 
         @return: (string) or (None) if entry not found
@@ -170,7 +177,8 @@ class DBM_DB(object):
             return self._db[task_id].get(dependency, None)
 
 
-    def _in(self, task_id):
+    def in_(self, task_id):
+        """@return bool if task_id is in DB"""
         return task_id in self._db
 
 
@@ -206,13 +214,19 @@ class DependencyBase(object):
     @ivar _closed: (bool) DB was flushed to file
     """
 
-    def __init__(self):
+    def __init__(self, backend):
         self._closed = False
+        self.backend = backend
+        self._set = self.backend.set
+        self._get = self.backend.get
+        self.remove = self.backend.remove
+        self.remove_all = self.backend.remove_all
+        self._in = self.backend.in_
 
     def close(self):
         """Write DB in file"""
         if not self._closed:
-            self.dump()
+            self.backend.dump()
             self._closed = True
 
 
@@ -229,7 +243,8 @@ class DependencyBase(object):
 
         # run-once
         if task.run_once:
-            self._set(task.name, 'run-once:', '1') # string could be any value
+            # string value could be anything
+            self._set(task.name, 'run-once:', '1')
 
         # file-dep
         for dep in task.file_dep:
@@ -268,11 +283,9 @@ class DependencyBase(object):
             raise Exception(msg % (taskid, arg_name))
         return values[arg_name]
 
-
     def remove_success(self, task):
         """remove saved info from task"""
         self.remove(task.name)
-
 
     def ignore(self, task):
         """mark task to be ignored"""
@@ -333,17 +346,15 @@ class DependencyBase(object):
         return status
 
 
-class JsonDependency(JsonDB, DependencyBase):
+class JsonDependency(DependencyBase):
     """Task dependency manager with JSON backend"""
     def __init__(self, name):
-        JsonDB.__init__(self, name)
-        DependencyBase.__init__(self)
+        DependencyBase.__init__(self, JsonDB(name))
 
-class DBM_Dependency(DBM_DB, DependencyBase):
+class DBM_Dependency(DependencyBase):
     """Task dependency manager with DBM backend"""
     def __init__(self, name):
-        DBM_DB.__init__(self, name)
-        DependencyBase.__init__(self)
+        DependencyBase.__init__(self, DBM_DB(name))
 
 # default "Dependency" implementation to be used
 Dependency = DBM_Dependency
