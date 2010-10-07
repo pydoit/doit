@@ -1,3 +1,5 @@
+"""Tasks are the main abstractions managed by doit"""
+
 import types
 import os
 
@@ -41,7 +43,7 @@ class Task(object):
     DEFAULT_VERBOSITY = 1
 
     # list of valid types/values for each task attribute.
-    valid_attr = {'name': ([str],[]),
+    valid_attr = {'name': ([str], []),
                   'actions': ([list, tuple], [None]),
                   'file_dep': ([list, tuple], []),
                   'task_dep': ([list, tuple], []),
@@ -135,15 +137,16 @@ class Task(object):
         self._expand_calc_dep(calc_dep)
 
         self._init_getargs()
-        self._init_doc(doc)
+        self.doc = self._init_doc(doc)
 
         self.run_status = None
 
 
     def _expand_file_dep(self, file_dep):
+        """convert file_dep input into file_dep, run_once, run_always"""
         for dep in file_dep:
             # bool
-            if isinstance(dep,bool):
+            if isinstance(dep, bool):
                 if dep is True:
                     self.run_once = True
                 if dep is False:
@@ -157,6 +160,7 @@ class Task(object):
                     self.file_dep.append(dep)
 
     def _expand_task_dep(self, task_dep):
+        """convert task_dep input into actaul task_dep and wild_dep"""
         for dep in task_dep:
             if "*" in dep:
                 self.wild_dep.append(dep)
@@ -164,11 +168,13 @@ class Task(object):
                 self.task_dep.append(dep)
 
     def _expand_result_dep(self, result_dep):
+        """convert ressult_dep input into restul_dep and task_dep"""
         self.result_dep.extend(result_dep)
         # result_dep are also task_dep
         self.task_dep.extend(self.result_dep)
 
     def _expand_calc_dep(self, calc_dep):
+        """calc_dep input"""
         for dep in calc_dep:
             if dep not in self.calc_dep:
                 self.calc_dep.extend(calc_dep)
@@ -176,6 +182,7 @@ class Task(object):
 
 
     def update_deps(self, deps):
+        """expand all kinds of dep input"""
         for dep, dep_values in deps.iteritems():
             if dep == 'task_dep':
                 self._expand_task_dep(dep_values)
@@ -188,7 +195,7 @@ class Task(object):
 
 
     def _init_getargs(self):
-        # getargs also define implicit task dependencies
+        """task getargs attribute define implicit task dependencies"""
         for key, desc in self.getargs.iteritems():
             # check format
             parts = desc.split('.')
@@ -206,18 +213,16 @@ class Task(object):
                    "at the same time. (just remove True)")
             raise InvalidTask(msg % self.name)
 
-    def _init_doc(self, doc):
-        # Store just first non-empty line as documentation string
-        if doc is None:
-            self.doc = ''
-        else:
+    @staticmethod
+    def _init_doc(doc):
+        """process task "doc" attribute"""
+        # store just first non-empty line as documentation string
+        if doc is not None:
             for line in doc.splitlines():
                 striped = line.strip()
                 if striped:
-                    self.doc = striped
-                    break
-            else:
-                self.doc = ''
+                    return striped
+        return ''
 
 
     @staticmethod
@@ -238,12 +243,12 @@ class Task(object):
             return
 
         # input value didnt match any valid type/value, raise execption
-        accept = ", ".join([getattr(v,'__name__',str(v)) for v in valid])
+        accept = ", ".join([getattr(v, '__name__', str(v)) for v in valid])
         raise InvalidTask(msg % (task, attr, accept, str(value), type(value)))
 
 
     def _get_out_err(self, out, err, verbosity):
-        # select verbosity to be used
+        """select verbosity to be used"""
         priority = (verbosity, # use command line option
                     self.verbosity, # or task default from dodo file
                     self.DEFAULT_VERBOSITY) # or global default
@@ -287,8 +292,8 @@ class Task(object):
         """
         # if clean is True remove all targets
         if self._remove_targets is True:
-            files = filter(os.path.isfile, self.targets)
-            dirs = filter(os.path.isdir, self.targets)
+            files = [path for path in self.targets if os.path.isfile(path)]
+            dirs = [path for path in self.targets if os.path.isdir(path)]
 
             # remove all files
             for file_ in files:
@@ -301,7 +306,7 @@ class Task(object):
             for dir_ in dirs:
                 if os.listdir(dir_):
                     msg = "%s - cannot remove (it is not empty) '%s'\n"
-                    outstream.write(msg % (self.name, file_))
+                    outstream.write(msg % (self.name, dir_))
                 else:
                     msg = "%s - removing dir '%s'\n"
                     outstream.write(msg % (self.name, dir_))
