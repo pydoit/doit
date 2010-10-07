@@ -36,14 +36,15 @@ class CmdAction(BaseAction):
     @ivar task(Task): reference to task that contains this action
     """
 
-    def __init__(self, action):
+    def __init__(self, action, task=None):
         assert isinstance(action, str), "CmdAction must be a string."
         self.action = action
-        self.task = None
+        self.task = task
         self.out = None
         self.err = None
         self.result = None
         self.values = {}
+
 
     def execute(self, out=None, err=None):
         """
@@ -138,13 +139,16 @@ class CmdAction(BaseAction):
 class Writer(object):
     """write to many streams"""
     def __init__(self, *writers):
+        """@param writers - file stream like objects"""
         self.writers = writers
 
     def write(self, text):
+        """write 'text' to all streams"""
         for stream in self.writers:
             stream.write(text)
 
     def flush(self):
+        """flush all streams"""
         for stream in self.writers:
             stream.flush()
 
@@ -157,10 +161,10 @@ class PythonAction(BaseAction):
     @ivar kwargs: (dict) Extra keyword arguments to be passed to py_callable
     @ivar task(Task): reference to task that contains this action
     """
-    def __init__(self, py_callable, args=None, kwargs=None):
+    def __init__(self, py_callable, args=None, kwargs=None, task=None):
 
         self.py_callable = py_callable
-        self.task = None
+        self.task = task
         self.out = None
         self.err = None
         self.result = None
@@ -313,7 +317,7 @@ class PythonAction(BaseAction):
         return "<PythonAction: '%s'>"% (repr(self.py_callable))
 
 
-def create_action(action):
+def create_action(action, task_ref=None):
     """
     Create action using proper constructor based on the parameter type
 
@@ -325,13 +329,13 @@ def create_action(action):
         return action
 
     if type(action) is str:
-        return CmdAction(action)
+        return CmdAction(action, task_ref)
 
     if type(action) is tuple:
-        return PythonAction(*action)
+        return PythonAction(*action, task=task_ref)
 
     if hasattr(action, '__call__'):
-        return PythonAction(action)
+        return PythonAction(action, task=task_ref)
 
     msg = "Invalid task action type. got %s"
     raise InvalidTask(msg % (action.__class__))

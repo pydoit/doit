@@ -99,7 +99,7 @@ class Task(object):
         if actions is None:
             self.actions = []
         else:
-            self.actions = [create_action(a) for a in actions]
+            self.actions = [create_action(a, self) for a in actions]
 
         # clean
         if clean is True:
@@ -107,14 +107,10 @@ class Task(object):
             self.clean_actions = ()
         else:
             self._remove_targets = False
-            self.clean_actions = [create_action(a) for a in clean]
+            self.clean_actions = [create_action(a, self) for a in clean]
 
         # teardown
-        self.teardown = [create_action(a) for a in teardown]
-
-        # set self as task for all actions
-        for action in self.actions:
-            action.task = self
+        self.teardown = [create_action(a, self) for a in teardown]
 
         # dependencies
         self.dep_changed = None
