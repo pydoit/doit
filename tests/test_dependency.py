@@ -74,6 +74,9 @@ def pytest_funcarg__dependency(request):
         scope="function")
 
 
+# FIXME there was major refactor breaking classes from dependency,
+# unit-tests could be more specific to base classes.
+
 # test parametrization, execute tests for all DB backends
 def pytest_generate_tests(metafunc):
     if "depfile" in metafunc.funcargnames:
@@ -90,7 +93,7 @@ class TestDependencyDb(object):
         assert "da_md5" == value, value
 
     #
-    def test_setPersistence(self, depfile):
+    def test_dump(self, depfile):
         # save and close db
         depfile._set("taskId_X","dependency_A","da_md5")
         depfile.close()
@@ -112,6 +115,12 @@ class TestDependencyDb(object):
         assert depfile._get("taskId_X","dependency_A") == None
 
 
+    def test_in(self, depfile):
+        depfile._set("taskId_ZZZ","dep_1","12")
+        assert depfile._in("taskId_ZZZ")
+        assert not depfile._in("taskId_hohoho")
+
+
     def test_remove(self, depfile):
         depfile._set("taskId_ZZZ","dep_1","12")
         depfile._set("taskId_ZZZ","dep_2","13")
@@ -122,6 +131,22 @@ class TestDependencyDb(object):
         assert "14" == depfile._get("taskId_YYY","dep_1")
 
 
+    # special test for DBM backend and "dirty"/caching mechanism
+    def test_remove_from_non_empty_file(self, depfile):
+        # 1 - put 2 tasks of file
+        depfile._set("taskId_XXX", "dep_1", "x")
+        depfile._set("taskId_YYY", "dep_1", "x")
+        depfile.close()
+        # 2 - re-open and remove one task
+        reopened = depfile.__class__(TESTDB)
+        reopened.remove("taskId_YYY")
+        reopened.close()
+        # 3 - re-open again and check task was really removed
+        reopened2 = depfile.__class__(TESTDB)
+        assert reopened2._in("taskId_XXX")
+        assert not reopened2._in("taskId_YYY")
+
+
     def test_remove_all(self, depfile):
         depfile._set("taskId_ZZZ","dep_1","12")
         depfile._set("taskId_ZZZ","dep_2","13")
@@ -130,6 +155,7 @@ class TestDependencyDb(object):
         assert None == depfile._get("taskId_ZZZ","dep_1")
         assert None == depfile._get("taskId_ZZZ","dep_2")
         assert None == depfile._get("taskId_YYY","dep_1")
+
 
 
 class TestSaveSuccess(object):
@@ -322,6 +348,12 @@ class TestGetStatus(object):
         # execute again
         assert 'run' == depfile.get_status(t1)
         assert dependencies == t1.dep_changed
+
+
+    def test_file_dependency_not_exist(self, depfile):
+        filePath = get_abspath("data/dependency_not_exist")
+        t1 = Task("t1", None, [filePath])
+        py.test.raises(Exception, depfile.get_status, t1)
 
 
     # if there is no dependency the task is always executed

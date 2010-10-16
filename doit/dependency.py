@@ -1,4 +1,3 @@
-
 """Manage (save/check) task dependency-on-files data."""
 
 import os
@@ -140,7 +139,20 @@ class JsonDB(object):
 
 
 class DBM_DB(object):
-    """Backend using a DBM file with individual values encoded in JSON"""
+    """Backend using a DBM file with individual values encoded in JSON
+
+    On initialization all items are read from DBM file and loaded on _dbm.
+    During execution whenever an item is read ('get' method) the json value
+    is cached on _db. If a item is modified _db is update and the id is added
+    to the 'dirty' set. Only on 'dump' all dirty items values are encoded
+    in json into _dbm and the DBM file is saved.
+
+    @ivar name: (str) file name/path
+    @ivar _dbm: (dbm) items with json encoded values
+    @ivar _db: (dict) items with python-dict as value
+    @ivar dirty: (set) id of modified tasks
+    """
+
     def __init__(self, name):
         """Open/create a DB file"""
         self.name = name
@@ -179,7 +191,7 @@ class DBM_DB(object):
 
     def in_(self, task_id):
         """@return bool if task_id is in DB"""
-        return task_id in self._db
+        return task_id in self._dbm or task_id in self.dirty
 
 
     def remove(self, task_id):
