@@ -7,7 +7,7 @@ import py.test
 
 from doit.dependency import Dependency
 from doit.task import Task
-from doit.main import InvalidCommand
+from doit.exceptions import InvalidCommand
 from doit import cmds
 from doit import reporter
 

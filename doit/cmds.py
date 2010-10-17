@@ -6,7 +6,7 @@ import platform
 
 from doit import dependency
 from doit.task import Task
-from doit.main import TaskControl, InvalidCommand
+from doit.control import TaskControl, InvalidCommand
 from doit.runner import Runner, MP_Runner
 from doit.reporter import REPORTERS
 from doit.dependency import Dependency

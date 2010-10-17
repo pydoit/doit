@@ -2,7 +2,7 @@ import py.test
 
 from doit.exceptions import InvalidDodoFile, InvalidCommand
 from doit.task import InvalidTask, Task
-from doit.main import TaskControl, WaitSelectTask, WaitRunTask
+from doit.control import TaskControl, WaitSelectTask, WaitRunTask
 
 
 class TestTaskControlInit(object):

@@ -1,3 +1,4 @@
+"""Control tasks execution order"""
 import fnmatch
 
 from doit.exceptions import InvalidCommand, InvalidDodoFile
