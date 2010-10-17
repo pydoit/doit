@@ -19,6 +19,7 @@ class Task(object):
     @ivar task_dep: (list - string)
     @ivar wild_dep: (list - string) task dependency using wildcard *
     @ivar file_dep: (list - string)
+    @ivar result_dep: (list -string)
     @ivar calc_dep: (list - string) reference to a task
     @ivar calc_dep_stack: (list - string) unprocessed calc_dep
     @ivar dep_changed (list - string): list of file-dependencies that changed
@@ -154,6 +155,13 @@ class Task(object):
                 if dep not in self.file_dep:
                     self.file_dep.append(dep)
 
+        # run_once can't be used together with file dependencies
+        if self.run_once and self.file_dep:
+            msg = ("%s. task cant have file and dependencies and True " +
+                   "at the same time. (just remove True)")
+            raise InvalidTask(msg % self.name)
+
+
     def _expand_task_dep(self, task_dep):
         """convert task_dep input into actaul task_dep and wild_dep"""
         for dep in task_dep:
@@ -166,14 +174,15 @@ class Task(object):
         """convert ressult_dep input into restul_dep and task_dep"""
         self.result_dep.extend(result_dep)
         # result_dep are also task_dep
-        self.task_dep.extend(self.result_dep)
+        self.task_dep.extend(result_dep)
+
 
     def _expand_calc_dep(self, calc_dep):
         """calc_dep input"""
         for dep in calc_dep:
             if dep not in self.calc_dep:
-                self.calc_dep.extend(calc_dep)
-                self.calc_dep_stack.extend(calc_dep)
+                self.calc_dep.append(dep)
+                self.calc_dep_stack.append(dep)
 
 
     def update_deps(self, deps):
@@ -202,11 +211,6 @@ class Task(object):
             if parts[0] not in self.task_dep:
                 self.task_dep.append(parts[0])
 
-        # run_once can't be used together with file dependencies
-        if self.run_once and self.file_dep:
-            msg = ("%s. task cant have file and dependencies and True " +
-                   "at the same time. (just remove True)")
-            raise InvalidTask(msg % self.name)
 
     @staticmethod
     def _init_doc(doc):
@@ -331,7 +335,6 @@ class Task(object):
         return "<Task: %s>"% self.name
 
 
-DEPRECATION = False # already printed deprecation?
 def dict_to_task(task_dict):
     """Create a task instance from dictionary.
 

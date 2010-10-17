@@ -34,16 +34,12 @@ class TestTaskCheckInput(object):
 
 
 
-class TestTask(object):
+class TestTaskInit(object):
 
     def test_groupTask(self):
         # group tasks have no action
         t = task.Task("taskX", None)
         assert t.actions == []
-
-    def test_repr(self):
-        t = task.Task("taskX",None,('t1','t2'))
-        assert "<Task: taskX>" == repr(t), repr(t)
 
     def test_dependencySequenceIsValid(self):
         task.Task("Task X", ["taskcmd"], file_dep=["123","456"])
@@ -54,6 +50,29 @@ class TestTask(object):
         filePath = "data/dependency1"
         py.test.raises(task.InvalidTask, task.Task,
                       "Task X",["taskcmd"], file_dep=filePath)
+
+    def test_options(self):
+        # when task is created, options contain the default values
+        p1 = {'name':'p1', 'default':'p1-default'}
+        p2 = {'name':'p2', 'default':'', 'short':'m'}
+        t = task.Task("MyName", None, params=[p1, p2])
+        assert 'p1-default' == t.options['p1']
+        assert '' == t.options['p2']
+
+    def test_setup(self):
+        t = task.Task("task5", ['action'], setup=["task2"])
+        assert ["task2"] == t.setup_tasks
+
+    def test_run_status(self):
+        t = task.Task("t", ["q"])
+        assert t.run_status is None
+
+
+class TestTaskExpandFileDep(object):
+
+    def test_dependencyStringIsFile(self):
+        my_task = task.Task("Task X", ["taskcmd"], file_dep=["123","456"])
+        assert ["123","456"] == my_task.file_dep
 
     def test_dependencyTrueRunonce(self):
         t = task.Task("Task X",["taskcmd"], file_dep=[True])
@@ -73,30 +92,35 @@ class TestTask(object):
                       "Task X",["taskcmd"], file_dep=[True,"whatever"])
 
 
-    def test_title(self):
-        t = task.Task("MyName",["MyAction"])
-        assert "MyName" == t.title()
+class TestTaskDeps(object):
 
+    def test_task_dep(self):
+        my_task = task.Task("Task X", ["taskcmd"], task_dep=["123","4*56"])
+        assert ["123"] == my_task.task_dep
+        assert ["4*56"] == my_task.wild_dep
 
-    def test_custom_title(self):
-        t = task.Task("MyName",["MyAction"], title=(lambda x: "X%sX" % x.name))
-        assert "X%sX"%str(t.name) == t.title(), t.title()
+    def test_expand_result(self):
+        my_task = task.Task("Task X", ["taskcmd"], result_dep=["123"])
+        assert ["123"] == my_task.result_dep
+        assert ["123"] == my_task.task_dep
 
-    def test_options(self):
-        # when task is created, options contain the default values
-        p1 = {'name':'p1', 'default':'p1-default'}
-        p2 = {'name':'p2', 'default':'', 'short':'m'}
-        t = task.Task("MyName", None, params=[p1, p2])
-        assert 'p1-default' == t.options['p1']
-        assert '' == t.options['p2']
+    def test_calc_dep(self):
+        my_task = task.Task("Task X", ["taskcmd"], calc_dep=["123"])
+        assert ["123"] == my_task.calc_dep
+        assert ["123"] == my_task.calc_dep_stack
 
-    def test_setup(self):
-        t = task.Task("task5", ['action'], setup=["task2"])
-        assert ["task2"] == t.setup_tasks
-
-    def test_run_status(self):
-        t = task.Task("t", ["q"])
-        assert t.run_status is None
+    def test_update_deps(self):
+        my_task = task.Task("Task X", ["taskcmd"], file_dep=["fileX"],
+                            calc_dep=["calcX"], result_dep=["resultX"])
+        my_task.update_deps({'file_dep': ['fileY'],
+                             'task_dep': ['taskY'],
+                             'calc_dep': ['calcX', 'calcY'],
+                             'result_dep': ['resultY'],
+                             })
+        assert ['fileX', 'fileY'] == my_task.file_dep
+        assert ['resultX', 'taskY', 'resultY'] == my_task.task_dep
+        assert ['calcX', 'calcY'] == my_task.calc_dep
+        assert ['resultX', 'resultY'] == my_task.result_dep
 
 
 class TestTask_Getargs(object):
@@ -110,6 +134,26 @@ class TestTask_Getargs(object):
         getargs = {'x' : 't1'}
         assert py.test.raises(task.InvalidTask, task.Task,
                               't3', None, getargs=getargs)
+
+
+class TestTaskTitle(object):
+
+    def test_title(self):
+        t = task.Task("MyName",["MyAction"])
+        assert "MyName" == t.title()
+
+
+    def test_custom_title(self):
+        t = task.Task("MyName",["MyAction"], title=(lambda x: "X%sX" % x.name))
+        assert "X%sX"%str(t.name) == t.title(), t.title()
+
+
+
+class TestTaskRepr(object):
+
+    def test_repr(self):
+        t = task.Task("taskX",None,('t1','t2'))
+        assert "<Task: taskX>" == repr(t), repr(t)
 
 
 class TestTaskActions(object):
