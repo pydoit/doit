@@ -5,7 +5,8 @@ import sys
 import traceback
 
 import doit
-from doit import main
+from doit.exceptions import InvalidDodoFile, InvalidCommand
+from doit import loader
 from doit import task
 from doit import cmdparse
 from doit.cmds import doit_run, doit_clean, doit_list, doit_forget, doit_ignore
@@ -174,8 +175,8 @@ def cmd_run(params, args):
 
     # check if no sub-command specified. default command is "run"
     if len(args) == 0 or args[0] not in params['sub']:
-        dodo_tasks = main.get_tasks(params['dodoFile'], params['cwdPath'],
-                                    params['sub'].keys())
+        dodo_tasks = loader.get_tasks(params['dodoFile'], params['cwdPath'],
+                                      params['sub'].keys())
         params.update_defaults(dodo_tasks['config'])
         default_tasks = args or dodo_tasks['config'].get('default_tasks')
         return doit_run(params['dep_file'], dodo_tasks['task_list'],
@@ -239,8 +240,8 @@ opt_list_dependencies = {'name': 'list_deps',
 
 def cmd_list(params, args):
     """execute cmd 'list' """
-    dodo_tasks = main.get_tasks(params['dodoFile'], params['cwdPath'],
-                                params['sub'].keys())
+    dodo_tasks = loader.get_tasks(params['dodoFile'], params['cwdPath'],
+                                  params['sub'].keys())
     params.update_defaults(dodo_tasks['config'])
     return doit_list(params['dep_file'], dodo_tasks['task_list'], sys.stdout,
                      args, params['all'], not params['quiet'],
@@ -270,8 +271,8 @@ opt_clean_cleandep = {'name': 'cleandep',
 
 def cmd_clean(params, args):
     """execute cmd 'clean' """
-    dodo_tasks = main.get_tasks(params['dodoFile'], params['cwdPath'],
-                                params['sub'].keys())
+    dodo_tasks = loader.get_tasks(params['dodoFile'], params['cwdPath'],
+                                  params['sub'].keys())
     params.update_defaults(dodo_tasks['config'])
     options = args or dodo_tasks['config'].get('default_tasks')
     return doit_clean(dodo_tasks['task_list'], sys.stdout, params['dryrun'],
@@ -287,8 +288,8 @@ forget_doc = {'purpose': "clear successful run status from internal DB",
 
 def cmd_forget(params, args):
     """execute cmd 'forget' """
-    dodo_tasks = main.get_tasks(params['dodoFile'], params['cwdPath'],
-                                params['sub'].keys())
+    dodo_tasks = loader.get_tasks(params['dodoFile'], params['cwdPath'],
+                                  params['sub'].keys())
     params.update_defaults(dodo_tasks['config'])
     options = args or dodo_tasks['config'].get('default_tasks')
     return doit_forget(params['dep_file'], dodo_tasks['task_list'],
@@ -304,8 +305,8 @@ ignore_doc = {'purpose': "ignore task (skip) on subsequent runs",
 
 def cmd_ignore(params, args):
     """execute cmd 'ignore' """
-    dodo_tasks = main.get_tasks(params['dodoFile'], params['cwdPath'],
-                                params['sub'].keys())
+    dodo_tasks = loader.get_tasks(params['dodoFile'], params['cwdPath'],
+                                  params['sub'].keys())
     params.update_defaults(dodo_tasks['config'])
     return doit_ignore(params['dep_file'], dodo_tasks['task_list'],
                        sys.stdout, args)
@@ -320,8 +321,8 @@ auto_doc = {'purpose': "automatically execute tasks when a dependency changes",
 
 def cmd_auto(params, args):
     """execute cmd 'auto' """
-    dodo_tasks = main.get_tasks(params['dodoFile'], params['cwdPath'],
-                                params['sub'].keys())
+    dodo_tasks = loader.get_tasks(params['dodoFile'], params['cwdPath'],
+                                  params['sub'].keys())
     params.update_defaults(dodo_tasks['config'])
     filter_tasks = args or dodo_tasks['config'].get('default_tasks')
     return doit_auto(params['dep_file'], dodo_tasks['task_list'], filter_tasks)
@@ -466,8 +467,8 @@ def cmd_main(cmd_args):
         raise
 
     # dont show traceback for user errors.
-    except (cmdparse.CmdParseError, main.InvalidDodoFile,
-            main.InvalidCommand, task.InvalidTask), err:
+    except (cmdparse.CmdParseError, InvalidDodoFile,
+            InvalidCommand, task.InvalidTask), err:
         print "ERROR:", str(err)
         return 1
 

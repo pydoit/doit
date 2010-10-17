@@ -4,8 +4,9 @@ import inspect
 import py.test
 from mock import Mock
 
+from doit.exceptions import InvalidCommand
 from doit import doit_cmd
-from doit import main
+from doit import loader
 
 
 def mock_get_tasks(*args, **kwargs):
@@ -41,14 +42,14 @@ class TestRun(object):
         assert "Purpose: list tasks from dodo file" in out
 
     def test_run_is_default(self, monkeypatch):
-        monkeypatch.setattr(main, "get_tasks", mock_get_tasks)
+        monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         mock_run = Mock()
         monkeypatch.setattr(doit_cmd, "doit_run", mock_run)
         doit_cmd.cmd_main([])
         assert 1 == mock_run.call_count
 
     def test_run_other_subcommand(self, monkeypatch):
-        monkeypatch.setattr(main, "get_tasks", mock_get_tasks)
+        monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         mock_list = Mock()
         monkeypatch.setattr(doit_cmd, "doit_list", mock_list)
         doit_cmd.cmd_main(["list"])
@@ -58,7 +59,7 @@ class TestRun(object):
 class TestInterface(object):
     def test_doit_run_args(self, monkeypatch):
         argspec = inspect.getargspec(doit_cmd.doit_run)
-        monkeypatch.setattr(main, "get_tasks", mock_get_tasks)
+        monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         mock_run = Mock()
         monkeypatch.setattr(doit_cmd, "doit_run", mock_run)
         doit_cmd.cmd_main(["--output-file", "mylog.txt",
@@ -83,7 +84,7 @@ class TestInterface(object):
         get_tasks_result = {'task_list': ['a','b','c'],
                             'config': {'reporter': 'config_reporter',
                                        'outfile': 'config_outfile'}}
-        monkeypatch.setattr(main, "get_tasks",
+        monkeypatch.setattr(loader, "get_tasks",
                             Mock(return_value=get_tasks_result))
         argspec = inspect.getargspec(doit_cmd.doit_run)
         mock_run = Mock()
@@ -103,7 +104,7 @@ class TestInterface(object):
 
     def test_doit_list_args(self, monkeypatch):
         argspec = inspect.getargspec(doit_cmd.doit_list)
-        monkeypatch.setattr(main, "get_tasks", mock_get_tasks)
+        monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         mock_list = Mock()
         monkeypatch.setattr(doit_cmd, "doit_list", mock_list)
         doit_cmd.cmd_main(["list", "--all", "--quiet", "--status", "--deps",
@@ -128,7 +129,7 @@ class TestInterface(object):
 
     def test_doit_clean_args(self, monkeypatch):
         argspec = inspect.getargspec(doit_cmd.doit_clean)
-        monkeypatch.setattr(main, "get_tasks", mock_get_tasks)
+        monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         mock_clean = Mock()
         monkeypatch.setattr(doit_cmd, "doit_clean", mock_clean)
         doit_cmd.cmd_main(["clean", "--dry-run"])
@@ -149,7 +150,7 @@ class TestInterface(object):
 
     def test_doit_forget_args(self, monkeypatch):
         argspec = inspect.getargspec(doit_cmd.doit_forget)
-        monkeypatch.setattr(main, "get_tasks", mock_get_tasks)
+        monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         mock_forget = Mock()
         monkeypatch.setattr(doit_cmd, "doit_forget", mock_forget)
         doit_cmd.cmd_main(["forget",])
@@ -168,7 +169,7 @@ class TestInterface(object):
 
     def test_doit_ignore_args(self, monkeypatch):
         argspec = inspect.getargspec(doit_cmd.doit_ignore)
-        monkeypatch.setattr(main, "get_tasks", mock_get_tasks)
+        monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         mock_ignore = Mock()
         monkeypatch.setattr(doit_cmd, "doit_ignore", mock_ignore)
         doit_cmd.cmd_main(["ignore", "b"])
@@ -187,7 +188,7 @@ class TestInterface(object):
 
     def test_doit_auto_args(self, monkeypatch):
         argspec = inspect.getargspec(doit_cmd.doit_auto)
-        monkeypatch.setattr(main, "get_tasks", mock_get_tasks)
+        monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         mock_auto = Mock()
         monkeypatch.setattr(doit_cmd, "doit_auto", mock_auto)
         doit_cmd.cmd_main(["auto", "b"])
@@ -207,7 +208,7 @@ class TestInterface(object):
 
 class TestErrors(object):
     def test_interrupt(self, monkeypatch):
-        monkeypatch.setattr(main, "get_tasks", mock_get_tasks)
+        monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         def my_raise(*args):
             raise KeyboardInterrupt()
         mock_cmd = Mock(side_effect=my_raise)
@@ -215,8 +216,8 @@ class TestErrors(object):
         py.test.raises(KeyboardInterrupt, doit_cmd.cmd_main, [])
 
     def test_user_error(self, capsys, monkeypatch):
-        monkeypatch.setattr(main, "get_tasks", mock_get_tasks)
-        mock_cmd = Mock(side_effect=main.InvalidCommand)
+        monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
+        mock_cmd = Mock(side_effect=InvalidCommand)
         monkeypatch.setattr(doit_cmd, "doit_run", mock_cmd)
         got = doit_cmd.cmd_main([])
         assert 1 == got
@@ -224,7 +225,7 @@ class TestErrors(object):
         assert "ERROR" in out
 
     def test_internal_error(self, capsys, monkeypatch):
-        monkeypatch.setattr(main, "get_tasks", mock_get_tasks)
+        monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         mock_cmd = Mock(side_effect=Exception)
         monkeypatch.setattr(doit_cmd, "doit_run", mock_cmd)
         got = doit_cmd.cmd_main([])

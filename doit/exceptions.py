@@ -4,6 +4,16 @@ import sys
 import traceback
 
 
+class InvalidCommand(Exception):
+    """Invalid command line argument."""
+    pass
+
+class InvalidDodoFile(Exception):
+    """Invalid dodo file"""
+    pass
+
+
+
 class CatchedException(object):
     """This used to save info from catched exceptions
     The traceback from the original exception is saved
