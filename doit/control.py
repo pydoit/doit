@@ -6,16 +6,32 @@ from doit.task import InvalidTask, Task
 
 
 class WaitTask(object):
+    """Keep reference for waiting for a task"""
     def __init__(self, task_name):
         self.task_name = task_name
 
 class WaitSelectTask(WaitTask):
-    def ready(self, status):
+    """Wait for a task to be selected to its execution
+    (checking if it is up-to-date)
+    """
+    @staticmethod
+    def ready(status):
+        """check if task is ready, no loger need to wait
+        For a "select" wait a task has any status
+        """
         return status is not None
 
 class WaitRunTask(WaitTask):
-    def ready(self, status):
-        return status in ('done', 'up-to-date')
+    """Wait for a task to finish its execution"""
+    READY_STATUS = ('done', 'up-to-date')
+
+    @classmethod
+    def ready(cls, status):
+        """check if task is ready, no loger need to wait
+        For a running task needs to wait for its completion
+        """
+        return status in cls.READY_STATUS
+
 
 class TaskControl(object):
     """Manages tasks inter-relationship
@@ -35,6 +51,10 @@ class TaskControl(object):
                           Value: L{Task} instance
     """
 
+    # indicate task already finish being handled by a generator from
+    # the dispatcher
+    DONE = -1
+
     def __init__(self, task_list):
         self.tasks = {}
         self.targets = {}
@@ -46,8 +66,8 @@ class TaskControl(object):
         # list of tasks selected to be executed
         self.selected_tasks = None
 
-        # FIXME doc
-        self._add_status = {} # key task-name, value: generato_id
+        # indicate which generator is handling this task or DONE
+        self._add_status = {} # key task-name, value: generator_id
 
         # sanity check and create tasks dict
         for task in task_list:
@@ -106,8 +126,9 @@ class TaskControl(object):
 
 
     def _process_filter(self, task_selection):
-        # process cmd line task options
-        # [task_name [-task_opt [opt_value]] ...] ...
+        """process cmd line task options
+        [task_name [-task_opt [opt_value]] ...] ...
+        """
         filter_list = []
         def add_filtered_task(seq, f_name):
             """can be filter by target or task name """
@@ -172,13 +193,11 @@ class TaskControl(object):
         """generator of tasks to be executed
         @return Task if ready. or task's name that should be put on hold
         """
-        # used in the place of gen_id to indicate task was "completely"  added
-        ADDED = -1
 
         # check if this was already added
         if task_name in self._add_status:
             # check task was alaready added, nothing to do. stop iteration
-            if self._add_status[task_name] == ADDED:
+            if self._add_status[task_name] == self.DONE:
                 return
             # detect cyclic/recursive dependencies
             if self._add_status[task_name] == gen_id:
@@ -191,13 +210,13 @@ class TaskControl(object):
         self._add_status[task_name] = gen_id
         this_task = self.tasks[task_name]
 
-        # execute dynamic calculated tasks
+        # execute dynamic calculated dep tasks
         while this_task.calc_dep_stack:
             # get next dynamic task
             dyn = self.tasks[this_task.calc_dep_stack.pop(0)]
             # add dependencies from dynamic task
-            for tk in self._add_task(gen_id, dyn.name, include_setup):
-                yield tk
+            for dyn_task in self._add_task(gen_id, dyn.name, include_setup):
+                yield dyn_task
             # wait for dynamic task to complete
             yield WaitRunTask(dyn.name)
             # refresh this task dependencies
@@ -205,8 +224,8 @@ class TaskControl(object):
 
         # add dependencies first
         for dependency in this_task.task_dep:
-            for tk in self._add_task(gen_id, dependency, include_setup):
-                yield tk
+            for dep_task in self._add_task(gen_id, dependency, include_setup):
+                yield dep_task
 
         # add itself
         yield self.tasks[task_name]
@@ -221,15 +240,16 @@ class TaskControl(object):
 
             # this task should run, so schedule setup-tasks before itself
             if this_task.run_status == 'run' or include_setup:
-                for st in this_task.setup_tasks:
-                    # TODO check st is a valid task name
-                    for tk in self._add_task(gen_id, st, include_setup):
-                        yield tk
+                for setup_task in this_task.setup_tasks:
+                    # TODO check setup_task is a valid task name
+                    for setup_dep in self._add_task(gen_id, setup_task,
+                                                    include_setup):
+                        yield setup_dep
                 # re-send this task after setup_tasks are sent
                 yield self.tasks[task_name]
 
         # done with this task
-        self._add_status[task_name] = ADDED
+        self._add_status[task_name] = self.DONE
 
 
     def task_dispatcher(self, include_setup=False):

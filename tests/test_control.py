@@ -5,6 +5,20 @@ from doit.task import InvalidTask, Task
 from doit.control import TaskControl, WaitSelectTask, WaitRunTask
 
 
+
+class TestWaitTask(object):
+
+    def test_wait_select_ready(self):
+        assert WaitRunTask.ready('up-to-date')
+        assert not WaitRunTask.ready(None)
+
+    def test_wait_run_ready(self):
+        assert WaitRunTask.ready('done')
+        assert WaitRunTask.ready('up-to-date')
+        assert not WaitRunTask.ready('whatever')
+
+
+
 class TestTaskControlInit(object):
 
     def test_addTask(self):
