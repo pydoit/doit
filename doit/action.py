@@ -332,7 +332,9 @@ def create_action(action, task_ref=None):
         return CmdAction(action, task_ref)
 
     if type(action) is tuple:
-        return PythonAction(*action, task=task_ref)
+        # TODO check tuple length
+        py_callable, args, kwargs = (list(action) + [None]*(3-len(action)))
+        return PythonAction(py_callable, args, kwargs, task_ref)
 
     if hasattr(action, '__call__'):
         return PythonAction(action, task=task_ref)
