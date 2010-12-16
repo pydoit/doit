@@ -5,7 +5,6 @@ import py.test
 
 from doit.dependency import Dependency
 from doit.task import Task
-from doit.reporter import FakeReporter
 from doit.control import TaskControl
 from doit import runner
 
@@ -22,6 +21,42 @@ def _error():
     raise Exception("I am the exception.\n")
 def _exit():
     raise SystemExit()
+
+
+class FakeReporter(object):
+    """Just log everything in internal attribute - used on tests"""
+    def __init__(self, outstream=None, show_out=None, show_err=None):
+        self.log = []
+
+    def runtime_error(self, msg):
+        self.log.append(('run_error', msg))
+
+    def start_task(self, task):
+        self.log.append(('start', task))
+
+    def execute_task(self, task):
+        self.log.append(('execute', task))
+
+    def add_failure(self, task, exception):
+        self.log.append(('fail', task))
+
+    def add_success(self, task):
+        self.log.append(('success', task))
+
+    def skip_uptodate(self, task):
+        self.log.append(('up-to-date', task))
+
+    def skip_ignore(self, task):
+        self.log.append(('ignore', task))
+
+    def cleanup_error(self, exception):
+        self.log.append(('cleanup_error',))
+
+    def teardown_task(self, task):
+        self.log.append(('teardown', task))
+
+    def complete_run(self):
+        pass
 
 
 def pytest_funcarg__reporter(request):
