@@ -6,7 +6,7 @@ import py.test
 from doit.dependency import Dependency
 from doit.task import Task
 from doit.reporter import FakeReporter
-from doit.main import TaskControl
+from doit.control import TaskControl
 from doit import runner
 
 # dependencies file

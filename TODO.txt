@@ -3,8 +3,6 @@
 
 . cyclilc MP test
 . more MP (tree)
-. cache file MD5 (on read & write)
-. key/value storage
 
 0.X
 ----------
