@@ -250,7 +250,7 @@ class FileModifyWatcher(object):
             raise Exception(msg)
 
     def _handle(self, event):
-        if self.platform == 'Darwin':
+        if self.platform == 'Darwin': # pragma: no cover
             if event.name in self.file_list:
                 self.handle_event(event)
         elif self.platform == 'Linux':
@@ -262,7 +262,7 @@ class FileModifyWatcher(object):
         raise NotImplementedError
 
 
-    def _loop_darwin(self):
+    def _loop_darwin(self): # pragma: no cover
         """loop implementation for darwin platform"""
         from fsevents import Observer
         from fsevents import Stream
@@ -313,7 +313,7 @@ class FileModifyWatcher(object):
         @loop_callback: used to stop loop on unittests
         """
 
-        if self.platform == 'Darwin':
+        if self.platform == 'Darwin': # pragma: no cover
             self._loop_darwin()
 
         elif self.platform == 'Linux':

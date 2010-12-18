@@ -356,11 +356,11 @@ class MP_Runner(Runner):
             # completed one task, dispatch next one
             self.process_task_result(task, catched_excp)
 
-
-            # ???
-            free_proc = self.free_proc
+            # update num free process
+            free_proc = self.free_proc + 1
             self.free_proc = 0
-            for get_one_more in range(1 + free_proc):
+            # tries to get as many tasks as free process
+            for get_one_more in range(free_proc):
                 next_task = self.get_next_task()
                 if next_task is None:
                     proc_count -= 1
@@ -372,6 +372,7 @@ class MP_Runner(Runner):
 
             # check for cyclic dependencies
             if len(proc_list) == self.free_proc:
+                # all processes are waiting for a task, but no task ready
                 msg = "Cyclic dependencies on tasks:\n"
                 for task_name, wait_list in self.waiting.iteritems():
                     msg += (" * Task %s is waiting for tasks %s\n" %

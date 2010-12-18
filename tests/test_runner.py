@@ -233,7 +233,7 @@ def cov_dec(func): # pragma: no cover
         # coverage should not be required
         return func
     def wrap(*args, **kwargs):
-        cov = coverage.coverage(data_suffix='mp')
+        cov = coverage.coverage(data_suffix=True)
         cov.start()
         try:
             return  func(*args, **kwargs)
@@ -572,5 +572,14 @@ class TestMP_Runner_start_process(object):
         assert t1.name == task_q.get()[0]
         assert t2.name != task_q.get()[0]
 
+class TestMP_Runner_execute_task(object):
+    def test_hold(self, reporter):
+        run = runner.MP_Runner(TESTDB, reporter)
+        task_q = Queue()
+        task_q.put((runner.Hold(), None)) # to test
+        task_q.put((None, None)) # to terminate function
+        result_q = Queue()
+        run.execute_task(task_q, result_q)
+        # nothing was done
+        assert result_q.empty() # pragma: no cover (coverage bug?)
 
-# TODO test cyclic dependency on MP
