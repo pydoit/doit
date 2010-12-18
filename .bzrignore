@@ -1,6 +1,8 @@
-.coverage
+.coverage*
 .doit.db
+
 tests/data/*
+
 dist
 MANIFEST
 revision.txt

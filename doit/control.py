@@ -286,7 +286,7 @@ class TaskControl(object):
 
             # get task group from tasks_to_run
             if not current_gen:
-                # all task are waiting, hold on
+                # all tasks are waiting, hold on
                 if not tasks_to_run:
                     yield "hold on"
                     continue

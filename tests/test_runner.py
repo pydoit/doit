@@ -2,6 +2,7 @@ import os
 from multiprocessing import Queue
 
 import py.test
+from mock import Mock
 
 from doit.dependency import Dependency
 from doit.task import Task
@@ -80,7 +81,7 @@ class TestRunner(object):
 
 
 class TestRunner_SelectTask(object):
-    def test_ok(self, reporter):
+    def test_ready(self, reporter):
         t1 = Task("taskX", [(my_print, ["out a"] )])
         my_runner = runner.Runner(TESTDB, reporter)
         assert True == my_runner.select_task(t1)
@@ -212,19 +213,43 @@ class TestTask_Teardown(object):
         assert ('cleanup_error',) == reporter.log.pop(0)
         assert not reporter.log
 
+
+# run tests in both single process runner and multi-process runner
 def pytest_generate_tests(metafunc):
-    if TestRunner_All == metafunc.cls:
+    if TestRunner_run_tasks == metafunc.cls:
         for RunnerClass in (runner.Runner, runner.MP_Runner):
             metafunc.addcall(id=RunnerClass.__name__,
                              funcargs=dict(RunnerClass=RunnerClass))
+
 # TODO test action is picklable (closures are not)
+
+
+# decorator to force coverage on function.
+# used to get coverage using multiprocessing.
+def cov_dec(func): # pragma: no cover
+    try:
+        import coverage
+    except:
+        # coverage should not be required
+        return func
+    def wrap(*args, **kwargs):
+        cov = coverage.coverage(data_suffix='mp')
+        cov.start()
+        try:
+            return  func(*args, **kwargs)
+        finally:
+            cov.stop()
+            cov.save()
+    return wrap
+
+# monkey patch function executed in a subprocess to get coverage
+runner.MP_Runner.execute_task = cov_dec(runner.MP_Runner.execute_task)
 
 
 def ok(): return "ok"
 def ok2(): return "different"
 
-#TODO unit-test individual methods: handle_task_error, ...
-class TestRunner_All(object):
+class TestRunner_run_tasks(object):
 
     def test_teardown(self, reporter, RunnerClass):
         t1 = Task('t1', [], teardown=[ok])
@@ -421,7 +446,7 @@ class TestMP_Runner_get_next_task(object):
         tc = TaskControl([t1, t2])
         tc.process(None)
         run = runner.MP_Runner(TESTDB, reporter)
-        run.set_tasks(tc)
+        run._run_tasks_init(tc)
         assert t1 == run.get_next_task()
         assert t2 == run.get_next_task()
         assert None == run.get_next_task()
@@ -432,7 +457,7 @@ class TestMP_Runner_get_next_task(object):
         tc = TaskControl([t1, t2])
         tc.process(None)
         run = runner.MP_Runner(TESTDB, reporter)
-        run.set_tasks(tc)
+        run._run_tasks_init(tc)
         assert t1 == run.get_next_task()
         run._stop_running = True
         assert None == run.get_next_task()
@@ -445,7 +470,7 @@ class TestMP_Runner_get_next_task(object):
         tc = TaskControl([t1, t2a, t2b, t3])
         tc.process(None)
         run = runner.MP_Runner(TESTDB, reporter)
-        run.set_tasks(tc)
+        run._run_tasks_init(tc)
 
         # first task ok
         assert t1 == run.get_next_task()
@@ -474,4 +499,78 @@ class TestMP_Runner_get_next_task(object):
         assert t3 == run.get_next_task()
         assert None == run.get_next_task()
 
-# test cyclic dependency on MP
+
+    def test_waiting_controller(self, reporter):
+        t1 = Task('t1', [])
+        t2a = Task('t2A', [], calc_dep=('t1',))
+        tc = TaskControl([t1, t2a])
+        tc.process(None)
+        run = runner.MP_Runner(TESTDB, reporter)
+        run._run_tasks_init(tc)
+
+        # first task ok
+        assert t1 == run.get_next_task()
+
+        # hold until t1 finishes
+        assert 0 == run.free_proc
+        assert isinstance(run.get_next_task(), runner.Hold)
+        assert 1 == run.free_proc
+
+
+class TestMP_Runner_start_process(object):
+    # 2 process, 3 tasks
+    def test_all_processes(self, reporter, monkeypatch):
+        mock_process = Mock()
+        monkeypatch.setattr(runner, 'Process', mock_process)
+        t1 = Task('t1', [])
+        t2 = Task('t2', [])
+        tc = TaskControl([t1, t2])
+        tc.process(None)
+        run = runner.MP_Runner(TESTDB, reporter, num_process=2)
+        run._run_tasks_init(tc)
+        result_q = Queue()
+        task_q = Queue()
+
+        proc_list = run._run_start_processes(task_q, result_q)
+        assert 2 == len(proc_list)
+        assert t1.name == task_q.get()[0]
+        assert t2.name == task_q.get()[0]
+
+
+    # 2 process, 1 task
+    def test_less_processes(self, reporter, monkeypatch):
+        mock_process = Mock()
+        monkeypatch.setattr(runner, 'Process', mock_process)
+        t1 = Task('t1', [])
+        tc = TaskControl([t1])
+        tc.process(None)
+        run = runner.MP_Runner(TESTDB, reporter, num_process=2)
+        run._run_tasks_init(tc)
+        result_q = Queue()
+        task_q = Queue()
+
+        proc_list = run._run_start_processes(task_q, result_q)
+        assert 1 == len(proc_list)
+        assert t1.name == task_q.get()[0]
+
+
+    # 2 process, 2 tasks (but only one task can be started)
+    def test_waiting_process(self, reporter, monkeypatch):
+        mock_process = Mock()
+        monkeypatch.setattr(runner, 'Process', mock_process)
+        t1 = Task('t1', [])
+        t2 = Task('t2', [], task_dep=['t1'])
+        tc = TaskControl([t1, t2])
+        tc.process(None)
+        run = runner.MP_Runner(TESTDB, reporter, num_process=2)
+        run._run_tasks_init(tc)
+        result_q = Queue()
+        task_q = Queue()
+
+        proc_list = run._run_start_processes(task_q, result_q)
+        assert 2 == len(proc_list)
+        assert t1.name == task_q.get()[0]
+        assert t2.name != task_q.get()[0]
+
+
+# TODO test cyclic dependency on MP

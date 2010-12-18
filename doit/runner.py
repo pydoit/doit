@@ -14,6 +14,7 @@ SUCCESS = 0
 FAILURE = 1
 ERROR = 2
 
+
 class Runner(object):
     """Task runner
 
@@ -45,6 +46,11 @@ class Runner(object):
 
 
     def _handle_task_error(self, task, catched_excp):
+        """handle all task failures/errors
+
+        called whenever there is an error before executing a task or
+        its execution is not successful.
+        """
         assert isinstance(catched_excp, CatchedException)
         self.dependency_manager.remove_success(task)
         self.reporter.add_failure(task, catched_excp)
@@ -61,10 +67,11 @@ class Runner(object):
         """Returns bool, task should be executed
          * side-effect: set task.options
 
-         Tasks should be executed if they are not up-to-date.
-         Tasks that cointains setup-tasks must be selected twice,
-         so it gives chance for other tasks to be executed after
-         checking it is not up-to-date.
+        Tasks should be executed if they are not up-to-date.
+
+        Tasks that cointains setup-tasks must be selected twice,
+        so it gives chance for dependency tasks to be executed after
+        checking it is not up-to-date.
         """
 
         # if run_status is not None, it was already calculated
@@ -126,6 +133,7 @@ class Runner(object):
 
 
     def process_task_result(self, task, catched_excp):
+        """handles result"""
         task.run_status = "done"
         # save execution successful
         if catched_excp is None:
@@ -169,13 +177,12 @@ class Runner(object):
         """finish running tasks"""
         # flush update dependencies
         self.dependency_manager.close()
-
-        # new style teardown
         self.teardown()
 
         # report final results
         self.reporter.complete_run()
         return self.final_result
+
 
 
 class Hold(object):
@@ -211,11 +218,16 @@ class MP_Runner(Runner):
         Runner.__init__(self, dependency_file, reporter, continue_,
                         always_execute, verbosity)
         self.num_process = num_process
+
+        # key: name of task that has not completed yet
+        # value: list of task names that are waiting for task in key
         self.waiting = {}
+
+        # list of task names that are ready to be executed (these were waiting)
         self.ready_queue = []
-        self.free_proc = 0
-        self.task_gen = None
-        self.tasks = None
+        self.free_proc = 0   # number of free process
+        self.task_gen = None # genrator to retrieve tasks from controller
+        self.tasks = None    # dict of task instances by name
         self.result_q = None
 
     def get_next_task(self):
@@ -228,27 +240,27 @@ class MP_Runner(Runner):
         """
         if self._stop_running:
             return None # gentle stop
-
-        def nothing_ready():
-            if self.waiting:
-                self.free_proc += 1
-                return Hold()
-            else:
-                return None
-
         while True:
             # get new task from ready queue
             if self.ready_queue:
                 task_name = self.ready_queue.pop(0)
                 task = self.tasks[task_name]
+            # get next task from controller
             else:
                 try:
                     task = self.task_gen.next()
                     if not isinstance(task, Task):
                         self.free_proc += 1
                         return Hold()
+                # no more tasks from controller...
                 except StopIteration:
-                    return nothing_ready()
+                    # ... terminate one sub process if no other task waiting
+                    if not self.waiting:
+                        return None
+                    else:
+                        # extra-process might be used by waiting task, hold on
+                        self.free_proc += 1
+                        return Hold()
 
 
             # task with setup must be selected twice...
@@ -273,18 +285,28 @@ class MP_Runner(Runner):
                 if self.select_task(task):
                     return task
 
-    def set_tasks(self, task_control):
-        self.task_gen = task_control.task_dispatcher()
-        self.tasks = task_control.tasks
 
     def process_task_result(self, task, catched_excp):
+        """handle task result"""
         Runner.process_task_result(self, task, catched_excp)
         if task.name in self.waiting:
             for ready_task in self.waiting[task.name]:
                 self.ready_queue.append(ready_task)
             del self.waiting[task.name]
 
+
+    def _run_tasks_init(self, task_control):
+        """initialization for run_tasks"""
+        self.task_gen = task_control.task_dispatcher()
+        self.tasks = task_control.tasks
+
+
     def _run_start_processes(self, task_q, result_q):
+        """create and start sub-processes
+        @param task_q: (multiprocessing.Queue) tasks to be executed
+        @param result_q: (multiprocessing.Queue) collect task results
+        @return list of Process
+        """
         proc_list = []
         for p_id in xrange(self.num_process):
             next_task = self.get_next_task()
@@ -292,7 +314,7 @@ class MP_Runner(Runner):
                 break # do not start more processes than tasks
             if isinstance(next_task, Task):
                 task_q.put((next_task.name, next_task.file_dep))
-            else: # next_task is a string
+            else: # next_task is Hold
                 # no task ready to be executed but some are on the queue
                 # awaiting to be executed
                 task_q.put((next_task, None))
@@ -302,16 +324,21 @@ class MP_Runner(Runner):
             proc_list.append(process)
         return proc_list
 
+
     def run_tasks(self, task_control):
+        """controls subprocesses task dispatching and result collection
+        """
+        # result queue - result collected from sub-processes
         result_q = Queue()
+        # task queue - tasks ready to be dispatched to sub-processes
         task_q = Queue()
-        self.set_tasks(task_control)
-        # create and start processes
+        self._run_tasks_init(task_control)
         proc_list = self._run_start_processes(task_q, result_q)
 
         # wait for all processes terminate
         proc_count = len(proc_list)
         while proc_count:
+            # wait until there is a result to be consumed
             result = result_q.get()
             task = task_control.tasks[result['name']]
             if 'reporter' in result:
@@ -329,6 +356,8 @@ class MP_Runner(Runner):
             # completed one task, dispatch next one
             self.process_task_result(task, catched_excp)
 
+
+            # ???
             free_proc = self.free_proc
             self.free_proc = 0
             for get_one_more in range(1 + free_proc):
@@ -367,10 +396,14 @@ class MP_Runner(Runner):
 
 
     def execute_task(self, task_q, result_q):
-        """executed on child processes"""
+        """executed on child processes
+        @param task_q: task queue,
+            * None elements indicate process can terminate
+            * Hold indicate process should wait for next task
+            * Task task to be executed
+        """
         self.result_q = result_q
         self.reporter = self.MP_Reporter(self, self.reporter)
-
         try:
             while True:
                 task_name, file_dep = task_q.get()
@@ -378,10 +411,14 @@ class MP_Runner(Runner):
                     self.teardown()
                     return # no more tasks to execute finish this process
 
+                # do nothing. this used to start the subprocess even if no task
+                # is available when process is created.
                 if isinstance(task_name, Hold):
                     continue
 
                 task = self.tasks[task_name]
+                # FIXME why is this required? to update calc-deps?
+                # what about other dependencies?
                 task.file_dep = file_dep
                 result = {'name': task.name}
                 # FIXME support setup objects with 2 "scopes"
@@ -395,7 +432,8 @@ class MP_Runner(Runner):
                     result['failure'] = t_result
                 result_q.put(result)
         except (SystemExit, KeyboardInterrupt, Exception), exception:
-            # error, blow-up everything
+            # error, blow-up everything. send exception info to master process
             result_q.put({'name': task_name,
                           'exit': exception.__class__,
                           'exception': str(exception)})
+
