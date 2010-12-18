@@ -368,21 +368,8 @@ class MP_Runner(Runner):
                     task_q.put((next_task.name, next_task.file_dep))
                 else:
                     task_q.put((next_task, None))
-
-
             # check for cyclic dependencies
-            if len(proc_list) == self.free_proc:
-                # all processes are waiting for a task, but no task ready
-                msg = "Cyclic dependencies on tasks:\n"
-                for task_name, wait_list in self.waiting.iteritems():
-                    msg += (" * Task %s is waiting for tasks %s\n" %
-                            (task_name, ", ".join(wait_list)))
-                self.final_result = ERROR
-                self.reporter.runtime_error(msg)
-                # terminate all child process
-                proc_count = 0
-                for proc in proc_list:
-                    task_q.put((None, None))
+            assert len(proc_list) > self.free_proc
 
         # we are done, join all process
         for proc in proc_list:
