@@ -5,7 +5,7 @@ import itertools
 from doit import dependency
 from doit.task import Task
 from doit.control import TaskControl, InvalidCommand
-from doit.runner import Runner, MP_Runner
+from doit.runner import Runner, MRunner
 from doit.reporter import REPORTERS
 from doit.dependency import Dependency
 from doit.filewatch import FileModifyWatcher
@@ -56,7 +56,7 @@ def doit_run(dependency_file, task_list, output, options=None,
             runner = Runner(dependency_file, reporter_obj, continue_,
                             always_execute, verbosity)
         else:
-            runner = MP_Runner(dependency_file, reporter_obj, continue_,
+            runner = MRunner(dependency_file, reporter_obj, continue_,
                                always_execute, verbosity, num_process)
 
         runner.run_tasks(task_control)

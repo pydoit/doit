@@ -217,7 +217,7 @@ class TestTask_Teardown(object):
 # run tests in both single process runner and multi-process runner
 def pytest_generate_tests(metafunc):
     if TestRunner_run_tasks == metafunc.cls:
-        for RunnerClass in (runner.Runner, runner.MP_Runner):
+        for RunnerClass in (runner.Runner, runner.MRunner):
             metafunc.addcall(id=RunnerClass.__name__,
                              funcargs=dict(RunnerClass=RunnerClass))
 
@@ -243,7 +243,7 @@ def cov_dec(func): # pragma: no cover
     return wrap
 
 # monkey patch function executed in a subprocess to get coverage
-runner.MP_Runner.execute_task = cov_dec(runner.MP_Runner.execute_task)
+runner.MRunner.execute_task = cov_dec(runner.MRunner.execute_task)
 
 
 def ok(): return "ok"
@@ -418,14 +418,14 @@ class TestRunner_run_tasks(object):
         py.test.raises(SystemExit, my_runner.run_tasks, tc)
 
 
-class TestMP_Reporter(object):
+class TestMReporter(object):
     class MyRunner(object):
         def __init__(self):
             self.result_q = Queue()
 
     def testReporterMethod(self, reporter):
         fake_runner = self.MyRunner()
-        mp_reporter = runner.MP_Runner.MP_Reporter(fake_runner, reporter)
+        mp_reporter = runner.MRunner.MReporter(fake_runner, reporter)
         my_task = Task("task x", [])
         mp_reporter.add_success(my_task)
         got = fake_runner.result_q.get(True, 1)
@@ -433,19 +433,19 @@ class TestMP_Reporter(object):
 
     def testNonReporterMethod(self, reporter):
         fake_runner = self.MyRunner()
-        mp_reporter = runner.MP_Runner.MP_Reporter(fake_runner, reporter)
+        mp_reporter = runner.MRunner.MReporter(fake_runner, reporter)
         assert hasattr(mp_reporter, 'add_success')
         assert not hasattr(mp_reporter, 'no_existent_method')
 
 
-class TestMP_Runner_get_next_task(object):
+class TestMRunner_get_next_task(object):
     # simple normal case
     def test_run_task(self, reporter):
         t1 = Task('t1', [])
         t2 = Task('t2', [])
         tc = TaskControl([t1, t2])
         tc.process(None)
-        run = runner.MP_Runner(TESTDB, reporter)
+        run = runner.MRunner(TESTDB, reporter)
         run._run_tasks_init(tc)
         assert t1 == run.get_next_task()
         assert t2 == run.get_next_task()
@@ -456,7 +456,7 @@ class TestMP_Runner_get_next_task(object):
         t2 = Task('t2', [])
         tc = TaskControl([t1, t2])
         tc.process(None)
-        run = runner.MP_Runner(TESTDB, reporter)
+        run = runner.MRunner(TESTDB, reporter)
         run._run_tasks_init(tc)
         assert t1 == run.get_next_task()
         run._stop_running = True
@@ -469,7 +469,7 @@ class TestMP_Runner_get_next_task(object):
         t3 = Task('t3', [], setup=('t2B',))
         tc = TaskControl([t1, t2a, t2b, t3])
         tc.process(None)
-        run = runner.MP_Runner(TESTDB, reporter)
+        run = runner.MRunner(TESTDB, reporter)
         run._run_tasks_init(tc)
 
         # first task ok
@@ -505,7 +505,7 @@ class TestMP_Runner_get_next_task(object):
         t2a = Task('t2A', [], calc_dep=('t1',))
         tc = TaskControl([t1, t2a])
         tc.process(None)
-        run = runner.MP_Runner(TESTDB, reporter)
+        run = runner.MRunner(TESTDB, reporter)
         run._run_tasks_init(tc)
 
         # first task ok
@@ -517,7 +517,7 @@ class TestMP_Runner_get_next_task(object):
         assert 1 == run.free_proc
 
 
-class TestMP_Runner_start_process(object):
+class TestMRunner_start_process(object):
     # 2 process, 3 tasks
     def test_all_processes(self, reporter, monkeypatch):
         mock_process = Mock()
@@ -526,7 +526,7 @@ class TestMP_Runner_start_process(object):
         t2 = Task('t2', [])
         tc = TaskControl([t1, t2])
         tc.process(None)
-        run = runner.MP_Runner(TESTDB, reporter, num_process=2)
+        run = runner.MRunner(TESTDB, reporter, num_process=2)
         run._run_tasks_init(tc)
         result_q = Queue()
         task_q = Queue()
@@ -544,7 +544,7 @@ class TestMP_Runner_start_process(object):
         t1 = Task('t1', [])
         tc = TaskControl([t1])
         tc.process(None)
-        run = runner.MP_Runner(TESTDB, reporter, num_process=2)
+        run = runner.MRunner(TESTDB, reporter, num_process=2)
         run._run_tasks_init(tc)
         result_q = Queue()
         task_q = Queue()
@@ -562,7 +562,7 @@ class TestMP_Runner_start_process(object):
         t2 = Task('t2', [], task_dep=['t1'])
         tc = TaskControl([t1, t2])
         tc.process(None)
-        run = runner.MP_Runner(TESTDB, reporter, num_process=2)
+        run = runner.MRunner(TESTDB, reporter, num_process=2)
         run._run_tasks_init(tc)
         result_q = Queue()
         task_q = Queue()
@@ -572,9 +572,9 @@ class TestMP_Runner_start_process(object):
         assert t1.name == task_q.get()[0]
         assert t2.name != task_q.get()[0]
 
-class TestMP_Runner_execute_task(object):
+class TestMRunner_execute_task(object):
     def test_hold(self, reporter):
-        run = runner.MP_Runner(TESTDB, reporter)
+        run = runner.MRunner(TESTDB, reporter)
         task_q = Queue()
         task_q.put((runner.Hold(), None)) # to test
         task_q.put((None, None)) # to terminate function

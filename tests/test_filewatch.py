@@ -2,9 +2,9 @@ import os
 import threading
 
 import py.test
-from mock import Mock
 
 from doit.filewatch import FileModifyWatcher
+
 
 def pytest_funcarg__cwd(request):
     """set cwd to parent folder of this file."""

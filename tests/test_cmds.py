@@ -11,6 +11,7 @@ from doit.exceptions import InvalidCommand
 from doit import cmds
 from doit import reporter
 from tests.test_filewatch import pytest_funcarg__cwd
+pytest_funcarg__cwd # pyflakes
 
 TESTDB = os.path.join(os.path.dirname(__file__), "testdb")
 

@@ -55,7 +55,8 @@ disable-msg-cat=I
 # Disable the message(s) with the given id(s).
 # :W0142: *Used * or ** magic*
 # :R0903: *Too few public methods (%s/%s)*
-disable-msg=W0142,R0903
+# :W0703: *Catch "Exception"*
+disable-msg=W0142,R0903,W0703
 
 
 [REPORTS]

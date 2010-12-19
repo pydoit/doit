@@ -138,7 +138,7 @@ class JsonDB(object):
         self._db = {}
 
 
-class DBM_DB(object):
+class DbmDB(object):
     """Backend using a DBM file with individual values encoded in JSON
 
     On initialization all items are read from DBM file and loaded on _dbm.
@@ -363,10 +363,10 @@ class JsonDependency(DependencyBase):
     def __init__(self, name):
         DependencyBase.__init__(self, JsonDB(name))
 
-class DBM_Dependency(DependencyBase):
+class DbmDependency(DependencyBase):
     """Task dependency manager with DBM backend"""
     def __init__(self, name):
-        DependencyBase.__init__(self, DBM_DB(name))
+        DependencyBase.__init__(self, DbmDB(name))
 
 # default "Dependency" implementation to be used
-Dependency = DBM_Dependency
+Dependency = DbmDependency

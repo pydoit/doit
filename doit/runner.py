@@ -189,10 +189,10 @@ class Hold(object):
     """Sentinel class: No task ready to be executed"""
     pass
 
-class MP_Runner(Runner):
+class MRunner(Runner):
     """MultiProcessing Runner """
 
-    class MP_Reporter(object):
+    class MReporter(object):
         """send reported messages to master process
 
         puts a dictionary {'name': <task-name>,
@@ -308,7 +308,7 @@ class MP_Runner(Runner):
         @return list of Process
         """
         proc_list = []
-        for p_id in xrange(self.num_process):
+        for _ in xrange(self.num_process):
             next_task = self.get_next_task()
             if next_task is None:
                 break # do not start more processes than tasks
@@ -360,7 +360,7 @@ class MP_Runner(Runner):
             free_proc = self.free_proc + 1
             self.free_proc = 0
             # tries to get as many tasks as free process
-            for get_one_more in range(free_proc):
+            for _ in range(free_proc):
                 next_task = self.get_next_task()
                 if next_task is None:
                     proc_count -= 1
@@ -391,7 +391,7 @@ class MP_Runner(Runner):
             * Task task to be executed
         """
         self.result_q = result_q
-        self.reporter = self.MP_Reporter(self, self.reporter)
+        self.reporter = self.MReporter(self, self.reporter)
         try:
             while True:
                 task_name, file_dep = task_q.get()

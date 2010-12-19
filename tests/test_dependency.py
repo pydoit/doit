@@ -6,7 +6,7 @@ import py.test
 
 from doit.task import Task
 from doit.dependency import get_md5, md5sum, check_modified
-from doit.dependency import JsonDependency, DBM_Dependency
+from doit.dependency import JsonDependency, DbmDependency
 
 
 def get_abspath(relativePath):
@@ -81,7 +81,7 @@ def pytest_funcarg__dependency(request):
 def pytest_generate_tests(metafunc):
     if "depfile" in metafunc.funcargnames:
         metafunc.addcall(id='JsonDependency', param=JsonDependency)
-        metafunc.addcall(id='DBM_Dependency', param=DBM_Dependency)
+        metafunc.addcall(id='DbmDependency', param=DbmDependency)
 
 
 class TestDependencyDb(object):
