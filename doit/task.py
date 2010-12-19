@@ -240,7 +240,6 @@ class Task(object):
         @param valid (list): of valid types/value accepted
         @raises InvalidTask if invalid input
         """
-        msg = "Task %s attribute '%s' must be {%s} got:%r %s"
         value_type = type(value)
         if value_type in valid[0]:
             return
@@ -248,8 +247,11 @@ class Task(object):
             return
 
         # input value didnt match any valid type/value, raise execption
-        accept = ", ".join([getattr(v, '__name__', str(v)) for v in valid])
-        raise InvalidTask(msg % (task, attr, accept, str(value), type(value)))
+        msg = "Task '%s' attribute '%s' must be " % (task, attr)
+        accept = ", ".join([getattr(v, '__name__', str(v)) for v in
+                            (valid[0] + valid[1])])
+        msg += "{%s} got:%r %s" % (accept, value, type(value))
+        raise InvalidTask(msg)
 
 
     def _get_out_err(self, out, err, verbosity):

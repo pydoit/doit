@@ -404,28 +404,39 @@ class TestPythonActionOptions(object):
 
 
 class TestCreateAction(object):
+    class TaskStub(object):
+        name = 'stub'
+    mytask = TaskStub()
+
     def testBaseAction(self):
         class Sample(action.BaseAction): pass
-        my_action = action.create_action(Sample())
+        my_action = action.create_action(Sample(), self.mytask)
         assert isinstance(my_action, Sample)
 
     def testStringAction(self):
-        my_action = action.create_action("xpto 14 7")
+        my_action = action.create_action("xpto 14 7", self.mytask)
         assert isinstance(my_action, action.CmdAction)
 
     def testMethodAction(self):
         def dumb(): return
-        my_action = action.create_action(dumb)
+        my_action = action.create_action(dumb, self.mytask)
         assert isinstance(my_action, action.PythonAction)
 
     def testTupleAction(self):
         def dumb(): return
-        my_action = action.create_action((dumb,[1,2],{'a':5}))
+        my_action = action.create_action((dumb,[1,2],{'a':5}), self.mytask)
         assert isinstance(my_action, action.PythonAction)
 
+    def testTupleActionMoreThanThreeElements(self):
+        def dumb(): return
+        py.test.raises(action.InvalidTask, action.create_action,
+                       (dumb,[1,2],{'a':5},'oo'), self.mytask)
+
     def testInvalidActionNone(self):
-        py.test.raises(action.InvalidTask, action.create_action, None)
+        py.test.raises(action.InvalidTask, action.create_action,
+                       None, self.mytask)
 
     def testInvalidActionObject(self):
-        py.test.raises(action.InvalidTask, action.create_action, self)
+        py.test.raises(action.InvalidTask, action.create_action,
+                       self, self.mytask)
 
