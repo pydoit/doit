@@ -23,7 +23,7 @@ When `doit` is executed without any parameters it will look for tasks in a file 
 
 .. code-block:: console
 
-  eduardo@eduardo~$ doit
+  $ doit
   .  hello
 
 On the output it displays which tasks were executed. In this case the `dodo` file has only one task, `hello`.
@@ -75,7 +75,7 @@ The task function can return a python-generator that yields dictionaries. Since 
 
 .. code-block:: console
 
-    eduardo@eduardo:~$ doit
+    $ doit
     .  create_file:file0.txt
     .  create_file:file1.txt
     .  create_file:file2.txt
@@ -100,7 +100,7 @@ DOIT_CONFIG -> default_tasks
 
 .. code-block:: console
 
-    eduardo@eduardo:~$ doit
+    $ doit
     .  t1
     .  t3
 
@@ -114,7 +114,7 @@ From the command line you can control which tasks are going to be execute by pas
 
 .. code-block:: console
 
-    eduardo@eduardo:~$ doit t2
+    $ doit t2
     .  t2
 
 
@@ -122,7 +122,7 @@ You can also specify which task to execute by its target:
 
 .. code-block:: console
 
-    eduardo@eduardo:~$ doit task1
+    $ doit task1
     .  t1
 
 
@@ -136,7 +136,7 @@ You can select sub-tasks from the command line specifying its full name.
 
 .. code-block:: console
 
-    eduardo@eduardo:~$ doit create_file:file2.txt
+    $ doit create_file:file2.txt
     .  create_file:file2.txt
 
 
@@ -147,7 +147,7 @@ You can also select tasks to be executed using a `glob <http://docs.python.org/l
 
 .. code-block:: console
 
-    eduardo@eduardo:~$ doit create_file:file*
+    $ doit create_file:file*
     .  create_file:file1.txt
     .  create_file:file2.txt
     .  create_file:file3.txt

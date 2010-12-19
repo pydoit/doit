@@ -40,9 +40,9 @@ run
 
 .. code-block:: console
 
-  eduardo@eduardo~$ doit
+  $ doit
   .  hello
-  eduardo@eduardo~$ cat hello.txt
+  $ cat hello.txt
   Hello World!!!
   Python says Hello World!!!
 

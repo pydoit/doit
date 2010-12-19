@@ -26,9 +26,9 @@ So if there are no modifications to the dependencies and you run `doit` again. T
 
 .. code-block:: console
 
-  eduardo@eduardo:~$ doit
+  $ doit
   .  compile
-  eduardo@eduardo:~$ doit
+  $ doit
   -- compile
 
 Note the ``--`` (2 dashes, one space) on the command output on the second time it is executed. It means, this task was up-to-date and not executed.
@@ -46,9 +46,9 @@ Lets say you work with a dynamic language (python in this example). You don't ne
 
 .. code-block:: console
 
-   eduardo@eduardo:~$ doit
+   $ doit
    .  checker
-   eduardo@eduardo:~$ doit
+   $ doit
    -- checker
 
 Note the ``--`` again.
@@ -76,7 +76,7 @@ This example we make sure we include a file with the latest revision number of t
 
 .. code-block:: console
 
-    eduardo@eduardo:~$ doit
+    $ doit
     .  version
     .  tar
 
@@ -104,15 +104,15 @@ If there are no changes in the dependency the task execution is skipped. But if 
 
 .. code-block:: console
 
-    eduardo@eduardo:~$ doit
+    $ doit
     .  compile
-    eduardo@eduardo:~$ doit
+    $ doit
     -- compile
-    eduardo@eduardo:~$ rm main.o
-    eduardo@eduardo:~$ doit
+    $ rm main.o
+    $ doit
     .  compile
-    eduardo@eduardo:~$ echo xxx > main.o
-    eduardo@eduardo:~$ doit
+    $ echo xxx > main.o
+    $ doit
     -- compile
 
 
@@ -162,12 +162,12 @@ Note that even with *run-once* the file will be downloaded again in case the tar
 
 .. code-block:: console
 
-    eduardo@eduardo:~$ doit
+    $ doit
     .  get_pylogo
-    eduardo@eduardo:~$ doit
+    $ doit
     -- get_pylogo
-    eduardo@eduardo:~$ rm python-logo.gif
-    eduardo@eduardo:~$ doit
+    $ rm python-logo.gif
+    $ doit
     .  get_pylogo
 
 
