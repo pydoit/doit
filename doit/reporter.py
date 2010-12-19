@@ -23,36 +23,46 @@ class ConsoleReporter(object):
         self.outstream = outstream
 
     def start_task(self, task):
+        """called when task is selected (check if up-to-date)"""
         pass
 
     def execute_task(self, task):
+        """called when excution starts"""
         # ignore tasks that do not define actions
         if task.actions:
             self.outstream.write('.  %s\n' % task.title())
 
     def add_failure(self, task, exception):
+        """called when excution finishes with a failure"""
         self.failures.append({'task': task, 'exception':exception})
 
     def add_success(self, task):
+        """called when excution finishes successfuly"""
         pass
 
     def skip_uptodate(self, task):
+        """skipped up-to-date task"""
         self.outstream.write("-- %s\n" % task.title())
 
     def skip_ignore(self, task):
+        """skipped ignored task"""
         self.outstream.write("!! %s\n" % task.title())
 
 
     def cleanup_error(self, exception):
+        """error during cleanup"""
         sys.stderr.write(exception.get_msg())
 
     def teardown_task(self, task):
+        """called when starts the execution of teardown action"""
         pass
 
     def runtime_error(self, msg):
+        """called when an error occurs"""
         self.aborted = msg
 
     def complete_run(self):
+        """called when finshed running all tasks"""
         # if test fails print output from failed task
         for result in self.failures:
             self.outstream.write("#"*40 + "\n")
@@ -80,16 +90,18 @@ class ExecutedOnlyReporter(ConsoleReporter):
     Produces zero output unless a task is executed
     """
     def skip_uptodate(self, task):
+        """skipped up-to-date task"""
         pass
 
     def skip_ignore(self, task):
+        """skipped ignored task"""
         pass
 
 
 
 class TaskResult(object):
+    """result object used by JsonReporter"""
     # FIXME what about returned value from python-actions ?
-    # FIXME save raised exceptions
     def __init__(self, task):
         self.task = task
         self.result = None # fail, success, up-to-date, ignore
@@ -101,17 +113,19 @@ class TaskResult(object):
         self._finished_on = None # timestamp
 
     def start(self):
+        """called when task starts its execution"""
         self._started_on = time.time()
 
     def set_result(self, result):
+        """called when task finishes its execution"""
         self._finished_on = time.time()
         self.result = result
-        # FIXME DRY
         line_sep = "\n<------------------------------------------------>\n"
         self.out = line_sep.join([a.out for a in self.task.actions if a.out])
         self.err = line_sep.join([a.err for a in self.task.actions if a.err])
 
     def to_dict(self):
+        """convert result data to dictionary"""
         if self._started_on is not None:
             started = datetime.datetime.utcfromtimestamp(self._started_on)
             self.started = str(started)
@@ -152,34 +166,45 @@ class JsonReporter(object):
         self.aborted = None
 
     def start_task(self, task):
+        """called when task is selected (check if up-to-date)"""
         self.t_results[task.name] = TaskResult(task)
 
     def execute_task(self, task):
+        """called when excution starts"""
         self.t_results[task.name].start()
 
     def add_failure(self, task, exception):
+        """called when excution finishes with a failure"""
         self.t_results[task.name].set_result('fail')
+        # TODO save exception
 
     def add_success(self, task):
+        """called when excution finishes successfuly"""
         self.t_results[task.name].set_result('success')
 
     def skip_uptodate(self, task):
+        """skipped up-to-date task"""
         self.t_results[task.name].set_result('up-to-date')
 
     def skip_ignore(self, task):
+        """skipped ignored task"""
         self.t_results[task.name].set_result('ignore')
 
     def cleanup_error(self, exception):
+        """error during cleanup"""
         # TODO same as runtime_error
         pass
 
     def teardown_task(self, task):
+        """called when starts the execution of teardown action"""
         pass
 
     def runtime_error(self, msg):
+        """called when an error occurs"""
         self.aborted = msg
 
     def complete_run(self):
+        """called when finshed running all tasks"""
         # restore stdout
         log_out = sys.stdout.getvalue()
         sys.stdout = self._old_out
