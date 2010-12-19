@@ -10,7 +10,7 @@ from doit.task import Task
 from doit.exceptions import InvalidCommand
 from doit import cmds
 from doit import reporter
-
+from tests.test_filewatch import pytest_funcarg__cwd
 
 TESTDB = os.path.join(os.path.dirname(__file__), "testdb")
 
@@ -191,6 +191,14 @@ class TestCmdRun(object):
         got = output.getvalue().split("\n")[:-1]
         assert [".  t1", ".  t2", ".  g1.a", ".  g1.b", ".  t3"] == got
 
+    def testProcessRunMP(self):
+        remove_testdb()
+        output = StringIO.StringIO()
+        result = cmds.doit_run(TESTDB, tasks_sample(), output, num_process=1)
+        assert 0 == result
+        got = output.getvalue().split("\n")[:-1]
+        assert [".  t1", ".  t2", ".  g1.a", ".  g1.b", ".  t3"] == got
+
     def testProcessRunFilter(self):
         remove_testdb()
         output = StringIO.StringIO()
@@ -346,86 +354,6 @@ class TestCmdIgnore(object):
         py.test.raises(InvalidCommand, cmds.doit_ignore,
                        TESTDB, tasks, output, ["XXX"])
 
-
-
-def pytest_funcarg__cwd(request):
-    """set cwd to parent folder of this file."""
-    def set_cwd():
-        cwd = {}
-        cwd['preivous'] = os.getcwd()
-        cwd['current'] = os.path.abspath(os.path.dirname(__file__))
-        os.chdir(cwd['current'])
-        return cwd
-    def restore_cwd(cwd):
-        os.chdir(cwd['preivous'])
-    return request.cached_setup(
-        setup=set_cwd,
-        teardown=restore_cwd,
-        scope="function")
-
-
-class TestFileWatcher(object):
-    def testInit(self, cwd):
-        file1, file2 = 'data/w1.txt', 'data/w2.txt'
-        fw = cmds.FileModifyWatcher((file1, file2))
-        # file_list contains absolute paths
-        assert os.path.abspath(file1) in fw.file_list
-        assert os.path.abspath(file2) in fw.file_list
-        # watch_dirs
-        assert os.path.join(cwd['current'], 'data') in fw.watch_dirs
-
-    def testHandleEventNotSubclassed(self):
-        fw = cmds.FileModifyWatcher([])
-        py.test.raises(NotImplementedError, fw.handle_event, None)
-
-    def testLoop(self, cwd):
-        file1, file2, file3 = 'data/w1.txt', 'data/w2.txt', 'data/w3.txt'
-        stop_file = 'data/stop'
-        fw = cmds.FileModifyWatcher((file1, file2, stop_file))
-        events = []
-        should_stop = []
-        started = []
-        def handle_event(event):
-            events.append(event.pathname)
-            if event.pathname.endswith("stop"):
-                should_stop.append(True)
-        fw.handle_event = handle_event
-
-        def loop_callback(notifier):
-            started.append(True)
-            # force loop to stop
-            if should_stop:
-                raise KeyboardInterrupt
-        loop_thread = threading.Thread(target=fw.loop, args=(loop_callback,))
-        loop_thread.daemon = True
-        loop_thread.start()
-
-        # wait watcher to be ready
-        while not started:
-            assert loop_thread.isAlive()
-
-        # write in watched file
-        fd = open(file1, 'w')
-        fd.write("hi")
-        fd.close()
-        # write in non-watched file
-        fd = open(file3, 'w')
-        fd.write("hi")
-        fd.close()
-        # write in another watched file
-        fd = open(file2, 'w')
-        fd.write("hi")
-        fd.close()
-
-        # tricky to stop watching
-        fd = open(stop_file, 'w')
-        fd.write("hi")
-        fd.close()
-        loop_thread.join(1)
-        assert not loop_thread.isAlive()
-
-        assert os.path.abspath(file1) == events[0]
-        assert os.path.abspath(file2) == events[1]
 
 
 class TestCmdAuto(object):
