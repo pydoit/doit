@@ -18,7 +18,7 @@ class Task(object):
     @ivar targets: (list -string)
     @ivar task_dep: (list - string)
     @ivar wild_dep: (list - string) task dependency using wildcard *
-    @ivar file_dep: (list - string)
+    @ivar file_dep: (set - string)
     @ivar result_dep: (list -string)
     @ivar calc_dep: (list - string) reference to a task
     @ivar calc_dep_stack: (list - string) unprocessed calc_dep
@@ -121,7 +121,7 @@ class Task(object):
         # dependencies
         self.dep_changed = None
 
-        self.file_dep = []
+        self.file_dep = set()
         self._expand_file_dep(file_dep)
 
         # task_dep
@@ -157,9 +157,8 @@ class Task(object):
             elif dep is None:
                 continue
             else:
-                # TODO store file_deps in a set
                 if dep not in self.file_dep:
-                    self.file_dep.append(dep)
+                    self.file_dep.add(dep)
 
         # run_once can't be used together with file dependencies
         if self.run_once and self.file_dep:

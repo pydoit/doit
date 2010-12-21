@@ -216,7 +216,7 @@ class TestAddTask(object):
         assert isinstance(gen.next(), WaitRunTask)
         tasks[1].execute()
         assert tasks[0] == gen.next()
-        assert ['a', 'b'] == tasks[0].file_dep
+        assert set(['a', 'b']) == tasks[0].file_dep
 
 
 class TestGetNext(object):

@@ -72,7 +72,7 @@ class TestTaskExpandFileDep(object):
 
     def test_dependencyStringIsFile(self):
         my_task = task.Task("Task X", ["taskcmd"], file_dep=["123","456"])
-        assert ["123","456"] == my_task.file_dep
+        assert set(["123","456"]) == my_task.file_dep
 
     def test_dependencyTrueRunonce(self):
         t = task.Task("Task X",["taskcmd"], file_dep=[True])
@@ -117,7 +117,7 @@ class TestTaskDeps(object):
                              'calc_dep': ['calcX', 'calcY'],
                              'result_dep': ['resultY'],
                              })
-        assert ['fileX', 'fileY'] == my_task.file_dep
+        assert set(['fileX', 'fileY']) == my_task.file_dep
         assert ['resultX', 'taskY', 'resultY'] == my_task.task_dep
         assert ['calcX', 'calcY'] == my_task.calc_dep
         assert ['resultX', 'resultY'] == my_task.result_dep

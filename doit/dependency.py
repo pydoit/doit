@@ -334,7 +334,7 @@ class DependencyBase(object):
         # if target file is not there, task is not up to date
         for targ in task.targets:
             if not os.path.exists(targ):
-                task.dep_changed = task.file_dep[:]
+                task.dep_changed = list(task.file_dep)
                 return 'run'
 
         # check for modified dependencies
