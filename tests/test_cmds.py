@@ -224,7 +224,7 @@ class TestCmdRun(object):
         remove_testdb()
         output = StringIO.StringIO()
         class MyReporter(reporter.ConsoleReporter):
-            def start_task(self, task):
+            def get_status(self, task):
                 self.outstream.write('MyReporter.start %s\n' % task.name)
         cmds.doit_run(TESTDB, [tasks_sample()[0]], output, reporter=MyReporter)
         got = output.getvalue().split("\n")[:-1]

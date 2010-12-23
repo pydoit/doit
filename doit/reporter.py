@@ -22,7 +22,7 @@ class ConsoleReporter(object):
         self.show_err = show_err
         self.outstream = outstream
 
-    def start_task(self, task):
+    def get_status(self, task):
         """called when task is selected (check if up-to-date)"""
         pass
 
@@ -165,7 +165,7 @@ class JsonReporter(object):
         self.outstream = outstream
         self.aborted = None
 
-    def start_task(self, task):
+    def get_status(self, task):
         """called when task is selected (check if up-to-date)"""
         self.t_results[task.name] = TaskResult(task)
 

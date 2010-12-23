@@ -76,8 +76,7 @@ class Runner(object):
 
         # if run_status is not None, it was already calculated
         if task.run_status is None:
-            # TODO reporter.start_task rename to get_status
-            self.reporter.start_task(task)
+            self.reporter.get_status(task)
 
             # check if task is up-to-date
             try:

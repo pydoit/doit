@@ -11,7 +11,7 @@ class TestConsoleReporter(object):
 
     def test_startTask(self):
         rep = reporter.ConsoleReporter(StringIO.StringIO(), True, True)
-        rep.start_task(Task("t_name", None))
+        rep.get_status(Task("t_name", None))
         # no output on start task
         assert "" in rep.outstream.getvalue()
 
@@ -133,18 +133,18 @@ class TestJsonReporter(object):
         expected = {'t1':'fail', 't2':'up-to-date',
                     't3':'success', 't4':'ignore'}
         # t1 fail
-        rep.start_task(t1)
+        rep.get_status(t1)
         rep.execute_task(t1)
         rep.add_failure(t1, Exception('hi'))
         # t2 skipped
-        rep.start_task(t2)
+        rep.get_status(t2)
         rep.skip_uptodate(t2)
         # t3 success
-        rep.start_task(t3)
+        rep.get_status(t3)
         rep.execute_task(t3)
         rep.add_success(t3)
         # t4 ignore
-        rep.start_task(t4)
+        rep.get_status(t4)
         rep.skip_ignore(t4)
 
         # just ignore these
@@ -162,7 +162,7 @@ class TestJsonReporter(object):
         t1 = Task("t1", None)
         msg = "runtime error"
         assert None == rep.aborted
-        rep.start_task(t1)
+        rep.get_status(t1)
         rep.execute_task(t1)
         rep.add_success(t1)
         rep.runtime_error(msg)
@@ -181,7 +181,7 @@ class TestJsonReporter(object):
         sys.stderr.write('something on err')
         t1 = Task("t1", None)
         expected = {'t1':'success'}
-        rep.start_task(t1)
+        rep.get_status(t1)
         rep.execute_task(t1)
         rep.add_success(t1)
         rep.complete_run()

@@ -32,7 +32,7 @@ class FakeReporter(object):
     def runtime_error(self, msg):
         self.log.append(('run_error', msg))
 
-    def start_task(self, task):
+    def get_status(self, task):
         self.log.append(('start', task))
 
     def execute_task(self, task):
