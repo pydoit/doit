@@ -50,7 +50,8 @@ def doit_run(dependency_file, task_list, output, options=None,
     # run
     try:
         # FIXME stderr will be shown twice in case of task error/failure
-        reporter_obj = reporter_cls(outstream, show_out , True)
+        reporter_obj = reporter_cls(outstream, {'show_out':show_out,
+                                                'show_err': True})
 
         if num_process == 0:
             runner = Runner(dependency_file, reporter_obj, continue_,

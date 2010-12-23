@@ -4,64 +4,64 @@ import StringIO
 from doit import reporter
 from doit.task import Task
 from doit.exceptions import CatchedException
-from doit.dependency import json #FIXME move json import to __init__.py
+from doit.dependency import json
 
 
 class TestConsoleReporter(object):
 
     def test_startTask(self):
-        rep = reporter.ConsoleReporter(StringIO.StringIO(), True, True)
+        rep = reporter.ConsoleReporter(StringIO.StringIO(), {})
         rep.get_status(Task("t_name", None))
         # no output on start task
         assert "" in rep.outstream.getvalue()
 
     def test_executeTask(self):
-        rep = reporter.ConsoleReporter(StringIO.StringIO(), True, True)
+        rep = reporter.ConsoleReporter(StringIO.StringIO(), {})
         def do_nothing():pass
         t1 = Task("with_action",[(do_nothing,)])
         rep.execute_task(t1)
         assert ".  with_action\n" == rep.outstream.getvalue()
 
     def test_executeGroupTask(self):
-        rep = reporter.ConsoleReporter(StringIO.StringIO(), True, True)
+        rep = reporter.ConsoleReporter(StringIO.StringIO(), {})
         rep.execute_task(Task("t_name", None))
         assert "" == rep.outstream.getvalue()
 
     def test_skipUptodate(self):
-        rep = reporter.ConsoleReporter(StringIO.StringIO(), True, True)
+        rep = reporter.ConsoleReporter(StringIO.StringIO(), {})
         rep.skip_uptodate(Task("t_name", None))
         assert "-- " in rep.outstream.getvalue()
         assert "t_name" in rep.outstream.getvalue()
 
     def test_skipIgnore(self):
-        rep = reporter.ConsoleReporter(StringIO.StringIO(), True, True)
+        rep = reporter.ConsoleReporter(StringIO.StringIO(), {})
         rep.skip_ignore(Task("t_name", None))
         assert "!! " in rep.outstream.getvalue()
         assert "t_name" in rep.outstream.getvalue()
 
 
     def test_cleanupError(self, capsys):
-        rep = reporter.ConsoleReporter(StringIO.StringIO(), True, True)
+        rep = reporter.ConsoleReporter(StringIO.StringIO(), {})
         exception = CatchedException("I got you")
         rep.cleanup_error(exception)
         err = capsys.readouterr()[1]
         assert "I got you" in err
 
     def test_teardownTask(self):
-        rep = reporter.ConsoleReporter(StringIO.StringIO(), True, True)
+        rep = reporter.ConsoleReporter(StringIO.StringIO(), {})
         rep.teardown_task(Task("t_name", None))
         # no output on teardown task
         assert "" in rep.outstream.getvalue()
 
     def test_addSuccess(self):
-        rep = reporter.ConsoleReporter(StringIO.StringIO(), True, True)
+        rep = reporter.ConsoleReporter(StringIO.StringIO(), {})
         rep.add_success(Task("t_name", None))
         # no output on success task
         assert "" in rep.outstream.getvalue()
 
     def test_runtimeError(self):
         msg = "runtime error"
-        rep = reporter.ConsoleReporter(StringIO.StringIO(), True, True)
+        rep = reporter.ConsoleReporter(StringIO.StringIO(), {})
         assert None == rep.aborted
         # no imediate output
         rep.runtime_error(msg)
@@ -74,7 +74,7 @@ class TestConsoleReporter(object):
         assert "abort" in got
 
     def test_addFailure(self):
-        rep = reporter.ConsoleReporter(StringIO.StringIO(), True, True)
+        rep = reporter.ConsoleReporter(StringIO.StringIO(), {})
         try:
             raise Exception("original exception message here")
         except Exception,e:
@@ -92,12 +92,12 @@ class TestConsoleReporter(object):
 
 class TestExecutedOnlyReporter(object):
     def test_skipUptodate(self):
-        rep = reporter.ExecutedOnlyReporter(StringIO.StringIO(), True, True)
+        rep = reporter.ExecutedOnlyReporter(StringIO.StringIO(), {})
         rep.skip_uptodate(Task("t_name", None))
         assert "" == rep.outstream.getvalue()
 
     def test_skipIgnore(self):
-        rep = reporter.ExecutedOnlyReporter(StringIO.StringIO(), True, True)
+        rep = reporter.ExecutedOnlyReporter(StringIO.StringIO(), {})
         rep.skip_ignore(Task("t_name", None))
         assert "" == rep.outstream.getvalue()
 

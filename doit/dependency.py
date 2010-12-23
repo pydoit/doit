@@ -3,6 +3,7 @@
 import os
 import anydbm
 
+#FIXME move json import to __init__.py
 # Use simplejson or Python 2.6 json
 # simplejson is much faster that py26:json. so use simplejson if available
 try:

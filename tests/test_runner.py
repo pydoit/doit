@@ -26,7 +26,7 @@ def _exit():
 
 class FakeReporter(object):
     """Just log everything in internal attribute - used on tests"""
-    def __init__(self, outstream=None, show_out=None, show_err=None):
+    def __init__(self, outstream=None, options=None):
         self.log = []
 
     def runtime_error(self, msg):

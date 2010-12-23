@@ -14,12 +14,12 @@ class ConsoleReporter(object):
     @ivar show_out (bool): include captured stdout on failure report
     @ivar show_err (bool): include captured stderr on failure report
     """
-    def __init__(self, outstream, show_out, show_err):
+    def __init__(self, outstream, options):
         # save non-succesful result information (include task errors)
         self.failures = []
         self.aborted = None
-        self.show_out = show_out
-        self.show_err = show_err
+        self.show_out = options.get('show_out', True)
+        self.show_err = options.get('show_err', True)
         self.outstream = outstream
 
     def get_status(self, task):
@@ -151,8 +151,9 @@ class JsonReporter(object):
          - started (str)
          - elapsed (float)
     """
-    def __init__(self, outstream, show_out=None, show_err=None):
-        # show_out, show_err parameters are ignored.
+    def __init__(self, outstream, options=None):
+        # options parameter is not used
+        assert options is None
         # json result is sent to stdout when doit finishes running
         self.t_results = {}
         # when using json reporter output can not contain any other output
