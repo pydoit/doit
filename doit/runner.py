@@ -408,8 +408,6 @@ class MRunner(Runner):
                 # what about other dependencies?
                 task.file_dep = file_dep
                 result = {'name': task.name}
-                # FIXME support setup objects with 2 "scopes"
-                # global and process scopes
                 t_result = Runner.execute_task(self, task)
 
                 if t_result is None:

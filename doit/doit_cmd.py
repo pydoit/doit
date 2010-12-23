@@ -119,7 +119,7 @@ opt_verbosity = {'name':'verbosity',
 opt_reporter = {'name':'reporter',
                  'short':'r',
                  'long':'reporter',
-                 'type':str, #TODO type choice
+                 'type':str, #TODO type choice (limit the accepted strings)
                  'default': 'default',
                  'help':
 """Choose output reporter. Available:
@@ -335,7 +335,7 @@ help_doc = {'purpose': "show help",
             'usage': "",
             'description': None}
 
-#FIXME dependencies descriptions is outdated
+
 def print_task_help():
     """print help for 'task' usage """
     print """
@@ -353,14 +353,24 @@ action [required]:
 name [required for sub-task]:
   - type: string. sub-task identifier
 
-dependencies:
+file_dep:
   - type: list. items:
     * file (string) path relative to the dodo file
-    * task (string) ":<task_name>"
-    * TODO "?<task_name>"
     * run-once (True bool)
     * never up-to-date (False bool)
     * None values will be just ignored
+
+task_dep:
+  - type: list. items:
+    * task name (string)
+
+result_dep:
+  - type: list. items:
+    * task name (string)
+
+calc_dep:
+  - type: list. items:
+    * task name (string)
 
 getargs:
   - type: dictionary
@@ -461,8 +471,6 @@ def cmd_main(cmd_args):
 
     # in python 2.4 SystemExit and KeyboardInterrupt subclass
     # from Exception.
-    # TODO maybe I should do something to help the user find out who
-    # is raising SystemExit. because it shouldnt happen...
     except (SystemExit, KeyboardInterrupt):
         raise
 

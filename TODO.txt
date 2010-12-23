@@ -1,7 +1,6 @@
 0.10
 ------
 
-. cyclilc MP test
 . more MP (tree)
 
 0.X

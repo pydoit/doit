@@ -27,5 +27,5 @@ def set_trace(): # pragma: no cover
     import pdb
     import sys
     sys.stdout = sys.__stdout__
-    pdb.Pdb().set_trace(sys._getframe().f_back)
+    pdb.Pdb().set_trace(sys._getframe().f_back) #pylint: disable=W0212
 
