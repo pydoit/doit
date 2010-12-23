@@ -164,7 +164,7 @@ class JsonReporter(object):
         self._old_err = sys.stderr
         sys.stderr = StringIO.StringIO()
         self.outstream = outstream
-        self.aborted = None
+        self.errors = []
 
     def get_status(self, task):
         """called when task is selected (check if up-to-date)"""
@@ -193,8 +193,7 @@ class JsonReporter(object):
 
     def cleanup_error(self, exception):
         """error during cleanup"""
-        # TODO same as runtime_error
-        pass
+        self.errors.append(exception.get_msg())
 
     def teardown_task(self, task):
         """called when starts the execution of teardown action"""
@@ -202,7 +201,7 @@ class JsonReporter(object):
 
     def runtime_error(self, msg):
         """called when an error occurs"""
-        self.aborted = msg
+        self.errors.append(msg)
 
     def complete_run(self):
         """called when finshed running all tasks"""
@@ -212,8 +211,8 @@ class JsonReporter(object):
         log_err = sys.stderr.getvalue()
         sys.stderr = self._old_err
 
-        if self.aborted is not None:
-            log_err += self.aborted
+        if self.errors:
+            log_err += "\n".join(self.errors)
 
         task_result_list = [tr.to_dict() for tr in self.t_results.itervalues()]
         json_data = {'tasks': task_result_list,

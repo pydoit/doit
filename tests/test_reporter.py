@@ -147,8 +147,6 @@ class TestJsonReporter(object):
         rep.get_status(t4)
         rep.skip_ignore(t4)
 
-        # just ignore these
-        rep.cleanup_error(Exception('xx'))
         rep.teardown_task(t4)
 
         rep.complete_run()
@@ -161,18 +159,34 @@ class TestJsonReporter(object):
         rep = reporter.JsonReporter(output)
         t1 = Task("t1", None)
         msg = "runtime error"
-        assert None == rep.aborted
+        assert [] == rep.errors
         rep.get_status(t1)
         rep.execute_task(t1)
         rep.add_success(t1)
         rep.runtime_error(msg)
-        assert msg == rep.aborted
+        assert [msg] == rep.errors
         assert "" in rep.outstream.getvalue()
         # runtime errors abort execution
         rep.complete_run()
         got = json.loads(output.getvalue())
         assert msg in got['err']
 
+    def test_cleanup_error(self, capsys):
+        output = StringIO.StringIO()
+        rep = reporter.JsonReporter(output)
+        t1 = Task("t1", None)
+        msg = "cleanup error"
+        exception = CatchedException(msg)
+        assert [] == rep.errors
+        rep.get_status(t1)
+        rep.execute_task(t1)
+        rep.add_success(t1)
+        rep.cleanup_error(exception)
+        assert [msg+'\n'] == rep.errors
+        assert "" in rep.outstream.getvalue()
+        rep.complete_run()
+        got = json.loads(output.getvalue())
+        assert msg in got['err']
 
     def test_ignore_stdout(self):
         output = StringIO.StringIO()
