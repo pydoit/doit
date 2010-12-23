@@ -17,7 +17,6 @@ class ConsoleReporter(object):
     def __init__(self, outstream, options):
         # save non-succesful result information (include task errors)
         self.failures = []
-        self.aborted = None
         self.show_out = options.get('show_out', True)
         self.show_err = options.get('show_err', True)
         self.outstream = outstream
@@ -48,7 +47,6 @@ class ConsoleReporter(object):
         """skipped ignored task"""
         self.outstream.write("!! %s\n" % task.title())
 
-
     def cleanup_error(self, exception):
         """error during cleanup"""
         sys.stderr.write(exception.get_msg())
@@ -56,10 +54,6 @@ class ConsoleReporter(object):
     def teardown_task(self, task):
         """called when starts the execution of teardown action"""
         pass
-
-    def runtime_error(self, msg):
-        """called when an error occurs"""
-        self.aborted = msg
 
     def complete_run(self):
         """called when finshed running all tasks"""
@@ -79,10 +73,6 @@ class ConsoleReporter(object):
                 err = "".join([a.err for a in task.actions if a.err])
                 self.outstream.write("%s\n" % err)
 
-        if self.aborted is not None:
-            self.outstream.write("#"*40 + "\n")
-            self.outstream.write("Execution aborted.\n")
-            self.outstream.write(self.aborted)
 
 class ExecutedOnlyReporter(ConsoleReporter):
     """No output for skipped (up-to-date) and group tasks
@@ -107,6 +97,7 @@ class TaskResult(object):
         self.result = None # fail, success, up-to-date, ignore
         self.out = None # stdout from task
         self.err = None # stderr from task
+        self.error = None # error from doit (exception traceback)
         self.started = None # datetime when task execution started
         self.elapsed = None # time (in secs) taken to execute task
         self._started_on = None # timestamp
@@ -116,13 +107,14 @@ class TaskResult(object):
         """called when task starts its execution"""
         self._started_on = time.time()
 
-    def set_result(self, result):
+    def set_result(self, result, error=None):
         """called when task finishes its execution"""
         self._finished_on = time.time()
         self.result = result
         line_sep = "\n<------------------------------------------------>\n"
         self.out = line_sep.join([a.out for a in self.task.actions if a.out])
         self.err = line_sep.join([a.err for a in self.task.actions if a.err])
+        self.error = error
 
     def to_dict(self):
         """convert result data to dictionary"""
@@ -134,6 +126,7 @@ class TaskResult(object):
                 'result': self.result,
                 'out': self.out,
                 'err': self.err,
+                'error': self.error,
                 'started': self.started,
                 'elapsed': self.elapsed}
 
@@ -148,12 +141,12 @@ class JsonReporter(object):
          - result (str)
          - out (str)
          - err (str)
+         - error (str)
          - started (str)
          - elapsed (float)
     """
     def __init__(self, outstream, options=None):
         # options parameter is not used
-        assert options is None
         # json result is sent to stdout when doit finishes running
         self.t_results = {}
         # when using json reporter output can not contain any other output
@@ -176,8 +169,7 @@ class JsonReporter(object):
 
     def add_failure(self, task, exception):
         """called when excution finishes with a failure"""
-        self.t_results[task.name].set_result('fail')
-        # TODO save exception
+        self.t_results[task.name].set_result('fail', exception.get_msg())
 
     def add_success(self, task):
         """called when excution finishes successfuly"""
@@ -198,10 +190,6 @@ class JsonReporter(object):
     def teardown_task(self, task):
         """called when starts the execution of teardown action"""
         pass
-
-    def runtime_error(self, msg):
-        """called when an error occurs"""
-        self.errors.append(msg)
 
     def complete_run(self):
         """called when finshed running all tasks"""

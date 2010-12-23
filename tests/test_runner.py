@@ -29,9 +29,6 @@ class FakeReporter(object):
     def __init__(self, outstream=None, options=None):
         self.log = []
 
-    def runtime_error(self, msg):
-        self.log.append(('run_error', msg))
-
     def get_status(self, task):
         self.log.append(('start', task))
 
