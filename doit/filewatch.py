@@ -42,9 +42,9 @@ class FileModifyWatcher(object):
 
     def _loop_darwin(self): # pragma: no cover
         """loop implementation for darwin platform"""
-        from fsevents import Observer
-        from fsevents import Stream
-        from fsevents import IN_MODIFY
+        from fsevents import Observer #pylint: disable=F0401
+        from fsevents import Stream #pylint: disable=F0401
+        from fsevents import IN_MODIFY #pylint: disable=F0401
 
         observer = Observer()
         handler = self._handle
@@ -76,7 +76,7 @@ class FileModifyWatcher(object):
                 handler(event)
 
         watch_manager = pyinotify.WatchManager()
-        mask = pyinotify.IN_CLOSE_WRITE
+        mask = pyinotify.IN_CLOSE_WRITE #pylint: disable=E1101
         event_handler = EventHandler()
         self.notifier = pyinotify.Notifier(watch_manager, event_handler)
 

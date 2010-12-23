@@ -192,7 +192,7 @@ class TestAddTask(object):
         tc.process(['taskX'])
         gen = tc._add_task(0, 'taskX', False)
         assert tasks[0] == gen.next() # tasks with setup are yield twice
-         # wait for taskX run_status
+        # wait for taskX run_status
         wait = gen.next()
         assert wait.task_name == 'taskX'
         assert isinstance(wait, WaitSelectTask)
@@ -201,6 +201,15 @@ class TestAddTask(object):
         assert tasks[0] == gen.next() # second time, ok
         py.test.raises(StopIteration, gen.next) # nothing left
 
+    def testSetupInvalid(self):
+        tasks = [Task("taskX",None,setup=["taskZZZZZZZZ"]),
+                 Task("taskY",None,)]
+        tc = TaskControl(tasks)
+        tc.process(['taskX'])
+        gen = tc._add_task(0, 'taskX', False)
+        assert tasks[0] == gen.next() # tasks with setup are yield twice
+        tasks[0].run_status = 'run' # should be executed
+        py.test.raises(InvalidTask, gen.next) # execute setup before
 
     def testCalcDep(self):
         def get_deps():
