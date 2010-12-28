@@ -466,6 +466,8 @@ def cmd_main(cmd_args):
                                         cmd_auto, auto_doc)
 
 
+    # FIXME put something like this below on doit_run, but error going to reporter
+
     try:
         return sub_cmd['run'](cmd_args, sub=sub_cmd)
 
@@ -477,11 +479,10 @@ def cmd_main(cmd_args):
     # dont show traceback for user errors.
     except (cmdparse.CmdParseError, InvalidDodoFile,
             InvalidCommand, task.InvalidTask), err:
-        print "ERROR:", str(err)
+        sys.stderr.write("ERROR: %s\n" % str(err))
         return 1
 
-    # make sure exception is printed out. we migth have redirected stderr
     except Exception:
-        sys.__stderr__.write(traceback.format_exc())
+        sys.stderr.write(traceback.format_exc())
         return 1
 

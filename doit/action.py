@@ -8,6 +8,7 @@ from threading import Thread
 
 from doit.exceptions import TaskFailed, TaskError
 
+# FIXME this should be CatchedException!!! after runner started
 # Exceptions
 class InvalidTask(Exception):
     """Invalid task instance. User error on specifying the task."""

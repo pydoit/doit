@@ -60,8 +60,12 @@ def doit_run(dependency_file, task_list, output, options=None,
             runner = MRunner(dependency_file, reporter_obj, continue_,
                                always_execute, verbosity, num_process)
 
-        runner.run_tasks(task_control)
-        return runner.finish()
+        try:
+            runner.run_tasks(task_control)
+            # FIXME HERE. check all InvalidTask... errors should go to reporter.
+        finally:
+            runner.finish()
+        return runner.final_result
     finally:
         if isinstance(output, str):
             outstream.close()

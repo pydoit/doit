@@ -222,7 +222,7 @@ class TestErrors(object):
         got = doit_cmd.cmd_main([])
         assert 1 == got
         out, err = capsys.readouterr()
-        assert "ERROR" in out
+        assert "ERROR" in err
 
     def test_internal_error(self, capsys, monkeypatch):
         monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
@@ -230,4 +230,7 @@ class TestErrors(object):
         monkeypatch.setattr(doit_cmd, "doit_run", mock_cmd)
         got = doit_cmd.cmd_main([])
         assert 1 == got
-        # FIXME I cant test output because sys.__stderr__ is used...
+        out, err = capsys.readouterr()
+        # traceback from Exception (this case code from mock lib)
+        assert "raise self.side_effect" in err
+
