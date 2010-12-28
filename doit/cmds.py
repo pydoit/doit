@@ -3,8 +3,9 @@ import sys
 import itertools
 
 from doit import dependency
+from doit.exceptions import InvalidCommand
 from doit.task import Task
-from doit.control import TaskControl, InvalidCommand
+from doit.control import TaskControl
 from doit.runner import Runner, MRunner
 from doit.reporter import REPORTERS
 from doit.dependency import Dependency
@@ -60,12 +61,7 @@ def doit_run(dependency_file, task_list, output, options=None,
             runner = MRunner(dependency_file, reporter_obj, continue_,
                                always_execute, verbosity, num_process)
 
-        try:
-            runner.run_tasks(task_control)
-            # FIXME HERE. check all InvalidTask... errors should go to reporter.
-        finally:
-            runner.finish()
-        return runner.final_result
+        return runner.run_all(task_control)
     finally:
         if isinstance(output, str):
             outstream.close()

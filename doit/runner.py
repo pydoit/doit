@@ -3,7 +3,7 @@
 import sys
 from multiprocessing import Process, Queue
 
-from doit.exceptions import CatchedException
+from doit.exceptions import InvalidTask, CatchedException
 from doit.exceptions import TaskFailed, SetupError, DependencyError
 from doit.dependency import Dependency
 from doit.task import Task
@@ -18,12 +18,13 @@ ERROR = 2
 class Runner(object):
     """Task runner
 
-    run_tasks():
+    run_all()
+      run_tasks():
         for each task:
             select_task()
             execute_task()
             process_task_result()
-    finish()
+      finish()
 
     """
     def __init__(self, dependency_file, reporter, continue_=False,
@@ -82,8 +83,8 @@ class Runner(object):
             try:
                 task.run_status = self.dependency_manager.get_status(task)
             except Exception, exception:
-                dep_error = DependencyError("ERROR checking dependencies",
-                                            exception)
+                msg = "ERROR: Task '%s' checking dependencies" % task.name
+                dep_error = DependencyError(msg, exception)
                 self._handle_task_error(task, dep_error)
                 return False
 
@@ -182,6 +183,16 @@ class Runner(object):
         self.reporter.complete_run()
         return self.final_result
 
+
+    def run_all(self, task_control):
+        """entry point to run tasks"""
+        try:
+            self.run_tasks(task_control)
+        except InvalidTask, exception:
+            self.reporter.runtime_error(str(exception))
+        finally:
+            self.finish()
+        return self.final_result
 
 
 class Hold(object):

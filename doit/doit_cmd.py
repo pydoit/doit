@@ -7,7 +7,6 @@ import traceback
 import doit
 from doit.exceptions import InvalidDodoFile, InvalidCommand
 from doit import loader
-from doit import task
 from doit import cmdparse
 from doit.cmds import doit_run, doit_clean, doit_list, doit_forget, doit_ignore
 from doit.cmds import doit_auto
@@ -466,7 +465,6 @@ def cmd_main(cmd_args):
                                         cmd_auto, auto_doc)
 
 
-    # FIXME put something like this below on doit_run, but error going to reporter
 
     try:
         return sub_cmd['run'](cmd_args, sub=sub_cmd)
@@ -477,8 +475,9 @@ def cmd_main(cmd_args):
         raise
 
     # dont show traceback for user errors.
+    # TODO check no InvalidTask exception endup here.
     except (cmdparse.CmdParseError, InvalidDodoFile,
-            InvalidCommand, task.InvalidTask), err:
+            InvalidCommand), err:
         sys.stderr.write("ERROR: %s\n" % str(err))
         return 1
 

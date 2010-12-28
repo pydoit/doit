@@ -13,6 +13,7 @@ from doit import reporter
 from tests.test_filewatch import pytest_funcarg__cwd
 pytest_funcarg__cwd # pyflakes
 
+
 TESTDB = os.path.join(os.path.dirname(__file__), "testdb")
 
 def remove_testdb():
@@ -240,7 +241,6 @@ class TestCmdRun(object):
         t.execute = my_execute
         cmds.doit_run(TESTDB, [t], output, verbosity=2)
         assert 2 == used_verbosity[0], used_verbosity
-
 
     def test_outfile(self):
         remove_testdb()

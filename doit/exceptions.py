@@ -12,6 +12,9 @@ class InvalidDodoFile(Exception):
     """Invalid dodo file"""
     pass
 
+class InvalidTask(Exception):
+    """Invalid task instance. User error on specifying the task."""
+    pass
 
 
 class CatchedException(object):
@@ -25,6 +28,7 @@ class CatchedException(object):
         if isinstance(exception, CatchedException):
             self.traceback = exception.traceback
         elif exception is not None:
+            # TODO remove doit-code part from traceback
             self.traceback = traceback.format_exception(
                 exception.__class__, exception, sys.exc_info()[2])
 
@@ -42,6 +46,7 @@ class CatchedException(object):
 
     def __str__(self):
         return "%s\n%s" % (self.get_name(), self.get_msg())
+
 
 
 class TaskFailed(CatchedException):

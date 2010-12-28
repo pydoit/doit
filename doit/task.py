@@ -4,8 +4,8 @@ import types
 import os
 
 from doit import cmdparse
-from doit.exceptions import CatchedException
-from doit.action import create_action, InvalidTask
+from doit.exceptions import CatchedException, InvalidTask
+from doit.action import create_action
 
 
 class Task(object):

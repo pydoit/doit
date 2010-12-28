@@ -52,10 +52,9 @@ class ConsoleReporter(object):
         """error during cleanup"""
         sys.stderr.write(exception.get_msg())
 
-    def runtime_error(self, exception):
+    def runtime_error(self, msg):
         """error from doit (not from a task execution)"""
-        #FIXME include traceback
-        self.runtime_errors.append(exception)
+        self.runtime_errors.append(msg)
 
     def teardown_task(self, task):
         """called when starts the execution of teardown action"""
@@ -83,6 +82,7 @@ class ConsoleReporter(object):
             self.outstream.write("#"*40 + "\n")
             self.outstream.write("Execution aborted.\n")
             self.outstream.write("\n".join(self.runtime_errors))
+            self.outstream.write("\n")
 
 
 class ExecutedOnlyReporter(ConsoleReporter):
@@ -199,10 +199,9 @@ class JsonReporter(object):
         """error during cleanup"""
         self.errors.append(exception.get_msg())
 
-    def runtime_error(self, exception):
+    def runtime_error(self, msg):
         """error from doit (not from a task execution)"""
-        #FIXME include traceback
-        self.errors.append(exception)
+        self.errors.append(msg)
 
     def teardown_task(self, task):
         """called when starts the execution of teardown action"""

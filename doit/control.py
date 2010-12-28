@@ -1,8 +1,8 @@
 """Control tasks execution order"""
 import fnmatch
 
-from doit.exceptions import InvalidCommand, InvalidDodoFile
-from doit.task import InvalidTask, Task
+from doit.exceptions import InvalidTask, InvalidCommand, InvalidDodoFile
+from doit.task import Task
 
 
 class WaitTask(object):

@@ -50,6 +50,9 @@ class FakeReporter(object):
     def cleanup_error(self, exception):
         self.log.append(('cleanup_error',))
 
+    def runtime_error(self, msg):
+        self.log.append(('runtime_error',))
+
     def teardown_task(self, task):
         self.log.append(('teardown', task))
 
@@ -208,6 +211,18 @@ class TestTask_Teardown(object):
         assert ('cleanup_error',) == reporter.log.pop(0)
         assert ('teardown', t2) == reporter.log.pop(0)
         assert ('cleanup_error',) == reporter.log.pop(0)
+        assert not reporter.log
+
+
+class TestTask_RunAll(object):
+    def test_reporter_runtime_error(self, reporter):
+        t1 = Task('t1', [], setup=['make_invalid'])
+        my_runner = runner.Runner(TESTDB, reporter)
+        tc = TaskControl([t1])
+        tc.process(None)
+        my_runner.run_all(tc)
+        assert ('start', t1) == reporter.log.pop(0)
+        assert ('runtime_error',) == reporter.log.pop(0)
         assert not reporter.log
 
 
