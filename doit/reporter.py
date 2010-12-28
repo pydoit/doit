@@ -17,6 +17,7 @@ class ConsoleReporter(object):
     def __init__(self, outstream, options):
         # save non-succesful result information (include task errors)
         self.failures = []
+        self.runtime_errors = []
         self.show_out = options.get('show_out', True)
         self.show_err = options.get('show_err', True)
         self.outstream = outstream
@@ -51,6 +52,11 @@ class ConsoleReporter(object):
         """error during cleanup"""
         sys.stderr.write(exception.get_msg())
 
+    def runtime_error(self, exception):
+        """error from doit (not from a task execution)"""
+        #FIXME include traceback
+        self.runtime_errors.append(exception)
+
     def teardown_task(self, task):
         """called when starts the execution of teardown action"""
         pass
@@ -72,6 +78,11 @@ class ConsoleReporter(object):
             if self.show_err:
                 err = "".join([a.err for a in task.actions if a.err])
                 self.outstream.write("%s\n" % err)
+
+        if self.runtime_errors:
+            self.outstream.write("#"*40 + "\n")
+            self.outstream.write("Execution aborted.\n")
+            self.outstream.write("\n".join(self.runtime_errors))
 
 
 class ExecutedOnlyReporter(ConsoleReporter):
@@ -107,7 +118,7 @@ class TaskResult(object):
         """called when task starts its execution"""
         self._started_on = time.time()
 
-    def set_result(self, result, error=None):
+    def _set_result(self, result, error=None):
         """called when task finishes its execution"""
         self._finished_on = time.time()
         self.result = result
@@ -157,6 +168,7 @@ class JsonReporter(object):
         self._old_err = sys.stderr
         sys.stderr = StringIO.StringIO()
         self.outstream = outstream
+        # runtime and cleanup errors
         self.errors = []
 
     def get_status(self, task):
@@ -169,23 +181,28 @@ class JsonReporter(object):
 
     def add_failure(self, task, exception):
         """called when excution finishes with a failure"""
-        self.t_results[task.name].set_result('fail', exception.get_msg())
+        self.t_results[task.name]._set_result('fail', exception.get_msg())
 
     def add_success(self, task):
         """called when excution finishes successfuly"""
-        self.t_results[task.name].set_result('success')
+        self.t_results[task.name]._set_result('success')
 
     def skip_uptodate(self, task):
         """skipped up-to-date task"""
-        self.t_results[task.name].set_result('up-to-date')
+        self.t_results[task.name]._set_result('up-to-date')
 
     def skip_ignore(self, task):
         """skipped ignored task"""
-        self.t_results[task.name].set_result('ignore')
+        self.t_results[task.name]._set_result('ignore')
 
     def cleanup_error(self, exception):
         """error during cleanup"""
         self.errors.append(exception.get_msg())
+
+    def runtime_error(self, exception):
+        """error from doit (not from a task execution)"""
+        #FIXME include traceback
+        self.errors.append(exception)
 
     def teardown_task(self, task):
         """called when starts the execution of teardown action"""
@@ -199,6 +216,7 @@ class JsonReporter(object):
         log_err = sys.stderr.getvalue()
         sys.stderr = self._old_err
 
+        # add errors together with stderr output
         if self.errors:
             log_err += "\n".join(self.errors)
 
