@@ -320,12 +320,22 @@ class DependencyBase(object):
             return 'ignore'
 
         task.dep_changed = []
+
+        # check uptodate bool/callables
+        checked_uptodate = False
+        for uptodate in task.uptodate:
+            # None means uptodate was not really calculated and should be
+            # just ignored
+            if uptodate is None:
+                continue
+            if uptodate:
+                checked_uptodate = True
+            else:
+                return 'run'
+
         # no dependencies means it is never up to date.
         if ((not task.file_dep) and (not task.result_dep)
-            and (not task.run_once)):
-            return 'run'
-
-        if task.run_always:
+            and (not task.run_once) and (not checked_uptodate)):
             return 'run'
 
         # user managed dependency not up-to-date if it doesnt exist

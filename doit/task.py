@@ -25,7 +25,8 @@ class Task(object):
     @ivar dep_changed (list - string): list of file-dependencies that changed
           (are not up_to_date). this must be set before
     @ivar run_once: (bool) task without dependencies should run
-    @ivar run_always: (bool) task always run even if up-to-date
+    @ivar uptodate: (list - bool/None) use bool/computed value instead of
+                                       checking dependencies
     @ivar setup_tasks (list - string): references to task-names
     @ivar is_subtask: (bool) indicate this task is a subtask.
     @ivar result: (str) last action "result". used to check task-result-dep
@@ -55,6 +56,7 @@ class Task(object):
                   'file_dep': ([list, tuple], []),
                   'task_dep': ([list, tuple], []),
                   'result_dep': ([list, tuple], []),
+                  'uptodate': ([list, tuple], []),
                   'run_once': ([bool], []),
                   'calc_dep': ([list, tuple], []),
                   'targets': ([list, tuple], []),
@@ -70,9 +72,9 @@ class Task(object):
 
 
     def __init__(self, name, actions, file_dep=(), targets=(),
-                 task_dep=(), result_dep=(), run_once=False, calc_dep=(),
-                 setup=(), clean=(), teardown=(), is_subtask=False, doc=None,
-                 params=(), verbosity=None, title=None, getargs=None):
+                 task_dep=(), result_dep=(), uptodate=(), run_once=False,
+                 calc_dep=(), setup=(), clean=(), teardown=(), is_subtask=False,
+                 doc=None, params=(), verbosity=None, title=None, getargs=None):
         """sanity checks and initialization
 
         @param params: (list of option parameters) see cmdparse.Command.__init__
@@ -86,8 +88,8 @@ class Task(object):
 
         self.name = name
         self.targets = targets
+        self.uptodate = uptodate
         self.run_once = run_once
-        self.run_always = False
         self.is_subtask = is_subtask
         self.result = None
         self.values = {}
@@ -147,18 +149,15 @@ class Task(object):
 
 
     def _expand_file_dep(self, file_dep):
-        """convert file_dep input into file_dep, run_once, run_always"""
+        """put input into file_dep"""
         for dep in file_dep:
-            # bool
-            if isinstance(dep, bool):
-                if dep is False:
-                    self.run_always = True
-            # ignore None values
-            elif dep is None:
-                continue
-            else:
-                if dep not in self.file_dep:
-                    self.file_dep.add(dep)
+            # FIXME add deprecation warning for boolean values.
+            if not isinstance(dep, str):
+                raise InvalidTask("%s. file_dep must be a str got '%r' (%s)" %
+                                  (self.name, dep, type(dep)))
+
+            if dep not in self.file_dep:
+                self.file_dep.add(dep)
 
         # run_once can't be used together with file dependencies
         if self.run_once and self.file_dep:
