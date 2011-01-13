@@ -67,16 +67,16 @@ class TestTaskInit(object):
         t = task.Task("t", ["q"])
         assert t.run_status is None
 
+    def test_dependencyTrueRunOnce(self):
+        t = task.Task("Task X",["taskcmd"], run_once=True)
+        assert t.run_once
+
 
 class TestTaskExpandFileDep(object):
 
     def test_dependencyStringIsFile(self):
         my_task = task.Task("Task X", ["taskcmd"], file_dep=["123","456"])
         assert set(["123","456"]) == my_task.file_dep
-
-    def test_dependencyTrueRunonce(self):
-        t = task.Task("Task X",["taskcmd"], file_dep=[True])
-        assert t.run_once
 
     def test_dependencyFalseRunalways(self):
         t = task.Task("Task X",["taskcmd"], file_dep=[False])
@@ -88,8 +88,8 @@ class TestTaskExpandFileDep(object):
         assert not t.run_always
 
     def test_runOnce_or_fileDependency(self):
-        py.test.raises(task.InvalidTask, task.Task,
-                      "Task X",["taskcmd"], file_dep=[True,"whatever"])
+        py.test.raises(task.InvalidTask, task.Task, "Task X",
+                       ["taskcmd"], file_dep=["whatever"], run_once=True)
 
 
 class TestTaskDeps(object):

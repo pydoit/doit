@@ -346,7 +346,7 @@ class TestRunner_run_tasks(object):
 
     # when successful and run_once is updated
     def test_successRunOnce(self, reporter, RunnerClass):
-        tasks = [Task("taskX", [my_print], [True], [])]
+        tasks = [Task("taskX", [my_print], run_once=True)]
         my_runner = RunnerClass(TESTDB, reporter)
         tc = TaskControl(tasks)
         tc.process(None)

@@ -55,6 +55,7 @@ class Task(object):
                   'file_dep': ([list, tuple], []),
                   'task_dep': ([list, tuple], []),
                   'result_dep': ([list, tuple], []),
+                  'run_once': ([bool], []),
                   'calc_dep': ([list, tuple], []),
                   'targets': ([list, tuple], []),
                   'setup': ([list, tuple], []),
@@ -69,7 +70,7 @@ class Task(object):
 
 
     def __init__(self, name, actions, file_dep=(), targets=(),
-                 task_dep=(), result_dep=(), calc_dep=(),
+                 task_dep=(), result_dep=(), run_once=False, calc_dep=(),
                  setup=(), clean=(), teardown=(), is_subtask=False, doc=None,
                  params=(), verbosity=None, title=None, getargs=None):
         """sanity checks and initialization
@@ -85,7 +86,7 @@ class Task(object):
 
         self.name = name
         self.targets = targets
-        self.run_once = False
+        self.run_once = run_once
         self.run_always = False
         self.is_subtask = is_subtask
         self.result = None
@@ -121,6 +122,7 @@ class Task(object):
         # dependencies
         self.dep_changed = None
 
+        # file_dep
         self.file_dep = set()
         self._expand_file_dep(file_dep)
 
@@ -149,8 +151,6 @@ class Task(object):
         for dep in file_dep:
             # bool
             if isinstance(dep, bool):
-                if dep is True:
-                    self.run_once = True
                 if dep is False:
                     self.run_always = True
             # ignore None values
@@ -162,8 +162,8 @@ class Task(object):
 
         # run_once can't be used together with file dependencies
         if self.run_once and self.file_dep:
-            msg = ("%s. task cant have file and dependencies and True " +
-                   "at the same time. (just remove True)")
+            msg = ("%s. task cant have file and dependencies and run_once " +
+                   "at the same time. (just remove run_once)")
             raise InvalidTask(msg % self.name)
 
 

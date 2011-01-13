@@ -172,7 +172,7 @@ class TestSaveSuccess(object):
         assert None is depfile._get(t1.name, "result:")
 
     def test_save_runonce(self, depfile):
-        t1 = Task('t_name', None, [True])
+        t1 = Task('t_name', None, run_once=True)
         depfile.save_success(t1)
         assert depfile._get(t1.name, "run-once:")
 
@@ -369,7 +369,7 @@ class TestGetStatus(object):
 
 
     def test_runOnce(self, depfile):
-        t1 = Task("t1", None, [True])
+        t1 = Task("t1", None, run_once=True)
         assert 'run' == depfile.get_status(t1)
         assert [] == t1.dep_changed
         depfile.save_success(t1)
