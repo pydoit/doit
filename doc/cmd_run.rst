@@ -2,7 +2,7 @@
 Command run
 ============
 
-Most of the time you just want to execute your tasks that's what *run* does. Since it is by far the most common operation it is also the default, so if you don't specify any sub-command to *doit* it will *run*. So ``$ doit`` and ``$ doit run`` are the same thing.
+Most of the time you just want to execute your tasks, that's what *run* does. Since it is by far the most common operation it is also the default, so if you don't specify any sub-command to *doit* it will *run*. So ``$ doit`` and ``$ doit run`` are the same thing.
 
 The basics of task selection were introduced in :ref:`Task Selection <task-selection>`.
 
@@ -137,7 +137,7 @@ reporter
 
 `doit` provides different "reporters" to display running tasks info on the console. Use the option --reporter/-r to choose a reporter. Apart from the default it also includes:
 
- * executed-only: Produces zero output unless a task is executed
+ * executed-only: Produces zero output if no task is executed
  * json: Output results in JSON format
 
 .. code-block:: console

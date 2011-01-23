@@ -19,5 +19,4 @@ Contents:
    tools
    faq
    changes
-   developer
    related

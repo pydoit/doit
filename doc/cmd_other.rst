@@ -40,7 +40,7 @@ forget
 -------
 
 
-Suppose you change the compilation parameters in the compile action. Or you changed the code frmo a python-action. *doit* will think your task is up-to-date based on  the dependencies but actually it is not! In this case you can use the *forget* command to make sure the given task will be executed again even with no changes in the dependencies.
+Suppose you change the compilation parameters in the compile action. Or you changed the code from a python-action. *doit* will think your task is up-to-date based on  the dependencies but actually it is not! In this case you can use the *forget* command to make sure the given task will be executed again even with no changes in the dependencies.
 
 If you do not specify any task, the default tasks are "*forget*".
 
@@ -50,7 +50,7 @@ If you do not specify any task, the default tasks are "*forget*".
 
 .. note::
 
-  *doit* keeps track of which tasks are successful in the file ``.doit.db``. This file uses JSON.
+  *doit* keeps track of which tasks are successful in the file ``.doit.db``.
 
 
 clean

@@ -3,6 +3,16 @@
 Changes
 =======
 
+0.10.0
+========
+
+- add task parameter "uptodate"
+- add task parameter "run_once"
+- deprecate file_dep bool values and None
+- fix issues with error reporting for JSON Reporter
+- "Reporter" API changes
+- ".doit.db" now uses a DBM file format by default (speed optimization)
+
 0.9.0 (*2010-06-08*)
 =====================
 

@@ -355,6 +355,9 @@ name [required for sub-task]:
 file_dep:
   - type: list. items:
     * file (string) path relative to the dodo file
+
+run_once:
+  - type: bool
     * run-once (True bool)
     * never up-to-date (False bool)
     * None values will be just ignored
@@ -381,7 +384,8 @@ targets:
   - each item is file-path relative to the dodo file (accepts both files and folders)
 
 setup:
- - type: list of objects with methods 'setup' and 'cleanup'
+ - type: list. items:
+   * task name (string)
 
 doc:
  - type: string -> the description text
