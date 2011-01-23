@@ -45,7 +45,7 @@ The result of the task follows the shell convention. If the process exits with t
 python-action
 ^^^^^^^^^^^^^^
 
-If `action` is a tuple `(callable, *args, **kwargs)` - only `callable` is required. ``args`` is a sequence and  ``kwargs`` is a dictionary that will be used as positional and keywords arguments for the callable. see `Keyword Arguments <http://docs.python.org/tutorial/controlflow.html#keyword-arguments>`_.
+If `action` is a python callable or a tuple `(callable, *args, **kwargs)` - only `callable` is required. ``args`` is a sequence and  ``kwargs`` is a dictionary that will be used as positional and keywords arguments for the callable. see `Keyword Arguments <http://docs.python.org/tutorial/controlflow.html#keyword-arguments>`_.
 
 The result of the task is given by the returned value of the ``action`` function. So it must return a *boolean* value `True`, `None`, a dictionary or a string to indicate successful completion of the task. Use `False` to indicate task failed. If it raises an exception, it will be considered an error. If it returns any other type it will also be considered an error but this behavior might change in future versions.
 
