@@ -124,16 +124,19 @@ class TestTaskDeps(object):
 
     def test_update_deps(self):
         my_task = task.Task("Task X", ["taskcmd"], file_dep=["fileX"],
-                            calc_dep=["calcX"], result_dep=["resultX"])
+                            calc_dep=["calcX"], result_dep=["resultX"],
+                            uptodate=[None])
         my_task.update_deps({'file_dep': ['fileY'],
                              'task_dep': ['taskY'],
                              'calc_dep': ['calcX', 'calcY'],
                              'result_dep': ['resultY'],
+                             'uptodate': [True],
                              })
         assert set(['fileX', 'fileY']) == my_task.file_dep
         assert ['resultX', 'taskY', 'resultY'] == my_task.task_dep
         assert ['calcX', 'calcY'] == my_task.calc_dep
         assert ['resultX', 'resultY'] == my_task.result_dep
+        assert [None, True] == my_task.uptodate
 
 
 class TestTask_Getargs(object):

@@ -214,7 +214,8 @@ class Task(object):
                 self._expand_result_dep(dep_values)
             elif dep == 'calc_dep':
                 self._expand_calc_dep(dep_values)
-
+            elif dep == 'uptodate':
+                self.uptodate.extend(dep_values)
 
     def _init_getargs(self):
         """task getargs attribute define implicit task dependencies"""

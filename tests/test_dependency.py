@@ -376,7 +376,7 @@ class TestGetStatus(object):
         assert 'up-to-date' == depfile.get_status(t1)
         assert [] == t1.dep_changed
 
-    def test_runUptodateFalse(self, depfile):
+    def test_UptodateFalse(self, depfile):
         filePath = get_abspath("data/dependency1")
         ff = open(filePath,"w")
         ff.write("part1")
@@ -393,12 +393,12 @@ class TestGetStatus(object):
         assert 'run' == depfile.get_status(t1)
         assert [] == t1.dep_changed
 
-    def test_runUptodateTrue(self, depfile):
+    def test_UptodateTrue(self, depfile):
         t1 = Task("t1", None, uptodate=[True])
         depfile.save_success(t1)
         assert 'up-to-date' == depfile.get_status(t1)
 
-    def test_runUptodateNone(self, depfile):
+    def test_UptodateNone(self, depfile):
         filePath = get_abspath("data/dependency1")
         ff = open(filePath,"w")
         ff.write("part1")
