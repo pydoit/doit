@@ -1,11 +1,13 @@
-0.10
-------
+big refactorings
+------------------
 
-. more MP (tree)
+Task into TaskDep + Task
+TaskControl into Create + Process
 
 0.X
 ----------
 
+. more MP (tree)
 . setup/task  single process/all procces
 . --enable/--disable cmd line options
 

@@ -64,7 +64,7 @@ class TestFileWatcher(object):
         loop_thread.start()
 
         # wait watcher to be ready
-        while not started:
+        while not started: # pragma: no cover
             assert loop_thread.isAlive()
 
         # write in watched file

@@ -88,7 +88,7 @@ class Task(object):
 
         self.name = name
         self.targets = targets
-        self.uptodate = uptodate
+        self.uptodate = list(uptodate)
         self.run_once = run_once
         self.is_subtask = is_subtask
         self.result = None
@@ -151,7 +151,21 @@ class Task(object):
     def _expand_file_dep(self, file_dep):
         """put input into file_dep"""
         for dep in file_dep:
-            # FIXME add deprecation warning for boolean values.
+
+            # deprecation to be removed on 0.11
+            if dep is True:
+                self.run_once = True
+                print "DEPRECATION WARNING: task %s" % self.name
+                print "file_dep can not be True, use run_once"
+                continue
+
+            if dep in (False, None):
+                self.uptodate.append(dep)
+                print "DEPRECATION WARNING: task %s" % self.name
+                print "file_dep can not be %s, use uptodate" % repr(dep)
+                continue
+            # end - deprecation to be removed on 0.11
+
             if not isinstance(dep, str):
                 raise InvalidTask("%s. file_dep must be a str got '%r' (%s)" %
                                   (self.name, dep, type(dep)))

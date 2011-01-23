@@ -83,6 +83,12 @@ class TestTaskUpToDate(object):
         assert not t.run_once
         assert t.uptodate == [None]
 
+    # deprecate bool and none values for file_dep. to be removed on 0.11
+    def test_deprecation(self):
+        t = task.Task("Task x", ["taskcmd"], file_dep=[True, False, None])
+        assert 0 == len(t.file_dep)
+        assert True == t.run_once
+        assert [False, None] == t.uptodate
 
 class TestTaskExpandFileDep(object):
 
@@ -96,7 +102,7 @@ class TestTaskExpandFileDep(object):
 
     def test_file_dep_must_be_string(self):
         py.test.raises(task.InvalidTask, task.Task, "Task X", ["taskcmd"],
-                       file_dep=[None])
+                       file_dep=[['aaaa']])
 
 
 class TestTaskDeps(object):
