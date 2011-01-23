@@ -344,7 +344,7 @@ Task Dictionary parameters
 
 Tasks are defined by functions starting with the string ``task_``. It must return a dictionary describing the task with the following fields:
 
-action [required]:
+actions [required]:
   - type: Python-Task -> tuple (callable, `*args`, `**kwargs`)
   - type: Cmd-Task -> string or list of strings (each item is a different command). to be executed by shell.
   - type: Group-Task -> None.
@@ -379,13 +379,16 @@ getargs:
     * key: string with the name of the function parater (used in a python-action)
     * value: string on the format <task-name>.<variable-name>
 
-targets:
-  - type: list of strings
-  - each item is file-path relative to the dodo file (accepts both files and folders)
-
 setup:
  - type: list. items:
    * task name (string)
+
+teardown:
+ - type: (list) of actions (see above)
+
+targets:
+  - type: list of strings
+  - each item is file-path relative to the dodo file (accepts both files and folders)
 
 doc:
  - type: string -> the description text

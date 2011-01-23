@@ -146,7 +146,7 @@ Note that even with *run_once* the file will be downloaded again in case the tar
 calculated-dependencies
 ------------------------
 
-Calculation of dependencies might be an expensive opration, so not suitable to be done on task-generators. For this situation is better to delegate the calculation of dependencies to another task. The task calcutating dependencies must have a python-action returning a dictionary with `file_dep`, `task_dep`, `result_dep`, `uptodate` or another `calc_dep`.
+Calculation of dependencies might be an expensive operation, so not suitable to be done on task-generators. For this situation is better to delegate the calculation of dependencies to another task. The task calcutating dependencies must have a python-action returning a dictionary with `file_dep`, `task_dep`, `result_dep`, `uptodate` or another `calc_dep`.
 
 On the example below ``mod_deps`` prints on the screen all direct dependencies from a module. The dependencies itself are calculated on task ``get_dep`` (note: get_dep has a fake implementation where the results are taken from a dict).
 
