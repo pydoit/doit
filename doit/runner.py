@@ -186,10 +186,12 @@ class Runner(object):
 
     def run_all(self, task_control):
         """entry point to run tasks"""
+        # Python2.4 (remove double try)
         try:
-            self.run_tasks(task_control)
-        except InvalidTask, exception:
-            self.reporter.runtime_error(str(exception))
+            try:
+                self.run_tasks(task_control)
+            except InvalidTask, exception:
+                self.reporter.runtime_error(str(exception))
         finally:
             self.finish()
         return self.final_result
