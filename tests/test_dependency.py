@@ -338,7 +338,7 @@ class TestGetStatus(object):
         assert 'up-to-date' == depfile.get_status(t1)
         assert [] == t1.dep_changed
 
-        os.stat_float_times(True) # for python2.4
+        # FIXME - mock timestamp
         time.sleep(1) # required otherwise timestamp is not modified!
         # a small change on the file
         ff = open(filePath,"a")

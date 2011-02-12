@@ -2,6 +2,7 @@
 
 import os
 import anydbm
+import hashlib
 
 #FIXME move json import to __init__.py
 # Use simplejson or Python 2.6 json
@@ -13,31 +14,13 @@ except ImportError: # pragma: no cover
     import json
 
 
-############ md5
-def get_md5_py5(input_data):
+USE_FILE_TIMESTAMP = True
+
+
+def get_md5(input_data):
     """return md5 from string (python 2.5 and above)"""
     return hashlib.md5(input_data).hexdigest()
 
-def get_md5_py4(input_data): # pragma: no cover
-    """return md5 from string"""
-    out = md5.new()
-    out.update(input_data)
-    return out.hexdigest()
-
-## use different md5 libraries depending on python version
-get_md5 = None # function return md5 from a string
-try:
-    import hashlib
-    get_md5 = get_md5_py5
-# support python 2.4
-except ImportError: # pragma: no cover
-    import md5
-    get_md5 = get_md5_py4
-#########################################################
-
-
-
-USE_FILE_TIMESTAMP = True
 
 def md5sum(path):
     """Calculate the md5 sum from file content.

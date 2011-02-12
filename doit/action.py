@@ -269,15 +269,9 @@ class PythonAction(BaseAction):
 
         # execute action / callable
         try:
-            # Python2.4
-            try:
-                returned_value = self.py_callable(*self.args, **kwargs)
-            # in python 2.4 SystemExit and KeyboardInterrupt subclass
-            # from Exception.
-            except (SystemExit, KeyboardInterrupt), exception:
-                raise
-            except Exception, exception:
-                return TaskError("PythonAction Error", exception)
+            returned_value = self.py_callable(*self.args, **kwargs)
+        except Exception, exception:
+            return TaskError("PythonAction Error", exception)
         finally:
             # restore std streams /log captured streams
             sys.stdout = old_stdout

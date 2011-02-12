@@ -476,11 +476,6 @@ def cmd_main(cmd_args):
     try:
         return sub_cmd['run'](cmd_args, sub=sub_cmd)
 
-    # in python 2.4 SystemExit and KeyboardInterrupt subclass
-    # from Exception.
-    except (SystemExit, KeyboardInterrupt):
-        raise
-
     # dont show traceback for user errors.
     # TODO check no InvalidTask exception endup here.
     except (cmdparse.CmdParseError, InvalidDodoFile,
