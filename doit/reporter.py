@@ -118,7 +118,7 @@ class TaskResult(object):
         """called when task starts its execution"""
         self._started_on = time.time()
 
-    def _set_result(self, result, error=None):
+    def set_result(self, result, error=None):
         """called when task finishes its execution"""
         self._finished_on = time.time()
         self.result = result
@@ -181,19 +181,19 @@ class JsonReporter(object):
 
     def add_failure(self, task, exception):
         """called when excution finishes with a failure"""
-        self.t_results[task.name]._set_result('fail', exception.get_msg())
+        self.t_results[task.name].set_result('fail', exception.get_msg())
 
     def add_success(self, task):
         """called when excution finishes successfuly"""
-        self.t_results[task.name]._set_result('success')
+        self.t_results[task.name].set_result('success')
 
     def skip_uptodate(self, task):
         """skipped up-to-date task"""
-        self.t_results[task.name]._set_result('up-to-date')
+        self.t_results[task.name].set_result('up-to-date')
 
     def skip_ignore(self, task):
         """skipped ignored task"""
-        self.t_results[task.name]._set_result('ignore')
+        self.t_results[task.name].set_result('ignore')
 
     def cleanup_error(self, exception):
         """error during cleanup"""

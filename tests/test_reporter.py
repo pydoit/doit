@@ -112,7 +112,7 @@ class TestTaskResult(object):
         result = reporter.TaskResult(t1)
         result.start()
         t1.execute()
-        result._set_result('success')
+        result.set_result('success')
         got = result.to_dict()
         assert t1.name == got['name'], got
         assert 'success' == got['result'], got
