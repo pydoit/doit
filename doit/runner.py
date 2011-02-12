@@ -328,7 +328,7 @@ class MRunner(Runner):
                 # no task ready to be executed but some are on the queue
                 # awaiting to be executed
                 task_q.put((next_task, None))
-            process = Process(target=self.execute_task,
+            process = Process(target=self.execute_task_subprocess,
                               args=(task_q, result_q))
             process.start()
             proc_list.append(process)
@@ -393,7 +393,7 @@ class MRunner(Runner):
             getattr(self.reporter, result['reporter'])(task)
 
 
-    def execute_task(self, task_q, result_q):
+    def execute_task_subprocess(self, task_q, result_q):
         """executed on child processes
         @param task_q: task queue,
             * None elements indicate process can terminate
@@ -419,7 +419,7 @@ class MRunner(Runner):
                 # what about other dependencies?
                 task.file_dep = file_dep
                 result = {'name': task.name}
-                t_result = Runner.execute_task(self, task)
+                t_result = self.execute_task(task)
 
                 if t_result is None:
                     result['result'] = task.result

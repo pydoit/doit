@@ -156,7 +156,7 @@ class JsonReporter(object):
          - started (str)
          - elapsed (float)
     """
-    def __init__(self, outstream, options=None):
+    def __init__(self, outstream, options=None): #pylint: disable=W0613
         # options parameter is not used
         # json result is sent to stdout when doit finishes running
         self.t_results = {}

@@ -30,7 +30,7 @@ class CmdAction(BaseAction):
     @ivar task(Task): reference to task that contains this action
     """
 
-    def __init__(self, action, task=None):
+    def __init__(self, action, task=None): #pylint: disable=W0231
         assert isinstance(action, str), "CmdAction must be a string."
         self.action = action
         self.task = task
@@ -156,7 +156,7 @@ class PythonAction(BaseAction):
     @ivar task(Task): reference to task that contains this action
     """
     def __init__(self, py_callable, args=None, kwargs=None, task=None):
-
+        #pylint: disable=W0231
         self.py_callable = py_callable
         self.task = task
         self.out = None

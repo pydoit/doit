@@ -591,7 +591,7 @@ class TestMRunner_execute_task(object):
         task_q.put((runner.Hold(), None)) # to test
         task_q.put((None, None)) # to terminate function
         result_q = Queue()
-        run.execute_task(task_q, result_q)
+        run.execute_task_subprocess(task_q, result_q)
         # nothing was done
         assert result_q.empty() # pragma: no cover (coverage bug?)
 
