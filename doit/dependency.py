@@ -157,7 +157,23 @@ class DbmDB(object):
     def __init__(self, name):
         """Open/create a DB file"""
         self.name = name
-        self._dbm = anydbm.open(self.name, 'c')
+        try:
+            self._dbm = anydbm.open(self.name, 'c')
+        except anydbm.error as exception:
+            message = str(exception)
+            if message == 'db type could not be determined':
+                # When a corrupted/old format database is found
+                # suggest the user to just remove the file
+                new_message = ('Dependencies file in %(filename)s seems to use '
+                               'an old format or is corrupted.\n'
+                               'To fix the issue you can just remove the database file '
+                               'and a new one will be generated.'
+                               % {'filename': repr(self.name)})
+                raise anydbm.error, new_message
+            else:
+                # Re-raise any other exceptions
+                raise
+
         self._db = {}
         self.dirty = set()
 
