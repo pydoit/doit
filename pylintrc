@@ -33,11 +33,12 @@ load-plugins=
 # can either give multiple identifier separated by comma (,) or put this option
 # multiple time (only on the command line, not in the configuration file where
 # it should appear only once).
-# :W0142: *Used * or ** magic*
-# :R0903: *Too few public methods (%s/%s)*
-# :W0703: *Catch "Exception"*
 # :E1103: *%s %r has no %r member (but some types could not be inferred)*
-disable=W0142,R0903,W0703,E1103
+# :W0142: *Used * or ** magic*
+# :W0703: *Catch "Exception"*
+# :R0903: *Too few public methods (%s/%s)*
+# :R0922: *Abstract class is only referenced 1 times*
+disable=E1103,W0142,W0703,R0903,R0922
 
 
 [REPORTS]
