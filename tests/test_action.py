@@ -1,6 +1,7 @@
 import os
 import sys
 import StringIO
+import tempfile
 
 import py.test
 
@@ -15,7 +16,7 @@ PROGRAM = "python %s/sample_process.py" % TEST_PATH
 def pytest_funcarg__tmpfile(request):
     """crate a temporary file"""
     return request.cached_setup(
-        setup=os.tmpfile,
+        setup=tempfile.TemporaryFile,
         teardown=(lambda tmpfile: tmpfile.close()),
         scope="function")
 
@@ -295,7 +296,7 @@ class TestPythonVerbosity(object):
         assert "this is stdout S\n" == got, repr(got)
 
     def test_redirectStderr(self):
-        tmpfile = os.tmpfile()
+        tmpfile = tempfile.TemporaryFile()
         my_action = action.PythonAction(self.write_stderr)
         my_action.execute(err=tmpfile)
         tmpfile.seek(0)
@@ -304,7 +305,7 @@ class TestPythonVerbosity(object):
         assert "this is stderr S\n" == got, got
 
     def test_redirectStdout(self):
-        tmpfile = os.tmpfile()
+        tmpfile = tempfile.TemporaryFile()
         my_action = action.PythonAction(self.write_stdout)
         my_action.execute(out=tmpfile)
         tmpfile.seek(0)
