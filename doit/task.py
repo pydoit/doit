@@ -152,7 +152,7 @@ class Task(object):
         """put input into file_dep"""
         for dep in file_dep:
 
-            if not isinstance(dep, str):
+            if not isinstance(dep, basestring):
                 raise InvalidTask("%s. file_dep must be a str got '%r' (%s)" %
                                   (self.name, dep, type(dep)))
 
