@@ -1,6 +1,7 @@
 """cmd-line functions"""
 import sys
 import itertools
+import codecs
 
 from doit import dependency
 from doit.exceptions import InvalidCommand
@@ -10,6 +11,7 @@ from doit.runner import Runner, MRunner
 from doit.reporter import REPORTERS
 from doit.dependency import Dependency
 from doit.filewatch import FileModifyWatcher
+
 
 def doit_run(dependency_file, task_list, output, options=None,
              verbosity=None, always_execute=False, continue_=False,
@@ -43,8 +45,8 @@ def doit_run(dependency_file, task_list, output, options=None,
     show_out = use_verbosity < 2 # show on error report
 
     # outstream
-    if isinstance(output, str):
-        outstream = open(output, 'w')
+    if isinstance(output, basestring):
+        outstream = codecs.open(output, 'w', encoding='utf-8')
     else: # outfile is a file-like object (like StringIO or sys.stdout)
         outstream = output
 

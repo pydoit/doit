@@ -18,9 +18,12 @@ USE_FILE_TIMESTAMP = True
 
 
 def get_md5(input_data):
-    """return md5 from string (python 2.5 and above)"""
-    return hashlib.md5(input_data).hexdigest()
-
+    """return md5 from string or unicode"""
+    if isinstance(input_data, unicode):
+        byte_data = input_data.encode("utf-8")
+    else:
+        byte_data = input_data
+    return hashlib.md5(byte_data).hexdigest()
 
 def md5sum(path):
     """Calculate the md5 sum from file content.

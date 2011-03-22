@@ -22,6 +22,12 @@ class ConsoleReporter(object):
         self.show_err = options.get('show_err', True)
         self.outstream = outstream
 
+    def write(self, text):
+        # TODO for some reason write cant handle unicode in the same
+        # way as print
+        # self.outstream.write('.  %s\n' % text)
+        print >> self.outstream, text,
+
     def get_status(self, task):
         """called when task is selected (check if up-to-date)"""
         pass
@@ -30,7 +36,7 @@ class ConsoleReporter(object):
         """called when excution starts"""
         # ignore tasks that do not define actions
         if task.actions:
-            self.outstream.write('.  %s\n' % task.title())
+            self.write('.  %s\n' % task.title())
 
     def add_failure(self, task, exception):
         """called when excution finishes with a failure"""
@@ -42,15 +48,15 @@ class ConsoleReporter(object):
 
     def skip_uptodate(self, task):
         """skipped up-to-date task"""
-        self.outstream.write("-- %s\n" % task.title())
+        self.write("-- %s\n" % task.title())
 
     def skip_ignore(self, task):
         """skipped ignored task"""
-        self.outstream.write("!! %s\n" % task.title())
+        self.write("!! %s\n" % task.title())
 
     def cleanup_error(self, exception):
         """error during cleanup"""
-        sys.stderr.write(exception.get_msg())
+        print >> sys.stderr, exception.get_msg(),
 
     def runtime_error(self, msg):
         """error from doit (not from a task execution)"""
@@ -64,25 +70,25 @@ class ConsoleReporter(object):
         """called when finshed running all tasks"""
         # if test fails print output from failed task
         for result in self.failures:
-            self.outstream.write("#"*40 + "\n")
+            self.write("#"*40 + "\n")
             msg = '%s - taskid:%s\n' % (result['exception'].get_name(),
                                         result['task'].name)
-            self.outstream.write(msg)
-            self.outstream.write(result['exception'].get_msg())
-            self.outstream.write("\n")
+            self.write(msg)
+            self.write(result['exception'].get_msg())
+            self.write("\n")
             task = result['task']
             if self.show_out:
                 out = "".join([a.out for a in task.actions if a.out])
-                self.outstream.write("%s\n" % out)
+                self.write("%s\n" % out)
             if self.show_err:
                 err = "".join([a.err for a in task.actions if a.err])
-                self.outstream.write("%s\n" % err)
+                self.write("%s\n" % err)
 
         if self.runtime_errors:
-            self.outstream.write("#"*40 + "\n")
-            self.outstream.write("Execution aborted.\n")
-            self.outstream.write("\n".join(self.runtime_errors))
-            self.outstream.write("\n")
+            self.write("#"*40 + "\n")
+            self.write("Execution aborted.\n")
+            self.write("\n".join(self.runtime_errors))
+            self.write("\n")
 
 
 class ExecutedOnlyReporter(ConsoleReporter):
