@@ -323,11 +323,11 @@ class MRunner(Runner):
             if next_task is None:
                 break # do not start more processes than tasks
             if isinstance(next_task, Task):
-                task_q.put((next_task.name, next_task.file_dep))
+                task_q.put(next_task)
             else: # next_task is Hold
                 # no task ready to be executed but some are on the queue
                 # awaiting to be executed
-                task_q.put((next_task, None))
+                task_q.put(next_task)
             process = Process(target=self.execute_task_subprocess,
                               args=(task_q, result_q))
             process.start()
@@ -375,9 +375,9 @@ class MRunner(Runner):
                 if next_task is None:
                     proc_count -= 1
                 if isinstance(next_task, Task):
-                    task_q.put((next_task.name, next_task.file_dep))
+                    task_q.put(next_task)
                 else:
-                    task_q.put((next_task, None))
+                    task_q.put(next_task)
             # check for cyclic dependencies
             assert len(proc_list) > self.free_proc
 
@@ -404,20 +404,23 @@ class MRunner(Runner):
         self.reporter = self.MReporter(self, self.reporter)
         try:
             while True:
-                task_name, file_dep = task_q.get()
-                if task_name is None:
+                recv_task = task_q.get()
+                if recv_task is None:
                     self.teardown()
                     return # no more tasks to execute finish this process
 
                 # do nothing. this used to start the subprocess even if no task
                 # is available when process is created.
-                if isinstance(task_name, Hold):
+                if isinstance(recv_task, Hold):
                     continue
 
-                task = self.tasks[task_name]
-                # FIXME why is this required? to update calc-deps?
-                # what about other dependencies?
-                task.file_dep = file_dep
+                # recv_task is an incomplete obj, when pickled attrbiutes
+                # that might contain unpickled data were removed.
+                # so we need to get task from this process and update it
+                # to get dynamic task attributes.
+                task = self.tasks[recv_task.name]
+                task.update_from_pickle(recv_task)
+
                 result = {'name': task.name}
                 t_result = self.execute_task(task)
 
@@ -429,7 +432,7 @@ class MRunner(Runner):
                 result_q.put(result)
         except (SystemExit, KeyboardInterrupt, Exception), exception:
             # error, blow-up everything. send exception info to master process
-            result_q.put({'name': task_name,
+            result_q.put({'name': task.name,
                           'exit': exception.__class__,
                           'exception': str(exception)})
 

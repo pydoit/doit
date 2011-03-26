@@ -342,6 +342,23 @@ class Task(object):
         return "<Task: %s>"% self.name
 
 
+    # when using multiprocessing Tasks are pickled.
+    def __getstate__(self):
+        """remove attributes that might contain unpickleble content
+        mostly probably closures
+        """
+        to_pickle = self.__dict__.copy()
+        del to_pickle['actions']
+        del to_pickle['clean_actions']
+        del to_pickle['teardown']
+        del to_pickle['custom_title']
+        return to_pickle
+
+    def update_from_pickle(self, pickle_obj):
+        """update self with data from pickled Task"""
+        self.__dict__.update(pickle_obj.__dict__)
+
+
 def dict_to_task(task_dict):
     """Create a task instance from dictionary.
 
