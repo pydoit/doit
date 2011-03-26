@@ -145,7 +145,7 @@ class DbmDB(object):
         self.name = name
         try:
             self._dbm = anydbm.open(self.name, 'c')
-        except anydbm.error as exception:
+        except anydbm.error, exception:
             message = str(exception)
             if message == 'db type could not be determined':
                 # When a corrupted/old format database is found
