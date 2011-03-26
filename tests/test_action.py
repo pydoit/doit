@@ -1,3 +1,5 @@
+# coding=UTF-8
+
 import os
 import sys
 import StringIO
@@ -49,6 +51,11 @@ class TestCmdAction(object):
     def test_str(self):
         my_action = action.CmdAction(PROGRAM)
         assert "Cmd: %s" % PROGRAM == str(my_action)
+
+    def test_unicode(self):
+        action_str = unicode(PROGRAM) + u"中文"
+        my_action = action.CmdAction(action_str)
+        assert "Cmd: %s" % action_str == unicode(my_action)
 
     def test_repr(self):
         my_action = action.CmdAction(PROGRAM)

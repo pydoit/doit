@@ -31,7 +31,7 @@ class CmdAction(BaseAction):
     """
 
     def __init__(self, action, task=None): #pylint: disable=W0231
-        assert isinstance(action, str), "CmdAction must be a string."
+        assert isinstance(action, basestring), "CmdAction must be a string."
         self.action = action
         self.task = task
         self.out = None
@@ -288,7 +288,7 @@ class PythonAction(BaseAction):
                               (self.py_callable, returned_value))
         elif returned_value is True or returned_value is None:
             pass
-        elif isinstance(returned_value, str):
+        elif isinstance(returned_value, basestring):
             self.result = returned_value
         elif isinstance(returned_value, dict):
             self.values = returned_value
@@ -319,10 +319,10 @@ def create_action(action, task_ref):
     if isinstance(action, BaseAction):
         return action
 
-    if type(action) is str:
+    if isinstance(action, basestring):
         return CmdAction(action, task_ref)
 
-    if type(action) is tuple:
+    if isinstance(action, tuple):
         if len(action) > 3:
             msg = "Task '%s': invalid 'actions' tuple length. got:%r %s"
             raise InvalidTask(msg % (task_ref.name, action, type(action)))

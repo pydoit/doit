@@ -233,7 +233,6 @@ def pytest_generate_tests(metafunc):
             metafunc.addcall(id=RunnerClass.__name__,
                              funcargs=dict(RunnerClass=RunnerClass))
 
-# TODO test action is picklable (closures are not)
 
 
 # decorator to force coverage on function.
@@ -420,6 +419,25 @@ class TestRunner_run_tasks(object):
         assert ('success', tasks[2]) == reporter.log.pop(0)
         assert 0 == len(reporter.log)
 
+    def test_getargs(self, reporter, RunnerClass):
+        def use_args(arg1):
+            print arg1
+        def make_args(): return {'myarg':1}
+        tasks = [Task("task1", [(use_args,)], getargs=dict(arg1="task2.myarg") ),
+                 Task("task2", [(make_args,)])]
+        my_runner = RunnerClass(TESTDB, reporter)
+        tc = TaskControl(tasks)
+        tc.process(None)
+        my_runner.run_tasks(tc)
+        assert runner.SUCCESS == my_runner.finish()
+        assert ('start', tasks[1]) == reporter.log.pop(0)
+        assert ('execute', tasks[1]) == reporter.log.pop(0)
+        assert ('success', tasks[1]) == reporter.log.pop(0)
+        assert ('start', tasks[0]) == reporter.log.pop(0)
+        assert ('execute', tasks[0]) == reporter.log.pop(0)
+        assert ('success', tasks[0]) == reporter.log.pop(0)
+        assert 0 == len(reporter.log)
+
 
     # SystemExit runner should not interfere with SystemExit
     def testSystemExitRaises(self, reporter, RunnerClass):
@@ -545,8 +563,8 @@ class TestMRunner_start_process(object):
 
         proc_list = run._run_start_processes(task_q, result_q)
         assert 2 == len(proc_list)
-        assert t1.name == task_q.get()[0]
-        assert t2.name == task_q.get()[0]
+        assert t1.name == task_q.get().name
+        assert t2.name == task_q.get().name
 
 
     # 2 process, 1 task
@@ -563,7 +581,7 @@ class TestMRunner_start_process(object):
 
         proc_list = run._run_start_processes(task_q, result_q)
         assert 1 == len(proc_list)
-        assert t1.name == task_q.get()[0]
+        assert t1.name == task_q.get().name
 
 
     # 2 process, 2 tasks (but only one task can be started)
@@ -581,15 +599,15 @@ class TestMRunner_start_process(object):
 
         proc_list = run._run_start_processes(task_q, result_q)
         assert 2 == len(proc_list)
-        assert t1.name == task_q.get()[0]
-        assert t2.name != task_q.get()[0]
+        assert t1.name == task_q.get().name
+        assert t2.name != task_q.get()
 
 class TestMRunner_execute_task(object):
     def test_hold(self, reporter):
         run = runner.MRunner(TESTDB, reporter)
         task_q = Queue()
-        task_q.put((runner.Hold(), None)) # to test
-        task_q.put((None, None)) # to terminate function
+        task_q.put(runner.Hold()) # to test
+        task_q.put(None) # to terminate function
         result_q = Queue()
         run.execute_task_subprocess(task_q, result_q)
         # nothing was done

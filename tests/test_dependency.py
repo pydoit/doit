@@ -1,3 +1,5 @@
+# coding=UTF-8
+
 import os
 import time
 import anydbm
@@ -13,6 +15,11 @@ def get_abspath(relativePath):
     """ return abs file path relative to this file"""
     return os.path.join(os.path.dirname(__file__), relativePath)
 
+
+def test_unicode_md5():
+    data = u"我"
+    # no exception is raised
+    assert get_md5(data)
 
 
 def test_md5():

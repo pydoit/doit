@@ -152,7 +152,7 @@ class Task(object):
         """put input into file_dep"""
         for dep in file_dep:
 
-            if not isinstance(dep, str):
+            if not isinstance(dep, basestring):
                 raise InvalidTask("%s. file_dep must be a str got '%r' (%s)" %
                                   (self.name, dep, type(dep)))
 
@@ -340,6 +340,23 @@ class Task(object):
 
     def __repr__(self):
         return "<Task: %s>"% self.name
+
+
+    # when using multiprocessing Tasks are pickled.
+    def __getstate__(self):
+        """remove attributes that might contain unpickleble content
+        mostly probably closures
+        """
+        to_pickle = self.__dict__.copy()
+        del to_pickle['actions']
+        del to_pickle['clean_actions']
+        del to_pickle['teardown']
+        del to_pickle['custom_title']
+        return to_pickle
+
+    def update_from_pickle(self, pickle_obj):
+        """update self with data from pickled Task"""
+        self.__dict__.update(pickle_obj.__dict__)
 
 
 def dict_to_task(task_dict):

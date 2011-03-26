@@ -1,3 +1,5 @@
+# coding=UTF-8
+
 import os, shutil
 import tempfile
 from StringIO import StringIO
@@ -96,6 +98,11 @@ class TestTaskExpandFileDep(object):
     def test_file_dep_must_be_string(self):
         py.test.raises(task.InvalidTask, task.Task, "Task X", ["taskcmd"],
                        file_dep=[['aaaa']])
+
+    def test_file_dep_unicode(self):
+        unicode_name = u"中文"
+        my_task = task.Task("Task X", ["taskcmd"], file_dep=[unicode_name])
+        assert unicode_name in my_task.file_dep
 
 
 class TestTaskDeps(object):
