@@ -91,6 +91,9 @@ class CmdAction(BaseAction):
         self.err = errput.getvalue()
         self.result = self.out + self.err
 
+        # make sure process really terminated
+        process.wait()
+
         # task error - based on:
         # http://www.gnu.org/software/bash/manual/bashref.html#Exit-Status
         # it doesnt make so much difference to return as Error or Failed anyway
