@@ -382,4 +382,10 @@ class DbmDependency(DependencyBase):
         DependencyBase.__init__(self, DbmDB(name))
 
 # default "Dependency" implementation to be used
-Dependency = DbmDependency
+import platform
+python_version = platform.python_version().split('.')
+if python_version[0] == '2' and python_version[1] == '5':
+    # use json by default on python2.5 because installing this on ubuntu is PITA
+    Dependency = JsonDependency
+else:
+    Dependency = DbmDependency

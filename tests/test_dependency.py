@@ -44,9 +44,11 @@ def test_md5():
 # taskId_dependency => signature(dependency)
 # taskId is md5(CmdTask.task)
 
-TESTDB = "testdb"
+TESTDB = os.path.abspath("testdb")
 
 # fixture for "doit.db". create/remove for every test
+# FIXME some dbm implementations create not only one file. and that messes up
+# the tests completely.
 def pytest_funcarg__depfile(request):
     def create_depfile():
         dep_class = request.param
@@ -88,7 +90,12 @@ def pytest_funcarg__dependency(request):
 def pytest_generate_tests(metafunc):
     if "depfile" in metafunc.funcargnames:
         metafunc.addcall(id='JsonDependency', param=JsonDependency)
-        metafunc.addcall(id='DbmDependency', param=DbmDependency)
+
+        # dont test dbm on python2.5
+        import platform
+        python_version = platform.python_version().split('.')
+        if python_version[0] != '2' or python_version[1] != '5':
+            metafunc.addcall(id='DbmDependency', param=DbmDependency)
 
 
 class TestDependencyDb(object):
