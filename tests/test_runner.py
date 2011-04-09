@@ -600,7 +600,7 @@ class TestMRunner_start_process(object):
         proc_list = run._run_start_processes(task_q, result_q)
         assert 2 == len(proc_list)
         assert t1.name == task_q.get().name
-        assert t2.name != task_q.get()
+        assert isinstance(task_q.get(), runner.Hold)
 
 class TestMRunner_execute_task(object):
     def test_hold(self, reporter):

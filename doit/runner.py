@@ -414,8 +414,8 @@ class MRunner(Runner):
                 if isinstance(recv_task, Hold):
                     continue
 
-                # recv_task is an incomplete obj, when pickled attrbiutes
-                # that might contain unpickled data were removed.
+                # recv_task is an incomplete obj. when pickled, attrbiutes
+                # that might contain unpickleble data were removed.
                 # so we need to get task from this process and update it
                 # to get dynamic task attributes.
                 task = self.tasks[recv_task.name]
