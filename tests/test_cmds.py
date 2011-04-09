@@ -10,6 +10,7 @@ from doit.task import Task
 from doit.exceptions import InvalidCommand
 from doit import cmds
 from doit import reporter
+from tests.test_runner import FakeReporter
 from tests.test_filewatch import pytest_funcarg__cwd
 pytest_funcarg__cwd # pyflakes
 
@@ -358,7 +359,7 @@ class TestCmdIgnore(object):
 
 
 class TestCmdAuto(object):
-    def test(self, cwd, capsys, monkeypatch):
+    def test(self, cwd, monkeypatch):
         file1, file2, file3 = 'data/w1.txt', 'data/w2.txt', 'data/w3.txt'
         stop_file = 'data/stop'
         should_stop = []
@@ -388,10 +389,13 @@ class TestCmdAuto(object):
         #
         def hi():
             print "hello"
-        task_list = [Task("t1", [(hi,)], [file1]),
-                     Task("t2", [(hi,)], [file2]),
-                     Task("stop", [(hi,)],  [stop_file]),]
-        run_args = (TESTDB, task_list, ["t1", "t2", "stop"], loop_callback)
+        t1 = Task("t1", [(hi,)], [file1])
+        t2 = Task("t2", [(hi,)], [file2])
+        tstop = Task("stop", [(hi,)],  [stop_file])
+        task_list = [t1, t2, tstop]
+        reporter = FakeReporter()
+        run_args = (TESTDB, task_list, ["t1", "t2", "stop"],
+                    reporter, loop_callback)
         loop_thread = threading.Thread(target=cmds.doit_auto, args=run_args)
         loop_thread.daemon = True
         loop_thread.start()
@@ -407,18 +411,20 @@ class TestCmdAuto(object):
         fd.write("mod2")
         fd.close()
 
-        time.sleep(0.5)
+        sleep_factor = 0.1 # ensure execution is over before start a new one
+        time.sleep(sleep_factor)
         # write in another watched file ========> .  t2
         fd = open(file2, 'w')
         fd.write("mod3")
         fd.close()
 
-        time.sleep(0.5)
+        time.sleep(sleep_factor)
         # write in watched file ====expected=====> .  t1
         fd = open(file1, 'w')
         fd.write("mod4")
         fd.close()
 
+        time.sleep(sleep_factor)
         # tricky to stop watching
         fd = open(stop_file, 'w')
         fd.write("mod5")
@@ -426,14 +432,46 @@ class TestCmdAuto(object):
         loop_thread.join(10)
         assert not loop_thread.isAlive()
 
-        out, err = capsys.readouterr()
-        out_lines = out.splitlines()
-        # always execute once all tasks
-        assert '.  t1' == out_lines[0]
-        assert '.  t2' == out_lines[1]
-        assert '.  stop' == out_lines[2]
-        assert '.  t1' == out_lines[3]
-        assert '.  t2' == out_lines[4]
-        assert '.  t1' == out_lines[5]
-        assert '.  stop' == out_lines[6]
-        assert 7 == len(out_lines)
+        # tasks are executed once when auto starts
+        assert ('start', t1) == reporter.log[0]
+        assert ('execute', t1) == reporter.log[1]
+        assert ('success', t1) == reporter.log[2]
+        assert ('start', t2) == reporter.log[3]
+        assert ('execute', t2) == reporter.log[4]
+        assert ('success', t2) == reporter.log[5]
+        assert ('start', tstop) == reporter.log[6]
+        assert ('execute', tstop) == reporter.log[7]
+        assert ('success', tstop) == reporter.log[8]
+        # modify t1
+        assert ('start', t1) == reporter.log[9]
+        assert ('execute', t1) == reporter.log[10]
+        assert ('success', t1) == reporter.log[11]
+        assert ('start', t2) == reporter.log[12]
+        assert ('up-to-date', t2) == reporter.log[13]
+        assert ('start', tstop) == reporter.log[14]
+        assert ('up-to-date', tstop) == reporter.log[15]
+        # modify t2
+        assert ('start', t1) == reporter.log[16]
+        assert ('up-to-date', t1) == reporter.log[17]
+        assert ('start', t2) == reporter.log[18]
+        assert ('execute', t2) == reporter.log[19]
+        assert ('success', t2) == reporter.log[20]
+        assert ('start', tstop) == reporter.log[21]
+        assert ('up-to-date', tstop) == reporter.log[22]
+        # modify t1
+        assert ('start', t1) == reporter.log[23]
+        assert ('execute', t1) == reporter.log[24]
+        assert ('success', t1) == reporter.log[25]
+        assert ('start', t2) == reporter.log[26]
+        assert ('up-to-date', t2) == reporter.log[27]
+        assert ('start', tstop) == reporter.log[28]
+        assert ('up-to-date', tstop) == reporter.log[29]
+        # modify stop
+        assert ('start', t1) == reporter.log[30]
+        assert ('up-to-date', t1) == reporter.log[31]
+        assert ('start', t2) == reporter.log[32]
+        assert ('up-to-date', t2) == reporter.log[33]
+        assert ('start', tstop) == reporter.log[34]
+        assert ('execute', tstop) == reporter.log[35]
+        assert ('success', tstop) == reporter.log[36]
+        assert 37 == len(reporter.log)

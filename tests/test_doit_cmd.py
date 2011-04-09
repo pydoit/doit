@@ -196,12 +196,13 @@ class TestInterface(object):
         expected = [('dependency_file', '.doit.db'),
                     ('task_list', mock_get_tasks()['task_list']),
                     ('filter_tasks', ['b']),
+                    ('reporter', 'executed-only'),
                     ('loop_callback', None),
                     ]
 
         assert len(expected) == len(argspec[0])
-        #                                                    + loop_callback
-        assert len(expected) == (len(mock_auto.call_args[0]) + 1)
+        #                                    + reporter + loop_callback
+        assert len(expected) == (len(mock_auto.call_args[0]) + 2)
         for exp,got in zip(expected, zip(argspec[0], mock_auto.call_args[0])):
             assert exp == got
 

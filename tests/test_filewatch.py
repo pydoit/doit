@@ -10,12 +10,12 @@ def pytest_funcarg__cwd(request):
     """set cwd to parent folder of this file."""
     def set_cwd():
         cwd = {}
-        cwd['preivous'] = os.getcwd()
+        cwd['previous'] = os.getcwd()
         cwd['current'] = os.path.abspath(os.path.dirname(__file__))
         os.chdir(cwd['current'])
         return cwd
     def restore_cwd(cwd):
-        os.chdir(cwd['preivous'])
+        os.chdir(cwd['previous'])
     return request.cached_setup(
         setup=set_cwd,
         teardown=restore_cwd,

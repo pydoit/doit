@@ -20,13 +20,14 @@ def doit_run(dependency_file, task_list, output, options=None,
     @param reporter: (str) one of provided reporters or ...
                      (class) user defined reporter class (can only be specified
            from DOIT_CONFIG - never from command line)
+                     (reporter instance) - only used in unittests
     """
     # get tasks to be executed
     task_control = TaskControl(task_list)
     task_control.process(options)
 
     # reporter
-    if isinstance(reporter, str):
+    if isinstance(reporter, basestring):
         if reporter not in REPORTERS:
             msg = ("No reporter named '%s'."
                    " Type 'doit help run' to see a list "
@@ -53,8 +54,11 @@ def doit_run(dependency_file, task_list, output, options=None,
     # run
     try:
         # FIXME stderr will be shown twice in case of task error/failure
-        reporter_obj = reporter_cls(outstream, {'show_out':show_out,
-                                                'show_err': True})
+        if isinstance(reporter_cls, type):
+            reporter_obj = reporter_cls(outstream, {'show_out':show_out,
+                                                    'show_err': True})
+        else: # also accepts reporter instances
+            reporter_obj = reporter_cls
 
         if num_process == 0:
             runner = Runner(dependency_file, reporter_obj, continue_,
@@ -227,7 +231,8 @@ def doit_ignore(dependency_file, task_list, outstream, ignore_tasks):
     dependency_manager.close()
 
 
-def doit_auto(dependency_file, task_list, filter_tasks, loop_callback=None):
+def doit_auto(dependency_file, task_list, filter_tasks,
+              reporter='executed-only', loop_callback=None):
     """Re-execute tasks automatically a depedency changes
 
     @param filter_tasks (list -str): print only tasks from this list
@@ -235,7 +240,13 @@ def doit_auto(dependency_file, task_list, filter_tasks, loop_callback=None):
     """
     task_control = TaskControl(task_list)
     task_control.process(filter_tasks)
-    tasks_to_run = list(set([t for t in task_control.task_dispatcher(True)]))
+    # remove duplicates preserving order
+    task_set = set()
+    tasks_to_run = []
+    for dis in task_control.task_dispatcher(True):
+        if dis.name not in task_set:
+            tasks_to_run.append(dis)
+            task_set.add(dis.name)
     watch_tasks = [t.name for t in tasks_to_run]
     watch_files = list(itertools.chain(*[s.file_dep for s in tasks_to_run]))
     watch_files = list(set(watch_files))
@@ -244,7 +255,7 @@ def doit_auto(dependency_file, task_list, filter_tasks, loop_callback=None):
         """Execute doit on event handler of file changes """
         def handle_event(self, event):
             doit_run(dependency_file, task_list, sys.stdout,
-                     watch_tasks, reporter='executed-only')
+                     watch_tasks, reporter=reporter)
             # reset run_status
             for task in task_list:
                 task.run_status = None
