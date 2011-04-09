@@ -21,7 +21,7 @@ class DefaultUpdate(dict):
 
     def update_defaults(self, update_dict):
         """do not update items that already have a non-default value"""
-        for key, value in update_dict.iteritems():
+        for key, value in update_dict.items():
             if key in self._non_default_keys:
                 continue
             self[key] = value
@@ -87,13 +87,13 @@ class Command(object):
                     raise CmdParseError(msg % (self._type, self.name, field))
 
             # options can not contain any unrecognized field
-            for field in opt.keys():
+            for field in list(opt.keys()):
                 if field not in self._option_fields:
                     msg = "%s dict from '%s' contains invalid property '%s'"
                     raise CmdParseError(msg % (self._type, self.name, field))
 
             # add defaults
-            for key, value in self._defaults.iteritems():
+            for key, value in self._defaults.items():
                 if key not in opt:
                     opt[key] = value
             self.options.append(opt)
@@ -198,7 +198,7 @@ class Command(object):
         try:
             opts, args = getopt.getopt(in_args, self.get_short(),
                                        self.get_long())
-        except Exception, error:
+        except Exception as error:
             msg = "Error parsing %s for '%s': %s (parsing options: %s)"
             raise CmdParseError(msg % (self._type, self.name,
                                        str(error), in_args))
@@ -211,7 +211,7 @@ class Command(object):
             else:
                 try:
                     params[this['name']] = this['type'](val)
-                except ValueError, exception:
+                except ValueError as exception:
                     msg = "Error parsing parameter '%s' %s.\n%s\n"
                     raise CmdParseError(msg % (this['name'], this['type'],
                                                str(exception)))

@@ -413,7 +413,7 @@ class TestRunner_run_tasks(object):
 
     def test_getargs(self, reporter, RunnerClass, depfile):
         def use_args(arg1):
-            print arg1
+            print(arg1)
         def make_args(): return {'myarg':1}
         tasks = [Task("task1", [(use_args,)], getargs=dict(arg1="task2.myarg") ),
                  Task("task2", [(make_args,)])]

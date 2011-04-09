@@ -136,7 +136,7 @@ class TestAddTask(object):
         tc = TaskControl(tasks)
         tc.process(None)
         gen = tc._add_task(0, "taskX", False)
-        py.test.raises(InvalidDodoFile, gen.next)
+        py.test.raises(InvalidDodoFile, gen.__next__)
 
     def testParallel(self):
         tasks = [Task("taskX",None,task_dep=["taskY"]),
@@ -144,10 +144,10 @@ class TestAddTask(object):
         tc = TaskControl(tasks)
         tc.process(None)
         gen1 = tc._add_task(0, "taskX", False)
-        assert tasks[1] == gen1.next()
+        assert tasks[1] == next(gen1)
         # gen2 wont get any task, because it was already being processed
         gen2 = tc._add_task(1, "taskY", False)
-        py.test.raises(StopIteration, gen2.next)
+        py.test.raises(StopIteration, gen2.__next__)
 
     def testSetupTasksDontRun(self):
         tasks = [Task("taskX",None,setup=["taskY"]),
@@ -155,10 +155,10 @@ class TestAddTask(object):
         tc = TaskControl(tasks)
         tc.process(['taskX'])
         gen = tc._add_task(0, 'taskX', False)
-        assert tasks[0] == gen.next()
+        assert tasks[0] == next(gen)
         # X is up-to-date
         tasks[0].run_status = 'up-to-date'
-        py.test.raises(StopIteration, gen.next)
+        py.test.raises(StopIteration, gen.__next__)
 
     def testIncludeSetup(self):
         # with include_setup yield all tasks without waiting for setup tasks to
@@ -168,10 +168,10 @@ class TestAddTask(object):
         tc = TaskControl(tasks)
         tc.process(['taskX'])
         gen = tc._add_task(0, 'taskX', True) # <== include_setup
-        assert tasks[0] == gen.next() # tasks with setup are yield twice
-        assert tasks[1] == gen.next() # execute setup before
-        assert tasks[0] == gen.next() # second time, ok
-        py.test.raises(StopIteration, gen.next) # nothing left
+        assert tasks[0] == next(gen) # tasks with setup are yield twice
+        assert tasks[1] == next(gen) # execute setup before
+        assert tasks[0] == next(gen) # second time, ok
+        py.test.raises(StopIteration, gen.__next__) # nothing left
 
     def testSetupTasksRun(self):
         tasks = [Task("taskX",None,setup=["taskY"]),
@@ -179,11 +179,11 @@ class TestAddTask(object):
         tc = TaskControl(tasks)
         tc.process(['taskX'])
         gen = tc._add_task(0, 'taskX', False)
-        assert tasks[0] == gen.next() # tasks with setup are yield twice
+        assert tasks[0] == next(gen) # tasks with setup are yield twice
         tasks[0].run_status = 'run' # should be executed
-        assert tasks[1] == gen.next() # execute setup before
-        assert tasks[0] == gen.next() # second time, ok
-        py.test.raises(StopIteration, gen.next) # nothing left
+        assert tasks[1] == next(gen) # execute setup before
+        assert tasks[0] == next(gen) # second time, ok
+        py.test.raises(StopIteration, gen.__next__) # nothing left
 
     def testWaitSetup(self):
         tasks = [Task("taskX",None,setup=["taskY"]),
@@ -191,15 +191,15 @@ class TestAddTask(object):
         tc = TaskControl(tasks)
         tc.process(['taskX'])
         gen = tc._add_task(0, 'taskX', False)
-        assert tasks[0] == gen.next() # tasks with setup are yield twice
+        assert tasks[0] == next(gen) # tasks with setup are yield twice
         # wait for taskX run_status
-        wait = gen.next()
+        wait = next(gen)
         assert wait.task_name == 'taskX'
         assert isinstance(wait, WaitSelectTask)
         tasks[0].run_status = 'run' # should be executed
-        assert tasks[1] == gen.next() # execute setup before
-        assert tasks[0] == gen.next() # second time, ok
-        py.test.raises(StopIteration, gen.next) # nothing left
+        assert tasks[1] == next(gen) # execute setup before
+        assert tasks[0] == next(gen) # second time, ok
+        py.test.raises(StopIteration, gen.__next__) # nothing left
 
     def testSetupInvalid(self):
         tasks = [Task("taskX",None,setup=["taskZZZZZZZZ"]),
@@ -207,13 +207,13 @@ class TestAddTask(object):
         tc = TaskControl(tasks)
         tc.process(['taskX'])
         gen = tc._add_task(0, 'taskX', False)
-        assert tasks[0] == gen.next() # tasks with setup are yield twice
+        assert tasks[0] == next(gen) # tasks with setup are yield twice
         tasks[0].run_status = 'run' # should be executed
-        py.test.raises(InvalidTask, gen.next) # execute setup before
+        py.test.raises(InvalidTask, gen.__next__) # execute setup before
 
     def testCalcDep(self):
         def get_deps():
-            print "gget"
+            print("gget")
             return {'file_dep': ('a', 'b')}
         tasks = [Task("taskX", None, calc_dep=['task_dep']),
                  Task("task_dep", [(get_deps,)]),
@@ -221,10 +221,10 @@ class TestAddTask(object):
         tc = TaskControl(tasks)
         tc.process(['taskX'])
         gen = tc._add_task(0, 'taskX', False)
-        assert tasks[1] == gen.next()
-        assert isinstance(gen.next(), WaitRunTask)
+        assert tasks[1] == next(gen)
+        assert isinstance(next(gen), WaitRunTask)
         tasks[1].execute()
-        assert tasks[0] == gen.next()
+        assert tasks[0] == next(gen)
         assert set(['a', 'b']) == tasks[0].file_dep
 
 
@@ -242,12 +242,12 @@ class TestGetNext(object):
         tc = TaskControl(tasks)
         tc.process(['taskX'])
         gen = tc.task_dispatcher()
-        assert tasks[0] == gen.next() # tasks with setup are yield twice
-        assert "hold on" == gen.next() # nothing else really available
+        assert tasks[0] == next(gen) # tasks with setup are yield twice
+        assert "hold on" == next(gen) # nothing else really available
         tasks[0].run_status = 'run' # should be executed
-        assert tasks[1] == gen.next() # execute setup before
-        assert tasks[0] == gen.next() # second time, ok
-        py.test.raises(StopIteration, gen.next) # nothing left
+        assert tasks[1] == next(gen) # execute setup before
+        assert tasks[0] == next(gen) # second time, ok
+        py.test.raises(StopIteration, gen.__next__) # nothing left
 
 # TODO get task from waiting queue before new gen
 

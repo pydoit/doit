@@ -2,7 +2,7 @@
 
 import os
 import sys
-import StringIO
+import io
 import tempfile
 
 import py.test
@@ -53,9 +53,9 @@ class TestCmdAction(object):
         assert "Cmd: %s" % PROGRAM == str(my_action)
 
     def test_unicode(self):
-        action_str = unicode(PROGRAM) + u"中文"
+        action_str = str(PROGRAM) + "中文"
         my_action = action.CmdAction(action_str)
-        assert "Cmd: %s" % action_str == unicode(my_action)
+        assert "Cmd: %s" % action_str == str(my_action)
 
     def test_repr(self):
         my_action = action.CmdAction(PROGRAM)
@@ -141,8 +141,8 @@ class TestCmdExpandAction(object):
 
 class TestWriter(object):
     def test_writer(self):
-        w1 = StringIO.StringIO()
-        w2 = StringIO.StringIO()
+        w1 = io.StringIO()
+        w2 = io.StringIO()
         writer = action.Writer(w1, w2)
         writer.flush() # make sure flush is supported
         writer.write("hello")

@@ -84,12 +84,12 @@ class TaskControl(object):
             self._def_order.append(task.name)
 
         # expand wild-card task-dependencies
-        for task in self.tasks.itervalues():
+        for task in self.tasks.values():
             for pattern in task.wild_dep:
                 task.task_dep.extend(self._get_wild_tasks(pattern))
 
         # check task-dependencies exist.
-        for task in self.tasks.itervalues():
+        for task in self.tasks.values():
             for dep in task.task_dep:
                 if dep not in self.tasks:
                     msg = "%s. Task dependency '%s' does not exist."
@@ -99,7 +99,7 @@ class TaskControl(object):
         # a target.
         # 1) create a dictionary associating every target->task. where the task
         # builds that target.
-        for task in self.tasks.itervalues():
+        for task in self.tasks.values():
             for target in task.targets:
                 if target in self.targets:
                     msg = ("Two different tasks can't have a common target." +
@@ -109,7 +109,7 @@ class TaskControl(object):
                 self.targets[target] = task
         # 2) now go through all dependencies and check if they are target from
         # another task.
-        for task in self.tasks.itervalues():
+        for task in self.tasks.values():
             for dep in task.file_dep:
                 if (dep in self.targets and
                     self.targets[dep] not in task.task_dep):
@@ -280,7 +280,7 @@ class TaskControl(object):
 
             # get task group from waiting queue
             if not current_gen:
-                for wait_name, wait in task_gens.iteritems():
+                for wait_name, wait in task_gens.items():
                     if wait.ready(self.tasks[wait_name].run_status):
                         current_gen = task_gens[wait_name].task_gen
                         del task_gens[wait_name]
@@ -299,7 +299,7 @@ class TaskControl(object):
 
             # get next task from current generator
             try:
-                next_task = current_gen.next()
+                next_task = next(current_gen)
             except StopIteration:
                 # nothing left for this generator
                 current_gen = None

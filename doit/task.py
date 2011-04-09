@@ -83,7 +83,7 @@ class Task(object):
         getargs = getargs or {} #default
         # check task attributes input
         my_locals = locals()
-        for attr, valid_list in self.valid_attr.iteritems():
+        for attr, valid_list in self.valid_attr.items():
             self.check_attr_input(name, attr, my_locals[attr], valid_list)
 
         self.name = name
@@ -152,7 +152,7 @@ class Task(object):
         """put input into file_dep"""
         for dep in file_dep:
 
-            if not isinstance(dep, basestring):
+            if not isinstance(dep, str):
                 raise InvalidTask("%s. file_dep must be a str got '%r' (%s)" %
                                   (self.name, dep, type(dep)))
 
@@ -191,7 +191,7 @@ class Task(object):
 
     def update_deps(self, deps):
         """expand all kinds of dep input"""
-        for dep, dep_values in deps.iteritems():
+        for dep, dep_values in deps.items():
             if dep == 'task_dep':
                 self._expand_task_dep(dep_values)
             elif dep == 'file_dep':
@@ -205,7 +205,7 @@ class Task(object):
 
     def _init_getargs(self):
         """task getargs attribute define implicit task dependencies"""
-        for key, desc in self.getargs.iteritems():
+        for key, desc in self.getargs.items():
             # check format
             parts = desc.split('.')
             if len(parts) != 2:
@@ -374,8 +374,8 @@ def dict_to_task(task_dict):
                           (task_dict['name'],task_dict))
 
     # user friendly. dont go ahead with invalid input.
-    task_attrs = task_dict.keys()
-    valid_attrs = set(Task.valid_attr.iterkeys())
+    task_attrs = list(task_dict.keys())
+    valid_attrs = set(Task.valid_attr.keys())
     for key in task_attrs:
         if key not in valid_attrs:
             raise InvalidTask("Task %s contains invalid field: '%s'"%

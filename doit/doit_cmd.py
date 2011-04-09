@@ -136,14 +136,14 @@ run_doc = {'purpose': "run tasks",
 
 def print_version():
     """print doit version (includes path location)"""
-    print ".".join([str(i) for i in doit.__version__])
-    print "bin @", os.path.abspath(__file__)
-    print "lib @", os.path.dirname(os.path.abspath(doit.__file__))
+    print(".".join([str(i) for i in doit.__version__]))
+    print("bin @", os.path.abspath(__file__))
+    print("lib @", os.path.dirname(os.path.abspath(doit.__file__)))
 
 def print_usage():
     """print doit "usage" (basic help) instructions"""
     # TODO cmd list should be automatically generated.
-    print """
+    print("""
 doit -- automation tool
 http://python-doit.sourceforge.net/
 
@@ -158,7 +158,7 @@ Commands:
  doit help              show help / reference
  doit help task         show help on task dictionary fields
  doit help <command>    show command usage
-"""
+""")
 
 def cmd_run(params, args):
     """execute cmd 'run' """
@@ -175,7 +175,7 @@ def cmd_run(params, args):
     # check if no sub-command specified. default command is "run"
     if len(args) == 0 or args[0] not in params['sub']:
         dodo_tasks = loader.get_tasks(params['dodoFile'], params['cwdPath'],
-                                      params['sub'].keys())
+                                      list(params['sub'].keys()))
         params.update_defaults(dodo_tasks['config'])
         default_tasks = args or dodo_tasks['config'].get('default_tasks')
         return doit_run(params['dep_file'], dodo_tasks['task_list'],
@@ -240,7 +240,7 @@ opt_list_dependencies = {'name': 'list_deps',
 def cmd_list(params, args):
     """execute cmd 'list' """
     dodo_tasks = loader.get_tasks(params['dodoFile'], params['cwdPath'],
-                                  params['sub'].keys())
+                                  list(params['sub'].keys()))
     params.update_defaults(dodo_tasks['config'])
     return doit_list(params['dep_file'], dodo_tasks['task_list'], sys.stdout,
                      args, params['all'], not params['quiet'],
@@ -271,7 +271,7 @@ opt_clean_cleandep = {'name': 'cleandep',
 def cmd_clean(params, args):
     """execute cmd 'clean' """
     dodo_tasks = loader.get_tasks(params['dodoFile'], params['cwdPath'],
-                                  params['sub'].keys())
+                                  list(params['sub'].keys()))
     params.update_defaults(dodo_tasks['config'])
     options = args or dodo_tasks['config'].get('default_tasks')
     return doit_clean(dodo_tasks['task_list'], sys.stdout, params['dryrun'],
@@ -288,7 +288,7 @@ forget_doc = {'purpose': "clear successful run status from internal DB",
 def cmd_forget(params, args):
     """execute cmd 'forget' """
     dodo_tasks = loader.get_tasks(params['dodoFile'], params['cwdPath'],
-                                  params['sub'].keys())
+                                  list(params['sub'].keys()))
     params.update_defaults(dodo_tasks['config'])
     options = args or dodo_tasks['config'].get('default_tasks')
     return doit_forget(params['dep_file'], dodo_tasks['task_list'],
@@ -305,7 +305,7 @@ ignore_doc = {'purpose': "ignore task (skip) on subsequent runs",
 def cmd_ignore(params, args):
     """execute cmd 'ignore' """
     dodo_tasks = loader.get_tasks(params['dodoFile'], params['cwdPath'],
-                                  params['sub'].keys())
+                                  list(params['sub'].keys()))
     params.update_defaults(dodo_tasks['config'])
     return doit_ignore(params['dep_file'], dodo_tasks['task_list'],
                        sys.stdout, args)
@@ -321,7 +321,7 @@ auto_doc = {'purpose': "automatically execute tasks when a dependency changes",
 def cmd_auto(params, args):
     """execute cmd 'auto' """
     dodo_tasks = loader.get_tasks(params['dodoFile'], params['cwdPath'],
-                                  params['sub'].keys())
+                                  list(params['sub'].keys()))
     params.update_defaults(dodo_tasks['config'])
     filter_tasks = args or dodo_tasks['config'].get('default_tasks')
     return doit_auto(params['dep_file'], dodo_tasks['task_list'], filter_tasks)
@@ -337,7 +337,7 @@ help_doc = {'purpose': "show help",
 
 def print_task_help():
     """print help for 'task' usage """
-    print """
+    print("""
 
 Task Dictionary parameters
 --------------------------
@@ -413,13 +413,13 @@ verbosity:
 
 title:
  - type: callable taking one parameter as argument (the task reference)
-"""
+""")
 
 def cmd_help(params, args):
     """execute cmd 'help' """
     if len(args) == 1:
         if args[0] in params['sub']:
-            print params['sub'][args[0]].help()
+            print(params['sub'][args[0]].help())
             return 0
         elif args[0] == 'task':
             print_task_help()
@@ -479,7 +479,7 @@ def cmd_main(cmd_args):
     # dont show traceback for user errors.
     # TODO check no InvalidTask exception endup here.
     except (cmdparse.CmdParseError, InvalidDodoFile,
-            InvalidCommand), err:
+            InvalidCommand) as err:
         sys.stderr.write("ERROR: %s\n" % str(err))
         return 1
 
