@@ -11,15 +11,8 @@ from doit.exceptions import InvalidCommand
 from doit import cmds
 from doit import reporter
 from tests.test_runner import FakeReporter
-from tests.test_filewatch import pytest_funcarg__cwd
-pytest_funcarg__cwd # pyflakes
+from tests.conftest import remove_db
 
-
-TESTDB = os.path.join(os.path.dirname(__file__), "testdb")
-
-def remove_testdb():
-    if os.path.exists(TESTDB):
-        os.remove(TESTDB)
 
 def tasks_sample():
     tasks_sample = [
@@ -35,18 +28,18 @@ def tasks_sample():
 
 class TestCmdList(object):
 
-    def testDefault(self):
+    def testDefault(self, depfile):
         output = StringIO.StringIO()
         tasks = tasks_sample()
-        cmds.doit_list(TESTDB, tasks, output, [])
+        cmds.doit_list(depfile.name, tasks, output, [])
         got = [line for line in output.getvalue().split('\n') if line]
         expected = [t.name for t in tasks if not t.is_subtask]
         assert expected == got
 
-    def testDoc(self):
+    def testDoc(self, depfile):
         output = StringIO.StringIO()
         tasks = tasks_sample()
-        cmds.doit_list(TESTDB, tasks, output, [], print_doc=True)
+        cmds.doit_list(depfile.name, tasks, output, [], print_doc=True)
         got = [line for line in output.getvalue().split('\n') if line]
         expected = []
         for t in tasks:
@@ -54,63 +47,67 @@ class TestCmdList(object):
                 expected.append("%s\t* %s" % (t.name, t.doc))
         assert expected == got
 
-    def testDependencies(self):
+    def testDependencies(self, depfile):
         my_task = Task("t2", [""], file_dep=['d2.txt'])
         output = StringIO.StringIO()
-        cmds.doit_list(TESTDB, [my_task], output, [], print_dependencies=True)
+        cmds.doit_list(depfile.name, [my_task], output, [],
+                       print_dependencies=True)
         got = output.getvalue()
         assert "d2.txt" in got
 
-    def testSubTask(self):
+    def testSubTask(self, depfile):
         output = StringIO.StringIO()
         tasks = tasks_sample()
-        cmds.doit_list(TESTDB, tasks, output, [], print_subtasks=True)
+        cmds.doit_list(depfile.name, tasks, output, [], print_subtasks=True)
         got = [line for line in output.getvalue().split('\n') if line]
         expected = [t.name for t in tasks]
         assert expected == got
 
-    def testFilter(self):
+    def testFilter(self, depfile):
         output = StringIO.StringIO()
-        cmds.doit_list(TESTDB, tasks_sample(), output, ['g1', 't2'])
+        cmds.doit_list(depfile.name, tasks_sample(), output, ['g1', 't2'])
         got = [line for line in output.getvalue().split('\n') if line]
         expected = ['g1', 't2']
         assert expected == got
 
-    def testFilterSubtask(self):
+    def testFilterSubtask(self, depfile):
         output = StringIO.StringIO()
-        cmds.doit_list(TESTDB, tasks_sample(), output, ['g1.a'])
+        cmds.doit_list(depfile.name, tasks_sample(), output, ['g1.a'])
         got = [line for line in output.getvalue().split('\n') if line]
         expected = ['g1.a']
         assert expected == got
 
-    def testFilterAll(self):
+    def testFilterAll(self, depfile):
         output = StringIO.StringIO()
-        cmds.doit_list(TESTDB, tasks_sample(), output, ['g1'], print_subtasks=True)
+        cmds.doit_list(depfile.name, tasks_sample(), output, ['g1'],
+                       print_subtasks=True)
         got = [line for line in output.getvalue().split('\n') if line]
         expected = ['g1', 'g1.a', 'g1.b']
         assert expected == got
 
-    def testStatus(self):
+    def testStatus(self, depfile):
         output = StringIO.StringIO()
-        cmds.doit_list(TESTDB, tasks_sample(), output, ['g1'], print_status=True)
+        cmds.doit_list(depfile.name, tasks_sample(), output, ['g1'],
+                       print_status=True)
         got = [line for line in output.getvalue().split('\n') if line]
         expected = ['R g1']
         assert expected == got
 
-    def testNoPrivate(self):
+    def testNoPrivate(self, depfile):
         task_list = list(tasks_sample())
         task_list.append(Task("_s3", [""]))
         output = StringIO.StringIO()
-        cmds.doit_list(TESTDB, task_list, output, ['_s3'])
+        cmds.doit_list(depfile.name, task_list, output, ['_s3'])
         got = [line for line in output.getvalue().split('\n') if line]
         expected = []
         assert expected == got
 
-    def testWithPrivate(self):
+    def testWithPrivate(self, depfile):
         task_list = list(tasks_sample())
         task_list.append(Task("_s3", [""]))
         output = StringIO.StringIO()
-        cmds.doit_list(TESTDB, task_list, output, ['_s3'], print_private=True)
+        cmds.doit_list(depfile.name, task_list, output, ['_s3'],
+                       print_private=True)
         got = [line for line in output.getvalue().split('\n') if line]
         expected = ['_s3']
         assert expected == got
@@ -120,7 +117,6 @@ class TestCmdForget(object):
 
     def pytest_funcarg__tasks(self, request):
         def create_tasks():
-            remove_testdb()
             tasks = [Task("t1", [""]),
                      Task("t2", [""]),
                      Task("g1", None, task_dep=['g1.a','g1.b']),
@@ -128,41 +124,54 @@ class TestCmdForget(object):
                      Task("g1.b", [""]),
                      Task("t3", [""], task_dep=['t1']),
                      Task("g2", None, task_dep=['t1','g1'])]
-            dep = Dependency(TESTDB)
-            for task in tasks:
-                dep._set(task.name,"dep","1")
-            dep.close()
             return tasks
         return request.cached_setup(
             setup=create_tasks,
             scope="function")
 
+    @staticmethod
+    def _add_task_deps(tasks, testdb):
+        """put some data on testdb"""
+        dep = Dependency(testdb)
+        for task in tasks:
+            dep._set(task.name,"dep","1")
+        dep.close()
 
-    def testForgetAll(self, tasks):
+        dep2 = Dependency(testdb)
+        assert "1" == dep2._get("g1.a", "dep")
+        dep2.close()
+
+
+    def testForgetAll(self, tasks, depfile):
+        self._add_task_deps(tasks, depfile.name)
         output = StringIO.StringIO()
-        cmds.doit_forget(TESTDB, tasks, output, [])
+        cmds.doit_forget(depfile.name, tasks, output, [])
         got = output.getvalue().split("\n")[:-1]
         assert ["forgeting all tasks"] == got, repr(output.getvalue())
-        dep = Dependency(TESTDB)
+#        assert False
+        dep = Dependency(depfile.name)
         for task in tasks:
             assert None == dep._get(task.name, "dep")
 
-    def testForgetOne(self, tasks):
+    def testForgetOne(self, tasks, depfile):
+        self._add_task_deps(tasks, depfile.name)
         output = StringIO.StringIO()
-        cmds.doit_forget(TESTDB, tasks, output, ["t2", "t1"])
+        cmds.doit_forget(depfile.name, tasks, output, ["t2", "t1"])
         got = output.getvalue().split("\n")[:-1]
         assert ["forgeting t2", "forgeting t1"] == got
-        dep = Dependency(TESTDB)
+        dep = Dependency(depfile.name)
         assert None == dep._get("t1", "dep")
         assert None == dep._get("t2", "dep")
+        assert "1" == dep._get("g1.a", "dep")
 
-    def testForgetGroup(self, tasks):
+    def testForgetGroup(self, tasks, depfile):
+        self._add_task_deps(tasks, depfile.name)
         output = StringIO.StringIO()
-        cmds.doit_forget(TESTDB, tasks, output, ["g2"])
+        cmds.doit_forget(depfile.name, tasks, output, ["g2"])
         got = output.getvalue().split("\n")[:-1]
         assert "forgeting g2" == got[0]
 
-        dep = Dependency(TESTDB)
+        dep = Dependency(depfile.name)
         assert None == dep._get("t1", "dep")
         assert "1" == dep._get("t2", "dep")
         assert None == dep._get("g1", "dep")
@@ -171,81 +180,75 @@ class TestCmdForget(object):
         assert None == dep._get("g2", "dep")
 
     # if task dependency not from a group dont forget it
-    def testDontForgetTaskDependency(self, tasks):
+    def testDontForgetTaskDependency(self, tasks, depfile):
+        self._add_task_deps(tasks, depfile.name)
         output = StringIO.StringIO()
-        cmds.doit_forget(TESTDB, tasks, output, ["t3"])
-        dep = Dependency(TESTDB)
+        cmds.doit_forget(depfile.name, tasks, output, ["t3"])
+        dep = Dependency(depfile.name)
         assert None == dep._get("t3", "dep")
         assert "1" == dep._get("t1", "dep")
 
-    def testForgetInvalid(self, tasks):
+    def testForgetInvalid(self, tasks, depfile):
+        self._add_task_deps(tasks, depfile.name)
         output = StringIO.StringIO()
         py.test.raises(InvalidCommand, cmds.doit_forget,
-                       TESTDB, tasks, output, ["XXX"])
+                       depfile.name, tasks, output, ["XXX"])
 
 
 class TestCmdRun(object):
 
-    def testProcessRun(self):
-        remove_testdb()
+    def testProcessRun(self, depfile):
         output = StringIO.StringIO()
-        result = cmds.doit_run(TESTDB, tasks_sample(), output)
+        result = cmds.doit_run(depfile.name, tasks_sample(), output)
         assert 0 == result
         got = output.getvalue().split("\n")[:-1]
         assert [".  t1", ".  t2", ".  g1.a", ".  g1.b", ".  t3"] == got
 
-    def testProcessRunMP(self):
-        remove_testdb()
+    def testProcessRunMP(self, depfile):
         output = StringIO.StringIO()
-        result = cmds.doit_run(TESTDB, tasks_sample(), output, num_process=1)
+        result = cmds.doit_run(depfile.name, tasks_sample(), output, num_process=1)
         assert 0 == result
         got = output.getvalue().split("\n")[:-1]
         assert [".  t1", ".  t2", ".  g1.a", ".  g1.b", ".  t3"] == got
 
-    def testProcessRunFilter(self):
-        remove_testdb()
+    def testProcessRunFilter(self, depfile):
         output = StringIO.StringIO()
-        cmds.doit_run(TESTDB, tasks_sample(), output, ["g1.a"])
+        cmds.doit_run(depfile.name, tasks_sample(), output, ["g1.a"])
         got = output.getvalue().split("\n")[:-1]
         assert [".  g1.a"] == got, repr(got)
 
-    def testProcessRunEmptyFilter(self):
-        remove_testdb()
+    def testProcessRunEmptyFilter(self, depfile):
         output = StringIO.StringIO()
-        cmds.doit_run(TESTDB, tasks_sample(), output, [])
+        cmds.doit_run(depfile.name, tasks_sample(), output, [])
         got = output.getvalue().split("\n")[:-1]
         assert [] == got
 
-    def testInvalidReporter(self):
-        remove_testdb()
+    def testInvalidReporter(self, depfile):
         output = StringIO.StringIO()
         py.test.raises(InvalidCommand, cmds.doit_run,
-                TESTDB, tasks_sample(), output, reporter="i dont exist")
+                depfile.name, tasks_sample(), output, reporter="i dont exist")
 
-    def testCustomReporter(self):
-        remove_testdb()
+    def testCustomReporter(self, depfile):
         output = StringIO.StringIO()
         class MyReporter(reporter.ConsoleReporter):
             def get_status(self, task):
                 self.outstream.write('MyReporter.start %s\n' % task.name)
-        cmds.doit_run(TESTDB, [tasks_sample()[0]], output, reporter=MyReporter)
+        cmds.doit_run(depfile.name, [tasks_sample()[0]], output, reporter=MyReporter)
         got = output.getvalue().split("\n")[:-1]
         assert 'MyReporter.start t1' == got[0]
 
-    def testSetVerbosity(self):
-        remove_testdb()
+    def testSetVerbosity(self, depfile):
         output = StringIO.StringIO()
         t = Task('x', None)
         used_verbosity = []
         def my_execute(out, err, verbosity):
             used_verbosity.append(verbosity)
         t.execute = my_execute
-        cmds.doit_run(TESTDB, [t], output, verbosity=2)
+        cmds.doit_run(depfile.name, [t], output, verbosity=2)
         assert 2 == used_verbosity[0], used_verbosity
 
-    def test_outfile(self):
-        remove_testdb()
-        cmds.doit_run(TESTDB, tasks_sample(), 'test.out', ["g1.a"])
+    def test_outfile(self, depfile):
+        cmds.doit_run(depfile.name, tasks_sample(), 'test.out', ["g1.a"])
         try:
             outfile = open('test.out', 'r')
             got = outfile.read()
@@ -296,7 +299,6 @@ class TestCmdIgnore(object):
     def pytest_funcarg__tasks(self, request):
         def create_tasks():
             # FIXME DRY
-            remove_testdb()
             tasks = [Task("t1", [""]),
                      Task("t2", [""]),
                      Task("g1", None, task_dep=['g1.a','g1.b']),
@@ -311,31 +313,31 @@ class TestCmdIgnore(object):
 
 
 
-    def testIgnoreAll(self, tasks):
+    def testIgnoreAll(self, tasks, depfile):
         output = StringIO.StringIO()
-        cmds.doit_ignore(TESTDB, tasks, output, [])
+        cmds.doit_ignore(depfile.name, tasks, output, [])
         got = output.getvalue().split("\n")[:-1]
         assert ["You cant ignore all tasks! Please select a task."] == got, got
-        dep = Dependency(TESTDB)
+        dep = Dependency(depfile.name)
         for task in tasks:
             assert None == dep._get(task.name, "ignore:")
 
-    def testIgnoreOne(self, tasks):
+    def testIgnoreOne(self, tasks, depfile):
         output = StringIO.StringIO()
-        cmds.doit_ignore(TESTDB, tasks, output, ["t2", "t1"])
+        cmds.doit_ignore(depfile.name, tasks, output, ["t2", "t1"])
         got = output.getvalue().split("\n")[:-1]
         assert ["ignoring t2", "ignoring t1"] == got
-        dep = Dependency(TESTDB)
+        dep = Dependency(depfile.name)
         assert '1' == dep._get("t1", "ignore:")
         assert '1' == dep._get("t2", "ignore:")
         assert None == dep._get("t3", "ignore:")
 
-    def testIgnoreGroup(self, tasks):
+    def testIgnoreGroup(self, tasks, depfile):
         output = StringIO.StringIO()
-        cmds.doit_ignore(TESTDB, tasks, output, ["g2"])
+        cmds.doit_ignore(depfile.name, tasks, output, ["g2"])
         got = output.getvalue().split("\n")[:-1]
 
-        dep = Dependency(TESTDB)
+        dep = Dependency(depfile.name)
         assert '1' == dep._get("t1", "ignore:"), got
         assert None == dep._get("t2", "ignore:")
         assert '1' == dep._get("g1", "ignore:")
@@ -344,22 +346,22 @@ class TestCmdIgnore(object):
         assert '1' == dep._get("g2", "ignore:")
 
     # if task dependency not from a group dont ignore it
-    def testDontIgnoreTaskDependency(self, tasks):
+    def testDontIgnoreTaskDependency(self, tasks, depfile):
         output = StringIO.StringIO()
-        cmds.doit_ignore(TESTDB, tasks, output, ["t3"])
-        dep = Dependency(TESTDB)
+        cmds.doit_ignore(depfile.name, tasks, output, ["t3"])
+        dep = Dependency(depfile.name)
         assert '1' == dep._get("t3", "ignore:")
         assert None == dep._get("t1", "ignore:")
 
-    def testIgnoreInvalid(self, tasks):
+    def testIgnoreInvalid(self, tasks, depfile):
         output = StringIO.StringIO()
         py.test.raises(InvalidCommand, cmds.doit_ignore,
-                       TESTDB, tasks, output, ["XXX"])
+                       depfile.name, tasks, output, ["XXX"])
 
 
 
 class TestCmdAuto(object):
-    def test(self, cwd, monkeypatch):
+    def test(self, cwd, monkeypatch, depfile):
         file1, file2, file3 = 'data/w1.txt', 'data/w2.txt', 'data/w3.txt'
         stop_file = 'data/stop'
         should_stop = []
@@ -380,7 +382,7 @@ class TestCmdAuto(object):
             if should_stop:
                 raise KeyboardInterrupt
 
-        remove_testdb()
+        remove_db(depfile.name)
         # create files
         for fx in (file1, file2, file3, stop_file):
             fd = open(fx, 'w')
@@ -394,7 +396,7 @@ class TestCmdAuto(object):
         tstop = Task("stop", [(hi,)],  [stop_file])
         task_list = [t1, t2, tstop]
         reporter = FakeReporter()
-        run_args = (TESTDB, task_list, ["t1", "t2", "stop"],
+        run_args = (depfile.name, task_list, ["t1", "t2", "stop"],
                     reporter, loop_callback)
         loop_thread = threading.Thread(target=cmds.doit_auto, args=run_args)
         loop_thread.daemon = True

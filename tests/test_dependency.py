@@ -2,7 +2,7 @@
 
 import os
 import time
-import anydbm
+import anydbm as ddbm
 
 import py.test
 
@@ -44,26 +44,6 @@ def test_md5():
 # taskId_dependency => signature(dependency)
 # taskId is md5(CmdTask.task)
 
-TESTDB = os.path.abspath("testdb")
-
-# fixture for "doit.db". create/remove for every test
-# FIXME some dbm implementations create not only one file. and that messes up
-# the tests completely.
-def pytest_funcarg__depfile(request):
-    def create_depfile():
-        dep_class = request.param
-        if os.path.exists(TESTDB): os.remove(TESTDB)
-        return dep_class(TESTDB)
-    def remove_depfile(depfile):
-        if not depfile._closed:
-            depfile.close()
-        if os.path.exists(TESTDB):
-            os.remove(TESTDB)
-    return request.cached_setup(
-        setup=create_depfile,
-        teardown=remove_depfile,
-        scope="function")
-
 
 # fixture to create a sample file to be used as file_dep
 def pytest_funcarg__dependency(request):
@@ -90,12 +70,7 @@ def pytest_funcarg__dependency(request):
 def pytest_generate_tests(metafunc):
     if "depfile" in metafunc.funcargnames:
         metafunc.addcall(id='JsonDependency', param=JsonDependency)
-
-        # dont test dbm on python2.5
-        import platform
-        python_version = platform.python_version().split('.')
-        if python_version[0] != '2' or python_version[1] != '5':
-            metafunc.addcall(id='DbmDependency', param=DbmDependency)
+        metafunc.addcall(id='DbmDependency', param=DbmDependency)
 
 
 class TestDependencyDb(object):
@@ -113,15 +88,15 @@ class TestDependencyDb(object):
         depfile.close()
 
         # open it again and check the value
-        d2 = depfile.__class__(TESTDB)
+        d2 = depfile.__class__(depfile.name)
         value = d2._get("taskId_X","dependency_A")
         assert "da_md5" == value, value
 
     def test_corrupted_file(self, depfile):
-        fd = open(TESTDB, 'w')
+        fd = open(depfile.name, 'w')
         fd.write("""{"x": y}""")
         fd.close()
-        py.test.raises((ValueError, anydbm.error), depfile.__class__, TESTDB)
+        py.test.raises((ValueError, ddbm.error), depfile.__class__, depfile.name)
 
 
     # _get must return None if entry doesnt exist.
@@ -152,11 +127,11 @@ class TestDependencyDb(object):
         depfile._set("taskId_YYY", "dep_1", "x")
         depfile.close()
         # 2 - re-open and remove one task
-        reopened = depfile.__class__(TESTDB)
+        reopened = depfile.__class__(depfile.name)
         reopened.remove("taskId_YYY")
         reopened.close()
         # 3 - re-open again and check task was really removed
-        reopened2 = depfile.__class__(TESTDB)
+        reopened2 = depfile.__class__(depfile.name)
         assert reopened2._in("taskId_XXX")
         assert not reopened2._in("taskId_YYY")
 

@@ -1,8 +1,15 @@
 """Manage (save/check) task dependency-on-files data."""
 
 import os
-import anydbm
 import hashlib
+import dumbdbm
+import anydbm as ddbm
+
+# uncomment imports below to run tests on all dbm backends...
+#import dbhash as ddbm # ok (removed from python3)
+#import dumbdbm as ddbm # test_corrupted_file fails
+#import dbm as ddbm # test_corrupted_file fails
+#import gdbm as ddbm # ok <= TODO make this the default
 
 #FIXME move json import to __init__.py
 # Use simplejson or Python 2.6 json
@@ -144,18 +151,19 @@ class DbmDB(object):
         """Open/create a DB file"""
         self.name = name
         try:
-            self._dbm = anydbm.open(self.name, 'c')
-        except anydbm.error, exception:
+            self._dbm = ddbm.open(self.name, 'c')
+        except ddbm.error, exception:
             message = str(exception)
             if message == 'db type could not be determined':
                 # When a corrupted/old format database is found
                 # suggest the user to just remove the file
-                new_message = ('Dependencies file in %(filename)s seems to use '
-                               'an old format or is corrupted.\n'
-                               'To fix the issue you can just remove the database file '
-                               'and a new one will be generated.'
-                               % {'filename': repr(self.name)})
-                raise anydbm.error, new_message
+                new_message = (
+                    'Dependencies file in %(filename)s seems to use '
+                    'an old format or is corrupted.\n'
+                    'To fix the issue you can just remove the database file(s) '
+                    'and a new one will be generated.'
+                    % {'filename': repr(self.name)})
+                raise ddbm.error, new_message
             else:
                 # Re-raise any other exceptions
                 raise
@@ -209,7 +217,11 @@ class DbmDB(object):
     def remove_all(self):
         """remove saved dependecies from DB for all tasks"""
         self._db = {}
-        self._dbm = anydbm.open(self.name, 'n')
+        # dumb dbm always opens file in update mode
+        if isinstance(self._dbm, dumbdbm._Database):
+            self._dbm._index = {}
+            self._dbm.close()
+        self._dbm = ddbm.open(self.name, 'n')
         self.dirty = set()
 
 
@@ -217,7 +229,7 @@ class DbmDB(object):
 class DependencyBase(object):
     """Manage tasks dependencies (abstract class)
 
-    Each dependency is a saved in "db". the "db" is a text file using json
+    Each dependency is a saved in "db". the "db" can have json or dbm
     format where there is a dictionary for every task. each task has a
     dictionary where key is a dependency (abs file path), and the value is the
     dependency signature.
@@ -237,6 +249,7 @@ class DependencyBase(object):
         self.remove = self.backend.remove
         self.remove_all = self.backend.remove_all
         self._in = self.backend.in_
+        self.name = self.backend.name
 
     def close(self):
         """Write DB in file"""
@@ -381,11 +394,4 @@ class DbmDependency(DependencyBase):
     def __init__(self, name):
         DependencyBase.__init__(self, DbmDB(name))
 
-# default "Dependency" implementation to be used
-import platform
-python_version = platform.python_version().split('.')
-if python_version[0] == '2' and python_version[1] == '5':
-    # use json by default on python2.5 because installing this on ubuntu is PITA
-    Dependency = JsonDependency
-else:
-    Dependency = DbmDependency
+Dependency = DbmDependency

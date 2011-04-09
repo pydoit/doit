@@ -6,21 +6,6 @@ import py.test
 from doit.filewatch import FileModifyWatcher
 
 
-def pytest_funcarg__cwd(request):
-    """set cwd to parent folder of this file."""
-    def set_cwd():
-        cwd = {}
-        cwd['previous'] = os.getcwd()
-        cwd['current'] = os.path.abspath(os.path.dirname(__file__))
-        os.chdir(cwd['current'])
-        return cwd
-    def restore_cwd(cwd):
-        os.chdir(cwd['previous'])
-    return request.cached_setup(
-        setup=set_cwd,
-        teardown=restore_cwd,
-        scope="function")
-
 
 class TestFileWatcher(object):
     def testInit(self, cwd):

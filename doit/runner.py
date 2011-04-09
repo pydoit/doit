@@ -222,6 +222,9 @@ class MRunner(Runner):
                                           'reporter':method_name})
             return rep_method
 
+        def complete_run(self):
+            """ignore this on MReporter"""
+            pass
 
     def __init__(self, dependency_file, reporter, continue_=False,
                  always_execute=False, verbosity=0, num_process=1):
