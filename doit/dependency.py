@@ -394,4 +394,11 @@ class DbmDependency(DependencyBase):
     def __init__(self, name):
         DependencyBase.__init__(self, DbmDB(name))
 
-Dependency = DbmDependency
+import platform
+python_version = platform.python_version().split('.')
+if python_version[0] == '2' and python_version[1] == '5':
+    # use json by default on python2.5 because gdbm in python2.5 is broken
+    Dependency = JsonDependency
+else:
+    Dependency = DbmDependency
+

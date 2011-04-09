@@ -70,7 +70,12 @@ def pytest_funcarg__dependency(request):
 def pytest_generate_tests(metafunc):
     if "depfile" in metafunc.funcargnames:
         metafunc.addcall(id='JsonDependency', param=JsonDependency)
-        metafunc.addcall(id='DbmDependency', param=DbmDependency)
+        # gdbm is broken on python2.5
+        import platform
+        python_version = platform.python_version().split('.')
+        if python_version[0] != '2' or python_version[1] != '5':
+            metafunc.addcall(id='DbmDependency', param=DbmDependency)
+
 
 
 class TestDependencyDb(object):
