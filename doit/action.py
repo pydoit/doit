@@ -67,7 +67,7 @@ class CmdAction(BaseAction):
             """
             while True:
                 # line buffered
-                line = input_.readline()
+                line = input_.readline().decode('utf-8')
                 # unbuffered ? process.stdout.read(1)
                 if line:
                     capture.write(line)

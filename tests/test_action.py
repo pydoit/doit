@@ -15,10 +15,13 @@ TEST_PATH = os.path.dirname(__file__)
 PROGRAM = "python %s/sample_process.py" % TEST_PATH
 
 
+def create_tempfile():
+    return tempfile.TemporaryFile('w+')
+
 def pytest_funcarg__tmpfile(request):
     """crate a temporary file"""
     return request.cached_setup(
-        setup=tempfile.TemporaryFile,
+        setup=create_tempfile,
         teardown=(lambda tmpfile: tmpfile.close()),
         scope="function")
 
@@ -303,7 +306,7 @@ class TestPythonVerbosity(object):
         assert "this is stdout S\n" == got, repr(got)
 
     def test_redirectStderr(self):
-        tmpfile = tempfile.TemporaryFile()
+        tmpfile = create_tempfile()
         my_action = action.PythonAction(self.write_stderr)
         my_action.execute(err=tmpfile)
         tmpfile.seek(0)
@@ -312,7 +315,7 @@ class TestPythonVerbosity(object):
         assert "this is stderr S\n" == got, got
 
     def test_redirectStdout(self):
-        tmpfile = tempfile.TemporaryFile()
+        tmpfile = create_tempfile()
         my_action = action.PythonAction(self.write_stdout)
         my_action.execute(out=tmpfile)
         tmpfile.seek(0)
