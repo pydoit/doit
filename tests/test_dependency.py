@@ -2,7 +2,7 @@
 
 import os
 import time
-import anydbm as ddbm
+import anydbm
 
 import py.test
 
@@ -101,7 +101,13 @@ class TestDependencyDb(object):
         fd = open(depfile.name, 'w')
         fd.write("""{"x": y}""")
         fd.close()
-        py.test.raises((ValueError, ddbm.error), depfile.__class__, depfile.name)
+        if isinstance(anydbm.error, Exception):
+            # python2
+            exceptions = (ValueError, anydbm.error)
+        else:
+            # python 3 dbm.error is a tuple
+            exceptions = (ValueError,) + anydbm.error
+        py.test.raises(exceptions, depfile.__class__, depfile.name)
 
 
     # _get must return None if entry doesnt exist.

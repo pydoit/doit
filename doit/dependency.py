@@ -163,7 +163,12 @@ class DbmDB(object):
                     'To fix the issue you can just remove the database file(s) '
                     'and a new one will be generated.'
                     % {'filename': repr(self.name)})
-                raise ddbm.error, new_message
+
+                # python2
+                if isinstance(ddbm.error, Exception):
+                    raise ddbm.error, new_message
+                else: # python3 dbm.error is a tuple
+                    raise ddbm.error[0], new_message
             else:
                 # Re-raise any other exceptions
                 raise
