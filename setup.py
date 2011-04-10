@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-from distutils.core import setup
+from distutils.core import setup, Command
 
 import platform
 python_version = platform.python_version().split('.')
@@ -25,6 +25,21 @@ if python_version[0] == '2':
     if python_version[1] < '6':
         install_requires.append('multiprocessing')
         install_requires.append('simplejson')
+
+
+# http://pytest.org/goodpractises.html
+class PyTest(Command):
+    user_options = []
+    def initialize_options(self):
+        pass
+    def finalize_options(self):
+        pass
+    def run(self):
+        import sys, subprocess
+        errno = subprocess.call([sys.executable, 'runtests.py'])
+        raise SystemExit(errno)
+
+
 
 setup(name = 'doit',
       description = 'doit - Automation Tool',
@@ -51,6 +66,7 @@ setup(name = 'doit',
 
       packages = ['doit'],
       scripts = scripts,
+      cmdclass = {'test': PyTest},
       install_requires = install_requires,
 
       long_description = """
