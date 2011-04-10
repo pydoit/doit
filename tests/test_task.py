@@ -221,7 +221,8 @@ class TestTaskActions(object):
     # python and commands mixed on same task
     def test_mixed(self):
         def my_print(msg):
-            print msg,
+            import sys # python3 2to3 cant handle print with a trailing comma
+            sys.stdout.write(msg)
         t = task.Task("taskX",["%s hi_stdout hi2" % PROGRAM,
                                (my_print,['_PY_']),
                                "%s hi_list hi6" % PROGRAM])

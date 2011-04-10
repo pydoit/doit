@@ -23,10 +23,7 @@ class ConsoleReporter(object):
         self.outstream = outstream
 
     def write(self, text):
-        # TODO for some reason write cant handle unicode in the same
-        # way as print
-        # self.outstream.write('.  %s\n' % text)
-        print >> self.outstream, text,
+        self.outstream.write(text)
 
     def get_status(self, task):
         """called when task is selected (check if up-to-date)"""
@@ -56,7 +53,7 @@ class ConsoleReporter(object):
 
     def cleanup_error(self, exception):
         """error during cleanup"""
-        print >> sys.stderr, exception.get_msg(),
+        sys.stderr.write(exception.get_msg())
 
     def runtime_error(self, msg):
         """error from doit (not from a task execution)"""
