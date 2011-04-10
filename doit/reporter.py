@@ -3,7 +3,7 @@
 import sys
 import time
 import datetime
-import io
+import StringIO
 
 from doit.dependency import json
 
@@ -26,7 +26,7 @@ class ConsoleReporter(object):
         # TODO for some reason write cant handle unicode in the same
         # way as print
         # self.outstream.write('.  %s\n' % text)
-        print(text, end=' ', file=self.outstream)
+        print >> self.outstream, text,
 
     def get_status(self, task):
         """called when task is selected (check if up-to-date)"""
@@ -56,7 +56,7 @@ class ConsoleReporter(object):
 
     def cleanup_error(self, exception):
         """error during cleanup"""
-        print(exception.get_msg(), end=' ', file=sys.stderr)
+        print >> sys.stderr, exception.get_msg(),
 
     def runtime_error(self, msg):
         """error from doit (not from a task execution)"""
@@ -170,9 +170,9 @@ class JsonReporter(object):
         # than the json data. so anything that is sent to stdout/err needs to
         # be captured.
         self._old_out = sys.stdout
-        sys.stdout = io.StringIO()
+        sys.stdout = StringIO.StringIO()
         self._old_err = sys.stderr
-        sys.stderr = io.StringIO()
+        sys.stderr = StringIO.StringIO()
         self.outstream = outstream
         # runtime and cleanup errors
         self.errors = []
@@ -225,7 +225,7 @@ class JsonReporter(object):
         if self.errors:
             log_err += "\n".join(self.errors)
 
-        task_result_list = [tr.to_dict() for tr in self.t_results.values()]
+        task_result_list = [tr.to_dict() for tr in self.t_results.itervalues()]
         json_data = {'tasks': task_result_list,
                      'out': log_out,
                      'err': log_err}

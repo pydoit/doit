@@ -2,7 +2,7 @@
 
 import os
 import time
-import dbm as ddbm
+import anydbm as ddbm
 
 import py.test
 
@@ -17,7 +17,7 @@ def get_abspath(relativePath):
 
 
 def test_unicode_md5():
-    data = "我"
+    data = u"我"
     # no exception is raised
     assert get_md5(data)
 

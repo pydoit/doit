@@ -1,7 +1,7 @@
 def task_py_params():
     def show_params(param1, param2):
-        print(param1)
-        print(5 + param2)
+        print param1
+        print 5 + param2
     return {'actions':[(show_params,)],
             'params':[{'name':'param1',
                        'short':'p',

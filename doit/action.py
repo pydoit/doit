@@ -2,7 +2,7 @@
 """
 
 import subprocess, sys
-import io
+import StringIO
 import inspect
 from threading import Thread
 
@@ -31,7 +31,7 @@ class CmdAction(BaseAction):
     """
 
     def __init__(self, action, task=None): #pylint: disable=W0231
-        assert isinstance(action, str), "CmdAction must be a string."
+        assert isinstance(action, basestring), "CmdAction must be a string."
         self.action = action
         self.task = task
         self.out = None
@@ -76,8 +76,8 @@ class CmdAction(BaseAction):
                 if not line and process.poll() != None:
                     break
 
-        output = io.StringIO()
-        errput = io.StringIO()
+        output = StringIO.StringIO()
+        errput = StringIO.StringIO()
         t_out = Thread(target=print_process_output,
                        args=(process, process.stdout, output, out))
         t_err = Thread(target=print_process_output,
@@ -216,7 +216,7 @@ class PythonAction(BaseAction):
         extra_args.update(self.task.options)
         kwargs = self.kwargs.copy()
 
-        for key in list(extra_args.keys()):
+        for key in extra_args.keys():
             # check key is a positional parameter
             if key in argspec_args:
                 arg_pos = argspec_args.index(key)
@@ -254,9 +254,9 @@ class PythonAction(BaseAction):
         """
         # set std stream
         old_stdout = sys.stdout
-        output = io.StringIO()
+        output = StringIO.StringIO()
         old_stderr = sys.stderr
-        errput = io.StringIO()
+        errput = StringIO.StringIO()
 
         out_list = [output]
         if out:
@@ -273,7 +273,7 @@ class PythonAction(BaseAction):
         # execute action / callable
         try:
             returned_value = self.py_callable(*self.args, **kwargs)
-        except Exception as exception:
+        except Exception, exception:
             return TaskError("PythonAction Error", exception)
         finally:
             # restore std streams /log captured streams
@@ -288,7 +288,7 @@ class PythonAction(BaseAction):
                               (self.py_callable, returned_value))
         elif returned_value is True or returned_value is None:
             pass
-        elif isinstance(returned_value, str):
+        elif isinstance(returned_value, basestring):
             self.result = returned_value
         elif isinstance(returned_value, dict):
             self.values = returned_value
@@ -319,7 +319,7 @@ def create_action(action, task_ref):
     if isinstance(action, BaseAction):
         return action
 
-    if isinstance(action, str):
+    if isinstance(action, basestring):
         return CmdAction(action, task_ref)
 
     if isinstance(action, tuple):

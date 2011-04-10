@@ -2,7 +2,7 @@
 
 import os, shutil
 import tempfile
-from io import StringIO
+from StringIO import StringIO
 
 import py.test
 
@@ -100,7 +100,7 @@ class TestTaskExpandFileDep(object):
                        file_dep=[['aaaa']])
 
     def test_file_dep_unicode(self):
-        unicode_name = "中文"
+        unicode_name = u"中文"
         my_task = task.Task("Task X", ["taskcmd"], file_dep=[unicode_name])
         assert unicode_name in my_task.file_dep
 
@@ -221,7 +221,7 @@ class TestTaskActions(object):
     # python and commands mixed on same task
     def test_mixed(self):
         def my_print(msg):
-            print(msg, end=' ')
+            print msg,
         t = task.Task("taskX",["%s hi_stdout hi2" % PROGRAM,
                                (my_print,['_PY_']),
                                "%s hi_list hi6" % PROGRAM])

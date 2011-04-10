@@ -9,7 +9,7 @@ SOURCE = {
 
 def task_link():
     "create binary program"
-    OBJECTS = ["%s.o" % module for module in SOURCE.keys()]
+    OBJECTS = ["%s.o" % module for module in SOURCE.iterkeys()]
     return {'actions': ['cc -o %(targets)s %(dependencies)s'],
             'file_dep': OBJECTS,
             'targets': ['edit'],
@@ -18,7 +18,7 @@ def task_link():
 
 def task_compile():
     "compile C files"
-    for module, dep in SOURCE.items():
+    for module, dep in SOURCE.iteritems():
         dependencies = dep + ['%s.c' % module]
         yield {'name': module,
                'actions': ["cc -c %s.c" % module],

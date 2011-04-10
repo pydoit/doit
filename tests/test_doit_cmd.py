@@ -77,7 +77,7 @@ class TestInterface(object):
 
         assert len(expected) == len(argspec[0])
         assert len(expected) == len(mock_run.call_args[0])
-        for exp,got in zip(expected, list(zip(argspec[0], mock_run.call_args[0]))):
+        for exp,got in zip(expected, zip(argspec[0], mock_run.call_args[0])):
             assert exp == got
 
     def test_config(self, monkeypatch):
@@ -123,7 +123,7 @@ class TestInterface(object):
 
         assert len(expected) == len(argspec[0])
         assert len(expected) == len(mock_list.call_args[0])
-        for exp,got in zip(expected, list(zip(argspec[0], mock_list.call_args[0]))):
+        for exp,got in zip(expected, zip(argspec[0], mock_list.call_args[0])):
             assert exp == got
 
 
@@ -144,7 +144,7 @@ class TestInterface(object):
 
         assert len(expected) == len(argspec[0])
         assert len(expected) == len(mock_clean.call_args[0])
-        for exp,got in zip(expected, list(zip(argspec[0], mock_clean.call_args[0]))):
+        for exp,got in zip(expected, zip(argspec[0], mock_clean.call_args[0])):
             assert exp == got
 
 
@@ -163,7 +163,7 @@ class TestInterface(object):
 
         assert len(expected) == len(argspec[0])
         assert len(expected) == len(mock_forget.call_args[0])
-        for exp,got in zip(expected, list(zip(argspec[0], mock_forget.call_args[0]))):
+        for exp,got in zip(expected, zip(argspec[0], mock_forget.call_args[0])):
             assert exp == got
 
 
@@ -182,7 +182,7 @@ class TestInterface(object):
 
         assert len(expected) == len(argspec[0])
         assert len(expected) == len(mock_ignore.call_args[0])
-        for exp,got in zip(expected, list(zip(argspec[0], mock_ignore.call_args[0]))):
+        for exp,got in zip(expected, zip(argspec[0], mock_ignore.call_args[0])):
             assert exp == got
 
 
@@ -203,7 +203,7 @@ class TestInterface(object):
         assert len(expected) == len(argspec[0])
         #                                    + reporter + loop_callback
         assert len(expected) == (len(mock_auto.call_args[0]) + 2)
-        for exp,got in zip(expected, list(zip(argspec[0], mock_auto.call_args[0]))):
+        for exp,got in zip(expected, zip(argspec[0], mock_auto.call_args[0])):
             assert exp == got
 
 

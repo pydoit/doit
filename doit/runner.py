@@ -82,7 +82,7 @@ class Runner(object):
             # check if task is up-to-date
             try:
                 task.run_status = self.dependency_manager.get_status(task)
-            except Exception as exception:
+            except Exception, exception:
                 msg = "ERROR: Task '%s' checking dependencies" % task.name
                 dep_error = DependencyError(msg, exception)
                 self._handle_task_error(task, dep_error)
@@ -109,10 +109,10 @@ class Runner(object):
             assert task.setup_tasks
 
         # selected just need to get values from other tasks
-        for arg, value in task.getargs.items():
+        for arg, value in task.getargs.iteritems():
             try:
                 task.options[arg] = self.dependency_manager.get_value(value)
-            except Exception as exception:
+            except Exception, exception:
                 msg = ("ERROR getting value for argument '%s'\n" % arg +
                        str(exception))
                 self._handle_task_error(task, DependencyError(msg))
@@ -188,7 +188,7 @@ class Runner(object):
         """entry point to run tasks"""
         try:
             self.run_tasks(task_control)
-        except InvalidTask as exception:
+        except InvalidTask, exception:
             self.reporter.runtime_error(str(exception))
         finally:
             self.finish()
@@ -261,7 +261,7 @@ class MRunner(Runner):
             # get next task from controller
             else:
                 try:
-                    task = next(self.task_gen)
+                    task = self.task_gen.next()
                     if not isinstance(task, Task):
                         self.free_proc += 1
                         return Hold()
@@ -321,7 +321,7 @@ class MRunner(Runner):
         @return list of Process
         """
         proc_list = []
-        for _ in range(self.num_process):
+        for _ in xrange(self.num_process):
             next_task = self.get_next_task()
             if next_task is None:
                 break # do not start more processes than tasks
@@ -433,7 +433,7 @@ class MRunner(Runner):
                 else:
                     result['failure'] = t_result
                 result_q.put(result)
-        except (SystemExit, KeyboardInterrupt, Exception) as exception:
+        except (SystemExit, KeyboardInterrupt, Exception), exception:
             # error, blow-up everything. send exception info to master process
             result_q.put({'name': task.name,
                           'exit': exception.__class__,

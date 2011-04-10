@@ -2,8 +2,8 @@
 
 import os
 import hashlib
-import dbm.dumb
-import dbm as ddbm
+import dumbdbm
+import anydbm as ddbm
 
 # uncomment imports below to run tests on all dbm backends...
 #import dbhash as ddbm # ok (removed from python3)
@@ -26,7 +26,7 @@ USE_FILE_TIMESTAMP = True
 
 def get_md5(input_data):
     """return md5 from string or unicode"""
-    if isinstance(input_data, str):
+    if isinstance(input_data, unicode):
         byte_data = input_data.encode("utf-8")
     else:
         byte_data = input_data
@@ -81,7 +81,7 @@ class JsonDB(object):
         try:
             try:
                 return json.load(db_file)
-            except ValueError as error:
+            except ValueError, error:
                 # file contains corrupted json data
                 msg = (error.args[0] +
                        "\nInvalid JSON data in %s\n" %
@@ -152,7 +152,7 @@ class DbmDB(object):
         self.name = name
         try:
             self._dbm = ddbm.open(self.name, 'c')
-        except ddbm.error as exception:
+        except ddbm.error, exception:
             message = str(exception)
             if message == 'db type could not be determined':
                 # When a corrupted/old format database is found
@@ -163,7 +163,7 @@ class DbmDB(object):
                     'To fix the issue you can just remove the database file(s) '
                     'and a new one will be generated.'
                     % {'filename': repr(self.name)})
-                raise ddbm.error(new_message)
+                raise ddbm.error, new_message
             else:
                 # Re-raise any other exceptions
                 raise
@@ -218,7 +218,7 @@ class DbmDB(object):
         """remove saved dependecies from DB for all tasks"""
         self._db = {}
         # dumb dbm always opens file in update mode
-        if isinstance(self._dbm, dbm.dumb._Database):
+        if isinstance(self._dbm, dumbdbm._Database):
             self._dbm._index = {}
             self._dbm.close()
         self._dbm = ddbm.open(self.name, 'n')

@@ -3,9 +3,9 @@ DOIT_CONFIG = {'verbosity': 2,
                'default_tasks': ['withenvX', 'withenvY']}
 
 def start(name):
-    print("start %s" % name)
+    print "start %s" % name
 def stop(name):
-    print("stop %s" % name)
+    print "stop %s" % name
 
 def task_setup_sample():
     for name in ('setupX', 'setupY'):

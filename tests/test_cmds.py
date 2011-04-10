@@ -1,5 +1,5 @@
 import os
-import io
+import StringIO
 import threading
 import time
 
@@ -29,7 +29,7 @@ def tasks_sample():
 class TestCmdList(object):
 
     def testDefault(self, depfile):
-        output = io.StringIO()
+        output = StringIO.StringIO()
         tasks = tasks_sample()
         cmds.doit_list(depfile.name, tasks, output, [])
         got = [line for line in output.getvalue().split('\n') if line]
@@ -37,7 +37,7 @@ class TestCmdList(object):
         assert expected == got
 
     def testDoc(self, depfile):
-        output = io.StringIO()
+        output = StringIO.StringIO()
         tasks = tasks_sample()
         cmds.doit_list(depfile.name, tasks, output, [], print_doc=True)
         got = [line for line in output.getvalue().split('\n') if line]
@@ -49,14 +49,14 @@ class TestCmdList(object):
 
     def testDependencies(self, depfile):
         my_task = Task("t2", [""], file_dep=['d2.txt'])
-        output = io.StringIO()
+        output = StringIO.StringIO()
         cmds.doit_list(depfile.name, [my_task], output, [],
                        print_dependencies=True)
         got = output.getvalue()
         assert "d2.txt" in got
 
     def testSubTask(self, depfile):
-        output = io.StringIO()
+        output = StringIO.StringIO()
         tasks = tasks_sample()
         cmds.doit_list(depfile.name, tasks, output, [], print_subtasks=True)
         got = [line for line in output.getvalue().split('\n') if line]
@@ -64,21 +64,21 @@ class TestCmdList(object):
         assert expected == got
 
     def testFilter(self, depfile):
-        output = io.StringIO()
+        output = StringIO.StringIO()
         cmds.doit_list(depfile.name, tasks_sample(), output, ['g1', 't2'])
         got = [line for line in output.getvalue().split('\n') if line]
         expected = ['g1', 't2']
         assert expected == got
 
     def testFilterSubtask(self, depfile):
-        output = io.StringIO()
+        output = StringIO.StringIO()
         cmds.doit_list(depfile.name, tasks_sample(), output, ['g1.a'])
         got = [line for line in output.getvalue().split('\n') if line]
         expected = ['g1.a']
         assert expected == got
 
     def testFilterAll(self, depfile):
-        output = io.StringIO()
+        output = StringIO.StringIO()
         cmds.doit_list(depfile.name, tasks_sample(), output, ['g1'],
                        print_subtasks=True)
         got = [line for line in output.getvalue().split('\n') if line]
@@ -86,7 +86,7 @@ class TestCmdList(object):
         assert expected == got
 
     def testStatus(self, depfile):
-        output = io.StringIO()
+        output = StringIO.StringIO()
         cmds.doit_list(depfile.name, tasks_sample(), output, ['g1'],
                        print_status=True)
         got = [line for line in output.getvalue().split('\n') if line]
@@ -96,7 +96,7 @@ class TestCmdList(object):
     def testNoPrivate(self, depfile):
         task_list = list(tasks_sample())
         task_list.append(Task("_s3", [""]))
-        output = io.StringIO()
+        output = StringIO.StringIO()
         cmds.doit_list(depfile.name, task_list, output, ['_s3'])
         got = [line for line in output.getvalue().split('\n') if line]
         expected = []
@@ -105,7 +105,7 @@ class TestCmdList(object):
     def testWithPrivate(self, depfile):
         task_list = list(tasks_sample())
         task_list.append(Task("_s3", [""]))
-        output = io.StringIO()
+        output = StringIO.StringIO()
         cmds.doit_list(depfile.name, task_list, output, ['_s3'],
                        print_private=True)
         got = [line for line in output.getvalue().split('\n') if line]
@@ -144,7 +144,7 @@ class TestCmdForget(object):
 
     def testForgetAll(self, tasks, depfile):
         self._add_task_deps(tasks, depfile.name)
-        output = io.StringIO()
+        output = StringIO.StringIO()
         cmds.doit_forget(depfile.name, tasks, output, [])
         got = output.getvalue().split("\n")[:-1]
         assert ["forgeting all tasks"] == got, repr(output.getvalue())
@@ -155,7 +155,7 @@ class TestCmdForget(object):
 
     def testForgetOne(self, tasks, depfile):
         self._add_task_deps(tasks, depfile.name)
-        output = io.StringIO()
+        output = StringIO.StringIO()
         cmds.doit_forget(depfile.name, tasks, output, ["t2", "t1"])
         got = output.getvalue().split("\n")[:-1]
         assert ["forgeting t2", "forgeting t1"] == got
@@ -166,7 +166,7 @@ class TestCmdForget(object):
 
     def testForgetGroup(self, tasks, depfile):
         self._add_task_deps(tasks, depfile.name)
-        output = io.StringIO()
+        output = StringIO.StringIO()
         cmds.doit_forget(depfile.name, tasks, output, ["g2"])
         got = output.getvalue().split("\n")[:-1]
         assert "forgeting g2" == got[0]
@@ -182,7 +182,7 @@ class TestCmdForget(object):
     # if task dependency not from a group dont forget it
     def testDontForgetTaskDependency(self, tasks, depfile):
         self._add_task_deps(tasks, depfile.name)
-        output = io.StringIO()
+        output = StringIO.StringIO()
         cmds.doit_forget(depfile.name, tasks, output, ["t3"])
         dep = Dependency(depfile.name)
         assert None == dep._get("t3", "dep")
@@ -190,7 +190,7 @@ class TestCmdForget(object):
 
     def testForgetInvalid(self, tasks, depfile):
         self._add_task_deps(tasks, depfile.name)
-        output = io.StringIO()
+        output = StringIO.StringIO()
         py.test.raises(InvalidCommand, cmds.doit_forget,
                        depfile.name, tasks, output, ["XXX"])
 
@@ -198,38 +198,38 @@ class TestCmdForget(object):
 class TestCmdRun(object):
 
     def testProcessRun(self, depfile):
-        output = io.StringIO()
+        output = StringIO.StringIO()
         result = cmds.doit_run(depfile.name, tasks_sample(), output)
         assert 0 == result
         got = output.getvalue().split("\n")[:-1]
         assert [".  t1", ".  t2", ".  g1.a", ".  g1.b", ".  t3"] == got
 
     def testProcessRunMP(self, depfile):
-        output = io.StringIO()
+        output = StringIO.StringIO()
         result = cmds.doit_run(depfile.name, tasks_sample(), output, num_process=1)
         assert 0 == result
         got = output.getvalue().split("\n")[:-1]
         assert [".  t1", ".  t2", ".  g1.a", ".  g1.b", ".  t3"] == got
 
     def testProcessRunFilter(self, depfile):
-        output = io.StringIO()
+        output = StringIO.StringIO()
         cmds.doit_run(depfile.name, tasks_sample(), output, ["g1.a"])
         got = output.getvalue().split("\n")[:-1]
         assert [".  g1.a"] == got, repr(got)
 
     def testProcessRunEmptyFilter(self, depfile):
-        output = io.StringIO()
+        output = StringIO.StringIO()
         cmds.doit_run(depfile.name, tasks_sample(), output, [])
         got = output.getvalue().split("\n")[:-1]
         assert [] == got
 
     def testInvalidReporter(self, depfile):
-        output = io.StringIO()
+        output = StringIO.StringIO()
         py.test.raises(InvalidCommand, cmds.doit_run,
                 depfile.name, tasks_sample(), output, reporter="i dont exist")
 
     def testCustomReporter(self, depfile):
-        output = io.StringIO()
+        output = StringIO.StringIO()
         class MyReporter(reporter.ConsoleReporter):
             def get_status(self, task):
                 self.outstream.write('MyReporter.start %s\n' % task.name)
@@ -238,7 +238,7 @@ class TestCmdRun(object):
         assert 'MyReporter.start t1' == got[0]
 
     def testSetVerbosity(self, depfile):
-        output = io.StringIO()
+        output = StringIO.StringIO()
         t = Task('x', None)
         used_verbosity = []
         def my_execute(out, err, verbosity):
@@ -274,22 +274,22 @@ class TestCmdClean(object):
             scope="function")
 
     def test_clean_all(self, tasks):
-        output = io.StringIO()
+        output = StringIO.StringIO()
         cmds.doit_clean(self.tasks, output, False, False, [])
         assert ['t1','t2'] == self.cleaned
 
     def test_clean_selected(self, tasks):
-        output = io.StringIO()
+        output = StringIO.StringIO()
         cmds.doit_clean(self.tasks, output, False, False, ['t2'])
         assert ['t2'] == self.cleaned
 
     def test_clean_taskdep(self, tasks):
-        output = io.StringIO()
+        output = StringIO.StringIO()
         cmds.doit_clean(self.tasks, output, False, True, ['t1'])
         assert ['t2', 't1'] == self.cleaned
 
     def test_clean_taskdep_once(self, tasks):
-        output = io.StringIO()
+        output = StringIO.StringIO()
         cmds.doit_clean(self.tasks, output, False, True, ['t1', 't2'])
         assert ['t2', 't1'] == self.cleaned
 
@@ -314,7 +314,7 @@ class TestCmdIgnore(object):
 
 
     def testIgnoreAll(self, tasks, depfile):
-        output = io.StringIO()
+        output = StringIO.StringIO()
         cmds.doit_ignore(depfile.name, tasks, output, [])
         got = output.getvalue().split("\n")[:-1]
         assert ["You cant ignore all tasks! Please select a task."] == got, got
@@ -323,7 +323,7 @@ class TestCmdIgnore(object):
             assert None == dep._get(task.name, "ignore:")
 
     def testIgnoreOne(self, tasks, depfile):
-        output = io.StringIO()
+        output = StringIO.StringIO()
         cmds.doit_ignore(depfile.name, tasks, output, ["t2", "t1"])
         got = output.getvalue().split("\n")[:-1]
         assert ["ignoring t2", "ignoring t1"] == got
@@ -333,7 +333,7 @@ class TestCmdIgnore(object):
         assert None == dep._get("t3", "ignore:")
 
     def testIgnoreGroup(self, tasks, depfile):
-        output = io.StringIO()
+        output = StringIO.StringIO()
         cmds.doit_ignore(depfile.name, tasks, output, ["g2"])
         got = output.getvalue().split("\n")[:-1]
 
@@ -347,14 +347,14 @@ class TestCmdIgnore(object):
 
     # if task dependency not from a group dont ignore it
     def testDontIgnoreTaskDependency(self, tasks, depfile):
-        output = io.StringIO()
+        output = StringIO.StringIO()
         cmds.doit_ignore(depfile.name, tasks, output, ["t3"])
         dep = Dependency(depfile.name)
         assert '1' == dep._get("t3", "ignore:")
         assert None == dep._get("t1", "ignore:")
 
     def testIgnoreInvalid(self, tasks, depfile):
-        output = io.StringIO()
+        output = StringIO.StringIO()
         py.test.raises(InvalidCommand, cmds.doit_ignore,
                        depfile.name, tasks, output, ["XXX"])
 
@@ -390,7 +390,7 @@ class TestCmdAuto(object):
             fd.close()
         #
         def hi():
-            print("hello")
+            print "hello"
         t1 = Task("t1", [(hi,)], [file1])
         t2 = Task("t2", [(hi,)], [file2])
         tstop = Task("stop", [(hi,)],  [stop_file])

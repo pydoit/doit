@@ -27,7 +27,7 @@ def doit_run(dependency_file, task_list, output, options=None,
     task_control.process(options)
 
     # reporter
-    if isinstance(reporter, str):
+    if isinstance(reporter, basestring):
         if reporter not in REPORTERS:
             msg = ("No reporter named '%s'."
                    " Type 'doit help run' to see a list "
@@ -46,7 +46,7 @@ def doit_run(dependency_file, task_list, output, options=None,
     show_out = use_verbosity < 2 # show on error report
 
     # outstream
-    if isinstance(output, str):
+    if isinstance(output, basestring):
         outstream = codecs.open(output, 'w', encoding='utf-8')
     else: # outfile is a file-like object (like StringIO or sys.stdout)
         outstream = output
