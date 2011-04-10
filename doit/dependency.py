@@ -184,6 +184,11 @@ class DbmDB(object):
         self._db[task_id][dependency] = value
         self.dirty.add(task_id)
 
+    def _in_dbm(self, key):
+        """python3: when for get/set key is convert to bytes but not for 'in'"""
+        # should be just
+        # return key in self._dbm
+        return key.encode('utf-8') in self._dbm
 
     def get(self, task_id, dependency):
         """Get value stored in the DB.
@@ -194,22 +199,22 @@ class DbmDB(object):
         if task_id in self._db:
             return self._db[task_id].get(dependency, None)
 
-        if task_id not in self._db and task_id in self._dbm:
-            self._db[task_id] = json.loads(self._dbm[task_id])
+        if task_id not in self._db and self._in_dbm(task_id):
+            self._db[task_id] = json.loads(self._dbm[task_id].decode('utf-8'))
         if task_id in self._db:
             return self._db[task_id].get(dependency, None)
 
 
     def in_(self, task_id):
         """@return bool if task_id is in DB"""
-        return task_id in self._dbm or task_id in self.dirty
+        return self._in_dbm(task_id) or task_id in self.dirty
 
 
     def remove(self, task_id):
         """remove saved dependecies from DB for taskId"""
         if task_id in self._db:
             del self._db[task_id]
-        if task_id in self._dbm:
+        if self._in_dbm(task_id):
             del self._dbm[task_id]
         if task_id in self.dirty:
             self.dirty.remove(task_id)

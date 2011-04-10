@@ -69,7 +69,7 @@ def task_test3():
             "rm -rf %s" % test_folder,
             "cp -r %s %s" % (this_folder, test_folder),
             "2to3 --write --nobackups %s" % test_folder,
-            "py.test-3.2 %s" % test_folder,
+            "py.test-3.2 --tb=line %s" % test_folder,
             ],
             'verbosity': 2,
             }
