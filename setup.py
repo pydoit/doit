@@ -1,11 +1,17 @@
 #! /usr/bin/env python
 
+
 from distutils.core import setup, Command
 
-import platform
-python_version = platform.python_version().split('.')
-platform_system = platform.system()
+import sys
+if sys.version_info >= (3,0):
+    from distribute_setup import use_setuptools
+    use_setuptools()
+from setuptools import setup
 
+########### platform specific stuff #############
+import platform
+platform_system = platform.system()
 
 install_requires = []
 # auto command dependencies to watch file-system
@@ -14,17 +20,17 @@ if platform_system == "Darwin":
 elif platform_system == "Linux":
     install_requires.append('pyinotify')
 
-
 scripts = ['bin/doit']
 # platform specific scripts
 if platform_system == "Windows":
     scripts.append('bin/doit.bat')
 
+##################################################
 
-if python_version[0] == '2':
-    if python_version[1] < '6':
-        install_requires.append('multiprocessing')
-        install_requires.append('simplejson')
+
+if sys.version_info < (2, 6):
+    install_requires.append('multiprocessing')
+    install_requires.append('simplejson')
 
 
 # http://pytest.org/goodpractises.html
@@ -67,6 +73,7 @@ setup(name = 'doit',
       packages = ['doit'],
       scripts = scripts,
       cmdclass = {'test': PyTest},
+      use_2to3 = True,
       install_requires = install_requires,
 
       long_description = """
