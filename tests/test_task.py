@@ -258,7 +258,7 @@ class TestTaskClean(object):
             tmpdir['files'] = files
             # create empty files
             for filename in tmpdir['files']:
-                file(filename, 'a').close()
+                open(filename, 'a').close()
             return tmpdir
         def remove_tmpdir(tmpdir):
             if os.path.exists(tmpdir['dir']):
@@ -317,7 +317,7 @@ class TestTaskClean(object):
         # a clean action can be anything, it can even not clean anything!
         c_path = tmpdir['files'][0]
         def say_hello():
-            fh = file(c_path, 'a')
+            fh = open(c_path, 'a')
             fh.write("hello!!!")
             fh.close()
         t = task.Task("xxx",None,targets=tmpdir['files'], clean=[(say_hello,)])
@@ -326,7 +326,7 @@ class TestTaskClean(object):
         t.clean(StringIO(), False)
         for filename in tmpdir['files']:
             assert os.path.exists(filename)
-        fh = file(c_path, 'r')
+        fh = open(c_path, 'r')
         got = fh.read()
         fh.close()
         assert "hello!!!" == got
