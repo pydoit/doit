@@ -87,25 +87,28 @@ class TestGenerateTasks(object):
         assert "the doc" == tasks[0].doc
 
 
+
+
 class TestLoadTaskGenerators(object):
-    def testAbsolutePath(self):
+    def testAbsolutePath(self, cwd): #FIXME funcarg should be for loader_sample
         fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
         expected = ["xxx1","yyy2"]
         dodo_module = get_module(fileName)
         dodo = load_task_generators(dodo_module)
         assert expected == [t.name for t in dodo['task_list']]
 
-    def testRelativePath(self):
+    def testRelativePath(self, cwd):
         # test relative import but test should still work from any path
         # so change cwd.
-        os.chdir(os.path.abspath(os.path.join(os.path.dirname(__file__),'..')))
+        this_path = os.path.join(os.path.dirname(__file__),'..')
+        os.chdir(os.path.abspath(this_path))
         fileName = "tests/loader_sample.py"
         expected = ["xxx1","yyy2"]
         dodo_module = get_module(fileName)
         dodo = load_task_generators(dodo_module)
         assert expected == [t.name for t in dodo['task_list']]
 
-    def testNameInBlacklist(self):
+    def testNameInBlacklist(self, cwd):
         fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
         dodo_module = get_module(fileName)
         py.test.raises(InvalidDodoFile, load_task_generators,
@@ -116,28 +119,28 @@ class TestLoadTaskGenerators(object):
         py.test.raises(InvalidDodoFile, get_module, fileName)
 
 
-    def testDocString(self):
+    def testDocString(self, cwd):
         fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
         dodo_module = get_module(fileName)
         dodo = load_task_generators(dodo_module)
         assert "task doc" == dodo['task_list'][0].doc, dodo['task_list'][0].doc
 
 
-    def testSetCwd(self):
+    def testSetCwd(self, cwd):
         fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
         cwd = os.path.join(os.path.dirname(__file__), "data")
         get_module(fileName, cwd)
         assert os.getcwd() == cwd, os.getcwd()
 
 
-    def testInvalidCwd(self):
+    def testInvalidCwd(self, cwd):
         fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
         cwd = os.path.join(os.path.dirname(__file__), "dataX")
         py.test.raises(InvalidCommand, get_module, fileName, cwd)
 
 
 class TestGetTasks(object):
-    def test(self):
+    def test(self, cwd):
         fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
         expected = ["xxx1","yyy2"]
         dodo = get_tasks(fileName, None, [])
@@ -163,15 +166,15 @@ class TestDodoConfig(object):
             scope="function")
 
 
-    def testDefaultConfig_Dict(self, dodo):
+    def testDefaultConfig_Dict(self, cwd, dodo):
         dodo_dict = load_task_generators(dodo)
         assert {} == dodo_dict['config']
 
-    def testConfigType_Error(self, dodo):
+    def testConfigType_Error(self, cwd, dodo):
         dodo.DOIT_CONFIG = "abcd"
         py.test.raises(InvalidDodoFile, load_task_generators, dodo)
 
-    def testConfigDict_Ok(self, dodo):
+    def testConfigDict_Ok(self, cwd, dodo):
         dodo.DOIT_CONFIG = {"abcd": "add"}
         dodo_dict = load_task_generators(dodo)
         assert {"abcd": "add"} == dodo_dict['config']
