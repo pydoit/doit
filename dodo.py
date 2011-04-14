@@ -3,12 +3,14 @@
 import glob
 import os
 
+import pytest
+
 from doit.tools import create_folder
 
 DOIT_CONFIG = {'default_tasks': ['checker', 'ut']}
 
 CODE_FILES = glob.glob("doit/*.py")
-TEST_FILES = glob.glob("tests/test_*.py")
+TEST_FILES = glob.glob("tests/*.py")
 PY_FILES = CODE_FILES + TEST_FILES
 
 
@@ -20,11 +22,13 @@ def task_checker():
                'file_dep':(module,),
                'title': (lambda task: task.name)}
 
+def run_test(test):
+    return not bool(pytest.main(test))
 def task_ut():
     """run unit-tests"""
     for test in TEST_FILES:
         yield {'name': test,
-               'actions': ["py.test %s" % test],
+               'actions': [(run_test, (test,))],
                'file_dep': PY_FILES,
                'verbosity': 0}
 
