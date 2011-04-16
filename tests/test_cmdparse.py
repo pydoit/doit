@@ -1,6 +1,6 @@
 import pickle
 
-import py.test
+import pytest
 
 from doit import cmdparse
 
@@ -66,12 +66,12 @@ class TestCommandInit(object):
 
     def test_invalid_field(self):
         opt1 = {'name':'op1', 'default':'', 'non_existent':''}
-        py.test.raises(cmdparse.CmdParseError,
+        pytest.raises(cmdparse.CmdParseError,
                        cmdparse.Command, 'xxx', [opt1], None, None)
 
     def test_missing_field(self):
         opt1 = {'name':'op1', 'long':'abc'}
-        py.test.raises(cmdparse.CmdParseError,
+        pytest.raises(cmdparse.CmdParseError,
                        cmdparse.Command, 'xxx', [opt1], None, None)
 
 
@@ -139,7 +139,7 @@ class TestCommand(object):
         assert "ho" == params['new_param']
 
     def test_parseWrongType(self, cmd):
-        py.test.raises(cmdparse.CmdParseError, cmd.parse, ['--num','oi'])
+        pytest.raises(cmdparse.CmdParseError, cmd.parse, ['--num','oi'])
 
     def test_call(self, cmd):
         params, args = cmd(['-n','7','ppp'])
@@ -147,4 +147,4 @@ class TestCommand(object):
         assert 7 == params['num']
 
     def test_failCall(self, cmd):
-        py.test.raises(cmdparse.CmdParseError, cmd,['-x','35'])
+        pytest.raises(cmdparse.CmdParseError, cmd,['-x','35'])

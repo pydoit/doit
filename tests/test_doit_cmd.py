@@ -1,7 +1,7 @@
 import sys
 import inspect
 
-import py.test
+import pytest
 from mock import Mock
 
 from doit.exceptions import InvalidCommand
@@ -214,7 +214,7 @@ class TestErrors(object):
             raise KeyboardInterrupt()
         mock_cmd = Mock(side_effect=my_raise)
         monkeypatch.setattr(doit_cmd, "doit_run", mock_cmd)
-        py.test.raises(KeyboardInterrupt, doit_cmd.cmd_main, [])
+        pytest.raises(KeyboardInterrupt, doit_cmd.cmd_main, [])
 
     def test_user_error(self, capsys, monkeypatch):
         monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)

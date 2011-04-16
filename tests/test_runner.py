@@ -1,7 +1,7 @@
 import os
 from multiprocessing import Queue
 
-import py.test
+import pytest
 from mock import Mock
 
 from doit.dependency import Dependency
@@ -439,7 +439,7 @@ class TestRunner_run_tasks(object):
         my_runner = RunnerClass(depfile.name, reporter)
         tc = TaskControl([t1])
         tc.process(None)
-        py.test.raises(SystemExit, my_runner.run_tasks, tc)
+        pytest.raises(SystemExit, my_runner.run_tasks, tc)
         my_runner.finish()
 
 

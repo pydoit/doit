@@ -4,7 +4,7 @@ import os, shutil
 import tempfile
 from StringIO import StringIO
 
-import py.test
+import pytest
 
 from doit.exceptions import TaskError
 from doit.exceptions import CatchedException
@@ -27,11 +27,11 @@ class TestTaskCheckInput(object):
         task.Task.check_attr_input('xxx', 'attr', None, ([list], [None]))
 
     def testFailType(self):
-        py.test.raises(task.InvalidTask, task.Task.check_attr_input, 'xxx',
+        pytest.raises(task.InvalidTask, task.Task.check_attr_input, 'xxx',
                       'attr', int, ([list], [False]))
 
     def testFailValue(self):
-        py.test.raises(task.InvalidTask, task.Task.check_attr_input, 'xxx',
+        pytest.raises(task.InvalidTask, task.Task.check_attr_input, 'xxx',
                       'attr', True, ([list], [False]))
 
 
@@ -50,7 +50,7 @@ class TestTaskInit(object):
     # give proper error message when anything else is used.
     def test_dependencyNotSequence(self):
         filePath = "data/dependency1"
-        py.test.raises(task.InvalidTask, task.Task,
+        pytest.raises(task.InvalidTask, task.Task,
                       "Task X",["taskcmd"], file_dep=filePath)
 
     def test_options(self):
@@ -92,11 +92,11 @@ class TestTaskExpandFileDep(object):
         assert set(["123","456"]) == my_task.file_dep
 
     def test_runOnce_or_fileDependency(self):
-        py.test.raises(task.InvalidTask, task.Task, "Task X",
+        pytest.raises(task.InvalidTask, task.Task, "Task X",
                        ["taskcmd"], file_dep=["whatever"], run_once=True)
 
     def test_file_dep_must_be_string(self):
-        py.test.raises(task.InvalidTask, task.Task, "Task X", ["taskcmd"],
+        pytest.raises(task.InvalidTask, task.Task, "Task X", ["taskcmd"],
                        file_dep=[['aaaa']])
 
     def test_file_dep_unicode(self):
@@ -148,7 +148,7 @@ class TestTask_Getargs(object):
 
     def test_invalid_desc(self):
         getargs = {'x' : 't1'}
-        assert py.test.raises(task.InvalidTask, task.Task,
+        assert pytest.raises(task.InvalidTask, task.Task,
                               't3', None, getargs=getargs)
 
     def test_many_dots(self):
@@ -397,8 +397,8 @@ class TestDictToTask(object):
 
     def testDictFieldTypo(self):
         dict_ = {'name':'z','actions':['xpto 14'],'typo_here':['xxx']}
-        py.test.raises(action.InvalidTask, task.dict_to_task, dict_)
+        pytest.raises(action.InvalidTask, task.dict_to_task, dict_)
 
     def testDictMissingFieldAction(self):
-        py.test.raises(action.InvalidTask, task.dict_to_task, {'name':'xpto 14'})
+        pytest.raises(action.InvalidTask, task.dict_to_task, {'name':'xpto 14'})
 

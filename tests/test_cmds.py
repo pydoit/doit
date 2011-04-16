@@ -3,7 +3,7 @@ import StringIO
 import threading
 import time
 
-import py.test
+import pytest
 
 from doit.dependency import Dependency
 from doit.task import Task
@@ -191,7 +191,7 @@ class TestCmdForget(object):
     def testForgetInvalid(self, tasks, depfile):
         self._add_task_deps(tasks, depfile.name)
         output = StringIO.StringIO()
-        py.test.raises(InvalidCommand, cmds.doit_forget,
+        pytest.raises(InvalidCommand, cmds.doit_forget,
                        depfile.name, tasks, output, ["XXX"])
 
 
@@ -225,7 +225,7 @@ class TestCmdRun(object):
 
     def testInvalidReporter(self, depfile):
         output = StringIO.StringIO()
-        py.test.raises(InvalidCommand, cmds.doit_run,
+        pytest.raises(InvalidCommand, cmds.doit_run,
                 depfile.name, tasks_sample(), output, reporter="i dont exist")
 
     def testCustomReporter(self, depfile):
@@ -355,7 +355,7 @@ class TestCmdIgnore(object):
 
     def testIgnoreInvalid(self, tasks, depfile):
         output = StringIO.StringIO()
-        py.test.raises(InvalidCommand, cmds.doit_ignore,
+        pytest.raises(InvalidCommand, cmds.doit_ignore,
                        depfile.name, tasks, output, ["XXX"])
 
 

@@ -1,6 +1,6 @@
 import os
 
-import py.test
+import pytest
 
 from doit.exceptions import InvalidDodoFile, InvalidCommand
 from doit.task import InvalidTask, Task
@@ -30,11 +30,11 @@ class TestGenerateTasks(object):
 
     # name field is only for subtasks.
     def testInvalidNameField(self):
-        py.test.raises(InvalidTask, generate_tasks, "dict",
+        pytest.raises(InvalidTask, generate_tasks, "dict",
                                  {'actions':['xpto 14'],'name':'bla bla'})
 
     def testInvalidValue(self):
-        py.test.raises(InvalidTask, generate_tasks, "dict",'xpto 14')
+        pytest.raises(InvalidTask, generate_tasks, "dict",'xpto 14')
 
     def testGenerator(self):
         def f_xpto():
@@ -51,21 +51,21 @@ class TestGenerateTasks(object):
         def f_xpto():
             for i in range(3):
                 yield "xpto -%d"%i
-        py.test.raises(InvalidTask, generate_tasks,"xpto",
+        pytest.raises(InvalidTask, generate_tasks,"xpto",
                                  f_xpto())
 
     def testGeneratorDictMissingName(self):
         def f_xpto():
             for i in range(3):
                 yield {'actions' :["xpto -%d"%i]}
-        py.test.raises(InvalidTask, generate_tasks,"xpto",
+        pytest.raises(InvalidTask, generate_tasks,"xpto",
                                  f_xpto())
 
     def testGeneratorDictMissingAction(self):
         def f_xpto():
             for i in range(3):
                 yield {'name':str(i)}
-        py.test.raises(InvalidTask, generate_tasks,"xpto",
+        pytest.raises(InvalidTask, generate_tasks,"xpto",
                                  f_xpto())
 
     def testUseDocstring(self):
@@ -110,12 +110,12 @@ class TestLoadTaskGenerators(object):
     def testNameInBlacklist(self, cwd):
         fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
         dodo_module = get_module(fileName)
-        py.test.raises(InvalidDodoFile, load_task_generators,
+        pytest.raises(InvalidDodoFile, load_task_generators,
                                  dodo_module, ['yyy2'])
 
     def testWrongFileName(self):
         fileName = os.path.join(os.path.dirname(__file__),"i_dont_exist.py")
-        py.test.raises(InvalidDodoFile, get_module, fileName)
+        pytest.raises(InvalidDodoFile, get_module, fileName)
 
 
     def testDocString(self, cwd):
@@ -135,7 +135,7 @@ class TestLoadTaskGenerators(object):
     def testInvalidCwd(self, cwd):
         fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
         cwd = os.path.join(os.path.dirname(__file__), "dataX")
-        py.test.raises(InvalidCommand, get_module, fileName, cwd)
+        pytest.raises(InvalidCommand, get_module, fileName, cwd)
 
 
 class TestGetTasks(object):
@@ -171,7 +171,7 @@ class TestDodoConfig(object):
 
     def testConfigType_Error(self, cwd, dodo):
         dodo.DOIT_CONFIG = "abcd"
-        py.test.raises(InvalidDodoFile, load_task_generators, dodo)
+        pytest.raises(InvalidDodoFile, load_task_generators, dodo)
 
     def testConfigDict_Ok(self, cwd, dodo):
         dodo.DOIT_CONFIG = {"abcd": "add"}

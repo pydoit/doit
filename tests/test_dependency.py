@@ -4,7 +4,7 @@ import os
 import time
 import anydbm
 
-import py.test
+import pytest
 
 from doit.task import Task
 from doit.dependency import get_md5, md5sum, check_modified
@@ -105,7 +105,7 @@ class TestDependencyDb(object):
             exceptions = (ValueError, anydbm.error)
         else:
             exceptions = (ValueError,) + anydbm.error
-        py.test.raises(exceptions, depfile.__class__, depfile.name)
+        pytest.raises(exceptions, depfile.__class__, depfile.name)
 
     def test_corrupted_file_unrecognized_excep(self, monkeypatch, depfile):
         if isinstance(depfile, JsonDependency):
@@ -114,7 +114,7 @@ class TestDependencyDb(object):
         fd.write("""{"x": y}""")
         fd.close()
         monkeypatch.setattr(DbmDB, 'DBM_CONTENT_ERROR_MSG', 'xxx')
-        py.test.raises(anydbm.error, depfile.__class__, depfile.name)
+        pytest.raises(anydbm.error, depfile.__class__, depfile.name)
 
     # _get must return None if entry doesnt exist.
     def test_getNonExistent(self, depfile):
@@ -266,19 +266,19 @@ class TestGetValue(object):
         t1 = Task('t1', None)
         t1.values = {'x':5, 'y':10}
         depfile.save_success(t1)
-        py.test.raises(Exception, depfile.get_value, 'nono')
+        pytest.raises(Exception, depfile.get_value, 'nono')
 
     def test_invalid_taskid(self, depfile):
         t1 = Task('t1', None)
         t1.values = {'x':5, 'y':10}
         depfile.save_success(t1)
-        py.test.raises(Exception, depfile.get_value, 'nonono.x')
+        pytest.raises(Exception, depfile.get_value, 'nonono.x')
 
     def test_invalid_arg(self, depfile):
         t1 = Task('t1', None)
         t1.values = {'x':5, 'y':10}
         depfile.save_success(t1)
-        py.test.raises(Exception, depfile.get_value, 't1.z')
+        pytest.raises(Exception, depfile.get_value, 't1.z')
 
 
 
@@ -366,7 +366,7 @@ class TestGetStatus(object):
     def test_file_dependency_not_exist(self, depfile):
         filePath = get_abspath("data/dependency_not_exist")
         t1 = Task("t1", None, [filePath])
-        py.test.raises(Exception, depfile.get_status, t1)
+        pytest.raises(Exception, depfile.get_status, t1)
 
 
     # if there is no dependency the task is always executed

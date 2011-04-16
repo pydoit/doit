@@ -1,7 +1,7 @@
 import os
 import threading
 
-import py.test
+import pytest
 
 from doit.filewatch import FileModifyWatcher
 
@@ -20,11 +20,11 @@ class TestFileWatcher(object):
 
     def testUnsuportedPlatform(self, monkeypatch):
         monkeypatch.setattr(FileModifyWatcher, 'supported_platforms', ())
-        py.test.raises(Exception, FileModifyWatcher, [])
+        pytest.raises(Exception, FileModifyWatcher, [])
 
     def testHandleEventNotSubclassed(self):
         fw = FileModifyWatcher([])
-        py.test.raises(NotImplementedError, fw.handle_event, None)
+        pytest.raises(NotImplementedError, fw.handle_event, None)
 
     def testLoop(self, cwd):
         file1, file2, file3 = 'data/w1.txt', 'data/w2.txt', 'data/w3.txt'

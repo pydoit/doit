@@ -5,7 +5,7 @@ import sys
 import StringIO
 import tempfile
 
-import py.test
+import pytest
 from mock import Mock
 
 from doit import action
@@ -148,7 +148,7 @@ class TestCmd_print_process_output(object):
     def test_non_unicode_string(self):
         my_action = action.CmdAction("")
         not_unicode = StringIO.StringIO('\xc0')
-        py.test.raises(Exception, my_action._print_process_output,
+        pytest.raises(Exception, my_action._print_process_output,
                        Mock(), not_unicode, Mock(), Mock())
 
 
@@ -235,11 +235,11 @@ class TestPythonAction(object):
         assert action1.kwargs == {}
 
         # not a callable
-        py.test.raises(action.InvalidTask, action.PythonAction, "abc")
+        pytest.raises(action.InvalidTask, action.PythonAction, "abc")
         # args not a list
-        py.test.raises(action.InvalidTask, action.PythonAction, self._func_par, "c")
+        pytest.raises(action.InvalidTask, action.PythonAction, self._func_par, "c")
         # kwargs not a list
-        py.test.raises(action.InvalidTask, action.PythonAction,
+        pytest.raises(action.InvalidTask, action.PythonAction,
                       self._func_par, None, "a")
 
 
@@ -407,7 +407,7 @@ class TestPythonActionPrepareKwargsMeta(object):
         def py_callable(a, b, changed=None): pass
         my_action = action.PythonAction(py_callable, ('a', 'b'),
                                         task=task_depchanged)
-        py.test.raises(action.InvalidTask, my_action.execute)
+        pytest.raises(action.InvalidTask, my_action.execute)
 
 class TestPythonActionOptions(object):
     def test_task_options(self):
@@ -450,14 +450,14 @@ class TestCreateAction(object):
 
     def testTupleActionMoreThanThreeElements(self):
         def dumb(): return
-        py.test.raises(action.InvalidTask, action.create_action,
+        pytest.raises(action.InvalidTask, action.create_action,
                        (dumb,[1,2],{'a':5},'oo'), self.mytask)
 
     def testInvalidActionNone(self):
-        py.test.raises(action.InvalidTask, action.create_action,
+        pytest.raises(action.InvalidTask, action.create_action,
                        None, self.mytask)
 
     def testInvalidActionObject(self):
-        py.test.raises(action.InvalidTask, action.create_action,
+        pytest.raises(action.InvalidTask, action.create_action,
                        self, self.mytask)
 
