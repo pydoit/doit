@@ -250,6 +250,12 @@ class TestGetValue(object):
         depfile.save_success(t1)
         assert 5 == depfile.get_value('t1.x')
 
+    def test_ok_dot_on_task_name(self, depfile):
+        t1 = Task('t1:a.ext', None)
+        t1.values = {'x':5, 'y':10}
+        depfile.save_success(t1)
+        assert 5 == depfile.get_value('t1:a.ext.x')
+
     def test_invalid_string(self, depfile):
         t1 = Task('t1', None)
         t1.values = {'x':5, 'y':10}
@@ -267,6 +273,7 @@ class TestGetValue(object):
         t1.values = {'x':5, 'y':10}
         depfile.save_success(t1)
         py.test.raises(Exception, depfile.get_value, 't1.z')
+
 
 
 class TestRemoveSuccess(object):

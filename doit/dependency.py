@@ -310,7 +310,7 @@ class DependencyBase(object):
         """get saved value from task
         @param name (str): taskid.argument-name
         """
-        parts = name.split('.')
+        parts = name.rsplit('.', 1)
         assert len(parts) == 2
         taskid, arg_name = parts
         if not self._in(taskid):
