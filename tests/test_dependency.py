@@ -8,7 +8,7 @@ import py.test
 
 from doit.task import Task
 from doit.dependency import get_md5, md5sum, check_modified
-from doit.dependency import JsonDependency, DbmDependency
+from doit.dependency import JsonDependency, DbmDependency, DbmDB
 
 
 def get_abspath(relativePath):
@@ -101,14 +101,20 @@ class TestDependencyDb(object):
         fd = open(depfile.name, 'w')
         fd.write("""{"x": y}""")
         fd.close()
-        if isinstance(anydbm.error, Exception):
-            # python2
+        if isinstance(anydbm.error, Exception): # pragma: no cover
             exceptions = (ValueError, anydbm.error)
         else:
-            # python 3 dbm.error is a tuple
             exceptions = (ValueError,) + anydbm.error
         py.test.raises(exceptions, depfile.__class__, depfile.name)
 
+    def test_corrupted_file_unrecognized_excep(self, monkeypatch, depfile):
+        if isinstance(depfile, JsonDependency):
+            return # this is specific to DbmDependency
+        fd = open(depfile.name, 'w')
+        fd.write("""{"x": y}""")
+        fd.close()
+        monkeypatch.setattr(DbmDB, 'DBM_CONTENT_ERROR_MSG', 'xxx')
+        py.test.raises(anydbm.error, depfile.__class__, depfile.name)
 
     # _get must return None if entry doesnt exist.
     def test_getNonExistent(self, depfile):

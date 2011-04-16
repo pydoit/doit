@@ -10,8 +10,9 @@ from doit.tools import create_folder
 DOIT_CONFIG = {'default_tasks': ['checker', 'ut']}
 
 CODE_FILES = glob.glob("doit/*.py")
-TEST_FILES = glob.glob("tests/*.py")
-PY_FILES = CODE_FILES + TEST_FILES
+TEST_FILES = glob.glob("tests/test_*.py")
+TESTING_FILES = glob.glob("tests/*.py")
+PY_FILES = CODE_FILES + TESTING_FILES
 
 
 def task_checker():
@@ -40,7 +41,9 @@ def task_coverage():
     return {'actions':
                 ["coverage run --parallel-mode `which py.test` ",
                  "coverage combine",
-                 "coverage report --show-missing %s" % " ".join(PY_FILES)],
+                 ("coverage report --show-missing %s" %
+                  " ".join(CODE_FILES + TEST_FILES))
+                 ],
             'verbosity': 2}
 
 
@@ -57,8 +60,6 @@ def task_coverage_module():
     """show coverage for individual modules"""
     to_strip = len('tests/test_')
     for test in TEST_FILES:
-        if not test.startswith('tests/test_'):
-            continue
         source = "doit/" + test[to_strip:]
         yield {'name': test,
                'actions':

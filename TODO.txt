@@ -24,7 +24,7 @@ TaskControl into Create + Process
 . forget a dependency, not a task
 . option to make sub-task not part of a group
 . task name alias
-. cache dir files (speed optimization)
+. cache dir files (speed optimization) - avoid running GLOB all the time
 
 needs volunteer
 ----------------

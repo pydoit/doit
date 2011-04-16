@@ -5,7 +5,7 @@ import time
 import datetime
 import StringIO
 
-from doit.dependency import json
+from doit import json
 
 
 class ConsoleReporter(object):

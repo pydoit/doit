@@ -11,14 +11,7 @@ import anydbm as ddbm
 #import dbm as ddbm # test_corrupted_file fails
 #import gdbm as ddbm # ok <= TODO make this the default
 
-#FIXME move json import to __init__.py
-# Use simplejson or Python 2.6 json
-# simplejson is much faster that py26:json. so use simplejson if available
-try:
-    import simplejson
-    json = simplejson
-except ImportError: # pragma: no cover
-    import json
+from doit import json
 
 
 USE_FILE_TIMESTAMP = True
@@ -146,6 +139,7 @@ class DbmDB(object):
     @ivar _db: (dict) items with python-dict as value
     @ivar dirty: (set) id of modified tasks
     """
+    DBM_CONTENT_ERROR_MSG = 'db type could not be determined'
 
     def __init__(self, name):
         """Open/create a DB file"""
@@ -154,7 +148,7 @@ class DbmDB(object):
             self._dbm = ddbm.open(self.name, 'c')
         except ddbm.error, exception:
             message = str(exception)
-            if message == 'db type could not be determined':
+            if message == self.DBM_CONTENT_ERROR_MSG:
                 # When a corrupted/old format database is found
                 # suggest the user to just remove the file
                 new_message = (
@@ -163,12 +157,7 @@ class DbmDB(object):
                     'To fix the issue you can just remove the database file(s) '
                     'and a new one will be generated.'
                     % {'filename': repr(self.name)})
-
-                # python2
-                if isinstance(ddbm.error, Exception):
-                    raise ddbm.error, new_message
-                else: # python3 dbm.error is a tuple
-                    raise ddbm.error[0], new_message
+                raise exception.__class__, new_message
             else:
                 # Re-raise any other exceptions
                 raise
@@ -228,7 +217,7 @@ class DbmDB(object):
         """remove saved dependecies from DB for all tasks"""
         self._db = {}
         # dumb dbm always opens file in update mode
-        if isinstance(self._dbm, dumbdbm._Database):
+        if isinstance(self._dbm, dumbdbm._Database): # pragma: no cover
             self._dbm._index = {}
             self._dbm.close()
         self._dbm = ddbm.open(self.name, 'n')
@@ -330,6 +319,7 @@ class DependencyBase(object):
         self._set(task.name, 'ignore:', '1')
 
 
+    # TODO add option to log this
     def get_status(self, task):
         """Check if task is up to date. set task.dep_changed
 
@@ -406,7 +396,7 @@ class DbmDependency(DependencyBase):
 
 import platform
 python_version = platform.python_version().split('.')
-if python_version[0] == '2' and python_version[1] == '5':
+if python_version[0] == '2' and python_version[1] == '5': # pragma: no cover
     # use json by default on python2.5 because gdbm in python2.5 is broken
     Dependency = JsonDependency
 else:

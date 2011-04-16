@@ -10,12 +10,11 @@ from doit.loader import isgenerator, get_module
 
 class TestIsGenerator(object):
     def testIsGeneratorYes(self):
-        def giveme():
+        def giveme(): # pragma: no cover
             for i in range(3):
                 yield i
         g = giveme()
         assert isgenerator(g)
-        for i in g: pass # just to get coverage on the givme function
 
     def testIsGeneratorNo(self):
         def giveme():

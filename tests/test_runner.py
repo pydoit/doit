@@ -245,8 +245,10 @@ def cov_dec(func): # pragma: no cover
             cov.save()
     return wrap
 
+
 # monkey patch function executed in a subprocess to get coverage
-runner.MRunner.execute_task = cov_dec(runner.MRunner.execute_task)
+# TODO - disabled because it was not working anymore...
+#runner.MRunner.execute_task = cov_dec(runner.MRunner.execute_task)
 
 
 def ok(): return "ok"
