@@ -151,6 +151,11 @@ class TestTask_Getargs(object):
         assert py.test.raises(task.InvalidTask, task.Task,
                               't3', None, getargs=getargs)
 
+    def test_many_dots(self):
+        getargs = {'x': 't2:file.ext.x'}
+        t = task.Task('t1', None, getargs=getargs)
+        assert 't2:file.ext' in t.task_dep
+
 
 class TestTaskTitle(object):
 

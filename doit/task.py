@@ -207,7 +207,7 @@ class Task(object):
         """task getargs attribute define implicit task dependencies"""
         for key, desc in self.getargs.iteritems():
             # check format
-            parts = desc.split('.')
+            parts = desc.rsplit('.', 1)
             if len(parts) != 2:
                 msg = ("Taskid '%s' - Invalid format for getargs of '%s'.\n" %
                        (self.name, key) +
