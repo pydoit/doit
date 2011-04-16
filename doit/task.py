@@ -2,6 +2,7 @@
 
 import types
 import os
+import copy
 
 from doit import cmdparse
 from doit.exceptions import CatchedException, InvalidTask
@@ -191,6 +192,8 @@ class Task(object):
 
     def update_deps(self, deps):
         """expand all kinds of dep input"""
+        #if "test_action" in self.name:
+        #    from doit.tools import set_trace;set_trace()
         for dep, dep_values in deps.iteritems():
             if dep == 'task_dep':
                 self._expand_task_dep(dep_values)
@@ -354,10 +357,43 @@ class Task(object):
         del to_pickle['custom_title']
         return to_pickle
 
+    def __eq__(self, other):
+        return self.name == other.name
+
     def update_from_pickle(self, pickle_obj):
         """update self with data from pickled Task"""
         self.__dict__.update(pickle_obj.__dict__)
 
+    def clone(self):
+        """create a deep copy of this task"""
+        inst =  self.__class__.__new__(self.__class__)
+        inst.name = self.name
+        inst.targets = self.targets[:]
+        inst.uptodate = self.uptodate[:]
+        inst.run_once = self.run_once
+        inst.is_subtask = self.is_subtask
+        inst.result = self.result
+        inst.values = self.values.copy()
+        inst.verbosity = self.verbosity
+        inst.custom_title = self.custom_title
+        inst.getargs = copy.copy(self.getargs)
+        inst.setup_tasks = self.setup_tasks[:]
+        inst.taskcmd = self.taskcmd
+        inst.options = self.options.copy()
+        inst.actions = [a.clone(inst) for a in self.actions]
+        inst._remove_targets = self._remove_targets
+        inst.clean_actions = [a.clone(inst) for a in self.clean_actions]
+        inst.teardown = [a.clone(inst) for a in self.teardown]
+        inst.dep_changed = self.dep_changed
+        inst.file_dep = copy.copy(self.file_dep)
+        inst.task_dep = self.task_dep[:]
+        inst.wild_dep = self.wild_dep[:]
+        inst.result_dep = self.result_dep[:]
+        inst.calc_dep = self.calc_dep[:]
+        inst.calc_dep_stack = self.calc_dep_stack[:]
+        inst.doc = self.doc
+        inst.run_status = self.run_status
+        return inst
 
 def dict_to_task(task_dict):
     """Create a task instance from dictionary.

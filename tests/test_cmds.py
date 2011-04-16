@@ -361,6 +361,20 @@ class TestCmdIgnore(object):
 
 
 class TestCmdAuto(object):
+
+    def test_watch(self, cwd, depfile):
+        t1 = Task("t1", None, file_dep=["f1"])
+        t2 = Task("t2", None, file_dep=["f2"], calc_dep=["t1"])
+        # simple task
+        w1_tasks, w1_files = cmds._auto_watch([t1, t2], ["t1"])
+        assert ["t1"] == w1_tasks
+        assert ["f1"] == w1_files
+        # with calc_dep
+        w2_tasks, w2_files = cmds._auto_watch([t1, t2], ["t2"])
+        assert ["t1", "t2"] == w2_tasks
+        assert ["f1", "f2"] == w2_files
+
+
     def test(self, cwd, monkeypatch, depfile):
         file1, file2, file3 = 'data/w1.txt', 'data/w2.txt', 'data/w3.txt'
         stop_file = 'data/stop'

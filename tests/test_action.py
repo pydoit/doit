@@ -77,6 +77,12 @@ class TestCmdAction(object):
         my_action.execute()
         assert {} == my_action.values
 
+    def test_clone(self):
+        my_action = action.CmdAction("%s 1 2" % PROGRAM, "x")
+        clone = my_action.clone('y')
+        assert my_action.action == clone.action
+        assert 'y' == clone.task
+
 
 class TestCmdVerbosity(object):
     # Capture stderr
@@ -284,6 +290,15 @@ class TestPythonAction(object):
         my_action = action.PythonAction(vvv)
         my_action.execute()
         assert {'x': 5, 'y':10} == my_action.values
+
+    def test_clone(self):
+        def aaa(): return 1
+        my_action = action.PythonAction(aaa, (3,), {'1':2}, 'x')
+        clone = my_action.clone('y')
+        assert my_action.py_callable == clone.py_callable
+        assert my_action.args == clone.args
+        assert my_action.kwargs == clone.kwargs
+        assert 'y' == clone.task
 
 
 class TestPythonVerbosity(object):
