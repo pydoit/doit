@@ -6,6 +6,7 @@ import StringIO
 import tempfile
 
 import py.test
+from mock import Mock
 
 from doit import action
 from doit.exceptions import TaskError, TaskFailed
@@ -140,6 +141,15 @@ class TestCmdExpandAction(object):
 
         got = my_action.out.strip()
         assert "3 - abc def" == got, repr(got)
+
+
+
+class TestCmd_print_process_output(object):
+    def test_non_unicode_string(self):
+        my_action = action.CmdAction("")
+        not_unicode = StringIO.StringIO('\xc0')
+        py.test.raises(Exception, my_action._print_process_output,
+                       Mock(), not_unicode, Mock(), Mock())
 
 
 class TestWriter(object):

@@ -40,6 +40,27 @@ class CmdAction(BaseAction):
         self.values = {}
 
 
+    def _print_process_output(self, process, input_, capture, realtime):
+        """read 'input_' untill process is terminated
+        write 'input_' content to 'capture' and 'realtime' streams
+        """
+        while True:
+            # line buffered
+            try:
+                line = input_.readline().decode('utf-8')
+            except:
+                process.terminate()
+                input_.read()
+                raise Exception("got non-unicode output")
+            # unbuffered ? process.stdout.read(1)
+            if line:
+                capture.write(line)
+                if realtime:
+                    realtime.write(line)
+            if not line and process.poll() != None:
+                break
+
+
     def execute(self, out=None, err=None):
         """
         Execute command action
@@ -61,26 +82,11 @@ class CmdAction(BaseAction):
         process = subprocess.Popen(action, shell=True,
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        def print_process_output(process, input_, capture, realtime):
-            """read 'input_' untill process is terminated
-            write 'input_' content to 'capture' and 'realtime' streams
-            """
-            while True:
-                # line buffered
-                line = input_.readline().decode('utf-8')
-                # unbuffered ? process.stdout.read(1)
-                if line:
-                    capture.write(line)
-                    if realtime:
-                        realtime.write(line)
-                if not line and process.poll() != None:
-                    break
-
         output = StringIO.StringIO()
         errput = StringIO.StringIO()
-        t_out = Thread(target=print_process_output,
+        t_out = Thread(target=self._print_process_output,
                        args=(process, process.stdout, output, out))
-        t_err = Thread(target=print_process_output,
+        t_err = Thread(target=self._print_process_output,
                        args=(process, process.stderr, errput, err))
         t_out.start()
         t_err.start()
