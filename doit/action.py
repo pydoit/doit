@@ -179,13 +179,14 @@ class PythonAction(BaseAction):
 
         # check valid parameters
         if not hasattr(self.py_callable, '__call__'):
-            raise InvalidTask("PythonAction must be a 'callable'.")
+            msg = "%r PythonAction must be a 'callable' got %r."
+            raise InvalidTask(msg % (self.task, self.py_callable))
         if type(self.args) is not tuple and type(self.args) is not list:
-            msg = "args must be a 'tuple' or a 'list'. got '%s'."
-            raise InvalidTask(msg % self.args)
+            msg = "%r args must be a 'tuple' or a 'list'. got '%s'."
+            raise InvalidTask(msg % (self.task, self.args))
         if type(self.kwargs) is not dict:
-            msg = "kwargs must be a 'dict'. got '%s'"
-            raise InvalidTask(msg % self.kwargs)
+            msg = "%r kwargs must be a 'dict'. got '%s'"
+            raise InvalidTask(msg % (self.task, self.kwargs))
 
 
     def _prepare_kwargs(self):
