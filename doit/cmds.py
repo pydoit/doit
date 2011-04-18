@@ -126,6 +126,7 @@ def doit_list(dependency_file, task_list, outstream, filter_tasks,
         # add doc
         if print_doc and task.doc:
             task_str += "\t* %s" % task.doc
+        # FIXME this does not take calc_dep into account
         if print_status:
             task_uptodate = dependency_manager.get_status(task)
             task_str = "%s %s" % (status_map[task_uptodate], task_str)
@@ -249,7 +250,7 @@ def _auto_watch(task_list, filter_tasks):
     return watch_tasks, watch_files
 
 def doit_auto(dependency_file, task_list, filter_tasks,
-              reporter='executed-only', loop_callback=None):
+              verbosity=None, reporter='executed-only', loop_callback=None):
     """Re-execute tasks automatically a depedency changes
 
     @param filter_tasks (list -str): print only tasks from this list
@@ -261,7 +262,7 @@ def doit_auto(dependency_file, task_list, filter_tasks,
         def handle_event(self, event):
             this_list = [t.clone() for t in task_list]
             doit_run(dependency_file, this_list, sys.stdout,
-                     watch_tasks, reporter=reporter)
+                     watch_tasks, verbosity=verbosity, reporter=reporter)
 
     file_watcher = DoitAutoRun(watch_files)
     # always run once when started

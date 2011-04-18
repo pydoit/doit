@@ -191,11 +191,12 @@ class TestInterface(object):
         monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         mock_auto = Mock()
         monkeypatch.setattr(doit_cmd, "doit_auto", mock_auto)
-        doit_cmd.cmd_main(["auto", "b"])
+        doit_cmd.cmd_main(["auto", "-v", "2", "b"])
 
         expected = [('dependency_file', '.doit.db'),
                     ('task_list', mock_get_tasks()['task_list']),
                     ('filter_tasks', ['b']),
+                    ('verbosity', 2),
                     ('reporter', 'executed-only'),
                     ('loop_callback', None),
                     ]

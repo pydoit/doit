@@ -324,7 +324,8 @@ def cmd_auto(params, args):
                                   params['sub'].keys())
     params.update_defaults(dodo_tasks['config'])
     filter_tasks = args or dodo_tasks['config'].get('default_tasks')
-    return doit_auto(params['dep_file'], dodo_tasks['task_list'], filter_tasks)
+    return doit_auto(params['dep_file'], dodo_tasks['task_list'], filter_tasks,
+                     params['verbosity'])
 
 
 ##########################################################
@@ -467,7 +468,7 @@ def cmd_main(cmd_args):
                                         cmd_ignore, ignore_doc)
 
     # auto command
-    auto_options = (opt_dodo, opt_cwd, opt_depfile,)
+    auto_options = (opt_dodo, opt_cwd, opt_depfile, opt_verbosity)
     sub_cmd['auto'] = cmdparse.Command('auto', auto_options,
                                         cmd_auto, auto_doc)
 

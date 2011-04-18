@@ -411,7 +411,7 @@ class TestCmdAuto(object):
         task_list = [t1, t2, tstop]
         reporter = FakeReporter()
         run_args = (depfile.name, task_list, ["t1", "t2", "stop"],
-                    reporter, loop_callback)
+                    None, reporter, loop_callback)
         loop_thread = threading.Thread(target=cmds.doit_auto, args=run_args)
         loop_thread.daemon = True
         loop_thread.start()
