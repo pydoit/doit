@@ -3,6 +3,19 @@
 Changes
 =======
 
+0.11.0 (*2011-04-20*)
+========================
+
+- no more support for python2.4
+- support for python 3.2
+- fix bug on unicode filenames & unicode output (#737904)
+- fix bug when using getargs together with multiprocess (#742953)
+- fix for dumbdmb backend
+- fix task execution order when using "auto" command
+- fix getargs when used with sub-tasks
+- fix calc_dep when used with "auto" command
+- "auto" command now support verbosity control option
+
 0.10.0 (*2011-01-24*)
 ======================
 

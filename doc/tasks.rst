@@ -33,7 +33,9 @@ Actions
 
 Every *task* must define **actions**. It can optionally defines other attributes like `targets`, `dependencies`, `doc` ...
 
-Actions define what the task actually do. A task can define any number of actions. There 2 kinds of `actions`: *cmd-action* and *python-action*.
+Actions define what the task actually do. A task can define any number of actions. The action "result" is used to determine if task execution was successful or not.
+
+There 2 kinds of `actions`: *cmd-action* and *python-action*.
 
 cmd-action
 ^^^^^^^^^^^
@@ -57,7 +59,7 @@ It is easy to include dynamic (on-the-fly) behavior to your tasks with python co
 
 .. literalinclude:: tutorial/tutorial_02.py
 
-The function `task_hello` is a *task generator* not the task itself. The body of the task generator function is always executed when the dodo file is loaded.
+The function `task_hello` is a *task generator*, not the task itself. The body of the task generator function is always executed when the dodo file is loaded.
 
 .. note::
  The body of task generators are executed even if the task is not going to be executed. So in this example the line `msg = 3 * "hi! "` will always be executed. The body of task generators should be used to create task metadata only, not execute tasks! From now on when it said that a *task* is executed, read the task's actions are executed.

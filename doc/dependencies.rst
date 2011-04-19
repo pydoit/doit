@@ -19,7 +19,7 @@ i.e. In a compilation task the source file is a *file_dep*, the object file is a
 .. literalinclude:: tutorial/compile.py
 
 
-`doit` automatically keeps track of file-dependencies. It saves the signature (MD5) of the dependencies every time the task is completed successfully.
+`doit` automatically keeps track of dependencies. It saves the signature (MD5) of the dependencies every time the task is completed successfully.
 
 So if there are no modifications to the dependencies and you run `doit` again. The execution of the task's actions is skipped.
 
@@ -32,9 +32,6 @@ So if there are no modifications to the dependencies and you run `doit` again. T
   -- compile
 
 Note the ``--`` (2 dashes, one space) on the command output on the second time it is executed. It means, this task was up-to-date and not executed.
-
-
-Traditional build-tools can only handle files as "dependencies". `doit` has several ways to check for dependencies.
 
 
 file_dep
@@ -55,6 +52,8 @@ Lets say you work with a dynamic language (python in this example). You don't ne
    -- checker
 
 Note the ``--`` again to indicate the execution was skipped.
+
+Traditional build-tools can only handle files as "dependencies". `doit` has several ways to check for dependencies.
 
 
 targets

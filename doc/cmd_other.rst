@@ -104,3 +104,7 @@ auto
 
     $ doit auto
 
+
+.. warning::
+
+   Note that ``doit`` will *not* reload any python module. So be aware that if you are using python-actions and the source code of these files were changed it will not be affected.

@@ -40,35 +40,6 @@ piwik_log(piwik_action_name, piwik_idsite, piwik_url);
 
 {% endblock %}
 
-{% block footer %}
-{{ super() }}
-<!-- BetaEasy -->
-<script type="text/javascript">
-// <![CDATA[
-    if ("http:" == document.location.protocol) {
-        document.write(unescape("%3Cscript src='" + (("https:" == document.location.protocol) ? "http://cdn.betaeasy.com" : "http://cdn.betaeasy.com") + "/betaeasy.js' type='text/javascript'%3E%3C/script%3E"))
-    }
-   // ]]>
-</script>
-<script type="text/javascript">
-// <![CDATA[
-try {
-    BetaEasy.init({
-        betaId: '572',
-        styleType: 'new',
-        buttonAlign: 'right',
-        language: 'en',
-        buttonBackgroundColor: '#f00',
-        buttonMouseHoverBackgroundColor: '#06C',
-        buttonImageActive: 'en/newbtn-12.png',
-        buttonImageHover: 'none'
-    });
-} catch(err) {}
-// ]]>
-</script>
-<!-- end BetaEasy -->
-{% endblock %}
-
 {% block sidebarrel %}
 {% endblock %}
 

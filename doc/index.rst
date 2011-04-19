@@ -3,14 +3,6 @@ About
 
 `doit` comes from the idea of bringing the power of build-tools to execute any kind of task. It will keep track of dependencies between "tasks" and execute them only when necessary. It was designed to be easy to use and "get out of your way".
 
-Features:
-
- * Easy to use, "no-API"
- * Use python to dynamically create tasks on-the-fly
- * Flexible, adapts to many workflows for creation of tasks/rules/recipes
- * Support for multi-process parallel execution
- * Built-in integration of inotify (automatically re-execution) (linux/mac only)
-
 `doit` can be used as:
 
  * a build tool (generic and flexible)
@@ -18,6 +10,14 @@ Features:
  * home of your management scripts (it helps you organize and combine shell scripts and python scripts)
 
  * a functional tests runner (combine together different tools)
+
+Features:
+
+ * Easy to use, "no-API"
+ * Use python to dynamically create tasks on-the-fly
+ * Flexible, adapts to many workflows for creation of tasks/rules/recipes
+ * Support for multi-process parallel execution
+ * Built-in integration of inotify (automatically re-execution) (linux/mac only)
 
 
 If you are still wondering why someone would want to use this tool, check this blog `post <http://schettino72.wordpress.com/2008/04/14/doit-a-build-tool-tale/>`_.
@@ -70,7 +70,7 @@ Project Details
 Status
 ======
 
-`doit` is under active development. Version 0.10 released on 2011-01.
+`doit` is under active development. Version 0.11 released on 2011-04.
 
 Development is done based on real world use cases. If I don't need a feature and nobody never asked for it, it is not implemented ;) It is well designed and have a very small code base so adding new features isn't hard. `doit` already provides most features I need, so the development of new features has slowed down.
 
