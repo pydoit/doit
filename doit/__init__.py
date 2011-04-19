@@ -23,7 +23,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = (0, 11, 'dev')
+__version__ = (0, 11, 0)
 
 # Use simplejson or Python 2.6 json
 # simplejson is much faster that py26:json. so use simplejson if available

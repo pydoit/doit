@@ -29,7 +29,7 @@ Project Details
 INSTALL
 =======
 
-doit is tested on python 2.5, 2.6, 2.7.
+doit is tested on python 2.5, 2.6, 2.7, 3.2.
 
 ``python setup.py install``
 
@@ -71,7 +71,7 @@ DOCUMENTATION
 ``doc`` folder contains ReST documentation. They are the base for creating the website.
 To create it (after installing doit):
 
-``doit -f website.py``
+``doit website``
 
 It includes epydoc generated API documentation.
 
@@ -80,6 +80,6 @@ LICENSE
 =======
 
 The MIT License
-Copyright (c) 2008-2010 Eduardo Naufel Schettino
+Copyright (c) 2008-2011 Eduardo Naufel Schettino
 
 see LICENSE file

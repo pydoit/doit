@@ -6,14 +6,6 @@
  them only when necessary. It was designed to be easy to use and "get out of
  your way".
 
-Features:
-
- * Easy to use, "no-API"
- * Use python to dynamically create tasks on-the-fly
- * Flexible, adapts to many workflows for creation of tasks/rules/recipes
- * Support for multi-process parallel execution
- * Built-in integration of inotify (automatically re-execution)
-
 `doit` can be used as:
 
  * a build tool (generic and flexible)
@@ -23,6 +15,13 @@ Features:
 
  * a functional tests runner (combine together different tools)
 
+Features:
+
+ * Easy to use, "no-API"
+ * Use python to dynamically create tasks on-the-fly
+ * Flexible, adapts to many workflows for creation of tasks/rules/recipes
+ * Support for multi-process parallel execution
+ * Built-in integration of inotify (automatically re-execution)
 
 In `doit`, unlike most (all?) build-tools, a task doesn't need to define a
  target file to use the execute only if not up-to-date feature. This make
@@ -91,7 +90,7 @@ if sys.version_info >= (3,0):
 
 setup(name = 'doit',
       description = 'doit - Automation Tool',
-      version = '0.11.dev',
+      version = '0.11.0',
       license = 'MIT',
       author = 'Eduardo Naufel Schettino',
       author_email = 'schettino72@gmail.com',
@@ -104,9 +103,12 @@ setup(name = 'doit',
                      'Natural Language :: English',
                      'Operating System :: OS Independent',
                      'Operating System :: POSIX',
+                     'Programming Language :: Python :: 2',
                      'Programming Language :: Python :: 2.5',
                      'Programming Language :: Python :: 2.6',
                      'Programming Language :: Python :: 2.7',
+                     'Programming Language :: Python :: 3',
+                     'Programming Language :: Python :: 3.2',
                      'Topic :: Software Development :: Build Tools',
                      'Topic :: Software Development :: Testing',
                      'Topic :: Software Development :: Quality Assurance',

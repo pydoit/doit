@@ -18,7 +18,7 @@ Features:
  * Flexible, adapts to many workflows for creation of tasks/rules/recipes
  * Support for multi-process parallel execution
  * Built-in integration of inotify (automatically re-execution) (linux/mac only)
-
+ * Runs on Python 2.5 through 3.2
 
 If you are still wondering why someone would want to use this tool, check this blog `post <http://schettino72.wordpress.com/2008/04/14/doit-a-build-tool-tale/>`_.
 
