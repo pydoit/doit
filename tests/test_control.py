@@ -30,7 +30,7 @@ class TestTaskControlInit(object):
     def test_targetDependency(self):
         t1 = Task("taskX", None,[],['intermediate'])
         t2 = Task("taskY", None,['intermediate'],[])
-        TaskControl([t1,t2])
+        TaskControl([t1, t2])
         assert ['taskX'] == t2.task_dep
 
     # 2 tasks can not have the same name
@@ -58,6 +58,12 @@ class TestTaskControlInit(object):
         TaskControl(tasks)
         assert 'foo4' in tasks[0].task_dep
 
+    def test_bug770150_task_dependency_from_target(self):
+        t1 = Task("taskX", None,[],['intermediate'])
+        t2 = Task("taskY", None,['intermediate'], task_dep=['taskZ'])
+        t3 = Task("taskZ", None)
+        TaskControl([t1, t2, t3])
+        assert ['taskZ', 'taskX'] == t2.task_dep
 
 
 TASKS_SAMPLE = [Task("t1", [""], doc="t1 doc string"),

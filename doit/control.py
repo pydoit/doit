@@ -112,7 +112,7 @@ class TaskControl(object):
         for task in self.tasks.itervalues():
             for dep in task.file_dep:
                 if (dep in self.targets and
-                    self.targets[dep] not in task.task_dep):
+                    self.targets[dep].name not in task.task_dep):
                     task.task_dep.append(self.targets[dep].name)
 
 
