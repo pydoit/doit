@@ -157,6 +157,12 @@ class TestCmd_print_process_output(object):
         pytest.raises(Exception, my_action._print_process_output,
                        Mock(), not_unicode, Mock(), Mock())
 
+    def test_unicode_string(self, tmpfile):
+        my_action = action.CmdAction("")
+        unicode_in = StringIO.StringIO(u" 中文 \u2018".encode('utf-8'))
+        my_action._print_process_output(Mock(), unicode_in, Mock(), tmpfile)
+
+
 
 class TestWriter(object):
     def test_writer(self):

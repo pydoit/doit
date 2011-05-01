@@ -56,7 +56,8 @@ class CmdAction(BaseAction):
             if line:
                 capture.write(line)
                 if realtime:
-                    realtime.write(line)
+                    encoding = getattr(realtime, 'encoding') or 'utf-8'
+                    realtime.write(line.encode(encoding))
             if not line and process.poll() != None:
                 break
 
