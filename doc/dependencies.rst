@@ -194,6 +194,10 @@ getargs
 
 `getargs` provides a way to use values computed in one task from another task.
 
+For *cmd-action* use dictionary-based string formatting.
+
+For *python-action* the action callable parameter names must match with keys from `getargs`.
+
 .. literalinclude:: tutorial/getargs.py
 
 
