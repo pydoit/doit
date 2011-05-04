@@ -1,5 +1,7 @@
 import os
 
+import py
+
 from doit.dependency import Dependency
 
 
@@ -19,6 +21,7 @@ def remove_db(filename):
         if os.path.exists(filename + ext):
             os.remove(filename + ext)
 
+
 # fixture for "doit.db". create/remove for every test
 def pytest_funcarg__depfile(request):
     def create_depfile():
@@ -26,12 +29,20 @@ def pytest_funcarg__depfile(request):
             dep_class = request.param
         else:
             dep_class = Dependency
-        remove_db(TESTDB)
-        return dep_class(TESTDB)
+
+        # copied from tempdir plugin
+        name = request._pyfuncitem.name
+        name = py.std.re.sub("[\W]", "_", name)
+        my_tmpdir = request.config._tmpdirhandler.mktemp(name, numbered=True)
+        return dep_class(os.path.join(my_tmpdir.strpath, "testdb"))
+        # do not use tempfile use TESTDB
+        # return dep_class(TESTDB)
+
     def remove_depfile(depfile):
         if not depfile._closed:
             depfile.close()
-        remove_db(TESTDB)
+        remove_db(depfile.name)
+
     return request.cached_setup(
         setup=create_depfile,
         teardown=remove_depfile,
