@@ -1,6 +1,9 @@
 """extra goodies to be used in dodo files"""
 
 import os
+import time
+import datetime
+
 
 # action
 def create_folder(dir_path):
@@ -31,6 +34,35 @@ def run_once(task, values):
         return {'run-once': True}
     task.insert_action(save_executed)
     return values.get('run-once', False)
+
+
+# uptodate
+def timeout(timeout_limit):
+    """add timeout to task
+
+    @param timeout_limit: (datetime.timedelta, int) in seconds
+
+    if the time elapsed since last time task was executed is bigger than
+    the "timeout" time the task is NOT up-to-date
+    """
+
+    if isinstance(timeout_limit, datetime.timedelta):
+        limit_sec = timeout_limit.seconds
+    elif isinstance(timeout_limit, int):
+        limit_sec = timeout_limit
+    else:
+        msg = "timeout should be datetime.timedelta or int got %r "
+        raise Exception(msg % timeout_limit)
+
+    def uptodate_timeout(task, values):
+        def save_now():
+            return {'success-time': time.time()}
+        task.insert_action(save_now)
+        last_success = values.get('success-time', None)
+        if last_success is None:
+            return False
+        return (time.time() - last_success) < limit_sec
+    return uptodate_timeout
 
 
 # debug helper

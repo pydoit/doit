@@ -1,4 +1,7 @@
 import os
+import datetime
+
+import pytest
 
 from doit import tools
 from doit import task
@@ -32,3 +35,38 @@ class TestRunOnce(object):
         assert False == tools.run_once(t, t.values)
         t.execute()
         assert True == tools.run_once(t, t.values)
+
+
+class TestTimeout(object):
+    def test_invalid(self):
+        pytest.raises(Exception, tools.timeout, "abc")
+
+    def test_int(self, monkeypatch):
+        monkeypatch.setattr(tools.time, 'time', lambda: 100)
+        t = task.Task("TaskX", None, uptodate=[tools.timeout(5)])
+
+        assert False == t.uptodate[0](t, t.values)
+        t.execute()
+        assert 100 == t.values['success-time']
+
+        monkeypatch.setattr(tools.time, 'time', lambda: 103)
+        assert True == t.uptodate[0](t, t.values)
+
+        monkeypatch.setattr(tools.time, 'time', lambda: 106)
+        assert False == t.uptodate[0](t, t.values)
+
+
+    def test_timedelta(self, monkeypatch):
+        monkeypatch.setattr(tools.time, 'time', lambda: 10)
+        limit = datetime.timedelta(minutes=2)
+        t = task.Task("TaskX", None, uptodate=[tools.timeout(limit)])
+
+        assert False == t.uptodate[0](t, t.values)
+        t.execute()
+        assert 10 == t.values['success-time']
+
+        monkeypatch.setattr(tools.time, 'time', lambda: 100)
+        assert True == t.uptodate[0](t, t.values)
+
+        monkeypatch.setattr(tools.time, 'time', lambda: 200)
+        assert False == t.uptodate[0](t, t.values)
