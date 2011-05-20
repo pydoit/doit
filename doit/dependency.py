@@ -268,11 +268,6 @@ class DependencyBase(object):
         if task.result:
             self._set(task.name, "result:", get_md5(task.result))
 
-        # run-once
-        if task.run_once:
-            # string value could be anything
-            self._set(task.name, 'run-once:', '1')
-
         # file-dep
         for dep in task.file_dep:
             timestamp = os.path.getmtime(dep)
@@ -293,7 +288,8 @@ class DependencyBase(object):
 
     def get_values(self, task_name):
         """get all saved values from a task"""
-        return self._get(task_name, '_values_:')
+        values = self._get(task_name, '_values_:')
+        return values or {}
 
     def get_value(self, name):
         """get saved value from task
@@ -339,22 +335,25 @@ class DependencyBase(object):
         # check uptodate bool/callables
         checked_uptodate = False
         for uptodate in task.uptodate:
+            # FIXME control verbosity, check error messages
+            if hasattr(uptodate, '__call__'):
+                args = [task, self.get_values(task.name)] + uptodate.args
+                uptodate_result = uptodate(*args, **uptodate.kwargs)
+            else:
+                uptodate_result = uptodate
+
             # None means uptodate was not really calculated and should be
             # just ignored
-            if uptodate is None:
+            if uptodate_result is None:
                 continue
-            if uptodate:
+            if uptodate_result:
                 checked_uptodate = True
             else:
                 return 'run'
 
         # no dependencies means it is never up to date.
         if ((not task.file_dep) and (not task.result_dep)
-            and (not task.run_once) and (not checked_uptodate)):
-            return 'run'
-
-        # user managed dependency not up-to-date if it doesnt exist
-        if task.run_once and not self._get(task.name, 'run-once:'):
+            and (not checked_uptodate)):
             return 'run'
 
         # if target file is not there, task is not up to date

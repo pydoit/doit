@@ -177,11 +177,6 @@ class TestSaveSuccess(object):
         depfile.save_success(t1)
         assert None is depfile._get(t1.name, "result:")
 
-    def test_save_runonce(self, depfile):
-        t1 = Task('t_name', None, run_once=True)
-        depfile.save_success(t1)
-        assert depfile._get(t1.name, "run-once:")
-
     def test_save_file_md5(self, depfile):
         # create a test dependency file
         filePath = get_abspath("data/dependency1")
@@ -381,14 +376,6 @@ class TestGetStatus(object):
         assert [] == t1.dep_changed
 
 
-    def test_runOnce(self, depfile):
-        t1 = Task("t1", None, run_once=True)
-        assert 'run' == depfile.get_status(t1)
-        assert [] == t1.dep_changed
-        depfile.save_success(t1)
-        assert 'up-to-date' == depfile.get_status(t1)
-        assert [] == t1.dep_changed
-
     def test_UptodateFalse(self, depfile):
         filePath = get_abspath("data/dependency1")
         ff = open(filePath,"w")
@@ -426,6 +413,31 @@ class TestGetStatus(object):
         # second time execute too
         depfile.save_success(t1)
         assert 'up-to-date' == depfile.get_status(t1)
+
+
+    def test_UptodateCallable_True(self, depfile):
+        def check(task, values): return True
+        t1 = Task("t1", None, uptodate=[check])
+        depfile.save_success(t1)
+        assert 'up-to-date' == depfile.get_status(t1)
+
+    def test_UptodateCallable_False(self, depfile):
+        filePath = get_abspath("data/dependency1")
+        ff = open(filePath,"w")
+        ff.write("part1")
+        ff.close()
+
+        def check(task, values): return False
+        t1 = Task("t1", None, file_dep=[filePath], uptodate=[check])
+
+        # first time execute
+        assert 'run' == depfile.get_status(t1)
+        assert [] == t1.dep_changed
+
+        # second time execute too
+        depfile.save_success(t1)
+        assert 'run' == depfile.get_status(t1)
+        assert [] == t1.dep_changed
 
 
     # if target file does not exist, task is outdated.

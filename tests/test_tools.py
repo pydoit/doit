@@ -15,7 +15,7 @@ def test_create_folder():
     rm_dir()
 
 
-class TestTitleWithActions:
+class TestTitleWithActions(object):
     def test_actions(self):
         t = task.Task("MyName",["MyAction"], title=tools.title_with_actions)
         assert "MyName => Cmd: MyAction" == t.title()
@@ -26,3 +26,9 @@ class TestTitleWithActions:
         assert "MyName => Group: t1, t2" == t.title()
 
 
+class TestRunOnce(object):
+    def test_run(self):
+        t = task.Task("TaskX", None, uptodate=[tools.run_once])
+        assert False == tools.run_once(t, t.values)
+        t.execute()
+        assert True == tools.run_once(t, t.values)

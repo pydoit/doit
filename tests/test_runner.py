@@ -346,7 +346,7 @@ class TestRunner_run_tasks(object):
         my_runner.run_tasks(tc)
         assert runner.SUCCESS == my_runner.finish()
         d = Dependency(depfile.name)
-        assert '1' == d._get('taskX', 'run-once:')
+        assert True == d.get_values('taskX').get('run-once')
 
     def test_resultDependency(self, reporter, RunnerClass, depfile):
         t1 = Task("t1", [(ok,)])

@@ -69,31 +69,50 @@ class TestTaskInit(object):
         t = task.Task("t", ["q"])
         assert t.run_status is None
 
-    def test_dependencyTrueRunOnce(self):
-        t = task.Task("Task X",["taskcmd"], run_once=True)
-        assert t.run_once
+
+class TestTaskInsertAction(object):
+    def test_insert_action(self):
+        t = task.Task("Task X", ["taskcmd"])
+        def void(task, values, (my_arg1,)): pass
+        t.insert_action((void, [1]))
+        assert 2 == len(t.actions)
 
 
 class TestTaskUpToDate(object):
 
-    def test_dependencyFalseRunalways(self):
-        t = task.Task("Task X",["taskcmd"], uptodate=[False])
+    def test_FalseRunalways(self):
+        t = task.Task("Task X", ["taskcmd"], uptodate=[False])
         assert t.uptodate == [False]
 
-    def test_dependencyNoneIgnored(self):
-        t = task.Task("Task X",["taskcmd"], uptodate=[None])
-        assert not t.run_once
+    def test_NoneIgnored(self):
+        t = task.Task("Task X", ["taskcmd"], uptodate=[None])
         assert t.uptodate == [None]
+
+    def test_callable(self):
+        def custom_check(): return True
+        t = task.Task("Task X", ["taskcmd"], uptodate=[custom_check])
+        assert t.uptodate[0] == custom_check
+        assert t.uptodate[0].args == []
+        assert t.uptodate[0].kwargs == {}
+
+    def test_tuple(self):
+        def custom_check(pos_arg, xxx=None): return True
+        t = task.Task("Task X", ["taskcmd"],
+                      uptodate=[(custom_check, [123], {'xxx':'yyy'})])
+        assert t.uptodate[0] == custom_check
+        assert t.uptodate[0].args == [123]
+        assert t.uptodate[0].kwargs == {'xxx':'yyy'}
+
+    def test_invalid(self):
+        pytest.raises(task.InvalidTask,
+                      task.Task, "Task X", ["taskcmd"], uptodate=[{'x':'y'}])
+
 
 class TestTaskExpandFileDep(object):
 
     def test_dependencyStringIsFile(self):
         my_task = task.Task("Task X", ["taskcmd"], file_dep=["123","456"])
         assert set(["123","456"]) == my_task.file_dep
-
-    def test_runOnce_or_fileDependency(self):
-        pytest.raises(task.InvalidTask, task.Task, "Task X",
-                       ["taskcmd"], file_dep=["whatever"], run_once=True)
 
     def test_file_dep_must_be_string(self):
         pytest.raises(task.InvalidTask, task.Task, "Task X", ["taskcmd"],

@@ -89,8 +89,6 @@ class Task(object):
 
         self.name = name
         self.targets = targets
-        self.uptodate = list(uptodate)
-        self.run_once = run_once
         self.is_subtask = is_subtask
         self.result = None
         self.values = {}
@@ -110,6 +108,17 @@ class Task(object):
             self.actions = []
         else:
             self.actions = [create_action(a, self) for a in actions]
+
+        # uptodate
+        # to be removed after 0.12
+        if run_once:
+            from doit.tools import run_once
+            print ("DEPRECATION WARNING: 'run_once' parameter will be removed" +
+                   " from doit.\n to achieve the same result use:\n" +
+                   "'uptodate': [doit.tools.run_once]")
+            uptodate = list(uptodate)
+            uptodate.append(run_once)
+        self.uptodate = self._init_uptodate(uptodate)
 
         # clean
         if clean is True:
@@ -149,6 +158,29 @@ class Task(object):
         self.run_status = None
 
 
+    def _init_uptodate(self, items):
+        """wrap uptodate callables"""
+        uptodate = []
+        for item in items:
+            if isinstance(item, bool) or item is None:
+                uptodate.append(item)
+            elif hasattr(item, '__call__'):
+                item.args = []
+                item.kwargs = {}
+                uptodate.append(item)
+            elif isinstance(item, tuple):
+                call = item[0]
+                call.args = list(item[1]) if len(item)>1 else []
+                call.kwargs = item[2] if len(item)>2 else {}
+                uptodate.append(call)
+            else:
+                msg = ("%s. task invalid 'uptodate' item '%r'. " +
+                       "Must be bool, None, callable or tuple " +
+                       "(callable, args, kwargs).")
+                raise InvalidTask(msg % (self.name, item))
+        return uptodate
+
+
     def _expand_file_dep(self, file_dep):
         """put input into file_dep"""
         for dep in file_dep:
@@ -159,12 +191,6 @@ class Task(object):
 
             if dep not in self.file_dep:
                 self.file_dep.add(dep)
-
-        # run_once can't be used together with file dependencies
-        if self.run_once and self.file_dep:
-            msg = ("%s. task cant have file and dependencies and run_once " +
-                   "at the same time. (just remove run_once)")
-            raise InvalidTask(msg % self.name)
 
 
     def _expand_task_dep(self, task_dep):
@@ -254,6 +280,15 @@ class Task(object):
                             (valid[0] + valid[1])])
         msg += "{%s} got:%r %s" % (accept, value, type(value))
         raise InvalidTask(msg)
+
+
+    def insert_action(self, call_ref):
+        """insert an action to execute before all other actions
+
+        @param call_ref: callable or (callable, args, kwargs)
+        This is part of interface to be used by 'uptodate' callables
+        """
+        self.actions.insert(0, create_action(call_ref, self))
 
 
     def _get_out_err(self, out, err, verbosity):
@@ -370,7 +405,6 @@ class Task(object):
         inst.name = self.name
         inst.targets = self.targets[:]
         inst.uptodate = self.uptodate[:]
-        inst.run_once = self.run_once
         inst.is_subtask = self.is_subtask
         inst.result = self.result
         inst.values = self.values.copy()
