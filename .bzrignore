@@ -1,6 +1,9 @@
 .coverage*
 .doit.db
 
+.pytest-incremental*
+pytest.ini
+
 tests/data/*
 
 dist
