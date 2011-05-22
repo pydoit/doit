@@ -34,6 +34,20 @@ So if there are no modifications to the dependencies and you run `doit` again. T
 Note the ``--`` (2 dashes, one space) on the command output on the second time it is executed. It means, this task was up-to-date and not executed.
 
 
+execution order
+-----------------
+
+If your tasks interact in a way where the target (output) is a file_dep (input) of another task, `doit` will make sure your tasks are executed in the correct order.
+
+.. literalinclude:: tutorial/taskorder.py
+
+.. code-block:: console
+
+  $ doit
+  .  create
+  .  modify
+
+
 file_dep
 ---------
 

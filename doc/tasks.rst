@@ -31,7 +31,7 @@ On the output it displays which tasks were executed. In this case the `dodo` fil
 Actions
 --------
 
-Every *task* must define **actions**. It can optionally defines other attributes like `targets`, `dependencies`, `doc` ...
+Every *task* must define **actions**. It can optionally defines other attributes like `targets`, `file_dep`, `verbosity`, `doc` ...
 
 Actions define what the task actually do. A task can define any number of actions. The action "result" is used to determine if task execution was successful or not.
 
