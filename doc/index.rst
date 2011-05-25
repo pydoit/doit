@@ -6,10 +6,10 @@ About
 `doit` can be used as:
 
  * a build tool (generic and flexible)
-
  * home of your management scripts (it helps you organize and combine shell scripts and python scripts)
-
  * a functional tests runner (combine together different tools)
+ * a configuration management system
+ * manage computational pipelines
 
 Features:
 
@@ -20,7 +20,7 @@ Features:
  * Built-in integration of inotify (automatically re-execution) (linux/mac only)
  * Runs on Python 2.5 through 3.2
 
-If you are still wondering why someone would want to use this tool, check this blog `post <http://schettino72.wordpress.com/2008/04/14/doit-a-build-tool-tale/>`_.
+If you are still wondering why someone would want to use this tool, this blog `post <http://schettino72.wordpress.com/2008/04/14/doit-a-build-tool-tale/>`_ explains how everything started.
 
 
 Quick Start
@@ -70,8 +70,8 @@ Project Details
 Status
 ======
 
-`doit` is under active development. Version 0.11 released on 2011-04.
+`doit` is under active development. Version 0.12 released on 2011-05.
 
-Development is done based on real world use cases. If I don't need a feature and nobody never asked for it, it is not implemented ;) It is well designed and have a very small code base so adding new features isn't hard. `doit` already provides most features I need, so the development of new features has slowed down.
+`doit` core features are quite stable. So if there is not recent development, it does NOT mean `doit` is not being mantained... Development is done based on real world use cases. If I don't need a feature and nobody never asked for it, it is not implemented ;) It is well designed and have a very small code base so adding new features isn't hard.
 
 If you use `doit` please drop me a line telling me your experience...

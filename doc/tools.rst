@@ -8,13 +8,22 @@ Following the *batteries-included* philosophy *doit* includes some common used a
 run-once (uptodate)
 ---------------------
 
-see XXX
+see `run-once`__
+
+__ dependencies.html#run-once
 
 
 timeout (uptodate)
 ---------------------
 
-XXX
+``timieout`` is used to expire a task after a certain time interval.
+
+i.e. You want to re-execute a task only if the time elapsed since the last the time it was executed is bigger than 5 minutes.
+
+.. literalinclude:: tutorial/timeout.py
+
+
+``timeout`` is function that takes an ``int`` (seconds) or ``timedelta`` as a paramter. It returns a callable suitable to be used as an ``uptodate`` callable.
 
 
 create_folder (action)

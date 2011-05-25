@@ -9,11 +9,11 @@
 `doit` can be used as:
 
  * a build tool (generic and flexible)
-
  * home of your management scripts (it helps you organize and combine shell
    scripts and python scripts)
-
  * a functional tests runner (combine together different tools)
+ * a configuration management system
+ * manage computational pipelines
 
 Features:
 
@@ -97,8 +97,6 @@ setup(name = 'doit',
       url = 'http://python-doit.sourceforge.net/',
       classifiers = ['Development Status :: 5 - Production/Stable',
                      'Environment :: Console',
-                     'Intended Audience :: Developers',
-                     'Intended Audience :: System Administrators',
                      'License :: OSI Approved :: MIT License',
                      'Natural Language :: English',
                      'Operating System :: OS Independent',
@@ -109,9 +107,14 @@ setup(name = 'doit',
                      'Programming Language :: Python :: 2.7',
                      'Programming Language :: Python :: 3',
                      'Programming Language :: Python :: 3.2',
+                     'Intended Audience :: Developers',
+                     'Intended Audience :: Information Technology',
+                     'Intended Audience :: Science/Research',
+                     'Intended Audience :: System Administrators',
                      'Topic :: Software Development :: Build Tools',
                      'Topic :: Software Development :: Testing',
                      'Topic :: Software Development :: Quality Assurance',
+                     'Topic :: Scientific/Engineering',
                      ],
 
       packages = ['doit'],

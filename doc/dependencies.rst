@@ -85,7 +85,7 @@ If there are no changes in the dependency the task execution is skipped. But if 
 execution order
 -----------------
 
-If your tasks interact in a way where the target (output) is a file_dep (input) of another task, `doit` will make sure your tasks are executed in the correct order.
+If your tasks interact in a way where the target (output) of one task is a file_dep (input) of another task, `doit` will make sure your tasks are executed in the correct order.
 
 .. literalinclude:: tutorial/taskorder.py
 
@@ -110,6 +110,13 @@ Note the `result_dep` with the name of the task (version). `doit` will keep trac
 The "result" from the dependent task compared between different runs is given by its last action. The content for python-action is the value of the returned string. For cmd-actions is the output send to stdout plus stderr.
 
 
+saving computed values
+------------------------
+
+Tasks can save computed values by returning a dictionary on it's python-actions. The values must be JSON encodable.
+
+These values can be used on uptodate_ and getargs_. Check those sections for examples.
+
 
 uptodate
 ----------
@@ -124,16 +131,18 @@ This can be used in cases where you need to some kind of calculation to determin
  * ``True`` indicates that the task is up-to-date
  * ``None`` values will just be ignored. This is used when the value is dinamically calculated
 
-`uptodate` elements can also be a callable that returns False, True or None. This callable must take at least two positional parameters ``task`` and ``values``. Item can also be a tuple (callable, args, kwargs).
+`uptodate` elements can also be a callable that returns False, True or None. This callable must take at least two positional parameters ``task`` and ``values``. Elemetns can also be a tuple (callable, args, kwargs).
 
    -  ``task`` parameter will give you access to task object. So you have access to its metadata and opportunity to modifiy the task itself!
-   -  ``values`` is a dictionary with the values saved in the last successful execution of the task.
+   -  ``values`` is a dictionary with the computed values saved in the last successful execution of the task.
 
 .. literalinclude:: tutorial/uptodate_callable.py
 
 .. note::
 
-  ``uptodate`` value ``True`` does not override others up-to-date checks. It is one more way to check if task is **not** up-to-date. i.e. if uptodate==True but a file_dep changes the task is still considered **not** up-to-date.
+  ``uptodate`` value ``True`` does not override others up-to-date checks. It is one more way to check if task is **not** up-to-date.
+
+   i.e. if uptodate==True but a file_dep changes the task is still considered **not** up-to-date.
 
 
 run-once
@@ -172,6 +181,11 @@ Note that even with *run_once* the file will be downloaded again in case the tar
   If you want to use other tasks to calculate ``uptodate`` you should combine it with ``calc_deps``.
 
 
+.. note::
+
+  `doit.tools`__ includes two ``uptodate`` callables that are ready to use. ``run_once`` as described above. And ``timeout`` that will make your task up-to-date only during a certain time interval.
+
+__ tools.html
 
 doit up-to-date definition
 -----------------------------
@@ -238,7 +252,7 @@ Note that tasks are never executed twice in the same "run".
 getargs
 --------
 
-`getargs` provides a way to use values computed in one task from another task.
+`getargs` provides a way to use values computed from one task in another task.
 
 For *cmd-action* use dictionary-based string formatting.
 
@@ -246,6 +260,8 @@ For *python-action* the action callable parameter names must match with keys fro
 
 .. literalinclude:: tutorial/getargs.py
 
+.. note::
+   ``getargs`` creates an implicit task-dependency.
 
 
 Environment setup
