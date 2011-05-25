@@ -3,6 +3,17 @@
 Changes
 =======
 
+
+0.12.0
+=======================
+
+- fix bug #770150 - error on task dependency from target
+- fix bug #773579 - unicode output problems
+- task parameter ``uptodate`` accepts callables
+- deprecate task attribute run_once. use tools.run_once on uptodate instead
+- added doit.tools.timeout
+
+
 0.11.0 (*2011-04-20*)
 ========================
 
