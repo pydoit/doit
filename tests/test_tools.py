@@ -70,3 +70,19 @@ class TestTimeout(object):
 
         monkeypatch.setattr(tools.time, 'time', lambda: 200)
         assert False == t.uptodate[0](t, t.values)
+
+
+    def test_timedelta_big(self, monkeypatch):
+        monkeypatch.setattr(tools.time, 'time', lambda: 10)
+        limit = datetime.timedelta(days=2, minutes=5)
+        t = task.Task("TaskX", None, uptodate=[tools.timeout(limit)])
+
+        assert False == t.uptodate[0](t, t.values)
+        t.execute()
+        assert 10 == t.values['success-time']
+
+        monkeypatch.setattr(tools.time, 'time', lambda: 3600 * 30)
+        assert True == t.uptodate[0](t, t.values)
+
+        monkeypatch.setattr(tools.time, 'time', lambda: 3600 * 49)
+        assert False == t.uptodate[0](t, t.values)

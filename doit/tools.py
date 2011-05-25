@@ -47,7 +47,7 @@ def timeout(timeout_limit):
     """
 
     if isinstance(timeout_limit, datetime.timedelta):
-        limit_sec = timeout_limit.seconds
+        limit_sec = (timeout_limit.days * 24 * 3600) + timeout_limit.seconds
     elif isinstance(timeout_limit, int):
         limit_sec = timeout_limit
     else:
