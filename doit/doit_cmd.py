@@ -357,19 +357,23 @@ file_dep:
   - type: list. items:
     * file (string) path relative to the dodo file
 
-run_once:
-  - type: bool
-    * run-once (True bool)
-    * never up-to-date (False bool)
-    * None values will be just ignored
-
 task_dep:
   - type: list. items:
     * task name (string)
 
+targets:
+  - type: list of strings
+  - each item is file-path relative to the dodo file (accepts both files and folders)
+
 result_dep:
   - type: list. items:
     * task name (string)
+
+uptodate:
+  - type: list. items:
+    * None - None values are just ignored
+    * bool
+    * callable - returns bool or None. must take 2 positional parameters (task, values)
 
 calc_dep:
   - type: list. items:
@@ -386,10 +390,6 @@ setup:
 
 teardown:
  - type: (list) of actions (see above)
-
-targets:
-  - type: list of strings
-  - each item is file-path relative to the dodo file (accepts both files and folders)
 
 doc:
  - type: string -> the description text

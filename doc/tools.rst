@@ -4,16 +4,29 @@ Tools
 
 Following the *batteries-included* philosophy *doit* includes some common used actions. (well not many by now :p)
 
-create_folder
---------------
+
+run-once (uptodate)
+---------------------
+
+see XXX
+
+
+timeout (uptodate)
+---------------------
+
+XXX
+
+
+create_folder (action)
+-------------------------
 
 Creates a folder if it does not exist yet.
 
 .. literalinclude:: tutorial/folder.py
 
 
-title_with_actions
-------------------------
+title_with_actions (title)
+----------------------------
 
 Return task name task actions from a task. This function can be used as 'title' attribute of a task dictionary to provide more detailed information of the action being executed.
 

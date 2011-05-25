@@ -2,8 +2,9 @@
 Dependencies & Targets
 ======================
 
-up-to-date
-----------
+
+up-to-date tasks
+--------------------
 
 One of the main ideas of `doit` and other build-tools is to check if the tasks/targets are **up-to-date**. In case there is no modification in the dependencies and the targets already exist, it skip the task execution to save time, as it would produce the same output from the previous run.
 
@@ -34,22 +35,8 @@ So if there are no modifications to the dependencies and you run `doit` again. T
 Note the ``--`` (2 dashes, one space) on the command output on the second time it is executed. It means, this task was up-to-date and not executed.
 
 
-execution order
------------------
-
-If your tasks interact in a way where the target (output) is a file_dep (input) of another task, `doit` will make sure your tasks are executed in the correct order.
-
-.. literalinclude:: tutorial/taskorder.py
-
-.. code-block:: console
-
-  $ doit
-  .  create
-  .  modify
-
-
-file_dep
----------
+file_dep (file dependency)
+-----------------------------
 
 Different from most build-tools dependencies are on tasks not on targets. So `doit` can take advantage of the "execute only if not up-to-date" feature even for tasks that not define targets.
 
@@ -95,6 +82,20 @@ If there are no changes in the dependency the task execution is skipped. But if 
     -- compile
 
 
+execution order
+-----------------
+
+If your tasks interact in a way where the target (output) is a file_dep (input) of another task, `doit` will make sure your tasks are executed in the correct order.
+
+.. literalinclude:: tutorial/taskorder.py
+
+.. code-block:: console
+
+  $ doit
+  .  create
+  .  modify
+
+
 result-dependency
 ----------------------
 
@@ -115,7 +116,7 @@ uptodate
 
 `doit` also supports checking if a task is up-to-date directly by the parameter `uptodate`.
 
-This can be used in cases where you do not check for changes in dependencies. i.e. you check if a value in a database is smaller than 10.
+This can be used in cases where you need to some kind of calculation to determine if the task is up-to-date or not. i.e. you check if a value in a database is smaller than a certain value.
 
 `uptodate` is a list where each element can be True, False, or None.
 
@@ -123,22 +124,37 @@ This can be used in cases where you do not check for changes in dependencies. i.
  * ``True`` indicates that the task is up-to-date
  * ``None`` values will just be ignored. This is used when the value is dinamically calculated
 
+`uptodate` elements can also be a callable that returns False, True or None. This callable must take at least two positional parameters ``task`` and ``values``. Item can also be a tuple (callable, args, kwargs).
+
+   -  ``task`` parameter will give you access to task object. So you have access to its metadata and opportunity to modifiy the task itself!
+   -  ``values`` is a dictionary with the values saved in the last successful execution of the task.
+
+.. literalinclude:: tutorial/uptodate_callable.py
+
 .. note::
 
-  This often used with calc_deps (see below).
-
+  ``uptodate`` value ``True`` does not override others up-to-date checks. It is one more way to check if task is **not** up-to-date. i.e. if uptodate==True but a file_dep changes the task is still considered **not** up-to-date.
 
 
 run-once
---------
+^^^^^^^^^^
 
-Sometimes there is no dependency for a task but you do not want to execute it all the time. If you use ``True`` in "run_once" the task will not be executed again after the first successful run. This is mostly used together with targets.
+Here is a simple example on how to use the positional parameters of ``uptodate``.
+
+Sometimes there is no dependency for a task but you do not want to execute it all the time. If "run_once" the task will not be executed again after the first successful run. This is mostly used together with targets.
 
 Suppose you need to download something from internet. There is no dependency though you do not want to download it many times.
+
+
+.. literalinclude:: tutorial/run_once.py
+
+Since "run_once" is a common pattern it is included in ``doit.tools`` module.
+
 
 .. literalinclude:: tutorial/download.py
 
 Note that even with *run_once* the file will be downloaded again in case the target is removed.
+
 
 .. code-block:: console
 
@@ -153,7 +169,17 @@ Note that even with *run_once* the file will be downloaded again in case the tar
 
 .. note::
 
-  A task is **not** up-to-date if any of `file_dep`, `result_dep`, `run_once` or `uptodate` is not up-to-date. If a task does not define any of these dependencies it will always be executed.
+  If you want to use other tasks to calculate ``uptodate`` you should combine it with ``calc_deps``.
+
+
+
+doit up-to-date definition
+-----------------------------
+
+A task is **not** up-to-date if any of `file_dep`, `result_dep`, or `uptodate` is not up-to-date or there is a missing `target`. If a task does not define any of these dependencies it will always be executed.
+
+Apart from these dependencies used to determine if a task is up-to-date or not. ``doit`` also include other kind of dependencies to help you combine tasks so they are executed in appropriate order.
+
 
 
 calculated-dependencies
@@ -165,6 +191,7 @@ On the example below ``mod_deps`` prints on the screen all direct dependencies f
 
 
 .. literalinclude:: tutorial/calc_dep.py
+
 
 
 task-dependency
@@ -193,6 +220,11 @@ This example we make sure we include a file with the latest revision number of t
     .  tar
 
 
+.. note::
+
+  a *task-dependency* is executed before checking if the task is up-to-date. If you want to execute another task only if it is not up-to-date you should use a ``setup`` task.
+
+
 groups
 ^^^^^^^
 
@@ -216,19 +248,6 @@ For *python-action* the action callable parameter names must match with keys fro
 
 
 
-keywords on actions
---------------------
-
-It is common situation to use task information such as *targets*, *dependencies*, or *changed* in its own actions. Note: Dependencies are only *file-dependencies*.
-
-For *cmd-action* you can use the python notation for keyword substitution on strings. The string will contain all values separated by a space (" ").
-
-For *python-action* create a parameter in the function `doit` will take care of passing the value when the function is called. The values are passed as list of strings.
-
-.. literalinclude:: tutorial/hello.py
-
-
-
 Environment setup
 ---------------------
 
@@ -242,3 +261,17 @@ Task may also define 'teardown' actions. These actions are executed after all ta
 Example:
 
 .. literalinclude:: tutorial/tsetup.py
+
+
+keywords on actions
+--------------------
+
+It is common situation to use task information such as *targets*, *dependencies*, or *changed* in its own actions. Note: Dependencies are only *file-dependencies*.
+
+For *cmd-action* you can use the python notation for keyword substitution on strings. The string will contain all values separated by a space (" ").
+
+For *python-action* create a parameter in the function `doit` will take care of passing the value when the function is called. The values are passed as list of strings.
+
+.. literalinclude:: tutorial/hello.py
+
+
