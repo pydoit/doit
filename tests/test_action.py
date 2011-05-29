@@ -17,7 +17,7 @@ PROGRAM = "python %s/sample_process.py" % TEST_PATH
 
 
 def create_tempfile():
-    return tempfile.TemporaryFile('w+')
+    return tempfile.TemporaryFile('w+b')
 
 def pytest_funcarg__tmpfile(request):
     """crate a temporary file"""
@@ -108,7 +108,7 @@ class TestCmdVerbosity(object):
         action_result = my_action.execute(err=tmpfile)
         assert isinstance(action_result, TaskFailed)
         tmpfile.seek(0)
-        got = tmpfile.read()
+        got = tmpfile.read().decode('utf-8')
         assert "err output on failure" == got, repr(got)
         assert "err output on failure" == my_action.err, repr(my_action.err)
 
@@ -117,7 +117,7 @@ class TestCmdVerbosity(object):
         my_action = action.CmdAction("%s hi_stdout hi2" % PROGRAM)
         my_action.execute(out=tmpfile)
         tmpfile.seek(0)
-        got = tmpfile.read()
+        got = tmpfile.read().decode('utf-8')
         assert "hi_stdout" == got, repr(got)
         assert "hi_stdout" == my_action.out, repr(my_action.out)
 
@@ -159,7 +159,17 @@ class TestCmd_print_process_output(object):
 
     def test_unicode_string(self, tmpfile):
         my_action = action.CmdAction("")
-        unicode_in = StringIO.StringIO(u" 中文 \u2018".encode('utf-8'))
+        unicode_in = create_tempfile()
+        unicode_in.write(u" 中文".encode('utf-8'))
+        unicode_in.seek(0)
+        my_action._print_process_output(Mock(), unicode_in, Mock(), tmpfile)
+
+    def test_unicode_string2(self, tmpfile):
+        # this \uXXXX has a different behavior!
+        my_action = action.CmdAction("")
+        unicode_in = create_tempfile()
+        unicode_in.write(u" 中文 \u2018".encode('utf-8'))
+        unicode_in.seek(0)
         my_action._print_process_output(Mock(), unicode_in, Mock(), tmpfile)
 
 
@@ -337,7 +347,7 @@ class TestPythonVerbosity(object):
         assert "this is stdout S\n" == got, repr(got)
 
     def test_redirectStderr(self):
-        tmpfile = create_tempfile()
+        tmpfile = tempfile.TemporaryFile('w+')
         my_action = action.PythonAction(self.write_stderr)
         my_action.execute(err=tmpfile)
         tmpfile.seek(0)
@@ -346,7 +356,7 @@ class TestPythonVerbosity(object):
         assert "this is stderr S\n" == got, got
 
     def test_redirectStdout(self):
-        tmpfile = create_tempfile()
+        tmpfile = tempfile.TemporaryFile('w+')
         my_action = action.PythonAction(self.write_stdout)
         my_action.execute(out=tmpfile)
         tmpfile.seek(0)

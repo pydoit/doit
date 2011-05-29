@@ -44,6 +44,12 @@ class CmdAction(BaseAction):
         """read 'input_' untill process is terminated
         write 'input_' content to 'capture' and 'realtime' streams
         """
+        if realtime:
+            if hasattr(realtime, 'encoding'):
+                encoding = realtime.encoding or 'utf-8'
+            else:
+                encoding = 'utf-8'
+
         while True:
             # line buffered
             try:
@@ -51,12 +57,11 @@ class CmdAction(BaseAction):
             except:
                 process.terminate()
                 input_.read()
-                raise Exception("got non-unicode output")
+                raise
             # unbuffered ? process.stdout.read(1)
             if line:
                 capture.write(line)
                 if realtime:
-                    encoding = getattr(realtime, 'encoding') or 'utf-8'
                     realtime.write(line.encode(encoding))
             if not line and process.poll() != None:
                 break
