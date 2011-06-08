@@ -47,11 +47,12 @@ def check_modified(file_path, state):
         return True
 
     timestamp, size, file_md5 = state
+    fp_stat = os.stat(file_path)
     # 1 - if timestamp is not modified file is the same
-    if USE_FILE_TIMESTAMP and os.path.getmtime(file_path) == timestamp:
+    if USE_FILE_TIMESTAMP and fp_stat.st_mtime == timestamp:
         return False
     # 2 - if size is different file is modified
-    if os.path.getsize(file_path) != size:
+    if fp_stat.st_size != size:
         return True
     # 3 - check md5
     return file_md5 != md5sum(file_path)
