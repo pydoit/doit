@@ -337,17 +337,6 @@ class TestRunner_run_tasks(object):
         d = Dependency(depfile.name)
         assert d._get("taskX", os.path.abspath(depPath))
 
-    # when successful and run_once is updated
-    def test_successRunOnce(self, reporter, RunnerClass, depfile):
-        tasks = [Task("taskX", [my_print], run_once=True)]
-        my_runner = RunnerClass(depfile.name, reporter)
-        tc = TaskControl(tasks)
-        tc.process(None)
-        my_runner.run_tasks(tc)
-        assert runner.SUCCESS == my_runner.finish()
-        d = Dependency(depfile.name)
-        assert True == d.get_values('taskX').get('run-once')
-
     def test_resultDependency(self, reporter, RunnerClass, depfile):
         t1 = Task("t1", [(ok,)])
         t2 = Task("t2", [(ok,)], result_dep=['t1'])

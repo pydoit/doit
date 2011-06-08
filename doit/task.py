@@ -25,7 +25,6 @@ class Task(object):
     @ivar calc_dep_stack: (list - string) unprocessed calc_dep
     @ivar dep_changed (list - string): list of file-dependencies that changed
           (are not up_to_date). this must be set before
-    @ivar run_once: (bool) task without dependencies should run
     @ivar uptodate: (list - bool/None) use bool/computed value instead of
                                        checking dependencies
     @ivar setup_tasks (list - string): references to task-names
@@ -58,7 +57,6 @@ class Task(object):
                   'task_dep': ([list, tuple], []),
                   'result_dep': ([list, tuple], []),
                   'uptodate': ([list, tuple], []),
-                  'run_once': ([bool], []),
                   'calc_dep': ([list, tuple], []),
                   'targets': ([list, tuple], []),
                   'setup': ([list, tuple], []),
@@ -73,7 +71,7 @@ class Task(object):
 
 
     def __init__(self, name, actions, file_dep=(), targets=(),
-                 task_dep=(), result_dep=(), uptodate=(), run_once=False,
+                 task_dep=(), result_dep=(), uptodate=(),
                  calc_dep=(), setup=(), clean=(), teardown=(), is_subtask=False,
                  doc=None, params=(), verbosity=None, title=None, getargs=None):
         """sanity checks and initialization
@@ -110,14 +108,6 @@ class Task(object):
             self.actions = [create_action(a, self) for a in actions]
 
         # uptodate
-        # to be removed after 0.12
-        if run_once:
-            from doit.tools import run_once
-            print ("DEPRECATION WARNING: 'run_once' parameter will be removed" +
-                   " from doit.\n to achieve the same result use:\n" +
-                   "'uptodate': [doit.tools.run_once]")
-            uptodate = list(uptodate)
-            uptodate.append(run_once)
         self.uptodate = self._init_uptodate(uptodate)
 
         # clean
