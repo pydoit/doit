@@ -60,7 +60,8 @@ class CmdAction(BaseAction):
                 raise
             # unbuffered ? process.stdout.read(1)
             if line:
-                capture.write(line)
+                # breaks on python3
+                capture.write(line.encode('utf-8'))
                 if realtime:
                     realtime.write(line.encode(encoding))
             if not line and process.poll() != None:

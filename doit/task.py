@@ -207,21 +207,22 @@ class Task(object):
                 self.calc_dep_stack.append(dep)
 
 
+    def _extend_uptodate(self, uptodate):
+        """add/extend uptodate values"""
+        self.uptodate.extend(uptodate)
+
+
+    _expand_map = {'task_dep': _expand_task_dep,
+                   'file_dep': _expand_file_dep,
+                   'result_dep': _expand_result_dep,
+                   'calc_dep': _expand_calc_dep,
+                   'uptodate': _extend_uptodate,
+                   }
     def update_deps(self, deps):
         """expand all kinds of dep input"""
-        #if "test_action" in self.name:
-        #    from doit.tools import set_trace;set_trace()
         for dep, dep_values in deps.iteritems():
-            if dep == 'task_dep':
-                self._expand_task_dep(dep_values)
-            elif dep == 'file_dep':
-                self._expand_file_dep(dep_values)
-            elif dep == 'result_dep':
-                self._expand_result_dep(dep_values)
-            elif dep == 'calc_dep':
-                self._expand_calc_dep(dep_values)
-            elif dep == 'uptodate':
-                self.uptodate.extend(dep_values)
+            self._expand_map[dep](self, dep_values)
+
 
     def _init_getargs(self):
         """task getargs attribute define implicit task dependencies"""
