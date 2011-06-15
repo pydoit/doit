@@ -102,10 +102,11 @@ class Task(object):
         self.options = self.taskcmd.parse('')[0] # ignore positional parameters
 
         # actions
+        self._action_instances = None
         if actions is None:
-            self.actions = []
+            self._actions = []
         else:
-            self.actions = [create_action(a, self) for a in actions]
+            self._actions = actions[:]
 
         # uptodate
         self.uptodate = self._init_uptodate(uptodate) if uptodate else []
@@ -274,13 +275,21 @@ class Task(object):
         raise InvalidTask(msg)
 
 
+    @property
+    def actions(self):
+        """lazy creation of action instances"""
+        if self._action_instances is None:
+            self._action_instances = [create_action(a, self) for a in self._actions]
+        return self._action_instances
+
+
     def insert_action(self, call_ref):
         """insert an action to execute before all other actions
 
         @param call_ref: callable or (callable, args, kwargs)
         This is part of interface to be used by 'uptodate' callables
         """
-        self.actions.insert(0, create_action(call_ref, self))
+        self._actions.insert(0, call_ref)
 
 
     def _get_out_err(self, out, err, verbosity):
@@ -378,7 +387,8 @@ class Task(object):
         mostly probably closures
         """
         to_pickle = self.__dict__.copy()
-        del to_pickle['actions']
+        del to_pickle['_actions']
+        del to_pickle['_action_instances']
         del to_pickle['clean_actions']
         del to_pickle['teardown']
         del to_pickle['custom_title']
@@ -406,7 +416,8 @@ class Task(object):
         inst.setup_tasks = self.setup_tasks[:]
         inst.taskcmd = self.taskcmd
         inst.options = self.options.copy()
-        inst.actions = [a.clone(inst) for a in self.actions]
+        inst._actions = self._actions[:]
+        inst._action_instances = [a.clone(inst) for a in self.actions]
         inst._remove_targets = self._remove_targets
         inst.clean_actions = [a.clone(inst) for a in self.clean_actions]
         inst.teardown = [a.clone(inst) for a in self.teardown]
