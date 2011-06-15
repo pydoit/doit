@@ -108,7 +108,7 @@ class Task(object):
             self.actions = [create_action(a, self) for a in actions]
 
         # uptodate
-        self.uptodate = self._init_uptodate(uptodate)
+        self.uptodate = self._init_uptodate(uptodate) if uptodate else []
 
         # clean
         if clean is True:
@@ -131,18 +131,22 @@ class Task(object):
         # task_dep
         self.task_dep = []
         self.wild_dep = []
-        self._expand_task_dep(task_dep)
+        if task_dep:
+            self._expand_task_dep(task_dep)
 
         # result_dep
         self.result_dep = []
-        self._expand_result_dep(result_dep)
+        if result_dep:
+            self._expand_result_dep(result_dep)
 
         # calc_dep
         self.calc_dep = []
         self.calc_dep_stack = []
-        self._expand_calc_dep(calc_dep)
+        if calc_dep:
+            self._expand_calc_dep(calc_dep)
 
-        self._init_getargs()
+        if self.getargs:
+            self._init_getargs()
         self.doc = self._init_doc(doc)
 
         self.run_status = None
@@ -174,13 +178,10 @@ class Task(object):
     def _expand_file_dep(self, file_dep):
         """put input into file_dep"""
         for dep in file_dep:
-
             if not isinstance(dep, basestring):
                 raise InvalidTask("%s. file_dep must be a str got '%r' (%s)" %
                                   (self.name, dep, type(dep)))
-
-            if dep not in self.file_dep:
-                self.file_dep.add(dep)
+            self.file_dep.add(dep)
 
 
     def _expand_task_dep(self, task_dep):
