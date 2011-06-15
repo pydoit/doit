@@ -296,22 +296,24 @@ class TestIgnore(object):
 
 class TestCheckModified(object):
     def test_None(self, dependency):
-        assert check_modified(dependency, None)
+        assert check_modified(dependency, os.stat(dependency),  None)
 
     def test_timestamp(self, dependency):
         timestamp = os.path.getmtime(dependency)
-        assert not check_modified(dependency, (timestamp, 0, ''))
-        assert check_modified(dependency, (timestamp+1, 0, ''))
+        dep_stat = os.stat(dependency)
+        assert not check_modified(dependency, dep_stat, (timestamp, 0, ''))
+        assert check_modified(dependency, dep_stat, (timestamp+1, 0, ''))
 
     def test_size_md5(self, dependency):
         timestamp = os.path.getmtime(dependency)
         size = os.path.getsize(dependency)
         md5 = md5sum(dependency)
+        dep_stat = os.stat(dependency)
         # incorrect size dont check md5
-        assert check_modified(dependency, (timestamp+1, size+1, ''))
+        assert check_modified(dependency, dep_stat, (timestamp+1, size+1, ''))
         # correct size check md5
-        assert not check_modified(dependency, (timestamp+1, size, md5))
-        assert check_modified(dependency, (timestamp+1, size, ''))
+        assert not check_modified(dependency, dep_stat, (timestamp+1, size, md5))
+        assert check_modified(dependency, dep_stat, (timestamp+1, size, ''))
 
 
 

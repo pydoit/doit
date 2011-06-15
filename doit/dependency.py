@@ -37,9 +37,10 @@ def md5sum(path):
     return result
 
 
-def check_modified(file_path, state):
+def check_modified(file_path, file_stat, state):
     """check if file in file_path is modified from previous "state"
     @param file_path (string): file path
+    @param file_stat: the value returned from os.stat(file_path)
     @param state (tuple), timestamp, size, md5
     @returns (bool):
     """
@@ -47,12 +48,11 @@ def check_modified(file_path, state):
         return True
 
     timestamp, size, file_md5 = state
-    fp_stat = os.stat(file_path)
     # 1 - if timestamp is not modified file is the same
-    if USE_FILE_TIMESTAMP and fp_stat.st_mtime == timestamp:
+    if USE_FILE_TIMESTAMP and file_stat.st_mtime == timestamp:
         return False
     # 2 - if size is different file is modified
-    if fp_stat.st_size != size:
+    if file_stat.st_size != size:
         return True
     # 3 - check md5
     return file_md5 != md5sum(file_path)
@@ -367,9 +367,11 @@ class DependencyBase(object):
         changed = []
         status = 'up-to-date' # initial assumption
         for dep in tuple(task.file_dep):
-            if not os.path.exists(dep):
+            try:
+                file_stat = os.stat(dep)
+            except os.error:
                 raise Exception("Dependent file '%s' does not exist." % dep)
-            if check_modified(dep, self._get(task.name, dep)):
+            if check_modified(dep, file_stat, self._get(task.name, dep)):
                 changed.append(dep)
                 status = 'run'
 
