@@ -185,18 +185,21 @@ class DbmDB(object):
         # return key in self._dbm
         return key.encode('utf-8') in self._dbm
 
+
     def get(self, task_id, dependency):
         """Get value stored in the DB.
 
         @return: (string) or (None) if entry not found
         """
-        # optimization. check this after reduce call count
+        # optimization, just try to get it without checking it exists
         if task_id in self._db:
             return self._db[task_id].get(dependency, None)
-
-        if task_id not in self._db and self._in_dbm(task_id):
-            self._db[task_id] = json.loads(self._dbm[task_id].decode('utf-8'))
-        if task_id in self._db:
+        else:
+            try:
+                task_data = self._dbm[task_id]
+            except KeyError:
+                return
+            self._db[task_id] = json.loads(task_data.decode('utf-8'))
             return self._db[task_id].get(dependency, None)
 
 
