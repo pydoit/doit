@@ -138,7 +138,7 @@ class TestTaskDeps(object):
 
     def test_calc_dep(self):
         my_task = task.Task("Task X", ["taskcmd"], calc_dep=["123"])
-        assert ["123"] == my_task.calc_dep
+        assert set(["123"]) == my_task.calc_dep
         assert ["123"] == my_task.calc_dep_stack
 
     def test_update_deps(self):
@@ -153,7 +153,7 @@ class TestTaskDeps(object):
                              })
         assert set(['fileX', 'fileY']) == my_task.file_dep
         assert ['resultX', 'taskY', 'resultY'] == my_task.task_dep
-        assert ['calcX', 'calcY'] == my_task.calc_dep
+        assert set(['calcX', 'calcY']) == my_task.calc_dep
         assert ['resultX', 'resultY'] == my_task.result_dep
         assert [None, True] == my_task.uptodate
 
