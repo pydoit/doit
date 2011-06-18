@@ -51,22 +51,22 @@ class Task(object):
     DEFAULT_VERBOSITY = 1
 
     # list of valid types/values for each task attribute.
-    valid_attr = {'name': ([str], []),
-                  'actions': ([list, tuple], [None]),
-                  'file_dep': ([list, tuple], []),
-                  'task_dep': ([list, tuple], []),
-                  'result_dep': ([list, tuple], []),
-                  'uptodate': ([list, tuple], []),
-                  'calc_dep': ([list, tuple], []),
-                  'targets': ([list, tuple], []),
-                  'setup': ([list, tuple], []),
-                  'clean': ([list, tuple], [True]),
-                  'teardown': ([list, tuple], []),
-                  'doc': ([str], [None]),
-                  'params': ([list, tuple], []),
-                  'verbosity': ([], [None,0,1,2]),
-                  'getargs': ([dict], []),
-                  'title': ([types.FunctionType], [None]),
+    valid_attr = {'name': ((str,), ()),
+                  'actions': ((list, tuple,), (None,)),
+                  'file_dep': ((list, tuple,), ()),
+                  'task_dep': ((list, tuple,), ()),
+                  'result_dep': ((list, tuple,), ()),
+                  'uptodate': ((list, tuple,), ()),
+                  'calc_dep': ((list, tuple,), ()),
+                  'targets': ((list, tuple,), ()),
+                  'setup': ((list, tuple,), ()),
+                  'clean': ((list, tuple,), (True,)),
+                  'teardown': ((list, tuple,), ()),
+                  'doc': ((str,), (None,)),
+                  'params': ((list, tuple,), ()),
+                  'verbosity': ((), (None,0,1,2,)),
+                  'getargs': ((dict,), ()),
+                  'title': ((types.FunctionType,), (None,)),
                   }
 
 
@@ -86,13 +86,14 @@ class Task(object):
             self.check_attr_input(name, attr, my_locals[attr], valid_list)
 
         self.name = name
+        self.getargs = getargs
+        self._init_deps(file_dep, task_dep, result_dep, calc_dep)
         self.targets = targets
         self.is_subtask = is_subtask
         self.result = None
         self.values = {}
         self.verbosity = verbosity
         self.custom_title = title
-        self.getargs = getargs
         self.setup_tasks = list(setup)
 
         # options
@@ -119,10 +120,13 @@ class Task(object):
             self._remove_targets = False
             self.clean_actions = [create_action(a, self) for a in clean]
 
-        # teardown
         self.teardown = [create_action(a, self) for a in teardown]
+        self.doc = self._init_doc(doc)
+        self.run_status = None
 
-        # dependencies
+
+    def _init_deps(self, file_dep, task_dep, result_dep, calc_dep):
+        """init for dependency related attributes"""
         self.dep_changed = None
 
         # file_dep
@@ -141,16 +145,14 @@ class Task(object):
             self._expand_result_dep(result_dep)
 
         # calc_dep
-        self.calc_dep = []
+        self.calc_dep = [] # FIXME make it a set
         self.calc_dep_stack = []
         if calc_dep:
             self._expand_calc_dep(calc_dep)
 
+        # get args
         if self.getargs:
             self._init_getargs()
-        self.doc = self._init_doc(doc)
-
-        self.run_status = None
 
 
     def _init_uptodate(self, items):
@@ -261,8 +263,7 @@ class Task(object):
         @param valid (list): of valid types/value accepted
         @raises InvalidTask if invalid input
         """
-        value_type = type(value)
-        if value_type in valid[0]:
+        if type(value) in valid[0]:
             return
         if value in valid[1]:
             return
