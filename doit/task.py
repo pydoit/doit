@@ -100,6 +100,8 @@ class Task(object):
         self.check_attr(name, 'title', title, self.valid_attr['title'])
 
         self.name = name
+        self.taskcmd = cmdparse.TaskOption(name, params, None, None)
+        self.options = None
         self.getargs = getargs
         self._init_deps(file_dep, task_dep, result_dep, calc_dep)
         self.targets = targets
@@ -109,12 +111,6 @@ class Task(object):
         self.verbosity = verbosity
         self.custom_title = title
         self.setup_tasks = list(setup)
-
-        # options
-        self.taskcmd = cmdparse.TaskOption(name, params, None, None)
-        # put default values on options. this will be overwritten, if params
-        # options were passed on the command line.
-        self.options = self.taskcmd.parse('')[0] # ignore positional parameters
 
         # actions
         self._action_instances = None
@@ -241,8 +237,18 @@ class Task(object):
             self._expand_map[dep](self, dep_values)
 
 
+    def _init_options(self):
+        """put default values on options. this will be overwritten, if params
+        options were passed on the command line.
+        """
+        if self.options is None:
+            # ignore positional parameters
+            self.options = self.taskcmd.parse('')[0]
+
+
     def _init_getargs(self):
         """task getargs attribute define implicit task dependencies"""
+        self._init_options()
         for key, desc in self.getargs.iteritems():
             # check format
             parts = desc.rsplit('.', 1)
@@ -293,6 +299,7 @@ class Task(object):
     @property
     def actions(self):
         """lazy creation of action instances"""
+        self._init_options()
         if self._action_instances is None:
             self._action_instances = [create_action(a, self) for a in self._actions]
         return self._action_instances
@@ -337,6 +344,7 @@ class Task(object):
         """Executes task's teardown
         @return failure: see CmdAction.execute
         """
+        self._init_options()
         task_stdout, task_stderr = self._get_out_err(out, err, verbosity)
         for action in self.teardown:
             action_return = action.execute(task_stdout, task_stderr)
@@ -350,6 +358,7 @@ class Task(object):
         @ivar dryrun (bool): if True clean tasks are not executed
                              (just print out what would be executed)
         """
+        self._init_options()
         # if clean is True remove all targets
         if self._remove_targets is True:
             files = [path for path in self.targets if os.path.isfile(path)]
@@ -430,7 +439,7 @@ class Task(object):
         inst.getargs = copy.copy(self.getargs)
         inst.setup_tasks = self.setup_tasks[:]
         inst.taskcmd = self.taskcmd
-        inst.options = self.options.copy()
+        inst.options = copy.copy(self.options)
         inst._actions = self._actions[:]
         inst._action_instances = [a.clone(inst) for a in self.actions]
         inst._remove_targets = self._remove_targets
