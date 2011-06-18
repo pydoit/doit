@@ -21,17 +21,17 @@ PROGRAM = "python %s/sample_process.py" % TEST_PATH
 class TestTaskCheckInput(object):
 
     def testOkType(self):
-        task.Task.check_attr_input('xxx', 'attr', [], ([int, list],[]))
+        task.Task.check_attr('xxx', 'attr', [], ([int, list],[]))
 
     def testOkValue(self):
-        task.Task.check_attr_input('xxx', 'attr', None, ([list], [None]))
+        task.Task.check_attr('xxx', 'attr', None, ([list], [None]))
 
     def testFailType(self):
-        pytest.raises(task.InvalidTask, task.Task.check_attr_input, 'xxx',
+        pytest.raises(task.InvalidTask, task.Task.check_attr, 'xxx',
                       'attr', int, ([list], [False]))
 
     def testFailValue(self):
-        pytest.raises(task.InvalidTask, task.Task.check_attr_input, 'xxx',
+        pytest.raises(task.InvalidTask, task.Task.check_attr, 'xxx',
                       'attr', True, ([list], [False]))
 
 

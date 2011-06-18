@@ -80,10 +80,24 @@ class Task(object):
         """
 
         getargs = getargs or {} #default
-        # check task attributes input
-        my_locals = locals()
-        for attr, valid_list in self.valid_attr.iteritems():
-            self.check_attr_input(name, attr, my_locals[attr], valid_list)
+        self.check_attr(name, 'name', name, self.valid_attr['name'])
+        self.check_attr(name, 'actions', actions, self.valid_attr['actions'])
+        self.check_attr(name, 'file_dep', file_dep, self.valid_attr['file_dep'])
+        self.check_attr(name, 'task_dep', task_dep, self.valid_attr['task_dep'])
+        self.check_attr(name, 'result_dep', result_dep,
+                        self.valid_attr['result_dep'])
+        self.check_attr(name, 'uptodate', uptodate, self.valid_attr['uptodate'])
+        self.check_attr(name, 'calc_dep', calc_dep, self.valid_attr['calc_dep'])
+        self.check_attr(name, 'targets', targets, self.valid_attr['targets'])
+        self.check_attr(name, 'setup', setup, self.valid_attr['setup'])
+        self.check_attr(name, 'clean', clean, self.valid_attr['clean'])
+        self.check_attr(name, 'teardown', teardown, self.valid_attr['teardown'])
+        self.check_attr(name, 'doc', doc, self.valid_attr['doc'])
+        self.check_attr(name, 'params', params, self.valid_attr['params'])
+        self.check_attr(name, 'verbosity', verbosity,
+                        self.valid_attr['verbosity'])
+        self.check_attr(name, 'getargs', getargs, self.valid_attr['getargs'])
+        self.check_attr(name, 'title', title, self.valid_attr['title'])
 
         self.name = name
         self.getargs = getargs
@@ -254,7 +268,7 @@ class Task(object):
 
 
     @staticmethod
-    def check_attr_input(task, attr, value, valid):
+    def check_attr(task, attr, value, valid):
         """check input task attribute is correct type/value
 
         @param task (string): task name
