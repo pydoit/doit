@@ -76,10 +76,10 @@ class ConsoleReporter(object):
             task = result['task']
             if self.show_out:
                 out = "".join([a.out for a in task.actions if a.out])
-                self.write("%s\n" % out)
+                self.write("%s\n" % out.encode('utf-8'))
             if self.show_err:
                 err = "".join([a.err for a in task.actions if a.err])
-                self.write("%s\n" % err)
+                self.write("%s\n" % err.encode('utf-8'))
 
         if self.runtime_errors:
             self.write("#"*40 + "\n")
