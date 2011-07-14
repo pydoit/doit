@@ -32,7 +32,8 @@ class ConsoleReporter(object):
     def execute_task(self, task):
         """called when excution starts"""
         # ignore tasks that do not define actions
-        if task.actions:
+        # ignore private/hidden tasks (tasks that start with an underscore)
+        if task.actions and (task.name[0] != '_'):
             self.write('.  %s\n' % task.title())
 
     def add_failure(self, task, exception):
