@@ -171,7 +171,6 @@ def cmd_run(params, args):
         print_usage()
         return 0
 
-
     # check if no sub-command specified. default command is "run"
     if len(args) == 0 or args[0] not in params['sub']:
         dodo_tasks = loader.get_tasks(params['dodoFile'], params['cwdPath'],
@@ -472,10 +471,18 @@ def cmd_main(cmd_args):
     sub_cmd['auto'] = cmdparse.Command('auto', auto_options,
                                         cmd_auto, auto_doc)
 
-
+    # get cmdline variables from args
+    doit.reset_vars()
+    args_no_vars = []
+    for arg in cmd_args:
+        if '=' in arg:
+            name, value = arg.split('=', 1)
+            doit.set_var(name, value)
+        else:
+            args_no_vars.append(arg)
 
     try:
-        return sub_cmd['run'](cmd_args, sub=sub_cmd)
+        return sub_cmd['run'](args_no_vars, sub=sub_cmd)
 
     # dont show traceback for user errors.
     except (cmdparse.CmdParseError, InvalidDodoFile,

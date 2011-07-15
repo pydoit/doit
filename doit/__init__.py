@@ -33,3 +33,18 @@ try:
 except ImportError: # pragma: no cover
     import json
 json # pyflakes
+
+
+
+# used to save variable values passed from command line
+CMDLINE_VARS = None
+
+def reset_vars():
+    global CMDLINE_VARS
+    CMDLINE_VARS = {}
+
+def get_var(name, default=None):
+    return CMDLINE_VARS.get(name, default)
+
+def set_var(name, value):
+    CMDLINE_VARS[name] = value

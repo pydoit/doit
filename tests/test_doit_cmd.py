@@ -4,6 +4,7 @@ import inspect
 import pytest
 from mock import Mock
 
+from doit import get_var
 from doit.exceptions import InvalidCommand
 from doit import doit_cmd
 from doit import loader
@@ -54,6 +55,15 @@ class TestRun(object):
         monkeypatch.setattr(doit_cmd, "doit_list", mock_list)
         doit_cmd.cmd_main(["list"])
         assert 1 == mock_list.call_count
+
+
+    def test_cmdline_vars(self, monkeypatch):
+        monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
+        mock_run = Mock()
+        monkeypatch.setattr(doit_cmd, "doit_run", mock_run)
+        doit_cmd.cmd_main(['x=1', 'y=abc'])
+        assert '1' == get_var('x')
+        assert 'abc' == get_var('y')
 
 
 class TestInterface(object):
