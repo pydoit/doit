@@ -3,6 +3,7 @@
 import os
 import time
 import datetime
+import hashlib
 
 
 # action
@@ -39,13 +40,19 @@ def run_once(task, values):
 # uptodate
 def config_changed(config):
     """check if passed config was modified
-    @var config (str)
+    @var config (str) or (dict)
     """
     config_digest = None
     if isinstance(config, basestring):
         config_digest = config
+    elif isinstance(config, dict):
+        data = ''
+        for key in sorted(config):
+            data += key + str(config[key])
+        config_digest = hashlib.md5(data).hexdigest()
     else:
-        raise Exception('NO')
+        raise Exception(('Invalid type of config_changed parameter got %s,' +
+                         'must be string or dict') % (type(config),))
     def uptodate_config(task, values):
         def save_config():
             return {'_config_changed': config_digest}

@@ -6,6 +6,7 @@ import pytest
 from doit import tools
 from doit import task
 
+
 def test_create_folder():
     def rm_dir():
         if os.path.exists(DIR_DEP):
@@ -46,6 +47,16 @@ class TestConfigChanged(object):\
     def test_string(self):
         ua = tools.config_changed('a')
         ub = tools.config_changed('b')
+        t1 = task.Task("TaskX", None, uptodate=[ua])
+        assert False == ua(t1, t1.values)
+        assert False == ub(t1, t1.values)
+        t1.execute()
+        assert True == ua(t1, t1.values)
+        assert False == ub(t1, t1.values)
+
+    def test_dict(self):
+        ua = tools.config_changed({'x':'a', 'y':1})
+        ub = tools.config_changed({'x':'b', 'y':1})
         t1 = task.Task("TaskX", None, uptodate=[ua])
         assert False == ua(t1, t1.values)
         assert False == ub(t1, t1.values)
