@@ -191,6 +191,17 @@ class TestTask_Teardown(object):
         assert ('teardown', t1) == reporter.log.pop(0)
         assert not reporter.log
 
+    def test_reverse_order(self, reporter, depfile):
+        def do_nothing():pass
+        t1 = Task('t1', [], teardown=[do_nothing])
+        t2 = Task('t2', [], teardown=[do_nothing])
+        my_runner = runner.Runner(depfile.name, reporter)
+        my_runner.teardown_list = [t1, t2]
+        my_runner.teardown()
+        assert ('teardown', t2) == reporter.log.pop(0)
+        assert ('teardown', t1) == reporter.log.pop(0)
+        assert not reporter.log
+
     def test_errors(self, reporter, depfile):
         def raise_something(x):
             raise Exception(x)
@@ -199,9 +210,9 @@ class TestTask_Teardown(object):
         my_runner = runner.Runner(depfile.name, reporter)
         my_runner.teardown_list = [t1, t2]
         my_runner.teardown()
-        assert ('teardown', t1) == reporter.log.pop(0)
-        assert ('cleanup_error',) == reporter.log.pop(0)
         assert ('teardown', t2) == reporter.log.pop(0)
+        assert ('cleanup_error',) == reporter.log.pop(0)
+        assert ('teardown', t1) == reporter.log.pop(0)
         assert ('cleanup_error',) == reporter.log.pop(0)
         assert not reporter.log
 

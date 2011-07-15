@@ -163,7 +163,7 @@ class Runner(object):
 
     def teardown(self):
         """run teardown from all tasks"""
-        for task in self.teardown_list:
+        for task in reversed(self.teardown_list):
             self.reporter.teardown_task(task)
             catched = task.execute_teardown(sys.stdout, sys.stderr,
                                             self.verbosity)
