@@ -37,6 +37,23 @@ class TestRunOnce(object):
         assert True == tools.run_once(t, t.values)
 
 
+class TestConfigChanged(object):\
+
+    def test_invalid_type(self):
+        class NotValid(object):pass
+        pytest.raises(Exception, tools.config_changed, NotValid())
+
+    def test_string(self):
+        ua = tools.config_changed('a')
+        ub = tools.config_changed('b')
+        t1 = task.Task("TaskX", None, uptodate=[ua])
+        assert False == ua(t1, t1.values)
+        assert False == ub(t1, t1.values)
+        t1.execute()
+        assert True == ua(t1, t1.values)
+        assert False == ub(t1, t1.values)
+
+
 class TestTimeout(object):
     def test_invalid(self):
         pytest.raises(Exception, tools.timeout, "abc")

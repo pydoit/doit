@@ -37,6 +37,27 @@ def run_once(task, values):
 
 
 # uptodate
+def config_changed(config):
+    """check if passed config was modified
+    @var config (str)
+    """
+    config_digest = None
+    if isinstance(config, basestring):
+        config_digest = config
+    else:
+        raise Exception('NO')
+    def uptodate_config(task, values):
+        def save_config():
+            return {'_config_changed': config_digest}
+        task.insert_action(save_config)
+        last_success = values.get('_config_changed')
+        if last_success is None:
+            return False
+        return last_success == config_digest
+    return uptodate_config
+
+
+# uptodate
 def timeout(timeout_limit):
     """add timeout to task
 
