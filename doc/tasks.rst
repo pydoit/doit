@@ -5,7 +5,7 @@ Tasks
 Intro
 -------
 
-`doit` is all about automating the execution of tasks. Tasks can execute external shell commands/scripts or python functions (actually any callable). So a task can be anything you can code :)
+`doit` is all about automating task dependency management and execution. Tasks can execute external shell commands/scripts or python functions (actually any callable). So a task can be anything you can code :)
 
 Tasks are defined using `python <http://python.org/>`_, in a plain python file with some conventions. A function that starts with the name `task_` defines a *task generator* recognized by `doit`. These functions must return (or yield) dictionaries representing a *task*. A python module/file that defines *tasks* for `doit` is called **dodo** file (that is something like a `Makefile` for `make`).
 
@@ -153,3 +153,27 @@ You can also select tasks to be executed using a `glob <http://docs.python.org/l
     .  create_file:file1.txt
     .  create_file:file2.txt
     .  create_file:file3.txt
+
+
+command line variables (*doit.get_var*)
+-----------------------------------------
+
+It is possible to pass variable values to be used in dodo.py from the command line.
+
+.. literalinclude:: tutorial/get_var.py
+
+.. code-block:: console
+    $ doit
+    .  echo
+    hi {abc: NO}
+    $ doit abc=xyz x=3
+    .  echo
+    hi {abc: xyz}
+
+
+
+private/hidden tasks
+---------------------
+
+If task name starts with an underscore '_', it will not be included in the output.
+

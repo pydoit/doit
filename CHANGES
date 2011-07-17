@@ -4,6 +4,18 @@ Changes
 =======
 
 
+0.13.0
+========================
+
+- performance speed improvements
+- fix bug on unicode output when task fails
+- ConsoleReporter does not output task's title for successful tasks that start with an ``_``
+- added ``tools.config_changed`` (to be used wirh ``uptodate``)
+- ``teardown`` actions are executed in reverse order they were registered
+- added ``doit.get_var`` to get variables passed from command line
+- getargs creates implicit "setup" task not a "task_dep"
+
+
 0.12.0 (*2011-05-29*)
 =======================
 

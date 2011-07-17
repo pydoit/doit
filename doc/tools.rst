@@ -2,7 +2,7 @@
 Tools
 ======
 
-Following the *batteries-included* philosophy *doit* includes some common used actions. (well not many by now :p)
+Following the *batteries-included* philosophy *doit* includes some common used actions.
 
 
 run-once (uptodate)
@@ -16,7 +16,7 @@ __ dependencies.html#run-once
 timeout (uptodate)
 ---------------------
 
-``timieout`` is used to expire a task after a certain time interval.
+``timeout`` is used to expire a task after a certain time interval.
 
 i.e. You want to re-execute a task only if the time elapsed since the last the time it was executed is bigger than 5 minutes.
 
@@ -24,6 +24,16 @@ i.e. You want to re-execute a task only if the time elapsed since the last the t
 
 
 ``timeout`` is function that takes an ``int`` (seconds) or ``timedelta`` as a paramter. It returns a callable suitable to be used as an ``uptodate`` callable.
+
+
+config_changed (uptodate)
+---------------------------
+
+``config_changed`` is used to check if any "configuration" value for the task has changed. Config values can strings or dict.
+
+For dict's the values are converted to string and only a digest/checksum of the dictionaries keys and values are saved.
+
+.. literalinclude:: tutorial/config_params.py
 
 
 create_folder (action)

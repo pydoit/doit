@@ -20,7 +20,7 @@ i.e. In a compilation task the source file is a *file_dep*, the object file is a
 .. literalinclude:: tutorial/compile.py
 
 
-`doit` automatically keeps track of dependencies. It saves the signature (MD5) of the dependencies every time the task is completed successfully.
+`doit` automatically keeps track of file dependencies. It saves the signature (MD5) of the dependencies every time the task is completed successfully.
 
 So if there are no modifications to the dependencies and you run `doit` again. The execution of the task's actions is skipped.
 
@@ -40,7 +40,7 @@ file_dep (file dependency)
 
 Different from most build-tools dependencies are on tasks not on targets. So `doit` can take advantage of the "execute only if not up-to-date" feature even for tasks that not define targets.
 
-Lets say you work with a dynamic language (python in this example). You don't need to compile anything but you probably wants to apply a lint-like tool (`PyChecker <http://pychecker.sourceforge.net/>`_) your source code files. You can define the source code as a dependency to the task.
+Lets say you work with a dynamic language (python in this example). You don't need to compile anything but you probably wants to apply a lint-like tool (`PyChecker <http://pychecker.sourceforge.net/>`_) to your source code files. You can define the source code as a dependency to the task.
 
 
 .. literalinclude:: tutorial/checker.py
@@ -54,7 +54,7 @@ Lets say you work with a dynamic language (python in this example). You don't ne
 
 Note the ``--`` again to indicate the execution was skipped.
 
-Traditional build-tools can only handle files as "dependencies". `doit` has several ways to check for dependencies.
+Traditional build-tools can only handle files as "dependencies". `doit` has several ways to check for dependencies, those will be introduced later.
 
 
 targets
@@ -125,24 +125,25 @@ uptodate
 
 This can be used in cases where you need to some kind of calculation to determine if the task is up-to-date or not. i.e. you check if a value in a database is smaller than a certain value.
 
-`uptodate` is a list where each element can be True, False, or None.
+`uptodate` is a list where each element can be True, False, None or a callable.
 
  * ``False`` indicates that the task is NOT up-to-date
  * ``True`` indicates that the task is up-to-date
  * ``None`` values will just be ignored. This is used when the value is dinamically calculated
-
-`uptodate` elements can also be a callable that returns False, True or None. This callable must take at least two positional parameters ``task`` and ``values``. Elemetns can also be a tuple (callable, args, kwargs).
-
-   -  ``task`` parameter will give you access to task object. So you have access to its metadata and opportunity to modifiy the task itself!
-   -  ``values`` is a dictionary with the computed values saved in the last successful execution of the task.
-
-.. literalinclude:: tutorial/uptodate_callable.py
 
 .. note::
 
   ``uptodate`` value ``True`` does not override others up-to-date checks. It is one more way to check if task is **not** up-to-date.
 
    i.e. if uptodate==True but a file_dep changes the task is still considered **not** up-to-date.
+
+
+`uptodate` elements can also be a callable that returns False, True or None. This callable must take at least two positional parameters ``task`` and ``values``. The callable can also be represented by a tuple (callable, args, kwargs).
+
+   -  ``task`` parameter will give you access to task object. So you have access to its metadata and opportunity to modifiy the task itself!
+   -  ``values`` is a dictionary with the computed values saved in the last successful execution of the task.
+
+.. literalinclude:: tutorial/uptodate_callable.py
 
 
 run-once
@@ -156,6 +157,8 @@ Suppose you need to download something from internet. There is no dependency tho
 
 
 .. literalinclude:: tutorial/run_once.py
+
+First a new action is added to task, this action will just save a computed value for the task. So whenever this task is executed this task value 'run-once' will be saved. The 'values' parameter contains the dict with the values saved from last successful execution of the task. ``run_once`` will just check if this task was executed looking for the ``run-once`` in ```values``.
 
 Since "run_once" is a common pattern it is included in ``doit.tools`` module.
 
@@ -183,9 +186,10 @@ Note that even with *run_once* the file will be downloaded again in case the tar
 
 .. note::
 
-  `doit.tools`__ includes two ``uptodate`` callables that are ready to use. ``run_once`` as described above. And ``timeout`` that will make your task up-to-date only during a certain time interval.
+  `doit.tools`__ includes three ``uptodate`` callables that are ready to use. ``run_once`` as described above. ``timeout`` that will make your task up-to-date only during a certain time interval. ``config_changed`` will check for changes in a "configuration" string or dictionary.
 
 __ tools.html
+
 
 doit up-to-date definition
 -----------------------------
@@ -249,6 +253,25 @@ You can define group of tasks by adding tasks as dependencies and setting its `a
 Note that tasks are never executed twice in the same "run".
 
 
+setup-task
+---------------------
+
+Some tasks require some kind of environment setup. Tasks may have a list of "setup" tasks.
+
+* the setup-task will be executed only if the task is to be executed (not up-to-date)
+* setup-tasks are just normal tasks that follow all other task behavior
+
+
+teardown
+^^^^^^^^^^^^^^^^
+Task may also define 'teardown' actions. These actions are executed after all tasks have finished their execution. They are executed in reverse order their tasks were executed.
+
+
+Example:
+
+.. literalinclude:: tutorial/tsetup.py
+
+
 getargs
 --------
 
@@ -261,22 +284,8 @@ For *python-action* the action callable parameter names must match with keys fro
 .. literalinclude:: tutorial/getargs.py
 
 .. note::
-   ``getargs`` creates an implicit task-dependency.
+   ``getargs`` creates an implicit setup-task.
 
-
-Environment setup
----------------------
-
-Some tasks require some kind of environment setup. Tasks may have a list of "setup" task.
-
-* the setup-task will be executed only if the task is to be executed (not up-to-date)
-* setup-tasks are just normal tasks that follow all other task behavior
-
-Task may also define 'teardown' actions. These actions are executed after all tasks have finished their execution.
-
-Example:
-
-.. literalinclude:: tutorial/tsetup.py
 
 
 keywords on actions
@@ -289,5 +298,4 @@ For *cmd-action* you can use the python notation for keyword substitution on str
 For *python-action* create a parameter in the function `doit` will take care of passing the value when the function is called. The values are passed as list of strings.
 
 .. literalinclude:: tutorial/hello.py
-
 
