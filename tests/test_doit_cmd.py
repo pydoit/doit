@@ -65,6 +65,13 @@ class TestRun(object):
         assert '1' == get_var('x')
         assert 'abc' == get_var('y')
 
+    def test_cmdline_vars_not_opts(self, monkeypatch):
+        monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
+        mock_run = Mock()
+        monkeypatch.setattr(doit_cmd, "doit_run", mock_run)
+        doit_cmd.cmd_main(['--z=5'])
+        assert None == get_var('--z')
+
 
 class TestInterface(object):
     def test_doit_run_args(self, monkeypatch):

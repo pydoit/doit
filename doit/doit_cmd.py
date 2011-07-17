@@ -475,7 +475,7 @@ def cmd_main(cmd_args):
     doit.reset_vars()
     args_no_vars = []
     for arg in cmd_args:
-        if '=' in arg:
+        if (arg[0] != '-') and ('=' in arg):
             name, value = arg.split('=', 1)
             doit.set_var(name, value)
         else:
