@@ -103,6 +103,7 @@ class Task(object):
         self.taskcmd = cmdparse.TaskOption(name, params, None, None)
         self.options = None
         self.getargs = getargs
+        self.setup_tasks = list(setup)
         self._init_deps(file_dep, task_dep, result_dep, calc_dep)
         self.targets = targets
         self.is_subtask = is_subtask
@@ -110,7 +111,6 @@ class Task(object):
         self.values = {}
         self.verbosity = verbosity
         self.custom_title = title
-        self.setup_tasks = list(setup)
 
         # actions
         self._action_instances = None
@@ -225,6 +225,7 @@ class Task(object):
         self.uptodate.extend(uptodate)
 
 
+    # FIXME should support setup also
     _expand_map = {'task_dep': _expand_task_dep,
                    'file_dep': _expand_file_dep,
                    'result_dep': _expand_result_dep,
@@ -257,8 +258,8 @@ class Task(object):
                        (self.name, key) +
                        "Should be <taskid>.<argument-name> got '%s'\n" % desc)
                 raise InvalidTask(msg)
-            if parts[0] not in self.task_dep:
-                self.task_dep.append(parts[0])
+            if parts[0] not in self.setup_tasks:
+                self.setup_tasks.append(parts[0])
 
 
     @staticmethod
