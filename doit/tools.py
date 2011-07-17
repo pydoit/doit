@@ -42,25 +42,26 @@ def config_changed(config):
     """check if passed config was modified
     @var config (str) or (dict)
     """
-    config_digest = None
-    if isinstance(config, basestring):
-        config_digest = config
-    elif isinstance(config, dict):
-        data = ''
-        for key in sorted(config):
-            data += key + str(config[key])
-        config_digest = hashlib.md5(data).hexdigest()
-    else:
-        raise Exception(('Invalid type of config_changed parameter got %s,' +
-                         'must be string or dict') % (type(config),))
     def uptodate_config(task, values):
+        config_digest = None
+        if isinstance(config, basestring):
+            config_digest = config
+        elif isinstance(config, dict):
+            data = ''
+            for key in sorted(config):
+                data += key + str(config[key])
+            config_digest = hashlib.md5(data).hexdigest()
+        else:
+            raise Exception(('Invalid type of config_changed parameter got %s,' +
+                             'must be string or dict') % (type(config),))
+
         def save_config():
             return {'_config_changed': config_digest}
         task.insert_action(save_config)
         last_success = values.get('_config_changed')
         if last_success is None:
             return False
-        return last_success == config_digest
+        return (last_success == config_digest)
     return uptodate_config
 
 

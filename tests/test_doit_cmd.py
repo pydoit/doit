@@ -56,7 +56,6 @@ class TestRun(object):
         doit_cmd.cmd_main(["list"])
         assert 1 == mock_list.call_count
 
-
     def test_cmdline_vars(self, monkeypatch):
         monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         mock_run = Mock()

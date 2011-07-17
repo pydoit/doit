@@ -42,7 +42,8 @@ class TestConfigChanged(object):\
 
     def test_invalid_type(self):
         class NotValid(object):pass
-        pytest.raises(Exception, tools.config_changed, NotValid())
+        uptodate = tools.config_changed(NotValid())
+        pytest.raises(Exception, uptodate, None, None)
 
     def test_string(self):
         ua = tools.config_changed('a')
