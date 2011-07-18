@@ -2,7 +2,7 @@
 Tools
 ======
 
-Following the *batteries-included* philosophy *doit* includes some common used actions.
+Following the *batteries-included* philosophy *doit* includes some commonly used functions.
 
 
 run-once (uptodate)
@@ -29,7 +29,7 @@ i.e. You want to re-execute a task only if the time elapsed since the last the t
 config_changed (uptodate)
 ---------------------------
 
-``config_changed`` is used to check if any "configuration" value for the task has changed. Config values can strings or dict.
+``config_changed`` is used to check if any "configuration" value for the task has changed. Config values can be a string or dict.
 
 For dict's the values are converted to string and only a digest/checksum of the dictionaries keys and values are saved.
 

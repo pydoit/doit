@@ -163,6 +163,7 @@ It is possible to pass variable values to be used in dodo.py from the command li
 .. literalinclude:: tutorial/get_var.py
 
 .. code-block:: console
+
     $ doit
     .  echo
     hi {abc: NO}
