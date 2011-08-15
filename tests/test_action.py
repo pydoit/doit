@@ -464,6 +464,7 @@ class TestCreateAction(object):
         class Sample(action.BaseAction): pass
         my_action = action.create_action(Sample(), self.mytask)
         assert isinstance(my_action, Sample)
+        assert self.mytask == my_action.task
 
     def testStringAction(self):
         my_action = action.create_action("xpto 14 7", self.mytask)

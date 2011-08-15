@@ -336,6 +336,7 @@ def create_action(action, task_ref):
     @raise InvalidTask: If action parameter type isn't valid
     """
     if isinstance(action, BaseAction):
+        action.task = task_ref
         return action
 
     if isinstance(action, basestring):
