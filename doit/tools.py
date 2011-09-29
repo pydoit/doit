@@ -4,6 +4,7 @@ import os
 import time
 import datetime
 import hashlib
+import operator
 
 
 # action
@@ -92,6 +93,42 @@ def timeout(timeout_limit):
             return False
         return (time.time() - last_success) < limit_sec
     return uptodate_timeout
+
+
+# uptodate
+def check_timestamp_unchanged(fn, time='mtime', op=operator.eq):
+    """check if timestamp of a given file/dir is unchanged since last run.
+
+    @param fn: (str) path to file/directory to check
+    @param time: (str) which timestamp field to check, can be one of
+                 (atime, access, ctime, create, mtime, modify)
+    @param op: (callable) takes two parameters (prev_time, current_time) should
+               return True if the timestamp is considered unchanged
+
+    The C{op} parameter can be used to customize when timestamps are considered
+    unchanged, e.g. you could pass L{operator.ge} to also consider e.g. files
+    reverted to an older copy as unchanged; or pass a custom function to
+    completely customize what unchanged means.
+
+    @todo: handle None
+    @todo: handle non-existant files
+    """
+    timeattr = 'st_mtime'
+    if time in ('atime', 'access'):
+        timeattr = 'st_atime'
+    elif time in ('ctime', 'create'):
+        timeattr = 'st_ctime'
+    key = '.'.join([fn, timeattr])
+    gettime = lambda f: getattr(os.stat(f), timeattr)
+
+    def _check_timestamp_unchanged(task, values):
+        def save_now():
+            return {key: gettime(fn)}
+        task.insert_action(save_now)
+        prev_time = values.get(key)
+        current_time = gettime(fn)
+        return op(prev_time, current_time)
+    return _check_timestamp_unchanged
 
 
 # debug helper
