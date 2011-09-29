@@ -111,7 +111,6 @@ def check_timestamp_unchanged(fn, time='mtime', op=operator.eq):
     completely customize what unchanged means.
 
     @todo: handle None
-    @todo: handle non-existant files
     """
     timeattr = 'st_mtime'
     if time in ('atime', 'access'):
@@ -119,7 +118,12 @@ def check_timestamp_unchanged(fn, time='mtime', op=operator.eq):
     elif time in ('ctime', 'create'):
         timeattr = 'st_ctime'
     key = '.'.join([fn, timeattr])
-    gettime = lambda f: getattr(os.stat(f), timeattr)
+
+    def gettime(f):
+        try:
+            return getattr(os.stat(f), timeattr)
+        except OSError:
+            return None
 
     def _check_timestamp_unchanged(task, values):
         def save_now():
