@@ -112,11 +112,15 @@ def check_timestamp_unchanged(fn, time='mtime', op=operator.eq):
 
     @todo: handle None
     """
-    timeattr = 'st_mtime'
     if time in ('atime', 'access'):
         timeattr = 'st_atime'
     elif time in ('ctime', 'create'):
         timeattr = 'st_ctime'
+    elif time in ('mtime', 'modify'):
+        timeattr = 'st_mtime'
+    else:
+        raise ValueError('time can be one of: atime, access, ctime, create, '
+                         'mtime, modify (got: %r)' % time)
     key = '.'.join([fn, timeattr])
 
     def gettime(f):
