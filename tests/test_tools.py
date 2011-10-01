@@ -1,5 +1,6 @@
 import os
 import datetime
+import operator
 
 import pytest
 
@@ -136,8 +137,8 @@ class TestCheckTimestampUnchanged(object):
 
         monkeypatch.setattr(os, 'stat', fake_stat)
 
-    # @todo: maybe parametrize test_atime, test_ctime, test_mtime and
-    #        test_op_custom?  a lot of repetition there
+    # @todo: maybe parametrize test_atime, test_ctime and test_mtime?  a lot of
+    #        repetition there
 
     def test_atime(self, monkeypatch):
         check = tools.check_timestamp_unchanged('check_atime', 'atime')
@@ -194,7 +195,7 @@ class TestCheckTimestampUnchanged(object):
         with pytest.raises(ValueError):
             tools.check_timestamp_unchanged('check_invalid_time', 'foo')
 
-    def test_file_missing(self):
+    def test_file_missing(self, monkeypatch):
         # @todo: do we need to distinguish between file gone missing (e.g.
         #        prev_time is valid but current_time not) and the case where
         #        we never seen the file (neither prev_time nor current_time
@@ -214,11 +215,33 @@ class TestCheckTimestampUnchanged(object):
         monkeypatch.undo()
         assert False == check(t, t.values)
 
-    def test_op_gt(self):
-        pass
+    def test_op_gt(self, monkeypatch):
+        self.patch_os_stat(monkeypatch, 'check_gt', st_mtime=1317460678)
+        check = tools.check_timestamp_unchanged('check_gt', op=operator.gt)
+        t = task.Task("TaskX", None, uptodate=[check])
 
-    def test_op_gt_file_missing(self):
-        pass
+        # no stored value/first run
+        assert False == check(t, t.values)
 
-    def test_op_custom(self):
-        pass
+        # value just stored is not greater than itself
+        t.execute()
+        assert False == check(t, t.values)
+
+        # file timestamp greater than stored, up to date
+        monkeypatch.undo()
+        self.patch_os_stat(monkeypatch, 'check_gt', st_mtime=1317470015)
+        assert True == check(t, t.values)
+
+    def test_op_bad_custom(self, monkeypatch):
+        # handling misbehaving custom operators
+        def bad_op(prev_time, current_time):
+            raise Exception('oops')
+
+        self.patch_os_stat(monkeypatch, 'check_bad', st_mtime=1317460678)
+        check = tools.check_timestamp_unchanged('check_bad', op=bad_op)
+        t = task.Task("TaskX", None, uptodate=[check])
+
+        # if unsure opt for out-of-date
+        assert False == check(t, t.values)
+        t.execute()
+        assert False == check(t, t.values)
