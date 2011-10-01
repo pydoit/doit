@@ -115,3 +115,110 @@ class TestTimeout(object):
 
         monkeypatch.setattr(tools.time, 'time', lambda: 3600 * 49)
         assert False == t.uptodate[0](t, t.values)
+
+
+class TestCheckTimestampUnchanged(object):
+    def patch_os_stat(self, monkeypatch, fake_path,
+                      st_mode=33188, st_ino=402886990, st_dev=65024L,
+                      st_nlink=1, st_uid=0, st_gid=0, st_size=0,
+                      st_atime=1317297141, st_mtime=1317297140,
+                      st_ctime=1317297141):
+        """helper to patch os.stat for one specific path."""
+        real_stat = os.stat
+
+        def fake_stat(path):
+            if path == fake_path:
+                return os.stat_result((st_mode, st_ino, st_dev, st_nlink,
+                                       st_uid, st_gid, st_size,
+                                       st_atime, st_mtime, st_ctime))
+            else:
+                return real_stat(path)
+
+        monkeypatch.setattr(os, 'stat', fake_stat)
+
+    # @todo: maybe parametrize test_atime, test_ctime, test_mtime and
+    #        test_op_custom?  a lot of repetition there
+
+    def test_atime(self, monkeypatch):
+        check = tools.check_timestamp_unchanged('check_atime', 'atime')
+        self.patch_os_stat(monkeypatch, 'check_atime', st_atime=1317460678)
+        t = task.Task("TaskX", None, uptodate=[check])
+
+        # no stored value/first run
+        assert False == check(t, t.values)
+
+        # value just stored
+        t.execute()
+        assert True == check(t, t.values)
+
+        # file has changed, should now re-execute
+        monkeypatch.undo()
+        self.patch_os_stat(monkeypatch, 'check_atime', st_atime=1317470015)
+        assert False == check(t, t.values)
+
+    def test_ctime(self, monkeypatch):
+        check = tools.check_timestamp_unchanged('check_ctime', 'ctime')
+        self.patch_os_stat(monkeypatch, 'check_ctime', st_ctime=1317460678)
+        t = task.Task("TaskX", None, uptodate=[check])
+
+        # no stored value/first run
+        assert False == check(t, t.values)
+
+        # value just stored
+        t.execute()
+        assert True == check(t, t.values)
+
+        # file has changed, should now re-execute
+        monkeypatch.undo()
+        self.patch_os_stat(monkeypatch, 'check_ctime', st_ctime=1317470015)
+        assert False == check(t, t.values)
+
+    def test_mtime(self, monkeypatch):
+        check = tools.check_timestamp_unchanged('check_mtime', 'mtime')
+        self.patch_os_stat(monkeypatch, 'check_mtime', st_mtime=1317460678)
+        t = task.Task("TaskX", None, uptodate=[check])
+
+        # no stored value/first run
+        assert False == check(t, t.values)
+
+        # value just stored
+        t.execute()
+        assert True == check(t, t.values)
+
+        # file has changed, should now re-execute
+        monkeypatch.undo()
+        self.patch_os_stat(monkeypatch, 'check_mtime', st_mtime=1317470015)
+        assert False == check(t, t.values)
+
+    def test_invalid_time(self):
+        with pytest.raises(ValueError):
+            tools.check_timestamp_unchanged('check_invalid_time', 'foo')
+
+    def test_file_missing(self):
+        # @todo: do we need to distinguish between file gone missing (e.g.
+        #        prev_time is valid but current_time not) and the case where
+        #        we never seen the file (neither prev_time nor current_time
+        #        valid); the latter could e.g. be a typo by the user
+
+        # no such file at all
+        check = tools.check_timestamp_unchanged('no_such_file')
+        t = task.Task("TaskX", None, uptodate=[check])
+        assert False == check(t, t.values)
+
+        # file gone missing
+        self.patch_os_stat(monkeypatch, 'file_missing', st_ctime=1317460678)
+        check = tools.check_timestamp_unchanged('file_missing')
+        t = task.Task("TaskX", None, uptodate=[check])
+        t.execute()
+        assert True == check(t, t.values)
+        monkeypatch.undo()
+        assert False == check(t, t.values)
+
+    def test_op_gt(self):
+        pass
+
+    def test_op_gt_file_missing(self):
+        pass
+
+    def test_op_custom(self):
+        pass
