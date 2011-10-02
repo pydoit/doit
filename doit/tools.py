@@ -105,12 +105,17 @@ def check_timestamp_unchanged(fn, time='mtime', op=operator.eq):
     @param op: (callable) takes two parameters (prev_time, current_time) should
                return True if the timestamp is considered unchanged
 
+    @raises ValueError: if invalid C{time} value is passed
+    @raises OSError: if cannot stat the file C{fn} (e.g. doesn't exist)
+
     The C{op} parameter can be used to customize when timestamps are considered
     unchanged, e.g. you could pass L{operator.ge} to also consider e.g. files
     reverted to an older copy as unchanged; or pass a custom function to
     completely customize what unchanged means.
 
-    @todo: handle None
+    If the specified file does not exist, an exception will be raised.  Note
+    that if the file C{fn} is a target of another task you should probably add
+    C{task_dep} on that task to ensure the file is created before checking it.
     """
     if time in ('atime', 'access'):
         timeattr = 'st_atime'
