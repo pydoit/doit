@@ -195,25 +195,11 @@ class TestCheckTimestampUnchanged(object):
         with pytest.raises(ValueError):
             tools.check_timestamp_unchanged('check_invalid_time', 'foo')
 
-    def test_file_missing(self, monkeypatch):
-        # @todo: do we need to distinguish between file gone missing (e.g.
-        #        prev_time is valid but current_time not) and the case where
-        #        we never seen the file (neither prev_time nor current_time
-        #        valid); the latter could e.g. be a typo by the user
-
-        # no such file at all
+    def test_file_missing(self):
         check = tools.check_timestamp_unchanged('no_such_file')
         t = task.Task("TaskX", None, uptodate=[check])
-        assert False == check(t, t.values)
-
-        # file gone missing
-        self.patch_os_stat(monkeypatch, 'file_missing', st_ctime=1317460678)
-        check = tools.check_timestamp_unchanged('file_missing')
-        t = task.Task("TaskX", None, uptodate=[check])
-        t.execute()
-        assert True == check(t, t.values)
-        monkeypatch.undo()
-        assert False == check(t, t.values)
+        with pytest.raises(OSError):
+            check(t, t.values)
 
     def test_op_gt(self, monkeypatch):
         self.patch_os_stat(monkeypatch, 'check_gt', st_mtime=1317460678)
