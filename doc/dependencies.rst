@@ -186,7 +186,7 @@ Note that even with *run_once* the file will be downloaded again in case the tar
 
 .. note::
 
-  `doit.tools`__ includes three ``uptodate`` callables that are ready to use. ``run_once`` as described above. ``timeout`` that will make your task up-to-date only during a certain time interval. ``config_changed`` will check for changes in a "configuration" string or dictionary.
+  `doit.tools`__ includes four ``uptodate`` callables that are ready to use. ``run_once`` as described above. ``timeout`` that will make your task up-to-date only during a certain time interval. ``config_changed`` will check for changes in a "configuration" string or dictionary. ``check_timestamp_unchanged`` will check access, status change/create or modify timestamp of a given file/directory.
 
 __ tools.html
 
