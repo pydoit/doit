@@ -202,7 +202,8 @@ class TestCheckTimestampUnchanged(object):
             check(t, t.values)
 
     def test_op_gt(self, monkeypatch):
-        self.patch_os_stat(monkeypatch, 'check_gt', st_mtime=1317460678)
+        base_t = 1317460678
+        self.patch_os_stat(monkeypatch, 'check_gt', st_mtime=base_t)
         check = tools.check_timestamp_unchanged('check_gt', op=operator.gt)
         t = task.Task("TaskX", None, uptodate=[check])
 
@@ -213,9 +214,9 @@ class TestCheckTimestampUnchanged(object):
         t.execute()
         assert False == check(t, t.values)
 
-        # file timestamp greater than stored, up to date
+        # stored timestamp greater than current, up to date
         monkeypatch.undo()
-        self.patch_os_stat(monkeypatch, 'check_gt', st_mtime=1317470015)
+        self.patch_os_stat(monkeypatch, 'check_gt', st_mtime=(base_t - 100))
         assert True == check(t, t.values)
 
     def test_op_bad_custom(self, monkeypatch):
