@@ -101,7 +101,7 @@ def check_timestamp_unchanged(fn, time='mtime', op=operator.eq):
 
     @param fn: (str) path to file/directory to check
     @param time: (str) which timestamp field to check, can be one of
-                 (atime, access, ctime, create, mtime, modify)
+                 (atime, access, ctime, status, mtime, modify)
     @param op: (callable) takes two parameters (prev_time, current_time) should
                return True if the timestamp is considered unchanged
 
@@ -119,12 +119,12 @@ def check_timestamp_unchanged(fn, time='mtime', op=operator.eq):
     """
     if time in ('atime', 'access'):
         timeattr = 'st_atime'
-    elif time in ('ctime', 'create'):
+    elif time in ('ctime', 'status'):
         timeattr = 'st_ctime'
     elif time in ('mtime', 'modify'):
         timeattr = 'st_mtime'
     else:
-        raise ValueError('time can be one of: atime, access, ctime, create, '
+        raise ValueError('time can be one of: atime, access, ctime, status, '
                          'mtime, modify (got: %r)' % time)
     key = '.'.join([fn, timeattr])
     gettime = lambda f: getattr(os.stat(f), timeattr)

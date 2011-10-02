@@ -39,7 +39,7 @@ For dict's the values are converted to string and only a digest/checksum of the 
 check_timestamp_unchanged (uptodate)
 --------------------------------------
 
-``check_timestamp_unchanged`` is used to check if specified timestamp of a given file/dir is unchanged since last run.  The timestamp field to check defaults to mtime, but can be selected by passing ``time`` parameter which can be one of: atime, access, ctime, create, mtime, modify.
+``check_timestamp_unchanged`` is used to check if specified timestamp of a given file/dir is unchanged since last run.  The timestamp field to check defaults to mtime, but can be selected by passing ``time`` parameter which can be one of: atime, access, ctime, status, mtime, modify.
 
 It also accepts an ``op`` parameter which defaults to ``operator.eq`` (==).  To use it pass a callable which takes two parameters (prev_time, current_time) and returns True if task should be considered up-to-date, False otherwise.
 
