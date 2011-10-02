@@ -122,12 +122,7 @@ def check_timestamp_unchanged(fn, time='mtime', op=operator.eq):
         raise ValueError('time can be one of: atime, access, ctime, create, '
                          'mtime, modify (got: %r)' % time)
     key = '.'.join([fn, timeattr])
-
-    def gettime(f):
-        try:
-            return getattr(os.stat(f), timeattr)
-        except OSError:
-            return None
+    gettime = lambda f: getattr(os.stat(f), timeattr)
 
     def _check_timestamp_unchanged(task, values):
         def save_now():
