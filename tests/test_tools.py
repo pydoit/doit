@@ -228,7 +228,5 @@ class TestCheckTimestampUnchanged(object):
         check = tools.check_timestamp_unchanged('check_bad', op=bad_op)
         t = task.Task("TaskX", None, uptodate=[check])
 
-        # if unsure opt for out-of-date
-        assert False == check(t, t.values)
-        t.execute()
-        assert False == check(t, t.values)
+        with pytest.raises(Exception):
+            check(t, t.values)
