@@ -45,7 +45,7 @@ Note that ``ctime`` or ``status`` is platform dependent: time of most recent met
 
 __ http://docs.python.org/library/os.html#os.stat
 
-It also accepts an ``op`` parameter which defaults to ``operator.eq`` (==).  To use it pass a callable which takes two parameters (prev_time, current_time) and returns True if task should be considered up-to-date, False otherwise.
+It also accepts an ``op`` parameter which defaults to ``operator.eq`` (==).  To use it pass a callable which takes two parameters (prev_time, current_time) and returns True if task should be considered up-to-date, False otherwise.  Here ``prev_time`` is the time from the last successful run and ``current_time`` is the time obtained in current run.
 
 If the specified file does not exist, an exception will be raised, which means e.g. if the file is a target of another task you should probably add ``task_dep`` on that task to ensure the file is created before checking it.
 
