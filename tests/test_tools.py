@@ -137,61 +137,16 @@ class TestCheckTimestampUnchanged(object):
 
         monkeypatch.setattr(os, 'stat', fake_stat)
 
-    # @todo: maybe parametrize test_atime, test_ctime and test_mtime?  a lot of
-    #        repetition there
-
-    def test_atime(self, monkeypatch):
+    def test_time_selection(self):
         check = tools.check_timestamp_unchanged('check_atime', 'atime')
-        self.patch_os_stat(monkeypatch, 'check_atime', st_atime=1317460678)
-        t = task.Task("TaskX", None, uptodate=[check])
+        assert 'st_atime' == check._timeattr
 
-        # no stored value/first run
-        assert False == check(t, t.values)
-
-        # value just stored
-        t.execute()
-        assert True == check(t, t.values)
-
-        # file has changed, should now re-execute
-        monkeypatch.undo()
-        self.patch_os_stat(monkeypatch, 'check_atime', st_atime=1317470015)
-        assert False == check(t, t.values)
-
-    def test_ctime(self, monkeypatch):
         check = tools.check_timestamp_unchanged('check_ctime', 'ctime')
-        self.patch_os_stat(monkeypatch, 'check_ctime', st_ctime=1317460678)
-        t = task.Task("TaskX", None, uptodate=[check])
+        assert 'st_ctime' == check._timeattr
 
-        # no stored value/first run
-        assert False == check(t, t.values)
-
-        # value just stored
-        t.execute()
-        assert True == check(t, t.values)
-
-        # file has changed, should now re-execute
-        monkeypatch.undo()
-        self.patch_os_stat(monkeypatch, 'check_ctime', st_ctime=1317470015)
-        assert False == check(t, t.values)
-
-    def test_mtime(self, monkeypatch):
         check = tools.check_timestamp_unchanged('check_mtime', 'mtime')
-        self.patch_os_stat(monkeypatch, 'check_mtime', st_mtime=1317460678)
-        t = task.Task("TaskX", None, uptodate=[check])
+        assert 'st_mtime' == check._timeattr
 
-        # no stored value/first run
-        assert False == check(t, t.values)
-
-        # value just stored
-        t.execute()
-        assert True == check(t, t.values)
-
-        # file has changed, should now re-execute
-        monkeypatch.undo()
-        self.patch_os_stat(monkeypatch, 'check_mtime', st_mtime=1317470015)
-        assert False == check(t, t.values)
-
-    def test_invalid_time(self):
         with pytest.raises(ValueError):
             tools.check_timestamp_unchanged('check_invalid_time', 'foo')
 
