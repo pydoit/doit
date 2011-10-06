@@ -185,3 +185,10 @@ class TestCheckTimestampUnchanged(object):
 
         with pytest.raises(Exception):
             check(t, t.values)
+
+    def test_multiple_checks(self):
+        # handling multiple checks on one file (should save values in such way
+        # they don't override each other)
+        check_a = tools.check_timestamp_unchanged('check_multi', 'atime')
+        check_m = tools.check_timestamp_unchanged('check_multi', 'mtime')
+        assert check_a._key != check_m._key
