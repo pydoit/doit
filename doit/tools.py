@@ -96,17 +96,8 @@ def timeout(timeout_limit):
 
 
 # uptodate
-def check_timestamp_unchanged(fn, time='mtime', op=operator.eq):
+class check_timestamp_unchanged(object):
     """check if timestamp of a given file/dir is unchanged since last run.
-
-    @param fn: (str) path to file/directory to check
-    @param time: (str) which timestamp field to check, can be one of
-                 (atime, access, ctime, status, mtime, modify)
-    @param op: (callable) takes two parameters (prev_time, current_time) should
-               return True if the timestamp is considered unchanged
-
-    @raises ValueError: if invalid C{time} value is passed
-    @raises OSError: if cannot stat the file C{fn} (e.g. doesn't exist)
 
     The C{op} parameter can be used to customize when timestamps are considered
     unchanged, e.g. you could pass L{operator.ge} to also consider e.g. files
@@ -117,26 +108,45 @@ def check_timestamp_unchanged(fn, time='mtime', op=operator.eq):
     that if the file C{fn} is a target of another task you should probably add
     C{task_dep} on that task to ensure the file is created before checking it.
     """
-    if time in ('atime', 'access'):
-        timeattr = 'st_atime'
-    elif time in ('ctime', 'status'):
-        timeattr = 'st_ctime'
-    elif time in ('mtime', 'modify'):
-        timeattr = 'st_mtime'
-    else:
-        raise ValueError('time can be one of: atime, access, ctime, status, '
-                         'mtime, modify (got: %r)' % time)
-    key = '.'.join([fn, timeattr])
-    gettime = lambda f: getattr(os.stat(f), timeattr)
+    def __init__(self, fn, time='mtime', op=operator.eq):
+        """initialize the callable
 
-    def _check_timestamp_unchanged(task, values):
+        @param fn: (str) path to file/directory to check
+        @param time: (str) which timestamp field to check, can be one of
+                     (atime, access, ctime, status, mtime, modify)
+        @param op: (callable) takes two parameters (prev_time, current_time)
+                   should return True if the timestamp is considered unchanged
+
+        @raises ValueError: if invalid C{time} value is passed
+        """
+        if time in ('atime', 'access'):
+            self._timeattr = 'st_atime'
+        elif time in ('ctime', 'status'):
+            self._timeattr = 'st_ctime'
+        elif time in ('mtime', 'modify'):
+            self._timeattr = 'st_mtime'
+        else:
+            raise ValueError('time can be one of: atime, access, ctime, '
+                             'status, mtime, modify (got: %r)' % time)
+        self._fn = fn
+        self._op = op
+        self._key = '.'.join([self._fn, self._timeattr])
+
+    def _get_time(self):
+        return getattr(os.stat(self._fn), self._timeattr)
+
+    def __call__(self, task, values):
+        """register action that saves the timestamp and check current timestamp
+
+        @raises OSError: if cannot stat C{self._fn} file (e.g. doesn't exist)
+        """
         def save_now():
-            return {key: gettime(fn)}
+            return {self._key: self._get_time()}
         task.insert_action(save_now)
-        prev_time = values.get(key)
-        current_time = gettime(fn)
-        return op(prev_time, current_time)
-    return _check_timestamp_unchanged
+
+        prev_time = values.get(self._key)
+        current_time = self._get_time()
+        return self._op(prev_time, current_time)
 
 
 # debug helper
