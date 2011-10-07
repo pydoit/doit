@@ -9,10 +9,7 @@ TaskControl into Create + Process
 
 . more MP (tree)
 . setup/task  single process/all procces
-. --enable/--disable cmd line options
-
-. dynamic task
-. GLOBAL vars from cmd line
+. --enable/--disable cmd line options (#586651)
 
 . tools - profile
 . tools - code coverage

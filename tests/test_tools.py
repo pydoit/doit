@@ -72,22 +72,22 @@ class TestTimeout(object):
         pytest.raises(Exception, tools.timeout, "abc")
 
     def test_int(self, monkeypatch):
-        monkeypatch.setattr(tools.time, 'time', lambda: 100)
+        monkeypatch.setattr(tools.time_module, 'time', lambda: 100)
         t = task.Task("TaskX", None, uptodate=[tools.timeout(5)])
 
         assert False == t.uptodate[0](t, t.values)
         t.execute()
         assert 100 == t.values['success-time']
 
-        monkeypatch.setattr(tools.time, 'time', lambda: 103)
+        monkeypatch.setattr(tools.time_module, 'time', lambda: 103)
         assert True == t.uptodate[0](t, t.values)
 
-        monkeypatch.setattr(tools.time, 'time', lambda: 106)
+        monkeypatch.setattr(tools.time_module, 'time', lambda: 106)
         assert False == t.uptodate[0](t, t.values)
 
 
     def test_timedelta(self, monkeypatch):
-        monkeypatch.setattr(tools.time, 'time', lambda: 10)
+        monkeypatch.setattr(tools.time_module, 'time', lambda: 10)
         limit = datetime.timedelta(minutes=2)
         t = task.Task("TaskX", None, uptodate=[tools.timeout(limit)])
 
@@ -95,15 +95,15 @@ class TestTimeout(object):
         t.execute()
         assert 10 == t.values['success-time']
 
-        monkeypatch.setattr(tools.time, 'time', lambda: 100)
+        monkeypatch.setattr(tools.time_module, 'time', lambda: 100)
         assert True == t.uptodate[0](t, t.values)
 
-        monkeypatch.setattr(tools.time, 'time', lambda: 200)
+        monkeypatch.setattr(tools.time_module, 'time', lambda: 200)
         assert False == t.uptodate[0](t, t.values)
 
 
     def test_timedelta_big(self, monkeypatch):
-        monkeypatch.setattr(tools.time, 'time', lambda: 10)
+        monkeypatch.setattr(tools.time_module, 'time', lambda: 10)
         limit = datetime.timedelta(days=2, minutes=5)
         t = task.Task("TaskX", None, uptodate=[tools.timeout(limit)])
 
@@ -111,10 +111,10 @@ class TestTimeout(object):
         t.execute()
         assert 10 == t.values['success-time']
 
-        monkeypatch.setattr(tools.time, 'time', lambda: 3600 * 30)
+        monkeypatch.setattr(tools.time_module, 'time', lambda: 3600 * 30)
         assert True == t.uptodate[0](t, t.values)
 
-        monkeypatch.setattr(tools.time, 'time', lambda: 3600 * 49)
+        monkeypatch.setattr(tools.time_module, 'time', lambda: 3600 * 49)
         assert False == t.uptodate[0](t, t.values)
 
 
@@ -143,14 +143,14 @@ class TestCheckTimestampUnchanged(object):
         check = tools.check_timestamp_unchanged('check_mtime', 'mtime')
         assert 'st_mtime' == check._timeattr
 
-        with pytest.raises(ValueError):
-            tools.check_timestamp_unchanged('check_invalid_time', 'foo')
+        pytest.raises(
+            ValueError,
+            tools.check_timestamp_unchanged, 'check_invalid_time', 'foo')
 
     def test_file_missing(self):
         check = tools.check_timestamp_unchanged('no_such_file')
         t = task.Task("TaskX", None, uptodate=[check])
-        with pytest.raises(OSError):
-            check(t, t.values)
+        pytest.raises(OSError, check, t, t.values)
 
     def test_op_ge(self, monkeypatch, checked_file):
         check = tools.check_timestamp_unchanged(checked_file, op=operator.ge)
@@ -176,8 +176,7 @@ class TestCheckTimestampUnchanged(object):
 
         check = tools.check_timestamp_unchanged(checked_file, op=bad_op)
         t = task.Task("TaskX", None, uptodate=[check])
-        with pytest.raises(Exception):
-            check(t, t.values)
+        pytest.raises(Exception, check, t, t.values)
 
     def test_multiple_checks(self):
         # handling multiple checks on one file (should save values in such way
