@@ -1,7 +1,7 @@
 """extra goodies to be used in dodo files"""
 
 import os
-import time
+import time as time_module
 import datetime
 import hashlib
 import operator
@@ -53,8 +53,8 @@ def config_changed(config):
                 data += key + str(config[key])
             config_digest = hashlib.md5(data).hexdigest()
         else:
-            raise Exception(('Invalid type of config_changed parameter got %s,' +
-                             'must be string or dict') % (type(config),))
+            raise Exception(('Invalid type of config_changed parameter got %s' +
+                             ', must be string or dict') % (type(config),))
 
         def save_config():
             return {'_config_changed': config_digest}
@@ -86,12 +86,12 @@ def timeout(timeout_limit):
 
     def uptodate_timeout(task, values):
         def save_now():
-            return {'success-time': time.time()}
+            return {'success-time': time_module.time()}
         task.insert_action(save_now)
         last_success = values.get('success-time', None)
         if last_success is None:
             return False
-        return (time.time() - last_success) < limit_sec
+        return (time_module.time() - last_success) < limit_sec
     return uptodate_timeout
 
 
@@ -108,7 +108,7 @@ class check_timestamp_unchanged(object):
     that if the file C{fn} is a target of another task you should probably add
     C{task_dep} on that task to ensure the file is created before checking it.
     """
-    def __init__(self, fn, time='mtime', op=operator.eq):
+    def __init__(self, file_name, time='mtime', op=operator.eq):
         """initialize the callable
 
         @param fn: (str) path to file/directory to check
@@ -128,17 +128,18 @@ class check_timestamp_unchanged(object):
         else:
             raise ValueError('time can be one of: atime, access, ctime, '
                              'status, mtime, modify (got: %r)' % time)
-        self._fn = fn
+        self._file_name = file_name
         self._op = op
-        self._key = '.'.join([self._fn, self._timeattr])
+        self._key = '.'.join([self._file_name, self._timeattr])
 
     def _get_time(self):
-        return getattr(os.stat(self._fn), self._timeattr)
+        return getattr(os.stat(self._file_name), self._timeattr)
 
     def __call__(self, task, values):
         """register action that saves the timestamp and check current timestamp
 
-        @raises OSError: if cannot stat C{self._fn} file (e.g. doesn't exist)
+        @raises OSError: if cannot stat C{self._file_name} file
+                         (e.g. doesn't exist)
         """
         def save_now():
             return {self._key: self._get_time()}

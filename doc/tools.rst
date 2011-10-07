@@ -39,7 +39,9 @@ For dict's the values are converted to string and only a digest/checksum of the 
 check_timestamp_unchanged (uptodate)
 --------------------------------------
 
-``check_timestamp_unchanged`` is used to check if specified timestamp of a given file/dir is unchanged since last run.  The timestamp field to check defaults to mtime, but can be selected by passing ``time`` parameter which can be one of: atime, access, ctime, status, mtime, modify.
+``check_timestamp_unchanged`` is used to check if specified timestamp of a given file/dir is unchanged since last run.
+
+The timestamp field to check defaults to ``mtime``, but can be selected by passing ``time`` parameter which can be one of: ``atime``, ``ctime``, ``mtime`` (or their aliases ``access``, ``status``, ``modify``).
 
 Note that ``ctime`` or ``status`` is platform dependent: time of most recent metadata change on Unix, or the time of creation on Windows.  See `Python library documentation for os.stat`__ and Linux man page for stat(2) for details.
 

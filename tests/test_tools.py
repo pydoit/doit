@@ -118,24 +118,20 @@ class TestTimeout(object):
         assert False == t.uptodate[0](t, t.values)
 
 
+
+def pytest_funcarg__checked_file(request):
+    """crate a temporary file"""
+    def touch():
+        fname = 'mytmpfile'
+        file_ = open(fname, 'a')
+        file_.close()
+        return fname
+    return request.cached_setup(
+        setup=touch,
+        teardown=(lambda tmpfile: os.remove(tmpfile)),
+        scope="function")
+
 class TestCheckTimestampUnchanged(object):
-    def patch_os_stat(self, monkeypatch, fake_path,
-                      st_mode=33188, st_ino=402886990, st_dev=65024L,
-                      st_nlink=1, st_uid=0, st_gid=0, st_size=0,
-                      st_atime=1317297141, st_mtime=1317297140,
-                      st_ctime=1317297141):
-        """helper to patch os.stat for one specific path."""
-        real_stat = os.stat
-
-        def fake_stat(path):
-            if path == fake_path:
-                return os.stat_result((st_mode, st_ino, st_dev, st_nlink,
-                                       st_uid, st_gid, st_size,
-                                       st_atime, st_mtime, st_ctime))
-            else:
-                return real_stat(path)
-
-        monkeypatch.setattr(os, 'stat', fake_stat)
 
     def test_time_selection(self):
         check = tools.check_timestamp_unchanged('check_atime', 'atime')
@@ -156,33 +152,30 @@ class TestCheckTimestampUnchanged(object):
         with pytest.raises(OSError):
             check(t, t.values)
 
-    def test_op_gt(self, monkeypatch):
-        base_t = 1317460678
-        self.patch_os_stat(monkeypatch, 'check_gt', st_mtime=base_t)
-        check = tools.check_timestamp_unchanged('check_gt', op=operator.gt)
+    def test_op_ge(self, monkeypatch, checked_file):
+        check = tools.check_timestamp_unchanged(checked_file, op=operator.ge)
         t = task.Task("TaskX", None, uptodate=[check])
 
         # no stored value/first run
         assert False == check(t, t.values)
 
-        # value just stored is not greater than itself
+        # value just stored is equal to itself
         t.execute()
-        assert False == check(t, t.values)
-
-        # stored timestamp greater than current, up to date
-        monkeypatch.undo()
-        self.patch_os_stat(monkeypatch, 'check_gt', st_mtime=(base_t - 100))
         assert True == check(t, t.values)
 
-    def test_op_bad_custom(self, monkeypatch):
+        # stored timestamp less than current, up to date
+        future_time = t.values.values()[0] + 100
+        monkeypatch.setattr(check, '_get_time', lambda: future_time)
+        assert False == check(t, t.values)
+
+
+    def test_op_bad_custom(self, monkeypatch, checked_file):
         # handling misbehaving custom operators
         def bad_op(prev_time, current_time):
             raise Exception('oops')
 
-        self.patch_os_stat(monkeypatch, 'check_bad', st_mtime=1317460678)
-        check = tools.check_timestamp_unchanged('check_bad', op=bad_op)
+        check = tools.check_timestamp_unchanged(checked_file, op=bad_op)
         t = task.Task("TaskX", None, uptodate=[check])
-
         with pytest.raises(Exception):
             check(t, t.values)
 
