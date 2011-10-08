@@ -99,22 +99,22 @@ def timeout(timeout_limit):
 class check_timestamp_unchanged(object):
     """check if timestamp of a given file/dir is unchanged since last run.
 
-    The C{op} parameter can be used to customize when timestamps are considered
-    unchanged, e.g. you could pass L{operator.ge} to also consider e.g. files
-    reverted to an older copy as unchanged; or pass a custom function to
-    completely customize what unchanged means.
+    The C{cmp_op} parameter can be used to customize when timestamps are
+    considered unchanged, e.g. you could pass L{operator.ge} to also consider
+    e.g. files reverted to an older copy as unchanged; or pass a custom
+    function to completely customize what unchanged means.
 
     If the specified file does not exist, an exception will be raised.  Note
     that if the file C{fn} is a target of another task you should probably add
     C{task_dep} on that task to ensure the file is created before checking it.
     """
-    def __init__(self, file_name, time='mtime', op=operator.eq):
+    def __init__(self, file_name, time='mtime', cmp_op=operator.eq):
         """initialize the callable
 
         @param fn: (str) path to file/directory to check
         @param time: (str) which timestamp field to check, can be one of
                      (atime, access, ctime, status, mtime, modify)
-        @param op: (callable) takes two parameters (prev_time, current_time)
+        @param cmp_op: (callable) takes two parameters (prev_time, current_time)
                    should return True if the timestamp is considered unchanged
 
         @raises ValueError: if invalid C{time} value is passed
@@ -129,7 +129,7 @@ class check_timestamp_unchanged(object):
             raise ValueError('time can be one of: atime, access, ctime, '
                              'status, mtime, modify (got: %r)' % time)
         self._file_name = file_name
-        self._op = op
+        self._cmp_op = cmp_op
         self._key = '.'.join([self._file_name, self._timeattr])
 
     def _get_time(self):
@@ -147,7 +147,7 @@ class check_timestamp_unchanged(object):
 
         prev_time = values.get(self._key)
         current_time = self._get_time()
-        return self._op(prev_time, current_time)
+        return self._cmp_op(prev_time, current_time)
 
 
 # debug helper

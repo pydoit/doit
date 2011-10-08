@@ -153,7 +153,7 @@ class TestCheckTimestampUnchanged(object):
         pytest.raises(OSError, check, t, t.values)
 
     def test_op_ge(self, monkeypatch, checked_file):
-        check = tools.check_timestamp_unchanged(checked_file, op=operator.ge)
+        check = tools.check_timestamp_unchanged(checked_file,cmp_op=operator.ge)
         t = task.Task("TaskX", None, uptodate=[check])
 
         # no stored value/first run
@@ -174,7 +174,7 @@ class TestCheckTimestampUnchanged(object):
         def bad_op(prev_time, current_time):
             raise Exception('oops')
 
-        check = tools.check_timestamp_unchanged(checked_file, op=bad_op)
+        check = tools.check_timestamp_unchanged(checked_file, cmp_op=bad_op)
         t = task.Task("TaskX", None, uptodate=[check])
         pytest.raises(Exception, check, t, t.values)
 
