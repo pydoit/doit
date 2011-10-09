@@ -23,14 +23,42 @@ def isgenerator(obj):
     return type(obj) is types.GeneratorType
 
 
-def get_module(dodo_file, cwd=None):
+def get_module(dodo_file, cwd=None, seek_parent=False):
     """
     @param dodo_file(str): path to file containing the tasks
     @param cwd(str): path to be used cwd, if None use path from dodo_file
+    @param seek_parent(bool): search for dodo_file in parent paths if not found
     @return (module) dodo module
     """
+    def exist_or_raise(path):
+        if not os.path.exists(path):
+            msg = ("Could not find dodo file '%s'.\n" +
+                   "Please use '-f' to specify file name.\n")
+            raise InvalidDodoFile(msg % path)
+
+    # get absolute path name
+    if os.path.isabs(dodo_file):
+        dodo_path = dodo_file
+        exist_or_raise(dodo_path)
+    else:
+        if not seek_parent:
+            dodo_path = os.path.abspath(dodo_file)
+            exist_or_raise(dodo_path)
+        else:
+            # try to find file in any folder above
+            current_dir = os.getcwd()
+            dodo_path = os.path.join(current_dir, dodo_file)
+            file_name = os.path.basename(dodo_path)
+            parent = os.path.dirname(dodo_path)
+            while not os.path.exists(dodo_path):
+                new_parent = os.path.dirname(parent)
+                if new_parent == parent: # reached root path
+                    exist_or_raise(dodo_file)
+                parent = new_parent
+                dodo_path = os.path.join(parent, file_name)
+
     ## load module dodo file and set environment
-    base_path, file_name = os.path.split(os.path.abspath(dodo_file))
+    base_path, file_name = os.path.split(dodo_path)
     # make sure dodo path is on sys.path so we can import it
     sys.path.insert(0, base_path)
 
@@ -44,11 +72,6 @@ def get_module(dodo_file, cwd=None):
             msg = "Specified 'dir' path must be a directory.\nGot '%s'(%s)."
             raise InvalidCommand(msg % (cwd, full_cwd))
         sys.path.insert(0, full_cwd)
-
-    if not os.path.exists(dodo_file):
-        msg = ("Could not find dodo file '%s'.\n" +
-               "Please use '-f' to specify file name.\n")
-        raise InvalidDodoFile(msg % dodo_file)
 
     # file specified on dodo file are relative to cwd
     os.chdir(full_cwd)
@@ -156,9 +179,9 @@ def generate_tasks(name, gen_result, gen_doc=None):
                       (name, type(gen_result)))
 
 
-def get_tasks(dodo_file, cwd, command_names):
+def get_tasks(dodo_file, cwd, seek_parent, command_names):
     """get tasks from dodo_file"""
-    dodo_module = get_module(dodo_file, cwd)
+    dodo_module = get_module(dodo_file, cwd, seek_parent)
     return load_task_generators(dodo_module, command_names)
 
 

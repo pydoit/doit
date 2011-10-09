@@ -51,6 +51,16 @@ opt_cwd = {'name': 'cwdPath',
                    "dodo file are relative to dodo.py location.")
            }
 
+# continue executing tasks even after a failure
+opt_seek_file = {'name': 'seek_file',
+                 'short': '',
+                 'long': 'seek-file',
+                 'type': bool,
+                 'default': False,
+                 'help': ("seek dodo file on parent folders " +
+                          "[default: %(default)s]")
+                 }
+
 # select output file
 opt_outfile = {'name': 'outfile',
             'short':'o',
@@ -129,6 +139,10 @@ opt_reporter = {'name':'reporter',
                  }
 
 
+def _path_params(params):
+    return (params['dodoFile'], params['cwdPath'], params['seek_file'],
+            params['sub'].keys())
+
 
 run_doc = {'purpose': "run tasks",
            'usage': "[TASK/TARGET...]",
@@ -173,8 +187,7 @@ def cmd_run(params, args):
 
     # check if no sub-command specified. default command is "run"
     if len(args) == 0 or args[0] not in params['sub']:
-        dodo_tasks = loader.get_tasks(params['dodoFile'], params['cwdPath'],
-                                      params['sub'].keys())
+        dodo_tasks = loader.get_tasks(*_path_params(params))
         params.update_defaults(dodo_tasks['config'])
         default_tasks = args or dodo_tasks['config'].get('default_tasks')
         return doit_run(params['dep_file'], dodo_tasks['task_list'],
@@ -236,10 +249,10 @@ opt_list_dependencies = {'name': 'list_deps',
 }
 
 
+
 def cmd_list(params, args):
     """execute cmd 'list' """
-    dodo_tasks = loader.get_tasks(params['dodoFile'], params['cwdPath'],
-                                  params['sub'].keys())
+    dodo_tasks = loader.get_tasks(*_path_params(params))
     params.update_defaults(dodo_tasks['config'])
     return doit_list(params['dep_file'], dodo_tasks['task_list'], sys.stdout,
                      args, params['all'], not params['quiet'],
@@ -269,8 +282,7 @@ opt_clean_cleandep = {'name': 'cleandep',
 
 def cmd_clean(params, args):
     """execute cmd 'clean' """
-    dodo_tasks = loader.get_tasks(params['dodoFile'], params['cwdPath'],
-                                  params['sub'].keys())
+    dodo_tasks = loader.get_tasks(*_path_params(params))
     params.update_defaults(dodo_tasks['config'])
     options = args or dodo_tasks['config'].get('default_tasks')
     return doit_clean(dodo_tasks['task_list'], sys.stdout, params['dryrun'],
@@ -286,8 +298,7 @@ forget_doc = {'purpose': "clear successful run status from internal DB",
 
 def cmd_forget(params, args):
     """execute cmd 'forget' """
-    dodo_tasks = loader.get_tasks(params['dodoFile'], params['cwdPath'],
-                                  params['sub'].keys())
+    dodo_tasks = loader.get_tasks(*_path_params(params))
     params.update_defaults(dodo_tasks['config'])
     options = args or dodo_tasks['config'].get('default_tasks')
     return doit_forget(params['dep_file'], dodo_tasks['task_list'],
@@ -303,8 +314,7 @@ ignore_doc = {'purpose': "ignore task (skip) on subsequent runs",
 
 def cmd_ignore(params, args):
     """execute cmd 'ignore' """
-    dodo_tasks = loader.get_tasks(params['dodoFile'], params['cwdPath'],
-                                  params['sub'].keys())
+    dodo_tasks = loader.get_tasks(*_path_params(params))
     params.update_defaults(dodo_tasks['config'])
     return doit_ignore(params['dep_file'], dodo_tasks['task_list'],
                        sys.stdout, args)
@@ -319,8 +329,7 @@ auto_doc = {'purpose': "automatically execute tasks when a dependency changes",
 
 def cmd_auto(params, args):
     """execute cmd 'auto' """
-    dodo_tasks = loader.get_tasks(params['dodoFile'], params['cwdPath'],
-                                  params['sub'].keys())
+    dodo_tasks = loader.get_tasks(*_path_params(params))
     params.update_defaults(dodo_tasks['config'])
     filter_tasks = args or dodo_tasks['config'].get('default_tasks')
     return doit_auto(params['dep_file'], dodo_tasks['task_list'], filter_tasks,
@@ -440,34 +449,36 @@ def cmd_main(cmd_args):
     sub_cmd['help'] = cmdparse.Command('help', (), cmd_help, help_doc)
 
     # run command
-    run_options = (opt_version, opt_help, opt_dodo, opt_cwd, opt_depfile,
-                   opt_always, opt_continue, opt_verbosity, opt_reporter,
-                   opt_outfile, opt_num_process)
+    run_options = (opt_version, opt_help, opt_dodo, opt_cwd, opt_seek_file,
+                   opt_depfile, opt_always, opt_continue, opt_verbosity,
+                   opt_reporter, opt_outfile, opt_num_process)
     sub_cmd['run'] = cmdparse.Command('run', run_options, cmd_run, run_doc)
 
     # clean command
-    clean_options = (opt_dodo, opt_cwd, opt_clean_cleandep, opt_clean_dryrun)
+    clean_options = (opt_dodo, opt_cwd, opt_seek_file, opt_clean_cleandep,
+                     opt_clean_dryrun)
     sub_cmd['clean'] = cmdparse.Command('clean', clean_options, cmd_clean,
                                        clean_doc)
 
     # list command
-    list_options = (opt_dodo, opt_depfile, opt_cwd, opt_listall,
+    list_options = (opt_dodo, opt_depfile, opt_cwd, opt_seek_file , opt_listall,
                     opt_list_quiet, opt_list_status, opt_list_private,
                     opt_list_dependencies)
     sub_cmd['list'] = cmdparse.Command('list', list_options, cmd_list, list_doc)
 
     # forget command
-    forget_options = (opt_dodo, opt_cwd, opt_depfile,)
+    forget_options = (opt_dodo, opt_cwd, opt_seek_file, opt_depfile,)
     sub_cmd['forget'] = cmdparse.Command('forget', forget_options,
                                         cmd_forget, forget_doc)
 
     # ignore command
-    ignore_options = (opt_dodo, opt_cwd, opt_depfile,)
+    ignore_options = (opt_dodo, opt_cwd, opt_seek_file, opt_depfile,)
     sub_cmd['ignore'] = cmdparse.Command('ignore', ignore_options,
                                         cmd_ignore, ignore_doc)
 
     # auto command
-    auto_options = (opt_dodo, opt_cwd, opt_depfile, opt_verbosity)
+    auto_options = (opt_dodo, opt_cwd, opt_seek_file, opt_depfile,
+                    opt_verbosity)
     sub_cmd['auto'] = cmdparse.Command('auto', auto_options,
                                         cmd_auto, auto_doc)
 

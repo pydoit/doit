@@ -107,6 +107,14 @@ class TestLoadTaskGenerators(object):
         dodo = load_task_generators(dodo_module)
         assert expected == [t.name for t in dodo['task_list']]
 
+    def testInParentDir(self, cwd):
+        os.chdir('data')
+        fileName = "loader_sample.py"
+        pytest.raises(InvalidDodoFile, get_module, fileName)
+        get_module(fileName, seek_parent=True)
+        # cwd is changed to location of dodo.py
+        assert os.getcwd() == os.path.dirname(os.path.abspath(fileName))
+
     def testNameInBlacklist(self, cwd):
         fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
         dodo_module = get_module(fileName)
@@ -117,6 +125,10 @@ class TestLoadTaskGenerators(object):
         fileName = os.path.join(os.path.dirname(__file__),"i_dont_exist.py")
         pytest.raises(InvalidDodoFile, get_module, fileName)
 
+    def testWrongFileNameInParentDir(self, cwd):
+        os.chdir('data')
+        fileName = os.path.join("i_dont_exist.py")
+        pytest.raises(InvalidDodoFile, get_module, fileName, seek_parent=True)
 
     def testDocString(self, cwd):
         fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
@@ -142,7 +154,7 @@ class TestGetTasks(object):
     def test(self, cwd):
         fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
         expected = ["xxx1","yyy2"]
-        dodo = get_tasks(fileName, None, [])
+        dodo = get_tasks(fileName, None, False, [])
         assert expected == [t.name for t in dodo['task_list']]
 
 
