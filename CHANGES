@@ -3,6 +3,13 @@
 Changes
 =======
 
+0.14.0
+========================
+
+- added command line option ``--seek-file``
+- added ``tools.check_unchanged_timestamp``
+- fix bug subclasses of BaseAction should get a task reference
+
 
 0.13.0 (*2011-07-18*)
 ========================

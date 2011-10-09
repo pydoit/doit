@@ -1,15 +1,13 @@
-big refactorings
-------------------
-
-Task into TaskDep + Task
-TaskControl into Create + Process
-
 0.X
 ----------
 
 . more MP (tree)
 . setup/task  single process/all procces
 . --enable/--disable cmd line options (#586651)
+. better terminal output
+
+wishlist
+----------
 
 . tools - profile
 . tools - code coverage
@@ -21,17 +19,24 @@ TaskControl into Create + Process
 . forget a dependency, not a task
 . option to make sub-task not part of a group
 . task name alias
-. cache dir files (speed optimization) - avoid running GLOB all the time
+
 
 needs volunteer
 ----------------
 
 . windows (#218276)
 
+
+big refactorings
+------------------
+
+. Task into TaskDep + Task
+. TaskControl into Create + Process
+
+
 not clear how to implement
 ---------------------------
 
-. dont get subtasks if task is not going to be executed (#370923)
 . one .doit for each dodo file
 . multiple (include) dodo files (#218279)
 . sub-command/task unification. all sub-commands (but run) implemented as tasks
