@@ -47,13 +47,14 @@ DEPENDENCIES
 
 Tools required for development:
 
+- bazaar * VCS
 - py.test * unit-tests
 - mock * unit-tests
-- bazaar * VCS
+- coverage * code coverage
 - epydoc * API doc generator
 - sphinx * doc tool
 - pyflakes * syntax checker
-- pychecker * syntax checker
+
 
 
 TESTS
