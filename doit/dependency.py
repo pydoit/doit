@@ -338,13 +338,13 @@ class DependencyBase(object):
 
         # check uptodate bool/callables
         checked_uptodate = False
-        for uptodate in task.uptodate:
+        for utd, utd_args, utd_kwargs in task.uptodate:
             # FIXME control verbosity, check error messages
-            if hasattr(uptodate, '__call__'):
-                args = [task, self.get_values(task.name)] + uptodate.args
-                uptodate_result = uptodate(*args, **uptodate.kwargs)
+            if hasattr(utd, '__call__'):
+                args = [task, self.get_values(task.name)] + utd_args
+                uptodate_result = utd(*args, **utd_kwargs)
             else:
-                uptodate_result = uptodate
+                uptodate_result = utd
 
             # None means uptodate was not really calculated and should be
             # just ignored

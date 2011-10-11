@@ -73,49 +73,52 @@ class TestTimeout(object):
 
     def test_int(self, monkeypatch):
         monkeypatch.setattr(tools.time_module, 'time', lambda: 100)
-        t = task.Task("TaskX", None, uptodate=[tools.timeout(5)])
+        uptodate = tools.timeout(5)
+        t = task.Task("TaskX", None, uptodate=[uptodate])
 
-        assert False == t.uptodate[0](t, t.values)
+        assert False == uptodate(t, t.values)
         t.execute()
         assert 100 == t.values['success-time']
 
         monkeypatch.setattr(tools.time_module, 'time', lambda: 103)
-        assert True == t.uptodate[0](t, t.values)
+        assert True == uptodate(t, t.values)
 
         monkeypatch.setattr(tools.time_module, 'time', lambda: 106)
-        assert False == t.uptodate[0](t, t.values)
+        assert False == uptodate(t, t.values)
 
 
     def test_timedelta(self, monkeypatch):
         monkeypatch.setattr(tools.time_module, 'time', lambda: 10)
         limit = datetime.timedelta(minutes=2)
-        t = task.Task("TaskX", None, uptodate=[tools.timeout(limit)])
+        uptodate = tools.timeout(limit)
+        t = task.Task("TaskX", None, uptodate=[uptodate])
 
-        assert False == t.uptodate[0](t, t.values)
+        assert False == uptodate(t, t.values)
         t.execute()
         assert 10 == t.values['success-time']
 
         monkeypatch.setattr(tools.time_module, 'time', lambda: 100)
-        assert True == t.uptodate[0](t, t.values)
+        assert True == uptodate(t, t.values)
 
         monkeypatch.setattr(tools.time_module, 'time', lambda: 200)
-        assert False == t.uptodate[0](t, t.values)
+        assert False == uptodate(t, t.values)
 
 
     def test_timedelta_big(self, monkeypatch):
         monkeypatch.setattr(tools.time_module, 'time', lambda: 10)
         limit = datetime.timedelta(days=2, minutes=5)
-        t = task.Task("TaskX", None, uptodate=[tools.timeout(limit)])
+        uptodate = tools.timeout(limit)
+        t = task.Task("TaskX", None, uptodate=[uptodate])
 
-        assert False == t.uptodate[0](t, t.values)
+        assert False == uptodate(t, t.values)
         t.execute()
         assert 10 == t.values['success-time']
 
         monkeypatch.setattr(tools.time_module, 'time', lambda: 3600 * 30)
-        assert True == t.uptodate[0](t, t.values)
+        assert True == uptodate(t, t.values)
 
         monkeypatch.setattr(tools.time_module, 'time', lambda: 3600 * 49)
-        assert False == t.uptodate[0](t, t.values)
+        assert False == uptodate(t, t.values)
 
 
 

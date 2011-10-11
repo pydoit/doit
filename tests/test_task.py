@@ -83,26 +83,29 @@ class TestTaskUpToDate(object):
 
     def test_FalseRunalways(self):
         t = task.Task("Task X", ["taskcmd"], uptodate=[False])
-        assert t.uptodate == [False]
+        assert t.uptodate == [(False, None, None)]
 
     def test_NoneIgnored(self):
         t = task.Task("Task X", ["taskcmd"], uptodate=[None])
-        assert t.uptodate == [None]
+        assert t.uptodate == [(None, None, None)]
 
-    def test_callable(self):
+    def test_callable_function(self):
         def custom_check(): return True
         t = task.Task("Task X", ["taskcmd"], uptodate=[custom_check])
-        assert t.uptodate[0] == custom_check
-        assert t.uptodate[0].args == []
-        assert t.uptodate[0].kwargs == {}
+        assert t.uptodate[0] == (custom_check, [], {})
+
+    def test_callable_instance_method(self):
+        class Base(object):
+            def check(): return True
+        base = Base()
+        t = task.Task("Task X", ["taskcmd"], uptodate=[base.check])
+        assert t.uptodate[0] == (base.check, [], {})
 
     def test_tuple(self):
         def custom_check(pos_arg, xxx=None): return True
         t = task.Task("Task X", ["taskcmd"],
                       uptodate=[(custom_check, [123], {'xxx':'yyy'})])
-        assert t.uptodate[0] == custom_check
-        assert t.uptodate[0].args == [123]
-        assert t.uptodate[0].kwargs == {'xxx':'yyy'}
+        assert t.uptodate[0] == (custom_check, [123], {'xxx':'yyy'})
 
     def test_invalid(self):
         pytest.raises(task.InvalidTask,
@@ -156,7 +159,7 @@ class TestTaskDeps(object):
         assert ['resultX', 'taskY', 'resultY'] == my_task.task_dep
         assert set(['calcX', 'calcY']) == my_task.calc_dep
         assert ['resultX', 'resultY'] == my_task.result_dep
-        assert [None, True] == my_task.uptodate
+        assert [(None, None, None), (True, None, None)] == my_task.uptodate
 
 
 class TestTask_Getargs(object):

@@ -170,16 +170,14 @@ class Task(object):
         uptodate = []
         for item in items:
             if isinstance(item, bool) or item is None:
-                uptodate.append(item)
+                uptodate.append((item, None, None))
             elif hasattr(item, '__call__'):
-                item.args = []
-                item.kwargs = {}
-                uptodate.append(item)
+                uptodate.append((item, [], {}))
             elif isinstance(item, tuple):
                 call = item[0]
-                call.args = list(item[1]) if len(item)>1 else []
-                call.kwargs = item[2] if len(item)>2 else {}
-                uptodate.append(call)
+                args = list(item[1]) if len(item)>1 else []
+                kwargs = item[2] if len(item)>2 else {}
+                uptodate.append((call, args, kwargs))
             else:
                 msg = ("%s. task invalid 'uptodate' item '%r'. " +
                        "Must be bool, None, callable or tuple " +
@@ -222,7 +220,7 @@ class Task(object):
 
     def _extend_uptodate(self, uptodate):
         """add/extend uptodate values"""
-        self.uptodate.extend(uptodate)
+        self.uptodate.extend(self._init_uptodate(uptodate))
 
 
     # FIXME should support setup also
