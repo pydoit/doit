@@ -156,7 +156,7 @@ def doit_list(dependency_file, task_list, outstream, filter_tasks,
     if print_status:
         dependency_manager = Dependency(dependency_file)
 
-    for task in print_tasks:
+    for task in sorted(print_tasks):
         # exclude subtasks (never exclude if filter specified)
         if (not filter_tasks) and task.is_subtask:
             continue

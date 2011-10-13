@@ -34,7 +34,7 @@ class TestCmdList(object):
         cmds.doit_list(depfile.name, tasks, output, [])
         got = [line for line in output.getvalue().split('\n') if line]
         expected = [t.name for t in tasks if not t.is_subtask]
-        assert expected == got
+        assert sorted(expected) == got
 
     def testDoc(self, depfile):
         output = StringIO.StringIO()
@@ -42,7 +42,7 @@ class TestCmdList(object):
         cmds.doit_list(depfile.name, tasks, output, [], print_doc=True)
         got = [line for line in output.getvalue().split('\n') if line]
         expected = []
-        for t in tasks:
+        for t in sorted(tasks):
             if not t.is_subtask:
                 expected.append("%s\t* %s" % (t.name, t.doc))
         assert expected == got
@@ -60,7 +60,7 @@ class TestCmdList(object):
         tasks = tasks_sample()
         cmds.doit_list(depfile.name, tasks, output, [], print_subtasks=True)
         got = [line for line in output.getvalue().split('\n') if line]
-        expected = [t.name for t in tasks]
+        expected = [t.name for t in sorted(tasks)]
         assert expected == got
 
     def testFilter(self, depfile):
