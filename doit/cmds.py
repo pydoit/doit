@@ -120,12 +120,13 @@ def doit_list(dependency_file, task_list, outstream, filter_tasks,
     @param print_dependencies(bool)
     """
     status_map = {'ignore': 'I', 'up-to-date': 'U', 'run': 'R'}
-    def _list_print_task(task):
+    def _list_print_task(task, col1_len):
         """print a single task"""
-        task_str = task.name
+        col1_fmt = "%%-%ds" % (col1_len + 3)
+        task_str = col1_fmt % task.name
         # add doc
         if print_doc and task.doc:
-            task_str += "\t* %s" % task.doc
+            task_str += "%s" % task.doc
         # FIXME this does not take calc_dep into account
         if print_status:
             task_uptodate = dependency_manager.get_status(task)
@@ -139,31 +140,36 @@ def doit_list(dependency_file, task_list, outstream, filter_tasks,
                 outstream.write(" -  %s\n" % dep)
             outstream.write("\n")
 
-        # print subtasks
-        if print_subtasks:
-            for subt in task.task_dep:
-                if subt.startswith("%s" % task.name):
-                    _list_print_task(tasks[subt])
 
     # dict of all tasks
     tasks = dict([(t.name, t) for t in task_list])
     # list only tasks passed on command line
     if filter_tasks:
-        print_tasks = [tasks[name] for name in filter_tasks]
+        base_list = [tasks[name] for name in filter_tasks]
+        if print_subtasks:
+            for task in base_list:
+                for subt in task.task_dep:
+                    if subt.startswith("%s" % task.name):
+                        base_list.append(tasks[subt])
     else:
-        print_tasks = task_list
+        base_list = task_list
     # status
     if print_status:
         dependency_manager = Dependency(dependency_file)
 
-    for task in sorted(print_tasks):
+    print_list = []
+    for task in base_list:
         # exclude subtasks (never exclude if filter specified)
-        if (not filter_tasks) and task.is_subtask:
+        if (not print_subtasks) and (not filter_tasks) and task.is_subtask:
             continue
         # exclude private tasks
         if (not print_private) and task.name.startswith('_'):
             continue
-        _list_print_task(task)
+        print_list.append(task)
+
+    max_name_len = max(len(t.name) for t in print_list) if print_list else 0
+    for task in sorted(print_list):
+        _list_print_task(task, max_name_len)
     return 0
 
 

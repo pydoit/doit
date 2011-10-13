@@ -32,7 +32,7 @@ class TestCmdList(object):
         output = StringIO.StringIO()
         tasks = tasks_sample()
         cmds.doit_list(depfile.name, tasks, output, [])
-        got = [line for line in output.getvalue().split('\n') if line]
+        got = [line.strip() for line in output.getvalue().split('\n') if line]
         expected = [t.name for t in tasks if not t.is_subtask]
         assert sorted(expected) == got
 
@@ -44,8 +44,10 @@ class TestCmdList(object):
         expected = []
         for t in sorted(tasks):
             if not t.is_subtask:
-                expected.append("%s\t* %s" % (t.name, t.doc))
-        assert expected == got
+                expected.append([t.name, t.doc])
+        assert len(expected) == len(got)
+        for exp1, got1 in zip(expected, got):
+            assert exp1 == got1.split(None, 1)
 
     def testDependencies(self, depfile):
         my_task = Task("t2", [""], file_dep=['d2.txt'])
@@ -59,21 +61,21 @@ class TestCmdList(object):
         output = StringIO.StringIO()
         tasks = tasks_sample()
         cmds.doit_list(depfile.name, tasks, output, [], print_subtasks=True)
-        got = [line for line in output.getvalue().split('\n') if line]
+        got = [line.strip() for line in output.getvalue().split('\n') if line]
         expected = [t.name for t in sorted(tasks)]
         assert expected == got
 
     def testFilter(self, depfile):
         output = StringIO.StringIO()
         cmds.doit_list(depfile.name, tasks_sample(), output, ['g1', 't2'])
-        got = [line for line in output.getvalue().split('\n') if line]
+        got = [line.strip() for line in output.getvalue().split('\n') if line]
         expected = ['g1', 't2']
         assert expected == got
 
     def testFilterSubtask(self, depfile):
         output = StringIO.StringIO()
         cmds.doit_list(depfile.name, tasks_sample(), output, ['g1.a'])
-        got = [line for line in output.getvalue().split('\n') if line]
+        got = [line.strip() for line in output.getvalue().split('\n') if line]
         expected = ['g1.a']
         assert expected == got
 
@@ -81,7 +83,7 @@ class TestCmdList(object):
         output = StringIO.StringIO()
         cmds.doit_list(depfile.name, tasks_sample(), output, ['g1'],
                        print_subtasks=True)
-        got = [line for line in output.getvalue().split('\n') if line]
+        got = [line.strip() for line in output.getvalue().split('\n') if line]
         expected = ['g1', 'g1.a', 'g1.b']
         assert expected == got
 
@@ -89,7 +91,7 @@ class TestCmdList(object):
         output = StringIO.StringIO()
         cmds.doit_list(depfile.name, tasks_sample(), output, ['g1'],
                        print_status=True)
-        got = [line for line in output.getvalue().split('\n') if line]
+        got = [line.strip() for line in output.getvalue().split('\n') if line]
         expected = ['R g1']
         assert expected == got
 
@@ -98,7 +100,7 @@ class TestCmdList(object):
         task_list.append(Task("_s3", [""]))
         output = StringIO.StringIO()
         cmds.doit_list(depfile.name, task_list, output, ['_s3'])
-        got = [line for line in output.getvalue().split('\n') if line]
+        got = [line.strip() for line in output.getvalue().split('\n') if line]
         expected = []
         assert expected == got
 
@@ -108,7 +110,7 @@ class TestCmdList(object):
         output = StringIO.StringIO()
         cmds.doit_list(depfile.name, task_list, output, ['_s3'],
                        print_private=True)
-        got = [line for line in output.getvalue().split('\n') if line]
+        got = [line.strip() for line in output.getvalue().split('\n') if line]
         expected = ['_s3']
         assert expected == got
 
