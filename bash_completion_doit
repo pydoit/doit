@@ -1,0 +1,76 @@
+# bash completion for doit
+# reference => http://www.debian-administration.org/articles/317
+
+_doit()
+{
+    local cur prev basetask sub_cmds tasks i dodof
+    COMPREPLY=()
+    COMP_WORDBREAKS=${COMP_WORDBREAKS//:} # remove colon from word separator list
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    # list of doit sub-commands
+    sub_cmds="help run clean list forget ignore auto"
+
+
+    # options that take file/dir as values should complete file-system
+    if [[ "$prev" == "-f" || "$prev" == "-d" || "$prev" == "-o" ]]; then
+        _filedir
+        return 0
+    fi
+    if [[ "$cur" == *=* ]]; then
+        prev=${cur/=*/}
+        cur=${cur/*=/}
+        if [[ "$prev" == "--file=" || "$prev" == "--dir=" || "$prev" == "--output-file=" ]]; then
+            _filedir -o nospace
+            return 0
+        fi
+    fi
+
+
+    # get name of the dodo file
+    for (( i=0; i < ${#COMP_WORDS[@]}; i++)); do
+        case "${COMP_WORDS[i]}" in
+        -f)
+            dodof=${COMP_WORDS[i+1]}
+            break
+            ;;
+        --file=*)
+            dodof=${COMP_WORDS[i]/*=/}
+            break
+            ;;
+        esac
+    done
+    # dodo file not specified, use default
+    if [ ! $dodof ]
+      then
+         dodof="dodo.py"
+    fi
+
+
+    # get task list
+    # if it there is colon it is getting a subtask...
+    if [[ "$cur" == *:* ]]; then
+        # extract base task name (remove everything after colon)
+        basetask=${cur%:*}
+        # sub-tasks
+        tasks=$(doit list --file="$dodof" --quiet --all ${basetask})
+        COMPREPLY=( $(compgen -W "${tasks}" -- ${cur}) )
+        return 0
+    # without colons get only top tasks
+    else
+        tasks=$(doit list --file="$dodof" --quiet)
+    fi
+
+
+    # match for first parameter must be sub-command or task
+    # FIXME doit accepts options "-" in the first parameter but we ignore this case
+    if [[ ${COMP_CWORD} == 1 ]] ; then
+        COMPREPLY=( $(compgen -W "${sub_cmds} ${tasks}" -- ${cur}) )
+        return 0
+    fi
+
+    # if there is already one parameter match only tasks (no commands)
+    COMPREPLY=( $(compgen -W "${tasks}" -- ${cur}) )
+
+}
+complete -F _doit doit
