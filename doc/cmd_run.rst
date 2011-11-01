@@ -18,6 +18,8 @@ By default all commands are relative to ``dodo.py`` in the current folder. You c
     $ doit -f release.py
 
 
+*doit* can seek for the ``dodo.py`` file on parent folders if the the option ``--seek-file`` is specified.
+
 
 verbosity
 -----------

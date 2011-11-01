@@ -70,6 +70,18 @@ Return task name task actions from a task. This function can be used as 'title' 
 .. literalinclude:: tutorial/titlewithactions.py
 
 
+InteractiveAction (action)
+-----------------------------
+
+An IteractiveAction is like a CmdAction but with the following differences:
+
+  * the output is never captured
+  * it is always successful (return code is not used)
+  * "swallow" KeyboardInterrupt
+
+.. literalinclude:: tutorial/interactiveaction.py
+
+
 set_trace
 -----------
 

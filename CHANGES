@@ -3,11 +3,16 @@
 Changes
 =======
 
+
 0.14.0
 ========================
 
+- added tools.InteractiveAction (#865290)
+- bash completion script
+- sub-command list: tasks on aphabetical order, better formatting (#872829)
+- fix ``uptodate`` to accept instance methods callables (#871967)
 - added command line option ``--seek-file``
-- added ``tools.check_unchanged_timestamp``
+- added ``tools.check_unchanged_timestamp`` (#862606)
 - fix bug subclasses of BaseAction should get a task reference
 
 
