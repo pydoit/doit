@@ -187,3 +187,25 @@ class TestCheckTimestampUnchanged(object):
         check_a = tools.check_timestamp_unchanged('check_multi', 'atime')
         check_m = tools.check_timestamp_unchanged('check_multi', 'mtime')
         assert check_a._key != check_m._key
+
+
+class TestInteractiveAction(object):
+    def test_success(self):
+        TEST_PATH = os.path.dirname(__file__)
+        PROGRAM = "python %s/sample_process.py" % TEST_PATH
+        my_action = tools.InteractiveAction(PROGRAM + " please fail")
+        got = my_action.execute()
+        assert got is None
+
+    def test_ignore_keyboard_interrupt(self, monkeypatch):
+        my_action = tools.InteractiveAction('')
+        class FakeRaiseInterruptProcess(object):
+            def __init__(self, *args, **kwargs):
+                pass
+            def wait(self):
+                raise KeyboardInterrupt()
+        monkeypatch.setattr(tools.subprocess, 'Popen', FakeRaiseInterruptProcess)
+        got = my_action.execute()
+        assert got is None
+
+

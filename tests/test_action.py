@@ -40,7 +40,8 @@ class TestCmdAction(object):
     # if nothing is raised it is successful
     def test_success(self):
         my_action = action.CmdAction(PROGRAM)
-        my_action.execute()
+        got = my_action.execute()
+        assert got is None
 
     def test_error(self):
         my_action = action.CmdAction("%s 1 2 3" % PROGRAM)

@@ -13,8 +13,6 @@ wishlist
 . tools - code coverage
 
 . color output on the terminal. (#263576)
-. tab-complete
-
 . option dont save successful results
 . forget a dependency, not a task
 . option to make sub-task not part of a group

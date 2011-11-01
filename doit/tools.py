@@ -5,6 +5,9 @@ import time as time_module
 import datetime
 import hashlib
 import operator
+import subprocess
+
+from doit.action import CmdAction
 
 
 # action
@@ -148,6 +151,22 @@ class check_timestamp_unchanged(object):
         prev_time = values.get(self._key)
         current_time = self._get_time()
         return self._cmp_op(prev_time, current_time)
+
+
+# action
+class InteractiveAction(CmdAction):
+    """Action to handle Interactive shell process:
+        * the output is never captured
+        * it is always successful (return code is not used)
+        * "swallow" KeyboardInterrupt
+    """
+    def execute(self, out=None, err=None):
+        action = self.expand_action()
+        process = subprocess.Popen(action, shell=True)
+        try:
+            process.wait()
+        except KeyboardInterrupt:
+            pass # normal way to stop interactive process
 
 
 # debug helper
