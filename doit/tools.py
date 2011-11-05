@@ -54,7 +54,11 @@ def config_changed(config):
             data = ''
             for key in sorted(config):
                 data += key + str(config[key])
-            config_digest = hashlib.md5(data).hexdigest()
+            if isinstance(data, unicode): # pragma: no cover # python3
+                byte_data = data.encode("utf-8")
+            else:
+                byte_data = data
+            config_digest = hashlib.md5(byte_data).hexdigest()
         else:
             raise Exception(('Invalid type of config_changed parameter got %s' +
                              ', must be string or dict') % (type(config),))
@@ -149,6 +153,8 @@ class check_timestamp_unchanged(object):
         task.insert_action(save_now)
 
         prev_time = values.get(self._key)
+        if prev_time is None: # this is first run
+            return False
         current_time = self._get_time()
         return self._cmp_op(prev_time, current_time)
 

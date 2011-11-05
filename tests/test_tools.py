@@ -153,7 +153,9 @@ class TestCheckTimestampUnchanged(object):
     def test_file_missing(self):
         check = tools.check_timestamp_unchanged('no_such_file')
         t = task.Task("TaskX", None, uptodate=[check])
-        pytest.raises(OSError, check, t, t.values)
+        # fake values saved from previous run
+        task_values = {check._key: 1} # needs any value different from None
+        pytest.raises(OSError, check, t, task_values)
 
     def test_op_ge(self, monkeypatch, checked_file):
         check = tools.check_timestamp_unchanged(checked_file,cmp_op=operator.ge)
@@ -179,7 +181,9 @@ class TestCheckTimestampUnchanged(object):
 
         check = tools.check_timestamp_unchanged(checked_file, cmp_op=bad_op)
         t = task.Task("TaskX", None, uptodate=[check])
-        pytest.raises(Exception, check, t, t.values)
+        # fake values saved from previous run
+        task_values = {check._key: 1} # needs any value different from None
+        pytest.raises(Exception, check, t, task_values)
 
     def test_multiple_checks(self):
         # handling multiple checks on one file (should save values in such way

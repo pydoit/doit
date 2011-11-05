@@ -456,6 +456,7 @@ class Task(object):
         return inst
 
     def __lt__(self, other):
+        """used on default sorting of tasks (alphabetically by name)"""
         return self.name < other.name
 
 
