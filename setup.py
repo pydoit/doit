@@ -53,7 +53,7 @@ if sys.version_info >= (3,0):
 
 setup(name = 'doit',
       description = 'doit - Automation Tool',
-      version = '0.14.0',
+      version = '0.15.dev',
       license = 'MIT',
       author = 'Eduardo Naufel Schettino',
       author_email = 'schettino72@gmail.com',

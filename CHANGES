@@ -4,6 +4,13 @@ Changes
 =======
 
 
+0.15.0
+=========
+
+- added genstandalone.py to create a standalone ``doit`` script (#891935)
+- fix doit.tools.set_trace to not modify sys.stdout
+
+
 0.14.0 (*2011-11-05*)
 ========================
 
