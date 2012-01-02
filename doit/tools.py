@@ -7,7 +7,7 @@ import hashlib
 import operator
 import subprocess
 
-from doit.action import CmdAction
+from .action import CmdAction
 
 
 # action

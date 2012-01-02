@@ -11,7 +11,7 @@ import anydbm as ddbm
 #import dbm as ddbm # test_corrupted_file fails
 #import gdbm as ddbm # ok <= TODO make this the default
 
-from doit import json
+from . import json
 
 
 USE_FILE_TIMESTAMP = True

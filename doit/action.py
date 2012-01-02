@@ -6,7 +6,7 @@ import StringIO
 import inspect
 from threading import Thread
 
-from doit.exceptions import InvalidTask, TaskFailed, TaskError
+from .exceptions import InvalidTask, TaskFailed, TaskError
 
 
 # Actions

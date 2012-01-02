@@ -3,14 +3,14 @@ import sys
 import itertools
 import codecs
 
-from doit import dependency
-from doit.exceptions import InvalidCommand
-from doit.task import Task
-from doit.control import TaskControl
-from doit.runner import Runner, MRunner
-from doit.reporter import REPORTERS
-from doit.dependency import Dependency
-from doit.filewatch import FileModifyWatcher
+from . import dependency
+from .exceptions import InvalidCommand
+from .task import Task
+from .control import TaskControl
+from .runner import Runner, MRunner
+from .reporter import REPORTERS
+from .dependency import Dependency
+from .filewatch import FileModifyWatcher
 
 
 def doit_run(dependency_file, task_list, output, options=None,

@@ -3,10 +3,10 @@
 import sys
 from multiprocessing import Process, Queue
 
-from doit.exceptions import InvalidTask, CatchedException
-from doit.exceptions import TaskFailed, SetupError, DependencyError
-from doit.dependency import Dependency
-from doit.task import Task
+from .exceptions import InvalidTask, CatchedException
+from .exceptions import TaskFailed, SetupError, DependencyError
+from .dependency import Dependency
+from .task import Task
 
 
 # execution result.

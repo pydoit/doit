@@ -5,8 +5,8 @@ import sys
 import inspect
 import types
 
-from doit.exceptions import InvalidTask, InvalidCommand, InvalidDodoFile
-from doit.task import Task, dict_to_task
+from .exceptions import InvalidTask, InvalidCommand, InvalidDodoFile
+from .task import Task, dict_to_task
 
 
 # TASK_STRING: (string) prefix used to identify python function

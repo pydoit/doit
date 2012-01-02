@@ -5,11 +5,11 @@ import sys
 import traceback
 
 import doit
-from doit.exceptions import InvalidDodoFile, InvalidCommand, InvalidTask
-from doit import loader
-from doit import cmdparse
-from doit.cmds import doit_run, doit_clean, doit_list, doit_forget, doit_ignore
-from doit.cmds import doit_auto
+from .exceptions import InvalidDodoFile, InvalidCommand, InvalidTask
+from . import loader
+from . import cmdparse
+from .cmds import doit_run, doit_clean, doit_list, doit_forget, doit_ignore
+from .cmds import doit_auto
 
 ## cmd line options
 ##########################################################
