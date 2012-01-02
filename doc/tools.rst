@@ -88,7 +88,3 @@ set_trace
 `doit` by default redirects stdout and stderr. Because of this when you try to use the python debugger with ``pdb.set_trace``, it does not work propoerly. To make sure you get a propper PDB shell you should use doit.tools.set_trace instead of ``pdb.set_trace``.
 
 .. literalinclude:: tutorial/settrace.py
-
-.. note::
-
-  Note that the orignal stdout is not restored, so the behavior of the program from the point the breakpoint is set might be different.

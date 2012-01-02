@@ -182,6 +182,6 @@ def set_trace(): # pragma: no cover
     """
     import pdb
     import sys
-    sys.stdout = sys.__stdout__
-    pdb.Pdb().set_trace(sys._getframe().f_back) #pylint: disable=W0212
+    debugger = pdb.Pdb(stdin=sys.__stdin__, stdout=sys.__stdout__)
+    debugger.set_trace(sys._getframe().f_back) #pylint: disable=W0212
 

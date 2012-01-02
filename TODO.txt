@@ -12,7 +12,7 @@ wishlist
 . tools - profile
 . tools - code coverage
 
-. color output on the terminal. (#263576)
+. color output on the terminal. (#263576) http://pypi.python.org/pypi/blessings/
 . option dont save successful results
 . forget a dependency, not a task
 . option to make sub-task not part of a group

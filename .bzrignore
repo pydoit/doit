@@ -1,4 +1,5 @@
 .coverage*
+__pycache__
 .doit.db
 
 .pytest-incremental*
