@@ -51,7 +51,7 @@ opt_cwd = {'name': 'cwdPath',
                    "dodo file are relative to dodo.py location.")
            }
 
-# continue executing tasks even after a failure
+# seek dodo file on parent folders
 opt_seek_file = {'name': 'seek_file',
                  'short': '',
                  'long': 'seek-file',
@@ -94,6 +94,7 @@ opt_always = {'name': 'always',
 opt_continue = {'name': 'continue',
                 'short': 'c',
                 'long': 'continue',
+                'inverse': 'no-continue',
                 'type': bool,
                 'default': False,
                 'help': "continue executing tasks even after a failure "

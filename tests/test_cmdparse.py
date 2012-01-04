@@ -30,6 +30,8 @@ class TestDefaultUpdate(object):
 
 opt_bool = {'name': 'flag',
             'short':'f',
+            'long': 'flag',
+            'inverse':'no-flag',
             'type': bool,
             'default': False,
             'help': 'help for opt1'}
@@ -98,21 +100,28 @@ class TestCommand(object):
         assert '-f' in text
         assert '--rare-bool' in text
         assert 'help for opt1' in text
-        assert opt_no in cmd.options
+        assert opt_no['name'] in [o['name'] for o in cmd.options]
         assert 'user cant modify me' not in text
 
     def test_short(self, cmd):
         assert "fn:" == cmd.get_short(), cmd.get_short()
 
     def test_long(self, cmd):
-        assert ["rare-bool", "number="] == cmd.get_long()
+        assert ["flag", "no-flag", "rare-bool", "number="] == cmd.get_long()
 
     def test_getOption(self, cmd):
-        assert opt_bool['name'] == cmd.get_option('-f')['name']
-        assert opt_rare['name'] == cmd.get_option('--rare-bool')['name']
-        assert opt_int['name'] == cmd.get_option('-n')['name']
-        assert opt_int['name'] == cmd.get_option('--number')['name']
-        assert None == cmd.get_option('not-there')
+        # short
+        opt, inverse = cmd.get_option('-f')
+        assert (opt_bool['name'], False) == (opt['name'], inverse)
+        # long
+        opt, inverse = cmd.get_option('--rare-bool')
+        assert (opt_rare['name'], False) == (opt['name'], inverse)
+        # inverse
+        opt, inverse = cmd.get_option('--no-flag')
+        assert (opt_bool['name'], True) == (opt['name'], inverse)
+        # not found
+        opt, inverse = cmd.get_option('not-there')
+        assert (None, None) == (opt, inverse)
 
 
     def test_parseDefaults(self, cmd):
@@ -126,8 +135,9 @@ class TestCommand(object):
         assert 89 == params['num']
 
     def test_parseLongValues(self, cmd):
-        params, args = cmd.parse(['--rare-bool','--num','89'])
+        params, args = cmd.parse(['--rare-bool','--num','89', '--no-flag'])
         assert True == params['rare']
+        assert False == params['flag']
         assert 89 == params['num']
 
     def test_parsePositionalArgs(self, cmd):

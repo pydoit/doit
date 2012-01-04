@@ -7,6 +7,7 @@ Changes
 0.15.0
 =========
 
+- added option --no-continue (#586651)
 - added genstandalone.py to create a standalone ``doit`` script (#891935)
 - fix doit.tools.set_trace to not modify sys.stdout
 

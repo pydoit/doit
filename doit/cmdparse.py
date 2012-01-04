@@ -51,6 +51,8 @@ class Command(object):
        - name (string) : variable name
        - short (string): argument short name
        - long (string): argument long name
+       - inverse (string): argument long name to be the inverse of the default
+                           value (only used by boolean options)
        - type (type): type of the variable. must be able to be initialized
                       taking a single string parameter.
                       if type is bool. option is just a flag. and if present
@@ -64,10 +66,12 @@ class Command(object):
     _type = "Command option"
     # description can be None or string. other fields must be string.
     _doc_fields = ('purpose', 'usage', 'description')
-    _option_fields = ('name', 'default', 'short', 'long', 'type', 'help')
+    _option_fields = ('name', 'short', 'long', 'inverse',
+                      'type', 'default', 'help')
     # default values for option meta data
     _defaults = {'short': '',
                  'long': '',
+                 'inverse': '',
                  'type': str,
                  'help': ''}
 
@@ -106,6 +110,33 @@ class Command(object):
         else:
             self.doc = None
 
+    @staticmethod
+    def _print_2_columns(col1, col2):
+        """print using a 2-columns format """
+        column1_len = 24
+        column2_start = 28
+        left = (col1).ljust(column1_len)
+        right = col2.replace('\n', '\n'+ column2_start * ' ')
+        return "  %s  %s" % (left, right)
+
+
+    def _help_opt(self, opt):
+        """return string of option's short and long name
+        i.e.:   -f ARG, --file=ARG
+        @param opt: (dict) see self.options
+        """
+        opts_str = []
+        if opt['short']:
+            if opt['type'] is bool:
+                opts_str.append('-%s' % opt['short'])
+            else:
+                opts_str.append('-%s ARG' % opt['short'])
+        if opt['long']:
+            if opt['type'] is bool:
+                opts_str.append('--%s' % opt['long'])
+            else:
+                opts_str.append('--%s=ARG' % opt['long'])
+        return ', '.join(opts_str)
 
 
     def help(self):
@@ -121,28 +152,22 @@ class Command(object):
             # ignore option that cant be modified on cmd line
             if not (opt['short'] or opt['long']):
                 continue
-            opts_str = []
-            if opt['short']:
-                if opt['type'] is bool:
-                    opts_str.append('-%s' % opt['short'])
-                else:
-                    opts_str.append('-%s ARG' % opt['short'])
-            if opt['long']:
-                if opt['type'] is bool:
-                    opts_str.append('--%s' % opt['long'])
-                else:
-                    opts_str.append('--%s=ARG' % opt['long'])
+
+            opt_str = self._help_opt(opt)
             opt_help = opt['help'] % {'default':opt['default']}
-            # arrange in 2 columns
-            left = (', '.join(opts_str)).ljust(24)
-            right = opt_help.replace('\n', '\n'+ 28*' ')
-            text.append("  %s  %s" % (left, right))
+            text.append(self._print_2_columns(opt_str, opt_help))
+            # print bool inverse option
+            if opt['inverse']:
+                opt_str = '--%s' % opt['inverse']
+                opt_help = 'opposite of --%s' % opt['long']
+                text.append(self._print_2_columns(opt_str, opt_help))
 
         if self.doc['description'] is not None:
             text.append("")
             text.append("Description:")
             text.append(self.doc['description'])
         return "\n".join(text)
+
 
     def get_short(self):
         """return string with short options for getopt"""
@@ -167,13 +192,21 @@ class Command(object):
             if opt['type'] is not bool:
                 long_name += '='
             long_list.append(long_name)
+            if opt['inverse']:
+                long_list.append(opt['inverse'])
         return long_list
 
     def get_option(self, opt_str):
-        """return option dictionary from matching opt_str. or None"""
+        """return tuple
+            - option dictionary from matching opt_str. or None
+            - (bool) matched inverse
+        """
         for opt in self.options:
             if opt_str in ('-' + opt['short'], '--' + opt['long']):
-                return opt
+                return opt, False
+            if opt_str == '--' + opt['inverse']:
+                return opt, True
+        return None, None
 
     def parse(self, in_args, **kwargs):
         """parse arguments into options(params) and positional arguments
@@ -205,9 +238,9 @@ class Command(object):
 
         # update params with values from command line
         for opt, val in opts:
-            this = self.get_option(opt)
+            this, inverse = self.get_option(opt)
             if this['type'] is bool:
-                params[this['name']] = True
+                params[this['name']] = not inverse
             else:
                 try:
                     params[this['name']] = this['type'](val)
