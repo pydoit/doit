@@ -1,12 +1,21 @@
 """
 generate a standalone python script including doit and its dependencies
 
+Requirements
+==============
+
+This script should be executed on system where doit and dependencies are
+installed. It also requires the the libraries "py" and "py.test".
+
 Usage
 ======
 
-This script should be executed on system where doit and dependencies are
-installed. It also requires the the libraries "py" and "py.test". Then you
-can distribute the stanalone script to other systems.
+This script will create a standalone 'doit' on the current working directory.
+It should be executed in the path where the standalone will be distributed, i.e.::
+
+  my/project/path $ python ../../path/to/doit/genstandalone.py
+
+Then you can distribute the stanalone script to other systems.
 
 Note
 =====
@@ -18,6 +27,7 @@ the standalone script.
 
 import platform
 import sys
+import stat
 
 import py
 from _pytest.genscript import generate_script
@@ -53,6 +63,8 @@ def generate_doit_standalone(script_name='doit'):
         )
     genscript = py.path.local(script_name)
     genscript.write(script)
+    # adds permission owner execute
+    genscript.chmod(genscript.stat().mode|stat.S_IXUSR)
     return 0
 
 
