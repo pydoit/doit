@@ -17,6 +17,11 @@ Installing
 
 * Ubuntu packages
 
+  .. warning::
+
+    Ubuntu packages are not maintained by core developers so they might be outdated.
+
+
   Add the doit team PPA to your system's software sources ::
 
     sudo add-apt-repository ppa:doit-team/ppa
