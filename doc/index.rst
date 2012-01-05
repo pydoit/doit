@@ -23,7 +23,9 @@ Features:
  * Flexible, adapts to many workflows for creation of tasks/rules/recipes
  * Support for multi-process parallel execution
  * Built-in integration of inotify (automatic re-execution) (linux/mac only)
+ * Can be distributed as a standalone (single-file) script
  * Runs on Python 2.5 through 3.2
+
 
 If you are still wondering why someone would want to use this tool, this blog `post <http://schettino72.wordpress.com/2008/04/14/doit-a-build-tool-tale/>`_ explains how everything started.
 
@@ -89,7 +91,7 @@ Project Details
 Status
 ======
 
-`doit` is under active development. Version 0.14 released on 2011-11.
+`doit` is under active development. Version 0.15 released on 2012-01.
 
 `doit` core features are quite stable. So if there is not recent development, it does NOT mean `doit` is not being mantained... Development is done based on real world use cases. If I don't need a feature and nobody never asked for it, it is not implemented ;) It is well designed and have a very small code base so adding new features isn't hard.
 

@@ -1,28 +1,27 @@
 """
 generate a standalone python script including doit and its dependencies
 
-Requirements
-==============
 
-This script should be executed on system where doit and dependencies are
-installed. It also requires the the libraries "py" and "py.test".
+Requirements
+--------------
+
+The standalone script should be created on a system where doit and dependencies are
+installed. Apart from doit dependencies it also requires the the libraries "py" and "py.test".
 
 Usage
-======
+-------
 
-This script will create a standalone 'doit' on the current working directory.
-It should be executed in the path where the standalone will be distributed, i.e.::
+The script ``genstandalone.py`` will create a standalone 'doit' on the current working directory. So it should be executed in the path where the standalone will be distributed, i.e.::
 
-  my/project/path $ python ../../path/to/doit/genstandalone.py
+  /my/project/path $ python ../../path/to/doit/genstandalone.py
 
-Then you can distribute the stanalone script to other systems.
+Then you can distribute the standalone script to other systems.
 
-Note
-=====
+.. warning::
 
-The generated standalone script can be used by any python version but the
-dependencies included are dependent on the python version used to generate
-the standalone script.
+  The generated standalone script can be used by any python version but the
+  dependencies included are dependent on the python version used to generate
+  the standalone script.
 """
 
 import platform

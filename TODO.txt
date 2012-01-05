@@ -3,7 +3,6 @@
 
 . more MP (tree)
 . setup/task  single process/all procces
-. --enable/--disable cmd line options (#586651)
 . better terminal output
 
 wishlist
