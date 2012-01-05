@@ -74,7 +74,7 @@ opt_outfile = {'name': 'outfile',
 # choose internal dependency file.
 opt_depfile = {'name': 'dep_file',
                'short':'',
-               'long': '',
+               'long': 'db-file',
                'type': str,
                'default': ".doit.db",
                'help': "file used to save successful runs"
@@ -450,8 +450,8 @@ def cmd_main(cmd_args):
     sub_cmd['help'] = cmdparse.Command('help', (), cmd_help, help_doc)
 
     # run command
-    run_options = (opt_version, opt_help, opt_dodo, opt_cwd, opt_seek_file,
-                   opt_depfile, opt_always, opt_continue, opt_verbosity,
+    run_options = (opt_version, opt_help, opt_dodo, opt_cwd, opt_depfile,
+                   opt_seek_file, opt_always, opt_continue, opt_verbosity,
                    opt_reporter, opt_outfile, opt_num_process)
     sub_cmd['run'] = cmdparse.Command('run', run_options, cmd_run, run_doc)
 
