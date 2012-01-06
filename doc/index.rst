@@ -83,6 +83,8 @@ Project Details
 
 * Questions and feedback on `google group <http://groups.google.co.in/group/python-doit>`_.
 
+* Professional support and consulting services available from ``doit`` creator & maitainer (*schettino72* at gmail.com).
+
 * This web site is hosted on http://sourceforge.net.
 
 * `doit-recipes <https://bitbucket.org/schettino72/doit-recipes/wiki/Home>`_ contains a collection of non-trivial examples and a list of projects using `doit`.
