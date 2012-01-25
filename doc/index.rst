@@ -1,14 +1,43 @@
 About
 =====
 
-`doit` comes from the idea of bringing the power of build-tools to execute any kind of task. It will keep track of dependencies between "tasks" and execute them only when necessary.
+`doit` comes from the idea of bringing the power of build-tools to execute any kind of task.
 
-Unlike other build-tools it allows you to define how/when a task should be considered out-of-date (instead of just checking for changes in files). It makes easy to integrate tasks defined by both python code and external programs (shell commands). Plain python is used to define tasks metadata allowing easy creation of task definition dynamically.
+
+build-tools
+------------
+
+Build-tools were created with two primary goals:
+
+1) To keep track of inter-dependencies between tasks and ensure that they will be executed in the correct order.
+
+2) To be faster than manually executing all tasks. Actually it can not really execute a given task faster, instead it has some mechanism to determine if a task is up-to-date or not. So it is faster by executing less tasks, executing only the ones required (not up-to-date).
+
+For more details check the `Software Carpentry's lecture <http://software-carpentry.org/4_0/make/intro/>`_.
+
+
+why `doit`?
+-------------
+
+Task's metadata (actions, dependencies, targets...) are better described in a declarative way, but often you want to create this metadata programmatically.
+
+ * In `doit` plain python is used to define task's metadata allowing easy creation of tasks dynamically.
+
+ * In `doit` it is possible to integrate task's actions defined by both python code and external programs (shell commands).
+
+ * In `doit` tasks dependencies can be calculated at execution time by another task.
+
+
+Traditional build-tools were created mainly to deal with compile/link process of source code. `doit` was designed to solve a broader range of tasks.
+
+ * Unlike other build-tools `doit` allows you to define how/when a task should be considered up-to-date (instead of just checking for changes in files).
+
 
 `doit`  was designed to be easy to use and “get out of your way”.
 
 
-`doit` can be used as:
+`doit` can be used as
+-----------------------
 
  * a build tool (generic and flexible)
  * home of your management scripts (it helps you organize and combine shell scripts and python scripts)
@@ -16,7 +45,8 @@ Unlike other build-tools it allows you to define how/when a task should be consi
  * a configuration management system
  * manage computational pipelines
 
-Features:
+Features
+----------
 
  * Easy to use, "no-API"
  * Use python to dynamically create tasks on-the-fly
@@ -27,7 +57,7 @@ Features:
  * Runs on Python 2.5 through 3.2
 
 
-If you are still wondering why someone would want to use this tool, this blog `post <http://schettino72.wordpress.com/2008/04/14/doit-a-build-tool-tale/>`_ explains how everything started.
+This blog `post <http://schettino72.wordpress.com/2008/04/14/doit-a-build-tool-tale/>`_ explains how everything started.
 
 
 
@@ -36,7 +66,7 @@ What people are saying about `doit`
 
   Congratulations! Your tool follows the KISS principle very closely. I always wondered why build tools had to be that complicated. - `Elena <http://schettino72.wordpress.com/2008/04/14/doit-a-build-tool-tale/#comment-514>`_
 
-  Let me start by saying I'm really lovin doit, at first the interface seemed verbose but quickly changed my mind when I started using it and realised the flexibility.  Many thanks for the great software! - `Michael Gliwinski <https://groups.google.com/d/msg/python-doit/7cD2RiBhB9c/FzrAWkVhEgUJ>`_
+  Let me start by saying I'm really lovin doit, at first the interface seemed verbose but quickly changed my mind when I started using it and realized the flexibility.  Many thanks for the great software! - `Michael Gliwinski <https://groups.google.com/d/msg/python-doit/7cD2RiBhB9c/FzrAWkVhEgUJ>`_
 
   I love all the traditional unix power tools, like cron, make, perl, ..., I also like new comprehensive configuration management tools like CFEngine and Puppet.  But I find doit to be so versatile and so productive. - `Charlie Guo <https://groups.google.com/d/msg/python-doit/JXElpPfcmmM/znvBT0OFhMYJ>`_
 
@@ -83,7 +113,7 @@ Project Details
 
 * Questions and feedback on `google group <http://groups.google.co.in/group/python-doit>`_.
 
-* Professional support and consulting services available from ``doit`` creator & maitainer (*schettino72* at gmail.com).
+* Professional support and consulting services available from ``doit`` creator & maintainer (*schettino72* at gmail.com).
 
 * This web site is hosted on http://sourceforge.net.
 
@@ -95,6 +125,6 @@ Status
 
 `doit` is under active development. Version 0.15 released on 2012-01.
 
-`doit` core features are quite stable. So if there is not recent development, it does NOT mean `doit` is not being mantained... Development is done based on real world use cases. If I don't need a feature and nobody never asked for it, it is not implemented ;) It is well designed and have a very small code base so adding new features isn't hard.
+`doit` core features are quite stable. So if there is not recent development, it does NOT mean `doit` is not being maintained... Development is done based on real world use cases. If I don't need a feature and nobody never asked for it, it is not implemented ;) It is well designed and have a very small code base so adding new features isn't hard.
 
 If you use `doit` please drop me a line telling me your experience...
