@@ -16,6 +16,7 @@ wishlist
 . forget a dependency, not a task
 . option to make sub-task not part of a group
 . task name alias
+. action to be executed on when ctrl-c is hit on auto mode
 
 
 needs volunteer
