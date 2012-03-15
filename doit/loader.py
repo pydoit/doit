@@ -23,6 +23,18 @@ def isgenerator(obj):
     return type(obj) is types.GeneratorType
 
 
+def flat_generator(gen):
+    """return only values from generators
+    if any generator yields another generator it is recursivelly called
+    """
+    for item in gen:
+        if isgenerator(item):
+            for x in flat_generator(item):
+                yield x
+        else:
+            yield item
+
+
 def get_module(dodo_file, cwd=None, seek_parent=False):
     """
     @param dodo_file(str): path to file containing the tasks
@@ -130,13 +142,15 @@ def load_task_generators(dodo_module, command_names=()):
     return {'task_list': task_list,
             'config': doit_config}
 
+
 def generate_tasks(name, gen_result, gen_doc=None):
     """Create tasks from a task generator result.
 
     @param name: (string) name of taskgen function
     @param gen_result: value returned by a task generator function
+                       it can be a dict or generator (generating dicts)
     @param gen_doc: (string/None) docstring from the task generator function
-    @return: (tuple) task,list of subtasks
+    @return: (tuple) task, list of subtasks
     """
     # task described as a dictionary
     if isinstance(gen_result, dict):
@@ -156,14 +170,14 @@ def generate_tasks(name, gen_result, gen_doc=None):
     if isgenerator(gen_result):
         group_task = Task(name, None, doc=gen_doc)
         tasks = [group_task]
-        # the generator return subtasks as dictionaries .
-        for task_dict in gen_result:
+        # the generator return subtasks as dictionaries
+        for task_dict in flat_generator(gen_result):
             # check valid input
             if not isinstance(task_dict, dict):
-                raise InvalidTask("Task %s must yield dictionaries"% name)
+                raise InvalidTask("Task '%s' must yield dictionaries"% name)
 
             if 'name' not in task_dict:
-                raise InvalidTask("Task %s must contain field name. %s"%
+                raise InvalidTask("Task '%s' must contain field name. %s"%
                                   (name,task_dict))
             # name is task.subtask
             task_dict['name'] = "%s:%s"% (name, task_dict.get('name'))
@@ -175,7 +189,7 @@ def generate_tasks(name, gen_result, gen_doc=None):
         group_task.task_dep = [task.name for task in tasks[1:]]
         return tasks
 
-    raise InvalidTask("Task %s. Must return a dictionary. got %s" %
+    raise InvalidTask("Task '%s'. Must return a dictionary. got %s" %
                       (name, type(gen_result)))
 
 

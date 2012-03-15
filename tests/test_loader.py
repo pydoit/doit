@@ -5,7 +5,7 @@ import pytest
 from doit.exceptions import InvalidDodoFile, InvalidCommand
 from doit.task import InvalidTask, Task
 from doit.loader import load_task_generators, generate_tasks, get_tasks
-from doit.loader import isgenerator, get_module
+from doit.loader import isgenerator, flat_generator, get_module
 
 
 class TestIsGenerator(object):
@@ -22,15 +22,24 @@ class TestIsGenerator(object):
         assert not isgenerator(giveme())
 
 
+class TestFlatGenerator(object):
+    def test_nested(self):
+        def myg(items):
+            for x in items:
+                yield x
+        flat = flat_generator(myg([1, myg([2, myg([3, myg([4, myg([5])])])])]))
+        assert [1,2,3,4,5] == list(flat)
+
+
 class TestGenerateTasks(object):
 
     def testDict(self):
-        tasks = generate_tasks("dict",{'actions':['xpto 14']})
+        tasks = generate_tasks("my_name", {'actions':['xpto 14']})
         assert isinstance(tasks[0],Task)
 
     # name field is only for subtasks.
     def testInvalidNameField(self):
-        pytest.raises(InvalidTask, generate_tasks, "dict",
+        pytest.raises(InvalidTask, generate_tasks, "my_name",
                                  {'actions':['xpto 14'],'name':'bla bla'})
 
     def testInvalidValue(self):
@@ -46,6 +55,24 @@ class TestGenerateTasks(object):
         assert "xpto:0" == tasks[1].name
         assert not tasks[0].is_subtask
         assert tasks[1].is_subtask
+
+
+    def testMultiLevelGenerator(self):
+        def f_xpto(base_name):
+            for i in range(3):
+                name = "%s-%d" % (base_name, i)
+                yield {'name':name, 'actions' :["xpto -%d"%i]}
+        def f_first_level():
+            for i in range(2):
+                yield f_xpto(str(i))
+        tasks = generate_tasks("xpto", f_first_level())
+        assert isinstance(tasks[0], Task)
+        assert 7 == len(tasks)
+        assert not tasks[0].is_subtask
+        assert tasks[1].is_subtask
+        assert "xpto:0-0" == tasks[1].name
+        assert "xpto:1-2" == tasks[-1].name
+
 
     def testGeneratorDoesntReturnDict(self):
         def f_xpto():
