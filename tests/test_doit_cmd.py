@@ -250,5 +250,5 @@ class TestErrors(object):
         assert 1 == got
         out, err = capsys.readouterr()
         # traceback from Exception (this case code from mock lib)
-        assert "raise self.side_effect" in err
+        assert "mock.py" in err
 
