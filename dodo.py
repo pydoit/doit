@@ -124,11 +124,11 @@ def task_website_update():
 
 def task_revision():
     """create file with repo rev number"""
-    return {'actions': ["bzr version-info > revision.txt"]}
+    return {'actions': ["hg tip --template '{rev}:{node}' > revision.txt"]}
 
 def task_manifest():
     """create manifest file for distutils """
-    cmd = "bzr ls --versioned --recursive > MANIFEST;echo 'revision.txt' >> MANIFEST"
+    cmd = "hg manifest > MANIFEST;echo 'revision.txt' >> MANIFEST"
     return {'actions': [cmd]}
 
 def task_sdist():
