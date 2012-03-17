@@ -31,11 +31,20 @@ class TestFlatGenerator(object):
         assert [1,2,3,4,5] == list(flat)
 
 
-class TestGenerateTasks(object):
+class TestGenerateTasksDict(object):
 
     def testDict(self):
         tasks = generate_tasks("my_name", {'actions':['xpto 14']})
-        assert isinstance(tasks[0],Task)
+        assert isinstance(tasks[0], Task)
+        assert "my_name" == tasks[0].name
+
+    def testBaseName(self):
+        tasks = generate_tasks("function_name", {
+                'basename': 'real_task_name',
+                'actions':['xpto 14']
+                })
+        assert isinstance(tasks[0], Task)
+        assert "real_task_name" == tasks[0].name
 
     # name field is only for subtasks.
     def testInvalidNameField(self):
@@ -44,6 +53,19 @@ class TestGenerateTasks(object):
 
     def testInvalidValue(self):
         pytest.raises(InvalidTask, generate_tasks, "dict",'xpto 14')
+
+
+    def testUseDocstring(self):
+        tasks = generate_tasks("dict",{'actions':['xpto 14']}, "my doc")
+        assert "my doc" == tasks[0].doc
+
+    def testDocstringNotUsed(self):
+        mytask = {'actions':['xpto 14'], 'doc':'from dict'}
+        tasks = generate_tasks("dict", mytask, "from docstring")
+        assert "from dict" == tasks[0].doc
+
+
+class TestGenerateTasksGenerator(object):
 
     def testGenerator(self):
         def f_xpto():
@@ -55,7 +77,6 @@ class TestGenerateTasks(object):
         assert "xpto:0" == tasks[1].name
         assert not tasks[0].is_subtask
         assert tasks[1].is_subtask
-
 
     def testMultiLevelGenerator(self):
         def f_xpto(base_name):
@@ -77,32 +98,58 @@ class TestGenerateTasks(object):
     def testGeneratorDoesntReturnDict(self):
         def f_xpto():
             for i in range(3):
-                yield "xpto -%d"%i
-        pytest.raises(InvalidTask, generate_tasks,"xpto",
-                                 f_xpto())
-
-    def testGeneratorDictMissingName(self):
-        def f_xpto():
-            for i in range(3):
-                yield {'actions' :["xpto -%d"%i]}
-        pytest.raises(InvalidTask, generate_tasks,"xpto",
-                                 f_xpto())
+                yield "xpto -%d" % i
+        pytest.raises(InvalidTask, generate_tasks, "xpto", f_xpto())
 
     def testGeneratorDictMissingAction(self):
         def f_xpto():
             for i in range(3):
                 yield {'name':str(i)}
-        pytest.raises(InvalidTask, generate_tasks,"xpto",
-                                 f_xpto())
+        pytest.raises(InvalidTask, generate_tasks, "xpto", f_xpto())
 
-    def testUseDocstring(self):
-        tasks = generate_tasks("dict",{'actions':['xpto 14']}, "my doc")
-        assert "my doc" == tasks[0].doc
 
-    def testDocstringNotUsed(self):
-        mytask = {'actions':['xpto 14'], 'doc':'from dict'}
-        tasks = generate_tasks("dict", mytask, "from docstring")
-        assert "from dict" == tasks[0].doc
+    def testGeneratorDictMissingName(self):
+        def f_xpto():
+            for i in range(3):
+                yield {'actions' :["xpto -%d"%i]}
+        pytest.raises(InvalidTask, generate_tasks, "xpto", f_xpto())
+
+    def testGeneratorBasename(self):
+        def f_xpto():
+            for i in range(3):
+                yield {'basename':str(i), 'actions' :["xpto"]}
+        tasks = generate_tasks("xpto", f_xpto())
+        assert isinstance(tasks[0], Task)
+        assert 3 == len(tasks)
+        assert "0" == tasks[1].name
+        assert not tasks[0].is_subtask
+        assert not tasks[1].is_subtask
+
+    def testGeneratorBasenameName(self):
+        def f_xpto():
+            for i in range(3):
+                yield {'basename':'xpto', 'name':str(i), 'actions' :["a"]}
+        tasks = generate_tasks("f_xpto", f_xpto())
+        assert isinstance(tasks[0], Task)
+        assert 4 == len(tasks)
+        assert "xpto" == tasks[0].name
+        assert "xpto:0" == tasks[1].name
+        assert not tasks[0].is_subtask
+        assert tasks[1].is_subtask
+
+    def testGeneratorBasenameCanNotRepeat(self):
+        def f_xpto():
+            for i in range(3):
+                yield {'basename':'again', 'actions' :["xpto"]}
+        pytest.raises(InvalidTask, generate_tasks, "xpto", f_xpto())
+
+    def testGeneratorBasenameCanNotRepeatNonGroup(self):
+        def f_xpto():
+            yield {'basename': 'xpto', 'actions':["a"]}
+            for i in range(3):
+                yield {'name': str(i),
+                       'actions' :["a"]}
+        pytest.raises(InvalidTask, generate_tasks, "xpto", f_xpto())
 
     def testGeneratorDocString(self):
         def f_xpto():

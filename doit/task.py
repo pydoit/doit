@@ -51,7 +51,8 @@ class Task(object):
     DEFAULT_VERBOSITY = 1
 
     # list of valid types/values for each task attribute.
-    valid_attr = {'name': ((str,), ()),
+    valid_attr = {'basename': ((str,), ()),
+                  'name': ((str,), ()),
                   'actions': ((list, tuple,), (None,)),
                   'file_dep': ((list, tuple,), ()),
                   'task_dep': ((list, tuple,), ()),
