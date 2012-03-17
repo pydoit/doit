@@ -14,7 +14,6 @@ wishlist
 . color output on the terminal. (#263576) http://pypi.python.org/pypi/blessings/
 . option dont save successful results
 . forget a dependency, not a task
-. option to make sub-task not part of a group
 . task name alias
 . action to be executed on when ctrl-c is hit on auto mode
 

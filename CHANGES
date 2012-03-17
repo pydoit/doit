@@ -4,6 +4,12 @@ Changes
 =======
 
 
+0.16.0
+=======================
+
+- added task parameter 'basename'
+- added support for task generators return nested python generators
+
 0.15.0 (*2012-01-10*)
 =======================
 
