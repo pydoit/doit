@@ -13,13 +13,13 @@ Installing
 
 * Get latest development version::
 
-  $ bzr branch lp:doit
+  $ hg clone https://bitbucket.org/schettino72/doit
 
 * Ubuntu packages
 
   .. warning::
 
-    Ubuntu packages are not maintained by core developers so they might be outdated.
+    Ubuntu packages are not maintained by core developers (and they are currenntly outdated).
 
 
   Add the doit team PPA to your system's software sources ::
