@@ -1,0 +1,9 @@
+# modules required for development only
+# $ pip install --requirement dev_requirements.txt
+
+pyflakes
+pytest
+mock
+coverage
+sphinx
+epydoc

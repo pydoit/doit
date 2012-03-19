@@ -2,34 +2,40 @@
 README
 ================
 
+
 doit - automation tool
 ======================
 
-about: see docs/index.rst
+`doit` comes from the idea of bringing the power of build-tools to
+execute any kind of task
 
-Developers / contributors
-==========================
-
-(in chronological order) see also https://launchpad.net/~doit-team/+members
-
- * Eduardo Schettino - https://launchpad.net/~schettino72
- * Javier Collado - https://launchpad.net/~javier.collado
- * Philipp Tölke - https://launchpad.net/~toelke+lp
- * Daniel Hjelm - doit-d at hjelm dot eu
- * Damiro - https://launchpad.net/~damiro
- * Charlie Guo - https://launchpad.net/~charlie.guo
- * Michael Gliwinski - https://launchpad.net/~tzeentch-gm
+see doc/index.rst or `website <http://python-doit.sourceforge.net/>`
 
 
 Project Details
 ===============
 
- - Project management on `launchpad <https://launchpad.net/doit>`_
+ - Project management on `bitbucket <https://bitbucket.org/schettino72/doit>`_
  - Website http://python-doit.sourceforge.net/
  - `Discussion group <http://groups.google.co.in/group/python-doit>`_
 
 
-INSTALL
+license
+=======
+
+The MIT License
+Copyright (c) 2008-2012 Eduardo Naufel Schettino
+
+see LICENSE file
+
+
+developers / contributors
+==========================
+
+see AUTHORS file
+
+
+install
 =======
 
 doit is tested on python 2.5, 2.6, 2.7, 3.2.
@@ -37,8 +43,8 @@ doit is tested on python 2.5, 2.6, 2.7, 3.2.
 ``python setup.py install``
 
 
-DEPENDENCIES
-============
+dependencies
+=============
 
 - simplejson [python 2.5]
 - multiprocessing [python 2.5]
@@ -47,7 +53,7 @@ DEPENDENCIES
 
 Tools required for development:
 
-- bazaar * VCS
+- merucrial * VCS
 - py.test * unit-tests
 - mock * unit-tests
 - coverage * code coverage
@@ -56,9 +62,8 @@ Tools required for development:
 - pyflakes * syntax checker
 
 
-
-TESTS
-=====
+tests
+=======
 
 You can use a standalone script::
 
@@ -69,7 +74,24 @@ or use `py.test <http://codespeak.net/py/dist/test/index.html>`_ ::
   py.test
 
 
-DOCUMENTATION
+
+developemnt setup
+==================
+
+The best way to setup an environment to develop `doit` itself is to
+create a virtualenv...::
+
+  doit$ virtualen dev
+  (dev)doit$ dev/bin/activate
+
+install `doit` as "editable", and add development dependencies
+from `dev_requirements.txt`::
+
+  (dev)doit$ pip install --editable .
+  (dev)doit$ pip install --requirement dev_requirements.txt
+
+
+documentation
 =============
 
 ``doc`` folder contains ReST documentation. They are the base for creating the website.
@@ -80,10 +102,3 @@ To create it (after installing doit):
 It includes epydoc generated API documentation.
 
 
-LICENSE
-=======
-
-The MIT License
-Copyright (c) 2008-2011 Eduardo Naufel Schettino
-
-see LICENSE file
