@@ -159,6 +159,31 @@ class TestRunner_SelectTask(object):
         assert not reporter.log
         assert {'my_x': 1} == t2.options
 
+    def test_getargs_dict(self, reporter, depfile):
+        def ok(): return {'x':1}
+        def check_x(my_x): return my_x['t1'] == 1
+        t1 = Task('t1', [(ok,)])
+        t2 = Task('t2', [(check_x,)], getargs={'my_x':('t1', None)})
+        my_runner = runner.Runner(depfile.name, reporter)
+
+        # t2 gives chance for setup tasks to be executed
+        assert False == my_runner.select_task(t2)
+        assert ('start', t2) == reporter.log.pop(0)
+
+        # execute task t1 to calculate value
+        assert True == my_runner.select_task(t1)
+        assert ('start', t1) == reporter.log.pop(0)
+        t1_result = my_runner.execute_task(t1)
+        assert ('execute', t1) == reporter.log.pop(0)
+        my_runner.process_task_result(t1, t1_result)
+        assert ('success', t1) == reporter.log.pop(0)
+
+        # t2.options are set on select_task
+        assert {} == t2.options
+        assert True == my_runner.select_task(t2)
+        assert not reporter.log
+        assert {'my_x': {'x':1}} == t2.options
+
     def test_getargs_fail(self, reporter, depfile):
         # invalid getargs. Exception wil be raised and task will fail
         def check_x(my_x): return True
