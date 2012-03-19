@@ -111,7 +111,7 @@ class Runner(object):
         # selected just need to get values from other tasks
         for arg, value in task.getargs.iteritems():
             try:
-                task.options[arg] = self.dependency_manager.get_value(value)
+                task.options[arg] = self.dependency_manager.get_value(*value)
             except Exception, exception:
                 msg = ("ERROR getting value for argument '%s'\n" % arg +
                        str(exception))

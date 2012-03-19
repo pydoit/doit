@@ -249,31 +249,25 @@ class TestGetValue(object):
         t1 = Task('t1', None)
         t1.values = {'x':5, 'y':10}
         depfile.save_success(t1)
-        assert 5 == depfile.get_value('t1.x')
+        assert 5 == depfile.get_value('t1', 'x')
 
     def test_ok_dot_on_task_name(self, depfile):
         t1 = Task('t1:a.ext', None)
         t1.values = {'x':5, 'y':10}
         depfile.save_success(t1)
-        assert 5 == depfile.get_value('t1:a.ext.x')
-
-    def test_invalid_string(self, depfile):
-        t1 = Task('t1', None)
-        t1.values = {'x':5, 'y':10}
-        depfile.save_success(t1)
-        pytest.raises(Exception, depfile.get_value, 'nono')
+        assert 5 == depfile.get_value('t1:a.ext', 'x')
 
     def test_invalid_taskid(self, depfile):
         t1 = Task('t1', None)
         t1.values = {'x':5, 'y':10}
         depfile.save_success(t1)
-        pytest.raises(Exception, depfile.get_value, 'nonono.x')
+        pytest.raises(Exception, depfile.get_value, 'nonono', 'x')
 
-    def test_invalid_arg(self, depfile):
+    def test_invalid_key(self, depfile):
         t1 = Task('t1', None)
         t1.values = {'x':5, 'y':10}
         depfile.save_success(t1)
-        pytest.raises(Exception, depfile.get_value, 't1.z')
+        pytest.raises(Exception, depfile.get_value, 't1', 'z')
 
 
 

@@ -249,14 +249,27 @@ class Task(object):
     def _init_getargs(self):
         """task getargs attribute define implicit task dependencies"""
         self._init_options()
-        for key, desc in self.getargs.iteritems():
-            # check format
-            parts = desc.rsplit('.', 1)
-            if len(parts) != 2:
-                msg = ("Taskid '%s' - Invalid format for getargs of '%s'.\n" %
-                       (self.name, key) +
-                       "Should be <taskid>.<argument-name> got '%s'\n" % desc)
-                raise InvalidTask(msg)
+        for arg_name, desc in self.getargs.iteritems():
+            # value can a string task_id.key_name (deprecated)...
+            if isinstance(desc, basestring):
+                # TODO raise deprecation warning
+                parts = desc.rsplit('.', 1)
+                if len(parts) != 2:
+                    msg = ("Taskid '%s' - Invalid format for getargs of '%s'.\n" %
+                           (self.name, arg_name) +
+                           "Should be <taskid>.<key-name> got '%s'\n" % desc)
+                    raise InvalidTask(msg)
+                self.getargs[arg_name] = parts
+            # ... or tuple (task_id, key_name)
+            else:
+                parts = desc
+                if len(parts) != 2:
+                    msg = ("Taskid '%s' - Invalid format for getargs of '%s'.\n" %
+                           (self.name, arg_name) +
+                           "Should be tuple with 2 elements " +
+                           "('<taskid>', '<key-name>') got '%s'\n" % desc)
+                    raise InvalidTask(msg)
+
             if parts[0] not in self.setup_tasks:
                 self.setup_tasks.append(parts[0])
 

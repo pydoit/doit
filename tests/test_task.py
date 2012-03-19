@@ -174,6 +174,11 @@ class TestTask_Getargs(object):
         assert pytest.raises(task.InvalidTask, task.Task,
                               't3', None, getargs=getargs)
 
+    def test_invalid_desc_tuple(self):
+        getargs = {'x' : ('t1',)}
+        assert pytest.raises(task.InvalidTask, task.Task,
+                              't3', None, getargs=getargs)
+
     def test_many_dots(self):
         getargs = {'x': 't2:file.ext.x'}
         t = task.Task('t1', None, getargs=getargs)

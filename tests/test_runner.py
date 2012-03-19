@@ -138,7 +138,7 @@ class TestRunner_SelectTask(object):
         def ok(): return {'x':1}
         def check_x(my_x): return my_x == 1
         t1 = Task('t1', [(ok,)])
-        t2 = Task('t2', [(check_x,)], getargs={'my_x':'t1.x'})
+        t2 = Task('t2', [(check_x,)], getargs={'my_x':('t1','x')})
         my_runner = runner.Runner(depfile.name, reporter)
 
         # t2 gives chance for setup tasks to be executed
@@ -423,7 +423,8 @@ class TestRunner_run_tasks(object):
         def use_args(arg1):
             print arg1
         def make_args(): return {'myarg':1}
-        tasks = [Task("task1", [(use_args,)], getargs=dict(arg1="task2.myarg") ),
+        tasks = [Task("task1", [(use_args,)],
+                      getargs=dict(arg1=('task2','myarg')) ),
                  Task("task2", [(make_args,)])]
         my_runner = RunnerClass(depfile.name, reporter)
         tc = TaskControl(tasks)

@@ -291,24 +291,25 @@ class DependencyBase(object):
 
 
     def get_values(self, task_name):
-        """get all saved values from a task"""
+        """get all saved values from a task
+        @return dict
+        """
         values = self._get(task_name, '_values_:')
         return values or {}
 
-    def get_value(self, name):
+    def get_value(self, task_id, key_name):
         """get saved value from task
-        @param name (str): taskid.argument-name
+        @param task_id (str)
+        @param key_name (str): key result dict of the value
         """
-        parts = name.rsplit('.', 1)
-        assert len(parts) == 2
-        taskid, arg_name = parts
-        if not self._in(taskid):
-            raise Exception("taskid '%s' has no computed value!" % taskid)
-        values = self.get_values(taskid)
-        if arg_name not in values:
+        if not self._in(task_id):
+            # FIXME do not use generic exception
+            raise Exception("taskid '%s' has no computed value!" % task_id)
+        values = self.get_values(task_id)
+        if key_name not in values:
             msg = "Invalid arg name. Task '%s' has no value for '%s'."
-            raise Exception(msg % (taskid, arg_name))
-        return values[arg_name]
+            raise Exception(msg % (task_id, key_name))
+        return values[key_name]
 
     def remove_success(self, task):
         """remove saved info from task"""
