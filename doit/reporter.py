@@ -5,7 +5,7 @@ import time
 import datetime
 import StringIO
 
-from . import json
+from .compat import json
 
 
 class ConsoleReporter(object):

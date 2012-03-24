@@ -4,7 +4,7 @@ import StringIO
 from doit import reporter
 from doit.task import Task
 from doit.exceptions import CatchedException
-from doit.dependency import json
+from doit.compat import json
 
 
 class TestConsoleReporter(object):
