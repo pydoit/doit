@@ -29,8 +29,8 @@ def flat_generator(gen):
     """
     for item in gen:
         if isgenerator(item):
-            for x in flat_generator(item):
-                yield x
+            for value in flat_generator(item):
+                yield value
         else:
             yield item
 
@@ -43,6 +43,7 @@ def get_module(dodo_file, cwd=None, seek_parent=False):
     @return (module) dodo module
     """
     def exist_or_raise(path):
+        """raise exception if file on given path doesnt exist"""
         if not os.path.exists(path):
             msg = ("Could not find dodo file '%s'.\n" +
                    "Please use '-f' to specify file name.\n")
@@ -179,6 +180,7 @@ def generate_tasks(func_name, gen_result, gen_doc=None):
                                   func_name)
 
             basename = task_dict.pop('basename', None)
+            # if has 'name' this is a sub-task
             if 'name' in task_dict:
                 basename = basename or func_name
                 # name is task.subtask
@@ -209,6 +211,13 @@ def generate_tasks(func_name, gen_result, gen_doc=None):
                 all_tasks.extend(tasks[top])
             else:
                 all_tasks.append(value)
+
+        # special case task_generator did not generate any task
+        # create an empty group task
+        if not tasks:
+            group_task = Task(func_name, None, doc=gen_doc)
+            all_tasks.append(group_task)
+
         return all_tasks
 
     raise InvalidTask(

@@ -159,7 +159,13 @@ class TestGenerateTasksGenerator(object):
         tasks = generate_tasks("xpto", f_xpto(), f_xpto.__doc__)
         assert "the doc" == tasks[0].doc
 
-
+    def testGeneratorWithNoTasks(self):
+        def f_xpto():
+            for x in []: yield x
+        tasks = generate_tasks("xpto", f_xpto())
+        assert 1 == len(tasks)
+        assert "xpto" == tasks[0].name
+        assert not tasks[0].is_subtask
 
 
 class TestLoadTaskGenerators(object):
