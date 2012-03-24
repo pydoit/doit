@@ -144,6 +144,58 @@ def load_task_generators(dodo_module, command_names=()):
             'config': doit_config}
 
 
+
+def _generate_task_from_return(func_name, task_dict, gen_doc):
+    """generate a single task from a dict return'ed by a task generator"""
+    if 'name' in task_dict:
+        raise InvalidTask("Task '%s'. Only subtasks use field name." %
+                          func_name)
+
+    task_dict['name'] = task_dict.pop('basename', func_name)
+
+    # Use task generator docstring
+    # if no doc present in task dict
+    if not 'doc' in task_dict:
+        task_dict['doc'] = gen_doc
+
+    return dict_to_task(task_dict)
+
+
+def _generate_task_from_yield(tasks, func_name, task_dict):
+    """generate a single task from a dict yield'ed by task generator
+
+    @param tasks: dictionary with created tasks
+    @return None: the created task is added to 'tasks' dict
+    """
+    # check valid input
+    if not isinstance(task_dict, dict):
+        raise InvalidTask("Task '%s' must yield dictionaries" %
+                          func_name)
+
+    msg_dup = "Task generation '%s' has duplicated definition of '%s'"
+    basename = task_dict.pop('basename', None)
+    # if has 'name' this is a sub-task
+    if 'name' in task_dict:
+        basename = basename or func_name
+        # name is task.subtask
+        task_dict['name'] = "%s:%s"% (basename, task_dict['name'])
+        sub_task = dict_to_task(task_dict)
+        sub_task.is_subtask = True
+        sub_list = tasks.setdefault(basename, [])
+        if not isinstance(sub_list, list):
+            raise InvalidTask(msg_dup % (func_name, basename))
+        sub_list.append(sub_task)
+    else:
+        if not basename:
+            raise InvalidTask(
+                "Task '%s' must contain field 'name' or 'basename'. %s"%
+                (func_name, task_dict))
+        if basename in tasks:
+            raise InvalidTask(msg_dup % (func_name, basename))
+        task_dict['name'] = basename
+        tasks[basename] = dict_to_task(task_dict)
+
+
 def generate_tasks(func_name, gen_result, gen_doc=None):
     """Create tasks from a task generator result.
 
@@ -155,51 +207,14 @@ def generate_tasks(func_name, gen_result, gen_doc=None):
     """
     # task described as a dictionary
     if isinstance(gen_result, dict):
-        if 'name' in gen_result:
-            raise InvalidTask("Task '%s'. Only subtasks use field name." %
-                              func_name)
-
-        gen_result['name'] = gen_result.pop('basename', func_name)
-
-        # Use task generator docstring
-        # if no doc present in task dict
-        if not 'doc' in gen_result:
-            gen_result['doc'] = gen_doc
-
-        return [dict_to_task(gen_result)]
+        return [_generate_task_from_return(func_name, gen_result, gen_doc)]
 
     # a generator
-    msg_dup = "Task generation '%s' has duplicated definition of '%s'"
     if isgenerator(gen_result):
         tasks = {} # task_name: task or list of sub-tasks
         # the generator return subtasks as dictionaries
         for task_dict in flat_generator(gen_result):
-            # check valid input
-            if not isinstance(task_dict, dict):
-                raise InvalidTask("Task '%s' must yield dictionaries" %
-                                  func_name)
-
-            basename = task_dict.pop('basename', None)
-            # if has 'name' this is a sub-task
-            if 'name' in task_dict:
-                basename = basename or func_name
-                # name is task.subtask
-                task_dict['name'] = "%s:%s"% (basename, task_dict['name'])
-                sub_task = dict_to_task(task_dict)
-                sub_task.is_subtask = True
-                sub_list = tasks.setdefault(basename, [])
-                if not isinstance(sub_list, list):
-                    raise InvalidTask(msg_dup % (func_name, basename))
-                sub_list.append(sub_task)
-            else:
-                if not basename:
-                    raise InvalidTask(
-                        "Task '%s' must contain field 'name' or 'basename'. %s"%
-                        (func_name, task_dict))
-                if basename in tasks:
-                    raise InvalidTask(msg_dup % (func_name, basename))
-                task_dict['name'] = basename
-                tasks[basename] = dict_to_task(task_dict)
+            _generate_task_from_yield(tasks, func_name, task_dict)
 
         # add task dependencies to group task.
         all_tasks = []
