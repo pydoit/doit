@@ -90,7 +90,6 @@ def get_module(dodo_file, cwd=None, seek_parent=False):
     os.chdir(full_cwd)
 
     # get module containing the tasks
-    # FIXME catche errors here
     return __import__(os.path.splitext(file_name)[0])
 
 

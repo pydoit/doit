@@ -443,7 +443,17 @@ def cmd_help(params, args):
 
 
 def cmd_main(cmd_args):
-    """entry point for all commands"""
+    """entry point for all commands
+
+    return codes:
+      0: tasks executed successfully
+      1: one or more tasks failed
+      2: error while executing a task
+      3: error before task execution starts,
+         in this case the Reporter is not used.
+         So be aware if you expect a different formatting (like JSON)
+         from the Reporter.
+    """
     sub_cmd = {} # all sub-commands
 
     # help command
@@ -500,9 +510,9 @@ def cmd_main(cmd_args):
     except (cmdparse.CmdParseError, InvalidDodoFile,
             InvalidCommand, InvalidTask), err:
         sys.stderr.write("ERROR: %s\n" % str(err))
-        return 1
+        return 3
 
     except Exception:
         sys.stderr.write(traceback.format_exc())
-        return 1
+        return 3
 

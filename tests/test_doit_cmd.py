@@ -238,7 +238,7 @@ class TestErrors(object):
         mock_cmd = Mock(side_effect=InvalidCommand)
         monkeypatch.setattr(doit_cmd, "doit_run", mock_cmd)
         got = doit_cmd.cmd_main([])
-        assert 1 == got
+        assert 3 == got
         out, err = capsys.readouterr()
         assert "ERROR" in err
 
@@ -247,7 +247,7 @@ class TestErrors(object):
         mock_cmd = Mock(side_effect=Exception)
         monkeypatch.setattr(doit_cmd, "doit_run", mock_cmd)
         got = doit_cmd.cmd_main([])
-        assert 1 == got
+        assert 3 == got
         out, err = capsys.readouterr()
         # traceback from Exception (this case code from mock lib)
         assert "mock.py" in err
