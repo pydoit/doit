@@ -7,8 +7,13 @@ Changes
 0.16.0
 =======================
 
-- added task parameter 'basename'
-- added support for task generators return nested python generators
+- added task parameter ``basename``
+- added support for task generators yield nested python generators
+- task parameter ``getargs`` take a tuple with 2 values (task_id, key_name)
+- DEPRECATE ``getargs`` being specified as <task_id>.<key_name>
+- 
+- result_dep on PythonAction support checking for dict values
+
 
 0.15.0 (*2012-01-10*)
 =======================

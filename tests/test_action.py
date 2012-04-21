@@ -302,6 +302,12 @@ class TestPythonAction(object):
         my_action.execute()
         assert "my value" == my_action.result
 
+    def test_result_dict(self):
+        def vvv(): return {'xxx': "my value"}
+        my_action = action.PythonAction(vvv)
+        my_action.execute()
+        assert {'xxx': "my value"} == my_action.result
+
     def test_values(self):
         def vvv(): return {'x': 5, 'y':10}
         my_action = action.PythonAction(vvv)

@@ -237,7 +237,7 @@ class DependencyBase(object):
     dictionary where key is a dependency (abs file path), and the value is the
     dependency signature.
     Apart from dependencies onther values are also saved on the task dictionary
-     * 'result:', 'run-once:', 'task:<task-name>', 'ignore:'
+     * 'result:', 'task:<task-name>', 'ignore:'
      * user(task) defined values are defined in '_values_:' sub-dict
 
     @ivar name: (string) filepath of the DB file
@@ -270,7 +270,10 @@ class DependencyBase(object):
 
         # save task result md5
         if task.result:
-            self._set(task.name, "result:", get_md5(task.result))
+            if isinstance(task.result, dict):
+                self._set(task.name, "result:", task.result)
+            else:
+                self._set(task.name, "result:", get_md5(task.result))
 
         # file-dep
         for dep in task.file_dep:
@@ -382,7 +385,7 @@ class DependencyBase(object):
         for dep in tuple(task.result_dep):
             result = self._get(dep, "result:")
             if ((result is None) or
-                (self._get(task.name,"task:" + dep) != result)):
+                (self._get(task.name, "task:" + dep) != result)):
                 status = 'run'
                 break
 

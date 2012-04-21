@@ -177,6 +177,12 @@ class TestSaveSuccess(object):
         depfile.save_success(t1)
         assert None is depfile._get(t1.name, "result:")
 
+    def test_save_result_dict(self, depfile):
+        t1 = Task('t_name', None)
+        t1.result = {'d': "result"}
+        depfile.save_success(t1)
+        assert {'d': "result"} == depfile._get(t1.name, "result:")
+
     def test_save_file_md5(self, depfile):
         # create a test dependency file
         filePath = get_abspath("data/dependency1")
