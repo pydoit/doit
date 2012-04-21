@@ -76,7 +76,7 @@ class TestRunner_SelectTask(object):
     def test_ready(self, reporter, depfile):
         t1 = Task("taskX", [(my_print, ["out a"] )])
         my_runner = runner.Runner(depfile.name, reporter)
-        assert True == my_runner.select_task(t1)
+        assert True == my_runner.select_task(t1, {})
         assert ('start', t1) == reporter.log.pop(0)
         assert not reporter.log
 
@@ -84,7 +84,7 @@ class TestRunner_SelectTask(object):
         t1 = Task("taskX", [(my_print, ["out a"] )],
                   file_dep=["i_dont_exist"])
         my_runner = runner.Runner(depfile.name, reporter)
-        assert False == my_runner.select_task(t1)
+        assert False == my_runner.select_task(t1, {})
         assert ('start', t1) == reporter.log.pop(0)
         assert ('fail', t1) == reporter.log.pop(0)
         assert not reporter.log
@@ -93,7 +93,7 @@ class TestRunner_SelectTask(object):
         t1 = Task("taskX", [(my_print, ["out a"] )], file_dep=[__file__])
         my_runner = runner.Runner(depfile.name, reporter)
         my_runner.dependency_manager.save_success(t1)
-        assert False == my_runner.select_task(t1)
+        assert False == my_runner.select_task(t1, {})
         assert ('start', t1) == reporter.log.pop(0)
         assert ('up-to-date', t1) == reporter.log.pop(0)
         assert not reporter.log
@@ -102,7 +102,7 @@ class TestRunner_SelectTask(object):
         t1 = Task("taskX", [(my_print, ["out a"] )])
         my_runner = runner.Runner(depfile.name, reporter)
         my_runner.dependency_manager.ignore(t1)
-        assert False == my_runner.select_task(t1)
+        assert False == my_runner.select_task(t1, {})
         assert ('start', t1) == reporter.log.pop(0)
         assert ('ignore', t1) == reporter.log.pop(0)
         assert not reporter.log
@@ -111,14 +111,14 @@ class TestRunner_SelectTask(object):
         t1 = Task("taskX", [(my_print, ["out a"] )])
         my_runner = runner.Runner(depfile.name, reporter, always_execute=True)
         my_runner.dependency_manager.ignore(t1)
-        assert True == my_runner.select_task(t1)
+        assert True == my_runner.select_task(t1, {})
         assert ('start', t1) == reporter.log.pop(0)
         assert not reporter.log
 
     def test_noSetup_ok(self, reporter, depfile):
         t1 = Task("taskX", [(my_print, ["out a"] )])
         my_runner = runner.Runner(depfile.name, reporter)
-        assert True == my_runner.select_task(t1)
+        assert True == my_runner.select_task(t1, {})
         assert ('start', t1) == reporter.log.pop(0)
         assert not reporter.log
 
@@ -126,11 +126,11 @@ class TestRunner_SelectTask(object):
         t1 = Task("taskX", [(my_print, ["out a"] )], setup=["taskY"])
         my_runner = runner.Runner(depfile.name, reporter)
         # defer execution
-        assert False == my_runner.select_task(t1)
+        assert False == my_runner.select_task(t1, {})
         assert ('start', t1) == reporter.log.pop(0)
         assert not reporter.log
         # trying to select again
-        assert True == my_runner.select_task(t1)
+        assert True == my_runner.select_task(t1, {})
         assert not reporter.log
 
 
@@ -142,11 +142,11 @@ class TestRunner_SelectTask(object):
         my_runner = runner.Runner(depfile.name, reporter)
 
         # t2 gives chance for setup tasks to be executed
-        assert False == my_runner.select_task(t2)
+        assert False == my_runner.select_task(t2, {})
         assert ('start', t2) == reporter.log.pop(0)
 
         # execute task t1 to calculate value
-        assert True == my_runner.select_task(t1)
+        assert True == my_runner.select_task(t1, {})
         assert ('start', t1) == reporter.log.pop(0)
         t1_result = my_runner.execute_task(t1)
         assert ('execute', t1) == reporter.log.pop(0)
@@ -155,34 +155,9 @@ class TestRunner_SelectTask(object):
 
         # t2.options are set on select_task
         assert {} == t2.options
-        assert True == my_runner.select_task(t2)
+        assert True == my_runner.select_task(t2, {})
         assert not reporter.log
         assert {'my_x': 1} == t2.options
-
-    def test_getargs_dict(self, reporter, depfile):
-        def ok(): return {'x':1}
-        def check_x(my_x): return my_x['t1'] == 1
-        t1 = Task('t1', [(ok,)])
-        t2 = Task('t2', [(check_x,)], getargs={'my_x':('t1', None)})
-        my_runner = runner.Runner(depfile.name, reporter)
-
-        # t2 gives chance for setup tasks to be executed
-        assert False == my_runner.select_task(t2)
-        assert ('start', t2) == reporter.log.pop(0)
-
-        # execute task t1 to calculate value
-        assert True == my_runner.select_task(t1)
-        assert ('start', t1) == reporter.log.pop(0)
-        t1_result = my_runner.execute_task(t1)
-        assert ('execute', t1) == reporter.log.pop(0)
-        my_runner.process_task_result(t1, t1_result)
-        assert ('success', t1) == reporter.log.pop(0)
-
-        # t2.options are set on select_task
-        assert {} == t2.options
-        assert True == my_runner.select_task(t2)
-        assert not reporter.log
-        assert {'my_x': {'x':1}} == t2.options
 
     def test_getargs_fail(self, reporter, depfile):
         # invalid getargs. Exception wil be raised and task will fail
@@ -192,11 +167,11 @@ class TestRunner_SelectTask(object):
         my_runner = runner.Runner(depfile.name, reporter)
 
         # t2 gives chance for setup tasks to be executed
-        assert False == my_runner.select_task(t2)
+        assert False == my_runner.select_task(t2, {})
         assert ('start', t2) == reporter.log.pop(0)
 
         # execute task t1 to calculate value
-        assert True == my_runner.select_task(t1)
+        assert True == my_runner.select_task(t1, {})
         assert ('start', t1) == reporter.log.pop(0)
         t1_result = my_runner.execute_task(t1)
         assert ('execute', t1) == reporter.log.pop(0)
@@ -204,9 +179,42 @@ class TestRunner_SelectTask(object):
         assert ('success', t1) == reporter.log.pop(0)
 
         # select_task t2 fails
-        assert False == my_runner.select_task(t2)
+        assert False == my_runner.select_task(t2, {})
         assert ('fail', t2) == reporter.log.pop(0)
         assert not reporter.log
+
+
+    def test_getargs_dict(self, reporter, depfile):
+        def ok(): return {'x':1}
+        t1 = Task('t1', [(ok,)])
+        t2 = Task('t2', None, getargs={'my_x':('t1', None)})
+        tasks_dict = {'t1': t1, 't2':t2}
+        my_runner = runner.Runner(depfile.name, reporter)
+        t1_result = my_runner.execute_task(t1)
+        my_runner.process_task_result(t1, t1_result)
+
+        # t2.options are set on _get_task_args
+        assert {} == t2.options
+        my_runner._get_task_args(t2, tasks_dict)
+        assert {'my_x': {'x':1}} == t2.options
+
+
+    def test_getargs_group(self, reporter, depfile):
+        def ok(): return {'x':1}
+        t1 = Task('t1', None, task_dep=['t1:a'], has_subtask=True)
+        t1a = Task('t1:a', [(ok,)], is_subtask=True)
+        t2 = Task('t2', None, getargs={'my_x':('t1', None)})
+        tasks_dict = {'t1': t1, 't1a':t1a, 't2':t2}
+        my_runner = runner.Runner(depfile.name, reporter)
+        t1a_result = my_runner.execute_task(t1a)
+        my_runner.process_task_result(t1a, t1a_result)
+
+        # t2.options are set on _get_task_args
+        assert {} == t2.options
+        my_runner._get_task_args(t2, tasks_dict)
+        assert {'my_x': [{'x':1}]} == t2.options
+
+
 
 
 class TestTask_Teardown(object):

@@ -184,13 +184,10 @@ def _generate_task_from_yield(tasks, func_name, task_dict, gen_doc):
 
         group_task = tasks.get(basename)
         if group_task:
-            # FIXME need to add parameter to task "super_task" as of now
-            # it is identified by having an action==None but a task might
-            # have action==None and dont be a super-task
-            if group_task.actions:
+            if not group_task.has_subtask:
                 raise InvalidTask(msg_dup % (func_name, basename))
         else:
-            group_task = Task(basename, None, doc=gen_doc)
+            group_task = Task(basename, None, doc=gen_doc, has_subtask=True)
             tasks[basename] = group_task
         group_task.task_dep.append(sub_task.name)
         tasks[sub_task.name] = sub_task
@@ -234,7 +231,7 @@ def generate_tasks(func_name, gen_result, gen_doc=None):
         else:
             # special case task_generator did not generate any task
             # create an empty group task
-            return [Task(func_name, None, doc=gen_doc)]
+            return [Task(func_name, None, doc=gen_doc, has_subtask=True)]
 
     raise InvalidTask(
         "Task '%s'. Must return a dictionary or generator. Got %s" %

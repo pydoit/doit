@@ -64,7 +64,28 @@ class Runner(object):
             self._stop_running = True
 
 
-    def select_task(self, task):
+    def _get_task_args(self, task, tasks_dict):
+        """get values from other tasks"""
+        # selected just need to get values from other tasks
+        for arg, value in task.getargs.iteritems():
+            task_id, key_name = value
+            # if key_name is None get the whole dict
+            if key_name is None:
+                if not tasks_dict[task_id].has_subtask:
+                    arg_value = self.dependency_manager.get_values(task_id)
+                # if specified task is a group task pass values from all
+                # sub-tasks as string
+                else:
+                    arg_value = []
+                    for sub_id in tasks_dict[task_id].task_dep:
+                        arg_value.append(
+                            self.dependency_manager.get_values(sub_id))
+            else:
+                arg_value = self.dependency_manager.get_value(task_id, key_name)
+            task.options[arg] = arg_value
+
+
+    def select_task(self, task, tasks_dict):
         """Returns bool, task should be executed
          * side-effect: set task.options
 
@@ -108,22 +129,12 @@ class Runner(object):
                 "%s:%s" % (task.name, task.run_status)
             assert task.setup_tasks
 
-        # selected just need to get values from other tasks
-        for arg, value in task.getargs.iteritems():
-            try:
-                task_id, key_name = value
-                # if key_name is None get the whole dict
-                if key_name is None:
-                    arg_value = self.dependency_manager.get_values(task_id)
-                else:
-                    arg_value = self.dependency_manager.get_value(task_id,
-                                                                  key_name)
-                task.options[arg] = arg_value
-            except Exception, exception:
-                msg = ("ERROR getting value for argument '%s'\n" % arg +
-                       str(exception))
-                self._handle_task_error(task, DependencyError(msg))
-                return False
+        try:
+            self._get_task_args(task, tasks_dict)
+        except Exception, exception:
+            msg = ("ERROR getting value for argument\n" + str(exception))
+            self._handle_task_error(task, DependencyError(msg))
+            return False
 
         return True
 
@@ -162,7 +173,7 @@ class Runner(object):
         for task in task_control.task_dispatcher():
             if self._stop_running:
                 break
-            if not self.select_task(task):
+            if not self.select_task(task, task_control.tasks):
                 continue
             catched_excp = self.execute_task(task)
             self.process_task_result(task, catched_excp)
@@ -302,7 +313,7 @@ class MRunner(Runner):
                     break
             # dont need to wait for another task
             else:
-                if self.select_task(task):
+                if self.select_task(task, self.tasks):
                     return task
 
 

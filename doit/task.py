@@ -28,7 +28,8 @@ class Task(object):
     @ivar uptodate: (list - bool/None) use bool/computed value instead of
                                        checking dependencies
     @ivar setup_tasks (list - string): references to task-names
-    @ivar is_subtask: (bool) indicate this task is a subtask.
+    @ivar is_subtask: (bool) indicate this task is a subtask
+    @ivar has_subtask: (bool) indicate this task has subtasks
     @ivar result: (str) last action "result". used to check task-result-dep
     @ivar values: (dict) values saved by task that might be used by other tasks
     @ivar getargs: (dict) values from other tasks
@@ -73,7 +74,8 @@ class Task(object):
 
     def __init__(self, name, actions, file_dep=(), targets=(),
                  task_dep=(), result_dep=(), uptodate=(),
-                 calc_dep=(), setup=(), clean=(), teardown=(), is_subtask=False,
+                 calc_dep=(), setup=(), clean=(), teardown=(),
+                 is_subtask=False, has_subtask=False,
                  doc=None, params=(), verbosity=None, title=None, getargs=None):
         """sanity checks and initialization
 
@@ -108,6 +110,7 @@ class Task(object):
         self._init_deps(file_dep, task_dep, result_dep, calc_dep)
         self.targets = targets
         self.is_subtask = is_subtask
+        self.has_subtask = has_subtask
         self.result = None
         self.values = {}
         self.verbosity = verbosity
@@ -445,6 +448,7 @@ class Task(object):
         inst.targets = self.targets[:]
         inst.uptodate = self.uptodate[:]
         inst.is_subtask = self.is_subtask
+        inst.has_subtask = self.has_subtask
         inst.result = self.result
         inst.values = self.values.copy()
         inst.verbosity = self.verbosity
