@@ -4,7 +4,7 @@ import pytest
 
 from doit.exceptions import InvalidDodoFile, InvalidCommand
 from doit.task import InvalidTask, Task
-from doit.loader import load_task_generators, generate_tasks, get_tasks
+from doit.loader import load_dodo_file, generate_tasks, get_tasks
 from doit.loader import isgenerator, flat_generator, get_module
 
 
@@ -28,7 +28,7 @@ class TestFlatGenerator(object):
             for x in items:
                 yield x
         flat = flat_generator(myg([1, myg([2, myg([3, myg([4, myg([5])])])])]))
-        assert [1,2,3,4,5] == list(flat)
+        assert [1,2,3,4,5] == [f[0] for f in flat]
 
 
 class TestGenerateTasksDict(object):
@@ -71,25 +71,28 @@ class TestGenerateTasksGenerator(object):
         def f_xpto():
             for i in range(3):
                 yield {'name':str(i), 'actions' :["xpto -%d"%i]}
-        tasks = generate_tasks("xpto", f_xpto())
+        tasks = sorted(generate_tasks("xpto", f_xpto()))
         assert isinstance(tasks[0], Task)
         assert 4 == len(tasks)
-        assert "xpto:0" == tasks[1].name
         assert not tasks[0].is_subtask
+        assert "xpto:0" == tasks[0].task_dep[0]
+        assert "xpto:0" == tasks[1].name
         assert tasks[1].is_subtask
 
     def testMultiLevelGenerator(self):
         def f_xpto(base_name):
+            """second level docstring"""
             for i in range(3):
                 name = "%s-%d" % (base_name, i)
                 yield {'name':name, 'actions' :["xpto -%d"%i]}
         def f_first_level():
             for i in range(2):
                 yield f_xpto(str(i))
-        tasks = generate_tasks("xpto", f_first_level())
+        tasks = sorted(generate_tasks("xpto", f_first_level()))
         assert isinstance(tasks[0], Task)
         assert 7 == len(tasks)
         assert not tasks[0].is_subtask
+        assert f_xpto.__doc__ == tasks[0].doc
         assert tasks[1].is_subtask
         assert "xpto:0-0" == tasks[1].name
         assert "xpto:1-2" == tasks[-1].name
@@ -129,7 +132,7 @@ class TestGenerateTasksGenerator(object):
         def f_xpto():
             for i in range(3):
                 yield {'basename':'xpto', 'name':str(i), 'actions' :["a"]}
-        tasks = generate_tasks("f_xpto", f_xpto())
+        tasks = sorted(generate_tasks("f_xpto", f_xpto()))
         assert isinstance(tasks[0], Task)
         assert 4 == len(tasks)
         assert "xpto" == tasks[0].name
@@ -156,7 +159,7 @@ class TestGenerateTasksGenerator(object):
             "the doc"
             for i in range(3):
                 yield {'name':str(i), 'actions' :["xpto -%d"%i]}
-        tasks = generate_tasks("xpto", f_xpto(), f_xpto.__doc__)
+        tasks = sorted(generate_tasks("xpto", f_xpto(), f_xpto.__doc__))
         assert "the doc" == tasks[0].doc
 
     def testGeneratorWithNoTasks(self):
@@ -173,7 +176,7 @@ class TestLoadTaskGenerators(object):
         fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
         expected = ["xxx1","yyy2"]
         dodo_module = get_module(fileName)
-        dodo = load_task_generators(dodo_module)
+        dodo = load_dodo_file(dodo_module)
         assert expected == [t.name for t in dodo['task_list']]
 
     def testRelativePath(self, cwd):
@@ -184,7 +187,7 @@ class TestLoadTaskGenerators(object):
         fileName = "tests/loader_sample.py"
         expected = ["xxx1","yyy2"]
         dodo_module = get_module(fileName)
-        dodo = load_task_generators(dodo_module)
+        dodo = load_dodo_file(dodo_module)
         assert expected == [t.name for t in dodo['task_list']]
 
     def testInParentDir(self, cwd):
@@ -198,8 +201,7 @@ class TestLoadTaskGenerators(object):
     def testNameInBlacklist(self, cwd):
         fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
         dodo_module = get_module(fileName)
-        pytest.raises(InvalidDodoFile, load_task_generators,
-                                 dodo_module, ['yyy2'])
+        pytest.raises(InvalidDodoFile, load_dodo_file, dodo_module, ['yyy2'])
 
     def testWrongFileName(self):
         fileName = os.path.join(os.path.dirname(__file__),"i_dont_exist.py")
@@ -213,7 +215,7 @@ class TestLoadTaskGenerators(object):
     def testDocString(self, cwd):
         fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
         dodo_module = get_module(fileName)
-        dodo = load_task_generators(dodo_module)
+        dodo = load_dodo_file(dodo_module)
         assert "task doc" == dodo['task_list'][0].doc, dodo['task_list'][0].doc
 
 
@@ -258,16 +260,16 @@ class TestDodoConfig(object):
 
 
     def testDefaultConfig_Dict(self, cwd, dodo):
-        dodo_dict = load_task_generators(dodo)
+        dodo_dict = load_dodo_file(dodo)
         assert {} == dodo_dict['config']
 
     def testConfigType_Error(self, cwd, dodo):
         dodo.DOIT_CONFIG = "abcd"
-        pytest.raises(InvalidDodoFile, load_task_generators, dodo)
+        pytest.raises(InvalidDodoFile, load_dodo_file, dodo)
 
     def testConfigDict_Ok(self, cwd, dodo):
         dodo.DOIT_CONFIG = {"abcd": "add"}
-        dodo_dict = load_task_generators(dodo)
+        dodo_dict = load_dodo_file(dodo)
         assert {"abcd": "add"} == dodo_dict['config']
 
 

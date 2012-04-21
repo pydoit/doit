@@ -23,16 +23,17 @@ def isgenerator(obj):
     return type(obj) is types.GeneratorType
 
 
-def flat_generator(gen):
+def flat_generator(gen, gen_doc=''):
     """return only values from generators
     if any generator yields another generator it is recursivelly called
     """
     for item in gen:
         if isgenerator(item):
-            for value in flat_generator(item):
-                yield value
+            item_doc = item.gi_code.co_consts[0]
+            for value, value_doc in flat_generator(item, item_doc):
+                yield value, value_doc
         else:
-            yield item
+            yield item, gen_doc
 
 
 def get_module(dodo_file, cwd=None, seek_parent=False):
@@ -93,7 +94,7 @@ def get_module(dodo_file, cwd=None, seek_parent=False):
     return __import__(os.path.splitext(file_name)[0])
 
 
-def load_task_generators(dodo_module, command_names=()):
+def load_dodo_file(dodo_module, command_names=()):
     """Loads a python file and extracts its task generator functions.
 
     The python file is a called "dodo" file.
@@ -102,7 +103,7 @@ def load_task_generators(dodo_module, command_names=()):
     @param command_names: (list - str) blacklist for task names
     @return (dict):
      - task_list (list) of Tasks in the order they were defined on the file
-     - default_tasks (list) of tasks to be executed by default
+     - config (dict) doit config from dodo file
     """
 
     # get functions defined in the module and select the task generators
@@ -134,6 +135,7 @@ def load_task_generators(dodo_module, command_names=()):
     for name, ref, line in funcs:
         task_list.extend(generate_tasks(name, ref(), ref.__doc__))
 
+    # get config
     doit_config = getattr(dodo_module, 'DOIT_CONFIG', {})
     if not isinstance(doit_config, dict):
         msg = ("DOIT_CONFIG  must be a dict. got:'%s'%s")
@@ -141,7 +143,6 @@ def load_task_generators(dodo_module, command_names=()):
 
     return {'task_list': task_list,
             'config': doit_config}
-
 
 
 def _generate_task_from_return(func_name, task_dict, gen_doc):
@@ -160,7 +161,7 @@ def _generate_task_from_return(func_name, task_dict, gen_doc):
     return dict_to_task(task_dict)
 
 
-def _generate_task_from_yield(tasks, func_name, task_dict):
+def _generate_task_from_yield(tasks, func_name, task_dict, gen_doc):
     """generate a single task from a dict yield'ed by task generator
 
     @param tasks: dictionary with created tasks
@@ -176,14 +177,24 @@ def _generate_task_from_yield(tasks, func_name, task_dict):
     # if has 'name' this is a sub-task
     if 'name' in task_dict:
         basename = basename or func_name
-        # name is task.subtask
+        # name is '<task>.<subtask>'
         task_dict['name'] = "%s:%s"% (basename, task_dict['name'])
         sub_task = dict_to_task(task_dict)
         sub_task.is_subtask = True
-        sub_list = tasks.setdefault(basename, [])
-        if not isinstance(sub_list, list):
-            raise InvalidTask(msg_dup % (func_name, basename))
-        sub_list.append(sub_task)
+
+        group_task = tasks.get(basename)
+        if group_task:
+            # FIXME need to add parameter to task "super_task" as of now
+            # it is identified by having an action==None but a task might
+            # have action==None and dont be a super-task
+            if group_task.actions:
+                raise InvalidTask(msg_dup % (func_name, basename))
+        else:
+            group_task = Task(basename, None, doc=gen_doc)
+            tasks[basename] = group_task
+        group_task.task_dep.append(sub_task.name)
+        tasks[sub_task.name] = sub_task
+    # NOT a sub-task
     else:
         if not basename:
             raise InvalidTask(
@@ -192,6 +203,9 @@ def _generate_task_from_yield(tasks, func_name, task_dict):
         if basename in tasks:
             raise InvalidTask(msg_dup % (func_name, basename))
         task_dict['name'] = basename
+        # Use task generator docstring if no doc present in task dict
+        if not 'doc' in task_dict:
+            task_dict['doc'] = gen_doc
         tasks[basename] = dict_to_task(task_dict)
 
 
@@ -210,38 +224,26 @@ def generate_tasks(func_name, gen_result, gen_doc=None):
 
     # a generator
     if isgenerator(gen_result):
-        tasks = {} # task_name: task or list of sub-tasks
+        tasks = {} # task_name: task
         # the generator return subtasks as dictionaries
-        for task_dict in flat_generator(gen_result):
-            _generate_task_from_yield(tasks, func_name, task_dict)
+        for task_dict, x_doc in flat_generator(gen_result, gen_doc):
+            _generate_task_from_yield(tasks, func_name, task_dict, x_doc)
 
-        # add task dependencies to group task.
-        all_tasks = []
-        for top, value in tasks.iteritems():
-            if isinstance(value, list):
-                group_task = Task(top, None, doc=gen_doc)
-                group_task.task_dep = [task.name for task in value]
-                all_tasks.append(group_task)
-                all_tasks.extend(tasks[top])
-            else:
-                all_tasks.append(value)
-
-        # special case task_generator did not generate any task
-        # create an empty group task
-        if not tasks:
-            group_task = Task(func_name, None, doc=gen_doc)
-            all_tasks.append(group_task)
-
-        return all_tasks
+        if tasks:
+            return tasks.values()
+        else:
+            # special case task_generator did not generate any task
+            # create an empty group task
+            return [Task(func_name, None, doc=gen_doc)]
 
     raise InvalidTask(
-        "Task '%s'. Must return a dictionary or generator.got %s" %
+        "Task '%s'. Must return a dictionary or generator. Got %s" %
         (func_name, type(gen_result)))
 
 
 def get_tasks(dodo_file, cwd, seek_parent, command_names):
     """get tasks from dodo_file"""
     dodo_module = get_module(dodo_file, cwd, seek_parent)
-    return load_task_generators(dodo_module, command_names)
+    return load_dodo_file(dodo_module, command_names)
 
 
