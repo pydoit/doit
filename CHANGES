@@ -9,10 +9,13 @@ Changes
 
 - added task parameter ``basename``
 - added support for task generators yield nested python generators
+- ``doit`` process return value ``3`` in case tasks do start executing (reporter is not used)
 - task parameter ``getargs`` take a tuple with 2 values (task_id, key_name)
 - DEPRECATE ``getargs`` being specified as <task_id>.<key_name>
-- 
+- ``getargs`` can take all values from task if specified as (task_id, None)
+- ``getargs`` will pass values from all sub-tasks if specified task is a group task
 - result_dep on PythonAction support checking for dict values
+- added ``doit.tools.PythonInteractiveAction``
 
 
 0.15.0 (*2012-01-10*)

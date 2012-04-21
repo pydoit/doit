@@ -7,7 +7,8 @@ import hashlib
 import operator
 import subprocess
 
-from .action import CmdAction
+from . import exceptions
+from .action import CmdAction, PythonAction
 
 
 # action
@@ -173,6 +174,20 @@ class InteractiveAction(CmdAction):
             process.wait()
         except KeyboardInterrupt:
             pass # normal way to stop interactive process
+
+
+# action
+class PythonInteractiveAction(PythonAction):
+    """Action to handle Interactive python:
+        * the output is never captured
+        * it is always successful (return code is not used)
+    """
+    def execute(self, out=None, err=None):
+        kwargs = self._prepare_kwargs()
+        try:
+            self.py_callable(*self.args, **kwargs)
+        except Exception, exception:
+            return exceptions.TaskError("PythonAction Error", exception)
 
 
 # debug helper

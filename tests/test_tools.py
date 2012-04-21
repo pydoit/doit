@@ -4,6 +4,7 @@ import operator
 
 import pytest
 
+from doit import exceptions
 from doit import tools
 from doit import task
 
@@ -211,5 +212,19 @@ class TestInteractiveAction(object):
         monkeypatch.setattr(tools.subprocess, 'Popen', FakeRaiseInterruptProcess)
         got = my_action.execute()
         assert got is None
+
+
+class TestPythonInteractiveAction(object):
+    def test_success(self):
+        def hello(): print('hello')
+        my_action = tools.PythonInteractiveAction(hello)
+        got = my_action.execute()
+        assert got is None
+
+    def test_ignore_keyboard_interrupt(self, monkeypatch):
+        def raise_x(): raise Exception('x')
+        my_action = tools.PythonInteractiveAction(raise_x)
+        got = my_action.execute()
+        assert isinstance(got, exceptions.TaskError)
 
 
