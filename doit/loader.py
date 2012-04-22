@@ -29,7 +29,11 @@ def flat_generator(gen, gen_doc=''):
     """
     for item in gen:
         if isgenerator(item):
-            item_doc = item.gi_code.co_consts[0]
+            if hasattr(item, 'gi_code'):
+                item_doc = item.gi_code.co_consts[0]
+            else: # pragma: nocover
+                # python2.5 does not have gi_code on generators
+                item_doc = gen_doc
             for value, value_doc in flat_generator(item, item_doc):
                 yield value, value_doc
         else:

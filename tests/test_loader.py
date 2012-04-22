@@ -1,4 +1,5 @@
 import os
+import sys
 
 import pytest
 
@@ -92,7 +93,8 @@ class TestGenerateTasksGenerator(object):
         assert isinstance(tasks[0], Task)
         assert 7 == len(tasks)
         assert not tasks[0].is_subtask
-        assert f_xpto.__doc__ == tasks[0].doc
+        if sys.version_info >= (2, 6): # not possible on python2.5
+            assert f_xpto.__doc__ == tasks[0].doc
         assert tasks[1].is_subtask
         assert "xpto:0-0" == tasks[1].name
         assert "xpto:1-2" == tasks[-1].name
