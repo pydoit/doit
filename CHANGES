@@ -4,7 +4,7 @@ Changes
 =======
 
 
-0.16.0
+0.16.0 (*2012-04-23*)
 =======================
 
 - added task parameter ``basename``

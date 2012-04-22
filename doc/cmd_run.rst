@@ -192,6 +192,19 @@ You need to check `doit_cmd.py <http://bazaar.launchpad.net/~schettino72/doit/tr
   The parameters `--file` and `--dir` can not be used on config because they control how the dodo file itself is loaded.
 
 
+returned value
+------------------
+
+``doit`` process returns:
+
+ * 0 => all tasks executed suscessfully
+ * 1 => task failed
+ * 2 => error executing task
+ * 3 => error before task execution starts
+        (in this case the reporter is not used)
+
+
+
 bash completion
 -----------------
 

@@ -4,4 +4,4 @@ def task_tar():
             'targets':['foo.tar']}
 
 def task_version():
-    return {'actions': ["bzr version-info > revision.txt"]}
+    return {'actions': ["hg tip --template '{rev}' > revision.txt"]}

@@ -81,6 +81,11 @@ An IteractiveAction is like a CmdAction but with the following differences:
 
 .. literalinclude:: tutorial/interactiveaction.py
 
+PythonInteractiveAction (action)
+----------------------------------
+
+Similar to IteractiveAction but for PythonAction.
+
 
 set_trace
 -----------

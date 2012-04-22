@@ -107,7 +107,10 @@ i.e. Suppose you want to send an email everytime you run *doit* on a bazaar repo
 
 Note the `result_dep` with the name of the task (version). `doit` will keep track of the output of the task *version* and will execute *send_email* only when the bazaar repository has a new version since last time *doit* was executed.
 
-The "result" from the dependent task compared between different runs is given by its last action. The content for python-action is the value of the returned string. For cmd-actions is the output send to stdout plus stderr.
+The "result" from the dependent task compared between different runs is given
+by its last action.
+The content for python-action is the value of the returned string or dict.
+For cmd-actions is the output send to stdout plus stderr.
 
 
 saving computed values
@@ -227,7 +230,8 @@ It is used to enforce tasks are executed on the desired order. By default tasks 
   *task-dependency* s are **not** used to determine if a task is up-to-date or not. If a task defines only *task-dependency* it will always be executed.
 
 
-This example we make sure we include a file with the latest revision number of the bazaar repository on the tar file.
+This example we make sure we include a file with the latest revision number of
+the mercurial repository on the tar file.
 
 .. literalinclude:: tutorial/tar.py
 
@@ -276,12 +280,30 @@ getargs
 --------
 
 `getargs` provides a way to use values computed from one task in another task.
+The values are taken from "saved computed values"
+(returned dict from a python-action).
 
 For *cmd-action* use dictionary-based string formatting.
 
-For *python-action* the action callable parameter names must match with keys from `getargs`.
+For *python-action* the action callable parameter names must match with keys
+from `getargs`.
+
+`getargs` is a dictionary where the is the argument name used on actions,
+and the value is a tuple with 2 strings: task name, "value name".
 
 .. literalinclude:: tutorial/getargs.py
+
+
+The values are being passed on to a python-action you can pass the whole dict
+by specifying the value name as ``None``.
+
+.. literalinclude:: tutorial/getargs_dict.py
+
+
+If a group-task is used, the values from all its sub-tasks are passed as a list.
+
+.. literalinclude:: tutorial/getargs_group.py
+
 
 .. note::
    ``getargs`` creates an implicit setup-task.

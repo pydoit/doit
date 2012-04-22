@@ -26,4 +26,9 @@ doc/tutorial/file0.txt
 doc/tutorial/file1.txt
 doc/tutorial/file2.txt
 doc/tutorial/edit
+doc/tutorial/*.o
+doc/tutorial/foo
+doc/tutorial/foo.txt
+doc/tutorial/my_input.txt
+doc/tutorial/task1
 build

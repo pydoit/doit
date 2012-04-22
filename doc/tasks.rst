@@ -65,6 +65,33 @@ The function `task_hello` is a *task generator*, not the task itself. The body o
  The body of task generators are executed even if the task is not going to be executed. So in this example the line `msg = 3 * "hi! "` will always be executed. The body of task generators should be used to create task metadata only, not execute tasks! From now on when it said that a *task* is executed, read the task's actions are executed.
 
 
+task name
+------------
+
+By default a task name is taken from the name of the python function
+that generates the task.
+For example a `def task_hello` would create a task named ``hello``.
+
+It is possible to explicit set a task name with the parameter ``basename``.
+
+.. literalinclude:: tutorial/task_name.py
+
+
+.. code-block:: console
+
+  $ doit
+  .  hello
+  .  hello2
+
+
+When explicit using ``basename`` it is possible a task generator is not limited
+to create only one task.
+Using ``yield`` it can generate several tasks at once.
+It is also possible to ``yield`` a generator that genrate tasks.
+
+.. literalinclude:: tutorial/task_reusable.py
+
+
 sub-tasks
 ---------
 
@@ -81,6 +108,7 @@ The task function can return a python-generator that yields dictionaries. Since 
     .  create_file:file0.txt
     .  create_file:file1.txt
     .  create_file:file2.txt
+
 
 
 .. _task-selection:

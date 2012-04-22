@@ -181,6 +181,7 @@ class PythonInteractiveAction(PythonAction):
     """Action to handle Interactive python:
         * the output is never captured
         * it is always successful (return code is not used)
+          unless a exeception is raised
     """
     def execute(self, out=None, err=None):
         kwargs = self._prepare_kwargs()
