@@ -139,7 +139,9 @@ def task_sdist():
 
 def task_pypi():
     """upload package to pypi"""
-    return {'actions': ["python setup.py sdist upload"]}
+    return {'actions': ["python setup.py sdist upload"],
+            'task_dep': ['revision', 'manifest'],
+            }
 
 
 
