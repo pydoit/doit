@@ -293,7 +293,6 @@ class MRunner(Runner):
                         self.free_proc += 1
                         return Hold()
 
-
             # task with setup must be selected twice...
             wait_for = task.task_dep + list(task.calc_dep)
             # must wait for setup_tasks too if on second select.
@@ -301,15 +300,14 @@ class MRunner(Runner):
                 wait_for += task.setup_tasks
 
             # check task-dependencies are done
-            for dep in  wait_for:
+            for dep in wait_for:
                 if (self.tasks[dep].run_status is None or
                     self.tasks[dep].run_status == 'run'):
                     # not ready yet, add to waiting dict and re-start loop
                     # to get another task
-                    if dep in self.waiting:
-                        self.waiting[dep].append(task.name)
-                    else:
-                        self.waiting[dep] = [task.name]
+                    if dep not in self.waiting:
+                        self.waiting[dep] = []
+                    self.waiting[dep].append(task.name)
                     break
             # dont need to wait for another task
             else:

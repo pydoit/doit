@@ -542,19 +542,20 @@ class TestMRunner_get_next_task(object):
 
         # hold until t1 finishes
         assert 0 == run.free_proc
+        assert {} == run.waiting
         assert isinstance(run.get_next_task(), runner.Hold)
-        assert {'t1':['t2A', 't2B'], 't2B': ['t3']} == run.waiting
+        assert 't1' in run.waiting
         assert 1 == run.free_proc
 
         # ready for t2x
         assert [] == run.ready_queue
         run.process_task_result(t1, None)
-        assert ['t2A', 't2B'] == run.ready_queue
+        assert ['t2B'] == run.ready_queue
         assert {'t2B': ['t3']} == run.waiting
 
         # t2
-        assert t2a == run.get_next_task()
         assert t2b == run.get_next_task()
+        assert t2a == run.get_next_task()
 
         # t3
         assert isinstance(run.get_next_task(), runner.Hold)

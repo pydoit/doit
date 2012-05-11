@@ -233,6 +233,7 @@ class TaskControl(object):
         for dependency in this_task.task_dep:
             for dep_task in self._add_task(gen_id, dependency, include_setup):
                 yield dep_task
+            yield WaitRunTask(task_name, dependency)
 
         # add itself
         yield self.tasks[task_name]

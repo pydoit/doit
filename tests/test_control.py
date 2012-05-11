@@ -125,20 +125,27 @@ class TestTaskControlCmdOptions(object):
 
 class TestAddTask(object):
     def testChangeOrder_AddJustOnce(self):
-        tasks = [Task("taskX",None,task_dep=["taskY"]),
-                 Task("taskY",None,)]
+        tasks = [Task("taskX", None, task_dep=["taskY"]),
+                 Task("taskY", None,)]
         tc = TaskControl(tasks)
         tc.process(None)
-        assert [tasks[1], tasks[0]] == [x for x in tc._add_task(0, 'taskX', False)]
+        gen = tc._add_task(0, 'taskX', False)
+        assert tasks[1] == gen.next()
+        assert isinstance(gen.next(), WaitRunTask)
+        assert tasks[0] == gen.next()
+        pytest.raises(StopIteration, gen.next)
         # both tasks were already added. so no tasks left..
         assert [] == [x for x in tc._add_task(0, 'taskY', False)]
 
     def testAddNotSelected(self):
-        tasks = [Task("taskX",None,task_dep=["taskY"]),
-                 Task("taskY",None,)]
+        tasks = [Task("taskX", None, task_dep=["taskY"]),
+                 Task("taskY", None,)]
         tc = TaskControl(tasks)
         tc.process(['taskX'])
-        assert [tasks[1], tasks[0]] == [x for x in tc._add_task(0, 'taskX',False)]
+        gen = tc._add_task(0, 'taskX', False)
+        assert tasks[1] == gen.next()
+        assert isinstance(gen.next(), WaitRunTask)
+        assert tasks[0] == gen.next()
 
     def testDetectCyclicReference(self):
         tasks = [Task("taskX",None,task_dep=["taskY"]),
@@ -148,7 +155,7 @@ class TestAddTask(object):
         gen = tc._add_task(0, "taskX", False)
         pytest.raises(InvalidDodoFile, gen.next)
 
-    def testParallel(self):
+    def testParallelExecuteOnlyOnce(self):
         tasks = [Task("taskX",None,task_dep=["taskY"]),
                  Task("taskY",None)]
         tc = TaskControl(tasks)
@@ -158,6 +165,20 @@ class TestAddTask(object):
         # gen2 wont get any task, because it was already being processed
         gen2 = tc._add_task(1, "taskY", False)
         pytest.raises(StopIteration, gen2.next)
+
+    def testParallelWaitTaskDep(self):
+        tasks = [Task("taskX",None,task_dep=["taskY"]),
+                 Task("taskY",None)]
+        tc = TaskControl(tasks)
+        tc.process(None)
+        gen1 = tc._add_task(0, "taskX", False)
+        assert tasks[1] == gen1.next()
+        # wait for taskY to finish
+        wait = gen1.next()
+        assert wait.wait_for == 'taskY'
+        assert isinstance(wait, WaitRunTask)
+        assert tasks[0] == gen1.next()
+        pytest.raises(StopIteration, gen1.next)
 
     def testSetupTasksDontRun(self):
         tasks = [Task("taskX",None,setup=["taskY"]),
@@ -240,11 +261,16 @@ class TestAddTask(object):
 
 class TestGetNext(object):
     def testChangeOrder_AddJustOnce(self):
-        tasks = [Task("taskX",None,task_dep=["taskY"]),
-                 Task("taskY",None,)]
+        tasks = [Task("taskX", None, task_dep=["taskY"]),
+                 Task("taskY", None,)]
         tc = TaskControl(tasks)
         tc.process(None)
-        assert [tasks[1], tasks[0]] == [x for x in tc.task_dispatcher()]
+        gen = tc.task_dispatcher()
+        assert tasks[1] == gen.next()
+        assert "hold on" == gen.next()
+        tasks[1].run_status = "done"
+        assert tasks[0] == gen.next()
+        pytest.raises(StopIteration, gen.next) # nothing left
 
     def testAllTasksWaiting(self):
         tasks = [Task("taskX",None,setup=["taskY"]),
