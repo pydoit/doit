@@ -224,8 +224,7 @@ class TaskControl(object):
             for dyn_task in self._add_task(gen_id, dyn.name, include_setup):
                 yield dyn_task
             # wait for dynamic task to complete
-            if not include_setup:
-                yield WaitRunTask(task_name, dyn.name)
+            yield WaitRunTask(task_name, dyn.name)
             # refresh this task dependencies
             this_task.update_deps(dyn.values)
 
@@ -243,7 +242,7 @@ class TaskControl(object):
             # run_status None means task is waiting for other tasks
             # in order to check if up-to-date. so it needs to wait
             # before scheduling its setup-tasks.
-            if this_task.run_status is None and not include_setup:
+            if this_task.run_status is None:
                 yield WaitSelectTask(task_name, task_name)
 
             # this task should run, so schedule setup-tasks before itself
@@ -321,11 +320,13 @@ class TaskControl(object):
                 continue
 
             if isinstance(next_task, WaitTask):
-                next_task.task_gen = current_gen
-                if next_task.wait_for not in task_gens:
-                    task_gens[next_task.wait_for] = []
-                task_gens[next_task.wait_for].append(next_task)
-                current_gen = None
+                # skip all waiting tasks, just getting a list of tasks...
+                if not include_setup:
+                    next_task.task_gen = current_gen
+                    if next_task.wait_for not in task_gens:
+                        task_gens[next_task.wait_for] = []
+                    task_gens[next_task.wait_for].append(next_task)
+                    current_gen = None
             # get task from current group
             else:
                 assert isinstance(next_task, Task), next_task

@@ -191,20 +191,6 @@ class TestAddTask(object):
         tasks[0].run_status = 'up-to-date'
         pytest.raises(StopIteration, gen.next)
 
-    def testIncludeSetup(self):
-        # with include_setup yield all tasks without waiting for setup tasks to
-        # be ready
-        tasks = [Task("taskX", None, setup=["taskY"]),
-                 Task("taskY", None,)]
-        tc = TaskControl(tasks)
-        tc.process(['taskX'])
-        gen = tc._add_task(0, 'taskX', True) # <== include_setup
-        assert tasks[0] == gen.next() # tasks with setup are yield twice
-        assert tasks[1] == gen.next() # execute setup before
-        assert isinstance(gen.next(), WaitRunTask)
-        assert tasks[0] == gen.next() # second time, ok
-        pytest.raises(StopIteration, gen.next) # nothing left
-
     def testSetupTasksRun(self):
         tasks = [Task("taskX",None,setup=["taskY"]),
                  Task("taskY",None,)]
@@ -324,4 +310,17 @@ class TestGetNext(object):
         assert tasks[2] == gen.next()
         pytest.raises(StopIteration, gen.next) # nothing left
 
+
+    def testIncludeSetup(self):
+        # with include_setup yield all tasks without waiting for setup tasks to
+        # be ready
+        tasks = [Task("taskX", None, setup=["taskY"]),
+                 Task("taskY", None,)]
+        tc = TaskControl(tasks)
+        tc.process(['taskX'])
+        gen = tc.task_dispatcher(True) # <== include_setup
+        assert tasks[0] == gen.next() # tasks with setup are yield twice
+        assert tasks[1] == gen.next() # execute setup before
+        assert tasks[0] == gen.next() # second time, ok
+        pytest.raises(StopIteration, gen.next) # nothing left
 
