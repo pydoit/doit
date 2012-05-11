@@ -1,3 +1,5 @@
+# coding=UTF-8
+
 import os
 import datetime
 import operator
@@ -49,6 +51,16 @@ class TestConfigChanged(object):\
 
     def test_string(self):
         ua = tools.config_changed('a')
+        ub = tools.config_changed('b')
+        t1 = task.Task("TaskX", None, uptodate=[ua])
+        assert False == ua(t1, t1.values)
+        assert False == ub(t1, t1.values)
+        t1.execute()
+        assert True == ua(t1, t1.values)
+        assert False == ub(t1, t1.values)
+
+    def test_unicode(self):
+        ua = tools.config_changed({'x':u"中文"})
         ub = tools.config_changed('b')
         t1 = task.Task("TaskX", None, uptodate=[ua])
         assert False == ua(t1, t1.values)

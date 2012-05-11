@@ -7,7 +7,7 @@ Changes
 =====================
 
 - fix multiprocessing/parallel bug
-
+- fix unicode bug on tools.config_changed
 
 0.16.0 (*2012-04-23*)
 =======================

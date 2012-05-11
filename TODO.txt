@@ -1,9 +1,8 @@
 0.X
 ----------
 
-. more MP (tree)
 . setup/task  single process/all procces
-. better terminal output
+. better terminal output (#5)
 
 wishlist
 ----------
@@ -11,7 +10,7 @@ wishlist
 . tools - profile
 . tools - code coverage
 
-. color output on the terminal. (#263576) http://pypi.python.org/pypi/blessings/
+. color output on the terminal
 . option dont save successful results
 . forget a dependency, not a task
 . task name alias
@@ -21,7 +20,7 @@ wishlist
 needs volunteer
 ----------------
 
-. windows (#218276)
+. windows (#1)
 
 
 big refactorings
@@ -35,5 +34,5 @@ not clear how to implement
 ---------------------------
 
 . one .doit for each dodo file
-. multiple (include) dodo files (#218279)
+. multiple (include) dodo files (#4)
 . sub-command/task unification. all sub-commands (but run) implemented as tasks

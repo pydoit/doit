@@ -54,7 +54,7 @@ def config_changed(config):
         elif isinstance(config, dict):
             data = ''
             for key in sorted(config):
-                data += key + str(config[key])
+                data += key + repr(config[key])
             if isinstance(data, unicode): # pragma: no cover # python3
                 byte_data = data.encode("utf-8")
             else:
