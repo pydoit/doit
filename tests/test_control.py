@@ -194,13 +194,14 @@ class TestAddTask(object):
     def testIncludeSetup(self):
         # with include_setup yield all tasks without waiting for setup tasks to
         # be ready
-        tasks = [Task("taskX",None,setup=["taskY"]),
-                 Task("taskY",None,)]
+        tasks = [Task("taskX", None, setup=["taskY"]),
+                 Task("taskY", None,)]
         tc = TaskControl(tasks)
         tc.process(['taskX'])
         gen = tc._add_task(0, 'taskX', True) # <== include_setup
         assert tasks[0] == gen.next() # tasks with setup are yield twice
         assert tasks[1] == gen.next() # execute setup before
+        assert isinstance(gen.next(), WaitRunTask)
         assert tasks[0] == gen.next() # second time, ok
         pytest.raises(StopIteration, gen.next) # nothing left
 
@@ -213,11 +214,29 @@ class TestAddTask(object):
         assert tasks[0] == gen.next() # tasks with setup are yield twice
         tasks[0].run_status = 'run' # should be executed
         assert tasks[1] == gen.next() # execute setup before
+        assert isinstance(gen.next(), WaitRunTask)
         assert tasks[0] == gen.next() # second time, ok
         pytest.raises(StopIteration, gen.next) # nothing left
 
-    def testWaitSetup(self):
-        tasks = [Task("taskX",None,setup=["taskY"]),
+    def testWaitSetupSelect(self):
+        tasks = [Task("taskX", None, setup=["taskY"]),
+                 Task("taskY", None,)]
+        tc = TaskControl(tasks)
+        tc.process(['taskX'])
+        gen = tc._add_task(0, 'taskX', False)
+        assert tasks[0] == gen.next() # tasks with setup are yield twice
+        # wait for taskX run_status
+        wait = gen.next()
+        assert wait.wait_for == 'taskX'
+        assert isinstance(wait, WaitSelectTask)
+        tasks[0].run_status = 'run' # should be executed
+        assert tasks[1] == gen.next() # execute setup before
+        assert isinstance(gen.next(), WaitRunTask)
+        assert tasks[0] == gen.next() # second time, ok
+        pytest.raises(StopIteration, gen.next) # nothing left
+
+    def testWaitSetupRun(self):
+        tasks = [Task("taskX", None, setup=["taskY"]),
                  Task("taskY",None,)]
         tc = TaskControl(tasks)
         tc.process(['taskX'])
@@ -229,6 +248,10 @@ class TestAddTask(object):
         assert isinstance(wait, WaitSelectTask)
         tasks[0].run_status = 'run' # should be executed
         assert tasks[1] == gen.next() # execute setup before
+        # wait execution finish
+        wait2 = gen.next()
+        assert wait2.wait_for == 'taskY'
+        assert isinstance(wait2, WaitRunTask)
         assert tasks[0] == gen.next() # second time, ok
         pytest.raises(StopIteration, gen.next) # nothing left
 
@@ -282,6 +305,8 @@ class TestGetNext(object):
         assert "hold on" == gen.next() # nothing else really available
         tasks[0].run_status = 'run' # should be executed
         assert tasks[1] == gen.next() # execute setup before
+        assert "hold on" == gen.next()
+        tasks[1].run_status = 'done' # should be executed
         assert tasks[0] == gen.next() # second time, ok
         pytest.raises(StopIteration, gen.next) # nothing left
 

@@ -255,6 +255,7 @@ class TaskControl(object):
                     for setup_dep in self._add_task(gen_id, setup_task,
                                                     include_setup):
                         yield setup_dep
+                    yield WaitRunTask(task_name, setup_task)
                 # re-send this task after setup_tasks are sent
                 yield self.tasks[task_name]
 

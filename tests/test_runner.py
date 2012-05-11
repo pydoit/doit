@@ -537,32 +537,27 @@ class TestMRunner_get_next_task(object):
         run = runner.MRunner(depfile.name, reporter)
         run._run_tasks_init(tc)
 
-        # first task ok
+        # first start task t1
         assert t1 == run.get_next_task()
+        t1.run_status = 'run'
 
-        # hold until t1 finishes
-        assert 0 == run.free_proc
-        assert {} == run.waiting
+        # hold until t1 is done
         assert isinstance(run.get_next_task(), runner.Hold)
-        assert 't1' in run.waiting
         assert 1 == run.free_proc
+        t2b.run_status = 'run'
+        t3.run_status = 'run'
 
-        # ready for t2x
-        assert [] == run.ready_queue
-        run.process_task_result(t1, None)
-        assert ['t2B'] == run.ready_queue
-        assert {'t2B': ['t3']} == run.waiting
-
-        # t2
-        assert t2b == run.get_next_task()
+        # t2a can run
+        t1.run_status = 'done'
         assert t2a == run.get_next_task()
+        # t2b second time run
+        assert t2b == run.get_next_task()
 
-        # t3
+        # hold until t3 can run
         assert isinstance(run.get_next_task(), runner.Hold)
-        run.process_task_result(t2b, None)
-        assert ['t3'] == run.ready_queue
-        assert {} == run.waiting
+        t2b.run_status = 'done'
         assert t3 == run.get_next_task()
+
         assert None == run.get_next_task()
 
 
