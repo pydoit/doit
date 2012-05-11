@@ -10,6 +10,8 @@ class WaitTask(object):
     def __init__(self, waiting, wait_for):
         self.waiting = waiting
         self.wait_for = wait_for
+        # reference to python generator of TaskControl._add_task
+        self.task_gen = None
 
     def __repr__(self):
         return ("<%s waiting=%s wait_for=%s>" %
@@ -273,14 +275,12 @@ class TaskControl(object):
         # each selected task will create a tree (from dependencies) of
         # tasks to be processed
         tasks_to_run = self.selected_tasks[:]
-        # waiting task generators
-        # key (str): name of the task to wait for
-        # value (list): add_task generator waiting for this task
-        task_gens = {}
+        # waiting task generators list of WaitTask
+        wait_gens = []
         # current active task generator
         current_gen = None
         gen_id = 1
-        while tasks_to_run or task_gens or current_gen:
+        while tasks_to_run or wait_gens or current_gen:
             ## get task from (in order):
             # 1 - current task generator
             # 2 - waiting task generator
@@ -288,16 +288,10 @@ class TaskControl(object):
 
             # get task group from waiting queue
             if not current_gen:
-                for wait_name, wait_list in task_gens.iteritems():
-                    for wait in wait_list:
-                        if wait.ready(self.tasks[wait_name].run_status):
-                            current_gen = wait.task_gen
-                            if len(wait_list) == 1:
-                                del task_gens[wait_name]
-                            else:
-                                wait_list.remove(wait)
-                            break
-                    if current_gen:
+                for wait_task in wait_gens:
+                    if wait_task.ready(self.tasks[wait_task.wait_for].run_status):
+                        current_gen = wait_task.task_gen
+                        wait_gens.remove(wait_task)
                         break
 
             # get task group from tasks_to_run
@@ -323,9 +317,7 @@ class TaskControl(object):
                 # skip all waiting tasks, just getting a list of tasks...
                 if not include_setup:
                     next_task.task_gen = current_gen
-                    if next_task.wait_for not in task_gens:
-                        task_gens[next_task.wait_for] = []
-                    task_gens[next_task.wait_for].append(next_task)
+                    wait_gens.append(next_task)
                     current_gen = None
             # get task from current group
             else:
