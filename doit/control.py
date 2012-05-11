@@ -7,8 +7,14 @@ from .task import Task
 
 class WaitTask(object):
     """Keep reference for waiting for a task"""
-    def __init__(self, task_name):
-        self.task_name = task_name
+    def __init__(self, waiting, wait_for):
+        self.waiting = waiting
+        self.wait_for = wait_for
+
+    def __repr__(self):
+        return ("<%s waiting=%s wait_for=%s>" %
+                (self.__class__.__name__, self.waiting, self.wait_for))
+
 
 class WaitSelectTask(WaitTask):
     """Wait for a task to be selected to its execution
@@ -219,7 +225,7 @@ class TaskControl(object):
                 yield dyn_task
             # wait for dynamic task to complete
             if not include_setup:
-                yield WaitRunTask(dyn.name)
+                yield WaitRunTask(task_name, dyn.name)
             # refresh this task dependencies
             this_task.update_deps(dyn.values)
 
@@ -237,7 +243,7 @@ class TaskControl(object):
             # in order to check if up-to-date. so it needs to wait
             # before scheduling its setup-tasks.
             if this_task.run_status is None and not include_setup:
-                yield WaitSelectTask(task_name)
+                yield WaitSelectTask(task_name, task_name)
 
             # this task should run, so schedule setup-tasks before itself
             if this_task.run_status == 'run' or include_setup:
@@ -310,7 +316,7 @@ class TaskControl(object):
             if isinstance(next_task, WaitTask):
                 if next_task not in task_gens:
                     next_task.task_gen = current_gen
-                    task_gens[next_task.task_name] = next_task
+                    task_gens[next_task.wait_for] = next_task
                 current_gen = None
             # get task from current group
             else:

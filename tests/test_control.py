@@ -8,6 +8,10 @@ from doit.control import TaskControl, WaitSelectTask, WaitRunTask
 
 class TestWaitTask(object):
 
+    def test_repr(self):
+        wait_task = WaitRunTask('a', 'b')
+        assert "<WaitRunTask waiting=a wait_for=b>" == repr(wait_task)
+
     def test_wait_select_ready(self):
         assert WaitRunTask.ready('up-to-date')
         assert not WaitRunTask.ready(None)
@@ -200,7 +204,7 @@ class TestAddTask(object):
         assert tasks[0] == gen.next() # tasks with setup are yield twice
         # wait for taskX run_status
         wait = gen.next()
-        assert wait.task_name == 'taskX'
+        assert wait.wait_for == 'taskX'
         assert isinstance(wait, WaitSelectTask)
         tasks[0].run_status = 'run' # should be executed
         assert tasks[1] == gen.next() # execute setup before
