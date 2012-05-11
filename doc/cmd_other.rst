@@ -79,6 +79,11 @@ You can specify which task to *clean*. If no task is specified the clean operati
 
 By default if a task contains task-dependencies those are not automatically cleaned too. You can enable this using the option *-c*/*--clean-dep*.
 
+
+.. note::
+
+    By default only the default tasks' clean are executed, not from all tasks.
+
 If you want check which tasks the clean operation would affect you can use the option *-n*/*--dry-run*.
 
 
@@ -111,7 +116,7 @@ Note the ``!!``, it means that task was ignored. To reverse the `ignore` use `fo
 auto
 -------
 
-.. warning::
+.. note::
 
    Supported on Linux and Mac only.
 
