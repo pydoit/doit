@@ -288,10 +288,16 @@ class TaskControl(object):
 
             # get task group from waiting queue
             if not current_gen:
-                for wait_name, wait in task_gens.iteritems():
-                    if wait.ready(self.tasks[wait_name].run_status):
-                        current_gen = task_gens[wait_name].task_gen
-                        del task_gens[wait_name]
+                for wait_name, wait_list in task_gens.iteritems():
+                    for wait in wait_list:
+                        if wait.ready(self.tasks[wait_name].run_status):
+                            current_gen = wait.task_gen
+                            if len(wait_list) == 1:
+                                del task_gens[wait_name]
+                            else:
+                                wait_list.remove(wait)
+                            break
+                    if current_gen:
                         break
 
             # get task group from tasks_to_run
@@ -313,11 +319,11 @@ class TaskControl(object):
                 current_gen = None
                 continue
 
-            # str means this generator is on hold, add to waiting dict
             if isinstance(next_task, WaitTask):
-                if next_task not in task_gens:
-                    next_task.task_gen = current_gen
-                    task_gens[next_task.wait_for] = next_task
+                next_task.task_gen = current_gen
+                if next_task.wait_for not in task_gens:
+                    task_gens[next_task.wait_for] = []
+                task_gens[next_task.wait_for].append(next_task)
                 current_gen = None
             # get task from current group
             else:

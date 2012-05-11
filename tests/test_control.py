@@ -285,5 +285,18 @@ class TestGetNext(object):
         assert tasks[0] == gen.next() # second time, ok
         pytest.raises(StopIteration, gen.next) # nothing left
 
-# TODO get task from waiting queue before new gen
+    def testAllTasksWaiting2(self):
+        tasks = [Task("task0", None,),
+                 Task("taskX", None, task_dep=["task0"]),
+                 Task("taskY", None, task_dep=["task0"])]
+        tc = TaskControl(tasks)
+        tc.process(['taskX', 'taskY'])
+        gen = tc.task_dispatcher()
+        assert tasks[0] == gen.next()
+        assert "hold on" == gen.next() # nothing else really available
+        tasks[0].run_status = 'done' # should be executed
+        assert tasks[1] == gen.next()
+        assert tasks[2] == gen.next()
+        pytest.raises(StopIteration, gen.next) # nothing left
+
 
