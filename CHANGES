@@ -8,6 +8,8 @@ Changes
 
 - fix multiprocessing/parallel bug
 - fix unicode bug on tools.config_changed
+- convert tools uptodate stuff to a class, so it can be used with multi-processing
+
 
 0.16.0 (*2012-04-23*)
 =======================

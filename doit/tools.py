@@ -42,19 +42,23 @@ def run_once(task, values):
     return values.get('run-once', False)
 
 
+
 # uptodate
-def config_changed(config):
+class config_changed(object):
     """check if passed config was modified
     @var config (str) or (dict)
     """
-    def uptodate_config(task, values):
+    def __init__(self, config):
+        self.config = config
+
+    def __call__(self, task, values):
         config_digest = None
-        if isinstance(config, basestring):
-            config_digest = config
-        elif isinstance(config, dict):
+        if isinstance(self.config, basestring):
+            config_digest = self.config
+        elif isinstance(self.config, dict):
             data = ''
-            for key in sorted(config):
-                data += key + repr(config[key])
+            for key in sorted(self.config):
+                data += key + repr(self.config[key])
             if isinstance(data, unicode): # pragma: no cover # python3
                 byte_data = data.encode("utf-8")
             else:
@@ -62,20 +66,19 @@ def config_changed(config):
             config_digest = hashlib.md5(byte_data).hexdigest()
         else:
             raise Exception(('Invalid type of config_changed parameter got %s' +
-                             ', must be string or dict') % (type(config),))
+                             ', must be string or dict') % (type(self.config),))
 
-        def save_config():
+        def _save_config():
             return {'_config_changed': config_digest}
-        task.insert_action(save_config)
+        task.insert_action(_save_config)
         last_success = values.get('_config_changed')
         if last_success is None:
             return False
         return (last_success == config_digest)
-    return uptodate_config
 
 
 # uptodate
-def timeout(timeout_limit):
+class timeout(object):
     """add timeout to task
 
     @param timeout_limit: (datetime.timedelta, int) in seconds
@@ -84,23 +87,25 @@ def timeout(timeout_limit):
     the "timeout" time the task is NOT up-to-date
     """
 
-    if isinstance(timeout_limit, datetime.timedelta):
-        limit_sec = (timeout_limit.days * 24 * 3600) + timeout_limit.seconds
-    elif isinstance(timeout_limit, int):
-        limit_sec = timeout_limit
-    else:
-        msg = "timeout should be datetime.timedelta or int got %r "
-        raise Exception(msg % timeout_limit)
+    def __init__(self, timeout_limit):
+        if isinstance(timeout_limit, datetime.timedelta):
+            self.limit_sec = ((timeout_limit.days * 24 * 3600) +
+                              timeout_limit.seconds)
+        elif isinstance(timeout_limit, int):
+            self.limit_sec = timeout_limit
+        else:
+            msg = "timeout should be datetime.timedelta or int got %r "
+            raise Exception(msg % timeout_limit)
 
-    def uptodate_timeout(task, values):
+    def __call__(self, task, values):
         def save_now():
             return {'success-time': time_module.time()}
         task.insert_action(save_now)
         last_success = values.get('success-time', None)
         if last_success is None:
             return False
-        return (time_module.time() - last_success) < limit_sec
-    return uptodate_timeout
+        return (time_module.time() - last_success) < self.limit_sec
+
 
 
 # uptodate

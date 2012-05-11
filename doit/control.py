@@ -289,7 +289,8 @@ class TaskControl(object):
             # get task group from waiting queue
             if not current_gen:
                 for wait_task in wait_gens:
-                    if wait_task.ready(self.tasks[wait_task.wait_for].run_status):
+                    status = self.tasks[wait_task.wait_for].run_status
+                    if wait_task.ready(status):
                         current_gen = wait_task.task_gen
                         wait_gens.remove(wait_task)
                         break
