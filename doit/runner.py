@@ -250,12 +250,6 @@ class MRunner(Runner):
                         always_execute, verbosity)
         self.num_process = num_process
 
-        # key: name of task that has not completed yet
-        # value: list of task names that are waiting for task in key
-        self.waiting = {}
-
-        # list of task names that are ready to be executed (these were waiting)
-        self.ready_queue = []
         self.free_proc = 0   # number of free process
         self.task_gen = None # genrator to retrieve tasks from controller
         self.tasks = None    # dict of task instances by name
@@ -272,56 +266,19 @@ class MRunner(Runner):
         if self._stop_running:
             return None # gentle stop
         while True:
-            # get new task from ready queue
-            if self.ready_queue:
-                task_name = self.ready_queue.pop(0)
-                task = self.tasks[task_name]
             # get next task from controller
-            else:
-                try:
-                    task = self.task_gen.next()
-                    if not isinstance(task, Task):
-                        self.free_proc += 1
-                        return Hold()
-                # no more tasks from controller...
-                except StopIteration:
-                    # ... terminate one sub process if no other task waiting
-                    if not self.waiting:
-                        return None
-                    else:
-                        # extra-process might be used by waiting task, hold on
-                        self.free_proc += 1
-                        return Hold()
+            try:
+                task = self.task_gen.next()
+                if not isinstance(task, Task):
+                    self.free_proc += 1
+                    return Hold()
+            # no more tasks from controller...
+            except StopIteration:
+                # ... terminate one sub process if no other task waiting
+                return None
 
-            # task with setup must be selected twice...
-            wait_for = task.task_dep + list(task.calc_dep)
-            # must wait for setup_tasks too if on second select.
-            if not (task.setup_tasks and task.run_status is None):
-                wait_for += task.setup_tasks
-
-            # check task-dependencies are done
-            for dep in wait_for:
-                if (self.tasks[dep].run_status is None or
-                    self.tasks[dep].run_status == 'run'):
-                    # not ready yet, add to waiting dict and re-start loop
-                    # to get another task
-                    if dep not in self.waiting:
-                        self.waiting[dep] = []
-                    self.waiting[dep].append(task.name)
-                    break
-            # dont need to wait for another task
-            else:
-                if self.select_task(task, self.tasks):
-                    return task
-
-
-    def process_task_result(self, task, catched_excp):
-        """handle task result"""
-        Runner.process_task_result(self, task, catched_excp)
-        if task.name in self.waiting:
-            for ready_task in self.waiting[task.name]:
-                self.ready_queue.append(ready_task)
-            del self.waiting[task.name]
+            if self.select_task(task, self.tasks):
+                return task
 
 
     def _run_tasks_init(self, task_control):
@@ -341,12 +298,7 @@ class MRunner(Runner):
             next_task = self.get_next_task()
             if next_task is None:
                 break # do not start more processes than tasks
-            if isinstance(next_task, Task):
-                task_q.put(next_task)
-            else: # next_task is Hold
-                # no task ready to be executed but some are on the queue
-                # awaiting to be executed
-                task_q.put(next_task)
+            task_q.put(next_task)
             process = Process(target=self.execute_task_subprocess,
                               args=(task_q, result_q))
             process.start()
@@ -393,10 +345,7 @@ class MRunner(Runner):
                 next_task = self.get_next_task()
                 if next_task is None:
                     proc_count -= 1
-                if isinstance(next_task, Task):
-                    task_q.put(next_task)
-                else:
-                    task_q.put(next_task)
+                task_q.put(next_task)
             # check for cyclic dependencies
             assert len(proc_list) > self.free_proc
 
