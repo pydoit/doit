@@ -214,6 +214,17 @@ On the example below ``mod_deps`` prints on the screen all direct dependencies f
 .. literalinclude:: tutorial/calc_dep.py
 
 
+.. warning::
+
+  On initialization ``doit`` create implicit task dependencies if a ``file_dep``
+  is a ``target`` from another task.
+  ``file_dep``'s included through ``calc_dep`` are **not** checked against others
+  task targets.
+
+  If you are creating the files with another tasks you can achieve it by setting
+  a ``task_dep`` explicitily. If you think this is getting on your way get,
+  please complain on discussion group!
+
 
 task-dependency
 ---------------

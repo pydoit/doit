@@ -3,8 +3,9 @@
 Changes
 =======
 
-0.16.1
-=====================
+
+0.16.1 (*2012-05-13*)
+======================
 
 - fix multiprocessing/parallel bug
 - fix unicode bug on tools.config_changed
