@@ -3,6 +3,11 @@
 Changes
 =======
 
+0.17.0
+=====================
+
+- #9 cacl_dep create implicit task_dep if a file_dep returned is a also a target
+
 
 0.16.1 (*2012-05-13*)
 ======================

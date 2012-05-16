@@ -229,6 +229,11 @@ class TaskControl(object):
             yield WaitRunTask(task_name, dyn.name)
             # refresh this task dependencies
             this_task.update_deps(dyn.values)
+            # add implicit task_dep for tasks which targets are file_dep
+            for dep in dyn.values.get('file_dep', []):
+                if (dep in self.targets and
+                    self.targets[dep].name not in this_task.task_dep):
+                    this_task.task_dep.append(self.targets[dep].name)
 
         # add dependencies first
         for dependency in this_task.task_dep:

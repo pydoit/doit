@@ -253,7 +253,6 @@ class TestAddTask(object):
 
     def testCalcDep(self):
         def get_deps():
-            print "gget"
             return {'file_dep': ('a', 'b')}
         tasks = [Task("taskX", None, calc_dep=['task_dep']),
                  Task("task_dep", [(get_deps,)]),
@@ -267,6 +266,27 @@ class TestAddTask(object):
         assert tasks[0] == gen.next()
         assert set(['a', 'b']) == tasks[0].file_dep
 
+    def testCalcDepFileDepImplicitTaskDep(self):
+        # if file_dep is a target from another task, this other task
+        # should be a task_dep
+        def get_deps():
+            return {'file_dep': ('a', 'b')}
+        tasks = [Task("taskX", None, calc_dep=['task_dep']),
+                 Task("task_dep", [(get_deps,)]),
+                 Task("create_dep", None, targets=['a']),
+                 ]
+        tc = TaskControl(tasks)
+        tc.process(['taskX'])
+        gen = tc._add_task(0, 'taskX', False)
+        assert tasks[1] == gen.next()
+        assert isinstance(gen.next(), WaitRunTask)
+        tasks[1].execute()
+        # need to create file_dep first
+        assert tasks[2] == gen.next()
+        assert isinstance(gen.next(), WaitRunTask)
+        assert tasks[0] == gen.next()
+        assert set(['a', 'b']) == tasks[0].file_dep
+        assert ['create_dep'] == tasks[0].task_dep
 
 class TestGetNext(object):
     def testChangeOrder_AddJustOnce(self):
