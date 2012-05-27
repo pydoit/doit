@@ -333,6 +333,28 @@ class TestRunner_run_tasks(object):
         assert ('execute', tasks[1]) == reporter.log.pop(0)
         assert ('success', tasks[1]) == reporter.log.pop(0)
 
+    # test result, value, out, err are saved into task
+    def test_result(self, reporter, RunnerClass, depfile):
+        def my_action():
+            import sys
+            sys.stdout.write('out here')
+            sys.stderr.write('err here')
+            return {'bb': 5}
+        task = Task("taskY", [my_action] )
+        my_runner = RunnerClass(depfile.name, reporter)
+        tc = TaskControl([task])
+        tc.process(None)
+        assert None == task.result
+        assert {} == task.values
+        assert [None] == [a.out for a in task.actions]
+        assert [None] == [a.err for a in task.actions]
+        my_runner.run_tasks(tc)
+        assert runner.SUCCESS == my_runner.finish()
+        assert {'bb': 5} == task.result
+        assert {'bb': 5} == task.values
+        assert ['out here'] == [a.out for a in task.actions]
+        assert ['err here'] == [a.err for a in task.actions]
+
     # whenever a task fails remaining task are not executed
     def test_failureOutput(self, reporter, RunnerClass, depfile):
         tasks = [Task("taskX", [_fail]),

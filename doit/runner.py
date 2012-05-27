@@ -330,9 +330,14 @@ class MRunner(Runner):
             elif 'exit' in result:
                 raise result['exit'](result['exception'])
             else:
+                # success set values taken from subprocess result
                 catched_excp = None
                 task.result = result['result']
                 task.values = result['values']
+                for action, output in zip(task.actions, result['out']):
+                    action.out = output
+                for action, output in zip(task.actions, result['err']):
+                    action.err = output
 
             # completed one task, dispatch next one
             self.process_task_result(task, catched_excp)
@@ -395,6 +400,8 @@ class MRunner(Runner):
                 if t_result is None:
                     result['result'] = task.result
                     result['values'] = task.values
+                    result['out'] = [a.out for a in task.actions]
+                    result['err'] = [a.err for a in task.actions]
                 else:
                     result['failure'] = t_result
                 result_q.put(result)
