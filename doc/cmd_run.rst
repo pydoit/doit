@@ -155,6 +155,11 @@ It is possible to define your own custom reporter. Check the code on doit/reorte
 .. literalinclude:: tutorial/custom_reporter.py
 
 
+Note that the ``reporter`` have no control over the *realtime* output
+from a task while it is being executed,
+this is controlled by the ``verbosity`` param.
+
+
 
 output-file
 ------------
