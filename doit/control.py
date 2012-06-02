@@ -47,7 +47,7 @@ class TaskControl(object):
     There are 3 phases
       1) the constructor gets a list of tasks and do initialization
       2) 'process' the command line options for tasks are processed
-      3) 'get_next_task' dispatch tasks to runner
+      3) 'task_dispatcher' dispatch tasks to runner
 
     Process dependencies and targets to find out the order tasks
     should be executed. Also apply filter to exclude tasks from
@@ -59,10 +59,6 @@ class TaskControl(object):
                           Value: L{Task} instance
     """
 
-    # indicate task already finish being handled by a generator from
-    # the dispatcher
-    DONE = -1
-
     def __init__(self, task_list):
         self.tasks = {}
         self.targets = {}
@@ -73,9 +69,6 @@ class TaskControl(object):
         self._def_order = []
         # list of tasks selected to be executed
         self.selected_tasks = None
-
-        # indicate which generator is handling this task or DONE
-        self._add_status = {} # key task-name, value: generator_id
 
         # sanity check and create tasks dict
         for task in task_list:
@@ -103,8 +96,11 @@ class TaskControl(object):
                     msg = "%s. Task dependency '%s' does not exist."
                     raise InvalidTask(msg% (task.name, dep))
 
-        # get target dependecies on other tasks based on file dependency on
-        # a target.
+        self._init_implicit_deps()
+
+
+    def _init_implicit_deps(self):
+        """get task_dep based on file_dep on a target from another task"""
         # 1) create a dictionary associating every target->task. where the task
         # builds that target.
         for task in self.tasks.itervalues():
@@ -197,24 +193,60 @@ class TaskControl(object):
             self.selected_tasks = self._def_order
 
 
-    def _add_task(self, gen_id, task_name, include_setup):
-        """generator of tasks to be executed
-        @return Task if ready. or task's name that should be put on hold
-        """
+    def task_dispatcher(self, include_setup=False):
+        """Dispatch another task to be executed, mostly handle with MP
 
-        # check if this was already added
+        Note that a dispatched task might not be ready to be executed.
+        """
+        assert self.selected_tasks is not None, \
+            "must call 'process' before this"
+
+        disp = TaskDispatcher(self.tasks, self.targets, self.selected_tasks)
+        return disp.dispatcher_generator(include_setup)
+
+
+
+class TaskDispatcher(object):
+    """Dispatch another task to be executed, mostly handle with MP
+
+    Note that a dispatched task might not be ready to be executed.
+    """
+
+    # indicate task already finish being handled by a generator from
+    # the dispatcher
+    DONE = -1
+
+    def __init__(self, tasks, targets, selected_tasks):
+        self.tasks = tasks
+        self.targets = targets
+        self.selected_tasks = selected_tasks
+
+        # indicate which generator is handling this task or DONE
+        self._add_status = {} # key task-name, value: generator_id
+
+
+    def _handling_initiated(self, gen_id, task_name):
+        """check if this task was already being handled/added"""
         if task_name in self._add_status:
             # check task was alaready added, nothing to do. stop iteration
             if self._add_status[task_name] == self.DONE:
-                return
+                return True
             # detect cyclic/recursive dependencies
             if self._add_status[task_name] == gen_id:
                 msg = "Cyclic/recursive dependencies for task %s"
                 raise InvalidDodoFile(msg % task_name)
             # is running on another generator
             if self._add_status[task_name] != gen_id:
-                return
+                return True
 
+
+    def _add_task(self, gen_id, task_name, include_setup):
+        """generator of tasks to be executed
+        @return Task if ready. or task's name that should be put on hold
+        """
+        # mark task as being handled
+        if self._handling_initiated(gen_id, task_name):
+            return
         self._add_status[task_name] = gen_id
         this_task = self.tasks[task_name]
 
@@ -239,6 +271,7 @@ class TaskControl(object):
         for dependency in this_task.task_dep:
             for dep_task in self._add_task(gen_id, dependency, include_setup):
                 yield dep_task
+        #for dependency in this_task.task_dep:
             yield WaitRunTask(task_name, dependency)
 
         # add itself
@@ -269,14 +302,8 @@ class TaskControl(object):
         self._add_status[task_name] = self.DONE
 
 
-    def task_dispatcher(self, include_setup=False):
-        """Dispatch another task to be executed, mostly handle with MP
-
-        Note that a dispatched task might not be ready to be executed.
-        """
-        assert self.selected_tasks is not None, \
-            "must call 'process' before this"
-
+    def dispatcher_generator(self, include_setup=False):
+        """return generator dispatching tasks"""
         # each selected task will create a tree (from dependencies) of
         # tasks to be processed
         tasks_to_run = self.selected_tasks[:]

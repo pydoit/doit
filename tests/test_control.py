@@ -2,7 +2,8 @@ import pytest
 
 from doit.exceptions import InvalidDodoFile, InvalidCommand
 from doit.task import InvalidTask, Task
-from doit.control import TaskControl, WaitSelectTask, WaitRunTask
+from doit.control import TaskControl, TaskDispatcher
+from doit.control import WaitSelectTask, WaitRunTask
 
 
 
@@ -123,26 +124,29 @@ class TestTaskControlCmdOptions(object):
         assert "hello option!" == tc.tasks['t3'].options['opt1']
 
 
+def create_dispatcher(task_list, selection=None):
+    control = TaskControl(task_list)
+    control.process(selection)
+    return TaskDispatcher(control.tasks, control.targets, control.selected_tasks)
+
 class TestAddTask(object):
     def testChangeOrder_AddJustOnce(self):
         tasks = [Task("taskX", None, task_dep=["taskY"]),
                  Task("taskY", None,)]
-        tc = TaskControl(tasks)
-        tc.process(None)
-        gen = tc._add_task(0, 'taskX', False)
+        td = create_dispatcher(tasks)
+        gen = td._add_task(0, 'taskX', False)
         assert tasks[1] == gen.next()
         assert isinstance(gen.next(), WaitRunTask)
         assert tasks[0] == gen.next()
         pytest.raises(StopIteration, gen.next)
         # both tasks were already added. so no tasks left..
-        assert [] == [x for x in tc._add_task(0, 'taskY', False)]
+        assert [] == [x for x in td._add_task(0, 'taskY', False)]
 
     def testAddNotSelected(self):
         tasks = [Task("taskX", None, task_dep=["taskY"]),
                  Task("taskY", None,)]
-        tc = TaskControl(tasks)
-        tc.process(['taskX'])
-        gen = tc._add_task(0, 'taskX', False)
+        td = create_dispatcher(tasks, ['taskX'])
+        gen = td._add_task(0, 'taskX', False)
         assert tasks[1] == gen.next()
         assert isinstance(gen.next(), WaitRunTask)
         assert tasks[0] == gen.next()
@@ -150,28 +154,25 @@ class TestAddTask(object):
     def testDetectCyclicReference(self):
         tasks = [Task("taskX",None,task_dep=["taskY"]),
                  Task("taskY",None,task_dep=["taskX"])]
-        tc = TaskControl(tasks)
-        tc.process(None)
-        gen = tc._add_task(0, "taskX", False)
+        td = create_dispatcher(tasks)
+        gen = td._add_task(0, "taskX", False)
         pytest.raises(InvalidDodoFile, gen.next)
 
     def testParallelExecuteOnlyOnce(self):
         tasks = [Task("taskX",None,task_dep=["taskY"]),
                  Task("taskY",None)]
-        tc = TaskControl(tasks)
-        tc.process(None)
-        gen1 = tc._add_task(0, "taskX", False)
+        td = create_dispatcher(tasks)
+        gen1 = td._add_task(0, "taskX", False)
         assert tasks[1] == gen1.next()
         # gen2 wont get any task, because it was already being processed
-        gen2 = tc._add_task(1, "taskY", False)
+        gen2 = td._add_task(1, "taskY", False)
         pytest.raises(StopIteration, gen2.next)
 
     def testParallelWaitTaskDep(self):
         tasks = [Task("taskX",None,task_dep=["taskY"]),
                  Task("taskY",None)]
-        tc = TaskControl(tasks)
-        tc.process(None)
-        gen1 = tc._add_task(0, "taskX", False)
+        td = create_dispatcher(tasks)
+        gen1 = td._add_task(0, "taskX", False)
         assert tasks[1] == gen1.next()
         # wait for taskY to finish
         wait = gen1.next()
@@ -183,9 +184,8 @@ class TestAddTask(object):
     def testSetupTasksDontRun(self):
         tasks = [Task("taskX",None,setup=["taskY"]),
                  Task("taskY",None,)]
-        tc = TaskControl(tasks)
-        tc.process(['taskX'])
-        gen = tc._add_task(0, 'taskX', False)
+        td = create_dispatcher(tasks, ['taskX'])
+        gen = td._add_task(0, 'taskX', False)
         assert tasks[0] == gen.next()
         # X is up-to-date
         tasks[0].run_status = 'up-to-date'
@@ -194,9 +194,8 @@ class TestAddTask(object):
     def testSetupTasksRun(self):
         tasks = [Task("taskX",None,setup=["taskY"]),
                  Task("taskY",None,)]
-        tc = TaskControl(tasks)
-        tc.process(['taskX'])
-        gen = tc._add_task(0, 'taskX', False)
+        td = create_dispatcher(tasks, ['taskX'])
+        gen = td._add_task(0, 'taskX', False)
         assert tasks[0] == gen.next() # tasks with setup are yield twice
         tasks[0].run_status = 'run' # should be executed
         assert tasks[1] == gen.next() # execute setup before
@@ -207,9 +206,8 @@ class TestAddTask(object):
     def testWaitSetupSelect(self):
         tasks = [Task("taskX", None, setup=["taskY"]),
                  Task("taskY", None,)]
-        tc = TaskControl(tasks)
-        tc.process(['taskX'])
-        gen = tc._add_task(0, 'taskX', False)
+        td = create_dispatcher(tasks, ['taskX'])
+        gen = td._add_task(0, 'taskX', False)
         assert tasks[0] == gen.next() # tasks with setup are yield twice
         # wait for taskX run_status
         wait = gen.next()
@@ -224,9 +222,8 @@ class TestAddTask(object):
     def testWaitSetupRun(self):
         tasks = [Task("taskX", None, setup=["taskY"]),
                  Task("taskY",None,)]
-        tc = TaskControl(tasks)
-        tc.process(['taskX'])
-        gen = tc._add_task(0, 'taskX', False)
+        td = create_dispatcher(tasks, ['taskX'])
+        gen = td._add_task(0, 'taskX', False)
         assert tasks[0] == gen.next() # tasks with setup are yield twice
         # wait for taskX run_status
         wait = gen.next()
@@ -244,9 +241,8 @@ class TestAddTask(object):
     def testSetupInvalid(self):
         tasks = [Task("taskX",None,setup=["taskZZZZZZZZ"]),
                  Task("taskY",None,)]
-        tc = TaskControl(tasks)
-        tc.process(['taskX'])
-        gen = tc._add_task(0, 'taskX', False)
+        td = create_dispatcher(tasks, ['taskX'])
+        gen = td._add_task(0, 'taskX', False)
         assert tasks[0] == gen.next() # tasks with setup are yield twice
         tasks[0].run_status = 'run' # should be executed
         pytest.raises(InvalidTask, gen.next) # execute setup before
@@ -257,9 +253,8 @@ class TestAddTask(object):
         tasks = [Task("taskX", None, calc_dep=['task_dep']),
                  Task("task_dep", [(get_deps,)]),
                  ]
-        tc = TaskControl(tasks)
-        tc.process(['taskX'])
-        gen = tc._add_task(0, 'taskX', False)
+        td = create_dispatcher(tasks, ['taskX'])
+        gen = td._add_task(0, 'taskX', False)
         assert tasks[1] == gen.next()
         assert isinstance(gen.next(), WaitRunTask)
         tasks[1].execute()
@@ -275,9 +270,8 @@ class TestAddTask(object):
                  Task("task_dep", [(get_deps,)]),
                  Task("create_dep", None, targets=['a']),
                  ]
-        tc = TaskControl(tasks)
-        tc.process(['taskX'])
-        gen = tc._add_task(0, 'taskX', False)
+        td = create_dispatcher(tasks, ['taskX'])
+        gen = td._add_task(0, 'taskX', False)
         assert tasks[1] == gen.next()
         assert isinstance(gen.next(), WaitRunTask)
         tasks[1].execute()
@@ -292,9 +286,8 @@ class TestGetNext(object):
     def testChangeOrder_AddJustOnce(self):
         tasks = [Task("taskX", None, task_dep=["taskY"]),
                  Task("taskY", None,)]
-        tc = TaskControl(tasks)
-        tc.process(None)
-        gen = tc.task_dispatcher()
+        td = create_dispatcher(tasks)
+        gen = td.dispatcher_generator()
         assert tasks[1] == gen.next()
         assert "hold on" == gen.next()
         tasks[1].run_status = "done"
@@ -304,9 +297,8 @@ class TestGetNext(object):
     def testAllTasksWaiting(self):
         tasks = [Task("taskX",None,setup=["taskY"]),
                  Task("taskY",None,)]
-        tc = TaskControl(tasks)
-        tc.process(['taskX'])
-        gen = tc.task_dispatcher()
+        td = create_dispatcher(tasks, ['taskX'])
+        gen = td.dispatcher_generator()
         assert tasks[0] == gen.next() # tasks with setup are yield twice
         assert "hold on" == gen.next() # nothing else really available
         tasks[0].run_status = 'run' # should be executed
@@ -320,9 +312,8 @@ class TestGetNext(object):
         tasks = [Task("task0", None,),
                  Task("taskX", None, task_dep=["task0"]),
                  Task("taskY", None, task_dep=["task0"])]
-        tc = TaskControl(tasks)
-        tc.process(['taskX', 'taskY'])
-        gen = tc.task_dispatcher()
+        td = create_dispatcher(tasks, ['taskX', 'taskY'])
+        gen = td.dispatcher_generator()
         assert tasks[0] == gen.next()
         assert "hold on" == gen.next() # nothing else really available
         tasks[0].run_status = 'done' # should be executed
@@ -336,9 +327,8 @@ class TestGetNext(object):
         # be ready
         tasks = [Task("taskX", None, setup=["taskY"]),
                  Task("taskY", None,)]
-        tc = TaskControl(tasks)
-        tc.process(['taskX'])
-        gen = tc.task_dispatcher(True) # <== include_setup
+        td = create_dispatcher(tasks, ['taskX'])
+        gen = td.dispatcher_generator(True) # <== include_setup
         assert tasks[0] == gen.next() # tasks with setup are yield twice
         assert tasks[1] == gen.next() # execute setup before
         assert tasks[0] == gen.next() # second time, ok
