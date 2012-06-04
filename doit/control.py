@@ -1,5 +1,6 @@
 """Control tasks execution order"""
 import fnmatch
+from collections import deque
 
 from .exceptions import InvalidTask, InvalidCommand, InvalidDodoFile
 from .task import Task
@@ -335,7 +336,7 @@ class TaskDispatcher(object):
             .3 to_run
          """
         if ready:
-            return ready.pop(0)
+            return ready.popleft()
 
         # get task group from waiting queue
         for node in waiting:
@@ -358,7 +359,7 @@ class TaskDispatcher(object):
         # tasks to be processed
         tasks_to_run = list(reversed(selected_tasks))
         waiting = set() # of nodes
-        ready = [] # XXX use deque # of nodes
+        ready = deque()
         # current active ExecNode
         node = None
 

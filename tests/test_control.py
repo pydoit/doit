@@ -1,3 +1,4 @@
+from collections import deque
 import pytest
 
 from doit.exceptions import InvalidDodoFile, InvalidCommand
@@ -331,9 +332,9 @@ class TestTaskDispatcher_get_next_node(object):
         td = TaskDispatcher(tasks, [])
         n1 = td._gen_node(None, 't1')
         n2 = td._gen_node(None, 't2')
-        ready = [n1]
+        ready = deque([n1])
         assert n1 == td._get_next_node(ready, [n2], ['xxx'])
-        assert [] == ready
+        assert 0 == len(ready)
 
     def test_waiting(self):
         tasks = {'t1': Task('t1', None, task_dep=['t2']),
