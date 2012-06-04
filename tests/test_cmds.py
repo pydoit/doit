@@ -373,7 +373,7 @@ class TestCmdAuto(object):
         assert ["f1"] == w1_files
         # with calc_dep
         w2_tasks, w2_files = cmds._auto_watch([t1, t2], ["t2"])
-        assert ["t1", "t2"] == w2_tasks
+        assert sorted(["t1", "t2"]) == sorted(w2_tasks)
         assert ["f1", "f2"] == w2_files
 
 
@@ -429,7 +429,7 @@ class TestCmdAuto(object):
         fd.write("mod2")
         fd.close()
 
-        sleep_factor = 0.1 # ensure execution is over before start a new one
+        sleep_factor = 0.2 # ensure execution is over before start a new one
         time.sleep(sleep_factor)
         # write in another watched file ========> .  t2
         fd = open(file2, 'w')

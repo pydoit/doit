@@ -258,12 +258,15 @@ class TestTask_Teardown(object):
 
 class TestTask_RunAll(object):
     def test_reporter_runtime_error(self, reporter, depfile):
-        t1 = Task('t1', [], setup=['make_invalid'])
+        t1 = Task('t1', [], calc_dep=['t2'])
+        t2 = Task('t2', [lambda: {'file_dep':[1]}])
         my_runner = runner.Runner(depfile.name, reporter)
-        tc = TaskControl([t1])
+        tc = TaskControl([t1, t2])
         tc.process(None)
         my_runner.run_all(tc)
-        assert ('start', t1) == reporter.log.pop(0)
+        assert ('start', t2) == reporter.log.pop(0)
+        assert ('execute', t2) == reporter.log.pop(0)
+        assert ('success', t2) == reporter.log.pop(0)
         assert ('runtime_error',) == reporter.log.pop(0)
         assert not reporter.log
 
@@ -551,35 +554,20 @@ class TestMRunner_get_next_task(object):
 
     def test_waiting(self, reporter, depfile):
         t1 = Task('t1', [])
-        t2a = Task('t2A', [], task_dep=('t1',))
-        t2b = Task('t2B', [], setup=('t1',))
-        t3 = Task('t3', [], setup=('t2B',))
-        tc = TaskControl([t1, t2a, t2b, t3])
-        tc.process(None)
+        t2 = Task('t2', [], setup=('t1',))
+        tc = TaskControl([t1, t2])
+        tc.process(['t2'])
         run = runner.MRunner(depfile.name, reporter)
         run._run_tasks_init(tc)
 
-        # first start task t1
+        # first start task 1
         assert t1 == run.get_next_task()
-        t1.run_status = 'run'
-
         # hold until t1 is done
         assert isinstance(run.get_next_task(), runner.Hold)
-        assert 1 == run.free_proc
-        t2b.run_status = 'run'
-        t3.run_status = 'run'
-
-        # t2a can run
-        t1.run_status = 'done'
-        assert t2a == run.get_next_task()
-        # t2b second time run
-        assert t2b == run.get_next_task()
-
-        # hold until t3 can run
         assert isinstance(run.get_next_task(), runner.Hold)
-        t2b.run_status = 'done'
-        assert t3 == run.get_next_task()
+        t1.run_status = 'done'
 
+        assert t2 == run.get_next_task()
         assert None == run.get_next_task()
 
 

@@ -2,25 +2,7 @@ import pytest
 
 from doit.exceptions import InvalidDodoFile, InvalidCommand
 from doit.task import InvalidTask, Task
-from doit.control import TaskControl, TaskDispatcher
-from doit.control import WaitSelectTask, WaitRunTask
-
-
-
-class TestWaitTask(object):
-
-    def test_repr(self):
-        wait_task = WaitRunTask('a', 'b')
-        assert "<WaitRunTask waiting=a wait_for=b>" == repr(wait_task)
-
-    def test_wait_select_ready(self):
-        assert WaitRunTask.ready('up-to-date')
-        assert not WaitRunTask.ready(None)
-
-    def test_wait_run_ready(self):
-        assert WaitRunTask.ready('done')
-        assert WaitRunTask.ready('up-to-date')
-        assert not WaitRunTask.ready('whatever')
+from doit.control import TaskControl, TaskDispatcher, ExecNode, no_none
 
 
 
@@ -51,6 +33,10 @@ class TestTaskControlInit(object):
         tasks = [Task('wrong', None, task_dep=["typo"])]
         pytest.raises(InvalidTask, TaskControl, tasks)
 
+    def test_userErrorSetupTask(self):
+        tasks = [Task('wrong', None, setup=["typo"])]
+        pytest.raises(InvalidTask, TaskControl, tasks)
+
     def test_sameTarget(self):
         tasks = [Task('t1',None,[],["fileX"]),
                  Task('t2',None,[],["fileX"])]
@@ -64,8 +50,8 @@ class TestTaskControlInit(object):
         assert 'foo4' in tasks[0].task_dep
 
     def test_bug770150_task_dependency_from_target(self):
-        t1 = Task("taskX", None,[],['intermediate'])
-        t2 = Task("taskY", None,['intermediate'], task_dep=['taskZ'])
+        t1 = Task("taskX", None, file_dep=[], targets=['intermediate'])
+        t2 = Task("taskY", None, file_dep=['intermediate'], task_dep=['taskZ'])
         t3 = Task("taskZ", None)
         TaskControl([t1, t2, t3])
         assert ['taskZ', 'taskX'] == t2.task_dep
@@ -86,11 +72,16 @@ class TestTaskControlCmdOptions(object):
         tc = TaskControl(TASKS_SAMPLE)
         assert filter_ == tc._filter_tasks(filter_)
 
-    def testProcess(self):
+    def testProcessSelection(self):
         filter_ = ['t2', 't3']
         tc = TaskControl(TASKS_SAMPLE)
         tc.process(filter_)
         assert filter_ == tc.selected_tasks
+
+    def testProcessAll(self):
+        tc = TaskControl(TASKS_SAMPLE)
+        tc.process(None)
+        assert ['t1', 't2', 'g1', 'g1.a', 'g1.b', 't3'] == tc.selected_tasks
 
     def testFilterPattern(self):
         tc = TaskControl(TASKS_SAMPLE)
@@ -124,213 +115,283 @@ class TestTaskControlCmdOptions(object):
         assert "hello option!" == tc.tasks['t3'].options['opt1']
 
 
-def create_dispatcher(task_list, selection=None):
-    control = TaskControl(task_list)
-    control.process(selection)
-    return TaskDispatcher(control.tasks, control.targets, control.selected_tasks)
+class TestExecNode(object):
+    def test_repr(self):
+        node = ExecNode(Task('t1', None), None)
+        assert 't1' in repr(node)
 
-class TestAddTask(object):
-    def testChangeOrder_AddJustOnce(self):
-        tasks = [Task("taskX", None, task_dep=["taskY"]),
-                 Task("taskY", None,)]
-        td = create_dispatcher(tasks)
-        gen = td._add_task(0, 'taskX', False)
-        assert tasks[1] == gen.next()
-        assert isinstance(gen.next(), WaitRunTask)
-        assert tasks[0] == gen.next()
-        pytest.raises(StopIteration, gen.next)
-        # both tasks were already added. so no tasks left..
-        assert [] == [x for x in td._add_task(0, 'taskY', False)]
+    def test_ready_select__not_waiting(self):
+        task = Task("t1", None)
+        node = ExecNode(task, None)
+        assert False == node.wait_select
+        assert True == node.is_ready_select()
 
-    def testAddNotSelected(self):
-        tasks = [Task("taskX", None, task_dep=["taskY"]),
-                 Task("taskY", None,)]
-        td = create_dispatcher(tasks, ['taskX'])
-        gen = td._add_task(0, 'taskX', False)
-        assert tasks[1] == gen.next()
-        assert isinstance(gen.next(), WaitRunTask)
-        assert tasks[0] == gen.next()
+    def test_ready_select__status_selected(self):
+        task = Task("t1", None)
+        task.run_status = 'run'
+        node = ExecNode(task, None)
+        node.wait_select = True
+        assert True == node.is_ready_select()
+        assert False == node.wait_select
 
-    def testDetectCyclicReference(self):
-        tasks = [Task("taskX",None,task_dep=["taskY"]),
-                 Task("taskY",None,task_dep=["taskX"])]
-        td = create_dispatcher(tasks)
-        gen = td._add_task(0, "taskX", False)
-        pytest.raises(InvalidDodoFile, gen.next)
+    def test_ready_select__status_None(self):
+        task = Task("t1", None)
+        node = ExecNode(task, None)
+        node.wait_select = True
+        assert False == node.is_ready_select()
+        assert True == node.wait_select
 
-    def testParallelExecuteOnlyOnce(self):
-        tasks = [Task("taskX",None,task_dep=["taskY"]),
-                 Task("taskY",None)]
-        td = create_dispatcher(tasks)
-        gen1 = td._add_task(0, "taskX", False)
-        assert tasks[1] == gen1.next()
-        # gen2 wont get any task, because it was already being processed
-        gen2 = td._add_task(1, "taskY", False)
-        pytest.raises(StopIteration, gen2.next)
+    def test_step(self):
+        def my_gen():
+            yield 1
+            yield 2
+        task = Task("t1", None)
+        node = ExecNode(task, None)
+        node.generator = my_gen()
+        assert 1 == node.step()
+        assert 2 == node.step()
+        assert None == node.step()
 
-    def testParallelWaitTaskDep(self):
-        tasks = [Task("taskX",None,task_dep=["taskY"]),
-                 Task("taskY",None)]
-        td = create_dispatcher(tasks)
-        gen1 = td._add_task(0, "taskX", False)
-        assert tasks[1] == gen1.next()
-        # wait for taskY to finish
-        wait = gen1.next()
-        assert wait.wait_for == 'taskY'
-        assert isinstance(wait, WaitRunTask)
-        assert tasks[0] == gen1.next()
-        pytest.raises(StopIteration, gen1.next)
 
-    def testSetupTasksDontRun(self):
-        tasks = [Task("taskX",None,setup=["taskY"]),
-                 Task("taskY",None,)]
-        td = create_dispatcher(tasks, ['taskX'])
-        gen = td._add_task(0, 'taskX', False)
-        assert tasks[0] == gen.next()
-        # X is up-to-date
-        tasks[0].run_status = 'up-to-date'
-        pytest.raises(StopIteration, gen.next)
+class TestDecoratorNoNone(object):
+    def test_filtering(self):
+        def my_gen():
+            yield 1
+            yield None
+            yield 2
+        gen = no_none(my_gen)
+        assert [1, 2] == [x for x in gen()]
 
-    def testSetupTasksRun(self):
-        tasks = [Task("taskX",None,setup=["taskY"]),
-                 Task("taskY",None,)]
-        td = create_dispatcher(tasks, ['taskX'])
-        gen = td._add_task(0, 'taskX', False)
-        assert tasks[0] == gen.next() # tasks with setup are yield twice
-        tasks[0].run_status = 'run' # should be executed
-        assert tasks[1] == gen.next() # execute setup before
-        assert isinstance(gen.next(), WaitRunTask)
-        assert tasks[0] == gen.next() # second time, ok
-        pytest.raises(StopIteration, gen.next) # nothing left
 
-    def testWaitSetupSelect(self):
-        tasks = [Task("taskX", None, setup=["taskY"]),
-                 Task("taskY", None,)]
-        td = create_dispatcher(tasks, ['taskX'])
-        gen = td._add_task(0, 'taskX', False)
-        assert tasks[0] == gen.next() # tasks with setup are yield twice
-        # wait for taskX run_status
-        wait = gen.next()
-        assert wait.wait_for == 'taskX'
-        assert isinstance(wait, WaitSelectTask)
-        tasks[0].run_status = 'run' # should be executed
-        assert tasks[1] == gen.next() # execute setup before
-        assert isinstance(gen.next(), WaitRunTask)
-        assert tasks[0] == gen.next() # second time, ok
-        pytest.raises(StopIteration, gen.next) # nothing left
+class TestTaskDispatcher_GenNone(object):
+    def test_create(self):
+        tasks = {'t1': Task('t1', None)}
+        td = TaskDispatcher(tasks, [])
+        node = td._gen_node(None, 't1')
+        assert isinstance(node, ExecNode)
+        assert node == td.nodes['t1']
 
-    def testWaitSetupRun(self):
-        tasks = [Task("taskX", None, setup=["taskY"]),
-                 Task("taskY",None,)]
-        td = create_dispatcher(tasks, ['taskX'])
-        gen = td._add_task(0, 'taskX', False)
-        assert tasks[0] == gen.next() # tasks with setup are yield twice
-        # wait for taskX run_status
-        wait = gen.next()
-        assert wait.wait_for == 'taskX'
-        assert isinstance(wait, WaitSelectTask)
-        tasks[0].run_status = 'run' # should be executed
-        assert tasks[1] == gen.next() # execute setup before
-        # wait execution finish
-        wait2 = gen.next()
-        assert wait2.wait_for == 'taskY'
-        assert isinstance(wait2, WaitRunTask)
-        assert tasks[0] == gen.next() # second time, ok
-        pytest.raises(StopIteration, gen.next) # nothing left
+    def test_already_created(self):
+        tasks = {'t1': Task('t1', None),
+                 't2': Task('t2', None)
+                 }
+        td = TaskDispatcher(tasks, [])
+        n1 = td._gen_node(None, 't1')
+        td._gen_node(n1, 't2')
+        assert None == td._gen_node(None, 't1')
 
-    def testSetupInvalid(self):
-        tasks = [Task("taskX",None,setup=["taskZZZZZZZZ"]),
-                 Task("taskY",None,)]
-        td = create_dispatcher(tasks, ['taskX'])
-        gen = td._add_task(0, 'taskX', False)
-        assert tasks[0] == gen.next() # tasks with setup are yield twice
-        tasks[0].run_status = 'run' # should be executed
-        pytest.raises(InvalidTask, gen.next) # execute setup before
+    def test_cyclic(self):
+        tasks = {'t1': Task('t1', None),
+                 't2': Task('t2', None)
+                 }
+        td = TaskDispatcher(tasks, [])
+        n1 = td._gen_node(None, 't1')
+        n2 = td._gen_node(n1, 't2')
+        pytest.raises(InvalidDodoFile, td._gen_node, n2, 't1')
 
-    def testCalcDep(self):
-        def get_deps():
-            return {'file_dep': ('a', 'b')}
-        tasks = [Task("taskX", None, calc_dep=['task_dep']),
-                 Task("task_dep", [(get_deps,)]),
-                 ]
-        td = create_dispatcher(tasks, ['taskX'])
-        gen = td._add_task(0, 'taskX', False)
-        assert tasks[1] == gen.next()
-        assert isinstance(gen.next(), WaitRunTask)
-        tasks[1].execute()
-        assert tasks[0] == gen.next()
-        assert set(['a', 'b']) == tasks[0].file_dep
 
-    def testCalcDepFileDepImplicitTaskDep(self):
-        # if file_dep is a target from another task, this other task
-        # should be a task_dep
-        def get_deps():
-            return {'file_dep': ('a', 'b')}
-        tasks = [Task("taskX", None, calc_dep=['task_dep']),
-                 Task("task_dep", [(get_deps,)]),
-                 Task("create_dep", None, targets=['a']),
-                 ]
-        td = create_dispatcher(tasks, ['taskX'])
-        gen = td._add_task(0, 'taskX', False)
-        assert tasks[1] == gen.next()
-        assert isinstance(gen.next(), WaitRunTask)
-        tasks[1].execute()
-        # need to create file_dep first
-        assert tasks[2] == gen.next()
-        assert isinstance(gen.next(), WaitRunTask)
-        assert tasks[0] == gen.next()
-        assert set(['a', 'b']) == tasks[0].file_dep
-        assert ['create_dep'] == tasks[0].task_dep
 
-class TestGetNext(object):
-    def testChangeOrder_AddJustOnce(self):
-        tasks = [Task("taskX", None, task_dep=["taskY"]),
-                 Task("taskY", None,)]
-        td = create_dispatcher(tasks)
-        gen = td.dispatcher_generator()
+class TestTaskDispatcher(object):
+    def test_need_wait_run(self):
+        tasks = {'t1': Task('t1', None),
+                 't2': Task('t2', None),
+                 't3': Task('t3', None),
+                 't4': Task('t4', None)
+                 }
+        td = TaskDispatcher(tasks, [])
+        tasks['t2'].run_status = 'up-to-date'
+        tasks['t3'].run_status = 'run'
+        tasks['t4'].run_status = 'done'
+        got = td._need_wait_run(['t1', 't2', 't3', 't4'])
+        assert 2 == len(got)
+        assert 't1' in got
+        assert 't3' in got
+
+    def test_need_wait_run__wait(self):
+        tasks = {'t1': Task('t1', None),
+                 't2': Task('t2', None),
+                 }
+        td = TaskDispatcher(tasks, [])
+        node = td._gen_node(None, 't1')
+        node.wait_run.add('xxx')
+        assert 'wait' == td._node_add_wait_run(node, ['t2'])
+        assert 2 == len(node.wait_run)
+        assert 't2' in node.wait_run
+
+    def test_need_wait_run__none(self):
+        tasks = {'t1': Task('t1', None),
+                 't2': Task('t2', None),
+                 }
+        td = TaskDispatcher(tasks, [])
+        node = td._gen_node(None, 't1')
+        tasks['t2'].run_status = 'done'
+        assert None == td._node_add_wait_run(node, ['t2'])
+        assert not node.wait_run
+
+
+class TestTaskDispatcher_add_task(object):
+    def test_no_deps(self):
+        tasks = {'t1': Task('t1', None),
+                 }
+        td = TaskDispatcher(tasks, [])
+        n1 = td._gen_node(None, 't1')
+        assert [tasks['t1']] == list(td._add_task(n1))
+
+    def test_task_deps(self):
+        tasks = {'t1': Task('t1', None, task_dep=['t2', 't3']),
+                 't2': Task('t2', None),
+                 't3': Task('t3', None),
+                 }
+        td = TaskDispatcher(tasks, [])
+        n1 = td._gen_node(None, 't1')
+        gen = td._add_task(n1)
+        assert tasks['t2'] == gen.next().task
+        assert tasks['t3'] == gen.next().task
+        assert 'wait' == gen.next()
+        assert tasks['t1'] == gen.next()
+
+    def test_task_deps_already_created(self):
+        tasks = {'t1': Task('t1', None, task_dep=['t2', 't3']),
+                 't2': Task('t2', None),
+                 't3': Task('t3', None),
+                 }
+        td = TaskDispatcher(tasks, [])
+        n1 = td._gen_node(None, 't1')
+        n2 = td._gen_node(None, 't2')
+        n3 = td._gen_node(None, 't3')
+        gen = td._add_task(n1)
+        assert 'wait' == gen.next()
+        assert tasks['t1'] == gen.next()
+
+    def test_task_deps_no_wait(self):
+        tasks = {'t1': Task('t1', None, task_dep=['t2', 't3']),
+                 't2': Task('t2', None),
+                 't3': Task('t3', None),
+                 }
+        td = TaskDispatcher(tasks, [])
+        n1 = td._gen_node(None, 't1')
+        n2 = td._gen_node(None, 't2')
+        tasks['t2'].run_status = 'done'
+        n3 = td._gen_node(None, 't3')
+        tasks['t3'].run_status = 'done'
+        gen = td._add_task(n1)
+        assert tasks['t1'] == gen.next()
+
+    def test_calc_dep(self):
+        def calc_intermediate():
+            return {'file_dep': ['intermediate']}
+        tasks = {'t1': Task('t1', None, calc_dep=['t2']),
+                 't2': Task('t2', [calc_intermediate]),
+                 't3': Task('t3', None, targets=['intermediate']),
+                 }
+        td = TaskDispatcher(tasks, {'intermediate': 't3'})
+        n1 = td._gen_node(None, 't1')
+        gen = td._add_task(n1)
+        assert tasks['t2'] == gen.next().task
+        assert 'wait' == gen.next()
+        # execute t2 to process calc_dep
+        tasks['t2'].execute()
+        got = gen.next()
+        assert 'intermediate' in tasks['t1'].file_dep
+        assert 't3' in tasks['t1'].task_dep
+
+        # t3 was added by calc dep
+        assert tasks['t3'] == got.task
+        assert 'wait' == gen.next()
+        assert tasks['t1'] == gen.next()
+
+
+    def test_setup_task__run(self):
+        tasks = {'t1': Task('t1', None, setup=['t2']),
+                 't2': Task('t2', None),
+                 }
+        td = TaskDispatcher(tasks, [])
+        n1 = td._gen_node(None, 't1')
+        gen = td._add_task(n1)
+        assert tasks['t1'] == gen.next() # first time (just select)
+        assert 'wait' == gen.next()      # wait for select result
+        tasks['t1'].run_status = 'run'
+        assert tasks['t2'] == gen.next().task # send setup task
+        assert 'wait' == gen.next()
+        assert tasks['t1'] == gen.next()  # second time
+
+
+class TestTaskDispatcher_get_next_node(object):
+    def test_none(self):
+        tasks = {'t1': Task('t1', None, task_dep=['t2']),
+                 't2': Task('t2', None),
+                 }
+        td = TaskDispatcher(tasks, [])
+        assert None == td._get_next_node([], [], [])
+
+    def test_ready(self):
+        tasks = {'t1': Task('t1', None, task_dep=['t2']),
+                 't2': Task('t2', None),
+                 }
+        td = TaskDispatcher(tasks, [])
+        n1 = td._gen_node(None, 't1')
+        n2 = td._gen_node(None, 't2')
+        ready = [n1]
+        assert n1 == td._get_next_node(ready, [n2], ['xxx'])
+        assert [] == ready
+
+    def test_waiting(self):
+        tasks = {'t1': Task('t1', None, task_dep=['t2']),
+                 't2': Task('t2', None),
+                 }
+        td = TaskDispatcher(tasks, [])
+        n1 = td._gen_node(None, 't1')
+        n1.wait_run = ['t2']
+        n2 = td._gen_node(None, 't2')
+        waiting = [n1, n2]
+        assert  n2 == td._get_next_node([], waiting, ['xxx'])
+        assert [n1] == waiting
+
+    def test_to_run(self):
+        tasks = {'t1': Task('t1', None, task_dep=['t2']),
+                 't2': Task('t2', None),
+                 }
+        td = TaskDispatcher(tasks, [])
+        n1 = td._gen_node(None, 't1')
+        n1.wait_run = ['t2']
+        got = td._get_next_node([], [n1], ['t2'])
+        assert isinstance(got, ExecNode)
+        assert 't2' == got.task.name
+
+    def test_to_run_none(self):
+        tasks = {'t1': Task('t1', None, task_dep=['t2']),
+                 't2': Task('t2', None),
+                 }
+        td = TaskDispatcher(tasks, [])
+        n1 = td._gen_node(None, 't1') # t1 already processed
+        to_run = ['t2', 't1']
+        got = td._get_next_node([], [], to_run)
+        assert isinstance(got, ExecNode)
+        assert 't2' == got.task.name
+        assert [] == to_run
+
+
+class TestTaskDispatcher_dispatcher_generator(object):
+    def test_normal(self):
+        tasks = [Task("t1", None, task_dep=["t2"]),
+                 Task("t2", None,)]
+        control = TaskControl(tasks)
+        control.process(['t1'])
+        gen = control.task_dispatcher()
+
         assert tasks[1] == gen.next()
         assert "hold on" == gen.next()
-        tasks[1].run_status = "done"
+        assert "hold on" == gen.next() # hold until t2 is done
+        tasks[1].run_status = 'done'
         assert tasks[0] == gen.next()
-        pytest.raises(StopIteration, gen.next) # nothing left
+        pytest.raises(StopIteration, gen.next)
 
-    def testAllTasksWaiting(self):
-        tasks = [Task("taskX",None,setup=["taskY"]),
-                 Task("taskY",None,)]
-        td = create_dispatcher(tasks, ['taskX'])
-        gen = td.dispatcher_generator()
-        assert tasks[0] == gen.next() # tasks with setup are yield twice
-        assert "hold on" == gen.next() # nothing else really available
-        tasks[0].run_status = 'run' # should be executed
-        assert tasks[1] == gen.next() # execute setup before
-        assert "hold on" == gen.next()
-        tasks[1].run_status = 'done' # should be executed
-        assert tasks[0] == gen.next() # second time, ok
-        pytest.raises(StopIteration, gen.next) # nothing left
-
-    def testAllTasksWaiting2(self):
-        tasks = [Task("task0", None,),
-                 Task("taskX", None, task_dep=["task0"]),
-                 Task("taskY", None, task_dep=["task0"])]
-        td = create_dispatcher(tasks, ['taskX', 'taskY'])
-        gen = td.dispatcher_generator()
+    def test_include_setup(self):
+        tasks = [Task("t1", None, task_dep=["t2"]),
+                 Task("t2", None,)]
+        control = TaskControl(tasks)
+        control.process(['t1'])
+        gen = control.task_dispatcher(include_setup=True)
         assert tasks[0] == gen.next()
-        assert "hold on" == gen.next() # nothing else really available
-        tasks[0].run_status = 'done' # should be executed
         assert tasks[1] == gen.next()
-        assert tasks[2] == gen.next()
-        pytest.raises(StopIteration, gen.next) # nothing left
-
-
-    def testIncludeSetup(self):
-        # with include_setup yield all tasks without waiting for setup tasks to
-        # be ready
-        tasks = [Task("taskX", None, setup=["taskY"]),
-                 Task("taskY", None,)]
-        td = create_dispatcher(tasks, ['taskX'])
-        gen = td.dispatcher_generator(True) # <== include_setup
-        assert tasks[0] == gen.next() # tasks with setup are yield twice
-        assert tasks[1] == gen.next() # execute setup before
-        assert tasks[0] == gen.next() # second time, ok
-        pytest.raises(StopIteration, gen.next) # nothing left
-
+        pytest.raises(StopIteration, gen.next)

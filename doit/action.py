@@ -47,7 +47,7 @@ class CmdAction(BaseAction):
         if realtime:
             if hasattr(realtime, 'encoding'):
                 encoding = realtime.encoding or 'utf-8'
-            else:
+            else: # pragma: no cover
                 encoding = 'utf-8'
 
         while True:
