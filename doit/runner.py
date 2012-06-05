@@ -170,13 +170,24 @@ class Runner(object):
 
         @param task_control: L{TaskControl}
         """
-        for task in task_control.task_dispatcher():
+        gen = task_control.task_dispatcher()
+        completed = None
+        while True:
             if self._stop_running:
                 break
+
+            try:
+                task = gen.send(completed)
+            except StopIteration:
+                break
+
             if not self.select_task(task, task_control.tasks):
+                completed = None
                 continue
+
             catched_excp = self.execute_task(task)
             self.process_task_result(task, catched_excp)
+            completed = task
 
 
     def teardown(self):
@@ -255,7 +266,7 @@ class MRunner(Runner):
         self.tasks = None    # dict of task instances by name
         self.result_q = None
 
-    def get_next_task(self):
+    def get_next_task(self, completed):
         """get next task to be dispatched to sub-process
 
         On MP needs to check if the dependencies finished its execution
@@ -268,7 +279,7 @@ class MRunner(Runner):
         while True:
             # get next task from controller
             try:
-                task = self.task_gen.next()
+                task = self.task_gen.send(completed)
                 if not isinstance(task, Task):
                     self.free_proc += 1
                     return Hold()
@@ -295,7 +306,7 @@ class MRunner(Runner):
         """
         proc_list = []
         for _ in xrange(self.num_process):
-            next_task = self.get_next_task()
+            next_task = self.get_next_task(None)
             if next_task is None:
                 break # do not start more processes than tasks
             task_q.put(next_task)
@@ -346,8 +357,10 @@ class MRunner(Runner):
             free_proc = self.free_proc + 1
             self.free_proc = 0
             # tries to get as many tasks as free process
+            completed = task
             for _ in range(free_proc):
-                next_task = self.get_next_task()
+                next_task = self.get_next_task(completed)
+                completed = None
                 if next_task is None:
                     proc_count -= 1
                 task_q.put(next_task)

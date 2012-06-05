@@ -537,9 +537,9 @@ class TestMRunner_get_next_task(object):
         tc.process(None)
         run = runner.MRunner(depfile.name, reporter)
         run._run_tasks_init(tc)
-        assert t1 == run.get_next_task()
-        assert t2 == run.get_next_task()
-        assert None == run.get_next_task()
+        assert t1 == run.get_next_task(None)
+        assert t2 == run.get_next_task(None)
+        assert None == run.get_next_task(None)
 
     def test_stop_running(self, reporter, depfile):
         t1 = Task('t1', [])
@@ -548,9 +548,9 @@ class TestMRunner_get_next_task(object):
         tc.process(None)
         run = runner.MRunner(depfile.name, reporter)
         run._run_tasks_init(tc)
-        assert t1 == run.get_next_task()
+        assert t1 == run.get_next_task(None)
         run._stop_running = True
-        assert None == run.get_next_task()
+        assert None == run.get_next_task(None)
 
     def test_waiting(self, reporter, depfile):
         t1 = Task('t1', [])
@@ -561,14 +561,14 @@ class TestMRunner_get_next_task(object):
         run._run_tasks_init(tc)
 
         # first start task 1
-        assert t1 == run.get_next_task()
+        assert t1 == run.get_next_task(None)
         # hold until t1 is done
-        assert isinstance(run.get_next_task(), runner.Hold)
-        assert isinstance(run.get_next_task(), runner.Hold)
+        assert isinstance(run.get_next_task(None), runner.Hold)
+        assert isinstance(run.get_next_task(None), runner.Hold)
         t1.run_status = 'done'
 
-        assert t2 == run.get_next_task()
-        assert None == run.get_next_task()
+        assert t2 == run.get_next_task(t1)
+        assert None == run.get_next_task(t2)
 
 
     def test_waiting_controller(self, reporter, depfile):
@@ -580,11 +580,11 @@ class TestMRunner_get_next_task(object):
         run._run_tasks_init(tc)
 
         # first task ok
-        assert t1 == run.get_next_task()
+        assert t1 == run.get_next_task(None)
 
         # hold until t1 finishes
         assert 0 == run.free_proc
-        assert isinstance(run.get_next_task(), runner.Hold)
+        assert isinstance(run.get_next_task(None), runner.Hold)
         assert 1 == run.free_proc
 
 
