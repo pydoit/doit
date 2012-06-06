@@ -22,7 +22,6 @@ class Task(object):
     @ivar file_dep: (set - string)
     @ivar result_dep: (list -string)
     @ivar calc_dep: (set - string) reference to a task
-    @ivar calc_dep_stack: (list - string) unprocessed calc_dep
     @ivar dep_changed (list - string): list of file-dependencies that changed
           (are not up_to_date). this must be set before
     @ivar uptodate: (list - bool/None) use bool/computed value instead of
@@ -160,7 +159,6 @@ class Task(object):
 
         # calc_dep
         self.calc_dep = set()
-        self.calc_dep_stack = []
         if calc_dep:
             self._expand_calc_dep(calc_dep)
 
@@ -219,7 +217,6 @@ class Task(object):
         for dep in calc_dep:
             if dep not in self.calc_dep:
                 self.calc_dep.add(dep)
-                self.calc_dep_stack.append(dep)
 
 
     def _extend_uptodate(self, uptodate):
@@ -468,7 +465,6 @@ class Task(object):
         inst.wild_dep = self.wild_dep[:]
         inst.result_dep = self.result_dep[:]
         inst.calc_dep = copy.copy(self.calc_dep)
-        inst.calc_dep_stack = self.calc_dep_stack[:]
         inst.doc = self.doc
         inst.run_status = self.run_status
         return inst

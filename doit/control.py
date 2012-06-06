@@ -190,7 +190,10 @@ class ExecNode(object):
     """
     def __init__(self, task, parent):
         self.task = task
-        self.task_dep = task.task_dep[:] # not yet procesed task_dep
+        # list of dependencies not processed by _add_task
+        self.task_dep = task.task_dep[:]
+        self.calc_dep = task.calc_dep.copy()
+
         self.ancestors = []
         if parent:
             self.ancestors.extend(parent.ancestors)
@@ -291,11 +294,10 @@ class TaskDispatcher(object):
 
         # add calc_dep & task_dep
         while True:
-            # TODO remove Task.calc_dep_stack
-            for calc_dep in this_task.calc_dep_stack:
+            for calc_dep in node.calc_dep:
                 yield self._gen_node(node, calc_dep)
-            self._node_add_wait_run(node, this_task.calc_dep_stack, calc=True)
-            this_task.calc_dep_task = []
+            self._node_add_wait_run(node, node.calc_dep, calc=True)
+            node.calc_dep.clear()
 
             # add task_dep
             for task_dep in node.task_dep:
@@ -384,14 +386,19 @@ class TaskDispatcher(object):
                 # refresh this task dependencies
                 values = node.task.values
                 len_task_deps = len(node.task.task_dep)
+                old_calc_dep = node.task.calc_dep.copy()
                 waiting_node.task.update_deps(values)
                 TaskControl.add_implicit_task_dep(
                     self.targets, waiting_node.task,
                     values.get('file_dep', []))
+
+                # update node's list of non-processed dependencies
                 new_task_dep = waiting_node.task.task_dep[len_task_deps:]
                 waiting_node.task_dep.extend(new_task_dep)
+                new_calc_dep = waiting_node.task.calc_dep - old_calc_dep
+                waiting_node.calc_dep.update(new_calc_dep)
 
-            # this node can be forther processed
+            # this node can be further processed
             if is_ready and (waiting_node in self.waiting):
                 self.ready.append(waiting_node)
                 self.waiting.remove(waiting_node)
