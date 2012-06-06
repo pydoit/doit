@@ -11,6 +11,9 @@ import anydbm as ddbm
 #import dbm as ddbm # test_corrupted_file fails
 #import gdbm as ddbm # ok <= TODO make this the default
 
+# note: to check which DBM backend is being used:
+#       >>> anydbm._defaultmod
+
 from .compat import json
 
 
@@ -224,6 +227,9 @@ class DbmDB(object):
         if isinstance(self._dbm, dumbdbm._Database): # pragma: no cover
             self._dbm._index = {}
             self._dbm.close()
+        # gdbm can not be running on 2 instances on same thread
+        # see https://bitbucket.org/schettino72/doit/issue/16/
+        del self._dbm
         self._dbm = ddbm.open(self.name, 'n')
         self.dirty = set()
 
