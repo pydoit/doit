@@ -190,6 +190,7 @@ class ExecNode(object):
     """
     def __init__(self, task, parent):
         self.task = task
+        self.task_dep = task.task_dep[:] # not yet procesed task_dep
         self.ancestors = []
         if parent:
             self.ancestors.extend(parent.ancestors)
@@ -197,6 +198,8 @@ class ExecNode(object):
 
         # Wait for a task to finish its execution
         self.wait_run = set() # task names
+        self.wait_run_calc = set() # task names
+
         self.waiting_me = set() # ExecNode
         # Wait for a task to be selected to its execution
         # checking if it is up-to-date
@@ -236,6 +239,9 @@ class TaskDispatcher(object):
         self.include_setup = include_setup
 
         self.nodes = {} # key task-name, value: ExecNode
+        # queues
+        self.waiting = set() # of ExecNode
+        self.ready = deque() # of ExecNode
 
 
     def _gen_node(self, parent, task_name):
@@ -256,14 +262,16 @@ class TaskDispatcher(object):
             raise InvalidDodoFile(msg % (task_name, cycle))
 
 
-    def _node_add_wait_run(self, node, task_list):
-        """updates node.wait_run and returns value for _add_task generator"""
+    def _node_add_wait_run(self, node, task_list, calc=False):
+        """updates node.wait_run"""
         wait_for = set(n for n in task_list if self.tasks[n].run_status not in (
                 'done', 'up-to-date'))
         for name in wait_for:
             self.nodes[name].waiting_me.add(node)
-        node.wait_run.update(wait_for)
-        return 'wait' if node.wait_run else None
+        if calc:
+            node.wait_run_calc.update(wait_for)
+        else:
+            node.wait_run.update(wait_for)
 
 
     @no_none
@@ -281,22 +289,24 @@ class TaskDispatcher(object):
         """
         this_task = node.task
 
-        # add calc_dep
-        # FIXME calc_dep  cant run in parallel
-        while this_task.calc_dep_stack:
-            # get next dynamic task
-            dyn = self.tasks[this_task.calc_dep_stack.pop(0)]
-            yield self._gen_node(node, dyn.name)
-            yield self._node_add_wait_run(node, (dyn.name,))
-            # refresh this task dependencies
-            this_task.update_deps(dyn.values)
-            TaskControl.add_implicit_task_dep(self.targets, this_task,
-                                              dyn.values.get('file_dep', []))
+        # add calc_dep & task_dep
+        while True:
+            # TODO remove Task.calc_dep_stack
+            for calc_dep in this_task.calc_dep_stack:
+                yield self._gen_node(node, calc_dep)
+            self._node_add_wait_run(node, this_task.calc_dep_stack, calc=True)
+            this_task.calc_dep_task = []
 
-        # add task_dep
-        for task_dep in this_task.task_dep:
-            yield self._gen_node(node, task_dep)
-        yield self._node_add_wait_run(node, this_task.task_dep)
+            # add task_dep
+            for task_dep in node.task_dep:
+                yield self._gen_node(node, task_dep)
+            self._node_add_wait_run(node, node.task_dep)
+            node.task_dep = []
+
+            if (node.wait_run or node.wait_run_calc) and not self.include_setup:
+                yield 'wait'
+            else:
+                break
 
         # add itself
         yield this_task
@@ -314,7 +324,9 @@ class TaskDispatcher(object):
             if this_task.run_status == 'run' or self.include_setup:
                 for setup_task in this_task.setup_tasks:
                     yield self._gen_node(node, setup_task)
-                yield self._node_add_wait_run(node, this_task.setup_tasks)
+                self._node_add_wait_run(node, this_task.setup_tasks)
+                if node.wait_run:
+                    yield 'wait'
 
                 # re-send this task after setup_tasks are sent
                 yield this_task
@@ -327,7 +339,6 @@ class TaskDispatcher(object):
          """
         if ready:
             return ready.popleft()
-
         # get task group from tasks_to_run
         while tasks_to_run:
             task_name = tasks_to_run.pop()
@@ -335,7 +346,8 @@ class TaskDispatcher(object):
             if node:
                 return node
 
-    def _update_waiting(self, processed, ready, waiting):
+
+    def _update_waiting(self, processed):
         """updates 'ready' and 'waiting' queues after processed
         @param processed (Task) or None
         """
@@ -347,18 +359,42 @@ class TaskDispatcher(object):
 
         # if node was waiting select must only receive select event
         if node.wait_select:
-            ready.append(node)
+            self.ready.append(node)
+            self.waiting.remove(node)
             node.wait_select = False
 
         # status != run means this was not just select completed
-        if node.task.run_status in ('done', 'up-to-date'):
-            for waiting_node in node.waiting_me:
-                waiting_node.wait_run.remove(node.task.name)
-                if not waiting_node.wait_run:
-                    ready.append(waiting_node)
-                    waiting.remove(waiting_node)
-        else:
+        if node.task.run_status not in ('done', 'up-to-date'):
             assert node.task.run_status == 'run'
+            return
+
+        for waiting_node in node.waiting_me:
+            task_name = node.task.name
+            # node wait_run will be ready if there are nothing left to wait
+            if task_name in waiting_node.wait_run:
+                waiting_node.wait_run.remove(task_name)
+                is_ready = not (waiting_node.wait_run or
+                                waiting_node.wait_run_calc)
+            # node wait_run_calc
+            else:
+                assert task_name in waiting_node.wait_run_calc
+                waiting_node.wait_run_calc.remove(task_name)
+                is_ready = True
+
+                # refresh this task dependencies
+                values = node.task.values
+                len_task_deps = len(node.task.task_dep)
+                waiting_node.task.update_deps(values)
+                TaskControl.add_implicit_task_dep(
+                    self.targets, waiting_node.task,
+                    values.get('file_dep', []))
+                new_task_dep = waiting_node.task.task_dep[len_task_deps:]
+                waiting_node.task_dep.extend(new_task_dep)
+
+            # this node can be forther processed
+            if is_ready and (waiting_node in self.waiting):
+                self.ready.append(waiting_node)
+                self.waiting.remove(waiting_node)
 
 
 
@@ -367,19 +403,17 @@ class TaskDispatcher(object):
         # each selected task will create a tree (from dependencies) of
         # tasks to be processed
         tasks_to_run = list(reversed(selected_tasks))
-        waiting = set() # of ExecNode
-        ready = deque() # of ExecNode
         node = None  # current active ExecNode
 
         while True:
             # get current node
             if not node:
-                node = self._get_next_node(ready, tasks_to_run)
+                node = self._get_next_node(self.ready, tasks_to_run)
                 if not node:
-                    if waiting:
+                    if self.waiting:
                         # all tasks are waiting, hold on
                         processed = (yield "hold on")
-                        self._update_waiting(processed, ready, waiting)
+                        self._update_waiting(processed)
                         continue
                     # we are done!
                     return
@@ -395,17 +429,17 @@ class TaskDispatcher(object):
             # got a task, send task to runner
             if isinstance(next_step, Task):
                 processed = (yield next_step)
-                self._update_waiting(processed, ready, waiting)
+                self._update_waiting(processed)
 
             # got new ExecNode, add to ready_queue
             elif isinstance(next_step, ExecNode):
-                ready.append(next_step)
+                self.ready.append(next_step)
 
             # got 'wait', add ExecNode to waiting queue
             else:
                 assert next_step == "wait"
                 # skip all waiting tasks, just getting a list of tasks...
                 if not self.include_setup:
-                    waiting.add(node)
+                    self.waiting.add(node)
                     node = None
 

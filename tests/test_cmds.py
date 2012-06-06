@@ -429,7 +429,7 @@ class TestCmdAuto(object):
         fd.write("mod2")
         fd.close()
 
-        sleep_factor = 0.2 # ensure execution is over before start a new one
+        sleep_factor = 0.4 # ensure execution is over before start a new one
         time.sleep(sleep_factor)
         # write in another watched file ========> .  t2
         fd = open(file2, 'w')
