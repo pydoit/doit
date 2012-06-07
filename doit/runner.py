@@ -171,23 +171,21 @@ class Runner(object):
         @param task_control: L{TaskControl}
         """
         gen = task_control.task_dispatcher()
-        completed = None
+        task = None
         while True:
             if self._stop_running:
                 break
 
             try:
-                task = gen.send(completed)
+                task = gen.send(task)
             except StopIteration:
                 break
 
             if not self.select_task(task, task_control.tasks):
-                completed = None
                 continue
 
             catched_excp = self.execute_task(task)
             self.process_task_result(task, catched_excp)
-            completed = task
 
 
     def teardown(self):
@@ -294,10 +292,11 @@ class MRunner(Runner):
         """
         if self._stop_running:
             return None # gentle stop
+        task = completed
         while True:
             # get next task from controller
             try:
-                task = self.task_gen.send(completed)
+                task = self.task_gen.send(task)
                 if not isinstance(task, Task):
                     self.free_proc += 1
                     return Hold()
