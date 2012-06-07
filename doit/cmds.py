@@ -60,6 +60,12 @@ def doit_run(dependency_file, task_list, output, options=None,
         else: # also accepts reporter instances
             reporter_obj = reporter_cls
 
+
+        if not MRunner.available():
+            num_process = 0
+            sys.stderr.write("WARNING: multiprocessing module not available, " +
+                             "running on single process.")
+
         if num_process == 0:
             runner = Runner(dependency_file, reporter_obj, continue_,
                             always_execute, verbosity)

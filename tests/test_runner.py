@@ -274,7 +274,11 @@ class TestTask_RunAll(object):
 # run tests in both single process runner and multi-process runner
 def pytest_generate_tests(metafunc):
     if TestRunner_run_tasks == metafunc.cls:
-        for RunnerClass in (runner.Runner, runner.MRunner):
+        runners = [runner.Runner]
+        if runner.MRunner.available():
+            # TODO: test should be added and skipped!
+            runners.append(runner.MRunner)
+        for RunnerClass in (runners):
             metafunc.addcall(id=RunnerClass.__name__,
                              funcargs=dict(RunnerClass=RunnerClass))
 
@@ -508,6 +512,7 @@ class TestRunner_run_tasks(object):
         my_runner.finish()
 
 
+@pytest.mark.skipif('not runner.MRunner.available()')
 class TestMReporter(object):
     class MyRunner(object):
         def __init__(self):
@@ -528,6 +533,7 @@ class TestMReporter(object):
         assert not hasattr(mp_reporter, 'no_existent_method')
 
 
+@pytest.mark.skipif('not runner.MRunner.available()')
 class TestMRunner_get_next_task(object):
     # simple normal case
     def test_run_task(self, reporter, depfile):
@@ -588,6 +594,7 @@ class TestMRunner_get_next_task(object):
         assert 1 == run.free_proc
 
 
+@pytest.mark.skipif('not runner.MRunner.available()')
 class TestMRunner_start_process(object):
     # 2 process, 3 tasks
     def test_all_processes(self, reporter, monkeypatch, depfile):
@@ -646,6 +653,8 @@ class TestMRunner_start_process(object):
         assert t1.name == task_q.get().name
         assert isinstance(task_q.get(), runner.Hold)
 
+
+@pytest.mark.skipif('not runner.MRunner.available()')
 class TestMRunner_execute_task(object):
     def test_hold(self, reporter, depfile):
         run = runner.MRunner(depfile.name, reporter)

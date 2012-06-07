@@ -232,7 +232,7 @@ class TestTaskDispatcher_add_task(object):
                  }
         td = TaskDispatcher(tasks, [])
         n1 = td._gen_node(None, 't1')
-        n2 = td._gen_node(None, 't2')
+        td._gen_node(None, 't2')
         gen = td._add_task(n1)
         assert 'wait' == gen.next()
         tasks['t2'].run_status = 'done'
@@ -245,7 +245,7 @@ class TestTaskDispatcher_add_task(object):
                  }
         td = TaskDispatcher(tasks, [])
         n1 = td._gen_node(None, 't1')
-        n2 = td._gen_node(None, 't2')
+        td._gen_node(None, 't2')
         tasks['t2'].run_status = 'done'
         gen = td._add_task(n1)
         assert tasks['t1'] == gen.next()

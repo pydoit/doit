@@ -4,12 +4,14 @@ import threading
 import time
 
 import pytest
+from mock import Mock
 
 from doit.dependency import Dependency
 from doit.task import Task
 from doit.exceptions import InvalidCommand
 from doit import cmds
 from doit import reporter
+from doit import runner
 from tests.test_runner import FakeReporter
 from tests.conftest import remove_db
 
@@ -150,7 +152,6 @@ class TestCmdForget(object):
         cmds.doit_forget(depfile.name, tasks, output, [])
         got = output.getvalue().split("\n")[:-1]
         assert ["forgeting all tasks"] == got, repr(output.getvalue())
-#        assert False
         dep = Dependency(depfile.name)
         for task in tasks:
             assert None == dep._get(task.name, "dep")
@@ -205,6 +206,14 @@ class TestCmdRun(object):
         assert 0 == result
         got = output.getvalue().split("\n")[:-1]
         assert [".  t1", ".  t2", ".  g1.a", ".  g1.b", ".  t3"] == got
+
+    def testMP_not_available(self, depfile, monkeypatch):
+        # make sure MRunner wont be used
+        monkeypatch.setattr(runner.MRunner, "available",
+                            Mock(return_value=False))
+        monkeypatch.setattr(runner.MRunner, "__init__", 'not available')
+        output = StringIO.StringIO()
+        cmds.doit_run(depfile.name, tasks_sample(), output, num_process=3)
 
     def testProcessRunMP(self, depfile):
         output = StringIO.StringIO()

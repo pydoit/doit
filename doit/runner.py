@@ -228,8 +228,26 @@ class Hold(object):
     """Sentinel class: No task ready to be executed"""
     pass
 
+
 class MRunner(Runner):
     """MultiProcessing Runner """
+
+    # cant use staticmethod because of bug in py.test
+    # https://bitbucket.org/hpk42/pytest/issue/156
+    @classmethod
+    def available(cls):
+        """check if multiprocessing module is available"""
+        # see: https://bitbucket.org/schettino72/doit/issue/17
+        #      http://bugs.python.org/issue3770
+        # not available on BSD systens
+        try:
+            import multiprocessing.synchronize
+            multiprocessing # pyflakes
+        except ImportError: # pragma: no cover
+            return False
+        else:
+            return True
+
 
     class MReporter(object):
         """send reported messages to master process
