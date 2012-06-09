@@ -148,19 +148,22 @@ class TestInterface(object):
         monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         mock_clean = Mock()
         monkeypatch.setattr(doit_cmd, "doit_clean", mock_clean)
-        doit_cmd.cmd_main(["clean", "--dry-run"])
+        doit_cmd.cmd_main(["clean", "--dry-run", "t1"])
         assert mock_clean.called
 
-        expected = [('task_list', mock_get_tasks()['task_list']),
-                    ('outstream', sys.stdout),
-                    ('dryrun', True),
-                    ('clean_dep', False),
-                    ('clean_tasks', mock_get_tasks()['config']['default_tasks'])
-                    ]
+        expected = [
+            ('task_list', mock_get_tasks()['task_list']),
+            ('outstream', sys.stdout),
+            ('dryrun', True),
+            ('clean_dep', False),
+            ('clean_all', False),
+            ('default_tasks', mock_get_tasks()['config']['default_tasks']),
+            ('selected_tasks', ["t1"]),
+            ]
 
         assert len(expected) == len(argspec[0])
         assert len(expected) == len(mock_clean.call_args[0])
-        for exp,got in zip(expected, zip(argspec[0], mock_clean.call_args[0])):
+        for exp, got in zip(expected, zip(argspec[0], mock_clean.call_args[0])):
             assert exp == got
 
 

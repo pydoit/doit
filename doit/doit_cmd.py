@@ -265,7 +265,9 @@ def cmd_list(params, args):
 
 clean_doc = {'purpose': "clean action / remove targets",
              'usage': "[TASK ...]",
-             'description': None}
+             'description':
+                 ("If no task is specified clean default tasks and "
+                  "set --clean-dep automatically.")}
 
 opt_clean_dryrun = {'name': 'dryrun',
                     'short': 'n', # like make dry-run
@@ -281,13 +283,23 @@ opt_clean_cleandep = {'name': 'cleandep',
                     'default': False,
                     'help': 'clean task dependencies too'}
 
+opt_clean_cleanall = {
+    'name': 'cleanall',
+    'short': 'a', # clean
+    'long': 'clean-all',
+    'type': bool,
+    'default': False,
+    'help': 'clean all task'}
+
 def cmd_clean(params, args):
     """execute cmd 'clean' """
     dodo_tasks = loader.get_tasks(*_path_params(params))
     params.update_defaults(dodo_tasks['config'])
-    options = args or dodo_tasks['config'].get('default_tasks')
+    selected_tasks = args
+    default_tasks = dodo_tasks['config'].get('default_tasks')
     return doit_clean(dodo_tasks['task_list'], sys.stdout, params['dryrun'],
-                      params['cleandep'], options)
+                      params['cleandep'], params['cleanall'],
+                      default_tasks, selected_tasks)
 
 
 ##########################################################
@@ -463,9 +475,9 @@ def cmd_main(cmd_args):
 
     # clean command
     clean_options = (opt_dodo, opt_cwd, opt_seek_file, opt_clean_cleandep,
-                     opt_clean_dryrun)
+                     opt_clean_cleanall, opt_clean_dryrun)
     sub_cmd['clean'] = cmdparse.Command('clean', clean_options, cmd_clean,
-                                       clean_doc)
+                                        clean_doc)
 
     # list command
     list_options = (opt_dodo, opt_depfile, opt_cwd, opt_seek_file , opt_listall,
