@@ -250,9 +250,15 @@ class Task(object):
         """task getargs attribute define implicit task dependencies"""
         self._init_options()
         for arg_name, desc in self.getargs.iteritems():
-            # value can a string task_id.key_name (deprecated)...
+
+            # DEPRECATED on 0.17, to be removed on 0.18
+            # value can be a string task_id.key_name
             if isinstance(desc, basestring):
-                # TODO raise deprecation warning
+                msg = ('DEPRECATION WARNING: Task "%s" "getargs" string values '
+                       '<task_id.key_name> is deprecated. '
+                       'Use a tuple (<task_id>, <key_name>) instead.\n')
+                sys.__stderr__.write(msg % self.name)
+
                 parts = desc.rsplit('.', 1)
                 if len(parts) != 2:
                     msg = ("Taskid '%s' - Invalid format for getargs of '%s'.\n" %
@@ -260,6 +266,8 @@ class Task(object):
                            "Should be <taskid>.<key-name> got '%s'\n" % desc)
                     raise InvalidTask(msg)
                 self.getargs[arg_name] = parts
+            # END - DEPRECATION
+
             # ... or tuple (task_id, key_name)
             else:
                 parts = desc
