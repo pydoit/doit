@@ -226,17 +226,6 @@ class TestSaveSuccess(object):
         assert depfile._get("taskId_X",filePath) is not None
         assert depfile._get("taskId_X",filePath2) is not None
 
-    def test_save_result_dep(self, depfile):
-        t1 = Task('t1', None)
-        t1.result = "result"
-        depfile.save_success(t1)
-        t2 = Task('t2', None, result_dep=['t1'])
-        depfile.save_success(t2)
-        assert get_md5(t1.result) == depfile._get("t2", "task:t1")
-        t3 = Task('t3', None, task_dep=['t1'])
-        depfile.save_success(t3)
-        assert None is depfile._get("t3", "task:t1")
-
     def test_save_values(self, depfile):
         t1 = Task('t1', None)
         t1.values = {'x':5, 'y':10}
@@ -501,19 +490,3 @@ class TestGetStatus(object):
         assert [] == t1.dep_changed
 
 
-    def test_resultDependencies(self, depfile):
-        # t1 ok, but t2 not saved
-        t1 = Task('t1', None)
-        t1.result = "result"
-        t2 = Task('t2', None, result_dep=['t1'])
-        depfile.save_success(t1)
-        assert 'run' == depfile.get_status(t2, {})
-
-        # save t2 - ok
-        depfile.save_success(t2)
-        assert 'up-to-date' == depfile.get_status(t2, {})
-
-        # change t1
-        t1.result = "another"
-        depfile.save_success(t1)
-        assert 'run' == depfile.get_status(t2, {})

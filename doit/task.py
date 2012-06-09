@@ -3,6 +3,7 @@
 import types
 import os
 import copy
+import sys
 
 from . import cmdparse
 from .exceptions import CatchedException, InvalidTask
@@ -20,7 +21,6 @@ class Task(object):
     @ivar task_dep: (list - string)
     @ivar wild_dep: (list - string) task dependency using wildcard *
     @ivar file_dep: (set - string)
-    @ivar result_dep: (list -string)
     @ivar calc_dep: (set - string) reference to a task
     @ivar dep_changed (list - string): list of file-dependencies that changed
           (are not up_to_date). this must be set before
@@ -86,8 +86,6 @@ class Task(object):
         self.check_attr(name, 'actions', actions, self.valid_attr['actions'])
         self.check_attr(name, 'file_dep', file_dep, self.valid_attr['file_dep'])
         self.check_attr(name, 'task_dep', task_dep, self.valid_attr['task_dep'])
-        self.check_attr(name, 'result_dep', result_dep,
-                        self.valid_attr['result_dep'])
         self.check_attr(name, 'uptodate', uptodate, self.valid_attr['uptodate'])
         self.check_attr(name, 'calc_dep', calc_dep, self.valid_attr['calc_dep'])
         self.check_attr(name, 'targets', targets, self.valid_attr['targets'])
@@ -105,7 +103,28 @@ class Task(object):
         self.taskcmd = cmdparse.TaskOption(name, params, None, None)
         self.options = None
         self.setup_tasks = list(setup)
-        self._init_deps(file_dep, task_dep, result_dep, calc_dep)
+
+        # actions
+        self._action_instances = None
+        if actions is None:
+            self._actions = []
+        else:
+            self._actions = list(actions[:])
+
+        self._init_deps(file_dep, task_dep, calc_dep)
+
+        # DEPRECATED on 0.17 to be removed on 0.18
+        if result_dep: # pragma: no cover
+            from doit.tools import result_dep as check_result
+            uptodate = list(uptodate)
+            msg = ('DEPRECATION WARNING: Task "%s" is using "result_dep", '
+                   'use doit.tools.result_dep as "uptodate" instead.\n')
+            sys.__stderr__.write(msg % self.name)
+            for _result_dep in result_dep:
+                uptodate.append(check_result(_result_dep))
+
+        self.uptodate = self._init_uptodate(uptodate) if uptodate else []
+
         self.getargs = getargs
         if self.getargs:
             self._init_getargs()
@@ -116,16 +135,6 @@ class Task(object):
         self.values = {}
         self.verbosity = verbosity
         self.custom_title = title
-
-        # actions
-        self._action_instances = None
-        if actions is None:
-            self._actions = []
-        else:
-            self._actions = actions[:]
-
-        # uptodate
-        self.uptodate = self._init_uptodate(uptodate) if uptodate else []
 
         # clean
         if clean is True:
@@ -140,7 +149,7 @@ class Task(object):
         self.run_status = None
 
 
-    def _init_deps(self, file_dep, task_dep, result_dep, calc_dep):
+    def _init_deps(self, file_dep, task_dep, calc_dep):
         """init for dependency related attributes"""
         self.dep_changed = None
 
@@ -153,11 +162,6 @@ class Task(object):
         self.wild_dep = []
         if task_dep:
             self._expand_task_dep(task_dep)
-
-        # result_dep
-        self.result_dep = []
-        if result_dep:
-            self._expand_result_dep(result_dep)
 
         # calc_dep
         self.calc_dep = set()
@@ -208,12 +212,6 @@ class Task(object):
             else:
                 self.task_dep.append(dep)
 
-    def _expand_result_dep(self, result_dep):
-        """convert ressult_dep input into restul_dep and task_dep"""
-        self.result_dep.extend(result_dep)
-        # result_dep are also task_dep
-        self.task_dep.extend(result_dep)
-
 
     def _expand_calc_dep(self, calc_dep):
         """calc_dep input"""
@@ -230,7 +228,6 @@ class Task(object):
     # FIXME should support setup also
     _expand_map = {'task_dep': _expand_task_dep,
                    'file_dep': _expand_file_dep,
-                   'result_dep': _expand_result_dep,
                    'calc_dep': _expand_calc_dep,
                    'uptodate': _extend_uptodate,
                    }
@@ -466,7 +463,6 @@ class Task(object):
         inst.file_dep = copy.copy(self.file_dep)
         inst.task_dep = self.task_dep[:]
         inst.wild_dep = self.wild_dep[:]
-        inst.result_dep = self.result_dep[:]
         inst.calc_dep = copy.copy(self.calc_dep)
         inst.doc = self.doc
         inst.run_status = self.run_status

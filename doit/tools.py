@@ -44,6 +44,31 @@ def run_once(task, values):
 
 
 # uptodate
+class result_dep(object):
+    """check if result of the given task was modified
+    """
+    def __init__(self, dep_task_name):
+        self.dep_name = dep_task_name
+
+    def _configure_task(self, task):
+        """to be called by doit when create the task"""
+        # result_dep creates an implicit task_dep
+        task.task_dep.append(self.dep_name)
+
+    def __call__(self, task, values):
+        """return True if result is the same as last run"""
+        dep_result = self._get_val(self.dep_name, 'result:')
+        result_name = '_result:%s' % self.dep_name
+        def _save_result():
+            return {result_name: dep_result}
+        task.insert_action(_save_result)
+        last_success = values.get(result_name)
+        if last_success is None:
+            return False
+        return (last_success == dep_result)
+
+
+# uptodate
 class config_changed(object):
     """check if passed config was modified
     @var config (str) or (dict)
@@ -52,6 +77,7 @@ class config_changed(object):
         self.config = config
 
     def __call__(self, task, values):
+        """return True if confing values are UNCHANGED"""
         config_digest = None
         if isinstance(self.config, basestring):
             config_digest = self.config

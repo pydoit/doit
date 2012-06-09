@@ -292,12 +292,6 @@ class DependencyBase(object):
             size = os.path.getsize(dep)
             self._set(task.name, dep, (timestamp, size, md5sum(dep)))
 
-        # result-dep
-        for dep in task.result_dep:
-            result = self._get(dep, "result:")
-            if result is not None:
-                self._set(task.name, "task:" + dep, result)
-
 
     def get_values(self, task_name):
         """get all saved values from a task
@@ -369,8 +363,7 @@ class DependencyBase(object):
                 return 'run'
 
         # no dependencies means it is never up to date.
-        if ((not task.file_dep) and (not task.result_dep)
-            and (not checked_uptodate)):
+        if not (task.file_dep or checked_uptodate):
             return 'run'
 
         # if target file is not there, task is not up to date
@@ -379,7 +372,7 @@ class DependencyBase(object):
                 task.dep_changed = list(task.file_dep)
                 return 'run'
 
-        # check for modified dependencies
+        # check for modified file_dep
         changed = []
         status = 'up-to-date' # initial assumption
         for dep in tuple(task.file_dep):
@@ -390,13 +383,6 @@ class DependencyBase(object):
             if check_modified(dep, file_stat, self._get(task.name, dep)):
                 changed.append(dep)
                 status = 'run'
-
-        for dep in tuple(task.result_dep):
-            result = self._get(dep, "result:")
-            if ((result is None) or
-                (self._get(task.name, "task:" + dep) != result)):
-                status = 'run'
-                break
 
         task.dep_changed = changed #FIXME create a separate function for this
         return status

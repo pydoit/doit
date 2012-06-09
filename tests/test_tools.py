@@ -42,8 +42,45 @@ class TestRunOnce(object):
         assert True == tools.run_once(t, t.values)
 
 
-class TestConfigChanged(object):\
+class TestResultDep(object):
+    def test_run(self, depfile):
+        dep_manager = depfile
 
+        def t1():
+            return task.Task("t1", None, uptodate=[tools.result_dep('t2')])
+        tasks = {'t1': t1(),
+                 't2': task.Task("t2", None),
+                 }
+        # _config_task was executed and t2 added as task_dep
+        assert ['t2'] == tasks['t1'].task_dep
+
+        # first t2 result
+        tasks['t2'].result = 'yes'
+        dep_manager.save_success(tasks['t2'])
+        assert 'run' == dep_manager.get_status(tasks['t1'], tasks)  # first time
+        tasks['t1'].execute()
+        dep_manager.save_success(tasks['t1'])
+
+        tasks['t1'] = t1() # need to recreate because task.actions is modified
+        assert 'up-to-date' == dep_manager.get_status(tasks['t1'], tasks)
+
+        # t2 result changed
+        tasks['t2'].result = '222'
+        dep_manager.save_success(tasks['t2'])
+
+        tasks['t1'].execute()
+        dep_manager.save_success(tasks['t1'])
+        tasks['t1'] = t1()
+        assert 'run' == dep_manager.get_status(tasks['t1'], tasks)
+
+        tasks['t1'].execute()
+        dep_manager.save_success(tasks['t1'])
+        tasks['t1'] = t1()
+        assert 'up-to-date' == dep_manager.get_status(tasks['t1'], tasks)
+
+
+
+class TestConfigChanged(object):
     def test_invalid_type(self):
         class NotValid(object):pass
         uptodate = tools.config_changed(NotValid())

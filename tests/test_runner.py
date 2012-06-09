@@ -416,50 +416,6 @@ class TestRunner_run_tasks(object):
         d = Dependency(depfile.name)
         assert d._get("taskX", os.path.abspath(depPath))
 
-    def test_resultDependency(self, reporter, RunnerClass, depfile):
-        t1 = Task("t1", [(ok,)])
-        t2 = Task("t2", [(ok,)], result_dep=['t1'])
-        my_runner = RunnerClass(depfile.name, reporter)
-        tc = TaskControl([t1, t2])
-        tc.process(None)
-        my_runner.run_tasks(tc)
-        my_runner.finish()
-        assert ('start', t1) == reporter.log.pop(0)
-        assert ('execute', t1) == reporter.log.pop(0)
-        assert ('success', t1) == reporter.log.pop(0)
-        assert ('start', t2) == reporter.log.pop(0)
-        assert ('execute', t2) == reporter.log.pop(0)
-        assert ('success', t2) == reporter.log.pop(0)
-
-        # again
-        t1 = Task("t1", [(ok,)])
-        t2 = Task("t2", [(ok,)], result_dep=['t1'])
-        my_runner2 = RunnerClass(depfile.name, reporter)
-        tc2 = TaskControl([t1, t2])
-        tc2.process(None)
-        my_runner2.run_tasks(tc2)
-        my_runner2.finish()
-        assert ('start', t1) == reporter.log.pop(0)
-        assert ('execute', t1) == reporter.log.pop(0)
-        assert ('success', t1) == reporter.log.pop(0)
-        assert ('start', t2) == reporter.log.pop(0)
-        assert ('up-to-date', t2) == reporter.log.pop(0)
-
-        # change t1, t2 executed again
-        t1B = Task("t1", [(ok2,)])
-        t2 = Task("t2", [(ok,)], result_dep=['t1'])
-        my_runner3 = RunnerClass(depfile.name, reporter)
-        tc3 = TaskControl([t1B, t2])
-        tc3.process(None)
-        my_runner3.run_tasks(tc3)
-        my_runner3.finish()
-        assert ('start', t1B) == reporter.log.pop(0)
-        assert ('execute', t1B) == reporter.log.pop(0)
-        assert ('success', t1B) == reporter.log.pop(0)
-        assert ('start', t2) == reporter.log.pop(0)
-        assert ('execute', t2) == reporter.log.pop(0)
-        assert ('success', t2) == reporter.log.pop(0)
-
 
     def test_continue(self, reporter, RunnerClass, depfile):
         tasks = [Task("task1", [(_fail,)] ),

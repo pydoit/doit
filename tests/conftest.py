@@ -35,8 +35,6 @@ def pytest_funcarg__depfile(request):
         name = py.std.re.sub("[\W]", "_", name)
         my_tmpdir = request.config._tmpdirhandler.mktemp(name, numbered=True)
         return dep_class(os.path.join(my_tmpdir.strpath, "testdb"))
-        # do not use tempfile use TESTDB
-        # return dep_class(TESTDB)
 
     def remove_depfile(depfile):
         if not depfile._closed:

@@ -374,10 +374,6 @@ targets:
   - type: list of strings
   - each item is file-path relative to the dodo file (accepts both files and folders)
 
-result_dep:
-  - type: list. items:
-    * task name (string)
-
 uptodate:
   - type: list. items:
     * None - None values are just ignored

@@ -145,29 +145,21 @@ class TestTaskDeps(object):
         assert ["123"] == my_task.task_dep
         assert ["4*56"] == my_task.wild_dep
 
-    def test_expand_result(self):
-        my_task = task.Task("Task X", ["taskcmd"], result_dep=["123"])
-        assert ["123"] == my_task.result_dep
-        assert ["123"] == my_task.task_dep
-
     def test_calc_dep(self):
         my_task = task.Task("Task X", ["taskcmd"], calc_dep=["123"])
         assert set(["123"]) == my_task.calc_dep
 
     def test_update_deps(self):
         my_task = task.Task("Task X", ["taskcmd"], file_dep=["fileX"],
-                            calc_dep=["calcX"], result_dep=["resultX"],
-                            uptodate=[None])
+                            calc_dep=["calcX"], uptodate=[None])
         my_task.update_deps({'file_dep': ['fileY'],
                              'task_dep': ['taskY'],
                              'calc_dep': ['calcX', 'calcY'],
-                             'result_dep': ['resultY'],
                              'uptodate': [True],
                              })
         assert set(['fileX', 'fileY']) == my_task.file_dep
-        assert ['resultX', 'taskY', 'resultY'] == my_task.task_dep
+        assert ['taskY'] == my_task.task_dep
         assert set(['calcX', 'calcY']) == my_task.calc_dep
-        assert ['resultX', 'resultY'] == my_task.result_dep
         assert [(None, None, None), (True, None, None)] == my_task.uptodate
 
 
