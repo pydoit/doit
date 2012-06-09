@@ -107,6 +107,16 @@ class TestTaskUpToDate(object):
                       uptodate=[(custom_check, [123], {'xxx':'yyy'})])
         assert t.uptodate[0] == (custom_check, [123], {'xxx':'yyy'})
 
+    def test_object_with_configure(self):
+        class Check(object):
+            def __call__(self): return True
+            def _configure_task(self, task):
+                task.task_dep.append('y1')
+        check = Check()
+        t = task.Task("Task X", ["taskcmd"], uptodate=[check])
+        assert (check, [], {}) == t.uptodate[0]
+        assert ['y1'] == t.task_dep
+
     def test_invalid(self):
         pytest.raises(task.InvalidTask,
                       task.Task, "Task X", ["taskcmd"], uptodate=[{'x':'y'}])

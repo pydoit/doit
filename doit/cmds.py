@@ -135,7 +135,7 @@ def doit_list(dependency_file, task_list, outstream, filter_tasks,
             task_str += "%s" % task.doc
         # FIXME this does not take calc_dep into account
         if print_status:
-            task_uptodate = dependency_manager.get_status(task)
+            task_uptodate = dependency_manager.get_status(task, None)
             task_str = "%s %s" % (status_map[task_uptodate], task_str)
 
         outstream.write("%s\n" % task_str)

@@ -322,11 +322,11 @@ class TestGetStatus(object):
     def test_ignore(self, depfile):
         t1 = Task("t1", None)
         # before ignore
-        assert 'run' == depfile.get_status(t1)
+        assert 'run' == depfile.get_status(t1, {})
         assert [] == t1.dep_changed
         # after ignote
         depfile.ignore(t1)
-        assert 'ignore' == depfile.get_status(t1)
+        assert 'ignore' == depfile.get_status(t1, {})
         assert [] == t1.dep_changed
 
 
@@ -340,12 +340,12 @@ class TestGetStatus(object):
         t1 = Task("t1", None, dependencies)
 
         # first time execute
-        assert 'run' == depfile.get_status(t1)
+        assert 'run' == depfile.get_status(t1, {})
         assert dependencies == t1.dep_changed
 
         # second time no
         depfile.save_success(t1)
-        assert 'up-to-date' == depfile.get_status(t1)
+        assert 'up-to-date' == depfile.get_status(t1, {})
         assert [] == t1.dep_changed
 
         # FIXME - mock timestamp
@@ -356,25 +356,25 @@ class TestGetStatus(object):
         ff.close()
 
         # execute again
-        assert 'run' == depfile.get_status(t1)
+        assert 'run' == depfile.get_status(t1, {})
         assert dependencies == t1.dep_changed
 
 
     def test_file_dependency_not_exist(self, depfile):
         filePath = get_abspath("data/dependency_not_exist")
         t1 = Task("t1", None, [filePath])
-        pytest.raises(Exception, depfile.get_status, t1)
+        pytest.raises(Exception, depfile.get_status, t1, {})
 
 
     # if there is no dependency the task is always executed
     def test_noDependency(self, depfile):
         t1 = Task("t1", None)
         # first time execute
-        assert 'run' == depfile.get_status(t1)
+        assert 'run' == depfile.get_status(t1, {})
         assert [] == t1.dep_changed
         # second too
         depfile.save_success(t1)
-        assert 'run' == depfile.get_status(t1)
+        assert 'run' == depfile.get_status(t1, {})
         assert [] == t1.dep_changed
 
 
@@ -387,18 +387,18 @@ class TestGetStatus(object):
         t1 = Task("t1", None, file_dep=[filePath], uptodate=[False])
 
         # first time execute
-        assert 'run' == depfile.get_status(t1)
+        assert 'run' == depfile.get_status(t1, {})
         assert [] == t1.dep_changed
 
         # second time execute too
         depfile.save_success(t1)
-        assert 'run' == depfile.get_status(t1)
+        assert 'run' == depfile.get_status(t1, {})
         assert [] == t1.dep_changed
 
     def test_UptodateTrue(self, depfile):
         t1 = Task("t1", None, uptodate=[True])
         depfile.save_success(t1)
-        assert 'up-to-date' == depfile.get_status(t1)
+        assert 'up-to-date' == depfile.get_status(t1, {})
 
     def test_UptodateNone(self, depfile):
         filePath = get_abspath("data/dependency1")
@@ -409,19 +409,19 @@ class TestGetStatus(object):
         t1 = Task("t1", None, file_dep=[filePath], uptodate=[None])
 
         # first time execute
-        assert 'run' == depfile.get_status(t1)
+        assert 'run' == depfile.get_status(t1, {})
         assert [filePath] == t1.dep_changed
 
         # second time execute too
         depfile.save_success(t1)
-        assert 'up-to-date' == depfile.get_status(t1)
+        assert 'up-to-date' == depfile.get_status(t1, {})
 
 
     def test_UptodateCallable_True(self, depfile):
         def check(task, values): return True
         t1 = Task("t1", None, uptodate=[check])
         depfile.save_success(t1)
-        assert 'up-to-date' == depfile.get_status(t1)
+        assert 'up-to-date' == depfile.get_status(t1, {})
 
     def test_UptodateCallable_False(self, depfile):
         filePath = get_abspath("data/dependency1")
@@ -433,13 +433,27 @@ class TestGetStatus(object):
         t1 = Task("t1", None, file_dep=[filePath], uptodate=[check])
 
         # first time execute
-        assert 'run' == depfile.get_status(t1)
+        assert 'run' == depfile.get_status(t1, {})
         assert [] == t1.dep_changed
 
         # second time execute too
         depfile.save_success(t1)
-        assert 'run' == depfile.get_status(t1)
+        assert 'run' == depfile.get_status(t1, {})
         assert [] == t1.dep_changed
+
+
+    def test_UptodateCallable_added_attributes(self, depfile):
+        task_dict = "fake dict"
+        class My_uptodate(object):
+            def __call__(self, task, values):
+                # attributes were added to object before call'ing it
+                assert task_dict == self._tasks_dict
+                assert None == self._get_val('t1', None)
+                return True
+
+        check = My_uptodate()
+        t1 = Task("t1", None, uptodate=[check])
+        assert 'up-to-date' == depfile.get_status(t1, task_dict)
 
 
     # if target file does not exist, task is outdated.
@@ -450,7 +464,7 @@ class TestGetStatus(object):
 
         t1 = Task("task x", None, [dependency], [target])
         depfile.save_success(t1)
-        assert 'run' == depfile.get_status(t1)
+        assert 'run' == depfile.get_status(t1, {})
         assert [dependency] == t1.dep_changed
 
 
@@ -466,7 +480,7 @@ class TestGetStatus(object):
 
         depfile.save_success(t1)
         # up-to-date because target exist
-        assert 'up-to-date' == depfile.get_status(t1)
+        assert 'up-to-date' == depfile.get_status(t1, {})
         assert [] == t1.dep_changed
 
 
@@ -479,11 +493,11 @@ class TestGetStatus(object):
         t1 = Task("task x", None, deps, [folderPath])
         depfile.save_success(t1)
 
-        assert 'run' == depfile.get_status(t1)
+        assert 'run' == depfile.get_status(t1, {})
         assert deps == t1.dep_changed
         # create folder. task is up-to-date
         os.mkdir(folderPath)
-        assert 'up-to-date' == depfile.get_status(t1)
+        assert 'up-to-date' == depfile.get_status(t1, {})
         assert [] == t1.dep_changed
 
 
@@ -493,13 +507,13 @@ class TestGetStatus(object):
         t1.result = "result"
         t2 = Task('t2', None, result_dep=['t1'])
         depfile.save_success(t1)
-        assert 'run' == depfile.get_status(t2)
+        assert 'run' == depfile.get_status(t2, {})
 
         # save t2 - ok
         depfile.save_success(t2)
-        assert 'up-to-date' == depfile.get_status(t2)
+        assert 'up-to-date' == depfile.get_status(t2, {})
 
         # change t1
         t1.result = "another"
         depfile.save_success(t1)
-        assert 'run' == depfile.get_status(t2)
+        assert 'run' == depfile.get_status(t2, {})

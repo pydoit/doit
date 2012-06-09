@@ -330,10 +330,11 @@ class DependencyBase(object):
 
 
     # TODO add option to log this
-    def get_status(self, task):
+    def get_status(self, task, tasks_dict):
         """Check if task is up to date. set task.dep_changed
 
         @param task: (Task)
+        @param tasks_dict: (dict: Task) passed to objects used on uptodate
         @return: (str) one of up-to-date, ignore, run
 
         task.dep_changed (list-strings): file-dependencies that are not
@@ -352,6 +353,8 @@ class DependencyBase(object):
             # FIXME control verbosity, check error messages
             if hasattr(utd, '__call__'):
                 args = [task, self.get_values(task.name)] + utd_args
+                utd._get_val = self._get
+                utd._tasks_dict = tasks_dict
                 uptodate_result = utd(*args, **utd_kwargs)
             else:
                 uptodate_result = utd

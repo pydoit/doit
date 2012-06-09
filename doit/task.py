@@ -104,9 +104,11 @@ class Task(object):
         self.name = name
         self.taskcmd = cmdparse.TaskOption(name, params, None, None)
         self.options = None
-        self.getargs = getargs
         self.setup_tasks = list(setup)
         self._init_deps(file_dep, task_dep, result_dep, calc_dep)
+        self.getargs = getargs
+        if self.getargs:
+            self._init_getargs()
         self.targets = targets
         self.is_subtask = is_subtask
         self.has_subtask = has_subtask
@@ -162,15 +164,16 @@ class Task(object):
         if calc_dep:
             self._expand_calc_dep(calc_dep)
 
-        # get args
-        if self.getargs:
-            self._init_getargs()
-
 
     def _init_uptodate(self, items):
         """wrap uptodate callables"""
         uptodate = []
         for item in items:
+            # configure task
+            if hasattr(item, '_configure_task'):
+                item._configure_task(self)
+
+            # check/append uptodate value to task
             if isinstance(item, bool) or item is None:
                 uptodate.append((item, None, None))
             elif hasattr(item, '__call__'):

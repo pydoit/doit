@@ -35,7 +35,7 @@ class Runner(object):
         @param always_execute: (bool) execute even if up-to-date or ignored
         @param verbosity: (int) 0,1,2 see Task.execute
         """
-        self.dependency_manager = Dependency(dependency_file)
+        self.dep_manager = Dependency(dependency_file)
         self.reporter = reporter
         self.continue_ = continue_
         self.always_execute = always_execute
@@ -53,7 +53,7 @@ class Runner(object):
         its execution is not successful.
         """
         assert isinstance(catched_excp, CatchedException)
-        self.dependency_manager.remove_success(task)
+        self.dep_manager.remove_success(task)
         self.reporter.add_failure(task, catched_excp)
         # only return FAILURE if no errors happened.
         if isinstance(catched_excp, TaskFailed):
@@ -72,16 +72,16 @@ class Runner(object):
             # if key_name is None get the whole dict
             if key_name is None:
                 if not tasks_dict[task_id].has_subtask:
-                    arg_value = self.dependency_manager.get_values(task_id)
+                    arg_value = self.dep_manager.get_values(task_id)
                 # if specified task is a group task pass values from all
                 # sub-tasks as string
                 else:
                     arg_value = []
                     for sub_id in tasks_dict[task_id].task_dep:
                         arg_value.append(
-                            self.dependency_manager.get_values(sub_id))
+                            self.dep_manager.get_values(sub_id))
             else:
-                arg_value = self.dependency_manager.get_value(task_id, key_name)
+                arg_value = self.dep_manager.get_value(task_id, key_name)
             task.options[arg] = arg_value
 
 
@@ -102,7 +102,7 @@ class Runner(object):
 
             # check if task is up-to-date
             try:
-                task.run_status = self.dependency_manager.get_status(task)
+                task.run_status = self.dep_manager.get_status(task, tasks_dict)
             except Exception, exception:
                 msg = "ERROR: Task '%s' checking dependencies" % task.name
                 dep_error = DependencyError(msg, exception)
@@ -113,7 +113,7 @@ class Runner(object):
                 # if task is up-to-date skip it
                 if task.run_status == 'up-to-date':
                     self.reporter.skip_uptodate(task)
-                    task.values = self.dependency_manager.get_values(task.name)
+                    task.values = self.dep_manager.get_values(task.name)
                     return False
                 # check if task should be ignored (user controlled)
                 if task.run_status == 'ignore':
@@ -155,7 +155,7 @@ class Runner(object):
         task.run_status = "done"
         # save execution successful
         if catched_excp is None:
-            self.dependency_manager.save_success(task)
+            self.dep_manager.save_success(task)
             self.reporter.add_success(task)
         # task error
         else:
@@ -203,7 +203,7 @@ class Runner(object):
     def finish(self):
         """finish running tasks"""
         # flush update dependencies
-        self.dependency_manager.close()
+        self.dep_manager.close()
         self.teardown()
 
         # report final results
