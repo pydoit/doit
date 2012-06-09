@@ -71,12 +71,20 @@ class TestTaskInit(object):
         assert t.run_status is None
 
 
-class TestTaskInsertAction(object):
+class TestTaskValueSavers(object):
     def test_insert_action(self):
         t = task.Task("Task X", ["taskcmd"])
         def void(task, values, (my_arg1,)): pass
         t.insert_action((void, [1]))
-        assert 2 == len(t.actions)
+        assert 1 == len(t.actions)
+        assert 1 == len(t.value_savers)
+
+    def test_execute_value_savers(self):
+        t = task.Task("Task X", ["taskcmd"])
+        t.value_savers.append(lambda: {'v1':1})
+        t.save_extra_values()
+        assert 1 == t.values['v1']
+
 
 
 class TestTaskUpToDate(object):
@@ -110,7 +118,7 @@ class TestTaskUpToDate(object):
     def test_object_with_configure(self):
         class Check(object):
             def __call__(self): return True
-            def _configure_task(self, task):
+            def configure_task(self, task):
                 task.task_dep.append('y1')
         check = Check()
         t = task.Task("Task X", ["taskcmd"], uptodate=[check])

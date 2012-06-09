@@ -38,7 +38,7 @@ def run_once(task, values):
     """
     def save_executed():
         return {'run-once': True}
-    task.insert_action(save_executed)
+    task.value_savers.append(save_executed)
     return values.get('run-once', False)
 
 
@@ -49,23 +49,22 @@ class result_dep(object):
     """
     def __init__(self, dep_task_name):
         self.dep_name = dep_task_name
+        self.result_name = '_result:%s' % self.dep_name
+        self.dep_result = None
 
-    def _configure_task(self, task):
+    def configure_task(self, task):
         """to be called by doit when create the task"""
         # result_dep creates an implicit task_dep
         task.task_dep.append(self.dep_name)
+        task.value_savers.append(lambda: {self.result_name: self.dep_result})
 
     def __call__(self, task, values):
         """return True if result is the same as last run"""
-        dep_result = self._get_val(self.dep_name, 'result:')
-        result_name = '_result:%s' % self.dep_name
-        def _save_result():
-            return {result_name: dep_result}
-        task.insert_action(_save_result)
-        last_success = values.get(result_name)
+        self.dep_result = self._get_val(self.dep_name, 'result:')
+        last_success = values.get(self.result_name)
         if last_success is None:
             return False
-        return (last_success == dep_result)
+        return (last_success == self.dep_result)
 
 
 # uptodate
@@ -75,12 +74,11 @@ class config_changed(object):
     """
     def __init__(self, config):
         self.config = config
+        self.config_digest = None
 
-    def __call__(self, task, values):
-        """return True if confing values are UNCHANGED"""
-        config_digest = None
+    def _calc_digest(self):
         if isinstance(self.config, basestring):
-            config_digest = self.config
+            return self.config
         elif isinstance(self.config, dict):
             data = ''
             for key in sorted(self.config):
@@ -89,18 +87,21 @@ class config_changed(object):
                 byte_data = data.encode("utf-8")
             else:
                 byte_data = data
-            config_digest = hashlib.md5(byte_data).hexdigest()
+            return hashlib.md5(byte_data).hexdigest()
         else:
             raise Exception(('Invalid type of config_changed parameter got %s' +
                              ', must be string or dict') % (type(self.config),))
 
-        def _save_config():
-            return {'_config_changed': config_digest}
-        task.insert_action(_save_config)
+    def configure_task(self, task):
+        task.value_savers.append(lambda: {'_config_changed':self.config_digest})
+
+    def __call__(self, task, values):
+        """return True if confing values are UNCHANGED"""
+        self.config_digest = self._calc_digest()
         last_success = values.get('_config_changed')
         if last_success is None:
             return False
-        return (last_success == config_digest)
+        return (last_success == self.config_digest)
 
 
 # uptodate
@@ -126,7 +127,7 @@ class timeout(object):
     def __call__(self, task, values):
         def save_now():
             return {'success-time': time_module.time()}
-        task.insert_action(save_now)
+        task.value_savers.append(save_now)
         last_success = values.get('success-time', None)
         if last_success is None:
             return False
@@ -182,7 +183,7 @@ class check_timestamp_unchanged(object):
         """
         def save_now():
             return {self._key: self._get_time()}
-        task.insert_action(save_now)
+        task.value_savers.append(save_now)
 
         prev_time = values.get(self._key)
         if prev_time is None: # this is first run

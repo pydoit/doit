@@ -155,6 +155,7 @@ class Runner(object):
         task.run_status = "done"
         # save execution successful
         if catched_excp is None:
+            task.save_extra_values()
             self.dep_manager.save_success(task)
             self.reporter.add_success(task)
         # task error

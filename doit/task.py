@@ -26,6 +26,9 @@ class Task(object):
           (are not up_to_date). this must be set before
     @ivar uptodate: (list - bool/None) use bool/computed value instead of
                                        checking dependencies
+    @ivar value_savers (list - callables) that return dicts to be added to
+                           task values. Always executed on main process.
+                           To be used by `uptodate` implementations.
     @ivar setup_tasks (list - string): references to task-names
     @ivar is_subtask: (bool) indicate this task is a subtask
     @ivar has_subtask: (bool) indicate this task has subtasks
@@ -123,6 +126,7 @@ class Task(object):
             for _result_dep in result_dep:
                 uptodate.append(check_result(_result_dep))
 
+        self.value_savers = []
         self.uptodate = self._init_uptodate(uptodate) if uptodate else []
 
         self.getargs = getargs
@@ -174,8 +178,8 @@ class Task(object):
         uptodate = []
         for item in items:
             # configure task
-            if hasattr(item, '_configure_task'):
-                item._configure_task(self)
+            if hasattr(item, 'configure_task'):
+                item.configure_task(self)
 
             # check/append uptodate value to task
             if isinstance(item, bool) or item is None:
@@ -326,13 +330,23 @@ class Task(object):
         return self._action_instances
 
 
+    # deprecated on 0.17 to be removed on 0.18
     def insert_action(self, call_ref):
         """insert an action to execute before all other actions
 
         @param call_ref: callable or (callable, args, kwargs)
         This is part of interface to be used by 'uptodate' callables
         """
-        self._actions.insert(0, call_ref)
+        msg = ('DEPRECATION WARNING: Task "%s" insert_action is deprecated, '
+               'use "value_savers" instead.\n')
+        sys.__stderr__.write(msg % self.name)
+        self.value_savers.append(call_ref)
+    # end deprecation
+
+    def save_extra_values(self):
+        """run value_savers updating self.values"""
+        for value_saver in self.value_savers:
+            self.values.update(value_saver())
 
 
     def _get_out_err(self, out, err, verbosity):
@@ -437,6 +451,8 @@ class Task(object):
         del to_pickle['clean_actions']
         del to_pickle['teardown']
         del to_pickle['custom_title']
+        del to_pickle['value_savers']
+        del to_pickle['uptodate']
         return to_pickle
 
     def __eq__(self, other):
@@ -452,6 +468,7 @@ class Task(object):
         inst.name = self.name
         inst.targets = self.targets[:]
         inst.uptodate = self.uptodate[:]
+        inst.value_savers = self.value_savers[:]
         inst.is_subtask = self.is_subtask
         inst.has_subtask = self.has_subtask
         inst.result = self.result

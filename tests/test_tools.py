@@ -38,7 +38,7 @@ class TestRunOnce(object):
     def test_run(self):
         t = task.Task("TaskX", None, uptodate=[tools.run_once])
         assert False == tools.run_once(t, t.values)
-        t.execute()
+        t.save_extra_values()
         assert True == tools.run_once(t, t.values)
 
 
@@ -46,9 +46,7 @@ class TestResultDep(object):
     def test_run(self, depfile):
         dep_manager = depfile
 
-        def t1():
-            return task.Task("t1", None, uptodate=[tools.result_dep('t2')])
-        tasks = {'t1': t1(),
+        tasks = {'t1': task.Task("t1", None, uptodate=[tools.result_dep('t2')]),
                  't2': task.Task("t2", None),
                  }
         # _config_task was executed and t2 added as task_dep
@@ -58,24 +56,21 @@ class TestResultDep(object):
         tasks['t2'].result = 'yes'
         dep_manager.save_success(tasks['t2'])
         assert 'run' == dep_manager.get_status(tasks['t1'], tasks)  # first time
-        tasks['t1'].execute()
-        dep_manager.save_success(tasks['t1'])
 
-        tasks['t1'] = t1() # need to recreate because task.actions is modified
+        tasks['t1'].save_extra_values()
+        dep_manager.save_success(tasks['t1'])
         assert 'up-to-date' == dep_manager.get_status(tasks['t1'], tasks)
 
         # t2 result changed
         tasks['t2'].result = '222'
         dep_manager.save_success(tasks['t2'])
 
-        tasks['t1'].execute()
+        tasks['t1'].save_extra_values()
         dep_manager.save_success(tasks['t1'])
-        tasks['t1'] = t1()
         assert 'run' == dep_manager.get_status(tasks['t1'], tasks)
 
-        tasks['t1'].execute()
+        tasks['t1'].save_extra_values()
         dep_manager.save_success(tasks['t1'])
-        tasks['t1'] = t1()
         assert 'up-to-date' == dep_manager.get_status(tasks['t1'], tasks)
 
 
@@ -92,7 +87,7 @@ class TestConfigChanged(object):
         t1 = task.Task("TaskX", None, uptodate=[ua])
         assert False == ua(t1, t1.values)
         assert False == ub(t1, t1.values)
-        t1.execute()
+        t1.save_extra_values()
         assert True == ua(t1, t1.values)
         assert False == ub(t1, t1.values)
 
@@ -102,7 +97,7 @@ class TestConfigChanged(object):
         t1 = task.Task("TaskX", None, uptodate=[ua])
         assert False == ua(t1, t1.values)
         assert False == ub(t1, t1.values)
-        t1.execute()
+        t1.save_extra_values()
         assert True == ua(t1, t1.values)
         assert False == ub(t1, t1.values)
 
@@ -112,7 +107,7 @@ class TestConfigChanged(object):
         t1 = task.Task("TaskX", None, uptodate=[ua])
         assert False == ua(t1, t1.values)
         assert False == ub(t1, t1.values)
-        t1.execute()
+        t1.save_extra_values()
         assert True == ua(t1, t1.values)
         assert False == ub(t1, t1.values)
 
@@ -127,7 +122,7 @@ class TestTimeout(object):
         t = task.Task("TaskX", None, uptodate=[uptodate])
 
         assert False == uptodate(t, t.values)
-        t.execute()
+        t.save_extra_values()
         assert 100 == t.values['success-time']
 
         monkeypatch.setattr(tools.time_module, 'time', lambda: 103)
@@ -144,7 +139,7 @@ class TestTimeout(object):
         t = task.Task("TaskX", None, uptodate=[uptodate])
 
         assert False == uptodate(t, t.values)
-        t.execute()
+        t.save_extra_values()
         assert 10 == t.values['success-time']
 
         monkeypatch.setattr(tools.time_module, 'time', lambda: 100)
@@ -161,7 +156,7 @@ class TestTimeout(object):
         t = task.Task("TaskX", None, uptodate=[uptodate])
 
         assert False == uptodate(t, t.values)
-        t.execute()
+        t.save_extra_values()
         assert 10 == t.values['success-time']
 
         monkeypatch.setattr(tools.time_module, 'time', lambda: 3600 * 30)
@@ -215,7 +210,7 @@ class TestCheckTimestampUnchanged(object):
         assert False == check(t, t.values)
 
         # value just stored is equal to itself
-        t.execute()
+        t.save_extra_values()
         assert True == check(t, t.values)
 
         # stored timestamp less than current, up to date
