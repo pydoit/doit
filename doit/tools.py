@@ -31,6 +31,7 @@ def title_with_actions(task):
     return "%s => %s"% (task.name, title)
 
 
+
 # uptodate
 def run_once(task, values):
     """execute task just once
@@ -58,13 +59,34 @@ class result_dep(object):
         task.task_dep.append(self.dep_name)
         task.value_savers.append(lambda: {self.result_name: self.dep_result})
 
+    def _result_single(self):
+        """get result from a single task"""
+        return self._get_val(self.dep_name, 'result:')
+
+    def _result_group(self, dep_task):
+        """get result from a group task
+        the result is the combination of results of all sub-tasks
+        """
+        prefix = dep_task.name + ":"
+        sub_tasks = {}
+        for sub in dep_task.task_dep:
+            if sub.startswith(prefix):
+                sub_tasks[sub] = self._get_val(sub, 'result:')
+        return sub_tasks
+
     def __call__(self, task, values):
         """return True if result is the same as last run"""
-        self.dep_result = self._get_val(self.dep_name, 'result:')
+        dep_task = self._tasks_dict[self.dep_name]
+        if not dep_task.has_subtask:
+            self.dep_result = self._result_single()
+        else:
+            self.dep_result = self._result_group(dep_task)
+
         last_success = values.get(self.result_name)
         if last_success is None:
             return False
         return (last_success == self.dep_result)
+
 
 
 # uptodate
@@ -102,6 +124,7 @@ class config_changed(object):
         if last_success is None:
             return False
         return (last_success == self.config_digest)
+
 
 
 # uptodate

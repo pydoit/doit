@@ -43,7 +43,7 @@ class TestRunOnce(object):
 
 
 class TestResultDep(object):
-    def test_run(self, depfile):
+    def test_single(self, depfile):
         dep_manager = depfile
 
         tasks = {'t1': task.Task("t1", None, uptodate=[tools.result_dep('t2')]),
@@ -64,6 +64,42 @@ class TestResultDep(object):
         # t2 result changed
         tasks['t2'].result = '222'
         dep_manager.save_success(tasks['t2'])
+
+        tasks['t1'].save_extra_values()
+        dep_manager.save_success(tasks['t1'])
+        assert 'run' == dep_manager.get_status(tasks['t1'], tasks)
+
+        tasks['t1'].save_extra_values()
+        dep_manager.save_success(tasks['t1'])
+        assert 'up-to-date' == dep_manager.get_status(tasks['t1'], tasks)
+
+
+    def test_group(self, depfile):
+        dep_manager = depfile
+
+        tasks = {'t1': task.Task("t1", None, uptodate=[tools.result_dep('t2')]),
+                 't2': task.Task("t2", None, task_dep=['t2:a', 't2:b'],
+                                 has_subtask=True),
+                 't2:a': task.Task("t2:a", None),
+                 't2:b': task.Task("t2:b", None),
+                 }
+        # _config_task was executed and t2 added as task_dep
+        assert ['t2'] == tasks['t1'].task_dep
+
+        # first t2 result
+        tasks['t2:a'].result = 'yes1'
+        dep_manager.save_success(tasks['t2:a'])
+        tasks['t2:b'].result = 'yes2'
+        dep_manager.save_success(tasks['t2:b'])
+        assert 'run' == dep_manager.get_status(tasks['t1'], tasks)  # first time
+
+        tasks['t1'].save_extra_values()
+        dep_manager.save_success(tasks['t1'])
+        assert 'up-to-date' == dep_manager.get_status(tasks['t1'], tasks)
+
+        # t2 result changed
+        tasks['t2:a'].result = '222'
+        dep_manager.save_success(tasks['t2:a'])
 
         tasks['t1'].save_extra_values()
         dep_manager.save_success(tasks['t1'])
