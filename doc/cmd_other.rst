@@ -77,12 +77,15 @@ You can specify which task to *clean*. If no task is specified the clean operati
     $ doit clean
 
 
-By default if a task contains task-dependencies those are not automatically cleaned too. You can enable this using the option *-c*/*--clean-dep*.
+By default if a task contains task-dependencies those are not automatically
+cleaned too. You can enable this using the option *-c*/*--clean-dep*.
+If you are executing the default tasks this flag is automatically set.
 
 
 .. note::
 
     By default only the default tasks' clean are executed, not from all tasks.
+    You can clean all tasks using the *-a*/*--all* argument.
 
 If you want check which tasks the clean operation would affect you can use the option *-n*/*--dry-run*.
 
@@ -113,8 +116,8 @@ Note the ``!!``, it means that task was ignored. To reverse the `ignore` use `fo
 
 
 
-auto
--------
+auto (watch)
+-------------
 
 .. note::
 
@@ -122,9 +125,16 @@ auto
 
 `auto` sub-command is an alternative way of executing your tasks. It is a long running process that only terminates when it is interrupted (Ctrl-C). When started it will execute the given tasks. After that it will watch the file system for modifications in the file-dependencies.  When a file is modified the tasks are re-executed.
 
+
 .. code-block:: console
 
     $ doit auto
+
+
+.. note::
+
+   The `dodo` file is actually re-loaded/executed everytime tasks need to be
+   re-executed.
 
 
 .. warning::

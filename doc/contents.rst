@@ -14,6 +14,7 @@ Contents:
    install
    tasks
    dependencies
+   uptodate
    cmd_run
    cmd_other
    tools
