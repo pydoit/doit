@@ -365,9 +365,8 @@ class TaskDispatcher(object):
             self.waiting.remove(node)
             node.wait_select = False
 
-        # status != run means this was not just select completed
-        if node.task.run_status not in ('done', 'up-to-date'):
-            assert node.task.run_status == 'run'
+        # status == run means this was not just select completed
+        if node.task.run_status == 'run':
             return
 
         for waiting_node in node.waiting_me:

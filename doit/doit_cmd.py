@@ -371,6 +371,9 @@ actions [required]:
   - type: Cmd-Task -> string or list of strings (each item is a different command). to be executed by shell.
   - type: Group-Task -> None.
 
+basename:
+  - type: string. if present use it as task name instead of taking name from python function
+
 name [required for sub-task]:
   - type: string. sub-task identifier
 
