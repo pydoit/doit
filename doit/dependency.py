@@ -183,10 +183,14 @@ class DbmDB(object):
         self.dirty.add(task_id)
 
     def _in_dbm(self, key):
-        """python3: when for get/set key is convert to bytes but not for 'in'"""
-        # should be just
-        # return key in self._dbm
-        return key.encode('utf-8') in self._dbm
+        """
+        should be just::
+          return key in self._dbm
+
+         python3: when for get/set key is convert to bytes but not for 'in'
+         fix #23 'in' operator not supported on DBM implementations on py2.6
+        """
+        return self._dbm.has_key(key.encode('utf-8'))
 
 
     def get(self, task_id, dependency):
