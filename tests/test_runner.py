@@ -163,7 +163,7 @@ class TestRunner_SelectTask(object):
         # invalid getargs. Exception wil be raised and task will fail
         def check_x(my_x): return True
         t1 = Task('t1', [lambda :True])
-        t2 = Task('t2', [(check_x,)], getargs={'my_x':'t1.x'})
+        t2 = Task('t2', [(check_x,)], getargs={'my_x':('t1','x')})
         my_runner = runner.Runner(depfile.name, reporter)
 
         # t2 gives chance for setup tasks to be executed

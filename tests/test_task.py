@@ -173,7 +173,7 @@ class TestTaskDeps(object):
 
 class TestTask_Getargs(object):
     def test_ok(self):
-        getargs = {'x' : 't1.x', 'y': 't2.z'}
+        getargs = {'x' : ('t1','x'), 'y': ('t2','z')}
         t = task.Task('t3', None, getargs=getargs)
         assert 't1' in t.setup_tasks
         assert 't2' in t.setup_tasks
@@ -189,6 +189,7 @@ class TestTask_Getargs(object):
                               't3', None, getargs=getargs)
 
     def test_many_dots(self):
+        # DEPRECATED
         getargs = {'x': 't2:file.ext.x'}
         t = task.Task('t1', None, getargs=getargs)
         assert 't2:file.ext' in t.setup_tasks
