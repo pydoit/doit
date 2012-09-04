@@ -6,8 +6,20 @@ Changes
 0.17.0
 =====================
 
-- fix #9 cacl_dep create implicit task_dep if a file_dep returned is a also a target
 - fix #12 Action.out and Action.err not set when using multiprocessing
+- fix #16 fix `forget` command on gdbm backend
+- fix #14 improve parallel execution (better process utilization)
+- fix #9 cacl_dep create implicit task_dep if a file_dep returned is a also a target
+- added tools.result_dep
+- fix #15 tools.result_dep supports group-tasks
+- DEPRECATE task attribute `result_dep` (use tools.result_dep)
+- DEPRECATE `getargs` specification using strings (must use 2-element tuple)
+- several changes on `uptodate`
+- DEPRECATE `Task.insert_action` (replaced by `Task.value_savers`)
+- fix #8 `clean` cleans all subtasks from a group-task
+- fix #8 `clean` added flag `--all` to clean all tasks
+- fix #8 `clean` when no task is specified set --clean-dep and clean default tasks
+
 
 0.16.1 (*2012-05-13*)
 ======================
