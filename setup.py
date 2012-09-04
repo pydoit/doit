@@ -84,7 +84,8 @@ setup(name = 'doit',
       scripts = scripts,
       cmdclass = {'test': PyTest},
       install_requires = install_requires,
-      long_description = open('doc/index.rst').read().split('Quick Start')[0],
+      long_description = open('doc/index.rst', 'rb'
+                              ).read().decode('utf-8').split('Quick Start')[0],
       **extra
       )
 
