@@ -468,7 +468,6 @@ class TestRunner_run_tasks(object):
         my_runner.finish()
 
 
-@pytest.mark.skipif('not runner.MRunner.available()')
 class TestMReporter(object):
     class MyRunner(object):
         def __init__(self):
@@ -487,9 +486,10 @@ class TestMReporter(object):
         mp_reporter = runner.MRunner.MReporter(fake_runner, reporter)
         assert hasattr(mp_reporter, 'add_success')
         assert not hasattr(mp_reporter, 'no_existent_method')
+# python2.5 dont have class decorators
+pytest.mark.skipif('not runner.MRunner.available()')(TestMReporter)
 
 
-@pytest.mark.skipif('not runner.MRunner.available()')
 class TestMRunner_get_next_task(object):
     # simple normal case
     def test_run_task(self, reporter, depfile):
@@ -548,9 +548,10 @@ class TestMRunner_get_next_task(object):
         assert 0 == run.free_proc
         assert isinstance(run.get_next_task(None), runner.Hold)
         assert 1 == run.free_proc
+# python2.5 dont have class decorators
+pytest.mark.skipif('not runner.MRunner.available()')(TestMRunner_get_next_task)
 
 
-@pytest.mark.skipif('not runner.MRunner.available()')
 class TestMRunner_start_process(object):
     # 2 process, 3 tasks
     def test_all_processes(self, reporter, monkeypatch, depfile):
@@ -608,9 +609,10 @@ class TestMRunner_start_process(object):
         assert 2 == len(proc_list)
         assert t1.name == task_q.get().name
         assert isinstance(task_q.get(), runner.Hold)
+# python2.5 dont have class decorators
+pytest.mark.skipif('not runner.MRunner.available()')(TestMRunner_start_process)
 
 
-@pytest.mark.skipif('not runner.MRunner.available()')
 class TestMRunner_execute_task(object):
     def test_hold(self, reporter, depfile):
         run = runner.MRunner(depfile.name, reporter)
@@ -622,4 +624,6 @@ class TestMRunner_execute_task(object):
         run.finish()
         # nothing was done
         assert result_q.empty() # pragma: no cover (coverage bug?)
+# python2.5 dont have class decorators
+pytest.mark.skipif('not runner.MRunner.available()')(TestMRunner_execute_task)
 
