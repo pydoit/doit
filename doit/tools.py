@@ -8,6 +8,7 @@ import operator
 import subprocess
 
 from . import exceptions
+from .dependency import UptodateCalculator
 from .action import CmdAction, PythonAction
 
 
@@ -45,7 +46,7 @@ def run_once(task, values):
 
 
 # uptodate
-class result_dep(object):
+class result_dep(UptodateCalculator):
     """check if result of the given task was modified
     """
     def __init__(self, dep_task_name):
@@ -61,7 +62,7 @@ class result_dep(object):
 
     def _result_single(self):
         """get result from a single task"""
-        return self._get_val(self.dep_name, 'result:')
+        return self.get_val(self.dep_name, 'result:')
 
     def _result_group(self, dep_task):
         """get result from a group task
@@ -71,12 +72,12 @@ class result_dep(object):
         sub_tasks = {}
         for sub in dep_task.task_dep:
             if sub.startswith(prefix):
-                sub_tasks[sub] = self._get_val(sub, 'result:')
+                sub_tasks[sub] = self.get_val(sub, 'result:')
         return sub_tasks
 
     def __call__(self, task, values):
         """return True if result is the same as last run"""
-        dep_task = self._tasks_dict[self.dep_name]
+        dep_task = self.tasks_dict[self.dep_name]
         if not dep_task.has_subtask:
             self.dep_result = self._result_single()
         else:

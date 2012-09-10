@@ -238,6 +238,8 @@ way `doit` works. When an object is passed ``uptodate`` and this
 object's class has a method named ``configure_task`` it will be called
 during the task creation.
 
+
+this needs access to blabla so subclass from UptodateCaclulator.... xxx
 ``doit`` modifies objects passed to ``uptodate`` in two ways.
 By adding an attribute named ``_tasks_dict`` containg a dictionary with
 all task objects where the ``key`` is the task name (this is used to get all

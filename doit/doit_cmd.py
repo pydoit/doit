@@ -392,7 +392,7 @@ targets:
 uptodate:
   - type: list. items:
     * None - None values are just ignored
-    * bool
+    * bool - False indicates task is not up-to-date
     * callable - returns bool or None. must take 2 positional parameters (task, values)
 
 calc_dep:

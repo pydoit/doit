@@ -348,12 +348,17 @@ class DependencyBase(object):
         # check uptodate bool/callables
         checked_uptodate = False
         for utd, utd_args, utd_kwargs in task.uptodate:
-            # FIXME control verbosity, check error messages
+            # if parameter is a callable
             if hasattr(utd, '__call__'):
+                # FIXME control verbosity, check error messages
+                # 1) prepare arguments
                 args = [task, self.get_values(task.name)] + utd_args
-                utd._get_val = self._get
-                utd._tasks_dict = tasks_dict
+                # 2) setup object with global info all tasks
+                if isinstance(utd, UptodateCalculator):
+                    utd.setup(self, tasks_dict)
+                # 3) call it and get result
                 uptodate_result = utd(*args, **utd_kwargs)
+            # parameter is a value
             else:
                 uptodate_result = utd
 
@@ -401,6 +406,22 @@ class DbmDependency(DependencyBase):
     """Task dependency manager with DBM backend"""
     def __init__(self, name):
         DependencyBase.__init__(self, DbmDB(name))
+
+
+class UptodateCalculator(object):
+    """Base class for 'uptodate' that need access to all tasks
+    """
+    def __init__(self):
+        self.get_val = None # Dependency._get
+        self.tasks_dict = None # dict with all tasks
+
+    def setup(self, dep_manager, tasks_dict):
+        """@param"""
+        self.get_val = dep_manager._get
+        self.tasks_dict = tasks_dict
+
+
+
 
 import platform
 python_version = platform.python_version().split('.')

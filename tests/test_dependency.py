@@ -7,7 +7,7 @@ import anydbm
 import pytest
 
 from doit.task import Task
-from doit.dependency import get_md5, md5sum, check_modified
+from doit.dependency import get_md5, md5sum, check_modified, UptodateCalculator
 from doit.dependency import JsonDependency, DbmDependency, DbmDB
 
 
@@ -433,11 +433,11 @@ class TestGetStatus(object):
 
     def test_UptodateCallable_added_attributes(self, depfile):
         task_dict = "fake dict"
-        class My_uptodate(object):
+        class My_uptodate(UptodateCalculator):
             def __call__(self, task, values):
                 # attributes were added to object before call'ing it
-                assert task_dict == self._tasks_dict
-                assert None == self._get_val('t1', None)
+                assert task_dict == self.tasks_dict
+                assert None == self.get_val('t1', None)
                 return True
 
         check = My_uptodate()
