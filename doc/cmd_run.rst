@@ -190,7 +190,7 @@ it will have the same effect as executing
 
    $ doit --continue --reporter json my_task_1 my_task_2
 
-You need to check `doit_cmd.py <http://bazaar.launchpad.net/~schettino72/doit/trunk/annotate/head%3A/doit/doit_cmd.py>`_ to find out how parameter maps to config names.
+You need to check `doit_cmd.py <https://bitbucket.org/schettino72/doit/src/tip/doit/doit_cmd.py>`_ to find out how parameter maps to config names.
 
 .. note::
 
@@ -213,7 +213,7 @@ returned value
 bash completion
 -----------------
 
-Bash completion for `doit` to auto-complete task names is available at `bash_completion_doit <http://bazaar.launchpad.net/~schettino72/doit/trunk/annotate/head%3A/bash_completion_doit>`_ . To activate it:
+Bash completion for `doit` to auto-complete task names is available at `bash_completion_doit <https://bitbucket.org/schettino72/doit/src/tip/bash_completion_doit>`_ . To activate it:
 
 .. code-block:: console
 

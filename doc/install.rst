@@ -53,7 +53,7 @@ Installing
 standalone script
 ====================
 
-It is possible to create ``doit`` as a standalone python script including ``doit`` source code and its dependencies. This was it is easy to include this file in your project and use doit without going through the installation process.
+It is possible to create ``doit`` as a standalone python script including ``doit`` source code and its dependencies. This way it is easy to include this file in your project and use doit without going through the installation process.
 
 Requirements
 --------------

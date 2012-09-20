@@ -8,7 +8,7 @@ up-to-date tasks
 
 One of the main ideas of `doit` (and other build-tools) is to check if the
 tasks/targets are **up-to-date**. In case there is no modification in the
-dependencies and the targets already exist, it skip the task execution to
+dependencies and the targets already exist, it skips the task execution to
 save time, as it would produce the same output from the previous run.
 
 Dependency
@@ -143,15 +143,12 @@ value in a database is smaller than a certain value.
 
 
 ``uptodate`` elements can also be a callable that returns False, True or None.
-The section ``uptodate``__ will explain in details how to extend `doit`
+The section ``custom-uptodate`` will explain in details how to extend `doit`
 writing your own callables for ``uptodate``. This callables will tipically
 compare a value on the present time with a value calculated on the last
 successful execution.
 
-__ uptodate.html
-
-
-`doit` includes with several implementations with to be used with ``uptodate``.
+`doit` includes several implementations to be used as ``uptodate``.
 They are all included in module `doit.tools` and will be discussed in detail
 later:
 
@@ -198,7 +195,7 @@ task name (whatever comes after ``task_`` on the function name) in the
 
 .. note::
 
-  *task-dependency* s are **not** used to determine if a task is up-to-date or
+  *task-dependencies* are **not** used to determine if a task is up-to-date or
   not. If a task defines only *task-dependency* it will always be executed.
 
 
@@ -236,7 +233,7 @@ calculated-dependencies
 ------------------------
 
 Calculation of dependencies might be an expensive operation, so not suitable
-to be done on task-generators. For this situation is better to delegate
+to be done on task-creators. For this situation is better to delegate
 the calculation of dependencies to another task.
 The task calcutating dependencies must have a python-action returning a
 dictionary with `file_dep`, `task_dep`, `uptodate` or another `calc_dep`.
@@ -327,7 +324,7 @@ Note: Dependencies here refers only to *file-dependencies*.
 For *cmd-action* you can use the python notation for keyword substitution
 on strings. The string will contain all values separated by a space (" ").
 
-For *python-action* create a parameter in the function `doit` will take care
+For *python-action* create a parameter in the function, `doit` will take care
 of passing the value when the function is called.
 The values are passed as list of strings.
 

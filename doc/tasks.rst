@@ -7,11 +7,11 @@ Intro
 
 `doit` is all about automating task dependency management and execution. Tasks can execute external shell commands/scripts or python functions (actually any callable). So a task can be anything you can code :)
 
-Tasks are defined using `python <http://python.org/>`_, in a plain python file with some conventions. A function that starts with the name `task_` defines a *task generator* recognized by `doit`. These functions must return (or yield) dictionaries representing a *task*. A python module/file that defines *tasks* for `doit` is called **dodo** file (that is something like a `Makefile` for `make`).
+Tasks are defined using `python <http://python.org/>`_, in a plain python file with some conventions. A function that starts with the name `task_` defines a *task-creator* recognized by `doit`. These functions must return (or yield) dictionaries representing a *task*. A python module/file that defines *tasks* for `doit` is called **dodo** file (that is something like a `Makefile` for `make`).
 
 .. note::
 
-    You should be comfortable with python basics. If you don't know python yet check `Python tutorial <http://docs.python.org/tut/>`_ and `Dive Into Python <http://www.diveintopython.org/>`_.
+    You should be comfortable with python basics. If you don't know python yet check `Python tutorial <http://docs.python.org/tut/>`_.
 
 
 Take a look at this example (file dodo.py):
@@ -59,10 +59,10 @@ It is easy to include dynamic (on-the-fly) behavior to your tasks with python co
 
 .. literalinclude:: tutorial/tutorial_02.py
 
-The function `task_hello` is a *task generator*, not the task itself. The body of the task generator function is always executed when the dodo file is loaded.
+The function `task_hello` is a *task-creator*, not the task itself. The body of the task-creator function is always executed when the dodo file is loaded.
 
 .. note::
- The body of task generators are executed even if the task is not going to be executed. So in this example the line `msg = 3 * "hi! "` will always be executed. The body of task generators should be used to create task metadata only, not execute tasks! From now on when it said that a *task* is executed, read the task's actions are executed.
+ The body of task-creators are executed even if the task is not going to be executed. So in this example the line `msg = 3 * "hi! "` will always be executed. The body of task-creators should be used to create task metadata only, not execute tasks! From now on when it said that a *task* is executed, read the task's actions are executed.
 
 
 task name
@@ -84,10 +84,11 @@ It is possible to explicit set a task name with the parameter ``basename``.
   .  hello2
 
 
-When explicit using ``basename`` it is possible a task generator is not limited
+When explicit using ``basename`` the task-creator is not limited
 to create only one task.
 Using ``yield`` it can generate several tasks at once.
 It is also possible to ``yield`` a generator that genrate tasks.
+This is useful to write some generic/reusable task-creators.
 
 .. literalinclude:: tutorial/task_reusable.py
 
@@ -126,7 +127,7 @@ Another example
 DOIT_CONFIG -> default_tasks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-*dodo* file defines a dictionary ``DOIT_CONFIG`` with ``default_tasks``, a list of strings where each element is a task name. In the example above we don't want to "install" by default.
+*dodo* file defines a dictionary ``DOIT_CONFIG`` with ``default_tasks``, a list of strings where each element is a task name.
 
 .. code-block:: console
 
@@ -134,7 +135,9 @@ DOIT_CONFIG -> default_tasks
     .  t1
     .  t3
 
-Note that the only the task *t3* was specified to be executed. But its dependencies include a target of another task. So those tasks were automatically executed also.
+Note that only the task *t3* was specified to be executed by default.
+But its dependencies include a target of another task (t1).
+So that task was automatically executed also.
 
 
 command line selection

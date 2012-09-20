@@ -52,13 +52,11 @@ class result_dep(UptodateCalculator):
     def __init__(self, dep_task_name):
         self.dep_name = dep_task_name
         self.result_name = '_result:%s' % self.dep_name
-        self.dep_result = None
 
     def configure_task(self, task):
         """to be called by doit when create the task"""
         # result_dep creates an implicit task_dep
         task.task_dep.append(self.dep_name)
-        task.value_savers.append(lambda: {self.result_name: self.dep_result})
 
     def _result_single(self):
         """get result from a single task"""
@@ -79,14 +77,15 @@ class result_dep(UptodateCalculator):
         """return True if result is the same as last run"""
         dep_task = self.tasks_dict[self.dep_name]
         if not dep_task.has_subtask:
-            self.dep_result = self._result_single()
+            dep_result = self._result_single()
         else:
-            self.dep_result = self._result_group(dep_task)
+            dep_result = self._result_group(dep_task)
+        task.value_savers.append(lambda: {self.result_name: dep_result})
 
         last_success = values.get(self.result_name)
         if last_success is None:
             return False
-        return (last_success == self.dep_result)
+        return (last_success == dep_result)
 
 
 

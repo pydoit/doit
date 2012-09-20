@@ -3,8 +3,8 @@
 Changes
 =======
 
-0.17.0
-=====================
+0.17.0 (*2012-09-20*)
+======================
 
 - fix #12 Action.out and Action.err not set when using multiprocessing
 - fix #16 fix `forget` command on gdbm backend

@@ -1,8 +1,8 @@
-==========
-uptodate
-==========
+================
+custom uptodate
+================
 
-The basics of `uptodate`__ was already introduced. Here we gonna look in more
+The basics of `uptodate` was already introduced. Here we gonna look in more
 details the implementations shipped with `doit`. And the API used by those.
 
 
@@ -101,8 +101,9 @@ The timestamp field to check defaults to ``mtime``, but can be selected by
 passing ``time`` parameter which can be one of: ``atime``, ``ctime``, ``mtime``
 (or their aliases ``access``, ``status``, ``modify``).
 
-Note that ``ctime`` or ``status`` is platform dependent: time of most recent
-metadata change on Unix, or the time of creation on Windows.
+Note that ``ctime`` or ``status`` is platform dependent.
+On Unix it is the time of most recent metadata change,
+on Windows it is the time of creation.
 See `Python library documentation for os.stat`__ and Linux man page for
 stat(2) for details.
 
@@ -143,7 +144,7 @@ Let's start with trivial example.
 .. literalinclude:: tutorial/uptodate_callable.py
 
 Note that `check_outdated` function is not actully using the parameters.
-You could also execute this function in the task-generator and pass the value
+You could also execute this function in the task-creator and pass the value
 to to `uptodate`. The advantage of just passing the callable is that this
 check will not be executed at all if the task was not selected to be executed.
 
@@ -170,12 +171,6 @@ Let's take a look in the ``run_once`` implementation.
 
 .. literalinclude:: tutorial/run_once.py
 
-def run_once(task, values):
-    def save_executed():
-        return {'run-once': True}
-    task.value_savers.append(save_executed)
-    return values.get('run-once', False)
-
 The function ``save_executed`` returns a dict. In this case it is not checking
 for any value because it just check it the task was ever executed.
 
@@ -194,7 +189,7 @@ timeout implementation
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Let's look another example, the ``timeout``. The main difference is that
-we actually we to pass the parameter ``timeout_limit``. Here we gonna present
+we actually pass the parameter ``timeout_limit``. Here we gonna present
 a simplified version that only accept integers (seconds) as a parameter.
 
 .. code-block:: python
@@ -238,34 +233,30 @@ way `doit` works. When an object is passed ``uptodate`` and this
 object's class has a method named ``configure_task`` it will be called
 during the task creation.
 
-
-this needs access to blabla so subclass from UptodateCaclulator.... xxx
-``doit`` modifies objects passed to ``uptodate`` in two ways.
-By adding an attribute named ``_tasks_dict`` containg a dictionary with
+The base class ``dependency.UptodateCaclulator`` gives access to
+an attribute named ``tasks_dict`` containg a dictionary with
 all task objects where the ``key`` is the task name (this is used to get all
-sub-tasks from a task-group).
-And by adding a method named ``_get_val`` FUCK...
+sub-tasks from a task-group). And also a method called ``get_val`` to access
+the saved values and results from any task.
 
 
 .. code-block:: python
 
-    class result_dep(object):
+    class result_dep(UptodateCalculator):
         """check if result of the given task was modified
         """
         def __init__(self, dep_task_name):
             self.dep_name = dep_task_name
             self.result_name = '_result:%s' % self.dep_name
-            self.dep_result = None
 
         def configure_task(self, task):
             """to be called by doit when create the task"""
             # result_dep creates an implicit task_dep
             task.task_dep.append(self.dep_name)
-            task.value_savers.append(lambda: {self.result_name: self.dep_result})
 
         def _result_single(self):
             """get result from a single task"""
-            return self._get_val(self.dep_name, 'result:')
+            return self.get_val(self.dep_name, 'result:')
 
         def _result_group(self, dep_task):
             """get result from a group task
@@ -275,18 +266,20 @@ And by adding a method named ``_get_val`` FUCK...
             sub_tasks = {}
             for sub in dep_task.task_dep:
                 if sub.startswith(prefix):
-                    sub_tasks[sub] = self._get_val(sub, 'result:')
+                    sub_tasks[sub] = self.get_val(sub, 'result:')
             return sub_tasks
 
         def __call__(self, task, values):
             """return True if result is the same as last run"""
-            dep_task = self._tasks_dict[self.dep_name]
+            dep_task = self.tasks_dict[self.dep_name]
             if not dep_task.has_subtask:
-                self.dep_result = self._result_single()
+                dep_result = self._result_single()
             else:
-                self.dep_result = self._result_group(dep_task)
+                dep_result = self._result_group(dep_task)
+            task.value_savers.append(lambda: {self.result_name: dep_result})
 
             last_success = values.get(self.result_name)
             if last_success is None:
                 return False
-            return (last_success == self.dep_result)
+            return (last_success == dep_result)
+
