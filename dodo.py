@@ -128,8 +128,15 @@ def task_revision():
 
 def task_manifest():
     """create manifest file for distutils """
+
+    def check_version():
+        # using a MANIFEST file directly is broken on python2.7
+        # http://bugs.python.org/issue11104
+        import sys
+        assert sys.version_info < (2,7)
+
     cmd = "hg manifest > MANIFEST;echo 'revision.txt' >> MANIFEST"
-    return {'actions': [cmd]}
+    return {'actions': [check_version, cmd]}
 
 def task_sdist():
     """create source dist package"""
