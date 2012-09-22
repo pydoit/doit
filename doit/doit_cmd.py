@@ -8,8 +8,12 @@ import doit
 from .exceptions import InvalidDodoFile, InvalidCommand, InvalidTask
 from . import loader
 from . import cmdparse
-from .cmds import doit_run, doit_clean, doit_list, doit_forget, doit_ignore
-from .cmds import doit_auto
+from .cmd_run import doit_run
+from .cmd_clean import doit_clean
+from .cmd_list import doit_list
+from .cmd_forget import doit_forget
+from .cmd_ignore import doit_ignore
+from .cmd_auto import doit_auto
 
 ## cmd line options
 ##########################################################

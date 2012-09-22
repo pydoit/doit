@@ -3,7 +3,7 @@ import os
 import py
 
 from doit.dependency import Dependency
-
+from doit.task import Task
 
 TESTDB = os.path.join(os.path.dirname(__file__), "testdb")
 
@@ -61,3 +61,16 @@ def pytest_funcarg__cwd(request):
         setup=set_cwd,
         teardown=restore_cwd,
         scope="function")
+
+
+# create a list of sample tasks
+def tasks_sample():
+    tasks_sample = [
+        Task("t1", [""], doc="t1 doc string"),
+        Task("t2", [""], doc="t2 doc string"),
+        Task("g1", None, doc="g1 doc string"),
+        Task("g1.a", [""], doc="g1.a doc string", is_subtask=True),
+        Task("g1.b", [""], doc="g1.b doc string", is_subtask=True),
+        Task("t3", [""], doc="t3 doc string")]
+    tasks_sample[2].task_dep = ['g1.a', 'g1.b']
+    return tasks_sample
