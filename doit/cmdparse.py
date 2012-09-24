@@ -39,73 +39,68 @@ class DefaultUpdate(dict):
     def __setstate__(self, adict):
         pass
 
+
 class CmdParseError(Exception):
     """Error parsing options """
 
 
-# TODO class CmdOption
+class CmdOption(object):
+    """a command line option
+
+       - name (string) : variable name
+       - default (value from its type): default value
+       - type (type): type of the variable. must be able to be initialized
+                      taking a single string parameter.
+                      if type is bool. option is just a flag. and if present
+                      its value is set to True.
+       - short (string): argument short name
+       - long (string): argument long name
+       - inverse (string): argument long name to be the inverse of the default
+                           value (only used by boolean options)
+       - help (string): option description
+    """
+
+    def __init__(self, opt_dict):
+        # options must contain 'name' and 'default' value
+        opt_dict = opt_dict.copy()
+        for field in ('name', 'default',):
+            if field not in opt_dict:
+                msg = "CmdOption dict %r missing required property '%s'"
+                raise CmdParseError(msg % (opt_dict, field))
+
+        self.name = opt_dict.pop('name')
+        self.default = opt_dict.pop('default')
+        self.type = opt_dict.pop('type', str)
+        self.short = opt_dict.pop('short', '')
+        self.long = opt_dict.pop('long', '')
+        self.inverse = opt_dict.pop('inverse', '')
+        self.help = opt_dict.pop('help', '')
+
+        # options can not contain any unrecognized field
+        if opt_dict:
+            msg = "CmdOption dict contains invalid property '%s'"
+            raise CmdParseError(msg % opt_dict.keys())
 
 
 class CmdParse(object):
     """Process string with command options
 
-    @ivar options (dict): command line options/arguments
-       - name (string) : variable name
-       - short (string): argument short name
-       - long (string): argument long name
-       - inverse (string): argument long name to be the inverse of the default
-                           value (only used by boolean options)
-       - type (type): type of the variable. must be able to be initialized
-                      taking a single string parameter.
-                      if type is bool. option is just a flag. and if present
-                      its value is set to True.
-       - default (value from its type): default value
-       - help (string): option description
+    @ivar options: (list - CmdOption)
     """
-    _type = "Command option"
-    _option_fields = ('name', 'short', 'long', 'inverse',
-                      'type', 'default', 'help')
-    # default values for option meta data
-    _defaults = {'short': '',
-                 'long': '',
-                 'inverse': '',
-                 'type': str,
-                 'help': ''}
-
+    _type = "Command"
 
     def __init__(self, options):
-        self.options = []
-
-        for original_opt in options:
-            opt = dict(original_opt)
-
-            # options must contain these fields
-            for field in ('name', 'default',):
-                if field not in opt:
-                    msg = "%s dict from missing required property '%s'"
-                    raise CmdParseError(msg % (self._type, field))
-
-            # options can not contain any unrecognized field
-            for field in opt.keys():
-                if field not in self._option_fields:
-                    msg = "%s dict from contains invalid property '%s'"
-                    raise CmdParseError(msg % (self._type, field))
-
-            # add defaults
-            for key, value in self._defaults.iteritems():
-                if key not in opt:
-                    opt[key] = value
-            self.options.append(opt)
+        self.options = options[:]
 
     def get_short(self):
         """return string with short options for getopt"""
         short_list = ""
         for opt in self.options:
-            if not opt['short']:
+            if not opt.short:
                 continue
-            short_list += opt['short']
+            short_list += opt.short
             # ':' means option takes a value
-            if opt['type'] is not bool:
+            if opt.type is not bool:
                 short_list += ':'
         return short_list
 
@@ -113,15 +108,15 @@ class CmdParse(object):
         """return list with long options for getopt"""
         long_list = []
         for opt in self.options:
-            long_name = opt['long']
+            long_name = opt.long
             if not long_name:
                 continue
             # '=' means option takes a value
-            if opt['type'] is not bool:
+            if opt.type is not bool:
                 long_name += '='
             long_list.append(long_name)
-            if opt['inverse']:
-                long_list.append(opt['inverse'])
+            if opt.inverse:
+                long_list.append(opt.inverse)
         return long_list
 
     def get_option(self, opt_str):
@@ -130,9 +125,9 @@ class CmdParse(object):
             - (bool) matched inverse
         """
         for opt in self.options:
-            if opt_str in ('-' + opt['short'], '--' + opt['long']):
+            if opt_str in ('-' + opt.short, '--' + opt.long):
                 return opt, False
-            if opt_str == '--' + opt['inverse']:
+            if opt_str == '--' + opt.inverse:
                 return opt, True
         return None, None
 
@@ -145,12 +140,12 @@ class CmdParse(object):
         @return params, args
              params(dict): params contain the actual values from the options.
                            where the key is the name of the option.
-             args (list - string): positional arguments
+             pos_args (list - string): positional arguments
         """
         params = DefaultUpdate()
         # add default values
         for opt in self.options:
-            params.set_default(opt['name'], opt.get('default', None))
+            params.set_default(opt.name, opt.default)
 
         # global parameters (got from main command options)
         params.update(kwargs)
@@ -166,14 +161,14 @@ class CmdParse(object):
         # update params with values from command line
         for opt, val in opts:
             this, inverse = self.get_option(opt)
-            if this['type'] is bool:
-                params[this['name']] = not inverse
+            if this.type is bool:
+                params[this.name] = not inverse
             else:
                 try:
-                    params[this['name']] = this['type'](val)
+                    params[this.name] = this.type(val)
                 except ValueError, exception:
                     msg = "Error parsing parameter '%s' %s.\n%s\n"
-                    raise CmdParseError(msg % (this['name'], this['type'],
+                    raise CmdParseError(msg % (this.name, this.type,
                                                str(exception)))
 
         return params, args
@@ -182,4 +177,4 @@ class CmdParse(object):
 
 class TaskParse(CmdParse):
     """Process string with command options (for tasks)"""
-    _type = "Task option"
+    _type = "Task"

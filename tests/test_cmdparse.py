@@ -2,7 +2,7 @@ import pickle
 
 import pytest
 
-from doit.cmdparse import DefaultUpdate, CmdParseError, CmdParse
+from doit.cmdparse import DefaultUpdate, CmdParseError, CmdOption, CmdParse
 
 
 
@@ -29,20 +29,19 @@ class TestDefaultUpdate(object):
         pickle.loads(dump)
 
 
-class TestCmdParseInit(object):
+class TestCmdOption(object):
 
     def test_non_required_fields(self):
-        opt1 = {'name':'op1', 'default':''}
-        cmd = CmdParse([opt1])
-        assert 'long' in cmd.options[0]
+        opt1 = CmdOption({'name':'op1', 'default':''})
+        assert '' == opt1.long
 
     def test_invalid_field(self):
-        opt1 = {'name':'op1', 'default':'', 'non_existent':''}
-        pytest.raises(CmdParseError, CmdParse, [opt1])
+        opt_dict = {'name':'op1', 'default':'', 'non_existent':''}
+        pytest.raises(CmdParseError, CmdOption, opt_dict)
 
     def test_missing_field(self):
-        opt1 = {'name':'op1', 'long':'abc'}
-        pytest.raises(CmdParseError, CmdParse, [opt1])
+        opt_dict = {'name':'op1', 'long':'abc'}
+        pytest.raises(CmdParseError, CmdOption, opt_dict)
 
 
 
@@ -79,7 +78,8 @@ class TestCommand(object):
 
     def pytest_funcarg__cmd(self, request):
         def create_sample_cmd():
-            options = [opt_bool, opt_rare, opt_int, opt_no]
+            opt_list = (opt_bool, opt_rare, opt_int, opt_no)
+            options = [CmdOption(o) for o in opt_list]
             cmd = CmdParse(options)
             return cmd
         return request.cached_setup(
@@ -95,17 +95,17 @@ class TestCommand(object):
 
     def test_getOption(self, cmd):
         # short
-        opt, inverse = cmd.get_option('-f')
-        assert (opt_bool['name'], False) == (opt['name'], inverse)
+        opt, is_inverse = cmd.get_option('-f')
+        assert (opt_bool['name'], False) == (opt.name, is_inverse)
         # long
-        opt, inverse = cmd.get_option('--rare-bool')
-        assert (opt_rare['name'], False) == (opt['name'], inverse)
+        opt, is_inverse = cmd.get_option('--rare-bool')
+        assert (opt_rare['name'], False) == (opt.name, is_inverse)
         # inverse
-        opt, inverse = cmd.get_option('--no-flag')
-        assert (opt_bool['name'], True) == (opt['name'], inverse)
+        opt, is_inverse = cmd.get_option('--no-flag')
+        assert (opt_bool['name'], True) == (opt.name, is_inverse)
         # not found
-        opt, inverse = cmd.get_option('not-there')
-        assert (None, None) == (opt, inverse)
+        opt, is_inverse = cmd.get_option('not-there')
+        assert (None, None) == (opt, is_inverse)
 
 
     def test_parseDefaults(self, cmd):

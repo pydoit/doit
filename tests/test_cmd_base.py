@@ -1,6 +1,6 @@
 import pytest
 
-from doit.cmdparse import CmdParseError
+from doit.cmdparse import CmdParseError, CmdOption
 from doit.doit_cmd import Command
 
 
@@ -43,12 +43,15 @@ class SampleCmd(Command):
     def execute(params, args):
         return params, args
 
+    def set_options(self):
+        options = [opt_bool, opt_rare, opt_int, opt_no]
+        return [CmdOption(o) for o in options]
+
 class TestCommand(object):
 
     def pytest_funcarg__cmd(self, request):
         def create_sample_cmd():
-            options = [opt_bool, opt_rare, opt_int, opt_no]
-            return SampleCmd(options)
+            return SampleCmd()
         return request.cached_setup(
             setup=create_sample_cmd,
             scope="function")
@@ -62,7 +65,7 @@ class TestCommand(object):
         assert '-f' in text
         assert '--rare-bool' in text
         assert 'help for opt1' in text
-        assert opt_no['name'] in [o['name'] for o in cmd.cmdparse.options]
+        assert opt_no['name'] in [o.name for o in cmd.options]
         assert 'user cant modify me' not in text
 
 

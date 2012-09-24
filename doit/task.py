@@ -5,7 +5,7 @@ import os
 import copy
 import sys
 
-from .cmdparse import TaskParse
+from .cmdparse import CmdOption, TaskParse
 from .exceptions import CatchedException, InvalidTask
 from .action import create_action
 
@@ -81,7 +81,7 @@ class Task(object):
                  doc=None, params=(), verbosity=None, title=None, getargs=None):
         """sanity checks and initialization
 
-        @param params: (list of option parameters) see cmdparse.CmdParse
+        @param params: (list of dict for parameters) see cmdparse.CmdOption
         """
 
         getargs = getargs or {} #default
@@ -103,7 +103,7 @@ class Task(object):
         self.check_attr(name, 'title', title, self.valid_attr['title'])
 
         self.name = name
-        self.taskcmd = TaskParse(params)
+        self.taskcmd = TaskParse([CmdOption(opt) for opt in params])
         self.options = None
         self.setup_tasks = list(setup)
 

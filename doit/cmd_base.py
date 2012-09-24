@@ -1,4 +1,4 @@
-from .cmdparse import CmdParse
+from .cmdparse import CmdOption, CmdParse
 
 
 class Command(object):
@@ -7,9 +7,22 @@ class Command(object):
     doc_usage = ''
     doc_description = None # None value will completely ommit line from doc
 
-    def __init__(self, options):
+    # sequence of dicts
+    cmd_options = tuple()
+
+    def __init__(self):
         self.name = self.__class__.__name__.lower()
-        self.cmdparse = CmdParse(options)
+        self.options = self.set_options()
+
+    def set_options(self):
+        """@reutrn list of CmdOption
+        """
+        opt_list = self.cmd_options
+        return [CmdOption(opt) for opt in opt_list]
+
+    def execute(self, params, args):
+        raise NotImplementedError()
+
 
     def parse_execute(self, in_args, **kwargs):
         """helper. just parse parameters and execute command
@@ -17,11 +30,8 @@ class Command(object):
         @args: see method parse
         @returns: result of self.execute
         """
-        params, args = self.cmdparse.parse(in_args, **kwargs)
+        params, args = CmdParse(self.options).parse(in_args, **kwargs)
         return self.execute(params, args)
-
-    def execute(self, params, args):
-        raise NotImplementedError()
 
 
     @staticmethod
@@ -40,16 +50,16 @@ class Command(object):
         @param opt: (dict) see self.options
         """
         opts_str = []
-        if opt['short']:
-            if opt['type'] is bool:
-                opts_str.append('-%s' % opt['short'])
+        if opt.short:
+            if opt.type is bool:
+                opts_str.append('-%s' % opt.short)
             else:
-                opts_str.append('-%s ARG' % opt['short'])
-        if opt['long']:
-            if opt['type'] is bool:
-                opts_str.append('--%s' % opt['long'])
+                opts_str.append('-%s ARG' % opt.short)
+        if opt.long:
+            if opt.type is bool:
+                opts_str.append('--%s' % opt.long)
             else:
-                opts_str.append('--%s=ARG' % opt['long'])
+                opts_str.append('--%s=ARG' % opt.long)
         return ', '.join(opts_str)
 
 
@@ -61,18 +71,18 @@ class Command(object):
         text.append('')
 
         text.append("Options:")
-        for opt in self.cmdparse.options:
+        for opt in self.options:
             # ignore option that cant be modified on cmd line
-            if not (opt['short'] or opt['long']):
+            if not (opt.short or opt.long):
                 continue
 
             opt_str = self._help_opt(opt)
-            opt_help = opt['help'] % {'default':opt['default']}
+            opt_help = opt.help % {'default': opt.default}
             text.append(self._print_2_columns(opt_str, opt_help))
             # print bool inverse option
-            if opt['inverse']:
-                opt_str = '--%s' % opt['inverse']
-                opt_help = 'opposite of --%s' % opt['long']
+            if opt.inverse:
+                opt_str = '--%s' % opt.inverse
+                opt_help = 'opposite of --%s' % opt.long
                 text.append(self._print_2_columns(opt_str, opt_help))
 
         if self.doc_description is not None:

@@ -185,6 +185,11 @@ class Run(Command):
     doc_usage = "[TASK/TARGET...]"
     doc_description = None
 
+    cmd_options = (opt_version, opt_help, opt_dodo, opt_cwd, opt_depfile,
+                   opt_seek_file, opt_always, opt_continue, opt_verbosity,
+                   opt_reporter, opt_outfile, opt_num_process)
+
+
     _execute = staticmethod(doit_run)
 
     def execute(self, params, args):
@@ -222,22 +227,6 @@ class Run(Command):
 ##########################################################
 ########## list
 
-class List(Command):
-    doc_purpose = "list tasks from dodo file"
-    doc_usage = "[TASK ...]"
-    doc_description = None
-
-    _execute = staticmethod(doit_list)
-
-    def execute(self, params, args):
-        """execute cmd 'list' """
-        dodo_tasks = loader.get_tasks(*_path_params(params))
-        params.update_defaults(dodo_tasks['config'])
-        return self._execute(
-            params['dep_file'], dodo_tasks['task_list'], sys.stdout,
-            args, params['all'], not params['quiet'],
-            params['status'], params['private'], params['list_deps'])
-
 opt_listall = {'name': 'all',
                'short':'',
                'long': 'all',
@@ -274,32 +263,32 @@ opt_list_dependencies = {'name': 'list_deps',
                          'default': False,
                          'help': ("print list of dependencies "
                                   "(file dependencies only)")
-}
+                         }
+
+class List(Command):
+    doc_purpose = "list tasks from dodo file"
+    doc_usage = "[TASK ...]"
+    doc_description = None
+
+    cmd_options = (opt_dodo, opt_depfile, opt_cwd, opt_seek_file , opt_listall,
+                    opt_list_quiet, opt_list_status, opt_list_private,
+                    opt_list_dependencies)
+
+    _execute = staticmethod(doit_list)
+
+    def execute(self, params, args):
+        """execute cmd 'list' """
+        dodo_tasks = loader.get_tasks(*_path_params(params))
+        params.update_defaults(dodo_tasks['config'])
+        return self._execute(
+            params['dep_file'], dodo_tasks['task_list'], sys.stdout,
+            args, params['all'], not params['quiet'],
+            params['status'], params['private'], params['list_deps'])
 
 
 
 ##########################################################
 ########## clean
-
-class Clean(Command):
-    doc_purpose = "clean action / remove targets"
-    doc_usage = "[TASK ...]"
-    doc_description = ("If no task is specified clean default tasks and "
-                       "set --clean-dep automatically.")
-
-    _execute = staticmethod(doit_clean)
-
-    def execute(self, params, args):
-        """execute cmd 'clean' """
-        dodo_tasks = loader.get_tasks(*_path_params(params))
-        params.update_defaults(dodo_tasks['config'])
-        selected_tasks = args
-        default_tasks = dodo_tasks['config'].get('default_tasks')
-        return self._execute(
-            dodo_tasks['task_list'], sys.stdout, params['dryrun'],
-            params['cleandep'], params['cleanall'],
-            default_tasks, selected_tasks)
-
 
 opt_clean_dryrun = {'name': 'dryrun',
                     'short': 'n', # like make dry-run
@@ -324,6 +313,29 @@ opt_clean_cleanall = {
     'help': 'clean all task'}
 
 
+class Clean(Command):
+    doc_purpose = "clean action / remove targets"
+    doc_usage = "[TASK ...]"
+    doc_description = ("If no task is specified clean default tasks and "
+                       "set --clean-dep automatically.")
+
+    cmd_options = (opt_dodo, opt_cwd, opt_seek_file, opt_clean_cleandep,
+                   opt_clean_cleanall, opt_clean_dryrun)
+
+    _execute = staticmethod(doit_clean)
+
+    def execute(self, params, args):
+        """execute cmd 'clean' """
+        dodo_tasks = loader.get_tasks(*_path_params(params))
+        params.update_defaults(dodo_tasks['config'])
+        selected_tasks = args
+        default_tasks = dodo_tasks['config'].get('default_tasks')
+        return self._execute(
+            dodo_tasks['task_list'], sys.stdout, params['dryrun'],
+            params['cleandep'], params['cleanall'],
+            default_tasks, selected_tasks)
+
+
 
 ##########################################################
 ########## forget
@@ -332,6 +344,8 @@ class Forget(Command):
     doc_purpose = "clear successful run status from internal DB"
     doc_usage = "[TASK ...]"
     doc_description = None
+
+    cmd_options = (opt_dodo, opt_cwd, opt_seek_file, opt_depfile,)
 
     _execute = staticmethod(doit_forget)
 
@@ -353,6 +367,8 @@ class Ignore(Command):
     doc_usage = "TASK [TASK ...]"
     doc_description = None
 
+    cmd_options = (opt_dodo, opt_cwd, opt_seek_file, opt_depfile,)
+
     _execute = staticmethod(doit_ignore)
 
     def execute(self, params, args):
@@ -371,6 +387,9 @@ class Auto(Command):
     doc_purpose = "automatically execute tasks when a dependency changes"
     doc_usage = "TASK [TASK ...]"
     doc_description = None
+
+    cmd_options = (opt_dodo, opt_cwd, opt_seek_file, opt_depfile,
+                   opt_verbosity)
 
     _execute = staticmethod(doit_auto)
 
@@ -490,6 +509,7 @@ class Help(Command):
 
 
 
+DOIT_BUILTIN_CMDS = (Help(), Run(), List(), Clean(), Forget(), Ignore(), Auto())
 def cmd_main(cmd_args):
     """entry point for all commands
 
@@ -502,40 +522,8 @@ def cmd_main(cmd_args):
          So be aware if you expect a different formatting (like JSON)
          from the Reporter.
     """
-    sub_cmd = {} # all sub-commands
-
-    # help command
-    sub_cmd['help'] = Help(())
-
-    # run command
-    run_options = (opt_version, opt_help, opt_dodo, opt_cwd, opt_depfile,
-                   opt_seek_file, opt_always, opt_continue, opt_verbosity,
-                   opt_reporter, opt_outfile, opt_num_process)
-    sub_cmd['run'] = Run(run_options)
-
-    # clean command
-    clean_options = (opt_dodo, opt_cwd, opt_seek_file, opt_clean_cleandep,
-                     opt_clean_cleanall, opt_clean_dryrun)
-    sub_cmd['clean'] = Clean(clean_options)
-
-    # list command
-    list_options = (opt_dodo, opt_depfile, opt_cwd, opt_seek_file , opt_listall,
-                    opt_list_quiet, opt_list_status, opt_list_private,
-                    opt_list_dependencies)
-    sub_cmd['list'] = List(list_options)
-
-    # forget command
-    forget_options = (opt_dodo, opt_cwd, opt_seek_file, opt_depfile,)
-    sub_cmd['forget'] = Forget(forget_options)
-
-    # ignore command
-    ignore_options = (opt_dodo, opt_cwd, opt_seek_file, opt_depfile,)
-    sub_cmd['ignore'] = Ignore(ignore_options)
-
-    # auto command
-    auto_options = (opt_dodo, opt_cwd, opt_seek_file, opt_depfile,
-                    opt_verbosity)
-    sub_cmd['auto'] = Auto(auto_options)
+    # all sub-commands
+    sub_cmd = dict((cmd.name, cmd) for cmd in DOIT_BUILTIN_CMDS)
 
     # get cmdline variables from args
     doit.reset_vars()
