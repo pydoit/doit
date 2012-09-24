@@ -43,10 +43,12 @@ class CmdParseError(Exception):
     """Error parsing options """
 
 
-class Command(object):
+# TODO class CmdOption
+
+
+class CmdParse(object):
     """Process string with command options
 
-    @ivar name (string): command name
     @ivar options (dict): command line options/arguments
        - name (string) : variable name
        - short (string): argument short name
@@ -59,13 +61,8 @@ class Command(object):
                       its value is set to True.
        - default (value from its type): default value
        - help (string): option description
-    @ivar do_cmd (callable): function must have 2 parameters. it will be called
-                             with the result of the parse method.
-    @ivar doc (dict): dictionary containing help information. see _doc_fields.
     """
     _type = "Command option"
-    # description can be None or string. other fields must be string.
-    _doc_fields = ('purpose', 'usage', 'description')
     _option_fields = ('name', 'short', 'long', 'inverse',
                       'type', 'default', 'help')
     # default values for option meta data
@@ -76,9 +73,7 @@ class Command(object):
                  'help': ''}
 
 
-    def __init__(self, name, options, do_cmd, doc):
-        self.name = name
-        self.do_cmd = do_cmd
+    def __init__(self, options):
         self.options = []
 
         for original_opt in options:
@@ -87,87 +82,20 @@ class Command(object):
             # options must contain these fields
             for field in ('name', 'default',):
                 if field not in opt:
-                    msg = "%s dict from '%s' missing required property '%s'"
-                    raise CmdParseError(msg % (self._type, self.name, field))
+                    msg = "%s dict from missing required property '%s'"
+                    raise CmdParseError(msg % (self._type, field))
 
             # options can not contain any unrecognized field
             for field in opt.keys():
                 if field not in self._option_fields:
-                    msg = "%s dict from '%s' contains invalid property '%s'"
-                    raise CmdParseError(msg % (self._type, self.name, field))
+                    msg = "%s dict from contains invalid property '%s'"
+                    raise CmdParseError(msg % (self._type, field))
 
             # add defaults
             for key, value in self._defaults.iteritems():
                 if key not in opt:
                     opt[key] = value
             self.options.append(opt)
-
-        # doc must be None or dict contain all fields.
-        if doc is not None:
-            self.doc = dict(doc)
-            for field in self._doc_fields:
-                assert field in self.doc
-        else:
-            self.doc = None
-
-    @staticmethod
-    def _print_2_columns(col1, col2):
-        """print using a 2-columns format """
-        column1_len = 24
-        column2_start = 28
-        left = (col1).ljust(column1_len)
-        right = col2.replace('\n', '\n'+ column2_start * ' ')
-        return "  %s  %s" % (left, right)
-
-
-    def _help_opt(self, opt):
-        """return string of option's short and long name
-        i.e.:   -f ARG, --file=ARG
-        @param opt: (dict) see self.options
-        """
-        opts_str = []
-        if opt['short']:
-            if opt['type'] is bool:
-                opts_str.append('-%s' % opt['short'])
-            else:
-                opts_str.append('-%s ARG' % opt['short'])
-        if opt['long']:
-            if opt['type'] is bool:
-                opts_str.append('--%s' % opt['long'])
-            else:
-                opts_str.append('--%s=ARG' % opt['long'])
-        return ', '.join(opts_str)
-
-
-    def help(self):
-        """return help text"""
-        assert self.doc is not None
-        text = []
-        text.append("Purpose: %s" % self.doc['purpose'])
-        text.append("Usage:   doit %s %s" % (self.name, self.doc['usage']))
-        text.append('')
-
-        text.append("Options:")
-        for opt in self.options:
-            # ignore option that cant be modified on cmd line
-            if not (opt['short'] or opt['long']):
-                continue
-
-            opt_str = self._help_opt(opt)
-            opt_help = opt['help'] % {'default':opt['default']}
-            text.append(self._print_2_columns(opt_str, opt_help))
-            # print bool inverse option
-            if opt['inverse']:
-                opt_str = '--%s' % opt['inverse']
-                opt_help = 'opposite of --%s' % opt['long']
-                text.append(self._print_2_columns(opt_str, opt_help))
-
-        if self.doc['description'] is not None:
-            text.append("")
-            text.append("Description:")
-            text.append(self.doc['description'])
-        return "\n".join(text)
-
 
     def get_short(self):
         """return string with short options for getopt"""
@@ -232,9 +160,8 @@ class Command(object):
             opts, args = getopt.getopt(in_args, self.get_short(),
                                        self.get_long())
         except Exception, error:
-            msg = "Error parsing %s for '%s': %s (parsing options: %s)"
-            raise CmdParseError(msg % (self._type, self.name,
-                                       str(error), in_args))
+            msg = "Error parsing %s: %s (parsing options: %s)"
+            raise CmdParseError(msg % (self._type, str(error), in_args))
 
         # update params with values from command line
         for opt, val in opts:
@@ -252,16 +179,7 @@ class Command(object):
         return params, args
 
 
-    def __call__(self, in_args, **kwargs):
-        """helper. just parse parameters and execute command
 
-        @args: see method parse
-        @returns: result of do_cmd
-        """
-        params, args = self.parse(in_args, **kwargs)
-        return self.do_cmd(params, args)
-
-
-class TaskOption(Command):
+class TaskParse(CmdParse):
     """Process string with command options (for tasks)"""
     _type = "Task option"

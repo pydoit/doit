@@ -7,13 +7,17 @@ import traceback
 import doit
 from .exceptions import InvalidDodoFile, InvalidCommand, InvalidTask
 from . import loader
-from . import cmdparse
+from .cmdparse import CmdParseError
+from .cmd_base import Command
 from .cmd_run import doit_run
 from .cmd_clean import doit_clean
 from .cmd_list import doit_list
 from .cmd_forget import doit_forget
 from .cmd_ignore import doit_ignore
 from .cmd_auto import doit_auto
+
+
+
 
 ## cmd line options
 ##########################################################
@@ -149,15 +153,12 @@ def _path_params(params):
             params['sub'].keys())
 
 
-run_doc = {'purpose': "run tasks",
-           'usage': "[TASK/TARGET...]",
-           'description': None}
-
 def print_version():
     """print doit version (includes path location)"""
     print ".".join([str(i) for i in doit.__version__])
     print "bin @", os.path.abspath(__file__)
     print "lib @", os.path.dirname(os.path.abspath(doit.__file__))
+
 
 def print_usage():
     """print doit "usage" (basic help) instructions"""
@@ -179,41 +180,63 @@ Commands:
  doit help <command>    show command usage
 """
 
-def cmd_run(params, args):
-    """execute cmd 'run' """
+class Run(Command):
+    doc_purpose = "run tasks"
+    doc_usage = "[TASK/TARGET...]"
+    doc_description = None
 
-    # special parameters that dont run anything
-    if params["version"]:
-        print_version()
-        return 0
-    if params["help"]:
-        print_usage()
-        return 0
+    _execute = staticmethod(doit_run)
 
-    # check if no sub-command specified. default command is "run"
-    if len(args) == 0 or args[0] not in params['sub']:
-        dodo_tasks = loader.get_tasks(*_path_params(params))
-        params.update_defaults(dodo_tasks['config'])
-        default_tasks = args or dodo_tasks['config'].get('default_tasks')
-        return doit_run(params['dep_file'], dodo_tasks['task_list'],
-                        params['outfile'], default_tasks,
-                        params['verbosity'], params['always'],
-                        params['continue'], params['reporter'],
-                        params['num_process'])
+    def execute(self, params, args):
+        """execute cmd 'run' """
 
-    # explicit sub-cmd. parse arguments again
-    commands = params['sub']
-    sub_cmd = args.pop(0)
-    return commands[sub_cmd](args, **params)
+        # FIXME move this out of run command
+        # special parameters that dont run anything
+        if params["version"]:
+            print_version()
+            return 0
+        if params["help"]:
+            print_usage()
+            return 0
+
+        # check if no sub-command specified. default command is "run"
+        if len(args) == 0 or args[0] not in params['sub']:
+            dodo_tasks = loader.get_tasks(*_path_params(params))
+            params.update_defaults(dodo_tasks['config'])
+            default_tasks = args or dodo_tasks['config'].get('default_tasks')
+            return self._execute(
+                params['dep_file'], dodo_tasks['task_list'],
+                params['outfile'], default_tasks,
+                params['verbosity'], params['always'],
+                params['continue'], params['reporter'],
+                params['num_process'])
+
+        # explicit sub-cmd. parse arguments again
+        commands = params['sub']
+        sub_cmd = args.pop(0)
+        return commands[sub_cmd].parse_execute(args, **params)
+
 
 
 
 ##########################################################
 ########## list
 
-list_doc = {'purpose': "list tasks from dodo file",
-            'usage': "[TASK ...]",
-            'description': None}
+class List(Command):
+    doc_purpose = "list tasks from dodo file"
+    doc_usage = "[TASK ...]"
+    doc_description = None
+
+    _execute = staticmethod(doit_list)
+
+    def execute(self, params, args):
+        """execute cmd 'list' """
+        dodo_tasks = loader.get_tasks(*_path_params(params))
+        params.update_defaults(dodo_tasks['config'])
+        return self._execute(
+            params['dep_file'], dodo_tasks['task_list'], sys.stdout,
+            args, params['all'], not params['quiet'],
+            params['status'], params['private'], params['list_deps'])
 
 opt_listall = {'name': 'all',
                'short':'',
@@ -255,23 +278,28 @@ opt_list_dependencies = {'name': 'list_deps',
 
 
 
-def cmd_list(params, args):
-    """execute cmd 'list' """
-    dodo_tasks = loader.get_tasks(*_path_params(params))
-    params.update_defaults(dodo_tasks['config'])
-    return doit_list(params['dep_file'], dodo_tasks['task_list'], sys.stdout,
-                     args, params['all'], not params['quiet'],
-                     params['status'], params['private'], params['list_deps'])
-
 ##########################################################
 ########## clean
 
+class Clean(Command):
+    doc_purpose = "clean action / remove targets"
+    doc_usage = "[TASK ...]"
+    doc_description = ("If no task is specified clean default tasks and "
+                       "set --clean-dep automatically.")
 
-clean_doc = {'purpose': "clean action / remove targets",
-             'usage': "[TASK ...]",
-             'description':
-                 ("If no task is specified clean default tasks and "
-                  "set --clean-dep automatically.")}
+    _execute = staticmethod(doit_clean)
+
+    def execute(self, params, args):
+        """execute cmd 'clean' """
+        dodo_tasks = loader.get_tasks(*_path_params(params))
+        params.update_defaults(dodo_tasks['config'])
+        selected_tasks = args
+        default_tasks = dodo_tasks['config'].get('default_tasks')
+        return self._execute(
+            dodo_tasks['task_list'], sys.stdout, params['dryrun'],
+            params['cleandep'], params['cleanall'],
+            default_tasks, selected_tasks)
+
 
 opt_clean_dryrun = {'name': 'dryrun',
                     'short': 'n', # like make dry-run
@@ -295,70 +323,70 @@ opt_clean_cleanall = {
     'default': False,
     'help': 'clean all task'}
 
-def cmd_clean(params, args):
-    """execute cmd 'clean' """
-    dodo_tasks = loader.get_tasks(*_path_params(params))
-    params.update_defaults(dodo_tasks['config'])
-    selected_tasks = args
-    default_tasks = dodo_tasks['config'].get('default_tasks')
-    return doit_clean(dodo_tasks['task_list'], sys.stdout, params['dryrun'],
-                      params['cleandep'], params['cleanall'],
-                      default_tasks, selected_tasks)
 
 
 ##########################################################
 ########## forget
 
-forget_doc = {'purpose': "clear successful run status from internal DB",
-              'usage': "[TASK ...]",
-              'description': None}
+class Forget(Command):
+    doc_purpose = "clear successful run status from internal DB"
+    doc_usage = "[TASK ...]"
+    doc_description = None
 
-def cmd_forget(params, args):
-    """execute cmd 'forget' """
-    dodo_tasks = loader.get_tasks(*_path_params(params))
-    params.update_defaults(dodo_tasks['config'])
-    options = args or dodo_tasks['config'].get('default_tasks')
-    return doit_forget(params['dep_file'], dodo_tasks['task_list'],
-                       sys.stdout, options)
+    _execute = staticmethod(doit_forget)
+
+    def execute(self, params, args):
+        """execute cmd 'forget' """
+        dodo_tasks = loader.get_tasks(*_path_params(params))
+        params.update_defaults(dodo_tasks['config'])
+        options = args or dodo_tasks['config'].get('default_tasks')
+        return self._execute(
+            params['dep_file'], dodo_tasks['task_list'],
+            sys.stdout, options)
 
 
 ##########################################################
 ########## ignore
 
-ignore_doc = {'purpose': "ignore task (skip) on subsequent runs",
-              'usage': "TASK [TASK ...]",
-              'description': None}
+class Ignore(Command):
+    doc_purpose = "ignore task (skip) on subsequent runs"
+    doc_usage = "TASK [TASK ...]"
+    doc_description = None
 
-def cmd_ignore(params, args):
-    """execute cmd 'ignore' """
-    dodo_tasks = loader.get_tasks(*_path_params(params))
-    params.update_defaults(dodo_tasks['config'])
-    return doit_ignore(params['dep_file'], dodo_tasks['task_list'],
-                       sys.stdout, args)
+    _execute = staticmethod(doit_ignore)
+
+    def execute(self, params, args):
+        """execute cmd 'ignore' """
+        dodo_tasks = loader.get_tasks(*_path_params(params))
+        params.update_defaults(dodo_tasks['config'])
+        return self._execute(
+            params['dep_file'], dodo_tasks['task_list'],
+            sys.stdout, args)
 
 
 ##########################################################
 ########## auto
 
-auto_doc = {'purpose': "automatically execute tasks when a dependency changes",
-            'usage': "TASK [TASK ...]",
-            'description': None}
+class Auto(Command):
+    doc_purpose = "automatically execute tasks when a dependency changes"
+    doc_usage = "TASK [TASK ...]"
+    doc_description = None
 
-def cmd_auto(params, args):
-    """execute cmd 'auto' """
-    dodo_tasks = loader.get_tasks(*_path_params(params))
-    params.update_defaults(dodo_tasks['config'])
-    filter_tasks = args or dodo_tasks['config'].get('default_tasks')
-    return doit_auto(params['dep_file'], dodo_tasks['task_list'], filter_tasks,
-                     params['verbosity'])
+    _execute = staticmethod(doit_auto)
+
+    def execute(self, params, args):
+        """execute cmd 'auto' """
+        dodo_tasks = loader.get_tasks(*_path_params(params))
+        params.update_defaults(dodo_tasks['config'])
+        filter_tasks = args or dodo_tasks['config'].get('default_tasks')
+        return self._execute(
+            params['dep_file'], dodo_tasks['task_list'], filter_tasks,
+            params['verbosity'])
 
 
 ##########################################################
 ########## help
 
-help_doc = {'purpose': "show help",
-            'usage': "",
-            'description': None}
 
 
 def print_task_help():
@@ -440,20 +468,25 @@ title:
  - type: callable taking one parameter as argument (the task reference)
 """
 
-def cmd_help(params, args):
-    """execute cmd 'help' """
-    if len(args) == 1:
-        if args[0] in params['sub']:
-            print params['sub'][args[0]].help()
-            return 0
-        elif args[0] == 'task':
-            print_task_help()
-            return 0
-    print_usage()
-    return 0
-
 
 ##########################################################
+class Help(Command):
+    doc_purpose = "show help"
+    doc_usage = ""
+    doc_description = None
+
+    @staticmethod
+    def execute(params, args):
+        """execute cmd 'help' """
+        if len(args) == 1:
+            if args[0] in params['sub']:
+                print params['sub'][args[0]].help()
+                return 0
+            elif args[0] == 'task':
+                print_task_help()
+                return 0
+        print_usage()
+        return 0
 
 
 
@@ -472,41 +505,37 @@ def cmd_main(cmd_args):
     sub_cmd = {} # all sub-commands
 
     # help command
-    sub_cmd['help'] = cmdparse.Command('help', (), cmd_help, help_doc)
+    sub_cmd['help'] = Help(())
 
     # run command
     run_options = (opt_version, opt_help, opt_dodo, opt_cwd, opt_depfile,
                    opt_seek_file, opt_always, opt_continue, opt_verbosity,
                    opt_reporter, opt_outfile, opt_num_process)
-    sub_cmd['run'] = cmdparse.Command('run', run_options, cmd_run, run_doc)
+    sub_cmd['run'] = Run(run_options)
 
     # clean command
     clean_options = (opt_dodo, opt_cwd, opt_seek_file, opt_clean_cleandep,
                      opt_clean_cleanall, opt_clean_dryrun)
-    sub_cmd['clean'] = cmdparse.Command('clean', clean_options, cmd_clean,
-                                        clean_doc)
+    sub_cmd['clean'] = Clean(clean_options)
 
     # list command
     list_options = (opt_dodo, opt_depfile, opt_cwd, opt_seek_file , opt_listall,
                     opt_list_quiet, opt_list_status, opt_list_private,
                     opt_list_dependencies)
-    sub_cmd['list'] = cmdparse.Command('list', list_options, cmd_list, list_doc)
+    sub_cmd['list'] = List(list_options)
 
     # forget command
     forget_options = (opt_dodo, opt_cwd, opt_seek_file, opt_depfile,)
-    sub_cmd['forget'] = cmdparse.Command('forget', forget_options,
-                                        cmd_forget, forget_doc)
+    sub_cmd['forget'] = Forget(forget_options)
 
     # ignore command
     ignore_options = (opt_dodo, opt_cwd, opt_seek_file, opt_depfile,)
-    sub_cmd['ignore'] = cmdparse.Command('ignore', ignore_options,
-                                        cmd_ignore, ignore_doc)
+    sub_cmd['ignore'] = Ignore(ignore_options)
 
     # auto command
     auto_options = (opt_dodo, opt_cwd, opt_seek_file, opt_depfile,
                     opt_verbosity)
-    sub_cmd['auto'] = cmdparse.Command('auto', auto_options,
-                                        cmd_auto, auto_doc)
+    sub_cmd['auto'] = Auto(auto_options)
 
     # get cmdline variables from args
     doit.reset_vars()
@@ -519,10 +548,10 @@ def cmd_main(cmd_args):
             args_no_vars.append(arg)
 
     try:
-        return sub_cmd['run'](args_no_vars, sub=sub_cmd)
+        return sub_cmd['run'].parse_execute(args_no_vars, sub=sub_cmd)
 
     # dont show traceback for user errors.
-    except (cmdparse.CmdParseError, InvalidDodoFile,
+    except (CmdParseError, InvalidDodoFile,
             InvalidCommand, InvalidTask), err:
         sys.stderr.write("ERROR: %s\n" % str(err))
         return 3

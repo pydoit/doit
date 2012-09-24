@@ -2,12 +2,13 @@ import pickle
 
 import pytest
 
-from doit import cmdparse
+from doit.cmdparse import DefaultUpdate, CmdParseError, CmdParse
+
 
 
 class TestDefaultUpdate(object):
     def test(self):
-        du = cmdparse.DefaultUpdate()
+        du = DefaultUpdate()
 
         du.set_default('a', 0)
         du.set_default('b', 0)
@@ -22,10 +23,27 @@ class TestDefaultUpdate(object):
 
     # http://bugs.python.org/issue826897
     def test_pickle(self):
-        du = cmdparse.DefaultUpdate()
+        du = DefaultUpdate()
         du.set_default('x', 0)
         dump = pickle.dumps(du,2)
         pickle.loads(dump)
+
+
+class TestCmdParseInit(object):
+
+    def test_non_required_fields(self):
+        opt1 = {'name':'op1', 'default':''}
+        cmd = CmdParse([opt1])
+        assert 'long' in cmd.options[0]
+
+    def test_invalid_field(self):
+        opt1 = {'name':'op1', 'default':'', 'non_existent':''}
+        pytest.raises(CmdParseError, CmdParse, [opt1])
+
+    def test_missing_field(self):
+        opt1 = {'name':'op1', 'long':'abc'}
+        pytest.raises(CmdParseError, CmdParse, [opt1])
+
 
 
 opt_bool = {'name': 'flag',
@@ -56,52 +74,18 @@ opt_no = {'name': 'no',
           'default': 5,
           'help': 'user cant modify me'}
 
-def cmd_xxx(params, args):
-    return params, args
-
-class TestCommandInit(object):
-
-    def test_non_required_fields(self):
-        opt1 = {'name':'op1', 'default':''}
-        cmd = cmdparse.Command('xxx', [opt1], None, None)
-        assert 'long' in cmd.options[0]
-
-    def test_invalid_field(self):
-        opt1 = {'name':'op1', 'default':'', 'non_existent':''}
-        pytest.raises(cmdparse.CmdParseError,
-                       cmdparse.Command, 'xxx', [opt1], None, None)
-
-    def test_missing_field(self):
-        opt1 = {'name':'op1', 'long':'abc'}
-        pytest.raises(cmdparse.CmdParseError,
-                       cmdparse.Command, 'xxx', [opt1], None, None)
-
-
 
 class TestCommand(object):
 
     def pytest_funcarg__cmd(self, request):
         def create_sample_cmd():
             options = [opt_bool, opt_rare, opt_int, opt_no]
-            doc = {'purpose':'PURPOSE','usage':'USAGE',
-                   'description':'DESCRIPTION'}
-            cmd = cmdparse.Command('xxx', options, cmd_xxx, doc)
+            cmd = CmdParse(options)
             return cmd
         return request.cached_setup(
             setup=create_sample_cmd,
             scope="function")
 
-
-    def test_help(self, cmd):
-        text = cmd.help()
-        assert 'PURPOSE' in text
-        assert 'USAGE' in text
-        assert 'DESCRIPTION' in text
-        assert '-f' in text
-        assert '--rare-bool' in text
-        assert 'help for opt1' in text
-        assert opt_no['name'] in [o['name'] for o in cmd.options]
-        assert 'user cant modify me' not in text
 
     def test_short(self, cmd):
         assert "fn:" == cmd.get_short(), cmd.get_short()
@@ -149,12 +133,4 @@ class TestCommand(object):
         assert "ho" == params['new_param']
 
     def test_parseWrongType(self, cmd):
-        pytest.raises(cmdparse.CmdParseError, cmd.parse, ['--num','oi'])
-
-    def test_call(self, cmd):
-        params, args = cmd(['-n','7','ppp'])
-        assert ['ppp'] == args
-        assert 7 == params['num']
-
-    def test_failCall(self, cmd):
-        pytest.raises(cmdparse.CmdParseError, cmd,['-x','35'])
+        pytest.raises(CmdParseError, cmd.parse, ['--num','oi'])

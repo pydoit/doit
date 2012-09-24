@@ -5,7 +5,7 @@ import os
 import copy
 import sys
 
-from . import cmdparse
+from .cmdparse import TaskParse
 from .exceptions import CatchedException, InvalidTask
 from .action import create_action
 
@@ -38,7 +38,7 @@ class Task(object):
     @ivar doc: (string) task documentation
 
     @ivar options: (dict) calculated params values (from getargs and taskopt)
-    @ivar taskopt: (cmdparse.Command)
+    @ivar taskopt: (cmdparse.CmdParse)
     @ivar custom_title: function reference that takes a task object as
                         parameter and returns a string.
     @ivar run_status (str): contains the result of Dependency.get_status
@@ -81,7 +81,7 @@ class Task(object):
                  doc=None, params=(), verbosity=None, title=None, getargs=None):
         """sanity checks and initialization
 
-        @param params: (list of option parameters) see cmdparse.Command.__init__
+        @param params: (list of option parameters) see cmdparse.CmdParse
         """
 
         getargs = getargs or {} #default
@@ -103,7 +103,7 @@ class Task(object):
         self.check_attr(name, 'title', title, self.valid_attr['title'])
 
         self.name = name
-        self.taskcmd = cmdparse.TaskOption(name, params, None, None)
+        self.taskcmd = TaskParse(params)
         self.options = None
         self.setup_tasks = list(setup)
 

@@ -153,4 +153,4 @@ def task_pypi():
 
 
 
-# sfood -i doit/ | sfood-graph | dot -Tpng -o doit-dep.png
+# doit -f ../doit-recipes/deps/deps.py -d . --reporter=executed-only

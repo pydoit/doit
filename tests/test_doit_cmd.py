@@ -45,21 +45,21 @@ class TestRun(object):
     def test_run_is_default(self, monkeypatch):
         monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         mock_run = Mock()
-        monkeypatch.setattr(doit_cmd, "doit_run", mock_run)
+        monkeypatch.setattr(doit_cmd.Run, "_execute", mock_run)
         doit_cmd.cmd_main([])
         assert 1 == mock_run.call_count
 
     def test_run_other_subcommand(self, monkeypatch):
         monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         mock_list = Mock()
-        monkeypatch.setattr(doit_cmd, "doit_list", mock_list)
+        monkeypatch.setattr(doit_cmd.List, "execute", mock_list)
         doit_cmd.cmd_main(["list"])
         assert 1 == mock_list.call_count
 
     def test_cmdline_vars(self, monkeypatch):
         monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         mock_run = Mock()
-        monkeypatch.setattr(doit_cmd, "doit_run", mock_run)
+        monkeypatch.setattr(doit_cmd.Run, "execute", mock_run)
         doit_cmd.cmd_main(['x=1', 'y=abc'])
         assert '1' == get_var('x')
         assert 'abc' == get_var('y')
@@ -67,7 +67,7 @@ class TestRun(object):
     def test_cmdline_vars_not_opts(self, monkeypatch):
         monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         mock_run = Mock()
-        monkeypatch.setattr(doit_cmd, "doit_run", mock_run)
+        monkeypatch.setattr(doit_cmd.Run, "execute", mock_run)
         doit_cmd.cmd_main(['--z=5'])
         assert None == get_var('--z')
 
@@ -77,7 +77,7 @@ class TestInterface(object):
         argspec = inspect.getargspec(doit_cmd.doit_run)
         monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         mock_run = Mock()
-        monkeypatch.setattr(doit_cmd, "doit_run", mock_run)
+        monkeypatch.setattr(doit_cmd.Run, "_execute", mock_run)
         doit_cmd.cmd_main(["--output-file", "mylog.txt",
                          "-v2", "--continue", "--reporter", "myr", "-n", "4"])
 
@@ -104,7 +104,7 @@ class TestInterface(object):
                             Mock(return_value=get_tasks_result))
         argspec = inspect.getargspec(doit_cmd.doit_run)
         mock_run = Mock()
-        monkeypatch.setattr(doit_cmd, "doit_run", mock_run)
+        monkeypatch.setattr(doit_cmd.Run, "_execute", mock_run)
         doit_cmd.cmd_main(["--reporter", "cmdline_reporter"])
         assert 1 == mock_run.call_count
 
@@ -122,7 +122,7 @@ class TestInterface(object):
         argspec = inspect.getargspec(doit_cmd.doit_list)
         monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         mock_list = Mock()
-        monkeypatch.setattr(doit_cmd, "doit_list", mock_list)
+        monkeypatch.setattr(doit_cmd.List, "_execute", mock_list)
         doit_cmd.cmd_main(["list", "--all", "--quiet", "--status", "--deps",
                            "c", "a"])
         assert mock_list.called
@@ -147,7 +147,7 @@ class TestInterface(object):
         argspec = inspect.getargspec(doit_cmd.doit_clean)
         monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         mock_clean = Mock()
-        monkeypatch.setattr(doit_cmd, "doit_clean", mock_clean)
+        monkeypatch.setattr(doit_cmd.Clean, "_execute", mock_clean)
         doit_cmd.cmd_main(["clean", "--dry-run", "t1"])
         assert mock_clean.called
 
@@ -171,7 +171,7 @@ class TestInterface(object):
         argspec = inspect.getargspec(doit_cmd.doit_forget)
         monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         mock_forget = Mock()
-        monkeypatch.setattr(doit_cmd, "doit_forget", mock_forget)
+        monkeypatch.setattr(doit_cmd.Forget, "_execute", mock_forget)
         doit_cmd.cmd_main(["forget",])
 
         expected = [('dependency_file', '.doit.db'),
@@ -190,7 +190,7 @@ class TestInterface(object):
         argspec = inspect.getargspec(doit_cmd.doit_ignore)
         monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         mock_ignore = Mock()
-        monkeypatch.setattr(doit_cmd, "doit_ignore", mock_ignore)
+        monkeypatch.setattr(doit_cmd.Ignore, "_execute", mock_ignore)
         doit_cmd.cmd_main(["ignore", "b"])
 
         expected = [('dependency_file', '.doit.db'),
@@ -209,7 +209,7 @@ class TestInterface(object):
         argspec = inspect.getargspec(doit_cmd.doit_auto)
         monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         mock_auto = Mock()
-        monkeypatch.setattr(doit_cmd, "doit_auto", mock_auto)
+        monkeypatch.setattr(doit_cmd.Auto, "_execute", mock_auto)
         doit_cmd.cmd_main(["auto", "-v", "2", "b"])
 
         expected = [('dependency_file', '.doit.db'),
@@ -233,13 +233,13 @@ class TestErrors(object):
         def my_raise(*args):
             raise KeyboardInterrupt()
         mock_cmd = Mock(side_effect=my_raise)
-        monkeypatch.setattr(doit_cmd, "doit_run", mock_cmd)
+        monkeypatch.setattr(doit_cmd.Run, "execute", mock_cmd)
         pytest.raises(KeyboardInterrupt, doit_cmd.cmd_main, [])
 
     def test_user_error(self, capsys, monkeypatch):
         monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         mock_cmd = Mock(side_effect=InvalidCommand)
-        monkeypatch.setattr(doit_cmd, "doit_run", mock_cmd)
+        monkeypatch.setattr(doit_cmd.Run, "execute", mock_cmd)
         got = doit_cmd.cmd_main([])
         assert 3 == got
         out, err = capsys.readouterr()
@@ -248,7 +248,7 @@ class TestErrors(object):
     def test_internal_error(self, capsys, monkeypatch):
         monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         mock_cmd = Mock(side_effect=Exception)
-        monkeypatch.setattr(doit_cmd, "doit_run", mock_cmd)
+        monkeypatch.setattr(doit_cmd.Run, "execute", mock_cmd)
         got = doit_cmd.cmd_main([])
         assert 3 == got
         out, err = capsys.readouterr()
