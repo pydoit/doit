@@ -3,7 +3,9 @@ import itertools
 
 from .control import TaskControl
 from .filewatch import FileModifyWatcher
-from .cmd_run import doit_run
+from .cmd_base import DoitCmdBase
+from .cmd_run import opt_verbosity, Run
+
 
 def _auto_watch(task_list, filter_tasks):
     """return list of tasks and files that need to be watched by auto cmd"""
@@ -22,23 +24,40 @@ def _auto_watch(task_list, filter_tasks):
     watch_files = list(set(watch_files))
     return watch_tasks, watch_files
 
-def doit_auto(dependency_file, task_list, filter_tasks,
-              verbosity=None, reporter='executed-only', loop_callback=None):
-    """Re-execute tasks automatically a depedency changes
 
-    @param filter_tasks (list -str): print only tasks from this list
-    @loop_callback: used to stop loop on unittests
-    """
-    watch_tasks, watch_files = _auto_watch(task_list, filter_tasks)
-    class DoitAutoRun(FileModifyWatcher):
-        """Execute doit on event handler of file changes """
-        def handle_event(self, event):
-            this_list = [t.clone() for t in task_list]
-            doit_run(dependency_file, this_list, sys.stdout,
-                     watch_tasks, verbosity=verbosity, reporter=reporter)
 
-    file_watcher = DoitAutoRun(watch_files)
-    # always run once when started
-    file_watcher.handle_event(None)
-    file_watcher.loop(loop_callback)
+class Auto(DoitCmdBase):
+    doc_purpose = "automatically execute tasks when a dependency changes"
+    doc_usage = "[TASK ...]"
+    doc_description = None
+
+    cmd_options = (opt_verbosity,)
+
+    def execute(self, params, args):
+        """execute cmd 'auto' """
+        params = self.read_dodo(params, args)
+        return self._execute(
+            params['dep_file'], self.task_list, self.sel_tasks,
+            params['verbosity'])
+
+    @staticmethod
+    def _execute(dependency_file, task_list, filter_tasks,
+                 verbosity=None, reporter='executed-only', loop_callback=None):
+        """Re-execute tasks automatically a depedency changes
+
+        @param filter_tasks (list -str): print only tasks from this list
+        @loop_callback: used to stop loop on unittests
+        """
+        watch_tasks, watch_files = _auto_watch(task_list, filter_tasks)
+        class DoitAutoRun(FileModifyWatcher):
+            """Execute doit on event handler of file changes """
+            def handle_event(self, event):
+                this_list = [t.clone() for t in task_list]
+                Run._execute(dependency_file, this_list, sys.stdout,
+                         watch_tasks, verbosity=verbosity, reporter=reporter)
+
+        file_watcher = DoitAutoRun(watch_files)
+        # always run once when started
+        file_watcher.handle_event(None)
+        file_watcher.loop(loop_callback)
 

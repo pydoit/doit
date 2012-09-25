@@ -2,7 +2,7 @@ import threading
 import time
 
 from doit.task import Task
-from doit.cmd_auto import _auto_watch, FileModifyWatcher, doit_auto
+from doit.cmd_auto import _auto_watch, FileModifyWatcher, Auto
 from tests.test_runner import FakeReporter
 from tests.conftest import remove_db
 
@@ -59,7 +59,7 @@ class TestCmdAuto(object):
         reporter = FakeReporter()
         run_args = (depfile.name, task_list, ["t1", "t2", "stop"],
                     None, reporter, loop_callback)
-        loop_thread = threading.Thread(target=doit_auto, args=run_args)
+        loop_thread = threading.Thread(target=Auto._execute, args=run_args)
         loop_thread.daemon = True
         loop_thread.start()
 

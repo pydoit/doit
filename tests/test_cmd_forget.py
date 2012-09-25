@@ -5,7 +5,8 @@ import pytest
 from doit.exceptions import InvalidCommand
 from doit.dependency import Dependency
 from doit.task import Task
-from doit.cmd_forget import doit_forget
+from doit.cmd_forget import Forget
+doit_forget = Forget._execute
 
 
 class TestCmdForget(object):

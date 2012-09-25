@@ -1,7 +1,12 @@
+
 from .cmdparse import CmdOption, CmdParse
+from . import loader
 
 
 class Command(object):
+    """base command third-party should subclass this for commands that
+    do no use tasks
+    """
     # doc attributes, should be sub-classed
     doc_purpose = ''
     doc_usage = ''
@@ -91,4 +96,66 @@ class Command(object):
             text.append(self.doc_description)
         return "\n".join(text)
 
+
+######################################################################
+
+# choose internal dependency file.
+opt_depfile = {'name': 'dep_file',
+               'short':'',
+               'long': 'db-file',
+               'type': str,
+               'default': ".doit.db",
+               'help': "file used to save successful runs"
+               }
+
+
+#### options related to dodo.py
+# select dodo file containing tasks
+opt_dodo = {'name': 'dodoFile',
+            'short':'f',
+            'long': 'file',
+            'type': str,
+            'default': 'dodo.py',
+            'help':"load task from dodo FILE [default: %(default)s]"
+            }
+
+# cwd
+opt_cwd = {'name': 'cwdPath',
+           'short':'d',
+           'long': 'dir',
+           'type': str,
+           'default': None,
+           'help':("set path to be used as cwd directory (file paths on " +
+                   "dodo file are relative to dodo.py location.")
+           }
+
+# seek dodo file on parent folders
+opt_seek_file = {'name': 'seek_file',
+                 'short': '',
+                 'long': 'seek-file',
+                 'type': bool,
+                 'default': False,
+                 'help': ("seek dodo file on parent folders " +
+                          "[default: %(default)s]")
+                 }
+
+
+
+class DoitCmdBase(Command):
+    base_options = (opt_dodo, opt_cwd, opt_seek_file, opt_depfile)
+
+    def set_options(self):
+        opt_list = self.base_options + self.cmd_options
+        return [CmdOption(opt) for opt in opt_list]
+
+    def read_dodo(self, params, args):
+        # FIXME should get a tuple instead of dict
+        dodo_tasks = loader.get_tasks(
+            params['dodoFile'], params['cwdPath'], params['seek_file'],
+            params['sub'].keys())
+        self.task_list = dodo_tasks['task_list']
+        self.config = dodo_tasks['config']
+        params.update_defaults(self.config)
+        self.sel_tasks = args or self.config.get('default_tasks')
+        return params
 

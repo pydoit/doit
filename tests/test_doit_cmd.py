@@ -74,7 +74,7 @@ class TestRun(object):
 
 class TestInterface(object):
     def test_doit_run_args(self, monkeypatch):
-        argspec = inspect.getargspec(doit_cmd.doit_run)
+        argspec = inspect.getargspec(doit_cmd.Run._execute)
         monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         mock_run = Mock()
         monkeypatch.setattr(doit_cmd.Run, "_execute", mock_run)
@@ -102,7 +102,7 @@ class TestInterface(object):
                                        'outfile': 'config_outfile'}}
         monkeypatch.setattr(loader, "get_tasks",
                             Mock(return_value=get_tasks_result))
-        argspec = inspect.getargspec(doit_cmd.doit_run)
+        argspec = inspect.getargspec(doit_cmd.Run._execute)
         mock_run = Mock()
         monkeypatch.setattr(doit_cmd.Run, "_execute", mock_run)
         doit_cmd.cmd_main(["--reporter", "cmdline_reporter"])
@@ -119,7 +119,7 @@ class TestInterface(object):
 
 
     def test_doit_list_args(self, monkeypatch):
-        argspec = inspect.getargspec(doit_cmd.doit_list)
+        argspec = inspect.getargspec(doit_cmd.List._execute)
         monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         mock_list = Mock()
         monkeypatch.setattr(doit_cmd.List, "_execute", mock_list)
@@ -144,7 +144,7 @@ class TestInterface(object):
 
 
     def test_doit_clean_args(self, monkeypatch):
-        argspec = inspect.getargspec(doit_cmd.doit_clean)
+        argspec = inspect.getargspec(doit_cmd.Clean._execute)
         monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         mock_clean = Mock()
         monkeypatch.setattr(doit_cmd.Clean, "_execute", mock_clean)
@@ -168,7 +168,7 @@ class TestInterface(object):
 
 
     def test_doit_forget_args(self, monkeypatch):
-        argspec = inspect.getargspec(doit_cmd.doit_forget)
+        argspec = inspect.getargspec(doit_cmd.Forget._execute)
         monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         mock_forget = Mock()
         monkeypatch.setattr(doit_cmd.Forget, "_execute", mock_forget)
@@ -187,7 +187,7 @@ class TestInterface(object):
 
 
     def test_doit_ignore_args(self, monkeypatch):
-        argspec = inspect.getargspec(doit_cmd.doit_ignore)
+        argspec = inspect.getargspec(doit_cmd.Ignore._execute)
         monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         mock_ignore = Mock()
         monkeypatch.setattr(doit_cmd.Ignore, "_execute", mock_ignore)
@@ -206,7 +206,7 @@ class TestInterface(object):
 
 
     def test_doit_auto_args(self, monkeypatch):
-        argspec = inspect.getargspec(doit_cmd.doit_auto)
+        argspec = inspect.getargspec(doit_cmd.Auto._execute)
         monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         mock_auto = Mock()
         monkeypatch.setattr(doit_cmd.Auto, "_execute", mock_auto)

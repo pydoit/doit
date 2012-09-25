@@ -1,7 +1,8 @@
 import StringIO
 
 from doit.task import Task
-from doit.cmd_clean import doit_clean
+from doit.cmd_clean import Clean
+doit_clean = Clean._execute
 
 class TestCmdClean(object):
 

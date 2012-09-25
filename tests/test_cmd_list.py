@@ -1,7 +1,8 @@
 import StringIO
 
 from doit.task import Task
-from doit.cmd_list import doit_list
+from doit.cmd_list import List
+doit_list = List._execute
 from tests.conftest import tasks_sample
 
 

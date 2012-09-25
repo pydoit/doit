@@ -7,7 +7,8 @@ from mock import Mock
 from doit.exceptions import InvalidCommand
 from doit.task import Task
 from doit import reporter, runner
-from doit.cmd_run import doit_run
+from doit.cmd_run import Run
+doit_run = Run._execute
 from tests.conftest import tasks_sample
 
 
