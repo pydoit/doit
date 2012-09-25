@@ -3,7 +3,6 @@
 import types
 import os
 import copy
-import sys
 
 from .cmdparse import CmdOption, TaskParse
 from .exceptions import CatchedException, InvalidTask
@@ -59,7 +58,6 @@ class Task(object):
                   'actions': ((list, tuple,), (None,)),
                   'file_dep': ((list, tuple,), ()),
                   'task_dep': ((list, tuple,), ()),
-                  'result_dep': ((list, tuple,), ()),
                   'uptodate': ((list, tuple,), ()),
                   'calc_dep': ((list, tuple,), ()),
                   'targets': ((list, tuple,), ()),
@@ -75,7 +73,7 @@ class Task(object):
 
 
     def __init__(self, name, actions, file_dep=(), targets=(),
-                 task_dep=(), result_dep=(), uptodate=(),
+                 task_dep=(), uptodate=(),
                  calc_dep=(), setup=(), clean=(), teardown=(),
                  is_subtask=False, has_subtask=False,
                  doc=None, params=(), verbosity=None, title=None, getargs=None):
@@ -115,16 +113,6 @@ class Task(object):
             self._actions = list(actions[:])
 
         self._init_deps(file_dep, task_dep, calc_dep)
-
-        # DEPRECATED on 0.17 to be removed on 0.18
-        if result_dep: # pragma: no cover
-            from doit.tools import result_dep as check_result
-            uptodate = list(uptodate)
-            msg = ('DEPRECATION WARNING: Task "%s" is using "result_dep", '
-                   'use doit.tools.result_dep as "uptodate" instead.\n')
-            sys.__stderr__.write(msg % self.name)
-            for _result_dep in result_dep:
-                uptodate.append(check_result(_result_dep))
 
         self.value_savers = []
         self.uptodate = self._init_uptodate(uptodate) if uptodate else []
@@ -255,32 +243,14 @@ class Task(object):
         self._init_options()
         for arg_name, desc in self.getargs.iteritems():
 
-            # DEPRECATED on 0.17, to be removed on 0.18
-            # value can be a string task_id.key_name
-            if isinstance(desc, basestring):
-                msg = ('DEPRECATION WARNING: Task "%s" "getargs" string values '
-                       '<task_id.key_name> is deprecated. '
-                       'Use a tuple (<task_id>, <key_name>) instead.\n')
-                sys.__stderr__.write(msg % self.name)
-
-                parts = desc.rsplit('.', 1)
-                if len(parts) != 2:
-                    msg = ("Taskid '%s' - Invalid format for getargs of '%s'.\n" %
-                           (self.name, arg_name) +
-                           "Should be <taskid>.<key-name> got '%s'\n" % desc)
-                    raise InvalidTask(msg)
-                self.getargs[arg_name] = parts
-            # END - DEPRECATION
-
-            # ... or tuple (task_id, key_name)
-            else:
-                parts = desc
-                if len(parts) != 2:
-                    msg = ("Taskid '%s' - Invalid format for getargs of '%s'.\n" %
-                           (self.name, arg_name) +
-                           "Should be tuple with 2 elements " +
-                           "('<taskid>', '<key-name>') got '%s'\n" % desc)
-                    raise InvalidTask(msg)
+            # tuple (task_id, key_name)
+            parts = desc
+            if isinstance(parts, basestring) or len(parts) != 2:
+                msg = ("Taskid '%s' - Invalid format for getargs of '%s'.\n" %
+                       (self.name, arg_name) +
+                       "Should be tuple with 2 elements " +
+                       "('<taskid>', '<key-name>') got '%s'\n" % desc)
+                raise InvalidTask(msg)
 
             if parts[0] not in self.setup_tasks:
                 self.setup_tasks.append(parts[0])
@@ -329,19 +299,6 @@ class Task(object):
             self._action_instances = [create_action(a, self) for a in self._actions]
         return self._action_instances
 
-
-    # deprecated on 0.17 to be removed on 0.18
-    def insert_action(self, call_ref):
-        """insert an action to execute before all other actions
-
-        @param call_ref: callable or (callable, args, kwargs)
-        This is part of interface to be used by 'uptodate' callables
-        """
-        msg = ('DEPRECATION WARNING: Task "%s" insert_action is deprecated, '
-               'use "value_savers" instead.\n')
-        sys.__stderr__.write(msg % self.name)
-        self.value_savers.append(call_ref)
-    # end deprecation
 
     def save_extra_values(self):
         """run value_savers updating self.values"""

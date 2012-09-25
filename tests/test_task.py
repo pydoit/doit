@@ -72,13 +72,6 @@ class TestTaskInit(object):
 
 
 class TestTaskValueSavers(object):
-    def test_insert_action(self):
-        t = task.Task("Task X", ["taskcmd"])
-        def void(task, values, (my_arg1,)): pass
-        t.insert_action((void, [1]))
-        assert 1 == len(t.actions)
-        assert 1 == len(t.value_savers)
-
     def test_execute_value_savers(self):
         t = task.Task("Task X", ["taskcmd"])
         t.value_savers.append(lambda: {'v1':1})
@@ -187,12 +180,6 @@ class TestTask_Getargs(object):
         getargs = {'x' : ('t1',)}
         assert pytest.raises(task.InvalidTask, task.Task,
                               't3', None, getargs=getargs)
-
-    def test_many_dots(self):
-        # DEPRECATED
-        getargs = {'x': 't2:file.ext.x'}
-        t = task.Task('t1', None, getargs=getargs)
-        assert 't2:file.ext' in t.setup_tasks
 
 
 class TestTaskTitle(object):
