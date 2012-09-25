@@ -53,18 +53,16 @@ class List(DoitCmdBase):
         """execute cmd 'list' """
         params = self.read_dodo(params, args)
         return self._execute(
-            params['dep_file'], self.task_list, sys.stdout,
-            args, params['all'], not params['quiet'],
+            sys.stdout,
+            params['all'], not params['quiet'],
             params['status'], params['private'], params['list_deps'])
 
 
-    @staticmethod
-    def _execute(dependency_file, task_list, outstream, filter_tasks,
-                  print_subtasks=False, print_doc=False, print_status=False,
-                  print_private=False, print_dependencies=False):
+    def _execute(self, outstream,
+                 print_subtasks=False, print_doc=False, print_status=False,
+                 print_private=False, print_dependencies=False):
         """List task generators, in the order they were defined.
 
-        @param filter_tasks (list -str): print only tasks from this list
         @param outstream (file-like): object
         @param print_subtasks (bool)
         @param print_doc(bool)
@@ -95,25 +93,25 @@ class List(DoitCmdBase):
 
 
         # dict of all tasks
-        tasks = dict([(t.name, t) for t in task_list])
+        tasks = dict([(t.name, t) for t in self.task_list])
         # list only tasks passed on command line
-        if filter_tasks:
-            base_list = [tasks[name] for name in filter_tasks]
+        if self.sel_tasks:
+            base_list = [tasks[name] for name in self.sel_tasks]
             if print_subtasks:
                 for task in base_list:
                     for subt in task.task_dep:
                         if subt.startswith("%s" % task.name):
                             base_list.append(tasks[subt])
         else:
-            base_list = task_list
+            base_list = self.task_list
         # status
         if print_status:
-            dependency_manager = Dependency(dependency_file)
+            dependency_manager = Dependency(self.dep_file)
 
         print_list = []
         for task in base_list:
             # exclude subtasks (never exclude if filter specified)
-            if (not print_subtasks) and (not filter_tasks) and task.is_subtask:
+            if (not print_subtasks) and (not self.sel_tasks) and task.is_subtask:
                 continue
             # exclude private tasks
             if (not print_private) and task.name.startswith('_'):

@@ -95,14 +95,13 @@ class Run(DoitCmdBase):
         """execute cmd 'run' """
         params = self.read_dodo(params, args)
         return self._execute(
-            params['dep_file'], self.task_list,
-            params['outfile'], self.sel_tasks,
+            params['outfile'],
             params['verbosity'], params['always'],
             params['continue'], params['reporter'],
             params['num_process'])
 
-    @staticmethod
-    def _execute(dependency_file, task_list, output, options=None,
+
+    def _execute(self, output,
                  verbosity=None, always_execute=False, continue_=False,
                  reporter='default', num_process=0):
         """
@@ -112,8 +111,8 @@ class Run(DoitCmdBase):
                          (reporter instance) - only used in unittests
         """
         # get tasks to be executed
-        task_control = TaskControl(task_list)
-        task_control.process(options)
+        task_control = TaskControl(self.task_list)
+        task_control.process(self.sel_tasks)
 
         # reporter
         if isinstance(reporter, basestring):
@@ -156,11 +155,11 @@ class Run(DoitCmdBase):
                                  "running on single process.")
 
             if num_process == 0:
-                runner = Runner(dependency_file, reporter_obj, continue_,
+                runner = Runner(self.dep_file, reporter_obj, continue_,
                                 always_execute, verbosity)
             else:
-                runner = MRunner(dependency_file, reporter_obj, continue_,
-                                   always_execute, verbosity, num_process)
+                runner = MRunner(self.dep_file, reporter_obj, continue_,
+                                 always_execute, verbosity, num_process)
 
             return runner.run_all(task_control)
         finally:

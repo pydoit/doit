@@ -40,12 +40,12 @@ class Clean(DoitCmdBase):
         default_tasks = self.config.get('default_tasks')
         selected_tasks = args
         return self._execute(
-            self.task_list, sys.stdout, params['dryrun'],
+            sys.stdout, params['dryrun'],
             params['cleandep'], params['cleanall'],
             default_tasks, selected_tasks)
 
-    @staticmethod
-    def _execute(task_list, outstream, dryrun, clean_dep, clean_all,
+
+    def _execute(self, outstream, dryrun, clean_dep, clean_all,
                  default_tasks, selected_tasks):
         """Clean tasks
         @param task_list (list - L{Task}): list of all tasks from dodo file
@@ -56,7 +56,7 @@ class Clean(DoitCmdBase):
         @param default_tasks (list - string): list of default tasks
         @param selected_tasks (list - string): list of tasks selected from cmd line
         """
-        tasks = dict([(t.name, t) for t in task_list])
+        tasks = dict([(t.name, t) for t in self.task_list])
         cleaned = set()
 
         def clean_task(task_name):
@@ -67,7 +67,7 @@ class Clean(DoitCmdBase):
 
         # get list of tasks to be cleaned
         if clean_all:
-            clean_list = [t.name for t in task_list]
+            clean_list = [t.name for t in self.task_list]
         elif selected_tasks:
             clean_list = selected_tasks
         else:

@@ -6,7 +6,6 @@ from doit.exceptions import InvalidCommand
 from doit.dependency import Dependency
 from doit.task import Task
 from doit.cmd_ignore import Ignore
-doit_ignore = Ignore._execute
 
 
 class TestCmdIgnore(object):
@@ -26,11 +25,10 @@ class TestCmdIgnore(object):
             setup=create_tasks,
             scope="function")
 
-
-
     def testIgnoreAll(self, tasks, depfile):
         output = StringIO.StringIO()
-        doit_ignore(depfile.name, tasks, output, [])
+        cmd = Ignore(dep_file=depfile.name, task_list=tasks)
+        cmd._execute(output, [])
         got = output.getvalue().split("\n")[:-1]
         assert ["You cant ignore all tasks! Please select a task."] == got, got
         dep = Dependency(depfile.name)
@@ -39,7 +37,8 @@ class TestCmdIgnore(object):
 
     def testIgnoreOne(self, tasks, depfile):
         output = StringIO.StringIO()
-        doit_ignore(depfile.name, tasks, output, ["t2", "t1"])
+        cmd = Ignore(dep_file=depfile.name, task_list=tasks)
+        cmd._execute(output, ["t2", "t1"])
         got = output.getvalue().split("\n")[:-1]
         assert ["ignoring t2", "ignoring t1"] == got
         dep = Dependency(depfile.name)
@@ -49,7 +48,8 @@ class TestCmdIgnore(object):
 
     def testIgnoreGroup(self, tasks, depfile):
         output = StringIO.StringIO()
-        doit_ignore(depfile.name, tasks, output, ["g2"])
+        cmd = Ignore(dep_file=depfile.name, task_list=tasks)
+        cmd._execute(output, ["g2"])
         got = output.getvalue().split("\n")[:-1]
 
         dep = Dependency(depfile.name)
@@ -63,15 +63,13 @@ class TestCmdIgnore(object):
     # if task dependency not from a group dont ignore it
     def testDontIgnoreTaskDependency(self, tasks, depfile):
         output = StringIO.StringIO()
-        doit_ignore(depfile.name, tasks, output, ["t3"])
+        cmd = Ignore(dep_file=depfile.name, task_list=tasks)
+        cmd._execute(output, ["t3"])
         dep = Dependency(depfile.name)
         assert '1' == dep._get("t3", "ignore:")
         assert None == dep._get("t1", "ignore:")
 
     def testIgnoreInvalid(self, tasks, depfile):
         output = StringIO.StringIO()
-        pytest.raises(InvalidCommand, doit_ignore,
-                       depfile.name, tasks, output, ["XXX"])
-
-
-
+        cmd = Ignore(dep_file=depfile.name, task_list=tasks)
+        pytest.raises(InvalidCommand, cmd._execute, output, ["XXX"])

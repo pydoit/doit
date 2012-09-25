@@ -144,6 +144,14 @@ opt_seek_file = {'name': 'seek_file',
 class DoitCmdBase(Command):
     base_options = (opt_dodo, opt_cwd, opt_seek_file, opt_depfile)
 
+    def __init__(self, dep_file=None, config=None, task_list=None,
+                 sel_tasks=None):
+        Command.__init__(self)
+        self.dep_file = dep_file
+        self.config = config
+        self.task_list = task_list
+        self.sel_tasks = sel_tasks
+
     def set_options(self):
         opt_list = self.base_options + self.cmd_options
         return [CmdOption(opt) for opt in opt_list]
@@ -157,5 +165,6 @@ class DoitCmdBase(Command):
         self.config = dodo_tasks['config']
         params.update_defaults(self.config)
         self.sel_tasks = args or self.config.get('default_tasks')
+        self.dep_file = params['dep_file']
         return params
 

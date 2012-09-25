@@ -40,21 +40,24 @@ class Auto(DoitCmdBase):
             params['dep_file'], self.task_list, self.sel_tasks,
             params['verbosity'])
 
-    @staticmethod
-    def _execute(dependency_file, task_list, filter_tasks,
-                 verbosity=None, reporter='executed-only', loop_callback=None):
+
+    def _execute(self, verbosity=None, reporter='executed-only',
+                 loop_callback=None):
         """Re-execute tasks automatically a depedency changes
 
         @param filter_tasks (list -str): print only tasks from this list
         @loop_callback: used to stop loop on unittests
         """
-        watch_tasks, watch_files = _auto_watch(task_list, filter_tasks)
+        watch_tasks, watch_files = _auto_watch(self.task_list, self.sel_tasks)
+        auto_cmd = self
         class DoitAutoRun(FileModifyWatcher):
             """Execute doit on event handler of file changes """
             def handle_event(self, event):
-                this_list = [t.clone() for t in task_list]
-                Run._execute(dependency_file, this_list, sys.stdout,
-                         watch_tasks, verbosity=verbosity, reporter=reporter)
+                this_list = [t.clone() for t in auto_cmd.task_list]
+                cmd_run = Run(dep_file=auto_cmd.dep_file, task_list=this_list,
+                              sel_tasks=watch_tasks)
+                cmd_run._execute(sys.stdout, verbosity=verbosity,
+                                 reporter=reporter)
 
         file_watcher = DoitAutoRun(watch_files)
         # always run once when started

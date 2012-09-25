@@ -15,27 +15,20 @@ class Forget(DoitCmdBase):
     def execute(self, params, args):
         """execute cmd 'forget' """
         params = self.read_dodo(params, args)
-        return self._execute(
-            params['dep_file'], self.task_list,
-            sys.stdout, self.sel_tasks)
+        return self._execute(sys.stdout)
 
-    @staticmethod
-    def _execute(dependency_file, task_list, outstream, forget_tasks):
+    def _execute(self, outstream):
         """remove saved data successful runs from DB
-        @param dependency_file: (str)
-        @param task_list: (Task) tasks from dodo file
-        @param forget_tasks: (list - str) tasks to be removed. remove all if
-                             empty list.
         """
-        dependency_manager = dependency.Dependency(dependency_file)
+        dependency_manager = dependency.Dependency(self.dep_file)
         # no task specified. forget all
-        if not forget_tasks:
+        if not self.sel_tasks:
             dependency_manager.remove_all()
             outstream.write("forgeting all tasks\n")
         # forget tasks from list
         else:
-            tasks = dict([(t.name, t) for t in task_list])
-            for task_name in forget_tasks:
+            tasks = dict([(t.name, t) for t in self.task_list])
+            for task_name in self.sel_tasks:
                 # check task exist
                 if task_name not in tasks:
                     msg = "'%s' is not a task."
