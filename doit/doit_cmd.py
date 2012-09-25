@@ -101,6 +101,11 @@ class Help(Command):
     doc_usage = ""
     doc_description = None
 
+    def __init__(self, cmds):
+        """@ivar cmds (dict) of Commands"""
+        Command.__init__(self)
+        self.cmds = cmds
+
     @staticmethod
     def print_task_help():
         """print help for 'task' usage """
@@ -109,8 +114,8 @@ class Help(Command):
     def execute(self, params, args):
         """execute cmd 'help' """
         if len(args) == 1:
-            if args[0] in params['sub']:
-                print params['sub'][args[0]].help()
+            if args[0] in self.cmds:
+                print self.cmds[args[0]].help()
                 return 0
             elif args[0] == 'task':
                 self.print_task_help()
@@ -152,7 +157,7 @@ Commands:
 
     def get_commands(self):
         """get all sub-commands"""
-        DOIT_BUILTIN_CMDS = (Help(), Run(), List(), Clean(), Forget(), Ignore(), Auto())
+        DOIT_BUILTIN_CMDS = (Run(), List(), Clean(), Forget(), Ignore(), Auto())
         return dict((cmd.name, cmd) for cmd in DOIT_BUILTIN_CMDS)
 
     def process_args(self, cmd_args):
@@ -184,6 +189,7 @@ Commands:
              from the Reporter.
         """
         sub_cmds = self.get_commands()
+        sub_cmds['help'] = Help(sub_cmds)
 
         # special parameters that dont run anything
         if cmd_args:
@@ -202,11 +208,9 @@ Commands:
         else:
             command = args.pop(0)
 
-
         # execute command
         try:
-            # FIXME check/remove 'sub' parameter - add only to required commands
-            return sub_cmds[command].parse_execute(args, sub=sub_cmds)
+            return sub_cmds[command].parse_execute(args)
 
         # dont show traceback for user errors.
         except (CmdParseError, InvalidDodoFile,
@@ -217,4 +221,3 @@ Commands:
         except Exception:
             sys.stderr.write(traceback.format_exc())
             return 3
-

@@ -131,12 +131,10 @@ class CmdParse(object):
                 return opt, True
         return None, None
 
-    def parse(self, in_args, **kwargs):
+    def parse(self, in_args):
         """parse arguments into options(params) and positional arguments
 
         @param in_args (list - string): typically sys.argv[1:]
-        @param kwargs: apart from options some "extra" values can be passed to
-                       the command.
         @return params, args
              params(dict): params contain the actual values from the options.
                            where the key is the name of the option.
@@ -146,9 +144,6 @@ class CmdParse(object):
         # add default values
         for opt in self.options:
             params.set_default(opt.name, opt.default)
-
-        # global parameters (got from main command options)
-        params.update(kwargs)
 
         # parse options using getopt
         try:

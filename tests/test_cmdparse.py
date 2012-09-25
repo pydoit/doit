@@ -128,9 +128,5 @@ class TestCommand(object):
         params, args = cmd.parse(['-f','p1','p2','--sub-arg'])
         assert ['p1','p2','--sub-arg'] == args
 
-    def test_parseExtraParams(self, cmd):
-        params, args = cmd.parse([], new_param='ho')
-        assert "ho" == params['new_param']
-
     def test_parseWrongType(self, cmd):
         pytest.raises(CmdParseError, cmd.parse, ['--num','oi'])

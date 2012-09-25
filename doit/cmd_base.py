@@ -9,6 +9,8 @@ class Command(object):
     """base command third-party should subclass this for commands that
     do no use tasks
     """
+    CMD_LIST = [] # register with the name of all created commands
+
     # doc attributes, should be sub-classed
     doc_purpose = ''
     doc_usage = ''
@@ -19,6 +21,7 @@ class Command(object):
 
     def __init__(self):
         self.name = self.__class__.__name__.lower()
+        Command.CMD_LIST.append(self.name)
         self.options = self.set_options()
 
     def set_options(self):
@@ -32,13 +35,13 @@ class Command(object):
         raise NotImplementedError()
 
 
-    def parse_execute(self, in_args, **kwargs):
+    def parse_execute(self, in_args):
         """helper. just parse parameters and execute command
 
         @args: see method parse
         @returns: result of self.execute
         """
-        params, args = CmdParse(self.options).parse(in_args, **kwargs)
+        params, args = CmdParse(self.options).parse(in_args)
         return self.execute(params, args)
 
 
@@ -166,6 +169,9 @@ class DoitCmdBase(Command):
         opt_list = self.base_options + self.cmd_options
         return [CmdOption(opt) for opt in opt_list]
 
+    def _execute(self): # pragma: no cover
+        raise NotImplementedError
+
     def execute(self, params, args):
         self.read_dodo(params, args)
         args_name = inspect.getargspec(self._execute)[0]
@@ -176,7 +182,7 @@ class DoitCmdBase(Command):
         # FIXME should get a tuple instead of dict
         dodo_tasks = loader.get_tasks(
             params['dodoFile'], params['cwdPath'], params['seek_file'],
-            params['sub'].keys())
+            self.CMD_LIST)
         self.task_list = dodo_tasks['task_list']
         params.update_defaults(dodo_tasks['config'])
         self.config = params.copy()
