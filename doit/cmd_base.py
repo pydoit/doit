@@ -1,3 +1,5 @@
+import inspect
+import sys
 
 from .cmdparse import CmdOption, CmdParse
 from . import loader
@@ -25,7 +27,8 @@ class Command(object):
         opt_list = self.cmd_options
         return [CmdOption(opt) for opt in opt_list]
 
-    def execute(self, params, args):
+
+    def execute(self, params, args): # pragma: no cover
         raise NotImplementedError()
 
 
@@ -142,19 +145,32 @@ opt_seek_file = {'name': 'seek_file',
 
 
 class DoitCmdBase(Command):
+    """
+    subclass must define:
+    cmd_options => list of option dictionary (see CmdOption)
+    _execute => method, argument names must be option names
+    """
     base_options = (opt_dodo, opt_cwd, opt_seek_file, opt_depfile)
 
     def __init__(self, dep_file=None, config=None, task_list=None,
-                 sel_tasks=None):
+                 sel_tasks=None, outstream=None):
+        """this initializer is usually just used on tests"""
         Command.__init__(self)
-        self.dep_file = dep_file
-        self.config = config
-        self.task_list = task_list
-        self.sel_tasks = sel_tasks
+        self.dep_file = dep_file   # (str) filename usually '.doit.db'
+        self.config = config or {} # config from dodo.py & cmdline
+        self.task_list = task_list # list of tasks
+        self.sel_tasks = sel_tasks # from command line or default_tasks
+        self.outstream = outstream or sys.stdout
 
     def set_options(self):
         opt_list = self.base_options + self.cmd_options
         return [CmdOption(opt) for opt in opt_list]
+
+    def execute(self, params, args):
+        self.read_dodo(params, args)
+        args_name = inspect.getargspec(self._execute)[0]
+        exec_params = dict((n, self.config[n]) for n in args_name if n!='self')
+        return self._execute(**exec_params)
 
     def read_dodo(self, params, args):
         # FIXME should get a tuple instead of dict
@@ -162,9 +178,10 @@ class DoitCmdBase(Command):
             params['dodoFile'], params['cwdPath'], params['seek_file'],
             params['sub'].keys())
         self.task_list = dodo_tasks['task_list']
-        self.config = dodo_tasks['config']
-        params.update_defaults(self.config)
+        params.update_defaults(dodo_tasks['config'])
+        self.config = params.copy()
+        self.config['pos_args'] = args # hack
         self.sel_tasks = args or self.config.get('default_tasks')
-        self.dep_file = params['dep_file']
-        return params
+        self.dep_file = self.config['dep_file']
+
 

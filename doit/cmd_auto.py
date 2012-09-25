@@ -33,14 +33,6 @@ class Auto(DoitCmdBase):
 
     cmd_options = (opt_verbosity,)
 
-    def execute(self, params, args):
-        """execute cmd 'auto' """
-        params = self.read_dodo(params, args)
-        return self._execute(
-            params['dep_file'], self.task_list, self.sel_tasks,
-            params['verbosity'])
-
-
     def _execute(self, verbosity=None, reporter='executed-only',
                  loop_callback=None):
         """Re-execute tasks automatically a depedency changes

@@ -24,39 +24,41 @@ class TestCmdClean(object):
 
     def test_clean_all(self, tasks):
         output = StringIO.StringIO()
-        cmd_clean = Clean(task_list=tasks)
-        cmd_clean._execute(output, False, False, True, 'xxx', 'xxx')
+        cmd_clean = Clean(outstream=output, task_list=tasks)
+        cmd_clean._execute(False, False, True)
         assert ['t1','t2', 't3:a', 't3'] == self.cleaned
 
     def test_clean_default(self, tasks):
         output = StringIO.StringIO()
-        cmd_clean = Clean(task_list=tasks)
-        cmd_clean._execute(output, False, False, False, ['t1'], [])
+        cmd_clean = Clean(outstream=output, task_list=tasks,
+                          config={'default_tasks':['t1']})
+        cmd_clean._execute(False, False, False)
         # default enable --clean-dep by default
         assert ['t2', 't1'] == self.cleaned
 
     def test_clean_selected(self, tasks):
         output = StringIO.StringIO()
-        cmd_clean = Clean(task_list=tasks)
-        cmd_clean._execute(output, False, False, False, 'xxx', ['t2'])
+        cmd_clean = Clean(outstream=output, task_list=tasks,
+                          config={'default_tasks':['t1']})
+        cmd_clean._execute(False, False, False, ['t2'])
         assert ['t2'] == self.cleaned
 
     def test_clean_taskdep(self, tasks):
         output = StringIO.StringIO()
-        cmd_clean = Clean(task_list=tasks)
-        cmd_clean._execute(output, False, True, False, 'xxx', ['t1'])
+        cmd_clean = Clean(outstream=output, task_list=tasks)
+        cmd_clean._execute(False, True, False, ['t1'])
         assert ['t2', 't1'] == self.cleaned
 
     def test_clean_subtasks(self, tasks):
         output = StringIO.StringIO()
-        cmd_clean = Clean(task_list=tasks)
-        cmd_clean._execute(output, False, False, False, 'xxx', ['t3'])
+        cmd_clean = Clean(outstream=output, task_list=tasks)
+        cmd_clean._execute(False, False, False, ['t3'])
         assert ['t3:a', 't3'] == self.cleaned
 
     def test_clean_taskdep_once(self, tasks):
         output = StringIO.StringIO()
-        cmd_clean = Clean(task_list=tasks)
-        cmd_clean._execute(output, False, True, False, 'xxx', ['t1', 't2'])
+        cmd_clean = Clean(outstream=output, task_list=tasks)
+        cmd_clean._execute(False, True, False, ['t1', 't2'])
         assert ['t2', 't1'] == self.cleaned
 
 

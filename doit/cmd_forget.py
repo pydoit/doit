@@ -1,5 +1,3 @@
-import sys
-
 from . import dependency
 from .exceptions import InvalidCommand
 from .cmd_base import DoitCmdBase
@@ -12,19 +10,14 @@ class Forget(DoitCmdBase):
 
     cmd_options = ()
 
-    def execute(self, params, args):
-        """execute cmd 'forget' """
-        params = self.read_dodo(params, args)
-        return self._execute(sys.stdout)
-
-    def _execute(self, outstream):
+    def _execute(self):
         """remove saved data successful runs from DB
         """
         dependency_manager = dependency.Dependency(self.dep_file)
         # no task specified. forget all
         if not self.sel_tasks:
             dependency_manager.remove_all()
-            outstream.write("forgeting all tasks\n")
+            self.outstream.write("forgeting all tasks\n")
         # forget tasks from list
         else:
             tasks = dict([(t.name, t) for t in self.task_list])
@@ -42,5 +35,5 @@ class Forget(DoitCmdBase):
                         group.extend(tasks[to_forget].task_dep)
                     # forget it - remove from dependency file
                     dependency_manager.remove(to_forget)
-                    outstream.write("forgeting %s\n" % to_forget)
+                    self.outstream.write("forgeting %s\n" % to_forget)
         dependency_manager.close()

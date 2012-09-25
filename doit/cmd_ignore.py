@@ -1,5 +1,3 @@
-import sys
-
 from . import dependency
 from .exceptions import InvalidCommand
 from .cmd_base import DoitCmdBase
@@ -12,20 +10,15 @@ class Ignore(DoitCmdBase):
 
     cmd_options = ()
 
-    def execute(self, params, args):
-        """execute cmd 'ignore' """
-        params = self.read_dodo(params, args)
-        return self._execute(sys.stdout, args)
-
-    def _execute(self, outstream, ignore_tasks):
+    def _execute(self, pos_args):
         """mark tasks to be ignored
-        @param dependency_file: (str)
-        @param task_list: (Task) tasks from dodo file
         @param ignore_tasks: (list - str) tasks to be ignored.
         """
+        ignore_tasks = pos_args
         # no task specified.
         if not ignore_tasks:
-            outstream.write("You cant ignore all tasks! Please select a task.\n")
+            msg = "You cant ignore all tasks! Please select a task.\n"
+            self.outstream.write(msg)
             return
 
         dependency_manager = dependency.Dependency(self.dep_file)
@@ -45,5 +38,5 @@ class Ignore(DoitCmdBase):
                     group.extend(tasks[to_ignore].task_dep)
                 # ignore it - remove from dependency file
                 dependency_manager.ignore(tasks[to_ignore])
-                outstream.write("ignoring %s\n" % to_ignore)
+                self.outstream.write("ignoring %s\n" % to_ignore)
         dependency_manager.close()

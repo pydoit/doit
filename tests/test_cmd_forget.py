@@ -1,4 +1,4 @@
-import StringIO
+from StringIO import StringIO
 
 import pytest
 
@@ -39,9 +39,10 @@ class TestCmdForget(object):
 
     def testForgetAll(self, tasks, depfile):
         self._add_task_deps(tasks, depfile.name)
-        output = StringIO.StringIO()
-        cmd_forget = Forget(dep_file=depfile.name, task_list=tasks, sel_tasks=[])
-        cmd_forget._execute(output)
+        output = StringIO()
+        cmd_forget = Forget(outstream=output, dep_file=depfile.name,
+                            task_list=tasks, sel_tasks=[])
+        cmd_forget._execute()
         got = output.getvalue().split("\n")[:-1]
         assert ["forgeting all tasks"] == got, repr(output.getvalue())
         dep = Dependency(depfile.name)
@@ -50,10 +51,10 @@ class TestCmdForget(object):
 
     def testForgetOne(self, tasks, depfile):
         self._add_task_deps(tasks, depfile.name)
-        output = StringIO.StringIO()
-        cmd_forget = Forget(dep_file=depfile.name, task_list=tasks,
-                            sel_tasks=["t2", "t1"])
-        cmd_forget._execute(output)
+        output = StringIO()
+        cmd_forget = Forget(outstream=output, dep_file=depfile.name,
+                            task_list=tasks, sel_tasks=["t2", "t1"])
+        cmd_forget._execute()
         got = output.getvalue().split("\n")[:-1]
         assert ["forgeting t2", "forgeting t1"] == got
         dep = Dependency(depfile.name)
@@ -63,10 +64,10 @@ class TestCmdForget(object):
 
     def testForgetGroup(self, tasks, depfile):
         self._add_task_deps(tasks, depfile.name)
-        output = StringIO.StringIO()
-        cmd_forget = Forget(dep_file=depfile.name, task_list=tasks,
-                            sel_tasks=["g2"])
-        cmd_forget._execute(output)
+        output = StringIO()
+        cmd_forget = Forget(outstream=output, dep_file=depfile.name,
+                            task_list=tasks, sel_tasks=["g2"])
+        cmd_forget._execute()
         got = output.getvalue().split("\n")[:-1]
         assert "forgeting g2" == got[0]
 
@@ -81,19 +82,19 @@ class TestCmdForget(object):
     # if task dependency not from a group dont forget it
     def testDontForgetTaskDependency(self, tasks, depfile):
         self._add_task_deps(tasks, depfile.name)
-        output = StringIO.StringIO()
-        cmd_forget = Forget(dep_file=depfile.name, task_list=tasks,
-                            sel_tasks=["t3"])
-        cmd_forget._execute(output)
+        output = StringIO()
+        cmd_forget = Forget(outstream=output, dep_file=depfile.name,
+                            task_list=tasks, sel_tasks=["t3"])
+        cmd_forget._execute()
         dep = Dependency(depfile.name)
         assert None == dep._get("t3", "dep")
         assert "1" == dep._get("t1", "dep")
 
     def testForgetInvalid(self, tasks, depfile):
         self._add_task_deps(tasks, depfile.name)
-        output = StringIO.StringIO()
-        cmd_forget = Forget(dep_file=depfile.name, task_list=tasks,
-                            sel_tasks=["XXX"])
-        pytest.raises(InvalidCommand, cmd_forget._execute, output)
+        output = StringIO()
+        cmd_forget = Forget(outstream=output, dep_file=depfile.name,
+                            task_list=tasks, sel_tasks=["XXX"])
+        pytest.raises(InvalidCommand, cmd_forget._execute)
 
 

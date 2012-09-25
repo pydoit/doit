@@ -42,7 +42,7 @@ class TestRun(object):
     def test_run_is_default(self, monkeypatch):
         monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         mock_run = Mock()
-        monkeypatch.setattr(doit_cmd.Run, "_execute", mock_run)
+        monkeypatch.setattr(doit_cmd.Run, "execute", mock_run)
         doit_cmd.cmd_main([])
         assert 1 == mock_run.call_count
 

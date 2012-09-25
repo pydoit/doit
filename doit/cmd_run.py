@@ -44,7 +44,7 @@ opt_always = {'name': 'always',
               }
 
 # continue executing tasks even after a failure
-opt_continue = {'name': 'continue',
+opt_continue = {'name': 'continue_',
                 'short': 'c',
                 'long': 'continue',
                 'inverse': 'no-continue',
@@ -91,18 +91,8 @@ class Run(DoitCmdBase):
     cmd_options = (opt_always, opt_continue, opt_verbosity,
                    opt_reporter, opt_outfile, opt_num_process)
 
-    def execute(self, params, args):
-        """execute cmd 'run' """
-        params = self.read_dodo(params, args)
-        return self._execute(
-            params['outfile'],
-            params['verbosity'], params['always'],
-            params['continue'], params['reporter'],
-            params['num_process'])
-
-
-    def _execute(self, output,
-                 verbosity=None, always_execute=False, continue_=False,
+    def _execute(self, outfile,
+                 verbosity=None, always=False, continue_=False,
                  reporter='default', num_process=0):
         """
         @param reporter: (str) one of provided reporters or ...
@@ -134,10 +124,10 @@ class Run(DoitCmdBase):
         show_out = use_verbosity < 2 # show on error report
 
         # outstream
-        if isinstance(output, basestring):
-            outstream = codecs.open(output, 'w', encoding='utf-8')
+        if isinstance(outfile, basestring):
+            outstream = codecs.open(outfile, 'w', encoding='utf-8')
         else: # outfile is a file-like object (like StringIO or sys.stdout)
-            outstream = output
+            outstream = outfile
 
         # run
         try:
@@ -156,14 +146,14 @@ class Run(DoitCmdBase):
 
             if num_process == 0:
                 runner = Runner(self.dep_file, reporter_obj, continue_,
-                                always_execute, verbosity)
+                                always, verbosity)
             else:
                 runner = MRunner(self.dep_file, reporter_obj, continue_,
-                                 always_execute, verbosity, num_process)
+                                 always, verbosity, num_process)
 
             return runner.run_all(task_control)
         finally:
-            if isinstance(output, str):
+            if isinstance(outfile, str):
                 outstream.close()
 
 
