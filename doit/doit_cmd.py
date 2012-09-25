@@ -121,8 +121,6 @@ class Help(Command):
 
 
 
-DOIT_BUILTIN_CMDS = (Help(), Run(), List(), Clean(), Forget(), Ignore(), Auto())
-
 class DoitMain(object):
     @staticmethod
     def print_version():
@@ -152,62 +150,71 @@ Commands:
  doit help <command>    show command usage
 """
 
+    def get_commands(self):
+        """get all sub-commands"""
+        DOIT_BUILTIN_CMDS = (Help(), Run(), List(), Clean(), Forget(), Ignore(), Auto())
+        return dict((cmd.name, cmd) for cmd in DOIT_BUILTIN_CMDS)
 
-def cmd_main(cmd_args):
-    """entry point for all commands
-
-    return codes:
-      0: tasks executed successfully
-      1: one or more tasks failed
-      2: error while executing a task
-      3: error before task execution starts,
-         in this case the Reporter is not used.
-         So be aware if you expect a different formatting (like JSON)
-         from the Reporter.
-    """
-
-    # special parameters that dont run anything
-    if cmd_args:
-        if cmd_args[0] == "--version":
-            DoitMain.print_version()
-            return 0
-        if cmd_args[0] == "--help":
-            DoitMain.print_usage()
-            return 0
+    def process_args(self, cmd_args):
+        """process cmd line set "global" variables/parameters
+        return list of args without processed variables
+        """
+        # get cmdline variables from args
+        doit.reset_vars()
+        args_no_vars = []
+        for arg in cmd_args:
+            if (arg[0] != '-') and ('=' in arg):
+                name, value = arg.split('=', 1)
+                doit.set_var(name, value)
+            else:
+                args_no_vars.append(arg)
+        return args_no_vars
 
 
-    # all sub-commands
-    sub_cmd = dict((cmd.name, cmd) for cmd in DOIT_BUILTIN_CMDS)
+    def run(self, cmd_args):
+        """entry point for all commands
 
-    # get cmdline variables from args
-    doit.reset_vars()
-    args_no_vars = []
-    for arg in cmd_args:
-        if (arg[0] != '-') and ('=' in arg):
-            name, value = arg.split('=', 1)
-            doit.set_var(name, value)
+        return codes:
+          0: tasks executed successfully
+          1: one or more tasks failed
+          2: error while executing a task
+          3: error before task execution starts,
+             in this case the Reporter is not used.
+             So be aware if you expect a different formatting (like JSON)
+             from the Reporter.
+        """
+        sub_cmds = self.get_commands()
+
+        # special parameters that dont run anything
+        if cmd_args:
+            if cmd_args[0] == "--version":
+                self.print_version()
+                return 0
+            if cmd_args[0] == "--help":
+                self.print_usage()
+                return 0
+
+        args = self.process_args(cmd_args)
+
+        # get specified sub-command or use default='run'
+        if len(args) == 0 or args[0] not in sub_cmds.keys():
+            command = 'run'
         else:
-            args_no_vars.append(arg)
+            command = args.pop(0)
 
 
-    # get specified sub-command or use default='run'
-    if len(args_no_vars) == 0 or args_no_vars[0] not in sub_cmd.keys():
-        command = 'run'
-    else:
-        command = args_no_vars.pop(0)
+        # execute command
+        try:
+            # FIXME check/remove 'sub' parameter - add only to required commands
+            return sub_cmds[command].parse_execute(args, sub=sub_cmds)
 
+        # dont show traceback for user errors.
+        except (CmdParseError, InvalidDodoFile,
+                InvalidCommand, InvalidTask), err:
+            sys.stderr.write("ERROR: %s\n" % str(err))
+            return 3
 
-    # execute command
-    try:
-        return sub_cmd[command].parse_execute(args_no_vars, sub=sub_cmd)
-
-    # dont show traceback for user errors.
-    except (CmdParseError, InvalidDodoFile,
-            InvalidCommand, InvalidTask), err:
-        sys.stderr.write("ERROR: %s\n" % str(err))
-        return 3
-
-    except Exception:
-        sys.stderr.write(traceback.format_exc())
-        return 3
+        except Exception:
+            sys.stderr.write(traceback.format_exc())
+            return 3
 

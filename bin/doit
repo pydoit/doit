@@ -2,7 +2,7 @@
 
 import sys
 
-from doit.doit_cmd import cmd_main
+from doit.doit_cmd import DoitMain
 
 if __name__ == "__main__":
-    sys.exit(cmd_main(sys.argv[1:]))
+    sys.exit(DoitMain().run(sys.argv[1:]))
