@@ -7,7 +7,7 @@ import traceback
 import doit
 from .exceptions import InvalidDodoFile, InvalidCommand, InvalidTask
 from .cmdparse import CmdParseError
-from .cmd_base import Command
+from .cmd_base import Command, DodoTaskLoader
 from .cmd_run import Run
 from .cmd_clean import Clean
 from .cmd_list import List
@@ -157,8 +157,16 @@ Commands:
 
     def get_commands(self):
         """get all sub-commands"""
-        DOIT_BUILTIN_CMDS = (Run(), List(), Clean(), Forget(), Ignore(), Auto())
-        return dict((cmd.name, cmd) for cmd in DOIT_BUILTIN_CMDS)
+        sub_cmds = {}
+        # core doit commands
+        for cmd_cls in (Run, List, Clean, Forget, Ignore, Auto):
+            cmd = cmd_cls(task_loader=DodoTaskLoader())
+            sub_cmds[cmd.name] = cmd
+
+        # help command
+        sub_cmds['help'] = Help(sub_cmds)
+
+        return sub_cmds
 
     def process_args(self, cmd_args):
         """process cmd line set "global" variables/parameters
@@ -189,7 +197,6 @@ Commands:
              from the Reporter.
         """
         sub_cmds = self.get_commands()
-        sub_cmds['help'] = Help(sub_cmds)
 
         # special parameters that dont run anything
         if cmd_args:

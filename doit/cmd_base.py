@@ -146,6 +146,28 @@ opt_seek_file = {'name': 'seek_file',
                  }
 
 
+class TaskLoader(object):
+    cmd_options = ()
+    def load_tasks(self, cmd, params, args):
+        pass
+
+
+class DodoTaskLoader(TaskLoader):
+    cmd_options = (opt_dodo, opt_cwd, opt_seek_file)
+
+    @staticmethod
+    def load_tasks(cmd, params, args):
+        dodo_tasks = loader.get_tasks(
+            params['dodoFile'], params['cwdPath'], params['seek_file'],
+            cmd.CMD_LIST)
+        cmd.task_list = dodo_tasks['task_list']
+        params.update_defaults(dodo_tasks['config'])
+        cmd.config = params.copy()
+        cmd.config['pos_args'] = args # hack
+        cmd.sel_tasks = args or cmd.config.get('default_tasks')
+        cmd.dep_file = cmd.config['dep_file']
+
+
 
 class DoitCmdBase(Command):
     """
@@ -153,11 +175,12 @@ class DoitCmdBase(Command):
     cmd_options => list of option dictionary (see CmdOption)
     _execute => method, argument names must be option names
     """
-    base_options = (opt_dodo, opt_cwd, opt_seek_file, opt_depfile)
+    base_options = (opt_depfile,)
 
-    def __init__(self, dep_file=None, config=None, task_list=None,
-                 sel_tasks=None, outstream=None):
+    def __init__(self, task_loader=None, dep_file=None, config=None,
+                 task_list=None, sel_tasks=None, outstream=None):
         """this initializer is usually just used on tests"""
+        self._loader = task_loader or TaskLoader()
         Command.__init__(self)
         self.dep_file = dep_file   # (str) filename usually '.doit.db'
         self.config = config or {} # config from dodo.py & cmdline
@@ -166,28 +189,18 @@ class DoitCmdBase(Command):
         self.outstream = outstream or sys.stdout
 
     def set_options(self):
-        opt_list = self.base_options + self.cmd_options
+        opt_list = (self.base_options + self._loader.cmd_options +
+                    self.cmd_options)
         return [CmdOption(opt) for opt in opt_list]
 
     def _execute(self): # pragma: no cover
         raise NotImplementedError
 
     def execute(self, params, args):
-        self.read_dodo(params, args)
+        self._loader.load_tasks(self, params, args)
         args_name = inspect.getargspec(self._execute)[0]
         exec_params = dict((n, self.config[n]) for n in args_name if n!='self')
         return self._execute(**exec_params)
 
-    def read_dodo(self, params, args):
-        # FIXME should get a tuple instead of dict
-        dodo_tasks = loader.get_tasks(
-            params['dodoFile'], params['cwdPath'], params['seek_file'],
-            self.CMD_LIST)
-        self.task_list = dodo_tasks['task_list']
-        params.update_defaults(dodo_tasks['config'])
-        self.config = params.copy()
-        self.config['pos_args'] = args # hack
-        self.sel_tasks = args or self.config.get('default_tasks')
-        self.dep_file = self.config['dep_file']
 
 
