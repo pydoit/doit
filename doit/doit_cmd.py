@@ -3,6 +3,7 @@
 import os
 import sys
 import traceback
+from operator import attrgetter
 
 import doit
 from .exceptions import InvalidDodoFile, InvalidCommand, InvalidTask
@@ -120,13 +121,16 @@ class Help(Command):
             elif args[0] == 'task':
                 self.print_task_help()
                 return 0
-        DoitMain.print_usage()
+        DoitMain.print_usage(self.cmds)
         return 0
 
 
 
 
 class DoitMain(object):
+    DOIT_CMDS = Run, List, Clean, Forget, Ignore, Auto
+    TASK_LOADER = DodoTaskLoader
+
     @staticmethod
     def print_version():
         """print doit version (includes path location)"""
@@ -134,39 +138,30 @@ class DoitMain(object):
         print "bin @", os.path.abspath(__file__)
         print "lib @", os.path.dirname(os.path.abspath(doit.__file__))
 
+
     @staticmethod
-    def print_usage():
+    def print_usage(cmds):
         """print doit "usage" (basic help) instructions"""
-        # TODO cmd list should be automatically generated.
-        print """
-doit -- automation tool
-http://python-doit.sourceforge.net/
+        print("doit -- automation tool")
+        print("http://python-doit.sourceforge.net/")
+        print("Commands")
+        for cmd in sorted(cmds.values(), key=attrgetter('name')):
+            print("  doit %s \t\t %s" % (cmd.name, cmd.doc_purpose))
+        print("")
+        print("  doit help              show help / reference")
+        print("  doit help task         show help on task dictionary fields")
+        print("  doit help <command>    show command usage")
 
-Commands:
- doit [run]             run tasks
- doit clean             clean action / remove targets
- doit list              list tasks from dodo file
- doit forget            clear successful run status from DB
- doit ignore            ignore task (skip) on subsequent runs
- doit auto              automatically run doit when a dependency changes
-
- doit help              show help / reference
- doit help task         show help on task dictionary fields
- doit help <command>    show command usage
-"""
 
     def get_commands(self):
         """get all sub-commands"""
         sub_cmds = {}
         # core doit commands
-        for cmd_cls in (Run, List, Clean, Forget, Ignore, Auto):
-            cmd = cmd_cls(task_loader=DodoTaskLoader())
+        for cmd_cls in (self.DOIT_CMDS):
+            cmd = cmd_cls(task_loader=self.TASK_LOADER())
             sub_cmds[cmd.name] = cmd
-
-        # help command
-        sub_cmds['help'] = Help(sub_cmds)
-
         return sub_cmds
+
 
     def process_args(self, cmd_args):
         """process cmd line set "global" variables/parameters
@@ -204,9 +199,13 @@ Commands:
                 self.print_version()
                 return 0
             if cmd_args[0] == "--help":
-                self.print_usage()
+                self.print_usage(sub_cmds)
                 return 0
 
+        # add help command
+        sub_cmds['help'] = Help(sub_cmds)
+
+        # get "global vars" from cmd-line
         args = self.process_args(cmd_args)
 
         # get specified sub-command or use default='run'

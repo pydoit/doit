@@ -31,7 +31,11 @@ class Command(object):
         return [CmdOption(opt) for opt in opt_list]
 
 
-    def execute(self, params, args): # pragma: no cover
+    def execute(self, opt_values, pos_args): # pragma: no cover
+        """execute command
+        @var opt_values: (dict) with cmd_options values
+        @var pos_args: (list) of cmd-line positinal arguments
+        """
         raise NotImplementedError()
 
 
@@ -148,7 +152,7 @@ opt_seek_file = {'name': 'seek_file',
 
 class TaskLoader(object):
     cmd_options = ()
-    def load_tasks(self, cmd, params, args):
+    def load_tasks(self, cmd, opt_values, pos_args):
         pass
 
 
@@ -160,14 +164,9 @@ class DodoTaskLoader(TaskLoader):
         dodo_tasks = loader.get_tasks(
             params['dodoFile'], params['cwdPath'], params['seek_file'],
             cmd.CMD_LIST)
-        cmd.task_list = dodo_tasks['task_list']
-        params.update_defaults(dodo_tasks['config'])
-        cmd.config = params.copy()
-        cmd.config['pos_args'] = args # hack
-        cmd.sel_tasks = args or cmd.config.get('default_tasks')
-        cmd.dep_file = cmd.config['dep_file']
-
-
+        task_list = dodo_tasks['task_list']
+        config = dodo_tasks['config']
+        return task_list, config
 
 class DoitCmdBase(Command):
     """
@@ -197,9 +196,17 @@ class DoitCmdBase(Command):
         raise NotImplementedError
 
     def execute(self, params, args):
-        self._loader.load_tasks(self, params, args)
+        self.dep_file = params['dep_file']
+        self.task_list, self.config = self._loader.load_tasks(self, params, args)
+
+        # merge config values into params
+        params.update_defaults(self.config)
+        params['pos_args'] = args # hack
+        self.sel_tasks = args or self.config.get('default_tasks')
+
+        # magic - create dict based on signature of _execute method
         args_name = inspect.getargspec(self._execute)[0]
-        exec_params = dict((n, self.config[n]) for n in args_name if n!='self')
+        exec_params = dict((n, params[n]) for n in args_name if n!='self')
         return self._execute(**exec_params)
 
 
