@@ -11,7 +11,7 @@ from doit.control import TaskControl, TaskDispatcher, ExecNode, no_none
 # http://www.voidspace.org.uk/python/articles/porting-mock-to-python-3.shtml
 try:
     next
-except NameError:
+except NameError: # pragma: nocover
     def next(gen):
         return gen.next()
 

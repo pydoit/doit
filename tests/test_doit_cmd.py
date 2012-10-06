@@ -6,15 +6,11 @@ from doit.exceptions import InvalidCommand
 from doit.doit_cmd import DoitMain
 from doit.cmd_run import Run
 from doit.cmd_list import List
-from doit import loader
+
 
 def cmd_main(args):
     return DoitMain().run(args)
 
-def mock_get_tasks(*args, **kwargs):
-    return {'task_list': ['a','b','c'],
-            'config': {'default_tasks': ['a','c']},
-            }
 
 class TestRun(object):
     def test_version(self, capsys):
@@ -44,21 +40,18 @@ class TestRun(object):
         assert "Purpose: list tasks from dodo file" in out
 
     def test_run_is_default(self, monkeypatch):
-        monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         mock_run = Mock()
         monkeypatch.setattr(Run, "execute", mock_run)
         cmd_main([])
         assert 1 == mock_run.call_count
 
     def test_run_other_subcommand(self, monkeypatch):
-        monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         mock_list = Mock()
         monkeypatch.setattr(List, "execute", mock_list)
         cmd_main(["list"])
         assert 1 == mock_list.call_count
 
     def test_cmdline_vars(self, monkeypatch):
-        monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         mock_run = Mock()
         monkeypatch.setattr(Run, "execute", mock_run)
         cmd_main(['x=1', 'y=abc'])
@@ -66,7 +59,6 @@ class TestRun(object):
         assert 'abc' == get_var('y')
 
     def test_cmdline_vars_not_opts(self, monkeypatch):
-        monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         mock_run = Mock()
         monkeypatch.setattr(Run, "execute", mock_run)
         cmd_main(['--z=5'])
@@ -76,7 +68,6 @@ class TestRun(object):
 
 class TestErrors(object):
     def test_interrupt(self, monkeypatch):
-        monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         def my_raise(*args):
             raise KeyboardInterrupt()
         mock_cmd = Mock(side_effect=my_raise)
@@ -84,7 +75,6 @@ class TestErrors(object):
         pytest.raises(KeyboardInterrupt, cmd_main, [])
 
     def test_user_error(self, capsys, monkeypatch):
-        monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         mock_cmd = Mock(side_effect=InvalidCommand)
         monkeypatch.setattr(Run, "execute", mock_cmd)
         got = cmd_main([])
@@ -93,7 +83,6 @@ class TestErrors(object):
         assert "ERROR" in err
 
     def test_internal_error(self, capsys, monkeypatch):
-        monkeypatch.setattr(loader, "get_tasks", mock_get_tasks)
         mock_cmd = Mock(side_effect=Exception)
         monkeypatch.setattr(Run, "execute", mock_cmd)
         got = cmd_main([])

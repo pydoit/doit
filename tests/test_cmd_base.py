@@ -1,7 +1,7 @@
 import pytest
 
 from doit.cmdparse import CmdParseError, CmdOption
-from doit.doit_cmd import Command
+from doit.cmd_base import Command, DodoTaskLoader, DoitCmdBase
 
 
 opt_bool = {'name': 'flag',
@@ -76,3 +76,44 @@ class TestCommand(object):
 
     def test_failCall(self, cmd):
         pytest.raises(CmdParseError, cmd.parse_execute, ['-x','35'])
+
+
+
+class TestDodoTaskLoader(object):
+    def test_load_tasks(self, cwd):
+        cmd = Command()
+        params = {'dodoFile': 'loader_sample.py',
+                  'cwdPath': None,
+                  'seek_file': False,
+                  }
+        loader = DodoTaskLoader()
+        task_list, config = loader.load_tasks(cmd, params, [])
+        assert ['xxx1', 'yyy2'] == [t.name for t in task_list]
+        assert {'verbose': 2} == config
+
+
+
+class TestDoitCmdBase(object):
+    def test(self):
+        class MyCmd(DoitCmdBase):
+            doc_purpose = "fake for testing"
+            doc_usage = "[TASK ...]"
+            doc_description = None
+
+            opt_my = {
+                'name': 'my_opt',
+                'short':'m',
+                'long': 'mine',
+                'type': str,
+                'default': 'xxx',
+                'help': "my option"
+               }
+
+            cmd_options = (opt_my,)
+
+            def _execute(self, my_opt):
+                return my_opt
+
+        mycmd = MyCmd(DodoTaskLoader())
+        assert 'min' == mycmd.parse_execute(['--mine', 'min'])
+

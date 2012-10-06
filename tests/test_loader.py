@@ -263,7 +263,7 @@ class TestDodoConfig(object):
 
     def testDefaultConfig_Dict(self, cwd, dodo):
         dodo_dict = load_dodo_file(dodo)
-        assert {} == dodo_dict['config']
+        assert {'verbose': 2} == dodo_dict['config']
 
     def testConfigType_Error(self, cwd, dodo):
         dodo.DOIT_CONFIG = "abcd"
