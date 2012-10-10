@@ -161,7 +161,7 @@ class TestDecoratorNoNone(object):
 class TestTaskDispatcher_GenNone(object):
     def test_create(self):
         tasks = {'t1': Task('t1', None)}
-        td = TaskDispatcher(tasks, [])
+        td = TaskDispatcher(tasks, [], None)
         node = td._gen_node(None, 't1')
         assert isinstance(node, ExecNode)
         assert node == td.nodes['t1']
@@ -170,7 +170,7 @@ class TestTaskDispatcher_GenNone(object):
         tasks = {'t1': Task('t1', None),
                  't2': Task('t2', None)
                  }
-        td = TaskDispatcher(tasks, [])
+        td = TaskDispatcher(tasks, [], None)
         n1 = td._gen_node(None, 't1')
         td._gen_node(n1, 't2')
         assert None == td._gen_node(None, 't1')
@@ -179,7 +179,7 @@ class TestTaskDispatcher_GenNone(object):
         tasks = {'t1': Task('t1', None),
                  't2': Task('t2', None)
                  }
-        td = TaskDispatcher(tasks, [])
+        td = TaskDispatcher(tasks, [], None)
         n1 = td._gen_node(None, 't1')
         n2 = td._gen_node(n1, 't2')
         pytest.raises(InvalidDodoFile, td._gen_node, n2, 't1')
@@ -191,7 +191,7 @@ class TestTaskDispatcher_node_add_wait_run(object):
         tasks = {'t1': Task('t1', None),
                  't2': Task('t2', None),
                  }
-        td = TaskDispatcher(tasks, [])
+        td = TaskDispatcher(tasks, [], None)
         n1 = td._gen_node(None, 't1')
         n2 = td._gen_node(None, 't2')
         n1.wait_run.add('xxx')
@@ -204,18 +204,19 @@ class TestTaskDispatcher_node_add_wait_run(object):
         tasks = {'t1': Task('t1', None),
                  't2': Task('t2', None),
                  }
-        td = TaskDispatcher(tasks, [])
-        node = td._gen_node(None, 't1')
-        tasks['t2'].run_status = 'done'
-        td._node_add_wait_run(node, ['t2'])
-        assert not node.wait_run
+        td = TaskDispatcher(tasks, [], None)
+        n1 = td._gen_node(None, 't1')
+        n2 = td._gen_node(None, 't2')
+        n2.run_status = 'done'
+        td._node_add_wait_run(n1, ['t2'])
+        assert not n1.wait_run
 
 
 class TestTaskDispatcher_add_task(object):
     def test_no_deps(self):
         tasks = {'t1': Task('t1', None),
                  }
-        td = TaskDispatcher(tasks, [])
+        td = TaskDispatcher(tasks, [], None)
         n1 = td._gen_node(None, 't1')
         assert [tasks['t1']] == list(td._add_task(n1))
 
@@ -224,39 +225,41 @@ class TestTaskDispatcher_add_task(object):
                  't2': Task('t2', None),
                  't3': Task('t3', None),
                  }
-        td = TaskDispatcher(tasks, [])
+        td = TaskDispatcher(tasks, [], None)
         n1 = td._gen_node(None, 't1')
         gen = td._add_task(n1)
-        assert tasks['t2'] == next(gen).task
-        assert tasks['t3'] == next(gen).task
+        n2 = next(gen)
+        assert tasks['t2'] == n2.task
+        n3 = next(gen)
+        assert tasks['t3'] == n3.task
         assert 'wait' == next(gen)
         tasks['t2'].run_status = 'done'
-        td._update_waiting(tasks['t2'])
+        td._update_waiting(n2)
         tasks['t3'].run_status = 'done'
-        td._update_waiting(tasks['t3'])
+        td._update_waiting(n3)
         assert tasks['t1'] == next(gen)
 
     def test_task_deps_already_created(self):
         tasks = {'t1': Task('t1', None, task_dep=['t2']),
                  't2': Task('t2', None),
                  }
-        td = TaskDispatcher(tasks, [])
+        td = TaskDispatcher(tasks, [], None)
         n1 = td._gen_node(None, 't1')
-        td._gen_node(None, 't2')
-        gen = td._add_task(n1)
-        assert 'wait' == next(gen)
-        tasks['t2'].run_status = 'done'
-        td._update_waiting(tasks['t2'])
-        assert tasks['t1'] == next(gen)
+        n2 = td._gen_node(None, 't2')
+        assert 'wait' == n1.step()
+        assert 'wait' == n1.step()
+        #tasks['t2'].run_status = 'done'
+        td._update_waiting(n2)
+        assert tasks['t1'] == n1.step()
 
     def test_task_deps_no_wait(self):
         tasks = {'t1': Task('t1', None, task_dep=['t2']),
                  't2': Task('t2', None),
                  }
-        td = TaskDispatcher(tasks, [])
+        td = TaskDispatcher(tasks, [], None)
         n1 = td._gen_node(None, 't1')
-        td._gen_node(None, 't2')
-        tasks['t2'].run_status = 'done'
+        n2 = td._gen_node(None, 't2')
+        n2.run_status = 'done'
         gen = td._add_task(n1)
         assert tasks['t1'] == next(gen)
 
@@ -267,37 +270,37 @@ class TestTaskDispatcher_add_task(object):
                  't2': Task('t2', [calc_intermediate]),
                  't3': Task('t3', None, targets=['intermediate']),
                  }
-        td = TaskDispatcher(tasks, {'intermediate': 't3'})
+        td = TaskDispatcher(tasks, {'intermediate': 't3'}, None)
         n1 = td._gen_node(None, 't1')
-        gen = td._add_task(n1)
-        assert tasks['t2'] == next(gen).task
-        assert 'wait' == next(gen)
+        n2 = n1.step()
+        assert tasks['t2'] == n2.task
+        assert 'wait' == n1.step()
         # execute t2 to process calc_dep
         tasks['t2'].execute()
-        tasks['t2'].run_status = 'done'
-        td._update_waiting(tasks['t2'])
-        got = next(gen)
+        td.nodes['t2'].run_status = 'done'
+        td._update_waiting(n2)
+        n3 = n1.step()
+        assert tasks['t3'] == n3.task
         assert 'intermediate' in tasks['t1'].file_dep
         assert 't3' in tasks['t1'].task_dep
-        assert tasks['t3'] == got.task
 
         # t3 was added by calc dep
-        assert 'wait' == next(gen)
-        tasks['t3'].run_status = 'done'
-        td._update_waiting(tasks['t3'])
-        assert tasks['t1'] == next(gen)
+        assert 'wait' == n1.step()
+        n3.run_status = 'done'
+        td._update_waiting(n3)
+        assert tasks['t1'] == n1.step()
 
 
     def test_setup_task__run(self):
         tasks = {'t1': Task('t1', None, setup=['t2']),
                  't2': Task('t2', None),
                  }
-        td = TaskDispatcher(tasks, [])
+        td = TaskDispatcher(tasks, [], None)
         n1 = td._gen_node(None, 't1')
         gen = td._add_task(n1)
         assert tasks['t1'] == next(gen) # first time (just select)
         assert 'wait' == next(gen)      # wait for select result
-        tasks['t1'].run_status = 'run'
+        n1.run_status = 'run'
         assert tasks['t2'] == next(gen).task # send setup task
         assert 'wait' == next(gen)
         assert tasks['t1'] == next(gen)  # second time
@@ -308,14 +311,14 @@ class TestTaskDispatcher_get_next_node(object):
         tasks = {'t1': Task('t1', None, task_dep=['t2']),
                  't2': Task('t2', None),
                  }
-        td = TaskDispatcher(tasks, [])
+        td = TaskDispatcher(tasks, [], None)
         assert None == td._get_next_node([], [])
 
     def test_ready(self):
         tasks = {'t1': Task('t1', None),
                  't2': Task('t2', None),
                  }
-        td = TaskDispatcher(tasks, [])
+        td = TaskDispatcher(tasks, [], None)
         n1 = td._gen_node(None, 't1')
         ready = deque([n1])
         assert n1 == td._get_next_node(ready, ['t2'])
@@ -325,7 +328,7 @@ class TestTaskDispatcher_get_next_node(object):
         tasks = {'t1': Task('t1', None, task_dep=['t2']),
                  't2': Task('t2', None),
                  }
-        td = TaskDispatcher(tasks, [])
+        td = TaskDispatcher(tasks, [], None)
         to_run = ['t2', 't1']
         td._gen_node(None, 't1') # t1 was already created
         got = td._get_next_node([], to_run)
@@ -336,7 +339,7 @@ class TestTaskDispatcher_get_next_node(object):
     def test_to_run_none(self):
         tasks = {'t1': Task('t1', None),
                  }
-        td = TaskDispatcher(tasks, [])
+        td = TaskDispatcher(tasks, [], None)
         td._gen_node(None, 't1') # t1 was already created
         to_run = ['t1']
         assert None == td._get_next_node([], to_run)
@@ -348,12 +351,12 @@ class TestTaskDispatcher_update_waiting(object):
         tasks = {'t1': Task('t1', None, task_dep=['t2']),
                  't2': Task('t2', None),
                  }
-        td = TaskDispatcher(tasks, [])
+        td = TaskDispatcher(tasks, [], None)
         n2 = td._gen_node(None, 't2')
         n2.wait_select = True
         n2.task.run_status = 'run'
         td.waiting.add(n2)
-        td._update_waiting(n2.task)
+        td._update_waiting(n2)
         assert False == n2.wait_select
         assert deque([n2]) == td.ready
 
@@ -361,15 +364,17 @@ class TestTaskDispatcher_update_waiting(object):
         tasks = {'t1': Task('t1', None, task_dep=['t2']),
                  't2': Task('t2', None),
                  }
-        td = TaskDispatcher(tasks, [])
+        td = TaskDispatcher(tasks, [], None)
         n1 = td._gen_node(None, 't1')
         n2 = td._gen_node(None, 't2')
         td._node_add_wait_run(n1, ['t2'])
         n2.task.run_status = 'done'
         td.waiting.add(n1)
-        td._update_waiting(n2.task)
+        td._update_waiting(n2)
         assert deque([n1]) == td.ready
         assert 0 == len(td.waiting)
+
+    # test_wait_calc is tested on TestTaskDispatcher_add_task.test_calc_dep
 
 
 class TestTaskDispatcher_dispatcher_generator(object):
@@ -379,12 +384,11 @@ class TestTaskDispatcher_dispatcher_generator(object):
         control = TaskControl(tasks)
         control.process(['t1'])
         gen = control.task_dispatcher()
-
-        assert tasks[1] == next(gen)
+        n2 = next(gen)
+        assert tasks[1] == n2.task
         assert "hold on" == next(gen)
         assert "hold on" == next(gen) # hold until t2 is done
-        tasks[1].run_status = 'done'
-        assert tasks[0] == gen.send(tasks[1])
+        assert tasks[0] == gen.send(n2).task
         pytest.raises(StopIteration, gen.next)
 
     def test_include_setup(self):
@@ -394,6 +398,6 @@ class TestTaskDispatcher_dispatcher_generator(object):
         control.process(['t1'])
         gen = control.task_dispatcher(include_setup=True)
         # dont wait for tasks
-        assert tasks[0] == gen.send(None)
-        assert tasks[1] == gen.send(None)
+        assert tasks[0] == gen.send(None).task
+        assert tasks[1] == gen.send(None).task
         pytest.raises(StopIteration, gen.send, None)

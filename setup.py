@@ -50,6 +50,8 @@ extra = {}
 if sys.version_info >= (3,0):
     extra.update(use_2to3=True)
 
+long_description = open('doc/index.rst', 'rb'
+                        ).read().decode('utf-8').split('Quick Start')[0]
 
 setup(name = 'doit',
       description = 'doit - Automation Tool',
@@ -84,8 +86,7 @@ setup(name = 'doit',
       scripts = scripts,
       cmdclass = {'test': PyTest},
       install_requires = install_requires,
-      long_description = open('doc/index.rst', 'rb'
-                              ).read().decode('utf-8').split('Quick Start')[0],
+      long_description = long_description,
       **extra
       )
 

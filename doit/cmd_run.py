@@ -151,7 +151,7 @@ class Run(DoitCmdBase):
                 runner = MRunner(self.dep_file, reporter_obj, continue_,
                                  always, verbosity, num_process)
 
-            return runner.run_all(task_control)
+            return runner.run_all(task_control.task_dispatcher())
         finally:
             if isinstance(outfile, str):
                 outstream.close()

@@ -1,3 +1,4 @@
+
 """Tasks are the main abstractions managed by doit"""
 
 import types
@@ -40,14 +41,6 @@ class Task(object):
     @ivar taskopt: (cmdparse.CmdParse)
     @ivar custom_title: function reference that takes a task object as
                         parameter and returns a string.
-    @ivar run_status (str): contains the result of Dependency.get_status
-            modified by runner, value can be:
-           - None: not processed yet
-           - run: task is selected to be executed (it might be running or
-                   waiting for setup)
-           - ignore: task wont be executed (user forced deselect)
-           - up-to-date: task wont be executed (no need)
-           - done: task finished its execution
     """
 
     DEFAULT_VERBOSITY = 1
@@ -138,7 +131,6 @@ class Task(object):
 
         self.teardown = [create_action(a, self) for a in teardown]
         self.doc = self._init_doc(doc)
-        self.run_status = None
 
 
     def _init_deps(self, file_dep, task_dep, calc_dep):
@@ -447,7 +439,6 @@ class Task(object):
         inst.wild_dep = self.wild_dep[:]
         inst.calc_dep = copy.copy(self.calc_dep)
         inst.doc = self.doc
-        inst.run_status = self.run_status
         return inst
 
     def __lt__(self, other):

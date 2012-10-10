@@ -66,10 +66,6 @@ class TestTaskInit(object):
         t = task.Task("task5", ['action'], setup=["task2"])
         assert ["task2"] == t.setup_tasks
 
-    def test_run_status(self):
-        t = task.Task("t", ["q"])
-        assert t.run_status is None
-
 
 class TestTaskValueSavers(object):
     def test_execute_value_savers(self):
