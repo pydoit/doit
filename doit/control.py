@@ -266,7 +266,7 @@ class TaskDispatcher(object):
         self.waiting = set() # of ExecNode
         self.ready = deque() # of ExecNode
 
-        self._iterator = self._dispatcher_generator(selected_tasks)
+        self.generator = self._dispatcher_generator(selected_tasks)
 
 
     def _gen_node(self, parent, task_name):
@@ -438,13 +438,6 @@ class TaskDispatcher(object):
                 self.ready.append(waiting_node)
                 self.waiting.remove(waiting_node)
 
-
-    def __iter__(self):
-        return self._iterator
-    def send(self, value):
-        return self._iterator.send(value)
-    def next(self):
-        return self._iterator.next()
 
     def _dispatcher_generator(self, selected_tasks):
         """return generator dispatching tasks"""

@@ -172,14 +172,13 @@ class Runner(object):
 
         @param task_dispatcher: L{TaskDispacher}
         """
-        gen = task_dispatcher._iterator
         node = None
         while True:
             if self._stop_running:
                 break
 
             try:
-                node = gen.send(node)
+                node = task_dispatcher.generator.send(node)
             except StopIteration:
                 break
 
@@ -301,7 +300,7 @@ class MRunner(Runner):
         while True:
             # get next task from controller
             try:
-                node = self.task_dispatcher.send(node)
+                node = self.task_dispatcher.generator.send(node)
                 if not isinstance(node, ExecNode):
                     self.free_proc += 1
                     return Hold()

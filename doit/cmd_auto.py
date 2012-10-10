@@ -15,7 +15,7 @@ def _auto_watch(task_list, filter_tasks):
     # remove duplicates preserving order
     task_set = set()
     tasks_to_run = []
-    for node in task_control.task_dispatcher(True):
+    for node in task_control.task_dispatcher(True).generator:
         dis = node.task
         if dis.name not in task_set:
             tasks_to_run.append(dis)

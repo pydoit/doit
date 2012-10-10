@@ -383,7 +383,7 @@ class TestTaskDispatcher_dispatcher_generator(object):
                  Task("t2", None,)]
         control = TaskControl(tasks)
         control.process(['t1'])
-        gen = control.task_dispatcher()
+        gen = control.task_dispatcher().generator
         n2 = next(gen)
         assert tasks[1] == n2.task
         assert "hold on" == next(gen)
@@ -396,7 +396,7 @@ class TestTaskDispatcher_dispatcher_generator(object):
                  Task("t2", None,)]
         control = TaskControl(tasks)
         control.process(['t1'])
-        gen = control.task_dispatcher(include_setup=True)
+        gen = control.task_dispatcher(include_setup=True).generator
         # dont wait for tasks
         assert tasks[0] == gen.send(None).task
         assert tasks[1] == gen.send(None).task
