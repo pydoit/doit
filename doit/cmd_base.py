@@ -151,12 +151,14 @@ opt_seek_file = {'name': 'seek_file',
 
 
 class TaskLoader(object):
+    """task-loader interface responsible of creating Task objects"""
     cmd_options = ()
-    def load_tasks(self, cmd, opt_values, pos_args):
-        pass
+    def load_tasks(self, cmd, opt_values, pos_args): # pragma: no cover
+        raise NotImplementedError()
 
 
 class DodoTaskLoader(TaskLoader):
+    """default task-loader create tasks from a dodo.py file"""
     cmd_options = (opt_dodo, opt_cwd, opt_seek_file)
 
     @staticmethod
@@ -167,6 +169,7 @@ class DodoTaskLoader(TaskLoader):
         task_list = dodo_tasks['task_list']
         config = dodo_tasks['config']
         return task_list, config
+
 
 class DoitCmdBase(Command):
     """
@@ -188,14 +191,18 @@ class DoitCmdBase(Command):
         self.outstream = outstream or sys.stdout
 
     def set_options(self):
+        """from base class - merge base_options, loader_options and cmd_options
+        """
         opt_list = (self.base_options + self._loader.cmd_options +
                     self.cmd_options)
         return [CmdOption(opt) for opt in opt_list]
 
     def _execute(self): # pragma: no cover
+        """to be subclassed - actual command implementation"""
         raise NotImplementedError
 
     def execute(self, params, args):
+        """load dodo.py, set attributes and call self._execute"""
         self.dep_file = params['dep_file']
         self.task_list, self.config = self._loader.load_tasks(self, params, args)
 

@@ -133,10 +133,12 @@ def task_manifest():
         # using a MANIFEST file directly is broken on python2.7
         # http://bugs.python.org/issue11104
         import sys
-        assert sys.version_info < (2,7)
+        assert sys.version_info < (2,7) or sys.version_info > (2,7,2)
 
-    cmd = "hg manifest > MANIFEST;echo 'revision.txt' >> MANIFEST"
-    return {'actions': [check_version, cmd]}
+    # create manifest will all files under version control without .hg* files
+    cmd = """hg manifest | grep -vE ".*\.hg.*" > MANIFEST """
+    cmd2 = "echo 'revision.txt' >> MANIFEST"
+    return {'actions': [check_version, cmd, cmd2]}
 
 def task_sdist():
     """create source dist package"""

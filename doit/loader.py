@@ -3,8 +3,8 @@
 import os
 import sys
 import inspect
-import types
 
+from .compat import isgenerator
 from .exceptions import InvalidTask, InvalidCommand, InvalidDodoFile
 from .task import Task, dict_to_task
 
@@ -12,15 +12,6 @@ from .task import Task, dict_to_task
 # TASK_STRING: (string) prefix used to identify python function
 # that are task generators in a dodo file.
 TASK_STRING = "task_"
-
-
-# python2.6 added isgenerator
-def isgenerator(obj):
-    """Check if object type is a generator.
-
-    @param object: object to test.
-    @return: (bool) object is a generator?"""
-    return type(obj) is types.GeneratorType
 
 
 def flat_generator(gen, gen_doc=''):
