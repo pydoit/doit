@@ -4,7 +4,7 @@ import sys
 from multiprocessing import Process, Queue
 
 from .exceptions import InvalidTask, CatchedException
-from .exceptions import TaskFailed, SetupError, DependencyError
+from .exceptions import TaskFailed, SetupError, DependencyError, UnmetDependency
 from .dependency import Dependency
 from .control import ExecNode
 
@@ -56,7 +56,7 @@ class Runner(object):
         self.dep_manager.remove_success(node.task)
         self.reporter.add_failure(node.task, catched_excp)
         # only return FAILURE if no errors happened.
-        if isinstance(catched_excp, TaskFailed):
+        if isinstance(catched_excp, TaskFailed) and self.final_result != ERROR:
             self.final_result = FAILURE
         else:
             self.final_result = ERROR
@@ -99,6 +99,14 @@ class Runner(object):
 
         # if run_status is not None, it was already calculated
         if node.run_status is None:
+
+            # check task_deps
+            # FIXME: need to check if task is ignored before this
+            if node.bad_deps:
+                bad_str = " ".join(n.task.name for n in node.bad_deps)
+                self._handle_task_error(node, UnmetDependency(bad_str))
+                return False
+
             self.reporter.get_status(task)
 
             # check if task is up-to-date

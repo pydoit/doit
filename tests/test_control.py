@@ -198,6 +198,7 @@ class TestTaskDispatcher_node_add_wait_run(object):
         td._node_add_wait_run(n1, ['t2'])
         assert 2 == len(n1.wait_run)
         assert 't2' in n1.wait_run
+        assert not n1.bad_deps
         assert n1 in n2.waiting_me
 
     def test_none(self):
@@ -210,6 +211,17 @@ class TestTaskDispatcher_node_add_wait_run(object):
         n2.run_status = 'done'
         td._node_add_wait_run(n1, ['t2'])
         assert not n1.wait_run
+
+    def test_deps_not_ok(self):
+        tasks = {'t1': Task('t1', None),
+                 't2': Task('t2', None),
+                 }
+        td = TaskDispatcher(tasks, [], None)
+        n1 = td._gen_node(None, 't1')
+        n2 = td._gen_node(None, 't2')
+        n2.run_status = 'failure'
+        td._node_add_wait_run(n1, ['t2'])
+        assert n1.bad_deps
 
 
 class TestTaskDispatcher_add_task(object):
@@ -354,7 +366,7 @@ class TestTaskDispatcher_update_waiting(object):
         td = TaskDispatcher(tasks, [], None)
         n2 = td._gen_node(None, 't2')
         n2.wait_select = True
-        n2.task.run_status = 'run'
+        n2.run_status = 'run'
         td.waiting.add(n2)
         td._update_waiting(n2)
         assert False == n2.wait_select
@@ -368,9 +380,25 @@ class TestTaskDispatcher_update_waiting(object):
         n1 = td._gen_node(None, 't1')
         n2 = td._gen_node(None, 't2')
         td._node_add_wait_run(n1, ['t2'])
-        n2.task.run_status = 'done'
+        n2.run_status = 'done'
         td.waiting.add(n1)
         td._update_waiting(n2)
+        assert not n1.bad_deps
+        assert deque([n1]) == td.ready
+        assert 0 == len(td.waiting)
+
+    def test_wait_run_deps_not_ok(self):
+        tasks = {'t1': Task('t1', None, task_dep=['t2']),
+                 't2': Task('t2', None),
+                 }
+        td = TaskDispatcher(tasks, [], None)
+        n1 = td._gen_node(None, 't1')
+        n2 = td._gen_node(None, 't2')
+        td._node_add_wait_run(n1, ['t2'])
+        n2.run_status = 'failure'
+        td.waiting.add(n1)
+        td._update_waiting(n2)
+        assert n1.bad_deps
         assert deque([n1]) == td.ready
         assert 0 == len(td.waiting)
 

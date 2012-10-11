@@ -211,6 +211,10 @@ class ExecNode(object):
             self.ancestors.extend(parent.ancestors)
         self.ancestors.append(task.name)
 
+        # Wait for a task to be selected to its execution
+        # checking if it is up-to-date
+        self.wait_select = False
+
         # Wait for a task to finish its execution
         self.wait_run = set() # task names
         self.wait_run_calc = set() # task names
@@ -218,13 +222,15 @@ class ExecNode(object):
         self.waiting_me = set() # ExecNode
 
         self.run_status = None
-
-        # Wait for a task to be selected to its execution
-        # checking if it is up-to-date
-        self.wait_select = False
+        # all ancestors that failed or are ignored
+        self.bad_deps = []
 
         # generator from TaskDispatcher._add_task
         self.generator = None
+
+    @staticmethod
+    def run_status_ok(run_status):
+        return run_status not in ('failure', 'ignore')
 
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, self.task.name)
@@ -247,7 +253,7 @@ def no_none(decorated):
     return _func
 
 
-# FIXME handle task.run_status = 'ignore'
+
 class TaskDispatcher(object):
     """Dispatch another task to be selected/executed, mostly handle with MP
 
@@ -299,6 +305,8 @@ class TaskDispatcher(object):
             dep_node = self.nodes[name]
             if (not dep_node) or dep_node.run_status in (None, 'run'):
                 wait_for.add(name)
+            elif not ExecNode.run_status_ok(dep_node.run_status):
+                node.bad_deps.append(dep_node)
 
         # update ExecNode setting parent/dependent relationship
         for name in wait_for:
@@ -403,8 +411,12 @@ class TaskDispatcher(object):
             return
 
         for waiting_node in node.waiting_me:
+            if not ExecNode.run_status_ok(node.run_status):
+                waiting_node.bad_deps.append(node)
+
             # is_ready indicates if node.generator can be invoked again
             task_name = node.task.name
+
             # node wait_run will be ready if there are nothing left to wait
             if task_name in waiting_node.wait_run:
                 waiting_node.wait_run.remove(task_name)

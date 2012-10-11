@@ -429,6 +429,27 @@ class TestRunner_run_tasks(object):
         assert 0 == len(reporter.log)
 
 
+    def test_continue_dont_execute_parent_of_failed_task(self, reporter,
+                                                         RunnerClass, depfile):
+        t1 = Task("t1", [(_error,)] )
+        t2 = Task("t2", [(ok,)], task_dep=['t1'])
+        t3 = Task("t3", [(ok,)])
+        my_runner = RunnerClass(depfile.name, reporter, continue_=True)
+        disp = TaskDispatcher({'t1':t1, 't2':t2, 't3':t3}, [], ['t1', 't2', 't3'])
+        my_runner.run_tasks(disp)
+        assert runner.ERROR == my_runner.finish()
+        assert ('start', t1) == reporter.log.pop(0)
+        assert ('execute', t1) == reporter.log.pop(0)
+        assert ('fail', t1) == reporter.log.pop(0)
+        #assert ('start', t2) == reporter.log.pop(0)
+        #assert ('execute', t2) == reporter.log.pop(0)
+        assert ('fail', t2) == reporter.log.pop(0)
+        assert ('start', t3) == reporter.log.pop(0)
+        assert ('execute', t3) == reporter.log.pop(0)
+        assert ('success', t3) == reporter.log.pop(0)
+        assert 0 == len(reporter.log)
+
+
     def test_continue_dep_error(self, reporter, RunnerClass, depfile):
         t1 = Task("t1", [(ok,)], file_dep=['i_dont_exist'] )
         t2 = Task("t2", [(ok,)], task_dep=['t1'])
@@ -438,10 +459,9 @@ class TestRunner_run_tasks(object):
         assert runner.ERROR == my_runner.finish()
         assert ('start', t1) == reporter.log.pop(0)
         assert ('fail', t1) == reporter.log.pop(0)
-        assert ('start', t2) == reporter.log.pop(0)
-        assert ('execute', t2) == reporter.log.pop(0)
-        assert ('success', t2) == reporter.log.pop(0)
+        assert ('fail', t2) == reporter.log.pop(0)
         assert 0 == len(reporter.log)
+
 
 
     def test_getargs(self, reporter, RunnerClass, depfile):
