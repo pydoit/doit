@@ -45,15 +45,16 @@ class Runner(object):
         self._stop_running = False
 
 
-    def _handle_task_error(self, task, catched_excp):
+    def _handle_task_error(self, node, catched_excp):
         """handle all task failures/errors
 
         called whenever there is an error before executing a task or
         its execution is not successful.
         """
         assert isinstance(catched_excp, CatchedException)
-        self.dep_manager.remove_success(task)
-        self.reporter.add_failure(task, catched_excp)
+        node.run_status = "failure"
+        self.dep_manager.remove_success(node.task)
+        self.reporter.add_failure(node.task, catched_excp)
         # only return FAILURE if no errors happened.
         if isinstance(catched_excp, TaskFailed):
             self.final_result = FAILURE
@@ -106,7 +107,7 @@ class Runner(object):
             except Exception, exception:
                 msg = "ERROR: Task '%s' checking dependencies" % task.name
                 dep_error = DependencyError(msg, exception)
-                self._handle_task_error(task, dep_error)
+                self._handle_task_error(node, dep_error)
                 return False
 
             if not self.always_execute:
@@ -133,7 +134,7 @@ class Runner(object):
             self._get_task_args(task, tasks_dict)
         except Exception, exception:
             msg = ("ERROR getting value for argument\n" + str(exception))
-            self._handle_task_error(task, DependencyError(msg))
+            self._handle_task_error(node, DependencyError(msg))
             return False
 
         return True
@@ -152,16 +153,16 @@ class Runner(object):
 
     def process_task_result(self, node, catched_excp):
         """handles result"""
-        node.run_status = "done"
         task = node.task
         # save execution successful
         if catched_excp is None:
+            node.run_status = "successful"
             task.save_extra_values()
             self.dep_manager.save_success(task)
             self.reporter.add_success(task)
         # task error
         else:
-            self._handle_task_error(task, catched_excp)
+            self._handle_task_error(node, catched_excp)
 
 
     def run_tasks(self, task_dispatcher):

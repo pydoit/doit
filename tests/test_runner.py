@@ -428,6 +428,22 @@ class TestRunner_run_tasks(object):
         assert ('success', t3) == reporter.log.pop(0)
         assert 0 == len(reporter.log)
 
+
+    def test_continue_dep_error(self, reporter, RunnerClass, depfile):
+        t1 = Task("t1", [(ok,)], file_dep=['i_dont_exist'] )
+        t2 = Task("t2", [(ok,)], task_dep=['t1'])
+        my_runner = RunnerClass(depfile.name, reporter, continue_=True)
+        disp = TaskDispatcher({'t1':t1, 't2':t2}, [], ['t1', 't2'])
+        my_runner.run_tasks(disp)
+        assert runner.ERROR == my_runner.finish()
+        assert ('start', t1) == reporter.log.pop(0)
+        assert ('fail', t1) == reporter.log.pop(0)
+        assert ('start', t2) == reporter.log.pop(0)
+        assert ('execute', t2) == reporter.log.pop(0)
+        assert ('success', t2) == reporter.log.pop(0)
+        assert 0 == len(reporter.log)
+
+
     def test_getargs(self, reporter, RunnerClass, depfile):
         def use_args(arg1):
             print arg1
