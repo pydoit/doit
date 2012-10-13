@@ -62,9 +62,13 @@ class List(DoitCmdBase):
             if (not quiet) and task.doc:
                 task_str += "%s" % task.doc
             # FIXME this does not take calc_dep into account
+            # FIXME group task status is never up-to-date
             if status:
-                task_uptodate = dependency_manager.get_status(task, None)
-                task_str = "%s %s" % (status_map[task_uptodate], task_str)
+                if dependency_manager.status_is_ignore(task):
+                    task_status = 'ignore'
+                else:
+                    task_status = dependency_manager.get_status(task, None)
+                task_str = "%s %s" % (status_map[task_status], task_str)
 
             self.outstream.write("%s\n" % task_str)
 

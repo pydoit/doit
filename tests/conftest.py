@@ -67,7 +67,8 @@ def pytest_funcarg__cwd(request):
 def tasks_sample():
     tasks_sample = [
         Task("t1", [""], doc="t1 doc string"),
-        Task("t2", [""], doc="t2 doc string"),
+        Task("t2", [""], file_dep=['tests/data/dependency1'],
+             doc="t2 doc string"),
         Task("g1", None, doc="g1 doc string"),
         Task("g1.a", [""], doc="g1.a doc string", is_subtask=True),
         Task("g1.b", [""], doc="g1.b doc string", is_subtask=True),

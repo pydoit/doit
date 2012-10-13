@@ -326,6 +326,9 @@ class DependencyBase(object):
         """mark task to be ignored"""
         self._set(task.name, 'ignore:', '1')
 
+    def status_is_ignore(self, task):
+        """check if task is marked to be ignored"""
+        return self._get(task.name, "ignore:")
 
     # TODO add option to log this
     def get_status(self, task, tasks_dict):
@@ -333,16 +336,13 @@ class DependencyBase(object):
 
         @param task: (Task)
         @param tasks_dict: (dict: Task) passed to objects used on uptodate
-        @return: (str) one of up-to-date, ignore, run
+        @return: (str) one of up-to-date, run
 
         task.dep_changed (list-strings): file-dependencies that are not
         up-to-date if task not up-to-date because of a target, returned value
         will contain all file-dependencies reagrdless they are up-to-date
         or not.
         """
-        if self._get(task.name, "ignore:"):
-            return 'ignore'
-
         task.dep_changed = []
 
         # check uptodate bool/callables

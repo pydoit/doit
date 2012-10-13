@@ -110,7 +110,7 @@ class TestRunner_SelectTask(object):
     def test_alwaysExecute(self, reporter, depfile):
         t1 = Task("taskX", [(my_print, ["out a"] )])
         my_runner = runner.Runner(depfile.name, reporter, always_execute=True)
-        my_runner.dep_manager.ignore(t1)
+        my_runner.dep_manager.save_success(t1)
         assert True == my_runner.select_task(ExecNode(t1, None), {})
         assert ('start', t1) == reporter.log.pop(0)
         assert not reporter.log
@@ -441,8 +441,7 @@ class TestRunner_run_tasks(object):
         assert ('start', t1) == reporter.log.pop(0)
         assert ('execute', t1) == reporter.log.pop(0)
         assert ('fail', t1) == reporter.log.pop(0)
-        #assert ('start', t2) == reporter.log.pop(0)
-        #assert ('execute', t2) == reporter.log.pop(0)
+        assert ('start', t2) == reporter.log.pop(0)
         assert ('fail', t2) == reporter.log.pop(0)
         assert ('start', t3) == reporter.log.pop(0)
         assert ('execute', t3) == reporter.log.pop(0)
@@ -459,9 +458,24 @@ class TestRunner_run_tasks(object):
         assert runner.ERROR == my_runner.finish()
         assert ('start', t1) == reporter.log.pop(0)
         assert ('fail', t1) == reporter.log.pop(0)
+        assert ('start', t2) == reporter.log.pop(0)
         assert ('fail', t2) == reporter.log.pop(0)
         assert 0 == len(reporter.log)
 
+
+    def test_continue_ignored_dep(self, reporter, RunnerClass, depfile):
+        t1 = Task("t1", [(ok,)], )
+        t2 = Task("t2", [(ok,)], task_dep=['t1'])
+        my_runner = RunnerClass(depfile.name, reporter, continue_=True)
+        my_runner.dep_manager.ignore(t1)
+        disp = TaskDispatcher({'t1':t1, 't2':t2}, [], ['t1', 't2'])
+        my_runner.run_tasks(disp)
+        assert runner.SUCCESS == my_runner.finish()
+        assert ('start', t1) == reporter.log.pop(0)
+        assert ('ignore', t1) == reporter.log.pop(0)
+        assert ('start', t2) == reporter.log.pop(0)
+        assert ('ignore', t2) == reporter.log.pop(0)
+        assert 0 == len(reporter.log)
 
 
     def test_getargs(self, reporter, RunnerClass, depfile):

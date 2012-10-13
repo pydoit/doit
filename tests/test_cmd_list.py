@@ -79,13 +79,19 @@ class TestCmdList(object):
         assert expected == got
 
     def testStatus(self, depfile):
+        task_list = tasks_sample()
+        depfile.ignore(task_list[0]) # t1
+        depfile.save_success(task_list[1]) # t2
+        depfile.close()
+
         output = StringIO()
         cmd_list = List(outstream=output, dep_file=depfile.name,
-                        task_list=tasks_sample())
-        cmd_list._execute(status=True, pos_args=['g1'])
+                        task_list=task_list)
+        cmd_list._execute(status=True)
         got = [line.strip() for line in output.getvalue().split('\n') if line]
-        expected = ['R g1']
-        assert expected == got
+        assert 'R g1' in got
+        assert 'I t1' in got
+        assert 'U t2' in got
 
     def testNoPrivate(self, depfile):
         task_list = list(tasks_sample())

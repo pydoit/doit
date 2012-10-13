@@ -100,14 +100,19 @@ class Runner(object):
         # if run_status is not None, it was already calculated
         if node.run_status is None:
 
+            self.reporter.get_status(task)
+
+            # check if task should be ignored (user controlled)
+            if node.ignored_deps or self.dep_manager.status_is_ignore(task):
+                node.run_status = 'ignore'
+                self.reporter.skip_ignore(task)
+                return False
+
             # check task_deps
-            # FIXME: need to check if task is ignored before this
             if node.bad_deps:
                 bad_str = " ".join(n.task.name for n in node.bad_deps)
                 self._handle_task_error(node, UnmetDependency(bad_str))
                 return False
-
-            self.reporter.get_status(task)
 
             # check if task is up-to-date
             try:
@@ -123,10 +128,6 @@ class Runner(object):
                 if node.run_status == 'up-to-date':
                     self.reporter.skip_uptodate(task)
                     task.values = self.dep_manager.get_values(task.name)
-                    return False
-                # check if task should be ignored (user controlled)
-                if node.run_status == 'ignore':
-                    self.reporter.skip_ignore(task)
                     return False
 
             if task.setup_tasks:

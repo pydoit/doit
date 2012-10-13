@@ -222,15 +222,18 @@ class ExecNode(object):
         self.waiting_me = set() # ExecNode
 
         self.run_status = None
-        # all ancestors that failed or are ignored
+        # all ancestors that failed
         self.bad_deps = []
+        self.ignored_deps = []
 
         # generator from TaskDispatcher._add_task
         self.generator = None
 
-    @staticmethod
-    def run_status_ok(run_status):
-        return run_status not in ('failure', 'ignore')
+    def parent_status(self, parent_node):
+        if parent_node.run_status == 'failure':
+            self.bad_deps.append(parent_node)
+        elif parent_node.run_status == 'ignore':
+            self.ignored_deps.append(parent_node)
 
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, self.task.name)
@@ -305,8 +308,8 @@ class TaskDispatcher(object):
             dep_node = self.nodes[name]
             if (not dep_node) or dep_node.run_status in (None, 'run'):
                 wait_for.add(name)
-            elif not ExecNode.run_status_ok(dep_node.run_status):
-                node.bad_deps.append(dep_node)
+            else:
+                node.parent_status(dep_node)
 
         # update ExecNode setting parent/dependent relationship
         for name in wait_for:
@@ -411,8 +414,7 @@ class TaskDispatcher(object):
             return
 
         for waiting_node in node.waiting_me:
-            if not ExecNode.run_status_ok(node.run_status):
-                waiting_node.bad_deps.append(node)
+            waiting_node.parent_status(node)
 
             # is_ready indicates if node.generator can be invoked again
             task_name = node.task.name

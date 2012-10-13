@@ -136,6 +136,23 @@ class TestExecNode(object):
         node = ExecNode(task, None)
         assert False == node.wait_select
 
+    def test_parent_status_failure(self):
+        n1 = ExecNode(Task('t1', None), None)
+        n2 = ExecNode(Task('t2', None), None)
+        n1.run_status = 'failure'
+        n2.parent_status(n1)
+        assert [n1] == n2.bad_deps
+        assert [] == n2.ignored_deps
+
+    def test_parent_status_ignore(self):
+        n1 = ExecNode(Task('t1', None), None)
+        n2 = ExecNode(Task('t2', None), None)
+        n1.run_status = 'ignore'
+        n2.parent_status(n1)
+        assert [] == n2.bad_deps
+        assert [n1] == n2.ignored_deps
+
+
     def test_step(self):
         def my_gen():
             yield 1

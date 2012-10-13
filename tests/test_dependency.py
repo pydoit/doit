@@ -311,12 +311,10 @@ class TestGetStatus(object):
     def test_ignore(self, depfile):
         t1 = Task("t1", None)
         # before ignore
-        assert 'run' == depfile.get_status(t1, {})
-        assert [] == t1.dep_changed
+        assert not depfile.status_is_ignore(t1)
         # after ignote
         depfile.ignore(t1)
-        assert 'ignore' == depfile.get_status(t1, {})
-        assert [] == t1.dep_changed
+        assert depfile.status_is_ignore(t1)
 
 
     def test_fileDependencies(self, depfile):
