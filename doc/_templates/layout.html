@@ -1,6 +1,7 @@
 {% extends "!layout.html" %}
 
 {% block extrahead %}
+{% if include_analytics %}
 <!-- Piwik -->
 <script type="text/javascript">
 var pkBaseURL = (("https:" == document.location.protocol) ? "https://apps.sourceforge.net/piwik/python-doit/" : "http://apps.sourceforge.net/piwik/python-doit/");
@@ -13,6 +14,7 @@ piwik_log(piwik_action_name, piwik_idsite, piwik_url);
 </script>
 <object><noscript><p><img src="http://apps.sourceforge.net/piwik/python-doit/piwik.php?idsite=1" alt="piwik"/></p></noscript></object>
 <!-- End Piwik Tag -->
+{% endif %}
 {% endblock %}
 
 

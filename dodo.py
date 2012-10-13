@@ -103,9 +103,12 @@ def task_epydoc():
             'targets': [target_path]}
 
 def task_sphinx():
-    """generate website docs"""
-    action = "sphinx-build -b html -d %s_build/doctrees %s %s"
-    return {'actions': [action % (DOC_ROOT, DOC_ROOT, DOC_BUILD_PATH)]}
+    """generate website docs (include analytics)"""
+    action = "sphinx-build -b html -d %s_build/doctrees -A include_analytics=1 %s %s"
+    return {
+        'actions': [action % (DOC_ROOT, DOC_ROOT, DOC_BUILD_PATH)],
+        'verbosity': 2,
+        }
 
 
 def task_website():

@@ -94,11 +94,16 @@ from `dev_requirements.txt`::
 documentation
 =============
 
-``doc`` folder contains ReST documentation. They are the base for creating the website.
+``doc`` folder contains ReST documentation based on Sphinx.
+
+``doit/doc$ make html``
+
+They are the base for creating the website. The only difference is
+that the website includes analytics tracking using Pwiki.
 To create it (after installing doit):
 
 ``doit website``
 
-It includes epydoc generated API documentation.
+The website will also includes epydoc generated API documentation.
 
 
