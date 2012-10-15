@@ -1,4 +1,6 @@
+from .exceptions import InvalidCommand
 from .cmd_base import DoitCmdBase
+
 opt_clean_dryrun = {'name': 'dryrun',
                     'short': 'n', # like make dry-run
                     'long': 'dry-run',
@@ -45,6 +47,14 @@ class Clean(DoitCmdBase):
         default_tasks = self.config.get('default_tasks')
         selected_tasks = pos_args
         cleaned = set()
+
+        # check task exist
+        if selected_tasks:
+            for task_name in selected_tasks:
+                if task_name not in tasks:
+                    msg = "'%s' is not a task."
+                    raise InvalidCommand(msg % task_name)
+
 
         def clean_task(task_name):
             """wrapper to ensure task clean-action is executed only once"""
