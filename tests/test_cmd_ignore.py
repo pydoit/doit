@@ -10,20 +10,16 @@ from doit.cmd_ignore import Ignore
 
 class TestCmdIgnore(object):
 
-    def pytest_funcarg__tasks(self, request):
-        def create_tasks():
-            # FIXME DRY
-            tasks = [Task("t1", [""]),
-                     Task("t2", [""]),
-                     Task("g1", None, task_dep=['g1.a','g1.b']),
-                     Task("g1.a", [""]),
-                     Task("g1.b", [""]),
-                     Task("t3", [""], task_dep=['t1']),
-                     Task("g2", None, task_dep=['t1','g1'])]
-            return tasks
-        return request.cached_setup(
-            setup=create_tasks,
-            scope="function")
+    @pytest.fixture
+    def tasks(self, request):
+        return [Task("t1", [""]),
+                Task("t2", [""]),
+                Task("g1", None, task_dep=['g1.a','g1.b']),
+                Task("g1.a", [""]),
+                Task("g1.b", [""]),
+                Task("t3", [""], task_dep=['t1']),
+                Task("g2", None, task_dep=['t1','g1'])]
+
 
     def testIgnoreAll(self, tasks, depfile):
         output = StringIO.StringIO()

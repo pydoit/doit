@@ -8,21 +8,18 @@ from doit.cmd_clean import Clean
 
 class TestCmdClean(object):
 
-    def pytest_funcarg__tasks(self, request):
-        def create_tasks():
-            self.cleaned = []
-            def myclean(name):
-                self.cleaned.append(name)
-            return [
-                Task("t1", None, task_dep=['t2'], clean=[(myclean,('t1',))]),
-                Task("t2", None, clean=[(myclean,('t2',))]),
-                Task("t3", None, task_dep=['t3:a'], has_subtask=True,
-                     clean=[(myclean,('t3',))]),
-                Task("t3:a", None, clean=[(myclean,('t3:a',))]),
-                ]
-        return request.cached_setup(
-            setup=create_tasks,
-            scope="function")
+    @pytest.fixture
+    def tasks(self, request):
+        self.cleaned = []
+        def myclean(name):
+            self.cleaned.append(name)
+        return [
+            Task("t1", None, task_dep=['t2'], clean=[(myclean,('t1',))]),
+            Task("t2", None, clean=[(myclean,('t2',))]),
+            Task("t3", None, task_dep=['t3:a'], has_subtask=True,
+                 clean=[(myclean,('t3',))]),
+            Task("t3:a", None, clean=[(myclean,('t3:a',))]),
+            ]
 
     def test_clean_all(self, tasks):
         output = StringIO()

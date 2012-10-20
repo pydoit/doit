@@ -1,6 +1,7 @@
 import os
 
 import py
+import pytest
 
 from doit.dependency import Dependency
 from doit.task import Task
@@ -23,44 +24,39 @@ def remove_db(filename):
 
 
 # fixture for "doit.db". create/remove for every test
-def pytest_funcarg__depfile(request):
-    def create_depfile():
-        if hasattr(request, 'param'):
-            dep_class = request.param
-        else:
-            dep_class = Dependency
+@pytest.fixture
+def depfile(request):
+    if hasattr(request, 'param'):
+        dep_class = request.param
+    else:
+        dep_class = Dependency
 
-        # copied from tempdir plugin
-        name = request._pyfuncitem.name
-        name = py.std.re.sub("[\W]", "_", name)
-        my_tmpdir = request.config._tmpdirhandler.mktemp(name, numbered=True)
-        return dep_class(os.path.join(my_tmpdir.strpath, "testdb"))
+    # copied from tempdir plugin
+    name = request._pyfuncitem.name
+    name = py.std.re.sub("[\W]", "_", name)
+    my_tmpdir = request.config._tmpdirhandler.mktemp(name, numbered=True)
+    dep_file = dep_class(os.path.join(my_tmpdir.strpath, "testdb"))
 
-    def remove_depfile(depfile):
-        if not depfile._closed:
-            depfile.close()
-        remove_db(depfile.name)
+    def remove_depfile():
+        if not dep_file._closed:
+            dep_file.close()
+        remove_db(dep_file.name)
+    request.addfinalizer(remove_depfile)
 
-    return request.cached_setup(
-        setup=create_depfile,
-        teardown=remove_depfile,
-        scope="function")
+    return dep_file
 
 
-def pytest_funcarg__cwd(request):
+@pytest.fixture
+def cwd(request):
     """set cwd to parent folder of this file."""
-    def set_cwd():
-        cwd = {}
-        cwd['previous'] = os.getcwd()
-        cwd['current'] = os.path.abspath(os.path.dirname(__file__))
-        os.chdir(cwd['current'])
-        return cwd
-    def restore_cwd(cwd):
+    cwd = {}
+    cwd['previous'] = os.getcwd()
+    cwd['current'] = os.path.abspath(os.path.dirname(__file__))
+    os.chdir(cwd['current'])
+    def restore_cwd():
         os.chdir(cwd['previous'])
-    return request.cached_setup(
-        setup=set_cwd,
-        teardown=restore_cwd,
-        scope="function")
+    request.addfinalizer(restore_cwd)
+    return cwd
 
 
 # create a list of sample tasks

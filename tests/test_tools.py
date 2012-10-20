@@ -202,18 +202,16 @@ class TestTimeout(object):
         assert False == uptodate(t, t.values)
 
 
+@pytest.fixture
+def checked_file(request):
+    fname = 'mytmpfile'
+    file_ = open(fname, 'a')
+    file_.close()
+    def remove():
+        os.remove(fname)
+    request.addfinalizer(remove)
+    return fname
 
-def pytest_funcarg__checked_file(request):
-    """crate a temporary file"""
-    def touch():
-        fname = 'mytmpfile'
-        file_ = open(fname, 'a')
-        file_.close()
-        return fname
-    return request.cached_setup(
-        setup=touch,
-        teardown=(lambda tmpfile: os.remove(tmpfile)),
-        scope="function")
 
 class TestCheckTimestampUnchanged(object):
 

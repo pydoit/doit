@@ -76,15 +76,12 @@ opt_no = {'name': 'no',
 
 class TestCommand(object):
 
-    def pytest_funcarg__cmd(self, request):
-        def create_sample_cmd():
-            opt_list = (opt_bool, opt_rare, opt_int, opt_no)
-            options = [CmdOption(o) for o in opt_list]
-            cmd = CmdParse(options)
-            return cmd
-        return request.cached_setup(
-            setup=create_sample_cmd,
-            scope="function")
+    @pytest.fixture
+    def cmd(self, request):
+        opt_list = (opt_bool, opt_rare, opt_int, opt_no)
+        options = [CmdOption(o) for o in opt_list]
+        cmd = CmdParse(options)
+        return cmd
 
 
     def test_short(self, cmd):

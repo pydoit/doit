@@ -247,19 +247,15 @@ class TestDodoConfig(object):
     # dynamically. but it is tricky because python optmizes it and loads
     # it just once. so need to clean up variables that i messed up.
 
-    def pytest_funcarg__dodo(self, request):
-        def get_dodo_module():
-            fileName = os.path.join(os.path.dirname(__file__),
-                                    "loader_sample.py")
-            return get_module(fileName)
-        def remove_dodo(dodo):
+    @pytest.fixture
+    def dodo(self, request):
+        fileName = os.path.join(os.path.dirname(__file__),
+                                "loader_sample.py")
+        dodo = get_module(fileName)
+        def remove_dodo():
             if hasattr(dodo, 'DOIT_CONFIG'):
                 del dodo.DOIT_CONFIG
-        return request.cached_setup(
-            setup=get_dodo_module,
-            teardown=remove_dodo,
-            scope="function")
-
+        return dodo
 
     def testDefaultConfig_Dict(self, cwd, dodo):
         dodo_dict = load_dodo_file(dodo)

@@ -49,13 +49,9 @@ class SampleCmd(Command):
 
 class TestCommand(object):
 
-    def pytest_funcarg__cmd(self, request):
-        def create_sample_cmd():
-            return SampleCmd()
-        return request.cached_setup(
-            setup=create_sample_cmd,
-            scope="function")
-
+    @pytest.fixture
+    def cmd(self, request):
+        return SampleCmd()
 
     def test_help(self, cmd):
         text = cmd.help()

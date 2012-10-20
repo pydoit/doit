@@ -57,12 +57,9 @@ class FakeReporter(object):
         pass
 
 
-def pytest_funcarg__reporter(request):
-    def create_fake_reporter():
-        return FakeReporter()
-    return request.cached_setup(
-        setup=create_fake_reporter,
-        scope="function")
+@pytest.fixture
+def reporter(request):
+    return FakeReporter()
 
 
 class TestRunner(object):
@@ -276,16 +273,13 @@ class TestTask_RunAll(object):
 
 
 # run tests in both single process runner and multi-process runner
-def pytest_generate_tests(metafunc):
-    if TestRunner_run_tasks == metafunc.cls:
-        runners = [runner.Runner]
-        if runner.MRunner.available():
-            # TODO: test should be added and skipped!
-            runners.append(runner.MRunner)
-        for RunnerClass in (runners):
-            metafunc.addcall(id=RunnerClass.__name__,
-                             funcargs=dict(RunnerClass=RunnerClass))
-
+RUNNERS = [runner.Runner]
+# TODO: test should be added and skipped!
+if runner.MRunner.available():
+    RUNNERS.append(runner.MRunner)
+@pytest.fixture(params=RUNNERS)
+def RunnerClass(request):
+    return request.param
 
 
 # decorator to force coverage on function.

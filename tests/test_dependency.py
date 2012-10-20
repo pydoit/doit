@@ -9,7 +9,7 @@ import pytest
 from doit.task import Task
 from doit.dependency import get_md5, md5sum, check_modified, UptodateCalculator
 from doit.dependency import JsonDependency, DbmDependency, DbmDB
-
+from .conftest import depfile
 
 def get_abspath(relativePath):
     """ return abs file path relative to this file"""
@@ -46,40 +46,37 @@ def test_md5():
 
 
 # fixture to create a sample file to be used as file_dep
-def pytest_funcarg__dependency(request):
-    def create_dependency():
-        path = get_abspath("data/dependency1")
-        if os.path.exists(path): os.remove(path)
-        ff = open(path, "w")
-        ff.write("whatever")
-        ff.close()
-        return path
-    def remove_dependency(path):
+@pytest.fixture
+def dependency(request):
+    path = get_abspath("data/dependency1")
+    if os.path.exists(path): os.remove(path)
+    ff = open(path, "w")
+    ff.write("whatever")
+    ff.close()
+
+    def remove_dependency():
         if os.path.exists(path):
             os.remove(path)
-    return request.cached_setup(
-        setup=create_dependency,
-        teardown=remove_dependency,
-        scope="function")
+    request.addfinalizer(remove_dependency)
+
+    return path
+
+
+
+# test parametrization, execute tests for all DB backends
+BACKENDS = [JsonDependency]
+# gdbm is broken on python2.5
+import platform
+python_version = platform.python_version().split('.')
+if python_version[0] != '2' or python_version[1] != '5':
+    BACKENDS.append(DbmDependency)
+pytest.fixture(params=BACKENDS)(depfile)
 
 
 # FIXME there was major refactor breaking classes from dependency,
 # unit-tests could be more specific to base classes.
 
-# test parametrization, execute tests for all DB backends
-def pytest_generate_tests(metafunc):
-    if "depfile" in metafunc.funcargnames:
-        metafunc.addcall(id='JsonDependency', param=JsonDependency)
-        # gdbm is broken on python2.5
-        import platform
-        python_version = platform.python_version().split('.')
-        if python_version[0] != '2' or python_version[1] != '5':
-            metafunc.addcall(id='DbmDependency', param=DbmDependency)
-
-
-
 class TestDependencyDb(object):
-
     # adding a new value to the DB
     def test_get_set(self, depfile):
         depfile._set("taskId_X","dependency_A","da_md5")

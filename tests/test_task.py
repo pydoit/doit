@@ -276,24 +276,23 @@ class TestTaskTeardown(object):
 
 class TestTaskClean(object):
 
-    def pytest_funcarg__tmpdir(self, request):
-        def create_tmpdir():
-            tmpdir = {}
-            tmpdir['dir'] = tempfile.mkdtemp(prefix='doit-')
-            files = [os.path.join(tmpdir['dir'], fname)
-                     for fname in ['a.txt', 'b.txt']]
-            tmpdir['files'] = files
-            # create empty files
-            for filename in tmpdir['files']:
-                open(filename, 'a').close()
-            return tmpdir
-        def remove_tmpdir(tmpdir):
+    @pytest.fixture
+    def tmpdir(self, request):
+        tmpdir = {}
+        tmpdir['dir'] = tempfile.mkdtemp(prefix='doit-')
+        files = [os.path.join(tmpdir['dir'], fname)
+                 for fname in ['a.txt', 'b.txt']]
+        tmpdir['files'] = files
+        # create empty files
+        for filename in tmpdir['files']:
+            open(filename, 'a').close()
+
+        def remove_tmpdir():
             if os.path.exists(tmpdir['dir']):
                 shutil.rmtree(tmpdir['dir'])
-        return request.cached_setup(
-            setup=create_tmpdir,
-            teardown=remove_tmpdir,
-            scope="function")
+        request.addfinalizer(remove_tmpdir)
+
+        return tmpdir
 
 
     def test_clean_nothing(self, tmpdir):

@@ -16,15 +16,12 @@ TEST_PATH = os.path.dirname(__file__)
 PROGRAM = "python %s/sample_process.py" % TEST_PATH
 
 
-def create_tempfile():
-    return tempfile.TemporaryFile('w+b')
+@pytest.fixture
+def tmpfile(request):
+    temp = tempfile.TemporaryFile('w+b')
+    request.addfinalizer(temp.close)
+    return temp
 
-def pytest_funcarg__tmpfile(request):
-    """crate a temporary file"""
-    return request.cached_setup(
-        setup=create_tempfile,
-        teardown=(lambda tmpfile: tmpfile.close()),
-        scope="function")
 
 class FakeTask(object):
     def __init__(self, file_dep, dep_changed, targets, options):
@@ -160,7 +157,7 @@ class TestCmd_print_process_output(object):
 
     def test_unicode_string(self, tmpfile):
         my_action = action.CmdAction("")
-        unicode_in = create_tempfile()
+        unicode_in = tempfile.TemporaryFile('w+b')
         unicode_in.write(u" 中文".encode('utf-8'))
         unicode_in.seek(0)
         my_action._print_process_output(Mock(), unicode_in, Mock(), tmpfile)
@@ -168,7 +165,7 @@ class TestCmd_print_process_output(object):
     def test_unicode_string2(self, tmpfile):
         # this \uXXXX has a different behavior!
         my_action = action.CmdAction("")
-        unicode_in = create_tempfile()
+        unicode_in = tempfile.TemporaryFile('w+b')
         unicode_in.write(u" 中文 \u2018".encode('utf-8'))
         unicode_in.seek(0)
         my_action._print_process_output(Mock(), unicode_in, Mock(), tmpfile)
@@ -374,13 +371,9 @@ class TestPythonVerbosity(object):
 
 class TestPythonActionPrepareKwargsMeta(object):
 
-    def pytest_funcarg__task_depchanged(self, request):
-        def create_task_depchanged():
-            task = FakeTask(['dependencies'],['changed'],['targets'],{})
-            return task
-        return request.cached_setup(
-            setup=create_task_depchanged,
-            scope="function")
+    @pytest.fixture
+    def task_depchanged(self, request):
+        return FakeTask(['dependencies'],['changed'],['targets'],{})
 
     def test_no_extra_args(self, task_depchanged):
         def py_callable():

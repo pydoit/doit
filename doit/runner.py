@@ -269,10 +269,8 @@ class MReporter(object):
 class MRunner(Runner):
     """MultiProcessing Runner """
 
-    # cant use staticmethod because of bug in py.test
-    # https://bitbucket.org/hpk42/pytest/issue/156
-    @classmethod
-    def available(cls):
+    @staticmethod
+    def available():
         """check if multiprocessing module is available"""
         # see: https://bitbucket.org/schettino72/doit/issue/17
         #      http://bugs.python.org/issue3770
