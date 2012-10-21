@@ -1,5 +1,8 @@
 from StringIO import StringIO
 
+import pytest
+
+from doit.exceptions import InvalidCommand
 from doit.task import Task
 from doit.cmd_list import List
 from tests.conftest import tasks_sample
@@ -115,4 +118,8 @@ class TestCmdList(object):
         expected = ['_s3']
         assert expected == got
 
-
+    def testListInvalidTask(self, depfile):
+        output = StringIO()
+        cmd_list = List(outstream=output, dep_file=depfile.name,
+                        task_list=tasks_sample())
+        pytest.raises(InvalidCommand, cmd_list._execute, pos_args=['xxx'])

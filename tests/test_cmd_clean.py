@@ -1,5 +1,7 @@
-import StringIO
+from StringIO import StringIO
+import pytest
 
+from doit.exceptions import InvalidCommand
 from doit.task import Task
 from doit.cmd_clean import Clean
 
@@ -23,13 +25,13 @@ class TestCmdClean(object):
             scope="function")
 
     def test_clean_all(self, tasks):
-        output = StringIO.StringIO()
+        output = StringIO()
         cmd_clean = Clean(outstream=output, task_list=tasks)
         cmd_clean._execute(False, False, True)
         assert ['t1','t2', 't3:a', 't3'] == self.cleaned
 
     def test_clean_default(self, tasks):
-        output = StringIO.StringIO()
+        output = StringIO()
         cmd_clean = Clean(outstream=output, task_list=tasks,
                           config={'default_tasks':['t1']})
         cmd_clean._execute(False, False, False)
@@ -37,28 +39,33 @@ class TestCmdClean(object):
         assert ['t2', 't1'] == self.cleaned
 
     def test_clean_selected(self, tasks):
-        output = StringIO.StringIO()
+        output = StringIO()
         cmd_clean = Clean(outstream=output, task_list=tasks,
                           config={'default_tasks':['t1']})
         cmd_clean._execute(False, False, False, ['t2'])
         assert ['t2'] == self.cleaned
 
     def test_clean_taskdep(self, tasks):
-        output = StringIO.StringIO()
+        output = StringIO()
         cmd_clean = Clean(outstream=output, task_list=tasks)
         cmd_clean._execute(False, True, False, ['t1'])
         assert ['t2', 't1'] == self.cleaned
 
     def test_clean_subtasks(self, tasks):
-        output = StringIO.StringIO()
+        output = StringIO()
         cmd_clean = Clean(outstream=output, task_list=tasks)
         cmd_clean._execute(False, False, False, ['t3'])
         assert ['t3:a', 't3'] == self.cleaned
 
     def test_clean_taskdep_once(self, tasks):
-        output = StringIO.StringIO()
+        output = StringIO()
         cmd_clean = Clean(outstream=output, task_list=tasks)
         cmd_clean._execute(False, True, False, ['t1', 't2'])
         assert ['t2', 't1'] == self.cleaned
 
-
+    def test_clean_invalid_task(self, tasks):
+        output = StringIO()
+        cmd_clean = Clean(outstream=output, task_list=tasks,
+                          config={'default_tasks':['t1']})
+        pytest.raises(InvalidCommand, cmd_clean._execute,
+                      False, False, False, ['xxxx'])

@@ -1,3 +1,4 @@
+from .exceptions import InvalidCommand
 from .dependency import Dependency
 from .cmd_base import DoitCmdBase
 
@@ -54,6 +55,8 @@ class List(DoitCmdBase):
         """
         filter_tasks = pos_args
         status_map = {'ignore': 'I', 'up-to-date': 'U', 'run': 'R'}
+
+
         def _list_print_task(task, col1_len):
             """print a single task"""
             col1_fmt = "%%-%ds" % (col1_len + 3)
@@ -83,6 +86,12 @@ class List(DoitCmdBase):
         tasks = dict([(t.name, t) for t in self.task_list])
         # list only tasks passed on command line
         if filter_tasks:
+            # check task exist
+            for task_name in filter_tasks:
+                if task_name not in tasks:
+                    msg = "'%s' is not a task."
+                    raise InvalidCommand(msg % task_name)
+
             base_list = [tasks[name] for name in filter_tasks]
             if subtasks:
                 for task in base_list:
