@@ -397,9 +397,11 @@ class MRunner(Runner):
                 completed = None
                 if next_node is None:
                     proc_count -= 1
-                    task_q.put(None)
-                else:
+                if isinstance(next_node, ExecNode):
                     task_q.put(next_node.task)
+                else:
+                    task_q.put(next_node)
+
             # check for cyclic dependencies
             assert len(proc_list) > self.free_proc
 
