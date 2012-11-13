@@ -57,9 +57,10 @@ class TestCmdAuto(object):
         tstop = Task("stop", [(hi,)],  [stop_file])
         task_list = [t1, t2, tstop]
         reporter = FakeReporter()
-        run_args = (None, reporter, loop_callback)
+        run_args = (None, reporter)
         cmd = Auto(dep_file=depfile.name, task_list=task_list,
                    sel_tasks=["t1", "t2", "stop"])
+        cmd.loop_callback = loop_callback
         loop_thread = threading.Thread(target=cmd._execute, args=run_args)
         loop_thread.daemon = True
         loop_thread.start()

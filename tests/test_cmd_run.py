@@ -13,7 +13,7 @@ from tests.conftest import tasks_sample
 
 class TestCmdRun(object):
 
-    def testProcessRun(self, depfile):
+    def testProcessRun(self, dependency1, depfile):
         output = StringIO.StringIO()
         cmd_run = Run(dep_file=depfile.name, task_list=tasks_sample())
         result = cmd_run._execute(output)
@@ -30,7 +30,7 @@ class TestCmdRun(object):
         cmd_run = Run(dep_file=depfile.name, task_list=tasks_sample())
         cmd_run._execute(output, num_process=3)
 
-    def testProcessRunMP(self, depfile):
+    def testProcessRunMP(self, dependency1, depfile):
         output = StringIO.StringIO()
         cmd_run = Run(dep_file=depfile.name, task_list=tasks_sample())
         result = cmd_run._execute(output, num_process=1)

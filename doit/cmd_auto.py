@@ -26,20 +26,26 @@ def _auto_watch(task_list, filter_tasks):
     return watch_tasks, watch_files
 
 
+opt_reporter = {'name':'reporter',
+                 'short': None,
+                 'long': None,
+                 'type':str,
+                 'default': 'executed-only',
+                }
+
 
 class Auto(DoitCmdBase):
     doc_purpose = "automatically execute tasks when a dependency changes"
     doc_usage = "[TASK ...]"
     doc_description = None
 
-    cmd_options = (opt_verbosity,)
+    cmd_options = (opt_verbosity, opt_reporter)
 
-    def _execute(self, verbosity=None, reporter='executed-only',
-                 loop_callback=None):
+    loop_callback = None # used to stop loop on unittests
+    def _execute(self, verbosity=None, reporter='executed-only'):
         """Re-execute tasks automatically a depedency changes
 
         @param filter_tasks (list -str): print only tasks from this list
-        @loop_callback: used to stop loop on unittests
         """
         watch_tasks, watch_files = _auto_watch(self.task_list, self.sel_tasks)
         auto_cmd = self
@@ -55,5 +61,5 @@ class Auto(DoitCmdBase):
         file_watcher = DoitAutoRun(watch_files)
         # always run once when started
         file_watcher.handle_event(None)
-        file_watcher.loop(loop_callback)
+        file_watcher.loop(self.loop_callback)
 

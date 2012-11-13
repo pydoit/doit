@@ -9,11 +9,7 @@ import pytest
 from doit.task import Task
 from doit.dependency import get_md5, md5sum, check_modified, UptodateCalculator
 from doit.dependency import JsonDependency, DbmDependency, DbmDB
-from .conftest import depfile
-
-def get_abspath(relativePath):
-    """ return abs file path relative to this file"""
-    return os.path.join(os.path.dirname(__file__), relativePath)
+from .conftest import get_abspath, depfile
 
 
 def test_unicode_md5():
@@ -43,23 +39,6 @@ def test_md5():
 # save in db (task - dependency - (timestamp, size, signature))
 # taskId_dependency => signature(dependency)
 # taskId is md5(CmdTask.task)
-
-
-# fixture to create a sample file to be used as file_dep
-@pytest.fixture
-def dependency(request):
-    path = get_abspath("data/dependency1")
-    if os.path.exists(path): os.remove(path)
-    ff = open(path, "w")
-    ff.write("whatever")
-    ff.close()
-
-    def remove_dependency():
-        if os.path.exists(path):
-            os.remove(path)
-    request.addfinalizer(remove_dependency)
-
-    return path
 
 
 
@@ -281,25 +260,25 @@ class TestIgnore(object):
 
 
 class TestCheckModified(object):
-    def test_None(self, dependency):
-        assert check_modified(dependency, os.stat(dependency),  None)
+    def test_None(self, dependency1):
+        assert check_modified(dependency1, os.stat(dependency1),  None)
 
-    def test_timestamp(self, dependency):
-        timestamp = os.path.getmtime(dependency)
-        dep_stat = os.stat(dependency)
-        assert not check_modified(dependency, dep_stat, (timestamp, 0, ''))
-        assert check_modified(dependency, dep_stat, (timestamp+1, 0, ''))
+    def test_timestamp(self, dependency1):
+        timestamp = os.path.getmtime(dependency1)
+        dep_stat = os.stat(dependency1)
+        assert not check_modified(dependency1, dep_stat, (timestamp, 0, ''))
+        assert check_modified(dependency1, dep_stat, (timestamp+1, 0, ''))
 
-    def test_size_md5(self, dependency):
-        timestamp = os.path.getmtime(dependency)
-        size = os.path.getsize(dependency)
-        md5 = md5sum(dependency)
-        dep_stat = os.stat(dependency)
+    def test_size_md5(self, dependency1):
+        timestamp = os.path.getmtime(dependency1)
+        size = os.path.getsize(dependency1)
+        md5 = md5sum(dependency1)
+        dep_stat = os.stat(dependency1)
         # incorrect size dont check md5
-        assert check_modified(dependency, dep_stat, (timestamp+1, size+1, ''))
+        assert check_modified(dependency1, dep_stat, (timestamp+1, size+1, ''))
         # correct size check md5
-        assert not check_modified(dependency, dep_stat, (timestamp+1, size, md5))
-        assert check_modified(dependency, dep_stat, (timestamp+1, size, ''))
+        assert not check_modified(dependency1, dep_stat, (timestamp+1, size, md5))
+        assert check_modified(dependency1, dep_stat, (timestamp+1, size, ''))
 
 
 
@@ -441,24 +420,24 @@ class TestGetStatus(object):
 
 
     # if target file does not exist, task is outdated.
-    def test_targets_notThere(self, depfile, dependency):
+    def test_targets_notThere(self, depfile, dependency1):
         target = get_abspath("data/target")
         if os.path.exists(target):
             os.remove(target)
 
-        t1 = Task("task x", None, [dependency], [target])
+        t1 = Task("task x", None, [dependency1], [target])
         depfile.save_success(t1)
         assert 'run' == depfile.get_status(t1, {})
-        assert [dependency] == t1.dep_changed
+        assert [dependency1] == t1.dep_changed
 
 
-    def test_targets(self, depfile, dependency):
+    def test_targets(self, depfile, dependency1):
         filePath = get_abspath("data/target")
         ff = open(filePath,"w")
         ff.write("part1")
         ff.close()
 
-        deps = [dependency]
+        deps = [dependency1]
         targets = [filePath]
         t1 = Task("task X", None, deps, targets)
 
@@ -468,9 +447,9 @@ class TestGetStatus(object):
         assert [] == t1.dep_changed
 
 
-    def test_targetFolder(self, depfile, dependency):
+    def test_targetFolder(self, depfile, dependency1):
         # folder not there. task is not up-to-date
-        deps = [dependency]
+        deps = [dependency1]
         folderPath = get_abspath("data/target-folder")
         if os.path.exists(folderPath):
             os.rmdir(folderPath)

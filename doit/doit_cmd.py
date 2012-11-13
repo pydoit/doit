@@ -61,7 +61,7 @@ calc_dep:
 getargs:
   - type: dictionary
     * key: string with the name of the function parater (used in a python-action)
-    * value: string on the format <task-name>.<variable-name>
+    * value: tuple of (<task-name>, <variable-name>)
 
 setup:
  - type: list. items:

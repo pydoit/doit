@@ -81,7 +81,7 @@ class TestCmdList(object):
         expected = ['g1', 'g1.a', 'g1.b']
         assert expected == got
 
-    def testStatus(self, depfile):
+    def testStatus(self, dependency1, depfile):
         task_list = tasks_sample()
         depfile.ignore(task_list[0]) # t1
         depfile.save_success(task_list[1]) # t2

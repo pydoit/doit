@@ -255,6 +255,7 @@ class TestDodoConfig(object):
         def remove_dodo():
             if hasattr(dodo, 'DOIT_CONFIG'):
                 del dodo.DOIT_CONFIG
+        request.addfinalizer(remove_dodo)
         return dodo
 
     def testDefaultConfig_Dict(self, cwd, dodo):

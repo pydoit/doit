@@ -23,6 +23,27 @@ def remove_db(filename):
             os.remove(filename + ext)
 
 
+def get_abspath(relativePath):
+    """ return abs file path relative to this file"""
+    return os.path.join(os.path.dirname(__file__), relativePath)
+
+# fixture to create a sample file to be used as file_dep
+@pytest.fixture
+def dependency1(request):
+    path = get_abspath("data/dependency1")
+    if os.path.exists(path): os.remove(path)
+    ff = open(path, "w")
+    ff.write("whatever")
+    ff.close()
+
+    def remove_dependency():
+        if os.path.exists(path):
+            os.remove(path)
+    request.addfinalizer(remove_dependency)
+
+    return path
+
+
 # fixture for "doit.db". create/remove for every test
 @pytest.fixture
 def depfile(request):
