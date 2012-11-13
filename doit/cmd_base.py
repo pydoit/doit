@@ -11,6 +11,7 @@ class Command(object):
     """
     CMD_LIST = [] # register with the name of all created commands
 
+    name = None
     # doc attributes, should be sub-classed
     doc_purpose = ''
     doc_usage = ''
@@ -20,7 +21,7 @@ class Command(object):
     cmd_options = tuple()
 
     def __init__(self):
-        self.name = self.__class__.__name__.lower()
+        self.name = self.name or self.__class__.__name__.lower()
         Command.CMD_LIST.append(self.name)
         self.options = self.set_options()
 

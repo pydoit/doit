@@ -131,6 +131,9 @@ class DoitMain(object):
     DOIT_CMDS = Run, List, Clean, Forget, Ignore, Auto
     TASK_LOADER = DodoTaskLoader
 
+    def __init__(self):
+        self.task_loader = self.TASK_LOADER()
+
     @staticmethod
     def print_version():
         """print doit version (includes path location)"""
@@ -158,7 +161,7 @@ class DoitMain(object):
         sub_cmds = {}
         # core doit commands
         for cmd_cls in (self.DOIT_CMDS):
-            cmd = cmd_cls(task_loader=self.TASK_LOADER())
+            cmd = cmd_cls(task_loader=self.task_loader)
             sub_cmds[cmd.name] = cmd
         return sub_cmds
 
