@@ -253,8 +253,7 @@ class TestDodoConfig(object):
                                 "loader_sample.py")
         dodo = get_module(fileName)
         def remove_dodo():
-            if hasattr(dodo, 'DOIT_CONFIG'):
-                del dodo.DOIT_CONFIG
+            del sys.modules[dodo.__name__]
         request.addfinalizer(remove_dodo)
         return dodo
 
