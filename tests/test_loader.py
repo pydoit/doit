@@ -5,8 +5,8 @@ import pytest
 
 from doit.exceptions import InvalidDodoFile, InvalidCommand
 from doit.task import InvalidTask, Task
-from doit.loader import load_dodo_file, generate_tasks, get_tasks
 from doit.loader import isgenerator, flat_generator, get_module
+from doit.loader import load_tasks, load_doit_config, generate_tasks
 
 
 class TestIsGenerator(object):
@@ -32,8 +32,102 @@ class TestFlatGenerator(object):
         assert [1,2,3,4,5] == [f[0] for f in flat]
 
 
-class TestGenerateTasksDict(object):
+class TestGetModule(object):
+    def testAbsolutePath(self, cwd):
+        fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
+        dodo_module = get_module(fileName)
+        assert hasattr(dodo_module, 'task_xxx1')
 
+    def testRelativePath(self, cwd):
+        # test relative import but test should still work from any path
+        # so change cwd.
+        this_path = os.path.join(os.path.dirname(__file__),'..')
+        os.chdir(os.path.abspath(this_path))
+        fileName = "tests/loader_sample.py"
+        dodo_module = get_module(fileName)
+        assert hasattr(dodo_module, 'task_xxx1')
+
+    def testWrongFileName(self):
+        fileName = os.path.join(os.path.dirname(__file__),"i_dont_exist.py")
+        pytest.raises(InvalidDodoFile, get_module, fileName)
+
+    def testInParentDir(self, cwd):
+        os.chdir('data')
+        fileName = "loader_sample.py"
+        pytest.raises(InvalidDodoFile, get_module, fileName)
+        get_module(fileName, seek_parent=True)
+        # cwd is changed to location of dodo.py
+        assert os.getcwd() == os.path.dirname(os.path.abspath(fileName))
+
+    def testWrongFileNameInParentDir(self, cwd):
+        os.chdir('data')
+        fileName = os.path.join("i_dont_exist.py")
+        pytest.raises(InvalidDodoFile, get_module, fileName, seek_parent=True)
+
+    def testSetCwd(self, cwd):
+        fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
+        cwd = os.path.join(os.path.dirname(__file__), "data")
+        get_module(fileName, cwd)
+        assert os.getcwd() == cwd, os.getcwd()
+
+    def testInvalidCwd(self, cwd):
+        fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
+        cwd = os.path.join(os.path.dirname(__file__), "dataX")
+        pytest.raises(InvalidCommand, get_module, fileName, cwd)
+
+
+class TestLoadTasks(object):
+
+    @pytest.fixture
+    def dodo(self):
+        def task_xxx1():
+            """task doc"""
+            return {'actions':['do nothing']}
+
+        def task_yyy2():
+            return {'actions':None}
+
+        def bad_seed(): pass
+        task_nono = 5
+        task_nono # pyflakes
+        return locals()
+
+    def testNormalCase(self, dodo):
+        task_list = load_tasks(dodo)
+        assert 2 == len(task_list)
+        assert 'xxx1' == task_list[0].name
+        assert 'yyy2' == task_list[1].name
+
+    def testNameInBlacklist(self):
+        dodo_module = {'task_cmd_name': lambda:None}
+        pytest.raises(InvalidDodoFile, load_tasks, dodo_module, ['cmd_name'])
+
+    def testDocString(self, dodo):
+        task_list = load_tasks(dodo)
+        assert "task doc" == task_list[0].doc
+
+
+class TestDodoConfig(object):
+
+    def testConfigType_Error(self):
+        pytest.raises(InvalidDodoFile, load_doit_config, {'DOIT_CONFIG': 'abc'})
+
+    def testConfigDict_Ok(self,):
+        config = load_doit_config({'DOIT_CONFIG': {'verbose': 2}})
+        assert {'verbose': 2} == config
+
+    def testDefaultConfig_Dict(self):
+        config = load_doit_config({'whatever': 2})
+        assert {} == config
+
+
+
+class TestGenerateTaskInvalid(object):
+    def testInvalidValue(self):
+        pytest.raises(InvalidTask, generate_tasks, "dict",'xpto 14')
+
+
+class TestGenerateTasksDict(object):
     def testDict(self):
         tasks = generate_tasks("my_name", {'actions':['xpto 14']})
         assert isinstance(tasks[0], Task)
@@ -51,9 +145,6 @@ class TestGenerateTasksDict(object):
     def testInvalidNameField(self):
         pytest.raises(InvalidTask, generate_tasks, "my_name",
                                  {'actions':['xpto 14'],'name':'bla bla'})
-
-    def testInvalidValue(self):
-        pytest.raises(InvalidTask, generate_tasks, "dict",'xpto 14')
 
 
     def testUseDocstring(self):
@@ -171,103 +262,3 @@ class TestGenerateTasksGenerator(object):
         assert 1 == len(tasks)
         assert "xpto" == tasks[0].name
         assert not tasks[0].is_subtask
-
-
-class TestLoadTaskGenerators(object):
-    def testAbsolutePath(self, cwd): #FIXME funcarg should be for loader_sample
-        fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
-        expected = ["xxx1","yyy2"]
-        dodo_module = get_module(fileName)
-        dodo = load_dodo_file(dodo_module)
-        assert expected == [t.name for t in dodo['task_list']]
-
-    def testRelativePath(self, cwd):
-        # test relative import but test should still work from any path
-        # so change cwd.
-        this_path = os.path.join(os.path.dirname(__file__),'..')
-        os.chdir(os.path.abspath(this_path))
-        fileName = "tests/loader_sample.py"
-        expected = ["xxx1","yyy2"]
-        dodo_module = get_module(fileName)
-        dodo = load_dodo_file(dodo_module)
-        assert expected == [t.name for t in dodo['task_list']]
-
-    def testInParentDir(self, cwd):
-        os.chdir('data')
-        fileName = "loader_sample.py"
-        pytest.raises(InvalidDodoFile, get_module, fileName)
-        get_module(fileName, seek_parent=True)
-        # cwd is changed to location of dodo.py
-        assert os.getcwd() == os.path.dirname(os.path.abspath(fileName))
-
-    def testNameInBlacklist(self, cwd):
-        fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
-        dodo_module = get_module(fileName)
-        pytest.raises(InvalidDodoFile, load_dodo_file, dodo_module, ['yyy2'])
-
-    def testWrongFileName(self):
-        fileName = os.path.join(os.path.dirname(__file__),"i_dont_exist.py")
-        pytest.raises(InvalidDodoFile, get_module, fileName)
-
-    def testWrongFileNameInParentDir(self, cwd):
-        os.chdir('data')
-        fileName = os.path.join("i_dont_exist.py")
-        pytest.raises(InvalidDodoFile, get_module, fileName, seek_parent=True)
-
-    def testDocString(self, cwd):
-        fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
-        dodo_module = get_module(fileName)
-        dodo = load_dodo_file(dodo_module)
-        assert "task doc" == dodo['task_list'][0].doc, dodo['task_list'][0].doc
-
-
-    def testSetCwd(self, cwd):
-        fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
-        cwd = os.path.join(os.path.dirname(__file__), "data")
-        get_module(fileName, cwd)
-        assert os.getcwd() == cwd, os.getcwd()
-
-
-    def testInvalidCwd(self, cwd):
-        fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
-        cwd = os.path.join(os.path.dirname(__file__), "dataX")
-        pytest.raises(InvalidCommand, get_module, fileName, cwd)
-
-
-class TestGetTasks(object):
-    def test(self, cwd):
-        fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
-        expected = ["xxx1","yyy2"]
-        dodo = get_tasks(fileName, None, False, [])
-        assert expected == [t.name for t in dodo['task_list']]
-
-
-class TestDodoConfig(object):
-    # to avoid creating many files for testing i am modifying the module
-    # dynamically. but it is tricky because python optmizes it and loads
-    # it just once. so need to clean up variables that i messed up.
-
-    @pytest.fixture
-    def dodo(self, request):
-        fileName = os.path.join(os.path.dirname(__file__),
-                                "loader_sample.py")
-        dodo = get_module(fileName)
-        def remove_dodo():
-            del sys.modules[dodo.__name__]
-        request.addfinalizer(remove_dodo)
-        return dodo
-
-    def testDefaultConfig_Dict(self, cwd, dodo):
-        dodo_dict = load_dodo_file(dodo)
-        assert {'verbose': 2} == dodo_dict['config']
-
-    def testConfigType_Error(self, cwd, dodo):
-        dodo.DOIT_CONFIG = "abcd"
-        pytest.raises(InvalidDodoFile, load_dodo_file, dodo)
-
-    def testConfigDict_Ok(self, cwd, dodo):
-        dodo.DOIT_CONFIG = {"abcd": "add"}
-        dodo_dict = load_dodo_file(dodo)
-        assert {"abcd": "add"} == dodo_dict['config']
-
-

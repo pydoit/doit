@@ -33,6 +33,8 @@ def flat_generator(gen, gen_doc=''):
 
 def get_module(dodo_file, cwd=None, seek_parent=False):
     """
+    The python file defining tasks is called "dodo" file.
+
     @param dodo_file(str): path to file containing the tasks
     @param cwd(str): path to be used cwd, if None use path from dodo_file
     @param seek_parent(bool): search for dodo_file in parent paths if not found
@@ -89,16 +91,13 @@ def get_module(dodo_file, cwd=None, seek_parent=False):
     return __import__(os.path.splitext(file_name)[0])
 
 
-def load_dodo_file(dodo_module, command_names=()):
-    """Loads a python file and extracts its task generator functions.
+def load_tasks(dodo_module, command_names=()):
+    """Get task generators and generate tasks
 
-    The python file is a called "dodo" file.
-
-    @param dodo_module: (module) module containing the tasks
+    @param dodo_module: (dict) containing the task generators, it might
+                        contain other stuff
     @param command_names: (list - str) blacklist for task names
-    @return (dict):
-     - task_list (list) of Tasks in the order they were defined on the file
-     - config (dict) doit config from dodo file
+    @return task_list (list) of Tasks in the order they were defined on the file
     """
 
     # get functions defined in the module and select the task generators
@@ -106,7 +105,9 @@ def load_dodo_file(dodo_module, command_names=()):
     funcs = []
     prefix_len = len(TASK_STRING)
     # get all functions defined in the module
-    for name, ref in inspect.getmembers(dodo_module, inspect.isfunction):
+    for name, ref in dodo_module.iteritems():
+        if not inspect.isfunction(ref):
+            continue
         # ignore functions that are not a task (by its name)
         if not name.startswith(TASK_STRING):
             continue
@@ -123,21 +124,25 @@ def load_dodo_file(dodo_module, command_names=()):
         funcs.append((task_name, ref, line))
 
     # sort by the order functions were defined (line number)
+    # TODO: this ordering doesnt make sense when generators come
+    # from different modules
     funcs.sort(key=lambda obj:obj[2])
 
-    # generate all tasks
     task_list = []
     for name, ref, line in funcs:
         task_list.extend(generate_tasks(name, ref(), ref.__doc__))
+    return task_list
 
-    # get config
-    doit_config = getattr(dodo_module, 'DOIT_CONFIG', {})
+
+def load_doit_config(dodo_module):
+    """
+    @param dodo_module (dict) dict with module members
+    """
+    doit_config = dodo_module.get('DOIT_CONFIG', {})
     if not isinstance(doit_config, dict):
         msg = ("DOIT_CONFIG  must be a dict. got:'%s'%s")
         raise InvalidDodoFile(msg % (repr(doit_config), type(doit_config)))
-
-    return {'task_list': task_list,
-            'config': doit_config}
+    return doit_config
 
 
 def _generate_task_from_return(func_name, task_dict, gen_doc):
@@ -233,9 +238,5 @@ def generate_tasks(func_name, gen_result, gen_doc=None):
         (func_name, type(gen_result)))
 
 
-def get_tasks(dodo_file, cwd, seek_parent, command_names):
-    """get tasks from dodo_file"""
-    dodo_module = get_module(dodo_file, cwd, seek_parent)
-    return load_dodo_file(dodo_module, command_names)
 
 

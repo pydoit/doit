@@ -164,12 +164,11 @@ class DodoTaskLoader(TaskLoader):
 
     @staticmethod
     def load_tasks(cmd, params, args):
-        dodo_tasks = loader.get_tasks(
-            params['dodoFile'], params['cwdPath'], params['seek_file'],
-            cmd.CMD_LIST)
-        task_list = dodo_tasks['task_list']
-        config = dodo_tasks['config']
-        return task_list, config
+        dodo_module = loader.get_module(params['dodoFile'], params['cwdPath'],
+                                        params['seek_file'])
+        members = dict(inspect.getmembers(dodo_module))
+        task_list = loader.load_tasks(members, cmd.CMD_LIST)
+        return task_list, loader.load_doit_config(members)
 
 
 class DoitCmdBase(Command):
