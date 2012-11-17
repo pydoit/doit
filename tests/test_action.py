@@ -18,7 +18,7 @@ PROGRAM = "python %s/sample_process.py" % TEST_PATH
 
 @pytest.fixture
 def tmpfile(request):
-    temp = tempfile.TemporaryFile('w+b')
+    temp = tempfile.TemporaryFile('w+')
     request.addfinalizer(temp.close)
     return temp
 
@@ -106,7 +106,7 @@ class TestCmdVerbosity(object):
         action_result = my_action.execute(err=tmpfile)
         assert isinstance(action_result, TaskFailed)
         tmpfile.seek(0)
-        got = tmpfile.read().decode('utf-8')
+        got = tmpfile.read()
         assert "err output on failure" == got, repr(got)
         assert "err output on failure" == my_action.err, repr(my_action.err)
 
@@ -115,7 +115,7 @@ class TestCmdVerbosity(object):
         my_action = action.CmdAction("%s hi_stdout hi2" % PROGRAM)
         my_action.execute(out=tmpfile)
         tmpfile.seek(0)
-        got = tmpfile.read().decode('utf-8')
+        got = tmpfile.read()
         assert "hi_stdout" == got, repr(got)
         assert "hi_stdout" == my_action.out, repr(my_action.out)
 

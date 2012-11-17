@@ -2,7 +2,7 @@
 """
 
 import subprocess, sys
-import StringIO
+import StringIO as io
 import inspect
 from threading import Thread
 
@@ -62,7 +62,10 @@ class CmdAction(BaseAction):
             if line:
                 capture.write(line)
                 if realtime:
-                    realtime.write(line.encode(encoding))
+                    if sys.version > '3':
+                        realtime.write(line)
+                    else:
+                        realtime.write(line.encode(encoding))
             if not line and process.poll() != None:
                 break
 
@@ -88,8 +91,8 @@ class CmdAction(BaseAction):
         process = subprocess.Popen(action, shell=True,
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        output = StringIO.StringIO()
-        errput = StringIO.StringIO()
+        output = io.StringIO()
+        errput = io.StringIO()
         t_out = Thread(target=self._print_process_output,
                        args=(process, process.stdout, output, out))
         t_err = Thread(target=self._print_process_output,
@@ -270,9 +273,9 @@ class PythonAction(BaseAction):
         """
         # set std stream
         old_stdout = sys.stdout
-        output = StringIO.StringIO()
+        output = io.StringIO()
         old_stderr = sys.stderr
-        errput = StringIO.StringIO()
+        errput = io.StringIO()
 
         out_list = [output]
         if out:
