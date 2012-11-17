@@ -154,21 +154,44 @@ opt_seek_file = {'name': 'seek_file',
 class TaskLoader(object):
     """task-loader interface responsible of creating Task objects"""
     cmd_options = ()
+
     def load_tasks(self, cmd, opt_values, pos_args): # pragma: no cover
         raise NotImplementedError()
+
+    @staticmethod
+    def _load_from_module(module, cmd_list):
+        """load task from a module or dict with module members"""
+        if inspect.ismodule(module):
+            members = dict(inspect.getmembers(module))
+        else:
+            members = module
+        task_list = loader.load_tasks(members, cmd_list)
+        doit_config = loader.load_doit_config(members)
+        return task_list, doit_config
+
+
+class ModuleTaskLoader(TaskLoader):
+    """load tasks from a module/dictionary containing task generators
+    Usage: `ModuleTaskLoader(my_module)` or `ModuleTaskLoader(globals())`
+    """
+    cmd_options = ()
+
+    def __init__(self, mod_dict):
+        self.mod_dict = mod_dict
+
+    def load_tasks(self, cmd, params, args):
+        return self._load_from_module(self.mod_dict, cmd.CMD_LIST)
 
 
 class DodoTaskLoader(TaskLoader):
     """default task-loader create tasks from a dodo.py file"""
     cmd_options = (opt_dodo, opt_cwd, opt_seek_file)
 
-    @staticmethod
-    def load_tasks(cmd, params, args):
+    def load_tasks(self, cmd, params, args):
         dodo_module = loader.get_module(params['dodoFile'], params['cwdPath'],
                                         params['seek_file'])
-        members = dict(inspect.getmembers(dodo_module))
-        task_list = loader.load_tasks(members, cmd.CMD_LIST)
-        return task_list, loader.load_doit_config(members)
+        return self._load_from_module(dodo_module, cmd.CMD_LIST)
+
 
 
 class DoitCmdBase(Command):

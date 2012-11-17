@@ -114,14 +114,14 @@ class Help(Command):
 
     def execute(self, params, args):
         """execute cmd 'help' """
-        if len(args) == 1:
-            if args[0] in self.cmds:
-                print self.cmds[args[0]].help()
-                return 0
-            elif args[0] == 'task':
-                self.print_task_help()
-                return 0
-        DoitMain.print_usage(self.cmds)
+        if len(args) != 1:
+            DoitMain.print_usage(self.cmds)
+        elif args[0] == 'task':
+            self.print_task_help()
+        elif args[0] in self.cmds:
+            print self.cmds[args[0]].help()
+        else:
+            DoitMain.print_usage(self.cmds)
         return 0
 
 
@@ -131,8 +131,8 @@ class DoitMain(object):
     DOIT_CMDS = Run, List, Clean, Forget, Ignore, Auto
     TASK_LOADER = DodoTaskLoader
 
-    def __init__(self):
-        self.task_loader = self.TASK_LOADER()
+    def __init__(self, task_loader=None):
+        self.task_loader = task_loader if task_loader else self.TASK_LOADER()
 
     @staticmethod
     def print_version():

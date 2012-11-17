@@ -1,8 +1,8 @@
 import pytest
 
 from doit.cmdparse import CmdParseError, CmdOption
-from doit.cmd_base import Command, DodoTaskLoader, DoitCmdBase
-
+from doit.cmd_base import Command, DoitCmdBase
+from doit.cmd_base import ModuleTaskLoader, DodoTaskLoader
 
 opt_bool = {'name': 'flag',
             'short':'f',
@@ -73,6 +73,19 @@ class TestCommand(object):
     def test_failCall(self, cmd):
         pytest.raises(CmdParseError, cmd.parse_execute, ['-x','35'])
 
+
+class TestModuleTaskLoader(object):
+    def test_load_tasks(self, cwd):
+        cmd = Command()
+        members = {'task_xxx1': lambda : {'actions':[]},
+                   'task_no': 'strings are not tasks',
+                   'blabla': lambda :None,
+                   'DOIT_CONFIG': {'verbose': 2},
+                   }
+        loader = ModuleTaskLoader(members)
+        task_list, config = loader.load_tasks(cmd, {}, [])
+        assert ['xxx1'] == [t.name for t in task_list]
+        assert {'verbose': 2} == config
 
 
 class TestDodoTaskLoader(object):
