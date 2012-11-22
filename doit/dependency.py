@@ -6,10 +6,10 @@ import dumbdbm
 import anydbm as ddbm
 
 # uncomment imports below to run tests on all dbm backends...
-#import dbhash as ddbm # ok (removed from python3)
-#import dumbdbm as ddbm # test_corrupted_file fails
-#import dbm as ddbm # test_corrupted_file fails
-#import gdbm as ddbm # ok <= TODO make this the default
+#import dbhash as ddbm # (removed from python3)
+#import dumbdbm as ddbm
+#import dbm as ddbm
+#import gdbm as ddbm
 
 # note: to check which DBM backend is being used:
 #       >>> anydbm._defaultmod

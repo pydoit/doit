@@ -1,26 +1,11 @@
 import os
+from whichdb import whichdb
 
 import py
 import pytest
 
 from doit.dependency import Dependency
 from doit.task import Task
-
-TESTDB = os.path.join(os.path.dirname(__file__), "testdb")
-
-
-def remove_db(filename):
-    """remove db file from anydbm"""
-    extensions = ['', #dbhash #gdbm
-                  '.bak', #dumbdb
-                  '.dat', #dumbdb
-                  '.dir', #dumbdb #dbm
-                  '.db', #dbm
-                  '.pag', #dbm
-                  ]
-    for ext in extensions:
-        if os.path.exists(filename + ext):
-            os.remove(filename + ext)
 
 
 def get_abspath(relativePath):
@@ -45,6 +30,25 @@ def dependency1(request):
 
 
 # fixture for "doit.db". create/remove for every test
+def remove_db(filename):
+    """remove db file from anydbm"""
+    extensions = ['', #dbhash #gdbm
+                  '.bak', #dumbdb
+                  '.dat', #dumbdb
+                  '.dir', #dumbdb #dbm
+                  '.db', #dbm
+                  '.pag', #dbm
+                  ]
+    for ext in extensions:
+        if os.path.exists(filename + ext):
+            os.remove(filename + ext)
+
+# dbm backends use different file extentions
+db_ext = {'dbhash': '',
+          'gdbm': '',
+          'dbm': '.db',
+          'dumbdbm': '.dat'}
+
 @pytest.fixture
 def depfile(request):
     if hasattr(request, 'param'):
@@ -57,6 +61,8 @@ def depfile(request):
     name = py.std.re.sub("[\W]", "_", name)
     my_tmpdir = request.config._tmpdirhandler.mktemp(name, numbered=True)
     dep_file = dep_class(os.path.join(my_tmpdir.strpath, "testdb"))
+    dep_file.whichdb = whichdb(dep_file.name)
+    dep_file.full_name = dep_file.name + db_ext.get(dep_file.whichdb, '')
 
     def remove_depfile():
         if not dep_file._closed:
