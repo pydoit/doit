@@ -33,7 +33,7 @@ Traditional build-tools were created mainly to deal with compile/link process of
  * Unlike other build-tools `doit` allows you to define how/when a task should be considered up-to-date (instead of just checking for changes in files).
 
 
-`doit`  was designed to be easy to use and “get out of your way”.
+`doit`  was designed to be easy to use and "get out of your way".
 
 
 `doit` can be used as
