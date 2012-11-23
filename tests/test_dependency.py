@@ -70,13 +70,18 @@ class TestDependencyDb(object):
 
         # open it again and check the value
         d2 = depfile.__class__(depfile.name)
+
+        import os
+        print os.system('ls %s' % os.path.dirname(depfile.name))
+        assert False
+
         value = d2._get("taskId_X","dependency_A")
         assert "da_md5" == value, value
 
     def test_corrupted_file(self, depfile):
         if depfile.__class__==DbmDependency and depfile.whichdb is None:
             pytest.skip('dumbdbm too dumb to detect db corruption')
-        assert False, '%r %r %r' % (depfile.whichdb, depfile.full_name, depfile.name)
+        #assert False, '%r %r %r' % (depfile.whichdb, depfile.full_name, depfile.name)
         fd = open(depfile.full_name, 'w')
         fd.write("""{"x": y}""")
         fd.close()
