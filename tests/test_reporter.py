@@ -1,5 +1,5 @@
 import sys
-import StringIO
+import StringIO as io
 
 from doit import reporter
 from doit.task import Task
@@ -10,64 +10,64 @@ from doit.compat import json
 class TestConsoleReporter(object):
 
     def test_startTask(self):
-        rep = reporter.ConsoleReporter(StringIO.StringIO(), {})
+        rep = reporter.ConsoleReporter(io.StringIO(), {})
         rep.get_status(Task("t_name", None))
         # no output on start task
         assert "" in rep.outstream.getvalue()
 
     def test_executeTask(self):
-        rep = reporter.ConsoleReporter(StringIO.StringIO(), {})
+        rep = reporter.ConsoleReporter(io.StringIO(), {})
         def do_nothing():pass
         t1 = Task("with_action",[(do_nothing,)])
         rep.execute_task(t1)
         assert ".  with_action\n" == rep.outstream.getvalue()
 
     def test_executeHidden(self):
-        rep = reporter.ConsoleReporter(StringIO.StringIO(), {})
+        rep = reporter.ConsoleReporter(io.StringIO(), {})
         def do_nothing():pass
         t1 = Task("_hidden",[(do_nothing,)])
         rep.execute_task(t1)
         assert "" == rep.outstream.getvalue()
 
     def test_executeGroupTask(self):
-        rep = reporter.ConsoleReporter(StringIO.StringIO(), {})
+        rep = reporter.ConsoleReporter(io.StringIO(), {})
         rep.execute_task(Task("t_name", None))
         assert "" == rep.outstream.getvalue()
 
     def test_skipUptodate(self):
-        rep = reporter.ConsoleReporter(StringIO.StringIO(), {})
+        rep = reporter.ConsoleReporter(io.StringIO(), {})
         rep.skip_uptodate(Task("t_name", None))
         assert "-- " in rep.outstream.getvalue()
         assert "t_name" in rep.outstream.getvalue()
 
     def test_skipIgnore(self):
-        rep = reporter.ConsoleReporter(StringIO.StringIO(), {})
+        rep = reporter.ConsoleReporter(io.StringIO(), {})
         rep.skip_ignore(Task("t_name", None))
         assert "!! " in rep.outstream.getvalue()
         assert "t_name" in rep.outstream.getvalue()
 
 
     def test_cleanupError(self, capsys):
-        rep = reporter.ConsoleReporter(StringIO.StringIO(), {})
+        rep = reporter.ConsoleReporter(io.StringIO(), {})
         exception = CatchedException("I got you")
         rep.cleanup_error(exception)
         err = capsys.readouterr()[1]
         assert "I got you" in err
 
     def test_teardownTask(self):
-        rep = reporter.ConsoleReporter(StringIO.StringIO(), {})
+        rep = reporter.ConsoleReporter(io.StringIO(), {})
         rep.teardown_task(Task("t_name", None))
         # no output on teardown task
         assert "" in rep.outstream.getvalue()
 
     def test_addSuccess(self):
-        rep = reporter.ConsoleReporter(StringIO.StringIO(), {})
+        rep = reporter.ConsoleReporter(io.StringIO(), {})
         rep.add_success(Task("t_name", None))
         # no output on success task
         assert "" in rep.outstream.getvalue()
 
     def test_addFailure(self):
-        rep = reporter.ConsoleReporter(StringIO.StringIO(), {})
+        rep = reporter.ConsoleReporter(io.StringIO(), {})
         try:
             raise Exception("original exception message here")
         except Exception,e:
@@ -84,7 +84,7 @@ class TestConsoleReporter(object):
 
     def test_runtime_error(self):
         msg = "runtime error"
-        rep = reporter.ConsoleReporter(StringIO.StringIO(), {})
+        rep = reporter.ConsoleReporter(io.StringIO(), {})
         assert [] == rep.runtime_errors
         # no imediate output
         rep.runtime_error(msg)
@@ -100,15 +100,30 @@ class TestConsoleReporter(object):
 
 class TestExecutedOnlyReporter(object):
     def test_skipUptodate(self):
-        rep = reporter.ExecutedOnlyReporter(StringIO.StringIO(), {})
+        rep = reporter.ExecutedOnlyReporter(io.StringIO(), {})
         rep.skip_uptodate(Task("t_name", None))
         assert "" == rep.outstream.getvalue()
 
     def test_skipIgnore(self):
-        rep = reporter.ExecutedOnlyReporter(StringIO.StringIO(), {})
+        rep = reporter.ExecutedOnlyReporter(io.StringIO(), {})
         rep.skip_ignore(Task("t_name", None))
         assert "" == rep.outstream.getvalue()
 
+
+class TestZeroReporter(object):
+    def test_executeTask(self):
+        rep = reporter.ZeroReporter(io.StringIO(), {})
+        def do_nothing():pass
+        t1 = Task("with_action",[(do_nothing,)])
+        rep.execute_task(t1)
+        assert "" == rep.outstream.getvalue()
+
+    def test_runtime_error(self, capsys):
+        msg = "zero runtime error"
+        rep = reporter.ZeroReporter(io.StringIO(), {})
+        # imediate output
+        rep.runtime_error(msg)
+        assert msg in capsys.readouterr()[1]
 
 
 class TestTaskResult(object):
@@ -132,7 +147,7 @@ class TestTaskResult(object):
 class TestJsonReporter(object):
 
     def test_normal(self):
-        output = StringIO.StringIO()
+        output = io.StringIO()
         rep = reporter.JsonReporter(output)
         t1 = Task("t1", None)
         t2 = Task("t2", None)
@@ -165,7 +180,7 @@ class TestJsonReporter(object):
                 assert 't1 failed!' in task_result['error']
 
     def test_cleanup_error(self, capsys):
-        output = StringIO.StringIO()
+        output = io.StringIO()
         rep = reporter.JsonReporter(output)
         t1 = Task("t1", None)
         msg = "cleanup error"
@@ -182,7 +197,7 @@ class TestJsonReporter(object):
         assert msg in got['err']
 
     def test_runtime_error(self):
-        output = StringIO.StringIO()
+        output = io.StringIO()
         rep = reporter.JsonReporter(output)
         t1 = Task("t1", None)
         msg = "runtime error"
@@ -199,7 +214,7 @@ class TestJsonReporter(object):
         assert msg in got['err']
 
     def test_ignore_stdout(self):
-        output = StringIO.StringIO()
+        output = io.StringIO()
         rep = reporter.JsonReporter(output)
         sys.stdout.write("info that doesnt belong to any task...")
         sys.stderr.write('something on err')

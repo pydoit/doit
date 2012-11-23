@@ -58,6 +58,7 @@ class ConsoleReporter(object):
 
     def runtime_error(self, msg):
         """error from doit (not from a task execution)"""
+        # saved so they are displayed after task failures messages
         self.runtime_errors.append(msg)
 
     def teardown_task(self, task):
@@ -101,6 +102,21 @@ class ExecutedOnlyReporter(ConsoleReporter):
     def skip_ignore(self, task):
         """skipped ignored task"""
         pass
+
+
+
+
+class ZeroReporter(ConsoleReporter):
+    """Report only internal errors from doit"""
+    def _just_pass(*args):
+        pass
+
+    get_status = execute_task = add_failure = add_success \
+        = skip_uptodate = skip_ignore = teardown_task = complete_run \
+        = _just_pass
+
+    def runtime_error(self, msg):
+        sys.stderr.write(msg)
 
 
 
@@ -236,4 +252,5 @@ class JsonReporter(object):
 REPORTERS = {'default': ConsoleReporter,
              'executed-only': ExecutedOnlyReporter,
              'json': JsonReporter,
+             'zero': ZeroReporter,
              }
