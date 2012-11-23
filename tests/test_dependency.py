@@ -75,7 +75,7 @@ class TestDependencyDb(object):
         assert "da_md5" == value, value
 
     def test_corrupted_file(self, depfile):
-        if depfile.__class__==DbmDependency and depfile.whichdb is None:
+        if depfile.__class__==DbmDependency and depfile.whichdb is None: # pragma: no cover
             pytest.skip('dumbdbm too dumb to detect db corruption')
 
         # create some corrupted files
@@ -93,7 +93,7 @@ class TestDependencyDb(object):
     def test_corrupted_file_unrecognized_excep(self, monkeypatch, depfile):
         if isinstance(depfile, JsonDependency):
             pytest.skip('test doesnt apply to JsonDependency')
-        if depfile.whichdb is None:
+        if depfile.whichdb is None: # pragma: no cover
             pytest.skip('dumbdbm too dumb to detect db corruption')
 
         # create some corrupted files
