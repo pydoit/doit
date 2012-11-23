@@ -32,24 +32,25 @@ def dependency1(request):
 # fixture for "doit.db". create/remove for every test
 def remove_db(filename):
     """remove db file from anydbm"""
+    # dbm on some systems add '.db' on others add ('.dir', '.pag')
     extensions = ['', #dbhash #gdbm
                   '.bak', #dumbdb
                   '.dat', #dumbdb
-                  '.dir', #dumbdb #dbm
-                  '.db', #dbm
-                  '.pag', #dbm
+                  '.dir', #dumbdb #dbm2
+                  '.db', #dbm1
+                  '.pag', #dbm2
                   ]
     for ext in extensions:
         if os.path.exists(filename + ext):
             os.remove(filename + ext)
 
 # dbm backends use different file extentions
-db_ext = {'dbhash': '',
-          'gdbm': '',
-          'dbm': '.db',
-          'dumbdbm': '.dat',
+db_ext = {'dbhash': [''],
+          'gdbm': [''],
+          'dbm': ['.db', '.dir'],
+          'dumbdbm': ['.dat'],
           # for python3
-          'dbm.ndbm': '.db',
+          'dbm.ndbm': ['.db'],
           }
 
 @pytest.fixture
@@ -65,7 +66,7 @@ def depfile(request):
     my_tmpdir = request.config._tmpdirhandler.mktemp(name, numbered=True)
     dep_file = dep_class(os.path.join(my_tmpdir.strpath, "testdb"))
     dep_file.whichdb = whichdb(dep_file.name)
-    dep_file.full_name = dep_file.name + db_ext.get(dep_file.whichdb, '')
+    dep_file.name_ext = db_ext.get(dep_file.whichdb, [''])
 
     def remove_depfile():
         if not dep_file._closed:

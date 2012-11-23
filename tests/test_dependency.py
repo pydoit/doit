@@ -71,20 +71,19 @@ class TestDependencyDb(object):
         # open it again and check the value
         d2 = depfile.__class__(depfile.name)
 
-        import os
-        print os.system('ls %s' % os.path.dirname(depfile.name))
-        assert False
-
         value = d2._get("taskId_X","dependency_A")
         assert "da_md5" == value, value
 
     def test_corrupted_file(self, depfile):
         if depfile.__class__==DbmDependency and depfile.whichdb is None:
             pytest.skip('dumbdbm too dumb to detect db corruption')
-        #assert False, '%r %r %r' % (depfile.whichdb, depfile.full_name, depfile.name)
-        fd = open(depfile.full_name, 'w')
-        fd.write("""{"x": y}""")
-        fd.close()
+
+        # create some corrupted files
+        for name_ext in depfile.name_ext:
+            full_name = depfile.name + name_ext
+            fd = open(full_name, 'w')
+            fd.write("""{"x": y}""")
+            fd.close()
         if isinstance(anydbm.error, Exception): # pragma: no cover
             exceptions = (ValueError, anydbm.error)
         else:
@@ -96,9 +95,13 @@ class TestDependencyDb(object):
             pytest.skip('test doesnt apply to JsonDependency')
         if depfile.whichdb is None:
             pytest.skip('dumbdbm too dumb to detect db corruption')
-        fd = open(depfile.full_name, 'w')
-        fd.write("""{"x": y}""")
-        fd.close()
+
+        # create some corrupted files
+        for name_ext in depfile.name_ext:
+            full_name = depfile.name + name_ext
+            fd = open(full_name, 'w')
+            fd.write("""{"x": y}""")
+            fd.close()
         monkeypatch.setattr(DbmDB, 'DBM_CONTENT_ERROR_MSG', 'xxx')
         pytest.raises(anydbm.error, depfile.__class__, depfile.name)
 
