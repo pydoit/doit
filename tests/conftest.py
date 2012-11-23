@@ -47,7 +47,10 @@ def remove_db(filename):
 db_ext = {'dbhash': '',
           'gdbm': '',
           'dbm': '.db',
-          'dumbdbm': '.dat'}
+          'dumbdbm': '.dat',
+          # for python3
+          'dbm.ndbm': '.db',
+          }
 
 @pytest.fixture
 def depfile(request):
