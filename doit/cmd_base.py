@@ -152,10 +152,21 @@ opt_seek_file = {'name': 'seek_file',
 
 
 class TaskLoader(object):
-    """task-loader interface responsible of creating Task objects"""
+    """task-loader interface responsible of creating Task objects
+
+    Subclasses must implement the method `load_tasks`
+
+    @cvar cmd_options (list of dict) see cmdparse.CmdOption for dict format
+    """
     cmd_options = ()
 
     def load_tasks(self, cmd, opt_values, pos_args): # pragma: no cover
+        """load tasks and DOIT_CONFIG
+        @return (tuple) list of Task, dict with DOIT_CONFIG options
+        @param cmd (cmd_base.Command) current command being executed
+        @param opt_values (dict) with values for cmd_options
+        @para pos_args (list str) positional arguments from command line
+        """
         raise NotImplementedError()
 
     @staticmethod
@@ -226,12 +237,14 @@ class DoitCmdBase(Command):
 
     def execute(self, params, args):
         """load dodo.py, set attributes and call self._execute"""
-        self.dep_file = params['dep_file']
-        self.task_list, self.config = self._loader.load_tasks(self, params, args)
+        self.task_list, self.config = self._loader.load_tasks(self, params,
+                                                              args)
 
         # merge config values into params
         params.update_defaults(self.config)
+        self.dep_file = params['dep_file']
         params['pos_args'] = args # hack
+        params['continue_'] = params.get('continue') # hack
         self.sel_tasks = args or self.config.get('default_tasks')
 
         # magic - create dict based on signature of _execute method
