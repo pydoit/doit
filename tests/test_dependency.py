@@ -76,6 +76,7 @@ class TestDependencyDb(object):
     def test_corrupted_file(self, depfile):
         if depfile.__class__==DbmDependency and depfile.whichdb is None:
             pytest.skip('dumbdbm too dumb to detect db corruption')
+        assert False, '%r %r %r' % (depfile.whichdb, depfile.full_name, depfile.name)
         fd = open(depfile.full_name, 'w')
         fd.write("""{"x": y}""")
         fd.close()
