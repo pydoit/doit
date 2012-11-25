@@ -231,7 +231,7 @@ class TestPythonAction(object):
         assert isinstance(got, TaskFailed)
 
     # any callable should work, not only functions
-    def test_nonFunction(self):
+    def test_callable_obj(self):
         class CallMe:
             def __call__(self):
                 return False
@@ -239,6 +239,7 @@ class TestPythonAction(object):
         my_action = action.PythonAction(CallMe())
         got = my_action.execute()
         assert isinstance(got, TaskFailed)
+
 
     # helper to test callable with parameters
     def _func_par(self,par1,par2,par3=5):
@@ -262,6 +263,15 @@ class TestPythonAction(object):
         pytest.raises(action.InvalidTask, action.PythonAction,
                       self._func_par, None, "a")
 
+    # cant use a class as callable
+    def test_init_callable_class(self):
+        class CallMe(object):
+            pass
+        pytest.raises(action.InvalidTask, action.PythonAction, CallMe)
+
+    # cant use built-ins
+    def test_init_callable_builtin(self):
+        pytest.raises(action.InvalidTask, action.PythonAction, any)
 
     def test_functionParametersArgs(self):
         my_action = action.PythonAction(self._func_par,args=(2,2,25))
@@ -439,6 +449,32 @@ class TestPythonActionPrepareKwargsMeta(object):
         my_action = action.PythonAction(py_callable, ('a', 'b'),
                                         task=task_depchanged)
         pytest.raises(action.InvalidTask, my_action.execute)
+
+    def test_callable_obj(self, task_depchanged):
+        got = []
+        class CallMe(object):
+            def __call__(self, a, b, changed):
+                got.append(a)
+                got.append(b)
+                got.append(changed)
+        my_action = action.PythonAction(CallMe(), ('a', 'b'),
+                                        task=task_depchanged)
+        my_action.execute()
+        assert got == ['a', 'b', ['changed']]
+
+    def test_method(self, task_depchanged):
+        got = []
+        class CallMe(object):
+            def xxx(self, a, b, changed):
+                got.append(a)
+                got.append(b)
+                got.append(changed)
+        my_action = action.PythonAction(CallMe().xxx, ('a', 'b'),
+                                        task=task_depchanged)
+        my_action.execute()
+        assert got == ['a', 'b', ['changed']]
+
+
 
 class TestPythonActionOptions(object):
     def test_task_options(self):

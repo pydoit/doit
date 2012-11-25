@@ -199,6 +199,12 @@ class PythonAction(BaseAction):
         if not hasattr(self.py_callable, '__call__'):
             msg = "%r PythonAction must be a 'callable' got %r."
             raise InvalidTask(msg % (self.task, self.py_callable))
+        if inspect.isclass(self.py_callable):
+            msg = "%r PythonAction can not be a class got %r."
+            raise InvalidTask(msg % (self.task, self.py_callable))
+        if inspect.isbuiltin(self.py_callable):
+            msg = "%r PythonAction can not be a built-in got %r."
+            raise InvalidTask(msg % (self.task, self.py_callable))
         if type(self.args) is not tuple and type(self.args) is not list:
             msg = "%r args must be a 'tuple' or a 'list'. got '%s'."
             raise InvalidTask(msg % (self.task, self.args))
@@ -221,7 +227,10 @@ class PythonAction(BaseAction):
         if not self.task:
             return self.kwargs
 
-        argspec = inspect.getargspec(self.py_callable)
+        try:
+            argspec = inspect.getargspec(self.py_callable)
+        except TypeError:
+            argspec = inspect.getargspec(self.py_callable.__call__)
         # named tuples only from python 2.6 :(
         argspec_args = argspec[0]
         argspec_keywords = argspec[2]
