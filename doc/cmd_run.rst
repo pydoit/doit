@@ -63,13 +63,20 @@ You can control the verbosity by:
     .  print
     hello
 
+.. _option_parameters
 
 parameters
 -----------
 
 It is possible to pass option parameters to the task through the command line.
 
-Just a add a 'params' fiels to the task dictionary. `params` must be a list of dictionaries where every entry is an option parameter. Each parameter must define a name, and a default value. It can optionally define a "short" and "long" names to be used from the command line (it follows unix command line conventions). It may also specify a type the parameter should be converted to.
+Just a add a 'params' fiels to the task dictionary. `params` must be a list of
+dictionaries where every entry is an option parameter. Each parameter must
+define a name, and a default value. It can optionally define a "short" and
+"long" names to be used from the command line (it follows unix command line
+conventions). It may also specify a type the parameter should be converted to.
+
+
 
 See the example:
 

@@ -6,8 +6,14 @@ from . import loader
 
 
 class Command(object):
-    """base command third-party should subclass this for commands that
-    do no use tasks
+    """third-party should subclass this for commands that do no use tasks
+
+    :cvar name: (str) name of sub-cmd to be use from cmdline
+    :cvar doc_purpose: (str) single line cmd description
+    :cvar doc_usage: (str) describe accepted parameters
+    :cvar doc_description: (str) long description/help for cmd
+    :cvar cmd_options:
+          (list of dict) see cmdparse.CmdOption for dict format
     """
     CMD_LIST = [] # register with the name of all created commands
 
@@ -34,8 +40,8 @@ class Command(object):
 
     def execute(self, opt_values, pos_args): # pragma: no cover
         """execute command
-        @var opt_values: (dict) with cmd_options values
-        @var pos_args: (list) of cmd-line positinal arguments
+        :param opt_values: (dict) with cmd_options values
+        :param pos_args: (list) of cmd-line positinal arguments
         """
         raise NotImplementedError()
 
@@ -156,16 +162,18 @@ class TaskLoader(object):
 
     Subclasses must implement the method `load_tasks`
 
-    @cvar cmd_options (list of dict) see cmdparse.CmdOption for dict format
+    :cvar cmd_options:
+          (list of dict) see cmdparse.CmdOption for dict format
     """
     cmd_options = ()
 
     def load_tasks(self, cmd, opt_values, pos_args): # pragma: no cover
         """load tasks and DOIT_CONFIG
-        @return (tuple) list of Task, dict with DOIT_CONFIG options
-        @param cmd (cmd_base.Command) current command being executed
-        @param opt_values (dict) with values for cmd_options
-        @para pos_args (list str) positional arguments from command line
+
+        :return: (tuple) list of Task, dict with DOIT_CONFIG options
+        :param cmd: (doit.cmd_base.Command) current command being executed
+        :param opt_values: (dict) with values for cmd_options
+        :param pos_args: (list str) positional arguments from command line
         """
         raise NotImplementedError()
 

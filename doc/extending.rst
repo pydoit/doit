@@ -1,27 +1,75 @@
+=========================
+Extending `doit`
+=========================
+
+`doit` is built to be extended and this can be done in several levels.
+So far we have seen:
+
+1) Task creator functions can be placed in a "lib" and them imported in a dodo.py
+2) User's can create new ways to define when a task is up-to-date using
+   the `uptodate` task parameter
+3) The output can be configured by creating custom reports
+
+Apart from those `doit` also expose it's internal API so you can create
+new applications on top of `doit`.
 
 
-standalone script
-====================
+task loader customization
+===========================
 
-It is possible to create ``doit`` as a standalone python script including ``doit`` source code and its dependencies. This way it is easy to include this file in your project and use doit without going through the installation process.
+The task loader controls the source/creation of tasks.
+Normally `doit` tasks are defined in a `dodo.py` file.
+This file is loaded, and the list of tasks is created from
+the dict containing task meta-data from the *task-creator* functions.
 
-Requirements
---------------
+Subclass TaskLoader to create a custom loader:
 
-The standalone script should be created on a system where doit and dependencies are
-installed. Apart from doit dependencies it also requires the the libraries "py" and "py.test".
+.. autoclass:: doit.cmd_base.TaskLoader
+   :members: load_tasks
 
-Usage
--------
 
-The script ``genstandalone.py`` will create a standalone 'doit' on the current working directory. So it should be executed in the path where the standalone will be distributed, i.e.::
+The main program is implemented in the `DoitMain`. It's constructor
+takes the an instance of the task loader to be used.
 
-  /my/project/path $ python ../../path/to/doit/genstandalone.py
+Example: pre-defined task
+----------------------------
 
-Then you can distribute the standalone script to other systems.
+In the full example bellow a application is created where the only
+task available is defined using a dict (so no `dodo.py` will be used).
 
-.. warning::
+.. literalinclude:: tutorial/custom_loader.py
 
-  The generated standalone script can be used by any python version but the
-  dependencies included are dependent on the python version used to generate
-  the standalone script.
+
+Example: load tasks from a module
+-------------------------------------
+
+The `ModuleTaskLoader` can be used to load tasks from a specified module,
+where this module specifies tasks in the same as specified in `dodo.py`.
+`ModuleTaskLoader` is included in `doit` source.
+
+.. literalinclude:: tutorial/module_loader.py
+
+
+
+sub-command customization
+==============================
+
+The `doit` command line has several sub-commands: `run`, `help`, `list`, `clean`...
+By Subclassing `DoitMain.get_commands` it is possible to add/remove commands.
+
+To create a new sub-cmd, subclass `doit.cmd_base.Command`
+set some class variables and implement the `execute` method.
+
+
+.. autoclass:: doit.cmd_base.Command
+   :members: execute
+
+
+Example: scaffolding
+----------------------
+
+A common example is applications that provide some kind of scaffolding when
+creating new projects.
+
+.. literalinclude:: tutorial/custom_cmd.py
+
