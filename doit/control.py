@@ -155,8 +155,8 @@ class TaskControl(object):
             elif filter_ in self.targets:
                 selected_task.append(self.targets[filter_])
             else:
-                msg = ('"%s" must be a sub-command, a task, or a target.\n' +
-                       'Type "doit help" to see available sub-commands.\n' +
+                msg = ('cmd `run` invalid parameter: "%s".' +
+                       'Must be a task, or a target.\n' +
                        'Type "doit list" to see available tasks')
                 raise InvalidCommand(msg % filter_)
         return selected_task
