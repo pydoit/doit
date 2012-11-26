@@ -3,13 +3,18 @@
 Changes
 =======
 
-0.18.0
-============
+0.18.0 (*2012-11-*)
+=======================
 
+- remove DEPRECATED `Task.insert_action`, `result_dep` and `getargs` using strings
 - fix #10 --continue does not execute tasks that have failed dependencies
-- --always-execute does not execute "ignored" tasks
+- fix --always-execute does not execute "ignored" tasks
+- fix #29 python3 cmd-actions issue
+- fix #30 tests pass on all dbm backends
 - API to add new sub-commands to doit
 - API to modify task loader
+- API to make dodo.py executable
+- added ZeroReporter
 
 
 0.17.0 (*2012-09-20*)

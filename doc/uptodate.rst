@@ -149,8 +149,8 @@ to to `uptodate`. The advantage of just passing the callable is that this
 check will not be executed at all if the task was not selected to be executed.
 
 
-run-once implementation
-^^^^^^^^^^^^^^^^^^^^^^^^^
+Example: run-once implementation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Most of the time a `uptodate` implementation will compare the current value
 of something with the value it had last time the task was executed.
@@ -158,8 +158,8 @@ of something with the value it had last time the task was executed.
 We already saw how tasks can save values by returning dict on its actions.
 But usually the "value" we want to check is independent from the task actions.
 So the first step is to add a callable to the task so it can save some extra
-values (that are not used by the task itself, they are only used for dependency
-checking).
+values. These values are not used by the task itself, they are only used
+for dependency checking.
 
 The Task has a property called ``value_savers`` that contains a list of
 callables. These callables should return a dict that will be saved together
@@ -185,8 +185,8 @@ So it just checks if this task was executed before by looking for the
 ``run-once`` entry in ```values``.
 
 
-timeout implementation
-^^^^^^^^^^^^^^^^^^^^^^^^^
+Example: timeout implementation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Let's look another example, the ``timeout``. The main difference is that
 we actually pass the parameter ``timeout_limit``. Here we gonna present
@@ -218,8 +218,8 @@ into ``task.value_savers``. Than it compares the current time
 with the time that was saved on last successful execution.
 
 
-result_dep implementation
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+Example: result_dep implementation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The ``result_dep`` is more complicated due 2 factors. It needs to modify
 the task's ``task_dep``. It needs to check the task's saved values and metadata

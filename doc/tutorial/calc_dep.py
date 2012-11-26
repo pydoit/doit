@@ -14,7 +14,6 @@ def task_mod_deps():
     for mod in MOD_IMPORTS.iterkeys():
         yield {'name': mod,
                'actions': [(print_deps,(mod,))],
-               'uptodate': [False],
                'file_dep': [mod],
                'calc_dep': ["get_dep:%s" % mod],
                }

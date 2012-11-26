@@ -16,7 +16,7 @@ Tasks are defined using `python <http://python.org/>`_, in a plain python file w
 
 Take a look at this example (file dodo.py):
 
-.. literalinclude:: tutorial/tutorial_01.py
+.. literalinclude:: tutorial/hello.py
 
 When `doit` is executed without any parameters it will look for tasks in a file named `dodo.py` in the current folder and execute its tasks.
 
@@ -49,7 +49,7 @@ python-action
 
 If `action` is a python callable or a tuple `(callable, *args, **kwargs)` - only
 `callable` is required. The callable must be a funcion, method or callable
-object. Classes are built-in funcions are not allowed. ``args`` is a sequence
+object. Classes and built-in funcions are not allowed. ``args`` is a sequence
 and ``kwargs`` is a dictionary that will be used as positional and keywords
 arguments for the callable.
 see `Keyword Arguments <http://docs.python.org/tutorial/controlflow.html#keyword-arguments>`_.
@@ -98,6 +98,13 @@ This is useful to write some generic/reusable task-creators.
 
 .. literalinclude:: tutorial/task_reusable.py
 
+.. code-block:: console
+
+  $ doit
+  .  t2
+  .  t1
+
+
 
 sub-tasks
 ---------
@@ -115,6 +122,119 @@ The task function can return a python-generator that yields dictionaries. Since 
     .  create_file:file0.txt
     .  create_file:file1.txt
     .  create_file:file2.txt
+
+
+Dependencies & Targets
+-------------------------
+
+One of the main ideas of `doit` (and other build-tools) is to check if the
+tasks/targets are **up-to-date**. In case there is no modification in the
+dependencies and the targets already exist, it skips the task execution to
+save time, as it would produce the same output from the previous run.
+
+Dependency
+  A dependency indicates an input to the task execution.
+
+Target
+  A *target* is the result/output file produced by the task execution.
+
+
+i.e. In a compilation task the source file is a *file_dep*,
+the object file is a *target*.
+
+.. literalinclude:: tutorial/compile.py
+
+
+`doit` automatically keeps track of file dependencies. It saves the
+signature (MD5) of the dependencies every time the task is completed successfully.
+
+So if there are no modifications to the dependencies and you run `doit` again.
+The execution of the task's actions is skipped.
+
+
+.. code-block:: console
+
+  $ doit
+  .  compile
+  $ doit
+  -- compile
+
+Note the ``--`` (2 dashes, one space) on the command output on the second
+time it is executed. It means, this task was up-to-date and not executed.
+
+
+file_dep (file dependency)
+-----------------------------
+
+Different from most build-tools dependencies are on tasks, not on targets.
+So `doit` can take advantage of the "execute only if not up-to-date" feature
+even for tasks that not define targets.
+
+Lets say you work with a dynamic language (python in this example).
+You don't need to compile anything but you probably wants to apply a lint-like
+tool (i.e. `pyflakes <http://pypi.python.org/pypi/pyflakes>`_) to your
+source code files. You can define the source code as a dependency to the task.
+
+
+.. literalinclude:: tutorial/checker.py
+
+.. code-block:: console
+
+   $ doit
+   .  checker
+   $ doit
+   -- checker
+
+Note the ``--`` again to indicate the execution was skipped.
+
+Traditional build-tools can only handle files as "dependencies".
+`doit` has several ways to check for dependencies, those will be introduced later.
+
+
+targets
+-------
+
+Targets can be any file path (a file or folder). If a target doesn't exist
+the task will be executed. There is no limitation on the number of targets
+a task may define. Two different tasks can not have the same target.
+
+Lets take the compilation example again.
+
+.. literalinclude:: tutorial/compile.py
+
+* If there are no changes in the dependency the task execution is skipped.
+* But if the target is removed the task is executed again.
+* But only if does not exist. If the target is modified but the dependencies
+  do not change the task is not executed again.
+
+.. code-block:: console
+
+    $ doit
+    .  compile
+    $ doit
+    -- compile
+    $ rm main.o
+    $ doit
+    .  compile
+    $ echo xxx > main.o
+    $ doit
+    -- compile
+
+
+execution order
+-----------------
+
+If your tasks interact in a way where the target (output) of one task is a
+file_dep (input) of another task, `doit` will make sure your tasks are
+executed in the correct order.
+
+.. literalinclude:: tutorial/taskorder.py
+
+.. code-block:: console
+
+  $ doit
+  .  create
+  .  modify
 
 
 

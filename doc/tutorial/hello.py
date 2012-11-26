@@ -7,6 +7,6 @@ def task_hello():
 
     return {'actions': ['echo Hello World!!! > %(targets)s',
                         python_hello],
-            'targets': ["hello.txt"]
+            'targets': ["hello.txt"],
             }
 

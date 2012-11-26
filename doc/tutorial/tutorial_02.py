@@ -2,12 +2,11 @@ def task_hello():
     """hello from shell & python! """
 
     def python_hello(times, text):
-        output = open("hello.txt", "a")
-        output.write(times * text)
-        output.close()
-        return True
+        with open("hello.txt", "a") as output:
+            output.write(times * text)
 
     msg = 3 * "hi! "
-    return {'actions': ['echo %s > hello.txt' % msg,
-                        (python_hello, [3, "py!\n"])]
+    return {'actions': ['echo %s ' % msg + ' > %(targets)s',
+                        (python_hello, [3, "py!\n"])],
+            'targets': ["hello.txt"],
             }
