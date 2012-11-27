@@ -3,7 +3,7 @@
 Changes
 =======
 
-0.18.0 (*2012-11-*)
+0.18.0 (*2012-11-27*)
 =======================
 
 - remove DEPRECATED `Task.insert_action`, `result_dep` and `getargs` using strings

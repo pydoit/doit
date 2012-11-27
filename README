@@ -9,7 +9,7 @@ doit - automation tool
 `doit` comes from the idea of bringing the power of build-tools to
 execute any kind of task
 
-see doc/index.rst or `website <http://python-doit.sourceforge.net/>`
+see doc/index.rst or `website <http://python-doit.sourceforge.net/>`_
 
 
 Project Details
@@ -38,7 +38,7 @@ see AUTHORS file
 install
 =======
 
-doit is tested on python 2.5, 2.6, 2.7, 3.2.
+doit is tested on python 2.5, 2.6, 2.7, 3.2, 3.3.
 
 ``python setup.py install``
 
@@ -107,3 +107,7 @@ To create it (after installing doit):
 The website will also includes epydoc generated API documentation.
 
 
+continuous integration
+==========================
+
+`travis <https://travis-ci.org/schettino72/doit>`_
