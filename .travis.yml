@@ -13,8 +13,13 @@ install:
 branches:
   only:
     - master
-    - test  
-  
+    - test
+
+
+before_script:
+    - if [[ $TRAVIS_PYTHON_VERSION == '3.1' ]]; then 2to3 --write --nobackups tests; fi
+    - if [[ $TRAVIS_PYTHON_VERSION == '3.2' ]]; then 2to3 --write --nobackups tests; fi
+
 script: py.test
 
 notifications:
