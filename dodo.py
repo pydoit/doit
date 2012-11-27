@@ -118,8 +118,18 @@ def task_website():
             }
 
 def task_website_update():
-    """update website on sourceforge"""
-    return {'actions': ["rsync -avP -e ssh %s* schettino72,python-doit@web.sourceforge.net:htdocs/" % DOC_BUILD_PATH]}
+    """update website on SITE_PATH
+    website is hosted on github-pages
+    this task just copy the generated content to SITE_PATH,
+    need to commit/push to deploy site.
+    """
+    SITE_PATH = '../doit-website'
+    SITE_URL = 'pydoit.org'
+    return {'actions': [
+            "rsync -avP %s %s" % (DOC_BUILD_PATH, SITE_PATH),
+            "echo %s > %s" % (SITE_URL, os.path.join(SITE_PATH, 'CNAME')),
+            ]}
+
 
 
 ################### dist
