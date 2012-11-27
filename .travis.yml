@@ -17,8 +17,8 @@ branches:
 
 
 before_script:
-    - if [[ $TRAVIS_PYTHON_VERSION == '3.1' ]]; then 2to3 --write --nobackups tests; fi
-    - if [[ $TRAVIS_PYTHON_VERSION == '3.2' ]]; then 2to3 --write --nobackups tests; fi
+    - if [[ $TRAVIS_PYTHON_VERSION == '3.1' ]]; then 2to3 --write --nobackups .; fi
+    - if [[ $TRAVIS_PYTHON_VERSION == '3.2' ]]; then 2to3 --write --nobackups .; fi
 
 script: py.test
 
