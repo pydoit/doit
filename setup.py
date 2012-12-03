@@ -55,7 +55,7 @@ long_description = open('doc/index.rst', 'rb'
 
 setup(name = 'doit',
       description = 'doit - Automation Tool',
-      version = '0.18.0',
+      version = '0.18.1',
       license = 'MIT',
       author = 'Eduardo Naufel Schettino',
       author_email = 'schettino72@gmail.com',
