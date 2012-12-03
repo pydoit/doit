@@ -44,7 +44,7 @@ opt_always = {'name': 'always',
               }
 
 # continue executing tasks even after a failure
-opt_continue = {'name': 'continue_',
+opt_continue = {'name': 'continue',
                 'short': 'c',
                 'long': 'continue',
                 'inverse': 'no-continue',
