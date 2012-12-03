@@ -125,10 +125,14 @@ def task_website_update():
     """
     SITE_PATH = '../doit-website'
     SITE_URL = 'pydoit.org'
-    return {'actions': [
+    return {
+        'actions': [
             "rsync -avP %s %s" % (DOC_BUILD_PATH, SITE_PATH),
             "echo %s > %s" % (SITE_URL, os.path.join(SITE_PATH, 'CNAME')),
-            ]}
+            "touch %s" % os.path.join(SITE_PATH, '.nojekyll'),
+            ],
+        'task_dep': ['website'],
+        }
 
 
 
