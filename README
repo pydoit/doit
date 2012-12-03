@@ -9,14 +9,14 @@ doit - automation tool
 `doit` comes from the idea of bringing the power of build-tools to
 execute any kind of task
 
-see doc/index.rst or `website <http://python-doit.sourceforge.net/>`_
+see doc/index.rst or `website <http://pydoit.org>`_
 
 
 Project Details
 ===============
 
  - Project management on `bitbucket <https://bitbucket.org/schettino72/doit>`_
- - Website http://python-doit.sourceforge.net/
+ - Website http://pydoit.org
  - `Discussion group <http://groups.google.co.in/group/python-doit>`_
 
 

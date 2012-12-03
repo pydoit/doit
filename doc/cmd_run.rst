@@ -63,7 +63,6 @@ You can control the verbosity by:
     .  print
     hello
 
-.. _option_parameters
 
 parameters
 -----------

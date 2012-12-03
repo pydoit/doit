@@ -146,7 +146,7 @@ class DoitMain(object):
     def print_usage(cmds):
         """print doit "usage" (basic help) instructions"""
         print("doit -- automation tool")
-        print("http://python-doit.sourceforge.net/")
+        print("http://pydoit.org")
         print("Commands")
         for cmd in sorted(cmds.values(), key=attrgetter('name')):
             print("  doit %s \t\t %s" % (cmd.name, cmd.doc_purpose))
