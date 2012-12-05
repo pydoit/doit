@@ -43,11 +43,6 @@ def get_required_packages():
     elif platform_system == "Linux":
         install_requires.append('pyinotify')
 
-    # missing packages from stdlib for old versions
-    if sys.version_info < (2, 6):
-        install_requires.append('multiprocessing')
-        install_requires.append('simplejson')
-
     return install_requires
 
 

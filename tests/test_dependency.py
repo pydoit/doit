@@ -43,13 +43,7 @@ def test_md5():
 
 
 # test parametrization, execute tests for all DB backends
-BACKENDS = [JsonDependency]
-# gdbm is broken on python2.5
-import platform
-python_version = platform.python_version().split('.')
-if python_version[0] != '2' or python_version[1] != '5':
-    BACKENDS.append(DbmDependency)
-pytest.fixture(params=BACKENDS)(depfile)
+pytest.fixture(params=[JsonDependency, DbmDependency])(depfile)
 
 
 # FIXME there was major refactor breaking classes from dependency,

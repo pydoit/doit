@@ -3,7 +3,7 @@ syntax:glob
 *.pyc
 .coverage*
 __pycache__
-.doit.db
+.doit.db*
 
 .pytest-incremental*
 pytest.ini

@@ -421,13 +421,6 @@ class UptodateCalculator(object):
         self.tasks_dict = tasks_dict
 
 
-
-
-import platform
-python_version = platform.python_version().split('.')
-if python_version[0] == '2' and python_version[1] == '5': # pragma: no cover
-    # use json by default on python2.5 because gdbm in python2.5 is broken
-    Dependency = JsonDependency
-else:
-    Dependency = DbmDependency
+# defaut dependency backend implementation
+Dependency = DbmDependency
 

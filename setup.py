@@ -28,11 +28,6 @@ if platform_system == "Windows":
 ##################################################
 
 
-if sys.version_info < (2, 6):
-    install_requires.append('multiprocessing')
-    install_requires.append('simplejson')
-
-
 # http://pytest.org/goodpractises.html
 class PyTest(Command):
     user_options = []
@@ -60,28 +55,28 @@ setup(name = 'doit',
       author = 'Eduardo Naufel Schettino',
       author_email = 'schettino72@gmail.com',
       url = 'http://pydoit.org',
-      classifiers = ['Development Status :: 5 - Production/Stable',
-                     'Environment :: Console',
-                     'License :: OSI Approved :: MIT License',
-                     'Natural Language :: English',
-                     'Operating System :: OS Independent',
-                     'Operating System :: POSIX',
-                     'Programming Language :: Python :: 2',
-                     'Programming Language :: Python :: 2.5',
-                     'Programming Language :: Python :: 2.6',
-                     'Programming Language :: Python :: 2.7',
-                     'Programming Language :: Python :: 3',
-                     'Programming Language :: Python :: 3.2',
-                     'Programming Language :: Python :: 3.3',
-                     'Intended Audience :: Developers',
-                     'Intended Audience :: Information Technology',
-                     'Intended Audience :: Science/Research',
-                     'Intended Audience :: System Administrators',
-                     'Topic :: Software Development :: Build Tools',
-                     'Topic :: Software Development :: Testing',
-                     'Topic :: Software Development :: Quality Assurance',
-                     'Topic :: Scientific/Engineering',
-                     ],
+      classifiers = [
+        'Development Status :: 5 - Production/Stable',
+        'Environment :: Console',
+        'License :: OSI Approved :: MIT License',
+        'Natural Language :: English',
+        'Operating System :: OS Independent',
+        'Operating System :: POSIX',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.2',
+        'Programming Language :: Python :: 3.3',
+        'Intended Audience :: Developers',
+        'Intended Audience :: Information Technology',
+        'Intended Audience :: Science/Research',
+        'Intended Audience :: System Administrators',
+        'Topic :: Software Development :: Build Tools',
+        'Topic :: Software Development :: Testing',
+        'Topic :: Software Development :: Quality Assurance',
+        'Topic :: Scientific/Engineering',
+        ],
 
       packages = ['doit'],
       scripts = scripts,
