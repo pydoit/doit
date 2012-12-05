@@ -149,7 +149,7 @@ class CmdParse(object):
         try:
             opts, args = getopt.getopt(in_args, self.get_short(),
                                        self.get_long())
-        except Exception, error:
+        except Exception as error:
             msg = "Error parsing %s: %s (parsing options: %s)"
             raise CmdParseError(msg % (self._type, str(error), in_args))
 
@@ -161,7 +161,7 @@ class CmdParse(object):
             else:
                 try:
                     params[this.name] = this.type(val)
-                except ValueError, exception:
+                except ValueError as exception:
                     msg = "Error parsing parameter '%s' %s.\n%s\n"
                     raise CmdParseError(msg % (this.name, this.type,
                                                str(exception)))

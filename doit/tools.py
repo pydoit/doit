@@ -242,7 +242,7 @@ class PythonInteractiveAction(PythonAction):
         kwargs = self._prepare_kwargs()
         try:
             self.py_callable(*self.args, **kwargs)
-        except Exception, exception:
+        except Exception as exception:
             return exceptions.TaskError("PythonAction Error", exception)
 
 

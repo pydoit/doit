@@ -78,7 +78,7 @@ class JsonDB(object):
         try:
             try:
                 return json.load(db_file)
-            except ValueError, error:
+            except ValueError as error:
                 # file contains corrupted json data
                 msg = (error.args[0] +
                        "\nInvalid JSON data in %s\n" %
@@ -150,7 +150,7 @@ class DbmDB(object):
         self.name = name
         try:
             self._dbm = ddbm.open(self.name, 'c')
-        except ddbm.error, exception:
+        except ddbm.error as exception:
             message = str(exception)
             if message == self.DBM_CONTENT_ERROR_MSG:
                 # When a corrupted/old format database is found
@@ -188,9 +188,8 @@ class DbmDB(object):
           return key in self._dbm
 
          python3: when for get/set key is convert to bytes but not for 'in'
-         fix #23 'in' operator not supported on DBM implementations on py2.6
         """
-        return self._dbm.has_key(key.encode('utf-8'))
+        return key.encode('utf-8') in self._dbm
 
 
     def get(self, task_id, dependency):

@@ -3,7 +3,7 @@
 import sys
 import time
 import datetime
-import StringIO
+import StringIO as io
 
 from .compat import json
 
@@ -184,9 +184,9 @@ class JsonReporter(object):
         # than the json data. so anything that is sent to stdout/err needs to
         # be captured.
         self._old_out = sys.stdout
-        sys.stdout = StringIO.StringIO()
+        sys.stdout = io.StringIO()
         self._old_err = sys.stderr
-        sys.stderr = StringIO.StringIO()
+        sys.stderr = io.StringIO()
         self.outstream = outstream
         # runtime and cleanup errors
         self.errors = []

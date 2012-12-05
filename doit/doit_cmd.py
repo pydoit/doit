@@ -110,7 +110,7 @@ class Help(Command):
     @staticmethod
     def print_task_help():
         """print help for 'task' usage """
-        print HELP_TASK
+        print(HELP_TASK)
 
     def execute(self, params, args):
         """execute cmd 'help' """
@@ -119,7 +119,7 @@ class Help(Command):
         elif args[0] == 'task':
             self.print_task_help()
         elif args[0] in self.cmds:
-            print self.cmds[args[0]].help()
+            print(self.cmds[args[0]].help())
         else:
             DoitMain.print_usage(self.cmds)
         return 0
@@ -137,9 +137,9 @@ class DoitMain(object):
     @staticmethod
     def print_version():
         """print doit version (includes path location)"""
-        print ".".join([str(i) for i in doit.__version__])
-        print "bin @", os.path.abspath(__file__)
-        print "lib @", os.path.dirname(os.path.abspath(doit.__file__))
+        print(".".join([str(i) for i in doit.__version__]))
+        print("bin @", os.path.abspath(__file__))
+        print("lib @", os.path.dirname(os.path.abspath(doit.__file__)))
 
 
     @staticmethod
@@ -223,7 +223,7 @@ class DoitMain(object):
 
         # dont show traceback for user errors.
         except (CmdParseError, InvalidDodoFile,
-                InvalidCommand, InvalidTask), err:
+                InvalidCommand, InvalidTask) as err:
             sys.stderr.write("ERROR: %s\n" % str(err))
             return 3
 

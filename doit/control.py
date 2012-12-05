@@ -241,7 +241,7 @@ class ExecNode(object):
     def step(self):
         """get node's next step"""
         try:
-            return self.generator.next()
+            return next(self.generator)
         except StopIteration:
             return None
 

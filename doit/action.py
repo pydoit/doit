@@ -301,7 +301,7 @@ class PythonAction(BaseAction):
         # execute action / callable
         try:
             returned_value = self.py_callable(*self.args, **kwargs)
-        except Exception, exception:
+        except Exception as exception:
             return TaskError("PythonAction Error", exception)
         finally:
             # restore std streams /log captured streams

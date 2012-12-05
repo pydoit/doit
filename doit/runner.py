@@ -117,7 +117,7 @@ class Runner(object):
             # check if task is up-to-date
             try:
                 node.run_status = self.dep_manager.get_status(task, tasks_dict)
-            except Exception, exception:
+            except Exception as exception:
                 msg = "ERROR: Task '%s' checking dependencies" % task.name
                 dep_error = DependencyError(msg, exception)
                 self._handle_task_error(node, dep_error)
@@ -141,7 +141,7 @@ class Runner(object):
 
         try:
             self._get_task_args(task, tasks_dict)
-        except Exception, exception:
+        except Exception as exception:
             msg = ("ERROR getting value for argument\n" + str(exception))
             self._handle_task_error(node, DependencyError(msg))
             return False
@@ -228,7 +228,7 @@ class Runner(object):
         """
         try:
             self.run_tasks(task_dispatcher)
-        except InvalidTask, exception:
+        except InvalidTask as exception:
             self.reporter.runtime_error(str(exception))
         finally:
             self.finish()
@@ -458,7 +458,7 @@ class MRunner(Runner):
                 else:
                     result['failure'] = t_result
                 result_q.put(result)
-        except (SystemExit, KeyboardInterrupt, Exception), exception:
+        except (SystemExit, KeyboardInterrupt, Exception) as exception:
             # error, blow-up everything. send exception info to master process
             result_q.put({'name': task.name,
                           'exit': exception.__class__,
