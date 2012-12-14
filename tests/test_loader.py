@@ -9,20 +9,6 @@ from doit.loader import flat_generator, get_module
 from doit.loader import load_tasks, load_doit_config, generate_tasks
 
 
-class TestIsGenerator(object):
-    def testIsGeneratorYes(self):
-        def giveme(): # pragma: no cover
-            for i in range(3):
-                yield i
-        g = giveme()
-        assert inspect.isgenerator(g)
-
-    def testIsGeneratorNo(self):
-        def giveme():
-            return 5
-        assert not inspect.isgenerator(giveme())
-
-
 class TestFlatGenerator(object):
     def test_nested(self):
         def myg(items):
