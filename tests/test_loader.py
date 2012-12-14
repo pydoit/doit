@@ -1,5 +1,4 @@
 import os
-import inspect
 
 import pytest
 
@@ -92,6 +91,15 @@ class TestLoadTasks(object):
         task_list = load_tasks(dodo)
         assert "task doc" == task_list[0].doc
 
+    def testUse_create_doit_tasks(self):
+        def original(): pass
+        def creator():
+            return {'actions': ['do nothing'], 'file_dep': ['foox']}
+        original.create_doit_tasks = creator
+        task_list = load_tasks({'x': original})
+        assert 1 == len(task_list)
+        assert set(['foox']) == task_list[0].file_dep
+
 
 class TestDodoConfig(object):
 
@@ -111,6 +119,11 @@ class TestDodoConfig(object):
 class TestGenerateTaskInvalid(object):
     def testInvalidValue(self):
         pytest.raises(InvalidTask, generate_tasks, "dict",'xpto 14')
+
+class TestGenerateTaskNone(object):
+    def testEmpty(self):
+        tasks = generate_tasks('xx', None)
+        assert len(tasks) == 0
 
 
 class TestGenerateTasksDict(object):
