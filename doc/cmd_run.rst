@@ -69,7 +69,7 @@ parameters
 
 It is possible to pass option parameters to the task through the command line.
 
-Just a add a 'params' fiels to the task dictionary. `params` must be a list of
+Just a add a 'params' field to the task dictionary. `params` must be a list of
 dictionaries where every entry is an option parameter. Each parameter must
 define a name, and a default value. It can optionally define a "short" and
 "long" names to be used from the command line (it follows unix command line
@@ -133,22 +133,30 @@ By default the execution of tasks is halted on the first task failure or error. 
     $ doit --continue
 
 
+.. _parallel-execution:
 
 parallel execution
 -------------------
 
-`doit` supports parallel execution (using multiple processes) --process/-n. The `multiprocessing <http://docs.python.org/library/multiprocessing.html>`_ module is used. So the same restrictions also apply to the use of multiprocessing in `doit`.
+`doit` supports parallel execution (using multiple processes) --process/-n.
+The `multiprocessing <http://docs.python.org/library/multiprocessing.html>`_
+module is used.
+So the same restrictions also apply to the use of multiprocessing in `doit`.
 
 .. code-block:: console
 
     $ doit -n 3
 
 
+.. _reporter:
 
 reporter
 ---------
 
-`doit` provides different "reporters" to display running tasks info on the console. Use the option --reporter/-r to choose a reporter. Apart from the default it also includes:
+`doit` provides different "*reporters*" to display running tasks info
+on the console.
+Use the option --reporter/-r to choose a reporter.
+Apart from the default it also includes:
 
  * executed-only: Produces zero output if no task is executed
  * json: Output results in JSON format

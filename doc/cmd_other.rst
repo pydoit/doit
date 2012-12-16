@@ -19,6 +19,7 @@ You can also get help from each available command. e.g. `doit help run`.
 `doit help task` will display information on all fields/attributes a task dictionary from a `dodo` file accepts.
 
 
+.. _cmd-list:
 
 list
 ------
@@ -116,6 +117,8 @@ Note the ``!!``, it means that task was ignored. To reverse the `ignore` use `fo
 
 
 
+.. _cmd-auto:
+
 auto (watch)
 -------------
 
@@ -139,4 +142,6 @@ auto (watch)
 
 .. warning::
 
-   Note that ``doit`` will *not* reload any python module. So be aware that if you are using python-actions and the source code of these files were changed it will not be affected.
+   Note that ``doit`` will *not* reload any python module.
+   So be aware that if you are using python-actions and the source code of
+   these files were changed it will not be affected.

@@ -2,6 +2,8 @@
 Extending `doit`
 =========================
 
+.. _extending:
+
 `doit` is built to be extended and this can be done in several levels.
 So far we have seen:
 

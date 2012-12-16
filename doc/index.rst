@@ -1,64 +1,108 @@
-About
-=====
+Introduction
+==============
 
-`doit` comes from the idea of bringing the power of build-tools to execute any kind of task.
+`doit` comes from the idea of bringing the power of build-tools
+to execute any kind of **task**
+
+A **task** describes some computation to be done (*actions*),
+and contains some extra meta-data.
+
+.. code-block:: python
+
+  def task_example():
+      return {
+          'actions': ['myscript'],
+          'file_dep': ['my_input_file'],
+          'targets': ['result_file'],
+      }
 
 
-build-tools
-------------
+.. topic:: actions
 
-Build-tools were created with two primary goals:
-
-1) To keep track of inter-dependencies between tasks and ensure that they will be executed in the correct order.
-
-2) To be faster than manually executing all tasks. Actually it can not really execute a given task faster, instead it has some mechanism to determine if a task is up-to-date or not. So it is faster by executing less tasks, executing only the ones required (not up-to-date).
-
-For more details check the `Software Carpentry's lecture <http://software-carpentry.org/4_0/make/intro/>`_.
+  - can be external programs (executed as shell commands) or
+    python functions.
+  - a single task may define more than one action.
 
 
-why `doit`?
--------------
+*doit* uses the task's meta-data to:
 
-Task's metadata (actions, dependencies, targets...) are better described in a declarative way, but often you want to create this metadata programmatically.
+.. topic:: cache task results
 
- * In `doit` plain python is used to define task's metadata allowing easy creation of tasks dynamically.
+   `doit` checks if the task is **up-to-date** and skips its execution if the
+   task would produce the same result (cached) of a previous execution.
 
- * In `doit` it is possible to integrate task's actions defined by both python code and external programs (shell commands).
+.. topic:: execution order
 
- * In `doit` tasks dependencies can be calculated at execution time by another task.
+  By checking the inter-dependency between tasks `doit` ensures that tasks
+  will be execute in the correct order.
+
+.. topic:: parallel execution
+
+  built-in support for task parallel (multi-process) task execution
+  (:ref:`more <parallel-execution>`)
 
 
 Traditional build-tools were created mainly to deal with compile/link process of source code. `doit` was designed to solve a broader range of tasks.
 
- * Unlike other build-tools `doit` allows you to define how/when a task should be considered up-to-date (instead of just checking for changes in files).
+.. topic:: powerful dependency system
+
+   - the *up-to-date* check is not restricted to looking for
+     file modification on dependencies,
+     it can be customized for each task (:ref:`more <attr-uptodate>`)
+   - *target* files are not required in order to check if a task is up-to-date
+     (:ref:`more <up-to-date-def>`)
+   - *dependencies* can be dinamically calculated by other tasks
+     (:ref:`more <attr-calc_dep>`)
 
 
-`doit`  was designed to be easy to use and "get out of your way".
+Task's metadata (actions, dependencies, targets...) are better described
+in a declarative way,
+but often you want to create this metadata programmatically.
+
+.. topic:: flexible task definition
+
+   `doit` uses plain python modules to create tasks (and its meta-data)
+
+.. topic:: customizable task definition
+
+   By default tasks are described by a `dict`.
+   But it can be easily customized. (:ref:`more <???>`) like:
+
+.. code-block:: python
+
+     @task(file_dep=['input.txt'])
+     def my_task_action(dependencies):
+          # do something
+
+     MyCustomTask2(my_param)
 
 
-`doit` can be used as
------------------------
+Other features...
 
- * a build tool (generic and flexible)
- * home of your management scripts (it helps you organize and combine shell scripts and python scripts)
- * a functional tests runner (combine together different tools)
- * a configuration management system
- * manage computational pipelines
+.. topic:: self documented
 
-Features
-----------
+  `doit` command allows you to list and obtain help/documentaion for tasks
+  (:ref:`more <cmd-list>`)
 
- * Easy to use, "no-API"
- * Use python to dynamically create tasks on-the-fly
- * Flexible, adapts to many workflows for creation of tasks/rules/recipes
- * Support for multi-process parallel execution
- * Built-in integration of inotify (automatic re-execution) (linux/mac only)
- * Can be distributed as a standalone (single-file) script
- * Runs on Python 2.5 through 3.2
+.. topic:: inotify integration
+
+  built-in support for a long-running process that automaticly re-execute tasks
+  based on file changes by external process (linux/mac only)
+  (:ref:`more <cmd-auto>`)
+
+.. topic:: custom output
+
+  process output can be completely customized through *reporters*
+  (:ref:`more <reporter>`)
 
 
-This blog `post <http://schettino72.wordpress.com/2008/04/14/doit-a-build-tool-tale/>`_ explains how everything started.
+.. topic:: extensible
 
+  Apart from using `doit` to automate your project it also expose its API
+  so you can create new applications/tools using `doit` functionality
+  (:ref:`more <extending>`)
+
+Check the `documentation <contents.html>`_ for more features...
 
 
 What people are saying about `doit`
@@ -76,51 +120,25 @@ What people are saying about `doit`
 
 
 
-Quick Start
-============
-
-install::
-
-  $ pip install doit
-
-It looks like... python!
-
-`dodo.py`
-
-.. literalinclude:: tutorial/hello.py
-
-run
-
-.. code-block:: console
-
-  $ doit
-  .  hello
-  $ cat hello.txt
-  Hello World!!!
-  Python says Hello World!!!
-
-
-Go on, read the `documentation <contents.html>`_
-
-
 Project Details
 ===============
 
-* This is an open-source project (`MIT license <http://opensource.org/licenses/mit-license.php>`_) written in python.
+* This is an open-source project (`MIT license <http://opensource.org/licenses/mit-license.php>`_) written in python (runs on Python 2.6 through 3.3)
 
 * Download from `PyPi <http://pypi.python.org/pypi/doit>`_
 
 * Project management (bug tracker, feature requests and source code ) on `bitbucket <https://bitbucket.org/schettino72/doit>`_.
 
-* `Documentation <contents.html>`_
-
 * Questions and feedback on `google group <http://groups.google.co.in/group/python-doit>`_.
-
-* Professional support and consulting services available from ``doit`` creator & maintainer (*schettino72* at gmail.com).
 
 * This web site is hosted on http://pages.github.com
 
 * `doit-recipes <https://bitbucket.org/schettino72/doit-recipes/wiki/Home>`_ contains a collection of non-trivial examples and a list of projects using `doit`.
+
+* Professional support and consulting services available from ``doit`` creator & maintainer (*schettino72* at gmail.com).
+
+This blog `post <http://schettino72.wordpress.com/2008/04/14/doit-a-build-tool-tale/>`_ explains how everything started.
+
 
 
 Status

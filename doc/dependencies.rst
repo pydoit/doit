@@ -2,6 +2,8 @@
 More on dependencies
 =====================
 
+.. _attr-uptodate:
+
 uptodate
 ----------
 
@@ -44,6 +46,8 @@ later:
   * ``config_changed``: check for changes in a "configuration" string or dictionary
   * ``check_timestamp_unchanged``: check access, status change/create or modify timestamp of a given file/directory
 
+
+.. _up-to-date-def:
 
 doit up-to-date definition
 -----------------------------
@@ -103,6 +107,8 @@ its `actions` to ``None``.
 
 Note that tasks are never executed twice in the same "run".
 
+
+.. _attr-calc_dep:
 
 calculated-dependencies
 ------------------------

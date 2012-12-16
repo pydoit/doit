@@ -1,6 +1,19 @@
 {% extends "!layout.html" %}
 
 {% block extrahead %}
+<style>
+  div.topic {
+    padding: 2px;
+    background-color: #F8F4A6;
+    border: none;
+  }
+
+  p.topic-title {
+    display: run-in;
+    margin-right: 15px;
+  }
+</style>
+
 {% if include_analytics %}
 <script type="text/javascript">
 
@@ -40,7 +53,7 @@
   <li><a href="http://pypi.python.org/pypi/doit">download (PyPi)</a></li>
   <li><a href="https://bitbucket.org/schettino72/doit">code &amp; bugs (bitbucket)</a></li>
   <li><a href="http://groups.google.co.in/group/python-doit">discussion (google)</a></li>
-  <li><a href="http://schettino72.wordpress.com/tag/doit/">blog</a></li>
+  <li><a href="http://blog.schettino72.net/categories/doit.html">blog</a></li>
   <li><a href="https://bitbucket.org/schettino72/doit-recipes/wiki/Home">doit-recipes</a></li>
 </ul>
 
