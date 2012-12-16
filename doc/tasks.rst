@@ -380,3 +380,16 @@ private/hidden tasks
 
 If task name starts with an underscore '_', it will not be included in the output.
 
+
+.. _create-doit-tasks:
+
+custom task definition
+------------------------
+
+Apart from collect functions that start with the name `task_`.
+The *doit* loader will also execute the `create_doit_task`
+callable from any object that contains this attribute.
+
+.. literalinclude:: tutorial/custom_task_def.py
+
+For more examples check this `blog post <http://blog.schettino72.net/posts/doit-task-creation.html>`_.

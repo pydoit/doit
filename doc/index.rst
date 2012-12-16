@@ -66,7 +66,7 @@ but often you want to create this metadata programmatically.
 .. topic:: customizable task definition
 
    By default tasks are described by a `dict`.
-   But it can be easily customized. (:ref:`more <???>`) like:
+   But it can be easily customized. (:ref:`more <create-doit-tasks>`) like:
 
 .. code-block:: python
 
