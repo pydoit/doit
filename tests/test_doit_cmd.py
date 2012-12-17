@@ -24,26 +24,6 @@ class TestRun(object):
         out, err = capsys.readouterr()
         assert "doit list" in out
 
-    def test_help_usage(self, capsys):
-        cmd_main(["help"])
-        out, err = capsys.readouterr()
-        assert "doit list" in out
-
-    def test_help_task(self, capsys):
-        cmd_main(["help", "task"])
-        out, err = capsys.readouterr()
-        assert "Task Dictionary parameters" in out
-
-    def test_help_cmd(self, capsys):
-        cmd_main(["help", "list"])
-        out, err = capsys.readouterr()
-        assert "Purpose: list tasks from dodo file" in out
-
-    def test_help_wrong_name(self, capsys):
-        cmd_main(["help", "wrong_name"])
-        out, err = capsys.readouterr()
-        assert "doit list" in out
-
     def test_run_is_default(self, monkeypatch):
         mock_run = Mock()
         monkeypatch.setattr(Run, "execute", mock_run)

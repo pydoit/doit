@@ -78,6 +78,14 @@ def depfile(request):
 
 
 @pytest.fixture
+def restore_cwd(request):
+    """set cwd to parent folder of this file."""
+    previous = os.getcwd()
+    def restore_cwd():
+        os.chdir(previous)
+    request.addfinalizer(restore_cwd)
+
+@pytest.fixture
 def cwd(request):
     """set cwd to parent folder of this file."""
     cwd = {}
