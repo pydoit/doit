@@ -44,6 +44,23 @@ class TestCmdOption(object):
         pytest.raises(CmdParseError, CmdOption, opt_dict)
 
 
+class TestCmdOption_help_param(object):
+    def test_bool_param(self):
+        opt1 = CmdOption({'name':'op1', 'default':'', 'type':bool,
+                          'short':'b', 'long': 'bobo'})
+        assert '-b, --bobo' == opt1.help_param()
+
+    def test_non_bool_param(self):
+        opt1 = CmdOption({'name':'op1', 'default':'', 'type':str,
+                          'short':'s', 'long': 'susu'})
+        assert '-s ARG, --susu=ARG' == opt1.help_param()
+
+
+    def test_no_long(self):
+        opt1 = CmdOption({'name':'op1', 'default':'', 'type':str,
+                          'short':'s'})
+        assert '-s ARG' == opt1.help_param()
+
 
 opt_bool = {'name': 'flag',
             'short':'f',
@@ -72,6 +89,21 @@ opt_no = {'name': 'no',
           'type': int,
           'default': 5,
           'help': 'user cant modify me'}
+
+
+
+class TestCmdOption_help_doc(object):
+    def test_param(self):
+        opt1 = CmdOption(opt_bool)
+        got = opt1.help_doc()
+        assert '-f, --flag' in got[0]
+        assert 'help for opt1' in got[0]
+        assert '--no-flag' in got[1]
+        assert 2 == len(got)
+
+    def test_no_doc_param(self):
+        opt1 = CmdOption(opt_no)
+        assert 0 == len(opt1.help_doc())
 
 
 class TestCommand(object):
@@ -124,6 +156,9 @@ class TestCommand(object):
     def test_parsePositionalArgs(self, cmd):
         params, args = cmd.parse(['-f','p1','p2','--sub-arg'])
         assert ['p1','p2','--sub-arg'] == args
+
+    def test_parseError(self, cmd):
+        pytest.raises(CmdParseError, cmd.parse, ['--not-exist-param'])
 
     def test_parseWrongType(self, cmd):
         pytest.raises(CmdParseError, cmd.parse, ['--num','oi'])

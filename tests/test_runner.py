@@ -282,30 +282,6 @@ def RunnerClass(request):
     return request.param
 
 
-# decorator to force coverage on function.
-# used to get coverage using multiprocessing.
-def cov_dec(func): # pragma: no cover
-    try:
-        import coverage
-    except:
-        # coverage should not be required
-        return func
-    def wrap(*args, **kwargs):
-        cov = coverage.coverage(data_suffix=True)
-        cov.start()
-        try:
-            return  func(*args, **kwargs)
-        finally:
-            cov.stop()
-            cov.save()
-    return wrap
-
-
-# monkey patch function executed in a subprocess to get coverage
-# TODO - disabled because it was not working anymore...
-#runner.MRunner.execute_task = cov_dec(runner.MRunner.execute_task)
-
-
 def ok(): return "ok"
 def ok2(): return "different"
 

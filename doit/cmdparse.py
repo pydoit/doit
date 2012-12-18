@@ -35,10 +35,6 @@ class DefaultUpdate(dict):
             self._non_default_keys.add(key)
         dict.__setitem__(self, key, value)
 
-    # http://bugs.python.org/issue826897
-    def __setstate__(self, adict):
-        pass
-
 
 class CmdParseError(Exception):
     """Error parsing options """
@@ -80,6 +76,51 @@ class CmdOption(object):
         if opt_dict:
             msg = "CmdOption dict contains invalid property '%s'"
             raise CmdParseError(msg % opt_dict.keys())
+
+
+    @staticmethod
+    def _print_2_columns(col1, col2):
+        """print using a 2-columns format """
+        column1_len = 24
+        column2_start = 28
+        left = (col1).ljust(column1_len)
+        right = col2.replace('\n', '\n'+ column2_start * ' ')
+        return "  %s  %s" % (left, right)
+
+    def help_param(self):
+        """return string of option's short and long name
+        i.e.:   -f ARG, --file=ARG
+        """
+        opts_str = []
+        if self.short:
+            if self.type is bool:
+                opts_str.append('-%s' % self.short)
+            else:
+                opts_str.append('-%s ARG' % self.short)
+        if self.long:
+            if self.type is bool:
+                opts_str.append('--%s' % self.long)
+            else:
+                opts_str.append('--%s=ARG' % self.long)
+        return ', '.join(opts_str)
+
+
+    def help_doc(self):
+        """return list of string of option's help doc"""
+        # ignore option that cant be modified on cmd line
+        if not (self.short or self.long):
+            return []
+
+        text = []
+        opt_str = self.help_param()
+        opt_help = self.help % {'default': self.default}
+        text.append(self._print_2_columns(opt_str, opt_help))
+        # print bool inverse option
+        if self.inverse:
+            opt_str = '--%s' % self.inverse
+            opt_help = 'opposite of --%s' % self.long
+            text.append(self._print_2_columns(opt_str, opt_help))
+        return text
 
 
 class CmdParse(object):

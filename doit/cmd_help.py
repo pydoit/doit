@@ -115,7 +115,8 @@ class Help(DoitCmdBase):
         if not task:
             return False
         print("%s  %s" % (task.name, task.doc))
-        # FIXME show params
+        for opt in task.taskcmd.options:
+            print("\n".join(opt.help_doc()))
         return True
 
     def execute(self, params, args):
