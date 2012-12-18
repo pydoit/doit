@@ -144,7 +144,7 @@ This blog `post <http://schettino72.wordpress.com/2008/04/14/doit-a-build-tool-t
 Status
 ======
 
-`doit` is under active development. Version 0.18 released on 2012-11.
+`doit` is under active development. Version 0.19 released on 2012-12.
 
 `doit` core features are quite stable. So if there is no recent development, it does NOT mean `doit` is not being maintained... Development is done based on real world use cases. If I don't need a feature and nobody never asked for it, it is not implemented ;) It is well designed and have a very small code base so adding new features isn't hard.
 
