@@ -70,7 +70,7 @@ class TestCmdAction(object):
         assert "12" == my_action.result
 
     def test_values(self):
-        # for cmdActions they are always empty
+        # for cmdActions they are emtpy if save_out not specified
         my_action = action.CmdAction("%s 1 2" % PROGRAM)
         my_action.execute()
         assert {} == my_action.values
@@ -129,7 +129,7 @@ class TestCmdExpandAction(object):
         targets = ["data/target", "data/targetXXX"]
         task = FakeTask(dependencies, ["data/dependency1"], targets, {})
         my_action = action.CmdAction(cmd, task)
-        my_action.execute()
+        assert my_action.execute() is None
 
         got = my_action.out.split('-')
         assert task.file_dep == got[0].split(), got[0]
@@ -141,10 +141,26 @@ class TestCmdExpandAction(object):
         cmd += " %(opt1)s - %(opt2)s"
         task = FakeTask([],[],[],{'opt1':'3', 'opt2':'abc def'})
         my_action = action.CmdAction(cmd, task)
-        my_action.execute()
-
+        assert my_action.execute() is None
         got = my_action.out.strip()
         assert "3 - abc def" == got, repr(got)
+
+    def test_callable_return_command_str(self):
+        def get_cmd(opt1, opt2):
+            cmd = "python %s/myecho.py" % TEST_PATH
+            return cmd + " %s - %s" % (opt1, opt2)
+        task = FakeTask([],[],[],{'opt1':'3', 'opt2':'abc def'})
+        my_action = action.CmdAction(get_cmd, task)
+        assert my_action.execute() is None
+        got = my_action.out.strip()
+        assert "3 - abc def" == got, repr(got)
+
+    def test_callable_invalid(self):
+        def get_cmd(blabla): pass
+        task = FakeTask([],[],[],{'opt1':'3'})
+        my_action = action.CmdAction(get_cmd, task)
+        got = my_action.execute()
+        assert isinstance(got, TaskError)
 
 
 
