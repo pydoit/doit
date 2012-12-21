@@ -8,7 +8,8 @@ Changes
 
 - added command `dumpdb`
 - added Action class `tools.SaveOutput`
-
+- BACKWARD INCOMPATIBLE `getargs` for a group task gets a dict where
+  each key is the name of subtasks (previously it was a list).
 
 0.19.0 (*2012-12-18*)
 ======================

@@ -66,22 +66,25 @@ class Runner(object):
 
     def _get_task_args(self, task, tasks_dict):
         """get values from other tasks"""
+        def get_value(task_id, key_name):
+            """get single value or dict from task's saved values"""
+            if key_name is None:
+                return self.dep_manager.get_values(task_id)
+            return self.dep_manager.get_value(task_id, key_name)
+
         # selected just need to get values from other tasks
         for arg, value in task.getargs.iteritems():
             task_id, key_name = value
-            # if key_name is None get the whole dict
-            if key_name is None:
-                if not tasks_dict[task_id].has_subtask:
-                    arg_value = self.dep_manager.get_values(task_id)
-                # if specified task is a group task pass values from all
-                # sub-tasks as string
-                else:
-                    arg_value = []
-                    for sub_id in tasks_dict[task_id].task_dep:
-                        arg_value.append(
-                            self.dep_manager.get_values(sub_id))
+
+            if tasks_dict[task_id].has_subtask:
+                # if a group task, pass values from all sub-tasks
+                arg_value = {}
+                base_len = len(task_id) + 1 # length of base name string
+                for sub_id in tasks_dict[task_id].task_dep:
+                    name = sub_id[base_len:]
+                    arg_value[name] = get_value(sub_id, key_name)
             else:
-                arg_value = self.dep_manager.get_value(task_id, key_name)
+                arg_value = get_value(task_id, key_name)
             task.options[arg] = arg_value
 
 

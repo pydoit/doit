@@ -139,14 +139,15 @@ class TestRunner_SelectTask(object):
         n1 = ExecNode(t1, None)
         t2 = Task('t2', [(check_x,)], getargs={'my_x':('t1','x')})
         n2 = ExecNode(t2, None)
+        tasks_dict = {'t1': t1, 't2':t2}
         my_runner = runner.Runner(depfile.name, reporter)
 
         # t2 gives chance for setup tasks to be executed
-        assert False == my_runner.select_task(n2, {})
+        assert False == my_runner.select_task(n2, tasks_dict)
         assert ('start', t2) == reporter.log.pop(0)
 
         # execute task t1 to calculate value
-        assert True == my_runner.select_task(n1, {})
+        assert True == my_runner.select_task(n1, tasks_dict)
         assert ('start', t1) == reporter.log.pop(0)
         t1_result = my_runner.execute_task(t1)
         assert ('execute', t1) == reporter.log.pop(0)
@@ -155,7 +156,7 @@ class TestRunner_SelectTask(object):
 
         # t2.options are set on select_task
         assert {} == t2.options
-        assert True == my_runner.select_task(n2, {})
+        assert True == my_runner.select_task(n2, tasks_dict)
         assert not reporter.log
         assert {'my_x': 1} == t2.options
 
@@ -166,14 +167,15 @@ class TestRunner_SelectTask(object):
         n1 = ExecNode(t1, None)
         t2 = Task('t2', [(check_x,)], getargs={'my_x':('t1','x')})
         n2 = ExecNode(t2, None)
+        tasks_dict = {'t1': t1, 't2':t2}
         my_runner = runner.Runner(depfile.name, reporter)
 
         # t2 gives chance for setup tasks to be executed
-        assert False == my_runner.select_task(n2, {})
+        assert False == my_runner.select_task(n2, tasks_dict)
         assert ('start', t2) == reporter.log.pop(0)
 
         # execute task t1 to calculate value
-        assert True == my_runner.select_task(n1, {})
+        assert True == my_runner.select_task(n1, tasks_dict)
         assert ('start', t1) == reporter.log.pop(0)
         t1_result = my_runner.execute_task(t1)
         assert ('execute', t1) == reporter.log.pop(0)
@@ -181,7 +183,7 @@ class TestRunner_SelectTask(object):
         assert ('success', t1) == reporter.log.pop(0)
 
         # select_task t2 fails
-        assert False == my_runner.select_task(n2, {})
+        assert False == my_runner.select_task(n2, tasks_dict)
         assert ('fail', t2) == reporter.log.pop(0)
         assert not reporter.log
 
@@ -215,8 +217,24 @@ class TestRunner_SelectTask(object):
         # t2.options are set on _get_task_args
         assert {} == t2.options
         my_runner._get_task_args(t2, tasks_dict)
-        assert {'my_x': [{'x':1}]} == t2.options
+        assert {'my_x': {'a':{'x':1}} } == t2.options
 
+
+
+    def test_getargs_group_value(self, reporter, depfile):
+        def ok(): return {'x':1}
+        t1 = Task('t1', None, task_dep=['t1:a'], has_subtask=True)
+        t1a = Task('t1:a', [(ok,)], is_subtask=True)
+        t2 = Task('t2', None, getargs={'my_x':('t1', 'x')})
+        tasks_dict = {'t1': t1, 't1a':t1a, 't2':t2}
+        my_runner = runner.Runner(depfile.name, reporter)
+        t1a_result = my_runner.execute_task(t1a)
+        my_runner.process_task_result(ExecNode(t1a, None), t1a_result)
+
+        # t2.options are set on _get_task_args
+        assert {} == t2.options
+        my_runner._get_task_args(t2, tasks_dict)
+        assert {'my_x': {'a':1} } == t2.options
 
 
 
