@@ -171,6 +171,15 @@ class TestCmd_print_process_output(object):
         my_action._print_process_output(Mock(), unicode_in, Mock(), tmpfile)
 
 
+class TestCmdSaveOuput(object):
+    def test_success(self):
+        TEST_PATH = os.path.dirname(__file__)
+        PROGRAM = "python %s/sample_process.py" % TEST_PATH
+        my_action = action.CmdAction(PROGRAM + " x1 x2", save_out='out')
+        my_action.execute()
+        assert {'out': u'x1'} == my_action.values
+
+
 
 class TestWriter(object):
     def test_writer(self):

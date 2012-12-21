@@ -246,23 +246,6 @@ class PythonInteractiveAction(PythonAction):
             return exceptions.TaskError("PythonAction Error", exception)
 
 
-# action class
-class SaveOutput(CmdAction):
-    """Execute command action and save stdout into action values"""
-    def __init__(self, action, task=None, save_out='out'):
-        """@param save_out: (str) name used to save output"""
-        CmdAction.__init__(self, action, task)
-        self.save_out = save_out
-
-    def execute(self, out=None, err=None):
-        ret = CmdAction.execute(self, out, err)
-        if (not ret) and self.save_out:
-            self.values[self.save_out] = self.out
-        return ret
-
-
-
-
 # debug helper
 def set_trace(): # pragma: no cover
     """start debugger, make sure stdout shows pdb output.

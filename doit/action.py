@@ -28,9 +28,10 @@ class CmdAction(BaseAction):
          It may contain python mapping strings with the keys: dependencies,
          changed and targets. ie. "zip %(targets)s %(changed)s"
     @ivar task(Task): reference to task that contains this action
+    @ivar save_out: (str) name used to save output in `values`
     """
 
-    def __init__(self, action, task=None): #pylint: disable=W0231
+    def __init__(self, action, task=None, save_out=None): #pylint: disable=W0231
         assert isinstance(action, basestring), "CmdAction must be a string."
         self.action = action
         self.task = task
@@ -38,7 +39,7 @@ class CmdAction(BaseAction):
         self.err = None
         self.result = None
         self.values = {}
-
+        self.save_out = save_out
 
     def _print_process_output(self, process, input_, capture, realtime):
         """read 'input_' untill process is terminated
@@ -120,6 +121,10 @@ class CmdAction(BaseAction):
         if process.returncode != 0:
             return TaskFailed("Command failed: '%s' returned %s" %
                              (action,process.returncode))
+
+        # save stdout in values
+        if self.save_out:
+            self.values[self.save_out] = self.out
 
 
     def expand_action(self):

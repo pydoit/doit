@@ -7,7 +7,7 @@ Changes
 ======================
 
 - added command `dumpdb`
-- added Action class `tools.SaveOutput`
+- added `CmdAction.save_out` param
 - BACKWARD INCOMPATIBLE `getargs` for a group task gets a dict where
   each key is the name of subtasks (previously it was a list).
 
