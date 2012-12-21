@@ -9,6 +9,14 @@ from threading import Thread
 from .exceptions import InvalidTask, TaskFailed, TaskError
 
 
+def normalize_callable(ref):
+    """return a list with (callabe, *args, **kwargs)
+    ref can be a simple callable or a tuple
+    """
+    if isinstance(ref, tuple):
+        return list(ref)
+    return [ref, (), {}]
+
 # Actions
 class BaseAction(object):
     """Base class for all actions"""
@@ -99,8 +107,9 @@ class CmdAction(BaseAction):
         if isinstance(self._action, basestring):
             return self._action
         else:
-            kwargs = self._prepare_kwargs(self.task, self._action, [], {})
-            return self._action(**kwargs)
+            ref, args, kw = normalize_callable(self._action)
+            kwargs = self._prepare_kwargs(self.task, ref, args, kw)
+            return ref(*args, **kwargs)
 
 
     def _print_process_output(self, process, input_, capture, realtime):

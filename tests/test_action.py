@@ -155,6 +155,16 @@ class TestCmdExpandAction(object):
         got = my_action.out.strip()
         assert "3 - abc def" == got, repr(got)
 
+    def test_callable_tuple_return_command_str(self):
+        def get_cmd(opt1, opt2):
+            cmd = "python %s/myecho.py" % TEST_PATH
+            return cmd + " %s - %s" % (opt1, opt2)
+        task = FakeTask([],[],[],{'opt1':'3'})
+        my_action = action.CmdAction((get_cmd, [], {'opt2':'abc def'}), task)
+        assert my_action.execute() is None
+        got = my_action.out.strip()
+        assert "3 - abc def" == got, repr(got)
+
     def test_callable_invalid(self):
         def get_cmd(blabla): pass
         task = FakeTask([],[],[],{'opt1':'3'})
