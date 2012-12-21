@@ -17,7 +17,9 @@ class Command(object):
     """
     CMD_LIST = [] # register with the name of all created commands
 
+    # if not specified uses the class name
     name = None
+
     # doc attributes, should be sub-classed
     doc_purpose = ''
     doc_usage = ''

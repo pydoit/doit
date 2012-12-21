@@ -7,7 +7,7 @@ import traceback
 import doit
 from .exceptions import InvalidDodoFile, InvalidCommand, InvalidTask
 from .cmdparse import CmdParseError
-from .cmd_base import DodoTaskLoader
+from .cmd_base import DodoTaskLoader, DoitCmdBase
 from .cmd_help import Help
 from .cmd_run import Run
 from .cmd_clean import Clean
@@ -15,10 +15,11 @@ from .cmd_list import List
 from .cmd_forget import Forget
 from .cmd_ignore import Ignore
 from .cmd_auto import Auto
+from .cmd_dumpdb import DumpDB
 
 
 class DoitMain(object):
-    DOIT_CMDS = Help, Run, List, Clean, Forget, Ignore, Auto
+    DOIT_CMDS = Help, Run, List, Clean, Forget, Ignore, Auto, DumpDB
     TASK_LOADER = DodoTaskLoader
 
     def __init__(self, task_loader=None):
@@ -38,8 +39,11 @@ class DoitMain(object):
         sub_cmds = {}
         # core doit commands
         for cmd_cls in (self.DOIT_CMDS):
-            cmd = cmd_cls(task_loader=self.task_loader)
-            cmd.doit_app = self
+            if issubclass(cmd_cls, DoitCmdBase):
+                cmd = cmd_cls(task_loader=self.task_loader)
+                cmd.doit_app = self # hack used by Help command
+            else:
+                cmd = cmd_cls()
             sub_cmds[cmd.name] = cmd
         return sub_cmds
 
