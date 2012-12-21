@@ -215,7 +215,7 @@ class check_timestamp_unchanged(object):
         return self._cmp_op(prev_time, current_time)
 
 
-# action
+# action class
 class InteractiveAction(CmdAction):
     """Action to handle Interactive shell process:
         * the output is never captured
@@ -231,7 +231,7 @@ class InteractiveAction(CmdAction):
             pass # normal way to stop interactive process
 
 
-# action
+# action class
 class PythonInteractiveAction(PythonAction):
     """Action to handle Interactive python:
         * the output is never captured
@@ -244,6 +244,23 @@ class PythonInteractiveAction(PythonAction):
             self.py_callable(*self.args, **kwargs)
         except Exception as exception:
             return exceptions.TaskError("PythonAction Error", exception)
+
+
+# action class
+class SaveOutput(CmdAction):
+    """Execute command action and save stdout into action values"""
+    def __init__(self, action, task=None, save_out='out'):
+        """@param save_out: (str) name used to save output"""
+        CmdAction.__init__(self, action, task)
+        self.save_out = save_out
+
+    def execute(self, out=None, err=None):
+        ret = CmdAction.execute(self, out, err)
+        if (not ret) and self.save_out:
+            self.values[self.save_out] = self.out
+        return ret
+
+
 
 
 # debug helper

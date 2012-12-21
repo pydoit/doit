@@ -306,3 +306,10 @@ class TestPythonInteractiveAction(object):
         assert isinstance(got, exceptions.TaskError)
 
 
+class TestActionSaveOuput(object):
+    def test_success(self):
+        TEST_PATH = os.path.dirname(__file__)
+        PROGRAM = "python %s/sample_process.py" % TEST_PATH
+        my_action = tools.SaveOutput(PROGRAM + " x1 x2")
+        my_action.execute()
+        assert {'out': u'x1'} == my_action.values
