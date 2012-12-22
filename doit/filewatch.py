@@ -1,7 +1,14 @@
 """Watch for modifications of file-system"""
 
 import os.path
-import platform
+
+def get_platform_system():
+    """return platform.system
+    platform module has many regexp, so importing it is slow...
+    import only if required
+    """
+    import platform
+    return platform.system()
 
 
 class FileModifyWatcher(object):
@@ -19,7 +26,7 @@ class FileModifyWatcher(object):
         self.file_list = set([os.path.abspath(f) for f in file_list])
         self.watch_dirs = set([os.path.dirname(f) for f in self.file_list])
         self.notifier = None
-        self.platform = platform.system()
+        self.platform = get_platform_system()
         if self.platform not in self.supported_platforms:
             msg = "Unsupported platform '%s'\n" % self.platform
             msg += ("'auto' command is supported only on %s" %
