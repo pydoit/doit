@@ -21,6 +21,7 @@ This is a debugging feature wiht many lilmitations.
   * if there is more than one action .strace file is overwritten
   * the process being traced itself might have some kind of cache,
     that means it might not write a target file if it exist.
+  * does not handle `chdir`
 
 So this is NOT 100% reliable, use with care!
 Error message might not be very clear...
@@ -68,6 +69,7 @@ Error message might not be very clear...
             wrapped = CmdAction(cmd, task, save_out=action.save_out)
             wrapped_actions.append(wrapped)
         task._action_instances = wrapped_actions
+        task._extend_uptodate([False])
 
 
 def find_deps(strace_out):

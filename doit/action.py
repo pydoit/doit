@@ -225,7 +225,7 @@ class CmdAction(BaseAction):
         return "Cmd: %s" % self._action
 
     def __repr__(self):
-        return "<CmdAction: '%s'>"  % self._action
+        return "<CmdAction: '%s'>" % str(self._action)
 
 
 
