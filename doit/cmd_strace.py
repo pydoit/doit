@@ -87,7 +87,6 @@ def find_deps(strace_out):
             if not match:
                 continue
             name = os.path.abspath(match.group('file'))
-            print match.group('mode')
             if 'WR' in match.group('mode'):
                 print "T ", name
             else:
