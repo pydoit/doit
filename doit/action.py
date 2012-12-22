@@ -219,7 +219,7 @@ class CmdAction(BaseAction):
 
 
     def clone(self, task):
-        return self.__class__(self.action, task)
+        return self.__class__(self._action, task, save_out=self.save_out)
 
     def __str__(self):
         return "Cmd: %s" % self._action
