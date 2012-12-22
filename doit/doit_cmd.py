@@ -16,10 +16,11 @@ from .cmd_forget import Forget
 from .cmd_ignore import Ignore
 from .cmd_auto import Auto
 from .cmd_dumpdb import DumpDB
+from .cmd_strace import Strace
 
 
 class DoitMain(object):
-    DOIT_CMDS = Help, Run, List, Clean, Forget, Ignore, Auto, DumpDB
+    DOIT_CMDS = Help, Run, List, Clean, Forget, Ignore, Auto, DumpDB, Strace
     TASK_LOADER = DodoTaskLoader
 
     def __init__(self, task_loader=None):
