@@ -1,5 +1,5 @@
 import os
-from multiprocessing import Queue
+from multiprocessing import Process, Queue
 
 import pytest
 from mock import Mock
@@ -8,6 +8,33 @@ from doit.dependency import Dependency
 from doit.task import Task
 from doit.control import TaskDispatcher, ExecNode
 from doit import runner
+
+
+def coverage_multiprocessing_process(): # pragma: no cover
+    try:
+        import coverage
+    except:
+        return
+
+    from coverage.collector import Collector
+    from coverage.control import coverage
+    # detect if coverage was running in forked process
+    if Collector._collectors:
+        class Process_WithCoverage(Process):
+            def _bootstrap(self):
+                cov = coverage(data_suffix=True)
+                cov.start()
+                try:
+                    return Process._bootstrap(self)
+                finally:
+                    cov.stop()
+                    cov.save()
+        return Process_WithCoverage
+
+ProcessCoverage = coverage_multiprocessing_process()
+if ProcessCoverage:
+    runner.Process = ProcessCoverage
+
 
 
 # sample actions
