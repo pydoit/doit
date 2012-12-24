@@ -4,6 +4,7 @@ syntax:glob
 .coverage*
 __pycache__
 .doit.db*
+.strace
 
 .pytest-incremental*
 pytest.ini

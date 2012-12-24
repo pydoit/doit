@@ -49,7 +49,7 @@ Error message might not be very clear...
         # add task to print report
         report_strace = Task(
             'strace_report',
-            actions = [(find_deps, [self.TRACE_OUT])],
+            actions = [(find_deps, [self.outstream, self.TRACE_OUT])],
             verbosity = 2,
             task_dep = [selected],
             uptodate = [False],
@@ -72,7 +72,7 @@ Error message might not be very clear...
         task._extend_uptodate([False])
 
 
-def find_deps(strace_out):
+def find_deps(outstream, strace_out):
     """read file witn strace output, return dict with deps, targets"""
     # 7978  open("/etc/ld.so.cache", O_RDONLY|O_CLOEXEC) = 3
     # ignore text until '('
@@ -82,7 +82,6 @@ def find_deps(strace_out):
     # get "mode" file was open, until ')' is closed
     # ignore rest of line
     regex = re.compile(r'.*\("(?P<file>[^"]*)", (\[.*\])*(?P<mode>[^)]*)\).*')
-
     with open(strace_out) as text:
         for line in text:
             match = regex.match(line)
@@ -90,8 +89,7 @@ def find_deps(strace_out):
                 continue
             name = os.path.abspath(match.group('file'))
             if 'WR' in match.group('mode'):
-                print "T ", name
+                outstream.write("T %s\n" % name)
             else:
-                print "D ", name
-
+                outstream.write("D %s\n" % name)
 

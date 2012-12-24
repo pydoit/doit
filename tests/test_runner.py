@@ -12,7 +12,8 @@ from doit import runner
 
 def coverage_multiprocessing_process(): # pragma: no cover
     try:
-        import coverage
+        import coverage as _coverage
+        _coverage
     except:
         return
 
