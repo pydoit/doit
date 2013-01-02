@@ -27,12 +27,4 @@ big refactorings
 ------------------
 
 . Task into TaskDep + Task
-. TaskControl into Create + Process
 
-
-not clear how to implement
----------------------------
-
-. one .doit for each dodo file
-. multiple (include) dodo files (#4)
-. sub-command/task unification. all sub-commands (but run) implemented as tasks

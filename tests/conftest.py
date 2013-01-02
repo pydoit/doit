@@ -1,5 +1,7 @@
 import os
+import time
 from whichdb import whichdb
+import multiprocessing
 
 import py
 import pytest
@@ -18,7 +20,7 @@ def dependency1(request):
     path = get_abspath("data/dependency1")
     if os.path.exists(path): os.remove(path)
     ff = open(path, "w")
-    ff.write("whatever")
+    ff.write("whatever" + str(time.asctime()))
     ff.close()
 
     def remove_dependency():
@@ -110,3 +112,33 @@ def tasks_sample():
         Task("t3", [""], doc="t3 doc string")]
     tasks_sample[2].task_dep = ['g1.a', 'g1.b']
     return tasks_sample
+
+
+
+# mokey patch multiprocessing to enable  code coverage
+def coverage_multiprocessing_process(): # pragma: no cover
+    try:
+        import coverage as _coverage
+        _coverage
+    except:
+        return
+
+    from coverage.collector import Collector
+    from coverage.control import coverage
+    # detect if coverage was running in forked process
+    if Collector._collectors:
+        original = multiprocessing.Process._bootstrap
+        class Process_WithCoverage(multiprocessing.Process):
+            def _bootstrap(self):
+                cov = coverage(data_suffix=True)
+                cov.start()
+                try:
+                    return original(self)
+                finally:
+                    cov.stop()
+                    cov.save()
+        return Process_WithCoverage
+
+ProcessCoverage = coverage_multiprocessing_process()
+if ProcessCoverage:
+    multiprocessing.Process = ProcessCoverage
