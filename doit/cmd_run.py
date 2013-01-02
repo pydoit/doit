@@ -156,5 +156,3 @@ class Run(DoitCmdBase):
             if isinstance(outfile, str):
                 outstream.close()
 
-
-

@@ -217,10 +217,6 @@ class CmdAction(BaseAction):
         subs_dict.update(self.task.options)
         return self.action % subs_dict
 
-
-    def clone(self, task):
-        return self.__class__(self._action, task, save_out=self.save_out)
-
     def __str__(self):
         return "Cmd: %s" % self._action
 
@@ -355,9 +351,6 @@ class PythonAction(BaseAction):
                              "returned %s (%s)" %
                              (self.py_callable, returned_value,
                               type(returned_value)))
-
-    def clone(self, task):
-        return self.__class__(self.py_callable, self.args, self.kwargs, task)
 
     def __str__(self):
         # get object description excluding runtime memory address

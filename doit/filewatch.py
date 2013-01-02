@@ -1,4 +1,6 @@
-"""Watch for modifications of file-system"""
+"""Watch for modifications of file-system
+use by cmd_auto module
+"""
 
 import os.path
 

@@ -60,6 +60,16 @@ class TestCmdRun(object):
         pytest.raises(InvalidCommand, cmd_run._execute,
                       output, reporter="i dont exist")
 
+    def testReporterInstance(self, depfile):
+        output = StringIO.StringIO()
+        class MyReporter(reporter.ConsoleReporter):
+            def get_status(self, task):
+                self.outstream.write('MyReporter.start %s\n' % task.name)
+        cmd_run = Run(dep_file=depfile.name, task_list=[tasks_sample()[0]])
+        cmd_run._execute(output, reporter=MyReporter(output, {}))
+        got = output.getvalue().split("\n")[:-1]
+        assert 'MyReporter.start t1' == got[0]
+
     def testCustomReporter(self, depfile):
         output = StringIO.StringIO()
         class MyReporter(reporter.ConsoleReporter):

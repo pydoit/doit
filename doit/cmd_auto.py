@@ -1,9 +1,9 @@
 """starts a long-running process that whatches the file system and
 automatically execute tasks when file dependencies change"""
 
-import os
 import sys
 import itertools
+from multiprocessing import Process
 
 from .cmdparse import CmdParse
 from .filewatch import FileModifyWatcher
@@ -65,12 +65,10 @@ class Auto(DoitCmdBase):
         but using different process we can have dependencies on python
         modules making sure the newest module will be used.
         """
-        child_pid = os.fork()
-        if child_pid:
-            # child process will execute tasks and wait for file system event
-            # after event child is terminated...
-            os.waitpid(child_pid, 0)
-            # ... repeat process, fork again.
-            self.execute(params, args)
-        else:
-            self.run_watch(params, args)
+        while True:
+            try:
+                p = Process(target=self.run_watch, args=(params, args))
+                p.start()
+                p.join()
+            except KeyboardInterrupt:
+                return 0
