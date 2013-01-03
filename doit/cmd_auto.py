@@ -1,6 +1,8 @@
 """starts a long-running process that whatches the file system and
 automatically execute tasks when file dependencies change"""
 
+import os
+import time
 import sys
 from multiprocessing import Process
 
@@ -52,12 +54,26 @@ class Auto(DoitCmdBase):
         return deps
 
 
+    @staticmethod
+    def _dep_changed(watch_files, started, targets):
+        """check if watched files was modified since execution started"""
+        for watched in watch_files:
+            # assume that changes to targets were done by doit itself
+            if watched in targets:
+                continue
+            if os.stat(watched).st_mtime > started:
+                return True
+        return False
+
+
     def run_watch(self, params, args):
         """Run tasks and wait for file system event
 
         This method is executed in a forked process.
         The process is terminated after a single event.
         """
+        started = time.time()
+
         # execute tasks using Run Command
         ar = Run(task_loader=self._loader, dep_file=self.dep_file)
         params.add_defaults(CmdParse(ar.options).parse([])[0])
@@ -67,21 +83,17 @@ class Auto(DoitCmdBase):
         watch_files = self._find_file_deps(ar.control.tasks,
                                            ar.control.selected_tasks)
 
-        # set event handler. just terminate process.
-        class DoitAutoRun(FileModifyWatcher):
-            def handle_event(self, event):
-                print "FS EVENT -> ", event
-                sys.exit(result)
-        file_watcher = DoitAutoRun(watch_files)
-
-
-        # FIXME events while tasks are running gonna be lost.
         # Check for timestamp changes since run started,
-        # if no change: watch & wait
-        # else: restart straight away
-
-        # kick start watching process
-        file_watcher.loop()
+        # if change, restart straight away
+        if not self._dep_changed(watch_files, started, ar.control.targets):
+            # set event handler. just terminate process.
+            class DoitAutoRun(FileModifyWatcher):
+                def handle_event(self, event):
+                    #print "FS EVENT -> ", event
+                    sys.exit(result)
+            file_watcher = DoitAutoRun(watch_files)
+            # kick start watching process
+            file_watcher.loop()
 
 
     def execute(self, params, args):

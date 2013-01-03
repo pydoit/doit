@@ -1,5 +1,4 @@
 import time
-from StringIO import StringIO
 from multiprocessing import Process
 
 from doit.cmdparse import DefaultUpdate
@@ -10,7 +9,6 @@ from doit import cmd_auto
 
 
 class TestFindFileDeps(object):
-
     def find_deps(self, sel_tasks):
         tasks = {
             't1': Task("t1", [""], file_dep=['f1']),
@@ -25,21 +23,29 @@ class TestFindFileDeps(object):
         assert set(['f1', 'f3']) == self.find_deps(['t3'])
 
 
+
+class TestDepChanged(object):
+    def test_changed(self, dependency1):
+        started = time.time()
+        assert not cmd_auto.Auto._dep_changed([dependency1], started, [])
+        assert cmd_auto.Auto._dep_changed([dependency1], started-100, [])
+        assert not cmd_auto.Auto._dep_changed([dependency1], started-100,
+                                              [dependency1])
+
+
 class FakeLoader(TaskLoader):
     def __init__(self, task_list):
         self.task_list = task_list
     def load_tasks(self, cmd, params, args):
-        return self.task_list, {}
+        return self.task_list, {'verbosity':2}
 
 
 class TestAuto(object):
 
     def test_run_wait(self, dependency1, depfile, capsys):
-        output = StringIO()
         t1 = Task("t1", [""], file_dep=[dependency1])
         cmd = cmd_auto.Auto(task_loader=FakeLoader([t1]),
-                       dep_file=depfile.name,
-                       outstream=output)
+                       dep_file=depfile.name)
 
         run_wait_proc = Process(target=cmd.run_watch,
                                 args=(DefaultUpdate(), []))
@@ -57,6 +63,7 @@ class TestAuto(object):
         if run_wait_proc.is_alive(): # pragma: no cover
             run_wait_proc.terminate()
             raise Exception("process not terminated")
+        assert 0 == run_wait_proc.exitcode
 
 
     def test_execute(self, monkeypatch):
