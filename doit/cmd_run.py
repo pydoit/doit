@@ -101,8 +101,9 @@ class Run(DoitCmdBase):
                          (reporter instance) - only used in unittests
         """
         # get tasks to be executed
-        task_control = TaskControl(self.task_list)
-        task_control.process(self.sel_tasks)
+        # self.control is saved on instance to be used by 'auto' command
+        self.control = TaskControl(self.task_list)
+        self.control.process(self.sel_tasks)
 
         # reporter
         if isinstance(reporter, basestring):
@@ -151,7 +152,7 @@ class Run(DoitCmdBase):
                 runner = MRunner(self.dep_file, reporter_obj, continue_,
                                  always, verbosity, num_process)
 
-            return runner.run_all(task_control.task_dispatcher())
+            return runner.run_all(self.control.task_dispatcher())
         finally:
             if isinstance(outfile, str):
                 outstream.close()

@@ -6,9 +6,10 @@ import getopt
 
 
 class DefaultUpdate(dict):
-    """A dictionary with support that has an "update_defaults" method where
-    only items with default values are updated. A default value is added with
-    the method "set_default".
+    """A dictionary that has an "update_defaults" method where
+    only items with default values are updated.
+
+    A default value is added with the method set_default or add_defaults.
     """
     def __init__(self, *args, **kwargs):
         dict.__init__(self, *args, **kwargs)
@@ -19,14 +20,23 @@ class DefaultUpdate(dict):
         """set default value for given key"""
         dict.__setitem__(self, key, value)
 
+    def add_defaults(self, source):
+        """add default values from another dict
+        @param source: (dict)"""
+        for key, value in source.iteritems():
+            if key not in self._non_default_keys:
+                self.set_default(key, value)
+
     def update_defaults(self, update_dict):
-        """do not update items that already have a non-default value"""
+        """like dict.update but do not update items that have
+        a non-default value"""
         for key, value in update_dict.iteritems():
             if key in self._non_default_keys:
                 continue
             self[key] = value
 
     def __setitem__(self, key, value):
+        """overwrite to keep track of _non_default_keys"""
         try:
             self._non_default_keys.add(key)
         # http://bugs.python.org/issue826897

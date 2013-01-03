@@ -3,7 +3,6 @@
 
 import types
 import os
-import copy
 
 from .cmdparse import CmdOption, TaskParse
 from .exceptions import CatchedException, InvalidTask

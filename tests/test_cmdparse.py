@@ -21,6 +21,15 @@ class TestDefaultUpdate(object):
         assert 2 == du['a']
         assert 1 == du['b']
 
+    def test_add_defaults(self):
+        du = DefaultUpdate()
+        du.add_defaults({'a': 0, 'b':1})
+        du['c'] = 5
+        du.add_defaults({'a':2, 'c':2})
+        assert 2 == du['a']
+        assert 1 == du['b']
+        assert 5 == du['c']
+
     # http://bugs.python.org/issue826897
     def test_pickle(self):
         du = DefaultUpdate()

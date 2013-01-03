@@ -8,6 +8,23 @@ from doit.cmd_base import TaskLoader
 from doit import cmd_auto
 
 
+
+class TestFindFileDeps(object):
+
+    def find_deps(self, sel_tasks):
+        tasks = {
+            't1': Task("t1", [""], file_dep=['f1']),
+            't2': Task("t2", [""], file_dep=['f2'], task_dep=['t1']),
+            't3': Task("t3", [""], file_dep=['f3'], setup=['t1']),
+            }
+        return cmd_auto.Auto._find_file_deps(tasks, sel_tasks)
+
+    def test_find_file_deps(self):
+        assert set(['f1']) == self.find_deps(['t1'])
+        assert set(['f1', 'f2']) == self.find_deps(['t2'])
+        assert set(['f1', 'f3']) == self.find_deps(['t3'])
+
+
 class FakeLoader(TaskLoader):
     def __init__(self, task_list):
         self.task_list = task_list
@@ -16,6 +33,7 @@ class FakeLoader(TaskLoader):
 
 
 class TestAuto(object):
+
     def test_run_wait(self, dependency1, depfile, capsys):
         output = StringIO()
         t1 = Task("t1", [""], file_dep=[dependency1])
@@ -39,6 +57,7 @@ class TestAuto(object):
         if run_wait_proc.is_alive(): # pragma: no cover
             run_wait_proc.terminate()
             raise Exception("process not terminated")
+
 
     def test_execute(self, monkeypatch):
         # use dumb operation instead of executing RUN command and waiting event
