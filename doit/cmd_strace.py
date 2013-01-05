@@ -49,11 +49,13 @@ Error message might not be very clear...
 
     cmd_options = (opt_show_all, opt_keep_trace)
 
-    TRACE_CMD = "strace -f -e trace=file -o %s %s "
+    TRACE_CMD = "strace -f -e trace=file %s 2>>%s "
     TRACE_OUT = 'strace.txt'
 
     def execute(self, params, args):
         """remove existing output file if any and do sanity checking"""
+        if os.path.exists(self.TRACE_OUT): # pragma: no cover
+            os.unlink(self.TRACE_OUT)
         assert len(args) == 1, 'doit strace failed, must select task to strace'
         result = Run.execute(self, params, args)
         if (not params['keep_trace']) and os.path.exists(self.TRACE_OUT):
@@ -61,6 +63,9 @@ Error message might not be very clear...
         return result
 
     def _execute(self, show_all):
+        """1) wrap the original action with strace and save output in file
+           2) add a second task that will generate the report from temp file
+        """
         # find task to trace and wrap it
         selected = self.sel_tasks[0]
         for task in self.task_list:
@@ -88,10 +93,14 @@ Error message might not be very clear...
         """wrap task actions into strace command"""
         wrapped_actions = []
         for action in task.actions:
-            cmd = cls.TRACE_CMD % (cls.TRACE_OUT, action._action)
-            wrapped = CmdAction(cmd, task, save_out=action.save_out)
-            wrapped_actions.append(wrapped)
+            if isinstance(action, CmdAction):
+                cmd = cls.TRACE_CMD % (action._action, cls.TRACE_OUT)
+                wrapped = CmdAction(cmd, task, save_out=action.save_out)
+                wrapped_actions.append(wrapped)
+            else:
+                wrapped_actions.append(action)
         task._action_instances = wrapped_actions
+        # task should be always executed
         task._extend_uptodate([False])
 
 
@@ -110,6 +119,8 @@ def find_deps(outstream, strace_out, show_all):
     read = set()
     write = set()
     cwd = os.getcwd()
+    if not os.path.exists(strace_out):
+        return
     with open(strace_out) as text:
         for line in text:
             # ignore non file operation

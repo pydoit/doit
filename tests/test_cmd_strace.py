@@ -67,3 +67,17 @@ class TestCmdRun(object):
         got = output.getvalue().split("\n")
         tgt_path = os.path.abspath("tests/data/dependency1")
         assert "W %s" % tgt_path in got[0]
+
+    def test_ignore_python_actions(self, dependency1, depfile):
+        output = StringIO()
+        def py_open():
+            with open(dependency1) as ignore:
+                ignore
+        task = Task("tt", [py_open])
+        cmd = Strace(outstream=output)
+        cmd._loader.load_tasks = mock.Mock(return_value=([task], {}))
+        params = DefaultUpdate(dep_file=depfile.name, show_all=False,
+                               keep_trace=False)
+        result = cmd.execute(params, ['tt'])
+        assert 0 == result
+
