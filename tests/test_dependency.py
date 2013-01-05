@@ -56,6 +56,11 @@ class TestDependencyDb(object):
         value = depfile._get("taskId_X","dependency_A")
         assert "da_md5" == value, value
 
+    def test_get_set_unicode_name(self, depfile):
+        depfile._set(u"taskId_我","dependency_A","da_md5")
+        value = depfile._get(u"taskId_我","dependency_A")
+        assert "da_md5" == value, value
+
     #
     def test_dump(self, depfile):
         # save and close db

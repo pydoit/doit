@@ -1,6 +1,7 @@
 """Manage (save/check) task dependency-on-files data."""
 
 import os
+import sys
 import hashlib
 import dumbdbm
 import anydbm as ddbm
@@ -129,6 +130,19 @@ class JsonDB(object):
         self._db = {}
 
 
+
+def encode_task_id(func):
+    """in python 2 dbm module does not automatically convert unicode to bytes"""
+    if sys.version < '3':
+        def wrap(self, key, *args):
+            if isinstance(key, unicode):
+                key = key.encode('utf-8')
+            return func(self, key, *args)
+        return wrap
+    else:  # pragma: no cover
+        return func
+
+
 class DbmDB(object):
     """Backend using a DBM file with individual values encoded in JSON
 
@@ -175,12 +189,15 @@ class DbmDB(object):
             self._dbm[task_id] = json.dumps(self._db[task_id])
         self._dbm.close()
 
+
+    @encode_task_id
     def set(self, task_id, dependency, value):
         """Store value in the DB."""
         if task_id not in self._db:
             self._db[task_id] = {}
         self._db[task_id][dependency] = value
         self.dirty.add(task_id)
+
 
     def _in_dbm(self, key):
         """
@@ -192,6 +209,7 @@ class DbmDB(object):
         return key.encode('utf-8') in self._dbm
 
 
+    @encode_task_id
     def get(self, task_id, dependency):
         """Get value stored in the DB.
 
@@ -209,11 +227,13 @@ class DbmDB(object):
             return self._db[task_id].get(dependency, None)
 
 
+    @encode_task_id
     def in_(self, task_id):
         """@return bool if task_id is in DB"""
         return self._in_dbm(task_id) or task_id in self.dirty
 
 
+    @encode_task_id
     def remove(self, task_id):
         """remove saved dependecies from DB for taskId"""
         if task_id in self._db:
@@ -222,6 +242,7 @@ class DbmDB(object):
             del self._dbm[task_id]
         if task_id in self.dirty:
             self.dirty.remove(task_id)
+
 
     def remove_all(self):
         """remove saved dependecies from DB for all tasks"""
