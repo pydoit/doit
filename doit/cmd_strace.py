@@ -14,7 +14,16 @@ opt_show_all = {
     'long':'all',
     'type': bool,
     'default': False,
-    'help': "display all files (not only from within CWD path",
+    'help': "display all files (not only from within CWD path)",
+    }
+
+opt_keep_trace = {
+    'name':'keep_trace',
+    'short':'k',
+    'long':'keep',
+    'type': bool,
+    'default': False,
+    'help': "save strace command output into strace.txt",
     }
 
 
@@ -22,9 +31,9 @@ class Strace(Run):
     doc_purpose = "use strace to list file_deps and targets"
     doc_usage = "TASK"
     doc_description = """
-The output is a list of files prefixed with 'D' for dependency
-or 'T' for target. The full strace output can be found at '.strace'.
-The files are listed in chronological order and might appear more than once.
+The output is a list of files prefixed with 'R' for open in read mode
+or 'W' for open in write mode.
+The files are listed in chronological order.
 
 This is a debugging feature wiht many lilmitations.
   * can strace only one task at a time
@@ -38,17 +47,18 @@ So this is NOT 100% reliable, use with care!
 Error message might not be very clear...
 """
 
-    cmd_options = (opt_show_all, )
+    cmd_options = (opt_show_all, opt_keep_trace)
 
     TRACE_CMD = "strace -f -e trace=file -o %s %s "
-    TRACE_OUT = '.strace'
+    TRACE_OUT = 'strace.txt'
 
     def execute(self, params, args):
         """remove existing output file if any and do sanity checking"""
-        if os.path.exists(self.TRACE_OUT):
-            os.unlink(self.TRACE_OUT)
         assert len(args) == 1, 'doit strace failed, must select task to strace'
-        return Run.execute(self, params, args)
+        result = Run.execute(self, params, args)
+        if (not params['keep_trace']) and os.path.exists(self.TRACE_OUT):
+            os.unlink(self.TRACE_OUT)
+        return result
 
     def _execute(self, show_all):
         # find task to trace and wrap it
