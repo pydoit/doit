@@ -40,7 +40,7 @@ class DumpDB(Command):
         dep_file = opt_values['dep_file']
         db_type = whichdb(dep_file)
         print "DBM type is '%s'" % db_type
-        if db_type == 'dbm.ndbm': # pragma: no cover
+        if db_type in ('dbm', 'dbm.ndbm'): # pragma: no cover
             raise InvalidCommand('ndbm does not support iteration of elements')
         data = anydbm.open(dep_file)
         for key, value_str in dbm_iter(data):
