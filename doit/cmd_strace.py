@@ -38,13 +38,11 @@ The files are listed in chronological order.
 This is a debugging feature wiht many lilmitations.
   * can strace only one task at a time
   * can only strace CmdAction
-  * if there is more than one action .strace file is overwritten
   * the process being traced itself might have some kind of cache,
-    that means it might not write a target file if it exist.
+    that means it might not write a target file if it exist
   * does not handle chdir
 
 So this is NOT 100% reliable, use with care!
-Error message might not be very clear...
 """
 
     cmd_options = (opt_show_all, opt_keep_trace)

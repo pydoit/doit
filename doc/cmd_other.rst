@@ -136,12 +136,43 @@ auto (watch)
 
 .. note::
 
-   The `dodo` file is actually re-loaded/executed everytime tasks need to be
-   re-executed.
+   The `dodo` file is actually re-loaded/executed in a separate procees
+   everytime tasks need to be re-executed.
 
 
-.. warning::
 
-   Note that ``doit`` will *not* reload any python module.
-   So be aware that if you are using python-actions and the source code of
-   these files were changed it will not be affected.
+dumpdb
+--------
+
+`doit` saves internal data in a file (`.doit.db` be default).
+It uses a binary format (whatever python's dbm is using in your system).
+This command will simply dumps its content in readable text format in the output.
+
+.. code-block:: console
+
+    $ doit dumpdb
+
+
+
+strace
+--------
+
+This command uses `strace<https://en.wikipedia.org/wiki/Strace>`_
+utility to help you verify which files are being used by a given task.
+
+The output is a list of files prefixed with `R` for open in read mode
+or `W` for open in write mode.
+The files are listed in chronological order.
+
+This is a debugging feature wiht many lilmitations.
+  * can strace only one task at a time
+  * can only strace CmdAction
+  * the process being traced itself might have some kind of cache,
+    that means it might not write a target file if it exist
+  * does not handle chdir
+
+So this is NOT 100% reliable, use with care!
+
+.. code-block:: console
+
+    $ doit strace <task-name>

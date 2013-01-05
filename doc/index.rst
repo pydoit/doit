@@ -31,18 +31,19 @@ and contains some extra meta-data.
    `doit` checks if the task is **up-to-date** and skips its execution if the
    task would produce the same result (cached) of a previous execution.
 
-.. topic:: execution order
+.. topic:: correct execution order
 
   By checking the inter-dependency between tasks `doit` ensures that tasks
   will be execute in the correct order.
 
 .. topic:: parallel execution
 
-  built-in support for task parallel (multi-process) task execution
+  built-in support for parallel (multi-process) task execution
   (:ref:`more <parallel-execution>`)
 
 
-Traditional build-tools were created mainly to deal with compile/link process of source code. `doit` was designed to solve a broader range of tasks.
+Traditional build-tools were created mainly to deal with compile/link
+process of source code. `doit` was designed to solve a broader range of tasks.
 
 .. topic:: powerful dependency system
 
@@ -70,10 +71,12 @@ but often you want to create this metadata programmatically.
 
 .. code-block:: python
 
+     # with a decorator
      @task(file_dep=['input.txt'])
      def my_task_action(dependencies):
           # do something
 
+     # or with a object
      MyCustomTask2(my_param)
 
 
@@ -135,17 +138,26 @@ Project Details
 
 * `doit-recipes <https://bitbucket.org/schettino72/doit-recipes/wiki/Home>`_ contains a collection of non-trivial examples and a list of projects using `doit`.
 
-* Professional support and consulting services available from ``doit`` creator & maintainer (*schettino72* at gmail.com).
-
-This blog `post <http://schettino72.wordpress.com/2008/04/14/doit-a-build-tool-tale/>`_ explains how everything started.
+* Professional support and consulting services available from `doit`
+  creator & maintainer (*schettino72* at gmail.com).
 
 
 
 Status
 ======
 
-`doit` is under active development. Version 0.19 released on 2012-12.
+This blog `post <http://schettino72.wordpress.com/2008/04/14/doit-a-build-tool-tale/>`_ explains how everything started in 2008.
 
-`doit` core features are quite stable. So if there is no recent development, it does NOT mean `doit` is not being maintained... Development is done based on real world use cases. If I don't need a feature and nobody never asked for it, it is not implemented ;) It is well designed and have a very small code base so adding new features isn't hard.
+`doit` is under active development. Version 0.20 released on 2013-01.
+
+`doit` core features are quite stable. So if there is no recent development,
+it does NOT mean `doit` is not being maintained...
+The project has 100% unit-test code coverage
+and kept with *zero* bugs in the tracker.
+
+Development is done based on real world use cases.
+If I don't need a feature and nobody never asked for it, it is not implemented ;)
+It is well designed and have a very small code base
+so adding new features isn't hard.
 
 If you use `doit` please drop me a line telling me your experience...

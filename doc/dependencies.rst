@@ -183,6 +183,13 @@ saving computed values
 Tasks can save computed values by returning a dictionary on it's python-actions.
 The values must be JSON encodable.
 
+A cmd-action can also save it's output.
+But for this you will need to explicitly import `CmdAction` and set its `save_out`
+parameter with the *name* used to save the output in *values*
+
+.. literalinclude:: tutorial/save_out.py
+
+
 These values can be used on uptodate_ and getargs_.
 Check those sections for examples.
 
@@ -212,7 +219,7 @@ by specifying the value name as ``None``.
 .. literalinclude:: tutorial/getargs_dict.py
 
 
-If a group-task is used, the values from all its sub-tasks are passed as a list.
+If a group-task is used, the values from all its sub-tasks are passed as a dict.
 
 .. literalinclude:: tutorial/getargs_group.py
 
