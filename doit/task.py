@@ -217,6 +217,8 @@ class Task(object):
     def update_deps(self, deps):
         """expand all kinds of dep input"""
         for dep, dep_values in deps.iteritems():
+            if dep not in self._expand_map:
+                continue
             self._expand_map[dep](self, dep_values)
 
 

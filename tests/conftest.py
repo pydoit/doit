@@ -116,6 +116,7 @@ def tasks_sample():
 
 
 # mokey patch multiprocessing to enable  code coverage
+# NOTE: doesnt work with pytest-xdist (actually execnet)
 def coverage_multiprocessing_process(): # pragma: no cover
     try:
         import coverage as _coverage

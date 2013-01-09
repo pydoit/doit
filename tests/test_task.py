@@ -153,6 +153,7 @@ class TestTaskDeps(object):
                              'task_dep': ['taskY'],
                              'calc_dep': ['calcX', 'calcY'],
                              'uptodate': [True],
+                             'to_be_ignored': 'asdf',
                              })
         assert set(['fileX', 'fileY']) == my_task.file_dep
         assert ['taskY'] == my_task.task_dep
