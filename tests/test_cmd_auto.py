@@ -34,18 +34,18 @@ class TestDepChanged(object):
 
 
 class FakeLoader(TaskLoader):
-    def __init__(self, task_list):
+    def __init__(self, task_list, dep_file):
         self.task_list = task_list
+        self.dep_file = dep_file
     def load_tasks(self, cmd, params, args):
-        return self.task_list, {'verbosity':2}
+        return self.task_list, {'verbosity':2, 'dep_file':self.dep_file}
 
 
 class TestAuto(object):
 
-    def test_run_wait(self, dependency1, depfile, capsys):
+    def test_run_wait(self, dependency1, depfile):
         t1 = Task("t1", [""], file_dep=[dependency1])
-        cmd = cmd_auto.Auto(task_loader=FakeLoader([t1]),
-                       dep_file=depfile.name)
+        cmd = cmd_auto.Auto(task_loader=FakeLoader([t1], depfile.name))
 
         run_wait_proc = Process(target=cmd.run_watch,
                                 args=(DefaultUpdate(), []))

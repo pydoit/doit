@@ -26,7 +26,7 @@ class TestDefaultUpdate(object):
         du.add_defaults({'a': 0, 'b':1})
         du['c'] = 5
         du.add_defaults({'a':2, 'c':2})
-        assert 2 == du['a']
+        assert 0 == du['a']
         assert 1 == du['b']
         assert 5 == du['c']
 

@@ -75,7 +75,7 @@ class Auto(DoitCmdBase):
         started = time.time()
 
         # execute tasks using Run Command
-        ar = Run(task_loader=self._loader, dep_file=self.dep_file)
+        ar = Run(task_loader=self._loader)
         params.add_defaults(CmdParse(ar.options).parse([])[0])
         result = ar.execute(params, args)
 

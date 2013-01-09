@@ -24,7 +24,7 @@ class DefaultUpdate(dict):
         """add default values from another dict
         @param source: (dict)"""
         for key, value in source.iteritems():
-            if key not in self._non_default_keys:
+            if key not in self:
                 self.set_default(key, value)
 
     def update_defaults(self, update_dict):
