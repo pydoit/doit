@@ -157,7 +157,7 @@ This command will simply dumps its content in readable text format in the output
 strace
 --------
 
-This command uses `strace<https://en.wikipedia.org/wiki/Strace>`_
+This command uses `strace <https://en.wikipedia.org/wiki/Strace>`_
 utility to help you verify which files are being used by a given task.
 
 The output is a list of files prefixed with `R` for open in read mode
