@@ -14,7 +14,7 @@ input files, the input could come from a database or an extrernal process.
 *doit* defines a "result-dependency" to deal with these cases without need to
 create an intermediate file with the reulsts of the process.
 
-i.e. Suppose you want to send an email everytime you run *doit* on a bazaar
+i.e. Suppose you want to send an email everytime you run *doit* on a mercurial
 repository that contains a new revision number.
 
 .. literalinclude:: tutorial/taskresult.py
@@ -22,7 +22,8 @@ repository that contains a new revision number.
 
 Note the `result_dep` with the name of the task ('version'). `doit` will keep
 track of the output of the task *version* and will execute *send_email* only
-when the bazaar repository has a new version since last time *doit* was executed.
+when the mercurial repository has a new version since last
+time *doit* was executed.
 
 The "result" from the dependent task compared between different runs is given
 by its last action.
