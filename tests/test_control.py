@@ -425,14 +425,3 @@ class TestTaskDispatcher_dispatcher_generator(object):
         assert "hold on" == next(gen) # hold until t2 is done
         assert tasks[0] == gen.send(n2).task
         pytest.raises(StopIteration, gen.next)
-
-    def test_include_setup(self):
-        tasks = [Task("t1", None, task_dep=["t2"]),
-                 Task("t2", None,)]
-        control = TaskControl(tasks)
-        control.process(['t1'])
-        gen = control.task_dispatcher(include_setup=True).generator
-        # dont wait for tasks
-        assert tasks[0] == gen.send(None).task
-        assert tasks[1] == gen.send(None).task
-        pytest.raises(StopIteration, gen.send, None)

@@ -173,14 +173,13 @@ class TaskControl(object):
             self.selected_tasks = self._def_order
 
 
-    def task_dispatcher(self, include_setup=False):
+    def task_dispatcher(self):
         """return a TaskDispatcher generator
         """
         assert self.selected_tasks is not None, \
             "must call 'process' before this"
 
-        return TaskDispatcher(self.tasks, self.targets, self.selected_tasks,
-                              include_setup)
+        return TaskDispatcher(self.tasks, self.targets, self.selected_tasks)
 
 
 
@@ -261,14 +260,10 @@ class TaskDispatcher(object):
     """Dispatch another task to be selected/executed, mostly handle with MP
 
     Note that a dispatched task might not be ready to be executed.
-
-    @ivar include_setup: (bool) when True tasks wont be execute so
-                         do not wait for task deps.
     """
-    def __init__(self, tasks, targets, selected_tasks, include_setup=False):
+    def __init__(self, tasks, targets, selected_tasks):
         self.tasks = tasks
         self.targets = targets
-        self.include_setup = include_setup
 
         self.nodes = {} # key task-name, value: ExecNode
         # queues
@@ -349,7 +344,7 @@ class TaskDispatcher(object):
             self._node_add_wait_run(node, node.task_dep)
             node.task_dep = []
 
-            if (node.wait_run or node.wait_run_calc) and not self.include_setup:
+            if (node.wait_run or node.wait_run_calc):
                 yield 'wait'
             else:
                 break
@@ -367,7 +362,7 @@ class TaskDispatcher(object):
                 yield "wait"
 
             # if this task should run, so schedule setup-tasks before itself
-            if node.run_status == 'run' or self.include_setup:
+            if node.run_status == 'run':
                 for setup_task in this_task.setup_tasks:
                     yield self._gen_node(node, setup_task)
                 self._node_add_wait_run(node, this_task.setup_tasks)
@@ -493,8 +488,6 @@ class TaskDispatcher(object):
             # got 'wait', add ExecNode to waiting queue
             else:
                 assert next_step == "wait"
-                # skip all waiting tasks, just getting a list of tasks...
-                if not self.include_setup:
-                    self.waiting.add(node)
-                    node = None
+                self.waiting.add(node)
+                node = None
 
