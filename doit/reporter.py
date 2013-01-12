@@ -108,7 +108,8 @@ class ExecutedOnlyReporter(ConsoleReporter):
 
 class ZeroReporter(ConsoleReporter):
     """Report only internal errors from doit"""
-    def _just_pass(*args):
+    def _just_pass(self, *args):
+        """over-write base to do nothing"""
         pass
 
     get_status = execute_task = add_failure = add_success \

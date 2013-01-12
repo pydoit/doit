@@ -491,3 +491,20 @@ class TaskDispatcher(object):
                 self.waiting.add(node)
                 node = None
 
+
+# this is used by commands that do not execute tasks (list, clean, forget...)
+def tasks_and_deps_iter(tasks, sel_tasks):
+    """iterator of select_tasks and its dependencies
+    @param tasks (dict)
+    @param sel_tasks(list - str)
+    """
+    processed = set() # str - task name
+    to_process = set(sel_tasks) # str - task name
+    # get initial task
+    while to_process:
+        task = tasks.get(to_process.pop())
+        processed.add(task.name)
+        for task_dep in task.task_dep + task.setup_tasks:
+            if (task_dep not in processed) and (task_dep not in to_process):
+                to_process.add(task_dep)
+        yield task

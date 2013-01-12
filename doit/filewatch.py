@@ -87,7 +87,7 @@ class FileModifyWatcher(object):
         event_handler = EventHandler()
         notifier = pyinotify.Notifier(watch_manager, event_handler)
 
-        mask = pyinotify.IN_CLOSE_WRITE #pylint: disable=E1101
+        mask = pyinotify.IN_CLOSE_WRITE
         for watch_this in self.watch_dirs:
             watch_manager.add_watch(watch_this, mask)
 

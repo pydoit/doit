@@ -8,6 +8,7 @@ from multiprocessing import Process
 
 from .cmdparse import CmdParse
 from .filewatch import FileModifyWatcher
+from .control import tasks_and_deps_iter
 from .cmd_base import DoitCmdBase
 from .cmd_run import opt_verbosity, Run
 
@@ -41,15 +42,7 @@ class Auto(DoitCmdBase):
         @param sel_tasks(list - str)
         """
         deps = set()
-        processed = set() # str - task name
-        to_process = set(sel_tasks) # str - task name
-        # get initial task
-        while to_process:
-            task = tasks.get(to_process.pop())
-            processed.add(task.name)
-            for task_dep in task.task_dep + task.setup_tasks:
-                if (task_dep not in processed) and (task_dep not in to_process):
-                    to_process.add(task_dep)
+        for task in tasks_and_deps_iter(tasks, sel_tasks):
             deps.update(task.file_dep)
         return deps
 
