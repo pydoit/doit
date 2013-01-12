@@ -223,4 +223,33 @@ class DoitCmdBase(Command):
         return self._execute(**exec_params)
 
 
+# helper functions to find list of tasks
 
+# this is used by commands that do not execute tasks (list, clean, forget...)
+def tasks_and_deps_iter(tasks, sel_tasks):
+    """iterator of select_tasks and its dependencies
+    @param tasks (dict - Task)
+    @param sel_tasks(list - str)
+    """
+    processed = set() # str - task name
+    to_process = set(sel_tasks) # str - task name
+    # get initial task
+    while to_process:
+        task = tasks.get(to_process.pop())
+        processed.add(task.name)
+        # FIXME this does not take calc_dep into account
+        for task_dep in task.task_dep + task.setup_tasks:
+            if (task_dep not in processed) and (task_dep not in to_process):
+                to_process.add(task_dep)
+        yield task
+
+
+def subtasks_iter(tasks, task):
+    """find all subtasks for a given task
+    @param tasks (dict - Task)
+    @param task (Task)
+    """
+    for name in task.task_dep:
+        dep = tasks[name]
+        if dep.is_subtask:
+            yield dep

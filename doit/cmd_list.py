@@ -1,6 +1,6 @@
 from .exceptions import InvalidCommand
 from .dependency import Dependency
-from .cmd_base import DoitCmdBase
+from .cmd_base import DoitCmdBase, subtasks_iter
 
 opt_listall = {'name': 'subtasks',
                'short':'',
@@ -49,73 +49,90 @@ class List(DoitCmdBase):
                    opt_list_private, opt_list_dependencies)
 
 
+    STATUS_MAP = {'ignore': 'I', 'up-to-date': 'U', 'run': 'R'}
+
+
+    @property
+    def dep_manager(self):
+        """manager with access to task status (run, up-to-date...)"""
+        if not hasattr(self, '_dep_manager'):
+            self._dep_manager = Dependency(self.dep_file)
+        return self._dep_manager
+
+
+    def _print_task(self, task, col1_len, quiet, status, list_deps):
+        """print a single task"""
+        col1_fmt = "%%-%ds" % (col1_len + 3)
+        task_str = col1_fmt % task.name
+        # add doc
+        if (not quiet) and task.doc:
+            task_str += "%s" % task.doc
+        # FIXME group task status is never up-to-date
+        if status:
+            # FIXME: 'ignore' handling is ugly
+            if self.dep_manager.status_is_ignore(task):
+                task_status = 'ignore'
+            else:
+                task_status = self.dep_manager.get_status(task, None)
+            task_str = "%s %s" % (self.STATUS_MAP[task_status], task_str)
+
+        self.outstream.write("%s\n" % task_str)
+
+        # print dependencies
+        if list_deps:
+            for dep in task.file_dep:
+                self.outstream.write(" -  %s\n" % dep)
+            self.outstream.write("\n")
+
+    @staticmethod
+    def _list_filtered(tasks, filter_tasks, include_subtasks):
+        """return list of task based on selected 'filter_tasks' """
+        # check task exist
+        for task_name in filter_tasks:
+            if task_name not in tasks:
+                msg = "'%s' is not a task."
+                raise InvalidCommand(msg % task_name)
+
+        # get task by name
+        print_list = []
+        for name in filter_tasks:
+            task = tasks[name]
+            print_list.append(task)
+            if include_subtasks:
+                print_list.extend(subtasks_iter(tasks, task))
+        return print_list
+
+
+    def _list_all(self, tasks, include_subtasks):
+        """list of tasks"""
+        print_list = []
+        for task in self.task_list:
+            if (not include_subtasks) and task.is_subtask:
+                continue
+            print_list.append(task)
+        return print_list
+
+
     def _execute(self, subtasks=False, quiet=True, status=False,
                  private=False, list_deps=False, pos_args=None):
         """List task generators, in the order they were defined.
         """
         filter_tasks = pos_args
-        status_map = {'ignore': 'I', 'up-to-date': 'U', 'run': 'R'}
-
-
-        def _list_print_task(task, col1_len):
-            """print a single task"""
-            col1_fmt = "%%-%ds" % (col1_len + 3)
-            task_str = col1_fmt % task.name
-            # add doc
-            if (not quiet) and task.doc:
-                task_str += "%s" % task.doc
-            # FIXME this does not take calc_dep into account
-            # FIXME group task status is never up-to-date
-            if status:
-                if dependency_manager.status_is_ignore(task):
-                    task_status = 'ignore'
-                else:
-                    task_status = dependency_manager.get_status(task, None)
-                task_str = "%s %s" % (status_map[task_status], task_str)
-
-            self.outstream.write("%s\n" % task_str)
-
-            # print dependencies
-            if list_deps:
-                for dep in task.file_dep:
-                    self.outstream.write(" -  %s\n" % dep)
-                self.outstream.write("\n")
-
-
         # dict of all tasks
         tasks = dict([(t.name, t) for t in self.task_list])
-        # list only tasks passed on command line
+
         if filter_tasks:
-            # check task exist
-            for task_name in filter_tasks:
-                if task_name not in tasks:
-                    msg = "'%s' is not a task."
-                    raise InvalidCommand(msg % task_name)
-
-            base_list = [tasks[name] for name in filter_tasks]
-            if subtasks:
-                for task in base_list:
-                    for subt in task.task_dep:
-                        if subt.startswith("%s" % task.name):
-                            base_list.append(tasks[subt])
+            # list only tasks passed on command line
+            print_list = self._list_filtered(tasks, filter_tasks, subtasks)
         else:
-            base_list = self.task_list
+            print_list = self._list_all(tasks, subtasks)
 
+        # exclude private tasks
+        if not private:
+            print_list = [t for t in print_list if (not t.name.startswith('_'))]
 
-        if status:
-            dependency_manager = Dependency(self.dep_file)
-
-        print_list = []
-        for task in base_list:
-            # exclude subtasks (never exclude if filter specified)
-            if (not subtasks) and (not filter_tasks) and task.is_subtask:
-                continue
-            # exclude private tasks
-            if (not private) and task.name.startswith('_'):
-                continue
-            print_list.append(task)
-
+        # print list of tasks
         max_name_len = max(len(t.name) for t in print_list) if print_list else 0
         for task in sorted(print_list):
-            _list_print_task(task, max_name_len)
+            self._print_task(task, max_name_len, quiet, status, list_deps)
         return 0

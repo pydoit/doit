@@ -1,8 +1,11 @@
 import pytest
 
 from doit.cmdparse import CmdParseError, CmdOption
+from doit.task import Task
 from doit.cmd_base import Command, DoitCmdBase
 from doit.cmd_base import ModuleTaskLoader, DodoTaskLoader
+from doit.cmd_base import tasks_and_deps_iter, subtasks_iter
+
 
 opt_bool = {'name': 'flag',
             'short':'f',
@@ -126,3 +129,37 @@ class TestDoitCmdBase(object):
         mycmd = MyCmd(DodoTaskLoader())
         assert 'min' == mycmd.parse_execute(['--mine', 'min'])
 
+
+
+class TestTaskAndDepsIter(object):
+
+    def test_dep_iter(self):
+        tasks = {
+            't1': Task("t1", [""] ),
+            't2': Task("t2", [""], task_dep=['t1']),
+            't3': Task("t3", [""], setup=['t1']),
+            't4': Task("t4", [""], task_dep=['t3']),
+            }
+        def names(sel_tasks):
+            return [t.name for t in tasks_and_deps_iter(tasks, sel_tasks)]
+
+        assert ['t1'] == names(['t1'])
+        assert ['t2', 't1'] == names(['t2'])
+        assert ['t3', 't1'] == names(['t3'])
+        assert ['t4', 't3', 't1'] == names(['t4'])
+
+
+class TestSubtaskIter(object):
+
+    def test_sub_iter(self):
+        tasks = {
+            't1': Task("t1", [""] ),
+            't2': Task("t2", [""], task_dep=['t1', 't2:a', 't2:b']),
+            't2:a': Task("t2:a", [""], is_subtask=True),
+            't2:b': Task("t2:b", [""], is_subtask=True),
+            }
+        def names(task_name):
+            return [t.name for t in subtasks_iter(tasks, tasks[task_name])]
+
+        assert [] == names('t1')
+        assert ['t2:a', 't2:b'] == names('t2')

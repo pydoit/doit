@@ -8,7 +8,7 @@ from multiprocessing import Process
 
 from .cmdparse import CmdParse
 from .filewatch import FileModifyWatcher
-from .control import tasks_and_deps_iter
+from .cmd_base import tasks_and_deps_iter
 from .cmd_base import DoitCmdBase
 from .cmd_run import opt_verbosity, Run
 

@@ -4,7 +4,7 @@ import pytest
 from doit.exceptions import InvalidDodoFile, InvalidCommand
 from doit.task import InvalidTask, Task
 from doit.control import TaskControl, TaskDispatcher, ExecNode
-from doit.control import no_none, tasks_and_deps_iter
+from doit.control import no_none
 
 
 
@@ -426,22 +426,3 @@ class TestTaskDispatcher_dispatcher_generator(object):
         assert "hold on" == next(gen) # hold until t2 is done
         assert tasks[0] == gen.send(n2).task
         pytest.raises(StopIteration, gen.next)
-
-
-
-class TestTaskAndDepsIter(object):
-
-    def test_find_file_deps(self):
-        tasks = {
-            't1': Task("t1", [""] ),
-            't2': Task("t2", [""], task_dep=['t1']),
-            't3': Task("t3", [""], setup=['t1']),
-            't4': Task("t4", [""], task_dep=['t3']),
-            }
-        def names(sel_tasks):
-            return [t.name for t in tasks_and_deps_iter(tasks, sel_tasks)]
-
-        assert ['t1'] == names(['t1'])
-        assert ['t2', 't1'] == names(['t2'])
-        assert ['t3', 't1'] == names(['t3'])
-        assert ['t4', 't3', 't1'] == names(['t4'])
