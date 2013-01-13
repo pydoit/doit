@@ -6,20 +6,14 @@ from doit.exceptions import InvalidCommand
 from doit.dependency import Dependency
 from doit.task import Task
 from doit.cmd_ignore import Ignore
+from .conftest import tasks_sample
 
 
 class TestCmdIgnore(object):
 
     @pytest.fixture
     def tasks(self, request):
-        return [Task("t1", [""]),
-                Task("t2", [""]),
-                Task("g1", None, task_dep=['g1.a','g1.b']),
-                Task("g1.a", [""]),
-                Task("g1.b", [""]),
-                Task("t3", [""], task_dep=['t1']),
-                Task("g2", None, task_dep=['t1','g1'])]
-
+        return tasks_sample()
 
     def testIgnoreAll(self, tasks, depfile):
         output = StringIO.StringIO()
@@ -45,16 +39,15 @@ class TestCmdIgnore(object):
     def testIgnoreGroup(self, tasks, depfile):
         output = StringIO.StringIO()
         cmd = Ignore(outstream=output, dep_file=depfile.name, task_list=tasks)
-        cmd._execute(["g2"])
+        cmd._execute(["g1"])
         got = output.getvalue().split("\n")[:-1]
 
         dep = Dependency(depfile.name)
-        assert '1' == dep._get("t1", "ignore:"), got
+        assert None == dep._get("t1", "ignore:"), got
         assert None == dep._get("t2", "ignore:")
         assert '1' == dep._get("g1", "ignore:")
         assert '1' == dep._get("g1.a", "ignore:")
         assert '1' == dep._get("g1.b", "ignore:")
-        assert '1' == dep._get("g2", "ignore:")
 
     # if task dependency not from a group dont ignore it
     def testDontIgnoreTaskDependency(self, tasks, depfile):

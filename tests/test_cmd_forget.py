@@ -6,20 +6,14 @@ from doit.exceptions import InvalidCommand
 from doit.dependency import Dependency
 from doit.task import Task
 from doit.cmd_forget import Forget
+from .conftest import tasks_sample
 
 
 class TestCmdForget(object):
 
     @pytest.fixture
     def tasks(self, request):
-        return [Task("t1", [""]),
-                Task("t2", [""]),
-                Task("g1", None, task_dep=['g1.a','g1.b']),
-                Task("g1.a", [""]),
-                Task("g1.b", [""]),
-                Task("t3", [""], task_dep=['t1']),
-                Task("g2", None, task_dep=['t1','g1'])]
-
+        return tasks_sample()
 
     @staticmethod
     def _add_task_deps(tasks, testdb):
@@ -63,18 +57,18 @@ class TestCmdForget(object):
         self._add_task_deps(tasks, depfile.name)
         output = StringIO()
         cmd_forget = Forget(outstream=output, dep_file=depfile.name,
-                            task_list=tasks, sel_tasks=["g2"])
+                            task_list=tasks, sel_tasks=["g1"])
         cmd_forget._execute()
         got = output.getvalue().split("\n")[:-1]
-        assert "forgeting g2" == got[0]
+        assert "forgeting g1" == got[0]
 
         dep = Dependency(depfile.name)
-        assert None == dep._get("t1", "dep")
+        assert "1" == dep._get("t1", "dep")
         assert "1" == dep._get("t2", "dep")
         assert None == dep._get("g1", "dep")
         assert None == dep._get("g1.a", "dep")
         assert None == dep._get("g1.b", "dep")
-        assert None == dep._get("g2", "dep")
+
 
     # if task dependency not from a group dont forget it
     def testDontForgetTaskDependency(self, tasks, depfile):

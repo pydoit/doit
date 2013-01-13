@@ -3,6 +3,14 @@
 Changes
 =======
 
+
+0.21.0
+======================
+
+- fix #33: Failing to clean a group of task(s) with sub-tasks
+
+
+
 0.20.0 (*2013-01-09*)
 ======================
 
