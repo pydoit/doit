@@ -1,5 +1,5 @@
 from .exceptions import InvalidCommand
-from .cmd_base import DoitCmdBase
+from .cmd_base import DoitCmdBase, tasks_and_deps_iter, subtasks_iter
 
 opt_clean_dryrun = {'name': 'dryrun',
                     'short': 'n', # like make dry-run
@@ -33,6 +33,15 @@ class Clean(DoitCmdBase):
     cmd_options = (opt_clean_cleandep, opt_clean_cleanall, opt_clean_dryrun)
 
 
+    def clean_tasks(self, tasks, dryrun):
+        """ensure task clean-action is executed only once"""
+        cleaned = set()
+        for task in tasks:
+            if task.name not in cleaned:
+                cleaned.add(task.name)
+                task.clean(self.outstream, dryrun)
+
+
     def _execute(self, dryrun, cleandep, cleanall, pos_args=None):
         """Clean tasks
         @param task_list (list - L{Task}): list of all tasks from dodo file
@@ -46,7 +55,6 @@ class Clean(DoitCmdBase):
         tasks = dict([(t.name, t) for t in self.task_list])
         default_tasks = self.config.get('default_tasks')
         selected_tasks = pos_args
-        cleaned = set()
 
         # check task exist
         if selected_tasks:
@@ -55,14 +63,7 @@ class Clean(DoitCmdBase):
                     msg = "'%s' is not a task."
                     raise InvalidCommand(msg % task_name)
 
-
-        def clean_task(task_name):
-            """wrapper to ensure task clean-action is executed only once"""
-            if task_name not in cleaned:
-                cleaned.add(task_name)
-                tasks[task_name].clean(self.outstream, dryrun)
-
-        # get list of tasks to be cleaned
+        # get base list of tasks to be cleaned
         if cleanall:
             clean_list = [t.name for t in self.task_list]
         elif selected_tasks:
@@ -72,16 +73,18 @@ class Clean(DoitCmdBase):
             # if cleaning default tasks enable clean_dep automatically
             cleandep = True
 
-        for name in clean_list:
-            # clean all task dependencies
-            if cleandep:
-                for task_dep in tasks[name].task_dep:
-                    clean_task(task_dep)
+        # include dependencies in list
+        if cleandep:
+            # including repeated entries will garantee that deps are listed
+            # first when the list is reversed
+            to_clean = list(tasks_and_deps_iter(tasks, clean_list, True))
+            to_clean.reverse()
+        # include only subtasks in list
+        else:
+            to_clean = []
+            for name in clean_list:
+                task = tasks[name]
+                to_clean.extend(subtasks_iter(tasks, task))
+                to_clean.append(task)
 
-            # clean only subtasks
-            elif tasks[name].has_subtask:
-                prefix = name + ':'
-                for task_dep in tasks[name].task_dep:
-                    if task_dep.startswith(prefix):
-                        clean_task(task_dep)
-            clean_task(name)
+        self.clean_tasks(to_clean, dryrun)

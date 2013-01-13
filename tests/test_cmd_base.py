@@ -140,13 +140,24 @@ class TestTaskAndDepsIter(object):
             't3': Task("t3", [""], setup=['t1']),
             't4': Task("t4", [""], task_dep=['t3']),
             }
-        def names(sel_tasks):
-            return [t.name for t in tasks_and_deps_iter(tasks, sel_tasks)]
+        def names(sel_tasks, repeated=False):
+            task_list = tasks_and_deps_iter(tasks, sel_tasks, repeated)
+            return [t.name for t in task_list]
 
+        # no deps
         assert ['t1'] == names(['t1'])
+        # with task_dep
         assert ['t2', 't1'] == names(['t2'])
+        # with setup
         assert ['t3', 't1'] == names(['t3'])
+        # two levels
         assert ['t4', 't3', 't1'] == names(['t4'])
+        # select 2
+        assert set(['t2', 't1']) == set(names(['t1', 't2']))
+        # repeat deps
+        got = names(['t1', 't2'], True)
+        assert 3 == len(got)
+        assert 't1' == got[-1]
 
 
 class TestSubtaskIter(object):
