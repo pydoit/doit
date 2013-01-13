@@ -1,10 +1,11 @@
 import pytest
 
 from doit.cmdparse import CmdParseError, CmdOption
+from doit.exceptions import InvalidCommand
 from doit.task import Task
 from doit.cmd_base import Command, DoitCmdBase
 from doit.cmd_base import ModuleTaskLoader, DodoTaskLoader
-from doit.cmd_base import tasks_and_deps_iter, subtasks_iter
+from doit.cmd_base import check_tasks_exist, tasks_and_deps_iter, subtasks_iter
 
 
 opt_bool = {'name': 'flag',
@@ -129,6 +130,23 @@ class TestDoitCmdBase(object):
         mycmd = MyCmd(DodoTaskLoader())
         assert 'min' == mycmd.parse_execute(['--mine', 'min'])
 
+
+
+class TestCheckTasksExist(object):
+    def test_None(self):
+        check_tasks_exist({}, None)
+        # nothing is raised
+
+    def test_invalid(self):
+        pytest.raises(InvalidCommand, check_tasks_exist, {}, 't2')
+
+    def test_valid(self):
+        tasks = {
+            't1': Task("t1", [""] ),
+            't2': Task("t2", [""], task_dep=['t1']),
+            }
+        check_tasks_exist(tasks, ['t2'])
+        # nothing is raised
 
 
 class TestTaskAndDepsIter(object):

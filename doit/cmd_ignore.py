@@ -1,6 +1,5 @@
 from . import dependency
-from .exceptions import InvalidCommand
-from .cmd_base import DoitCmdBase, subtasks_iter
+from .cmd_base import DoitCmdBase, check_tasks_exist, subtasks_iter
 
 
 class Ignore(DoitCmdBase):
@@ -23,13 +22,9 @@ class Ignore(DoitCmdBase):
 
         dependency_manager = dependency.Dependency(self.dep_file)
         tasks = dict([(t.name, t) for t in self.task_list])
+        check_tasks_exist(tasks, ignore_tasks)
 
         for task_name in ignore_tasks:
-            # check task exist
-            if task_name not in tasks:
-                msg = "'%s' is not a task."
-                raise InvalidCommand(msg % task_name)
-
             # for group tasks also remove all tasks from group
             sub_list = [t.name for t in subtasks_iter(tasks, tasks[task_name])]
             for to_ignore in [task_name] + sub_list:

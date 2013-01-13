@@ -36,6 +36,13 @@ class TestCmdClean(object):
         # default enable --clean-dep by default
         assert ['t2', 't1'] == self.cleaned
 
+    def test_clean_default_all(self, tasks):
+        output = StringIO()
+        cmd_clean = Clean(outstream=output, task_list=tasks)
+        cmd_clean._execute(False, False, False)
+        # default enable --clean-dep by default
+        assert set(['t1','t2', 't3:a', 't3', 't4']) == set(self.cleaned)
+
     def test_clean_selected(self, tasks):
         output = StringIO()
         cmd_clean = Clean(outstream=output, task_list=tasks,

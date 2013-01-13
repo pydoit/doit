@@ -1,6 +1,5 @@
-from .exceptions import InvalidCommand
 from .dependency import Dependency
-from .cmd_base import DoitCmdBase, subtasks_iter
+from .cmd_base import DoitCmdBase, check_tasks_exist, subtasks_iter
 
 opt_listall = {'name': 'subtasks',
                'short':'',
@@ -87,11 +86,7 @@ class List(DoitCmdBase):
     @staticmethod
     def _list_filtered(tasks, filter_tasks, include_subtasks):
         """return list of task based on selected 'filter_tasks' """
-        # check task exist
-        for task_name in filter_tasks:
-            if task_name not in tasks:
-                msg = "'%s' is not a task."
-                raise InvalidCommand(msg % task_name)
+        check_tasks_exist(tasks, filter_tasks)
 
         # get task by name
         print_list = []

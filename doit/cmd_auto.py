@@ -9,7 +9,7 @@ from multiprocessing import Process
 from .cmdparse import CmdParse
 from .filewatch import FileModifyWatcher
 from .cmd_base import tasks_and_deps_iter
-from .cmd_base import DoitCmdBase
+from .cmd_base import DoitCmdBase, check_tasks_exist
 from .cmd_run import opt_verbosity, Run
 
 opt_reporter = {'name':'reporter',
@@ -91,6 +91,12 @@ class Auto(DoitCmdBase):
 
     def execute(self, params, args):
         """loop executing tasks until process is interrupted"""
+        # check provided task names
+        if args:
+            task_list = self._loader.load_tasks(self, params, args)[0]
+            tasks = dict([(t.name, t) for t in task_list])
+            check_tasks_exist(tasks, args)
+
         while True:
             try:
                 p = Process(target=self.run_watch, args=(params, args))

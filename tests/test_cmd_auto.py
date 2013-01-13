@@ -1,7 +1,10 @@
 import time
 from multiprocessing import Process
 
+import pytest
+
 from doit.cmdparse import DefaultUpdate
+from doit.exceptions import InvalidCommand
 from doit.task import Task
 from doit.cmd_base import TaskLoader
 from doit import cmd_auto
@@ -42,6 +45,12 @@ class FakeLoader(TaskLoader):
 
 
 class TestAuto(object):
+
+    def test_invalid_args(self, dependency1, depfile):
+        t1 = Task("t1", [""], file_dep=[dependency1])
+        cmd = cmd_auto.Auto(task_loader=FakeLoader([t1], depfile.name))
+        pytest.raises(InvalidCommand, cmd.execute, None, 't2')
+
 
     def test_run_wait(self, dependency1, depfile):
         t1 = Task("t1", [""], file_dep=[dependency1])

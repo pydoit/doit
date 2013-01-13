@@ -1,5 +1,6 @@
-from .exceptions import InvalidCommand
-from .cmd_base import DoitCmdBase, tasks_and_deps_iter, subtasks_iter
+from .cmd_base import DoitCmdBase
+from .cmd_base import check_tasks_exist, tasks_and_deps_iter, subtasks_iter
+
 
 opt_clean_dryrun = {'name': 'dryrun',
                     'short': 'n', # like make dry-run
@@ -55,13 +56,7 @@ class Clean(DoitCmdBase):
         tasks = dict([(t.name, t) for t in self.task_list])
         default_tasks = self.config.get('default_tasks')
         selected_tasks = pos_args
-
-        # check task exist
-        if selected_tasks:
-            for task_name in selected_tasks:
-                if task_name not in tasks:
-                    msg = "'%s' is not a task."
-                    raise InvalidCommand(msg % task_name)
+        check_tasks_exist(tasks, selected_tasks)
 
         # get base list of tasks to be cleaned
         if cleanall:
@@ -69,7 +64,10 @@ class Clean(DoitCmdBase):
         elif selected_tasks:
             clean_list = selected_tasks
         else:
-            clean_list = default_tasks
+            if default_tasks is None:
+                clean_list = [t.name for t in self.task_list]
+            else:
+                clean_list = default_tasks
             # if cleaning default tasks enable clean_dep automatically
             cleandep = True
 

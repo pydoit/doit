@@ -2,6 +2,7 @@ import inspect
 import sys
 
 from .cmdparse import CmdOption, CmdParse
+from .exceptions import InvalidCommand
 from . import loader
 
 
@@ -209,13 +210,13 @@ class DoitCmdBase(Command):
         """load dodo.py, set attributes and call self._execute"""
         self.task_list, self.config = self._loader.load_tasks(self, params,
                                                               args)
+        self.sel_tasks = args or self.config.get('default_tasks')
 
         # merge config values into params
         params.update_defaults(self.config)
         self.dep_file = params['dep_file']
         params['pos_args'] = args # hack
         params['continue_'] = params.get('continue') # hack
-        self.sel_tasks = args or self.config.get('default_tasks')
 
         # magic - create dict based on signature of _execute method
         args_name = inspect.getargspec(self._execute)[0]
@@ -224,6 +225,17 @@ class DoitCmdBase(Command):
 
 
 # helper functions to find list of tasks
+
+
+def check_tasks_exist(tasks, name_list):
+    """check task exist"""
+    if not name_list:
+        return
+    for task_name in name_list:
+        if task_name not in tasks:
+            msg = "'%s' is not a task."
+            raise InvalidCommand(msg % task_name)
+
 
 # this is used by commands that do not execute tasks (list, clean, forget...)
 def tasks_and_deps_iter(tasks, sel_tasks, yield_duplicates=False):
