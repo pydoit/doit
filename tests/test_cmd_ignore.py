@@ -4,7 +4,6 @@ import pytest
 
 from doit.exceptions import InvalidCommand
 from doit.dependency import Dependency
-from doit.task import Task
 from doit.cmd_ignore import Ignore
 from .conftest import tasks_sample
 
