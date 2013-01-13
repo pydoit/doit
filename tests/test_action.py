@@ -423,13 +423,15 @@ class TestPythonActionPrepareKwargsMeta(object):
 
     def test_named_extra_args(self, task_depchanged):
         got = []
-        def py_callable(targets, dependencies, changed):
+        def py_callable(targets, dependencies, changed, task):
             got.append(targets)
             got.append(dependencies)
             got.append(changed)
+            got.append(task)
         my_action = action.PythonAction(py_callable, task=task_depchanged)
         my_action.execute()
-        assert got == [['targets'], ['dependencies'], ['changed']]
+        assert got == [['targets'], ['dependencies'], ['changed'],
+                       task_depchanged]
 
     def test_mixed_args(self, task_depchanged):
         got = []

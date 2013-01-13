@@ -48,9 +48,12 @@ class BaseAction(object):
         argspec_keywords = argspec[2]
         argspec_defaults = argspec[3]
         # use task meta information as extra_args
-        extra_args = {'targets': task.targets,
-                      'dependencies': task.file_dep,
-                      'changed': task.dep_changed}
+        extra_args = {
+            'task': task,
+            'targets': task.targets,
+            'dependencies': task.file_dep,
+            'changed': task.dep_changed,
+            }
 
         # tasks parameter options
         extra_args.update(task.options)

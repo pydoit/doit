@@ -8,7 +8,7 @@ Changes
 ======================
 
 - fix #33: Failing to clean a group of task(s) with sub-tasks
-
+- python-actions can take a magic "task" parameter as reference to task
 
 
 0.20.0 (*2013-01-09*)
