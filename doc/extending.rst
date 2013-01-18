@@ -11,6 +11,7 @@ So far we have seen:
 2) User's can create new ways to define when a task is up-to-date using
    the `uptodate` task parameter
 3) The output can be configured by creating custom reports
+4) You can customize how tasks are executed by creating new Action types
 
 Apart from those `doit` also expose it's internal API so you can create
 new applications on top of `doit`.

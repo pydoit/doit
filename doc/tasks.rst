@@ -52,19 +52,7 @@ Actions define what the task actually do.
 A task can define any number of actions.
 The action "result" is used to determine if task execution was successful or not.
 
-There 2 kinds of `actions`: *cmd-action* and *python-action*.
-
-
-
-cmd-action
-^^^^^^^^^^^
-
-If `action` is a string it will be executed by the shell.
-
-The result of the task follows the shell convention.
-If the process exits with the value `0` it is successful.
-Any other value means the task failed.
-
+There 2 basic kinds of `actions`: *cmd-action* and *python-action*.
 
 
 python-action
@@ -87,13 +75,6 @@ If it raises an exception, it will be considered an error.
 If it returns any other type it will also be considered an error
 but this behavior might change in future versions.
 
-
-example
-^^^^^^^^
-
-It is easy to include dynamic (on-the-fly) behavior to your tasks with
-python code from the `dodo` file. Let's take a look at another example:
-
 .. literalinclude:: tutorial/tutorial_02.py
 
 The function `task_hello` is a *task-creator*, not the task itself.
@@ -104,11 +85,49 @@ file is loaded.
 
   The body of task-creators are executed even if the task is not going
   to be executed.
-  So in this example the line `msg = 3 * "hi! "` will always be executed.
   The body of task-creators should be used to create task metadata only,
   not execute tasks!
   From now on when the  documentation says that a *task* is executed,
   read "the task's actions are executed".
+
+
+cmd-action
+^^^^^^^^^^^
+
+If `action` is a string it will be executed by the shell.
+
+The result of the task follows the shell convention.
+If the process exits with the value `0` it is successful.
+Any other value means the task failed.
+
+Note that the string must be escaped acoording to
+`python string formatting <http://docs.python.org/2.7/library/stdtypes.html#string-formatting-operations>`_.
+
+
+.. literalinclude:: tutorial/cmd_actions.py
+
+It is easy to include dynamic (on-the-fly) behavior to your tasks with
+python code from the `dodo` file. Let's take a look at another example:
+
+.. note::
+
+  The body of the *task-creator* is always executed,
+  so in this example the line `msg = 3 * "hi! "` will always be executed.
+
+
+For complex commands it is also possible to pass a callable that returns
+the command string. In this case you must explicit import CmdAction.
+
+.. literalinclude:: tutorial/cmd_from_callable.py
+
+
+
+custom actions
+^^^^^^^^^^^^^^^^^^^
+
+It is possible to create other type of actions,
+check `tools.InteractiveAction` as an example.
+
 
 
 task name
