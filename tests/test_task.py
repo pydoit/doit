@@ -367,6 +367,15 @@ class TestTaskClean(object):
         err = capsys.readouterr()[1]
         assert "PythonAction Error" in err
 
+    def test_clean_action_kwargs(self):
+        def fail_clean(outstream, dryrun):
+            outstream.write('hello %s' % dryrun)
+        t = task.Task("xxx", None, clean=[(fail_clean,)])
+        assert 1 == len(t.clean_actions)
+        out = StringIO()
+        t.clean(out, dryrun=False)
+        assert "hello False" in out.getvalue()
+
     def test_dryrun_file(self, tmpdir):
         t = task.Task("xxx", None, targets=tmpdir['files'], clean=True)
         assert True == t._remove_targets

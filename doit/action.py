@@ -43,10 +43,6 @@ class BaseAction(object):
             argspec = inspect.getargspec(func)
         except TypeError:
             argspec = inspect.getargspec(func.__call__)
-        # named tuples only from python 2.6 :(
-        argspec_args = argspec[0]
-        argspec_keywords = argspec[2]
-        argspec_defaults = argspec[3]
         # use task meta information as extra_args
         extra_args = {
             'task': task,
@@ -61,13 +57,13 @@ class BaseAction(object):
 
         for key in extra_args.keys():
             # check key is a positional parameter
-            if key in argspec_args:
-                arg_pos = argspec_args.index(key)
+            if key in argspec.args:
+                arg_pos = argspec.args.index(key)
 
                 # it is forbidden to use default values for this arguments
                 # because the user might be unware of this magic.
-                if (argspec_defaults and
-                    len(argspec_defaults) > (len(argspec_args) - (arg_pos+1))):
+                if (argspec.defaults and
+                    len(argspec.defaults) > (len(argspec.args) - (arg_pos+1))):
                     msg = ("%s.%s: '%s' argument default value not allowed "
                            "(reserved by doit)"
                            % (task.name, func.__name__, key))
@@ -79,7 +75,7 @@ class BaseAction(object):
                     kwargs[key] = extra_args[key]
 
             # if function has **kwargs include extra_arg on it
-            elif argspec_keywords and key not in kwargs:
+            elif argspec.keywords and key not in kwargs:
                 kwargs[key] = extra_args[key]
         return kwargs
 

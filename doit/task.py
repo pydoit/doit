@@ -4,10 +4,11 @@
 import types
 import os
 import sys
+import inspect
 
 from .cmdparse import CmdOption, TaskParse
 from .exceptions import CatchedException, InvalidTask
-from .action import create_action
+from .action import create_action, PythonAction
 
 
 class Task(object):
@@ -353,6 +354,15 @@ class Task(object):
             for action in self.clean_actions:
                 msg = "%s - executing '%s'\n"
                 outstream.write(msg % (self.name, action))
+
+                # add extra arguments used by clean actions
+                if isinstance(action, PythonAction):
+                    action_args = inspect.getargspec(action.py_callable).args
+                    extra_args = {'dryrun':dryrun, 'outstream':outstream}
+                    for arg_name, arg_value in extra_args.iteritems():
+                        if arg_name in action_args:
+                            action.kwargs[arg_name] = arg_value
+
                 if not dryrun:
                     result = action.execute()
                     if isinstance(result, CatchedException):
