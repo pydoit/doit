@@ -368,8 +368,8 @@ class TestTaskClean(object):
         assert "PythonAction Error" in err
 
     def test_clean_action_kwargs(self):
-        def fail_clean(outstream, dryrun):
-            outstream.write('hello %s' % dryrun)
+        def fail_clean(dryrun):
+            print('hello %s' % dryrun)
         t = task.Task("xxx", None, clean=[(fail_clean,)])
         assert 1 == len(t.clean_actions)
         out = StringIO()

@@ -348,7 +348,7 @@ class Task(object):
         self._init_options()
         # if clean is True remove all targets
         if self._remove_targets is True:
-            clean_targets(self, dryrun, outstream)
+            clean_targets(self, dryrun)
         else:
             # clean contains a list of actions...
             for action in self.clean_actions:
@@ -358,13 +358,11 @@ class Task(object):
                 # add extra arguments used by clean actions
                 if isinstance(action, PythonAction):
                     action_args = inspect.getargspec(action.py_callable).args
-                    extra_args = {'dryrun':dryrun, 'outstream':outstream}
-                    for arg_name, arg_value in extra_args.iteritems():
-                        if arg_name in action_args:
-                            action.kwargs[arg_name] = arg_value
+                    if 'dryrun' in action_args:
+                        action.kwargs['dryrun'] = dryrun
 
                 if not dryrun:
-                    result = action.execute()
+                    result = action.execute(out=outstream)
                     if isinstance(result, CatchedException):
                         sys.stderr.write(str(result))
 
@@ -436,25 +434,24 @@ def dict_to_task(task_dict):
 
 
 
-def clean_targets(task, dryrun, outstream):
+def clean_targets(task, dryrun):
     """remove all targets from a task"""
     files = [path for path in task.targets if os.path.isfile(path)]
     dirs = [path for path in task.targets if os.path.isdir(path)]
 
     # remove all files
     for file_ in files:
-        msg = "%s - removing file '%s'\n" % (task.name, file_)
-        outstream.write(msg)
+        print("%s - removing file '%s'" % (task.name, file_))
         if not dryrun:
             os.remove(file_)
 
     # remove all directories (if empty)
     for dir_ in dirs:
         if os.listdir(dir_):
-            msg = "%s - cannot remove (it is not empty) '%s'\n"
-            outstream.write(msg % (task.name, dir_))
+            msg = "%s - cannot remove (it is not empty) '%s'"
+            print(msg % (task.name, dir_))
         else:
-            msg = "%s - removing dir '%s'\n"
-            outstream.write(msg % (task.name, dir_))
+            msg = "%s - removing dir '%s'"
+            print(msg % (task.name, dir_))
             if not dryrun:
                 os.rmdir(dir_)
