@@ -3,6 +3,7 @@
 
 import types
 import os
+import sys
 
 from .cmdparse import CmdOption, TaskParse
 from .exceptions import CatchedException, InvalidTask
@@ -346,35 +347,16 @@ class Task(object):
         self._init_options()
         # if clean is True remove all targets
         if self._remove_targets is True:
-            files = [path for path in self.targets if os.path.isfile(path)]
-            dirs = [path for path in self.targets if os.path.isdir(path)]
-
-            # remove all files
-            for file_ in files:
-                msg = "%s - removing file '%s'\n" % (self.name, file_)
-                outstream.write(msg)
-                if not dryrun:
-                    os.remove(file_)
-
-            # remove all directories (if empty)
-            for dir_ in dirs:
-                if os.listdir(dir_):
-                    msg = "%s - cannot remove (it is not empty) '%s'\n"
-                    outstream.write(msg % (self.name, dir_))
-                else:
-                    msg = "%s - removing dir '%s'\n"
-                    outstream.write(msg % (self.name, dir_))
-                    if not dryrun:
-                        os.rmdir(dir_)
-
+            clean_targets(self, dryrun, outstream)
         else:
             # clean contains a list of actions...
             for action in self.clean_actions:
                 msg = "%s - executing '%s'\n"
                 outstream.write(msg % (self.name, action))
                 if not dryrun:
-                    action.execute()
-
+                    result = action.execute()
+                    if isinstance(result, CatchedException):
+                        sys.stderr.write(str(result))
 
     def title(self):
         """String representation on output.
@@ -417,6 +399,7 @@ class Task(object):
         return self.name < other.name
 
 
+
 def dict_to_task(task_dict):
     """Create a task instance from dictionary.
 
@@ -440,3 +423,28 @@ def dict_to_task(task_dict):
                               (task_dict['name'],key))
 
     return Task(**task_dict)
+
+
+
+def clean_targets(task, dryrun, outstream):
+    """remove all targets from a task"""
+    files = [path for path in task.targets if os.path.isfile(path)]
+    dirs = [path for path in task.targets if os.path.isdir(path)]
+
+    # remove all files
+    for file_ in files:
+        msg = "%s - removing file '%s'\n" % (task.name, file_)
+        outstream.write(msg)
+        if not dryrun:
+            os.remove(file_)
+
+    # remove all directories (if empty)
+    for dir_ in dirs:
+        if os.listdir(dir_):
+            msg = "%s - cannot remove (it is not empty) '%s'\n"
+            outstream.write(msg % (task.name, dir_))
+        else:
+            msg = "%s - removing dir '%s'\n"
+            outstream.write(msg % (task.name, dir_))
+            if not dryrun:
+                os.rmdir(dir_)
