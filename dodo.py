@@ -25,6 +25,7 @@ def task_checker():
 
 def run_test(test):
     return not bool(pytest.main(test))
+    #return not bool(pytest.main("-v " + test))
 def task_ut():
     """run unit-tests"""
     for test in TEST_FILES:
