@@ -228,6 +228,8 @@ class Task(object):
         """put default values on options. this will be overwritten, if params
         options were passed on the command line.
         """
+        # FIXME call _init_options just once and not check if this.options is None
+        # because its value may be set in a different place... (like uptodate())
         if self.options is None:
             # ignore positional parameters
             self.options = self.taskcmd.parse('')[0]
