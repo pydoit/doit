@@ -4,6 +4,7 @@ import os
 import sys
 import inspect
 
+from .compat import is_bound_method
 from .exceptions import InvalidTask, InvalidCommand, InvalidDodoFile
 from .task import Task, dict_to_task
 
@@ -85,13 +86,6 @@ def get_module(dodo_file, cwd=None, seek_parent=False):
     # get module containing the tasks
     return __import__(os.path.splitext(file_name)[0])
 
-if sys.version_info[0] >= 3:
-    _is_bound_method = inspect.ismethod
-else:
-    # In Python 2, ismethod() returns True for both bound & unbound methods.
-    def _is_bound_method(obj):
-        return inspect.ismethod(obj) and (getattr(obj, '__self__', None) is not None)
-
 def load_tasks(dodo_module, command_names=()):
     """Get task generators and generate tasks
 
@@ -114,7 +108,7 @@ def load_tasks(dodo_module, command_names=()):
         elif hasattr(ref, 'create_doit_tasks'):
             ref = ref.create_doit_tasks
             argspec = inspect.getargspec(ref)
-            if len(argspec.args) != (1 if _is_bound_method(ref) else 0):
+            if len(argspec.args) != (1 if is_bound_method(ref) else 0):
                 # Ignore create_doit_tasks unless we can call it with no
                 # arguments. This avoids calling it as an unbound method.
                 continue
