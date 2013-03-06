@@ -406,9 +406,13 @@ custom task definition
 ------------------------
 
 Apart from collect functions that start with the name `task_`.
-The *doit* loader will also execute the `create_doit_task`
+The *doit* loader will also execute the `create_doit_tasks`
 callable from any object that contains this attribute.
+
 
 .. literalinclude:: tutorial/custom_task_def.py
 
-For more examples check this `blog post <http://blog.schettino72.net/posts/doit-task-creation.html>`_.
+The `project letsdoit <https://bitbucket.org/takluyver/letsdoit>`_
+has some real-world implementations.
+
+For simple examples to help you create your own check this `blog post <http://blog.schettino72.net/posts/doit-task-creation.html>`_.
