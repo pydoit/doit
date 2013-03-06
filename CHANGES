@@ -7,6 +7,7 @@ Changes
 0.21.0
 ======================
 
+- support execution using "python -m doit"
 - fix #33: Failing to clean a group of task(s) with sub-tasks
 - python-actions can take a magic "task" parameter as reference to task
 
