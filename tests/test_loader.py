@@ -99,12 +99,12 @@ class TestLoadTasks(object):
         task_list = load_tasks({'x': original})
         assert 1 == len(task_list)
         assert set(['foox']) == task_list[0].file_dep
-    
+
     def testUse_create_doit_tasks_only_noargs_call(self):
         class Foo(object):
             def create_doit_tasks(self):
                 return {'actions': ['do nothing'], 'file_dep': ['fooy']}
-        
+
         task_list = load_tasks({'Foo':Foo, 'foo':Foo()})
         assert len(task_list) == 1
         assert task_list[0].file_dep == set(['fooy'])
