@@ -12,7 +12,7 @@ section.
 create_folder (action)
 -------------------------
 
-Creates a folder if it does not exist yet.
+Creates a folder if it does not exist yet. Uses `os.makedirs() <http://docs.python.org/2/library/os#os.makedirs>_`.
 
 .. literalinclude:: tutorial/folder.py
 

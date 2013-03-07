@@ -11,16 +11,28 @@ from doit import tools
 from doit import task
 
 
-def test_create_folder():
-    def rm_dir():
-        if os.path.exists(DIR_DEP):
-            os.removedirs(DIR_DEP)
+class TestCreateFolder(object):
+    def test_create_folder(self):
+        def rm_dir():
+            if os.path.exists(DIR_DEP):
+                os.removedirs(DIR_DEP)
 
-    DIR_DEP = os.path.join(os.path.dirname(__file__),"parent/child/")
-    rm_dir()
-    assert True == tools.create_folder(DIR_DEP)
-    assert os.path.exists(DIR_DEP)
-    rm_dir()
+        DIR_DEP = os.path.join(os.path.dirname(__file__),"parent/child/")
+        rm_dir()
+        tools.create_folder(DIR_DEP)
+        assert os.path.exists(DIR_DEP)
+        rm_dir()
+
+    def test_error_if_path_is_a_file(self):
+        def rm_file(path):
+            if os.path.exists(path):
+                os.remove(path)
+
+        path = os.path.join(os.path.dirname(__file__), "test_create_folder")
+        with open(path, 'w') as fp:
+            fp.write('testing')
+        pytest.raises(OSError, tools.create_folder, path)
+        rm_file(path)
 
 
 class TestTitleWithActions(object):

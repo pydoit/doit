@@ -7,6 +7,7 @@ Changes
 0.21.0
 ======================
 
+- fix #38: `doit.tools.create_folder()` raise error if file exists in path
 - `create_doit_tasks` not called for unbound methods
 - support execution using "python -m doit"
 - fix #33: Failing to clean a group of task(s) with sub-tasks
