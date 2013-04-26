@@ -4,7 +4,7 @@ import codecs
 from .exceptions import InvalidCommand
 from .task import Task
 from .control import TaskControl
-from .runner import Runner, MRunner
+from .runner import Runner, MRunner, MThreadRunner
 from .reporter import REPORTERS
 from .cmd_base import DoitCmdBase
 
@@ -66,19 +66,34 @@ opt_num_process = {'name': 'num_process',
 
 
 # reporter
-opt_reporter = {'name':'reporter',
-                 'short':'r',
-                 'long':'reporter',
-                 'type':str, #TODO type choice (limit the accepted strings)
-                 'default': 'default',
-                 'help':
+opt_reporter = {
+    'name':'reporter',
+    'short':'r',
+    'long':'reporter',
+    'type':str, #TODO type choice (limit the accepted strings)
+    'default': 'default',
+    'help':
 """Choose output reporter. Available:
 'default': report output on console
 'executed-only': no output for skipped (up-to-date) and group tasks
 'json': output result in json format
+[default: %(default)s]
 """
-                 }
+}
 
+opt_parallel_type = {
+    'name':'par_type',
+    'short':'P',
+    'long':'parallel-type',
+    'type':str,
+    'default': 'process',
+    'help':
+"""Tasks can be executed in parallel in different ways:
+'process': uses python multiprocessing module
+'thread': uses threads
+[default: %(default)s]
+"""
+}
 
 
 
@@ -89,11 +104,12 @@ class Run(DoitCmdBase):
     doc_description = None
 
     cmd_options = (opt_always, opt_continue, opt_verbosity,
-                   opt_reporter, opt_outfile, opt_num_process)
+                   opt_reporter, opt_outfile, opt_num_process,
+                   opt_parallel_type)
 
     def _execute(self, outfile,
                  verbosity=None, always=False, continue_=False,
-                 reporter='default', num_process=0):
+                 reporter='default', num_process=0, par_type='process'):
         """
         @param reporter: (str) one of provided reporters or ...
                          (class) user defined reporter class (can only be specified
@@ -140,20 +156,27 @@ class Run(DoitCmdBase):
                 reporter_obj = reporter_cls
 
 
-            if not MRunner.available():
-                num_process = 0
-                sys.stderr.write("WARNING: multiprocessing module not available, " +
-                                 "running on single process.")
+            run_args = [self.dep_file, reporter_obj, continue_, always,
+                        verbosity]
 
             if num_process == 0:
-                runner = Runner(self.dep_file, reporter_obj, continue_,
-                                always, verbosity)
+                RunnerClass = Runner
             else:
-                runner = MRunner(self.dep_file, reporter_obj, continue_,
-                                 always, verbosity, num_process)
+                if par_type == 'process':
+                    RunnerClass = MRunner # FIXME get from new option
+                    if not MRunner.available():
+                        sys.stderr.write(
+                        "WARNING: multiprocessing module not available, " +
+                        "running in parallel using threads.")
+                elif par_type == 'thread':
+                    RunnerClass = MThreadRunner
+                else:
+                    msg = "Invalid parallel type %s"
+                    raise InvalidCommand(msg % par_type)
 
+                run_args.append(num_process)
+            runner = RunnerClass(*run_args)
             return runner.run_all(self.control.task_dispatcher())
         finally:
             if isinstance(outfile, str):
                 outstream.close()
-

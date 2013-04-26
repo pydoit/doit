@@ -14,6 +14,7 @@ Changes
 - python-actions can take a magic "task" parameter as reference to task
 - expose task.clean_targets
 - tools.PythonInteractiveAction saves "result" and "values"
+- fix #40. added option to use threads for parallel running of tasks
 
 
 0.20.0 (*2013-01-09*)

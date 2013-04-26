@@ -21,15 +21,6 @@ class TestCmdRun(object):
         got = output.getvalue().split("\n")[:-1]
         assert [".  t1", ".  t2", ".  g1.a", ".  g1.b", ".  t3"] == got
 
-    def testMP_not_available(self, depfile, monkeypatch):
-        # make sure MRunner wont be used
-        monkeypatch.setattr(runner.MRunner, "available",
-                            Mock(return_value=False))
-        monkeypatch.setattr(runner.MRunner, "__init__", 'not available')
-        output = StringIO.StringIO()
-        cmd_run = Run(dep_file=depfile.name, task_list=tasks_sample())
-        cmd_run._execute(output, num_process=3)
-
     def testProcessRunMP(self, dependency1, depfile):
         output = StringIO.StringIO()
         cmd_run = Run(dep_file=depfile.name, task_list=tasks_sample())
@@ -37,6 +28,35 @@ class TestCmdRun(object):
         assert 0 == result
         got = output.getvalue().split("\n")[:-1]
         assert [".  t1", ".  t2", ".  g1.a", ".  g1.b", ".  t3"] == got
+
+    def testProcessRunMThread(self, dependency1, depfile):
+        output = StringIO.StringIO()
+        cmd_run = Run(dep_file=depfile.name, task_list=tasks_sample())
+        result = cmd_run._execute(output, num_process=1, par_type='thread')
+        assert 0 == result
+        got = output.getvalue().split("\n")[:-1]
+        assert [".  t1", ".  t2", ".  g1.a", ".  g1.b", ".  t3"] == got
+
+    def testInvalidParType(self, dependency1, depfile):
+        output = StringIO.StringIO()
+        cmd_run = Run(dep_file=depfile.name, task_list=tasks_sample())
+        pytest.raises(InvalidCommand, cmd_run._execute,
+                      output, num_process=1, par_type='not_exist')
+
+
+    def testMP_not_available(self, dependency1, depfile, capsys, monkeypatch):
+        # make sure MRunner wont be used
+        monkeypatch.setattr(runner.MRunner, "available",
+                            Mock(return_value=False))
+        output = StringIO.StringIO()
+        cmd_run = Run(dep_file=depfile.name, task_list=tasks_sample())
+        result = cmd_run._execute(output, num_process=1)
+        assert 0 == result
+        got = output.getvalue().split("\n")[:-1]
+        assert [".  t1", ".  t2", ".  g1.a", ".  g1.b", ".  t3"] == got
+        err = capsys.readouterr()[1]
+        assert "WARNING:" in err
+        assert "parallel using threads" in err
 
     def testProcessRunFilter(self, depfile):
         output = StringIO.StringIO()
@@ -103,5 +123,3 @@ class TestCmdRun(object):
         finally:
             if os.path.exists('test.out'):
                 os.remove('test.out')
-
-

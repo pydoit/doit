@@ -291,7 +291,7 @@ class TestTask_RunAll(object):
 
 
 # run tests in both single process runner and multi-process runner
-RUNNERS = [runner.Runner]
+RUNNERS = [runner.Runner, runner.MThreadRunner]
 # TODO: test should be added and skipped!
 if runner.MRunner.available():
     RUNNERS.append(runner.MRunner)
@@ -576,7 +576,7 @@ class TestMRunner_start_process(object):
     # 2 process, 3 tasks
     def test_all_processes(self, reporter, monkeypatch, depfile):
         mock_process = Mock()
-        monkeypatch.setattr(runner, 'Process', mock_process)
+        monkeypatch.setattr(runner.MRunner, 'Child', mock_process)
         t1 = Task('t1', [])
         t2 = Task('t2', [])
         td = TaskDispatcher({'t1':t1, 't2':t2}, [], ['t1', 't2'])
@@ -595,7 +595,7 @@ class TestMRunner_start_process(object):
     # 2 process, 1 task
     def test_less_processes(self, reporter, monkeypatch, depfile):
         mock_process = Mock()
-        monkeypatch.setattr(runner, 'Process', mock_process)
+        monkeypatch.setattr(runner.MRunner, 'Child', mock_process)
         t1 = Task('t1', [])
         td = TaskDispatcher({'t1':t1}, [], ['t1'])
         run = runner.MRunner(depfile.name, reporter, num_process=2)
@@ -612,7 +612,7 @@ class TestMRunner_start_process(object):
     # 2 process, 2 tasks (but only one task can be started)
     def test_waiting_process(self, reporter, monkeypatch, depfile):
         mock_process = Mock()
-        monkeypatch.setattr(runner, 'Process', mock_process)
+        monkeypatch.setattr(runner.MRunner, 'Child', mock_process)
         t1 = Task('t1', [])
         t2 = Task('t2', [], task_dep=['t1'])
         td = TaskDispatcher({'t1':t1, 't2':t2}, [], ['t1', 't2'])
@@ -640,3 +640,7 @@ class TestMRunner_execute_task(object):
         run.finish()
         # nothing was done
         assert result_q.empty() # pragma: no cover (coverage bug?)
+
+
+def test_MThreadRunner_available():
+    assert runner.MThreadRunner.available() == True

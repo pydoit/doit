@@ -1,7 +1,9 @@
 """Task runner"""
 
 import sys
-from multiprocessing import Process, Queue
+from multiprocessing import Process, Queue as MQueue
+from threading import Thread
+from Queue import Queue
 
 from .exceptions import InvalidTask, CatchedException
 from .exceptions import TaskFailed, SetupError, DependencyError, UnmetDependency
@@ -271,6 +273,8 @@ class MReporter(object):
 
 class MRunner(Runner):
     """MultiProcessing Runner """
+    Queue = staticmethod(MQueue)
+    Child = staticmethod(Process)
 
     @staticmethod
     def available():
@@ -345,8 +349,9 @@ class MRunner(Runner):
                 task_q.put(next_node.task)
             else:
                 task_q.put(next_node)
-            process = Process(target=self.execute_task_subprocess,
-                              args=(task_q, result_q))
+            process = self.Child(
+                target=self.execute_task_subprocess,
+                args=(task_q, result_q))
             process.start()
             proc_list.append(process)
         return proc_list
@@ -356,9 +361,9 @@ class MRunner(Runner):
         """controls subprocesses task dispatching and result collection
         """
         # result queue - result collected from sub-processes
-        result_q = Queue()
+        result_q = self.Queue()
         # task queue - tasks ready to be dispatched to sub-processes
-        task_q = Queue()
+        task_q = self.Queue()
         self._run_tasks_init(task_dispatcher)
         proc_list = self._run_start_processes(task_q, result_q)
 
@@ -430,7 +435,8 @@ class MRunner(Runner):
             * Task task to be executed
         """
         self.result_q = result_q
-        self.reporter = MReporter(self, self.reporter)
+        if self.Child == Process:
+            self.reporter = MReporter(self, self.reporter)
         try:
             while True:
                 recv_task = task_q.get()
@@ -448,7 +454,8 @@ class MRunner(Runner):
                 # so we need to get task from this process and update it
                 # to get dynamic task attributes.
                 task = self.tasks[recv_task.name]
-                task.update_from_pickle(recv_task)
+                if self.Child == Process:
+                    task.update_from_pickle(recv_task)
 
                 result = {'name': task.name}
                 t_result = self.execute_task(task)
@@ -467,3 +474,12 @@ class MRunner(Runner):
                           'exit': exception.__class__,
                           'exception': str(exception)})
 
+
+class MThreadRunner(MRunner):
+    """Parallel runner using threads"""
+    Queue = staticmethod(Queue)
+    Child = staticmethod(Thread)
+
+    @staticmethod
+    def available():
+        return True
