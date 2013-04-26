@@ -316,3 +316,18 @@ class TestPythonInteractiveAction(object):
         my_action = tools.PythonInteractiveAction(raise_x)
         got = my_action.execute()
         assert isinstance(got, exceptions.TaskError)
+
+    def test_returned_dict_saved_result_values(self):
+        def val(): return {'x': 3}
+        my_action = tools.PythonInteractiveAction(val)
+        got = my_action.execute()
+        assert got is None
+        assert my_action.result == {'x': 3}
+        assert my_action.values == {'x': 3}
+
+    def test_returned_string_saved_result(self):
+        def val(): return 'hello'
+        my_action = tools.PythonInteractiveAction(val)
+        got = my_action.execute()
+        assert got is None
+        assert my_action.result == 'hello'

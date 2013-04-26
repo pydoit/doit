@@ -240,9 +240,14 @@ class PythonInteractiveAction(PythonAction):
     def execute(self, out=None, err=None):
         kwargs = self._prepare_kwargs()
         try:
-            self.py_callable(*self.args, **kwargs)
+            returned_value = self.py_callable(*self.args, **kwargs)
         except Exception as exception:
             return exceptions.TaskError("PythonAction Error", exception)
+        if isinstance(returned_value, basestring):
+            self.result = returned_value
+        elif isinstance(returned_value, dict):
+            self.values = returned_value
+            self.result = returned_value
 
 
 # debug helper
