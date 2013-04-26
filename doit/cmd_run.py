@@ -175,7 +175,7 @@ class Run(DoitCmdBase):
                     msg = "Invalid parallel type %s"
                     raise InvalidCommand(msg % par_type)
                 run_args.append(num_process)
-                
+
             runner = RunnerClass(*run_args)
             return runner.run_all(self.control.task_dispatcher())
         finally:
