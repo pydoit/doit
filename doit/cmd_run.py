@@ -163,8 +163,9 @@ class Run(DoitCmdBase):
                 RunnerClass = Runner
             else:
                 if par_type == 'process':
-                    RunnerClass = MRunner # FIXME get from new option
+                    RunnerClass = MRunner
                     if not MRunner.available():
+                        RunnerClass = MThreadRunner
                         sys.stderr.write(
                         "WARNING: multiprocessing module not available, " +
                         "running in parallel using threads.")
@@ -173,8 +174,8 @@ class Run(DoitCmdBase):
                 else:
                     msg = "Invalid parallel type %s"
                     raise InvalidCommand(msg % par_type)
-
                 run_args.append(num_process)
+                
             runner = RunnerClass(*run_args)
             return runner.run_all(self.control.task_dispatcher())
         finally:
