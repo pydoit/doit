@@ -3,6 +3,7 @@
 Built on top of getopt. optparse can't handle sub-commands.
 """
 import getopt
+import six
 
 
 class DefaultUpdate(dict):
@@ -23,14 +24,14 @@ class DefaultUpdate(dict):
     def add_defaults(self, source):
         """add default values from another dict
         @param source: (dict)"""
-        for key, value in source.iteritems():
+        for key, value in six.iteritems(source):
             if key not in self:
                 self.set_default(key, value)
 
     def update_defaults(self, update_dict):
         """like dict.update but do not update items that have
         a non-default value"""
-        for key, value in update_dict.iteritems():
+        for key, value in six.iteritems(update_dict):
             if key in self._non_default_keys:
                 continue
             self[key] = value
@@ -85,7 +86,7 @@ class CmdOption(object):
         # options can not contain any unrecognized field
         if opt_dict:
             msg = "CmdOption dict contains invalid property '%s'"
-            raise CmdParseError(msg % opt_dict.keys())
+            raise CmdParseError(msg % list(six.iterkeys(opt_dict)))
 
 
     @staticmethod

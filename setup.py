@@ -13,7 +13,7 @@ if sys.version_info >= (3,0):
 import platform
 platform_system = platform.system()
 
-install_requires = []
+install_requires = ['six']
 # auto command dependencies to watch file-system
 if platform_system == "Darwin":
     install_requires.append('macfsevents')
@@ -41,10 +41,7 @@ class PyTest(Command):
         raise SystemExit(errno)
 
 
-extra = {}
-if sys.version_info >= (3,0):
-    extra.update(use_2to3=True)
-
+# FIXME just put link to webpage
 long_description = open('doc/index.rst', 'rb'
                         ).read().decode('utf-8').split('Quick Start')[0]
 
@@ -83,6 +80,5 @@ setup(name = 'doit',
       cmdclass = {'test': PyTest},
       install_requires = install_requires,
       long_description = long_description,
-      **extra
       )
 

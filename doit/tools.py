@@ -6,6 +6,7 @@ import datetime
 import hashlib
 import operator
 import subprocess
+import six
 
 from . import exceptions
 from .dependency import UptodateCalculator
@@ -23,7 +24,7 @@ def create_folder(dir_path):
 def title_with_actions(task):
     """return task name task actions"""
     if task.actions:
-        title = "\n\t".join([unicode(action) for action in task.actions])
+        title = "\n\t".join([six.text_type(action) for action in task.actions])
     # A task that contains no actions at all
     # is used as group task
     else:
@@ -98,13 +99,13 @@ class config_changed(object):
         self.config_digest = None
 
     def _calc_digest(self):
-        if isinstance(self.config, basestring):
+        if isinstance(self.config, six.string_types):
             return self.config
         elif isinstance(self.config, dict):
             data = ''
             for key in sorted(self.config):
                 data += key + repr(self.config[key])
-            if isinstance(data, unicode): # pragma: no cover # python3
+            if isinstance(data, six.text_type): # pragma: no cover # python3
                 byte_data = data.encode("utf-8")
             else:
                 byte_data = data
@@ -243,7 +244,7 @@ class PythonInteractiveAction(PythonAction):
             returned_value = self.py_callable(*self.args, **kwargs)
         except Exception as exception:
             return exceptions.TaskError("PythonAction Error", exception)
-        if isinstance(returned_value, basestring):
+        if isinstance(returned_value, six.string_types):
             self.result = returned_value
         elif isinstance(returned_value, dict):
             self.values = returned_value
@@ -259,4 +260,3 @@ def set_trace(): # pragma: no cover
     import sys
     debugger = pdb.Pdb(stdin=sys.__stdin__, stdout=sys.__stdout__)
     debugger.set_trace(sys._getframe().f_back) #pylint: disable=W0212
-

@@ -3,6 +3,7 @@
 import os
 import sys
 import inspect
+import six
 
 from .compat import is_bound_method
 from .exceptions import InvalidTask, InvalidCommand, InvalidDodoFile
@@ -101,7 +102,7 @@ def load_tasks(dodo_module, command_names=()):
     funcs = []
     prefix_len = len(TASK_STRING)
     # get all functions defined in the module
-    for name, ref in dodo_module.iteritems():
+    for name, ref in six.iteritems(dodo_module):
 
         # function is a task creator because of its name
         if inspect.isfunction(ref) and name.startswith(TASK_STRING):
@@ -237,7 +238,7 @@ def generate_tasks(func_name, gen_result, gen_doc=None):
             _generate_task_from_yield(tasks, func_name, task_dict, x_doc)
 
         if tasks:
-            return tasks.values()
+            return list(six.itervalues(tasks))
         else:
             # special case task_generator did not generate any task
             # create an empty group task
@@ -249,7 +250,3 @@ def generate_tasks(func_name, gen_result, gen_doc=None):
     raise InvalidTask(
         "Task '%s'. Must return a dictionary or generator. Got %s" %
         (func_name, type(gen_result)))
-
-
-
-

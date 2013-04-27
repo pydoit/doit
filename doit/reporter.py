@@ -3,7 +3,8 @@
 import sys
 import time
 import datetime
-import StringIO as io
+import six
+from six import StringIO
 
 from .compat import json
 
@@ -185,9 +186,9 @@ class JsonReporter(object):
         # than the json data. so anything that is sent to stdout/err needs to
         # be captured.
         self._old_out = sys.stdout
-        sys.stdout = io.StringIO()
+        sys.stdout = StringIO()
         self._old_err = sys.stderr
-        sys.stderr = io.StringIO()
+        sys.stderr = StringIO()
         self.outstream = outstream
         # runtime and cleanup errors
         self.errors = []
@@ -240,7 +241,7 @@ class JsonReporter(object):
         if self.errors:
             log_err += "\n".join(self.errors)
 
-        task_result_list = [tr.to_dict() for tr in self.t_results.itervalues()]
+        task_result_list = [tr.to_dict() for tr in six.itervalues(self.t_results)]
         json_data = {'tasks': task_result_list,
                      'out': log_out,
                      'err': log_err}

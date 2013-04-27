@@ -2,7 +2,8 @@
 """
 
 import subprocess, sys
-import StringIO as io
+import six
+from six import StringIO
 import inspect
 from threading import Thread
 
@@ -55,7 +56,7 @@ class BaseAction(object):
         extra_args.update(task.options)
         kwargs = kwargs.copy()
 
-        for key in extra_args.keys():
+        for key in six.iterkeys(extra_args):
             # check key is a positional parameter
             if key in argspec.args:
                 arg_pos = argspec.args.index(key)
@@ -103,7 +104,7 @@ class CmdAction(BaseAction):
 
     @property
     def action(self):
-        if isinstance(self._action, basestring):
+        if isinstance(self._action, six.string_types):
             return self._action
         else:
             ref, args, kw = normalize_callable(self._action)
@@ -165,8 +166,8 @@ class CmdAction(BaseAction):
         process = subprocess.Popen(action, shell=True,
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        output = io.StringIO()
-        errput = io.StringIO()
+        output = StringIO()
+        errput = StringIO()
         t_out = Thread(target=self._print_process_output,
                        args=(process, process.stdout, output, out))
         t_err = Thread(target=self._print_process_output,
@@ -304,9 +305,9 @@ class PythonAction(BaseAction):
         """
         # set std stream
         old_stdout = sys.stdout
-        output = io.StringIO()
+        output = StringIO()
         old_stderr = sys.stderr
-        errput = io.StringIO()
+        errput = StringIO()
 
         out_list = [output]
         if out:
@@ -338,7 +339,7 @@ class PythonAction(BaseAction):
                               (self.py_callable, returned_value))
         elif returned_value is True or returned_value is None:
             pass
-        elif isinstance(returned_value, basestring):
+        elif isinstance(returned_value, six.string_types):
             self.result = returned_value
         elif isinstance(returned_value, dict):
             self.values = returned_value
@@ -371,7 +372,7 @@ def create_action(action, task_ref):
         action.task = task_ref
         return action
 
-    if isinstance(action, basestring):
+    if isinstance(action, six.string_types):
         return CmdAction(action, task_ref)
 
     if isinstance(action, tuple):

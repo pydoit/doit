@@ -1,6 +1,7 @@
 """Control tasks execution order"""
 import fnmatch
 from collections import deque
+import six
 
 from .exceptions import InvalidTask, InvalidCommand, InvalidDodoFile
 from .task import Task
@@ -51,7 +52,7 @@ class TaskControl(object):
             self._def_order.append(task.name)
 
         # expand wild-card task-dependencies
-        for task in self.tasks.itervalues():
+        for task in six.itervalues(self.tasks):
             for pattern in task.wild_dep:
                 task.task_dep.extend(self._get_wild_tasks(pattern))
 
@@ -62,7 +63,7 @@ class TaskControl(object):
     def _check_dep_names(self):
         """check if user input task_dep or setup_task that doesnt exist"""
         # check task-dependencies exist.
-        for task in self.tasks.itervalues():
+        for task in six.itervalues(self.tasks):
             for dep in task.task_dep:
                 if dep not in self.tasks:
                     msg = "%s. Task dependency '%s' does not exist."
@@ -78,7 +79,7 @@ class TaskControl(object):
         """get task_dep based on file_dep on a target from another task"""
         # 1) create a dictionary associating every target->task. where the task
         # builds that target.
-        for task in self.tasks.itervalues():
+        for task in six.itervalues(self.tasks):
             for target in task.targets:
                 if target in self.targets:
                     msg = ("Two different tasks can't have a common target." +
@@ -88,7 +89,7 @@ class TaskControl(object):
                 self.targets[target] = task.name
         # 2) now go through all dependencies and check if they are target from
         # another task.
-        for task in self.tasks.itervalues():
+        for task in six.itervalues(self.tasks):
             self.add_implicit_task_dep(self.targets, task, task.file_dep)
 
 

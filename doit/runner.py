@@ -3,7 +3,8 @@
 import sys
 from multiprocessing import Process, Queue as MQueue
 from threading import Thread
-from Queue import Queue
+import six
+from six.moves import queue, xrange
 
 from .exceptions import InvalidTask, CatchedException
 from .exceptions import TaskFailed, SetupError, DependencyError, UnmetDependency
@@ -75,7 +76,7 @@ class Runner(object):
             return self.dep_manager.get_value(task_id, key_name)
 
         # selected just need to get values from other tasks
-        for arg, value in task.getargs.iteritems():
+        for arg, value in six.iteritems(task.getargs):
             task_id, key_name = value
 
             if tasks_dict[task_id].has_subtask:
@@ -477,7 +478,7 @@ class MRunner(Runner):
 
 class MThreadRunner(MRunner):
     """Parallel runner using threads"""
-    Queue = staticmethod(Queue)
+    Queue = staticmethod(queue.Queue)
     Child = staticmethod(Thread)
 
     @staticmethod

@@ -81,7 +81,7 @@ def task_test3():
     return {'actions': [
             "rm -rf %s" % test_folder,
             "cp -r %s %s" % (this_folder, test_folder),
-            "2to3 --write --nobackups %s" % test_folder,
+            "2to3 --write --nobackups %s" % os.path.join(test_folder, 'tests'),
             "py.test-3.2 %s" % test_folder,
             ],
             'verbosity': 2,

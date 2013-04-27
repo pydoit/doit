@@ -1,5 +1,6 @@
 import sys
 import codecs
+import six
 
 from .exceptions import InvalidCommand
 from .task import Task
@@ -122,7 +123,7 @@ class Run(DoitCmdBase):
         self.control.process(self.sel_tasks)
 
         # reporter
-        if isinstance(reporter, basestring):
+        if isinstance(reporter, six.string_types):
             if reporter not in REPORTERS:
                 msg = ("No reporter named '%s'."
                        " Type 'doit help run' to see a list "
@@ -141,7 +142,7 @@ class Run(DoitCmdBase):
         show_out = use_verbosity < 2 # show on error report
 
         # outstream
-        if isinstance(outfile, basestring):
+        if isinstance(outfile, six.string_types):
             outstream = codecs.open(outfile, 'w', encoding='utf-8')
         else: # outfile is a file-like object (like StringIO or sys.stdout)
             outstream = outfile

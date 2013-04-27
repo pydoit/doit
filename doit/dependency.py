@@ -1,10 +1,14 @@
 """Manage (save/check) task dependency-on-files data."""
 
 import os
-import sys
 import hashlib
-import dumbdbm
-import anydbm as ddbm
+import six
+if six.PY3: # pragma: no cover
+    from dbm import dumb
+    import dbm as ddbm
+else:
+    import dumbdbm as dumb
+    import anydbm as ddbm
 
 # uncomment imports below to run tests on all dbm backends...
 #import dbhash as ddbm # (removed from python3)
@@ -23,7 +27,7 @@ USE_FILE_TIMESTAMP = True
 
 def get_md5(input_data):
     """return md5 from string or unicode"""
-    if isinstance(input_data, unicode):
+    if isinstance(input_data, six.text_type):
         byte_data = input_data.encode("utf-8")
     else:
         byte_data = input_data
@@ -133,9 +137,9 @@ class JsonDB(object):
 
 def encode_task_id(func):
     """in python 2 dbm module does not automatically convert unicode to bytes"""
-    if sys.version < '3':
+    if not six.PY3:
         def wrap(self, key, *args):
-            if isinstance(key, unicode):
+            if isinstance(key, six.text_type):
                 key = key.encode('utf-8')
             return func(self, key, *args)
         return wrap
@@ -175,7 +179,7 @@ class DbmDB(object):
                     'To fix the issue you can just remove the database file(s) '
                     'and a new one will be generated.'
                     % {'filename': repr(self.name)})
-                raise exception.__class__, new_message
+                raise exception.__class__(new_message)
             else:
                 # Re-raise any other exceptions
                 raise
@@ -248,7 +252,7 @@ class DbmDB(object):
         """remove saved dependecies from DB for all tasks"""
         self._db = {}
         # dumb dbm always opens file in update mode
-        if isinstance(self._dbm, dumbdbm._Database): # pragma: no cover
+        if isinstance(self._dbm, dumb._Database): # pragma: no cover
             self._dbm._index = {}
             self._dbm.close()
         # gdbm can not be running on 2 instances on same thread
@@ -443,4 +447,3 @@ class UptodateCalculator(object):
 
 # defaut dependency backend implementation
 Dependency = DbmDependency
-

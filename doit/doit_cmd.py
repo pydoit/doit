@@ -3,6 +3,7 @@
 import os
 import sys
 import traceback
+import six
 
 import doit
 from .exceptions import InvalidDodoFile, InvalidCommand, InvalidTask
@@ -30,9 +31,9 @@ class DoitMain(object):
     @staticmethod
     def print_version():
         """print doit version (includes path location)"""
-        print(".".join([str(i) for i in doit.__version__]))
-        print("bin @", os.path.abspath(__file__))
-        print("lib @", os.path.dirname(os.path.abspath(doit.__file__)))
+        six.print_(".".join([str(i) for i in doit.__version__]))
+        six.print_("bin @", os.path.abspath(__file__))
+        six.print_("lib @", os.path.dirname(os.path.abspath(doit.__file__)))
 
 
     def get_commands(self):
@@ -92,7 +93,7 @@ class DoitMain(object):
         args = self.process_args(cmd_args)
 
         # get specified sub-command or use default='run'
-        if len(args) == 0 or args[0] not in self.sub_cmds.keys():
+        if len(args) == 0 or args[0] not in list(six.iterkeys(self.sub_cmds)):
             command = 'run'
         else:
             command = args.pop(0)

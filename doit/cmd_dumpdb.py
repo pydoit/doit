@@ -1,6 +1,13 @@
-import anydbm
-from whichdb import whichdb
 import pprint
+import six
+if six.PY3: # pragma: no cover
+    import dbm
+    from dbm import whichdb
+else:
+    import anydbm as dbm
+    from whichdb import whichdb
+
+
 
 from .compat import json
 from .exceptions import InvalidCommand
@@ -10,7 +17,7 @@ from .cmd_base import Command, opt_depfile
 def dbm_iter(db):
     # try dictionary interface - ok in python2 and dumbdb
     try:
-        return db.iteritems()
+        return six.iteritems(db)
     except: # pragma: no cover
         pass
 
@@ -39,11 +46,11 @@ class DumpDB(Command):
     def execute(self, opt_values, pos_args):
         dep_file = opt_values['dep_file']
         db_type = whichdb(dep_file)
-        print "DBM type is '%s'" % db_type
+        six.print_("DBM type is '%s'" % db_type)
         if db_type in ('dbm', 'dbm.ndbm'): # pragma: no cover
             raise InvalidCommand('ndbm does not support iteration of elements')
-        data = anydbm.open(dep_file)
+        data = dbm.open(dep_file)
         for key, value_str in dbm_iter(data):
             value_dict = json.loads(value_str.decode('utf-8'))
             value_fmt = pprint.pformat(value_dict, indent=4, width=100)
-            print "{key} -> {value}".format(key=key, value=value_fmt)
+            six.print_("{key} -> {value}".format(key=key, value=value_fmt))
