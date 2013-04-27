@@ -2,7 +2,8 @@
 
 import os, shutil
 import tempfile
-from StringIO import StringIO
+import six
+from six import StringIO
 
 import pytest
 
@@ -130,7 +131,7 @@ class TestTaskExpandFileDep(object):
                        file_dep=[['aaaa']])
 
     def test_file_dep_unicode(self):
-        unicode_name = u"中文"
+        unicode_name = six.u("中文")
         my_task = task.Task("Task X", ["taskcmd"], file_dep=[unicode_name])
         assert unicode_name in my_task.file_dep
 
@@ -369,7 +370,7 @@ class TestTaskClean(object):
 
     def test_clean_action_kwargs(self):
         def fail_clean(dryrun):
-            print('hello %s' % dryrun)
+            six.print_('hello %s' % dryrun)
         t = task.Task("xxx", None, clean=[(fail_clean,)])
         assert 1 == len(t.clean_actions)
         out = StringIO()
@@ -440,4 +441,3 @@ class TestDictToTask(object):
 
     def testDictMissingFieldAction(self):
         pytest.raises(action.InvalidTask, task.dict_to_task, {'name':'xpto 14'})
-

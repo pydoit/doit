@@ -1,4 +1,5 @@
 from collections import deque
+import six
 import pytest
 
 from doit.exceptions import InvalidDodoFile, InvalidCommand
@@ -425,4 +426,4 @@ class TestTaskDispatcher_dispatcher_generator(object):
         assert "hold on" == next(gen)
         assert "hold on" == next(gen) # hold until t2 is done
         assert tasks[0] == gen.send(n2).task
-        pytest.raises(StopIteration, gen.next)
+        pytest.raises(StopIteration, lambda gen: next(gen), gen)

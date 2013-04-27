@@ -1,4 +1,4 @@
-import StringIO
+from six import StringIO
 
 import pytest
 
@@ -15,7 +15,7 @@ class TestCmdIgnore(object):
         return tasks_sample()
 
     def testIgnoreAll(self, tasks, depfile):
-        output = StringIO.StringIO()
+        output = StringIO()
         cmd = Ignore(outstream=output, dep_file=depfile.name, task_list=tasks)
         cmd._execute([])
         got = output.getvalue().split("\n")[:-1]
@@ -25,7 +25,7 @@ class TestCmdIgnore(object):
             assert None == dep._get(task.name, "ignore:")
 
     def testIgnoreOne(self, tasks, depfile):
-        output = StringIO.StringIO()
+        output = StringIO()
         cmd = Ignore(outstream=output, dep_file=depfile.name, task_list=tasks)
         cmd._execute(["t2", "t1"])
         got = output.getvalue().split("\n")[:-1]
@@ -36,7 +36,7 @@ class TestCmdIgnore(object):
         assert None == dep._get("t3", "ignore:")
 
     def testIgnoreGroup(self, tasks, depfile):
-        output = StringIO.StringIO()
+        output = StringIO()
         cmd = Ignore(outstream=output, dep_file=depfile.name, task_list=tasks)
         cmd._execute(["g1"])
         got = output.getvalue().split("\n")[:-1]
@@ -50,7 +50,7 @@ class TestCmdIgnore(object):
 
     # if task dependency not from a group dont ignore it
     def testDontIgnoreTaskDependency(self, tasks, depfile):
-        output = StringIO.StringIO()
+        output = StringIO()
         cmd = Ignore(outstream=output, dep_file=depfile.name, task_list=tasks)
         cmd._execute(["t3"])
         dep = Dependency(depfile.name)
@@ -58,6 +58,6 @@ class TestCmdIgnore(object):
         assert None == dep._get("t1", "ignore:")
 
     def testIgnoreInvalid(self, tasks, depfile):
-        output = StringIO.StringIO()
+        output = StringIO()
         cmd = Ignore(outstream=output, dep_file=depfile.name, task_list=tasks)
         pytest.raises(InvalidCommand, cmd._execute, ["XXX"])

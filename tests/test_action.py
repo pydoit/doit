@@ -2,8 +2,9 @@
 
 import os
 import sys
-import StringIO
 import tempfile
+import six
+from six import StringIO
 
 import pytest
 from mock import Mock
@@ -55,9 +56,9 @@ class TestCmdAction(object):
         assert "Cmd: %s" % PROGRAM == str(my_action)
 
     def test_unicode(self):
-        action_str = unicode(PROGRAM) + u"中文"
+        action_str = six.text_type(PROGRAM) + six.u("中文")
         my_action = action.CmdAction(action_str)
-        assert "Cmd: %s" % action_str == unicode(my_action)
+        assert "Cmd: %s" % action_str == six.text_type(my_action)
 
     def test_repr(self):
         my_action = action.CmdAction(PROGRAM)
@@ -171,14 +172,14 @@ class TestCmdExpandAction(object):
 class TestCmd_print_process_output(object):
     def test_non_unicode_string(self):
         my_action = action.CmdAction("")
-        not_unicode = StringIO.StringIO('\xc0')
+        not_unicode = StringIO('\xc0')
         pytest.raises(Exception, my_action._print_process_output,
                        Mock(), not_unicode, Mock(), Mock())
 
     def test_unicode_string(self, tmpfile):
         my_action = action.CmdAction("")
         unicode_in = tempfile.TemporaryFile('w+b')
-        unicode_in.write(u" 中文".encode('utf-8'))
+        unicode_in.write(six.u(" 中文").encode('utf-8'))
         unicode_in.seek(0)
         my_action._print_process_output(Mock(), unicode_in, Mock(), tmpfile)
 
@@ -186,7 +187,7 @@ class TestCmd_print_process_output(object):
         # this \uXXXX has a different behavior!
         my_action = action.CmdAction("")
         unicode_in = tempfile.TemporaryFile('w+b')
-        unicode_in.write(u" 中文 \u2018".encode('utf-8'))
+        unicode_in.write(six.u(" 中文 \u2018").encode('utf-8'))
         unicode_in.seek(0)
         my_action._print_process_output(Mock(), unicode_in, Mock(), tmpfile)
 
@@ -197,14 +198,14 @@ class TestCmdSaveOuput(object):
         PROGRAM = "python %s/sample_process.py" % TEST_PATH
         my_action = action.CmdAction(PROGRAM + " x1 x2", save_out='out')
         my_action.execute()
-        assert {'out': u'x1'} == my_action.values
+        assert {'out': six.u('x1')} == my_action.values
 
 
 
 class TestWriter(object):
     def test_writer(self):
-        w1 = StringIO.StringIO()
-        w2 = StringIO.StringIO()
+        w1 = StringIO()
+        w2 = StringIO()
         writer = action.Writer(w1, w2)
         writer.flush() # make sure flush is supported
         writer.write("hello")
@@ -550,4 +551,3 @@ class TestCreateAction(object):
     def testInvalidActionObject(self):
         pytest.raises(action.InvalidTask, action.create_action,
                        self, self.mytask)
-

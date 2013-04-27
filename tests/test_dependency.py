@@ -2,7 +2,11 @@
 
 import os
 import time
-import anydbm
+import six
+if six.PY3: # pragma: no cover
+    import dbm
+else:
+    import anydbm as dbm
 
 import pytest
 
@@ -13,7 +17,7 @@ from .conftest import get_abspath, depfile
 
 
 def test_unicode_md5():
-    data = u"我"
+    data = six.u("我")
     # no exception is raised
     assert get_md5(data)
 
@@ -62,8 +66,8 @@ class TestDependencyDb(object):
         assert "da_md5" == value, value
 
     def test_get_set_unicode_name(self, pdepfile):
-        pdepfile._set(u"taskId_我","dependency_A","da_md5")
-        value = pdepfile._get(u"taskId_我","dependency_A")
+        pdepfile._set(six.u("taskId_我"),"dependency_A","da_md5")
+        value = pdepfile._get(six.u("taskId_我"),"dependency_A")
         assert "da_md5" == value, value
 
     #
@@ -88,10 +92,10 @@ class TestDependencyDb(object):
             fd = open(full_name, 'w')
             fd.write("""{"x": y}""")
             fd.close()
-        if isinstance(anydbm.error, Exception): # pragma: no cover
-            exceptions = (ValueError, anydbm.error)
+        if isinstance(dbm.error, Exception): # pragma: no cover
+            exceptions = (ValueError, dbm.error)
         else:
-            exceptions = (ValueError,) + anydbm.error
+            exceptions = (ValueError,) + dbm.error
         pytest.raises(exceptions, pdepfile.__class__, pdepfile.name)
 
     def test_corrupted_file_unrecognized_excep(self, monkeypatch, pdepfile):
@@ -107,7 +111,7 @@ class TestDependencyDb(object):
             fd.write("""{"x": y}""")
             fd.close()
         monkeypatch.setattr(DbmDB, 'DBM_CONTENT_ERROR_MSG', 'xxx')
-        pytest.raises(anydbm.error, pdepfile.__class__, pdepfile.name)
+        pytest.raises(dbm.error, pdepfile.__class__, pdepfile.name)
 
     # _get must return None if entry doesnt exist.
     def test_getNonExistent(self, pdepfile):

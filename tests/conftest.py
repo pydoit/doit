@@ -1,7 +1,12 @@
 import os
 import time
-from whichdb import whichdb
 import multiprocessing
+import six
+if six.PY3: # pragma: no cover
+    from dbm import whichdb
+else:
+    from whichdb import whichdb
+
 
 import py
 import pytest

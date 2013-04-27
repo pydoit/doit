@@ -18,7 +18,7 @@ class TestCatchedException(object):
     def test_exception(self):
         try:
             raise IndexError('too big')
-        except Exception, e:
+        except Exception as e:
             my_excp = exceptions.CatchedException('got this', e)
         msg = my_excp.get_msg()
         assert 'got this' in msg
@@ -28,7 +28,7 @@ class TestCatchedException(object):
     def test_catched(self):
         try:
             raise IndexError('too big')
-        except Exception, e:
+        except Exception as e:
             my_excp = exceptions.CatchedException('got this', e)
         my_excp2 = exceptions.CatchedException('handle that', my_excp)
         msg = my_excp2.get_msg()

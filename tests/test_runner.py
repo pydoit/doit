@@ -1,5 +1,6 @@
 import os
 from multiprocessing import Queue
+import six
 
 import pytest
 from mock import Mock
@@ -468,7 +469,7 @@ class TestRunner_run_tasks(object):
 
     def test_getargs(self, reporter, RunnerClass, depfile):
         def use_args(arg1):
-            print arg1
+            six.print_(arg1)
         def make_args(): return {'myarg':1}
         t1 = Task("t1", [(use_args,)], getargs=dict(arg1=('t2','myarg')) )
         t2 = Task("t2", [(make_args,)])
