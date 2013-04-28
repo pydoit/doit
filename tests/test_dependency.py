@@ -3,16 +3,13 @@
 import os
 import time
 import six
-if six.PY3: # pragma: no cover
-    import dbm
-else:
-    import anydbm as dbm
 
 import pytest
 
 from doit.task import Task
 from doit.dependency import get_md5, md5sum, check_modified, UptodateCalculator
-from doit.dependency import JsonDependency, DbmDependency, DbmDB
+from doit.dependency import DbmDB, DatabaseException
+from doit.dependency import JsonDependency, DbmDependency, SqliteDependency
 from .conftest import get_abspath, depfile
 
 
@@ -52,8 +49,7 @@ def test_md5():
 @pytest.fixture
 def pdepfile(request):
     return depfile(request)
-pytest.fixture(params=[JsonDependency, DbmDependency])(pdepfile)
-
+pytest.fixture(params=[JsonDependency, DbmDependency, SqliteDependency])(pdepfile)
 
 # FIXME there was major refactor breaking classes from dependency,
 # unit-tests could be more specific to base classes.
@@ -92,11 +88,7 @@ class TestDependencyDb(object):
             fd = open(full_name, 'w')
             fd.write("""{"x": y}""")
             fd.close()
-        if isinstance(dbm.error, Exception): # pragma: no cover
-            exceptions = (ValueError, dbm.error)
-        else:
-            exceptions = (ValueError,) + dbm.error
-        pytest.raises(exceptions, pdepfile.__class__, pdepfile.name)
+        pytest.raises(DatabaseException, pdepfile.__class__, pdepfile.name)
 
     def test_corrupted_file_unrecognized_excep(self, monkeypatch, pdepfile):
         if isinstance(pdepfile, JsonDependency):
@@ -111,7 +103,7 @@ class TestDependencyDb(object):
             fd.write("""{"x": y}""")
             fd.close()
         monkeypatch.setattr(DbmDB, 'DBM_CONTENT_ERROR_MSG', 'xxx')
-        pytest.raises(dbm.error, pdepfile.__class__, pdepfile.name)
+        pytest.raises(DatabaseException, pdepfile.__class__, pdepfile.name)
 
     # _get must return None if entry doesnt exist.
     def test_getNonExistent(self, pdepfile):
@@ -216,8 +208,9 @@ class TestSaveSuccess(object):
         ff = open(filePath2,"w")
         ff.write("part2")
         ff.close()
+        assert pdepfile._get("taskId_X",filePath) is None
+        assert pdepfile._get("taskId_X",filePath2) is None
 
-        assert 0 == len(pdepfile.backend._db)
         t1 = Task("taskId_X", None, [filePath,filePath2])
         pdepfile.save_success(t1)
         assert pdepfile._get("taskId_X",filePath) is not None

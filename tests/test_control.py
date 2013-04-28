@@ -1,5 +1,5 @@
 from collections import deque
-import six
+
 import pytest
 
 from doit.exceptions import InvalidDodoFile, InvalidCommand

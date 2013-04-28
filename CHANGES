@@ -16,6 +16,7 @@ Changes
 - tools.PythonInteractiveAction saves "result" and "values"
 - fix #40. added option to use threads for parallel running of tasks
 - same code base for python 2 & 3 (no need to use tool `2to3`)
+- add sqlite3 DB backend
 
 
 0.20.0 (*2013-01-09*)
