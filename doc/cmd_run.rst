@@ -12,6 +12,18 @@ The basics of task selection were introduced in :ref:`Task Selection
 <task-selection>`.
 
 
+`python -m doit`
+-----------------
+
+`doit` can also be executed without using the `doit` script.
+
+.. code-block:: console
+
+   $ python -m doit
+
+This is specially useful when testing `doit` with different python versions.
+
+
 dodo file
 ----------
 
@@ -138,14 +150,21 @@ By default the execution of tasks is halted on the first task failure or error. 
 parallel execution
 -------------------
 
-`doit` supports parallel execution (using multiple processes) --process/-n.
-The `multiprocessing <http://docs.python.org/library/multiprocessing.html>`_
+`doit` supports parallel execution --process/-n.
+By default the `multiprocessing <http://docs.python.org/library/multiprocessing.html>`_
 module is used.
 So the same restrictions also apply to the use of multiprocessing in `doit`.
 
 .. code-block:: console
 
     $ doit -n 3
+
+You can also execute in parallel using threads by specifying the option
+`--parrallel-type/-P`.
+
+.. code-block:: console
+
+    $ doit -n 3 -P thread
 
 
 .. _reporter:

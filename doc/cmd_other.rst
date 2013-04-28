@@ -71,6 +71,12 @@ A common scenario is a task that needs to "revert" its actions. A task may inclu
 
 The *clean* attribute can be a list of actions, again, an action could be a string with a shell command or a tuple with a python callable.
 
+If you want to clean the targets and add some custom clean actions,
+you can include the `doit.task.clean_targets` instead of passing `True`:
+
+.. literalinclude:: tutorial/clean_mix.py
+
+
 You can specify which task to *clean*. If no task is specified the clean operation of default tasks are executed.
 
 .. code-block:: console

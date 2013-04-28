@@ -245,3 +245,8 @@ The values are passed as list of strings.
 
 .. literalinclude:: tutorial/hello.py
 
+
+You can also pass the keyword *task* to have a reference to all task
+metadata.
+
+.. literalinclude:: tutorial/meta.py

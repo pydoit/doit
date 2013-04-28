@@ -38,7 +38,7 @@ and contains some extra meta-data.
 
 .. topic:: parallel execution
 
-  built-in support for parallel (multi-process) task execution
+  built-in support for parallel (threaded or multi-process) task execution
   (:ref:`more <parallel-execution>`)
 
 
@@ -126,7 +126,7 @@ What people are saying about `doit`
 Project Details
 ===============
 
-* This is an open-source project (`MIT license <http://opensource.org/licenses/mit-license.php>`_) written in python (runs on Python 2.6 through 3.3)
+* This is an open-source project (`MIT license <http://opensource.org/licenses/mit-license.php>`_) written in python. Runs on Python 2.6 through 3.3 with a single codebase.
 
 * Download from `PyPi <http://pypi.python.org/pypi/doit>`_
 
