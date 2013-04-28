@@ -1,4 +1,3 @@
-from . import dependency
 from .cmd_base import DoitCmdBase, check_tasks_exist, subtasks_iter
 
 
@@ -12,7 +11,7 @@ class Forget(DoitCmdBase):
     def _execute(self):
         """remove saved data successful runs from DB
         """
-        dependency_manager = dependency.Dependency(self.dep_file)
+        dependency_manager = self.dep_class(self.dep_file)
 
         # no task specified. forget all
         if not self.sel_tasks:

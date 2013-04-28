@@ -31,7 +31,7 @@ class TestCmdForget(object):
         self._add_task_deps(tasks, depfile.name)
         output = StringIO()
         cmd_forget = Forget(outstream=output, dep_file=depfile.name,
-                            task_list=tasks, sel_tasks=[])
+                            backend='dbm', task_list=tasks, sel_tasks=[])
         cmd_forget._execute()
         got = output.getvalue().split("\n")[:-1]
         assert ["forgeting all tasks"] == got, repr(output.getvalue())
@@ -43,7 +43,8 @@ class TestCmdForget(object):
         self._add_task_deps(tasks, depfile.name)
         output = StringIO()
         cmd_forget = Forget(outstream=output, dep_file=depfile.name,
-                            task_list=tasks, sel_tasks=["t2", "t1"])
+                            backend='dbm', task_list=tasks,
+                            sel_tasks=["t2", "t1"])
         cmd_forget._execute()
         got = output.getvalue().split("\n")[:-1]
         assert ["forgeting t2", "forgeting t1"] == got
@@ -56,7 +57,7 @@ class TestCmdForget(object):
         self._add_task_deps(tasks, depfile.name)
         output = StringIO()
         cmd_forget = Forget(outstream=output, dep_file=depfile.name,
-                            task_list=tasks, sel_tasks=["g1"])
+                            backend='dbm', task_list=tasks, sel_tasks=["g1"])
         cmd_forget._execute()
         got = output.getvalue().split("\n")[:-1]
         assert "forgeting g1" == got[0]
@@ -74,7 +75,7 @@ class TestCmdForget(object):
         self._add_task_deps(tasks, depfile.name)
         output = StringIO()
         cmd_forget = Forget(outstream=output, dep_file=depfile.name,
-                            task_list=tasks, sel_tasks=["t3"])
+                            backend='dbm', task_list=tasks, sel_tasks=["t3"])
         cmd_forget._execute()
         dep = Dependency(depfile.name)
         assert None == dep._get("t3", "dep")
@@ -84,7 +85,5 @@ class TestCmdForget(object):
         self._add_task_deps(tasks, depfile.name)
         output = StringIO()
         cmd_forget = Forget(outstream=output, dep_file=depfile.name,
-                            task_list=tasks, sel_tasks=["XXX"])
+                            backend='dbm', task_list=tasks, sel_tasks=["XXX"])
         pytest.raises(InvalidCommand, cmd_forget._execute)
-
-

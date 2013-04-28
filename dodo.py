@@ -7,7 +7,10 @@ import pytest
 
 from doit.tools import create_folder
 
-DOIT_CONFIG = {'default_tasks': ['checker', 'ut']}
+DOIT_CONFIG = {
+    'default_tasks': ['checker', 'ut'],
+#    'backend': 'sqlite3',
+    }
 
 CODE_FILES = glob.glob("doit/*.py")
 TEST_FILES = glob.glob("tests/test_*.py")

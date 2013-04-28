@@ -17,7 +17,7 @@ class TestCmdRun(object):
         cmd = Strace(outstream=output)
         cmd._loader.load_tasks = mock.Mock(return_value=([task], {}))
         params = DefaultUpdate(dep_file=depfile.name, show_all=False,
-                               keep_trace=False)
+                               keep_trace=False, backend='dbm')
         result = cmd.execute(params, ['tt'])
         assert 0 == result
         got = output.getvalue().split("\n")
@@ -32,7 +32,7 @@ class TestCmdRun(object):
         cmd = Strace(outstream=output)
         cmd._loader.load_tasks = mock.Mock(return_value=([task], {}))
         params = DefaultUpdate(dep_file=depfile.name, show_all=True,
-                               keep_trace=False)
+                               keep_trace=False, backend='dbm')
         result = cmd.execute(params, ['tt'])
         assert 0 == result
         got = output.getvalue().split("\n")
@@ -45,7 +45,7 @@ class TestCmdRun(object):
         cmd = Strace(outstream=output)
         cmd._loader.load_tasks = mock.Mock(return_value=([task], {}))
         params = DefaultUpdate(dep_file=depfile.name, show_all=True,
-                               keep_trace=True)
+                               keep_trace=True, backend='dbm')
         result = cmd.execute(params, ['tt'])
         assert 0 == result
         got = output.getvalue().split("\n")
@@ -61,7 +61,7 @@ class TestCmdRun(object):
         cmd = Strace(outstream=output)
         cmd._loader.load_tasks = mock.Mock(return_value=([task], {}))
         params = DefaultUpdate(dep_file=depfile.name, show_all=False,
-                               keep_trace=False)
+                               keep_trace=False, backend='dbm')
         result = cmd.execute(params, ['tt'])
         assert 0 == result
         got = output.getvalue().split("\n")
@@ -77,7 +77,7 @@ class TestCmdRun(object):
         cmd = Strace(outstream=output)
         cmd._loader.load_tasks = mock.Mock(return_value=([task], {}))
         params = DefaultUpdate(dep_file=depfile.name, show_all=False,
-                               keep_trace=False)
+                               keep_trace=False, backend='dbm')
         result = cmd.execute(params, ['tt'])
         assert 0 == result
 

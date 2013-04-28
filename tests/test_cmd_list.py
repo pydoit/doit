@@ -89,7 +89,7 @@ class TestCmdList(object):
 
         output = StringIO()
         cmd_list = List(outstream=output, dep_file=depfile.name,
-                        task_list=task_list)
+                        backend='dbm', task_list=task_list)
         cmd_list._execute(status=True)
         got = [line.strip() for line in output.getvalue().split('\n') if line]
         assert 'R g1' in got

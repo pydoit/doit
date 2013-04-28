@@ -15,7 +15,8 @@ class TestCmdRun(object):
 
     def testProcessRun(self, dependency1, depfile):
         output = StringIO()
-        cmd_run = Run(dep_file=depfile.name, task_list=tasks_sample())
+        cmd_run = Run(backend='dbm', dep_file=depfile.name,
+                      task_list=tasks_sample())
         result = cmd_run._execute(output)
         assert 0 == result
         got = output.getvalue().split("\n")[:-1]
@@ -23,7 +24,8 @@ class TestCmdRun(object):
 
     def testProcessRunMP(self, dependency1, depfile):
         output = StringIO()
-        cmd_run = Run(dep_file=depfile.name, task_list=tasks_sample())
+        cmd_run = Run(backend='dbm', dep_file=depfile.name,
+                      task_list=tasks_sample())
         result = cmd_run._execute(output, num_process=1)
         assert 0 == result
         got = output.getvalue().split("\n")[:-1]
@@ -31,7 +33,8 @@ class TestCmdRun(object):
 
     def testProcessRunMThread(self, dependency1, depfile):
         output = StringIO()
-        cmd_run = Run(dep_file=depfile.name, task_list=tasks_sample())
+        cmd_run = Run(backend='dbm', dep_file=depfile.name,
+                      task_list=tasks_sample())
         result = cmd_run._execute(output, num_process=1, par_type='thread')
         assert 0 == result
         got = output.getvalue().split("\n")[:-1]
@@ -39,7 +42,8 @@ class TestCmdRun(object):
 
     def testInvalidParType(self, dependency1, depfile):
         output = StringIO()
-        cmd_run = Run(dep_file=depfile.name, task_list=tasks_sample())
+        cmd_run = Run(backend='dbm', dep_file=depfile.name,
+                      task_list=tasks_sample())
         pytest.raises(InvalidCommand, cmd_run._execute,
                       output, num_process=1, par_type='not_exist')
 
@@ -49,7 +53,8 @@ class TestCmdRun(object):
         monkeypatch.setattr(runner.MRunner, "available",
                             Mock(return_value=False))
         output = StringIO()
-        cmd_run = Run(dep_file=depfile.name, task_list=tasks_sample())
+        cmd_run = Run(backend='dbm', dep_file=depfile.name,
+                      task_list=tasks_sample())
         result = cmd_run._execute(output, num_process=1)
         assert 0 == result
         got = output.getvalue().split("\n")[:-1]
@@ -60,23 +65,24 @@ class TestCmdRun(object):
 
     def testProcessRunFilter(self, depfile):
         output = StringIO()
-        cmd_run = Run(dep_file=depfile.name, task_list=tasks_sample(),
-                      sel_tasks=["g1.a"])
+        cmd_run = Run(backend='dbm', dep_file=depfile.name,
+                      task_list=tasks_sample(), sel_tasks=["g1.a"])
         cmd_run._execute(output)
         got = output.getvalue().split("\n")[:-1]
         assert [".  g1.a"] == got, repr(got)
 
     def testProcessRunEmptyFilter(self, depfile):
         output = StringIO()
-        cmd_run = Run(dep_file=depfile.name, task_list=tasks_sample(),
-                      sel_tasks=[])
+        cmd_run = Run(backend='dbm', dep_file=depfile.name,
+                      task_list=tasks_sample(), sel_tasks=[])
         cmd_run._execute(output)
         got = output.getvalue().split("\n")[:-1]
         assert [] == got
 
     def testInvalidReporter(self, depfile):
         output = StringIO()
-        cmd_run = Run(dep_file=depfile.name, task_list=tasks_sample())
+        cmd_run = Run(backend='dbm', dep_file=depfile.name,
+                      task_list=tasks_sample())
         pytest.raises(InvalidCommand, cmd_run._execute,
                       output, reporter="i dont exist")
 
@@ -85,7 +91,8 @@ class TestCmdRun(object):
         class MyReporter(reporter.ConsoleReporter):
             def get_status(self, task):
                 self.outstream.write('MyReporter.start %s\n' % task.name)
-        cmd_run = Run(dep_file=depfile.name, task_list=[tasks_sample()[0]])
+        cmd_run = Run(backend='dbm', dep_file=depfile.name,
+                      task_list=[tasks_sample()[0]])
         cmd_run._execute(output, reporter=MyReporter(output, {}))
         got = output.getvalue().split("\n")[:-1]
         assert 'MyReporter.start t1' == got[0]
@@ -95,7 +102,8 @@ class TestCmdRun(object):
         class MyReporter(reporter.ConsoleReporter):
             def get_status(self, task):
                 self.outstream.write('MyReporter.start %s\n' % task.name)
-        cmd_run = Run(dep_file=depfile.name, task_list=[tasks_sample()[0]])
+        cmd_run = Run(backend='dbm', dep_file=depfile.name,
+                      task_list=[tasks_sample()[0]])
         cmd_run._execute(output, reporter=MyReporter)
         got = output.getvalue().split("\n")[:-1]
         assert 'MyReporter.start t1' == got[0]
@@ -107,13 +115,13 @@ class TestCmdRun(object):
         def my_execute(out, err, verbosity):
             used_verbosity.append(verbosity)
         t.execute = my_execute
-        cmd_run = Run(dep_file=depfile.name, task_list=[t])
+        cmd_run = Run(backend='dbm', dep_file=depfile.name, task_list=[t])
         cmd_run._execute(output, verbosity=2)
         assert 2 == used_verbosity[0], used_verbosity
 
     def test_outfile(self, depfile):
-        cmd_run = Run(dep_file=depfile.name, task_list=tasks_sample(),
-                      sel_tasks=["g1.a"])
+        cmd_run = Run(backend='dbm', dep_file=depfile.name,
+                      task_list=tasks_sample(), sel_tasks=["g1.a"])
         cmd_run._execute('test.out')
         try:
             outfile = open('test.out', 'r')

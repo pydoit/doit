@@ -1,4 +1,3 @@
-from . import dependency
 from .cmd_base import DoitCmdBase, check_tasks_exist, subtasks_iter
 
 
@@ -20,7 +19,7 @@ class Ignore(DoitCmdBase):
             self.outstream.write(msg)
             return
 
-        dependency_manager = dependency.Dependency(self.dep_file)
+        dependency_manager = self.dep_class(self.dep_file)
         tasks = dict([(t.name, t) for t in self.task_list])
         check_tasks_exist(tasks, ignore_tasks)
 

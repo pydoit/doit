@@ -526,6 +526,12 @@ class SqliteDependency(DependencyBase):
     def __init__(self, name):
         DependencyBase.__init__(self, SqliteDB(name))
 
+# map string used in cmdline option to class
+backend_map = {
+    'json': JsonDependency,
+    'dbm': DbmDependency,
+    'sqlite3': SqliteDependency,
+}
 
 #############
 

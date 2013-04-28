@@ -8,7 +8,6 @@ from six.moves import queue, xrange
 
 from .exceptions import InvalidTask, CatchedException
 from .exceptions import TaskFailed, SetupError, DependencyError, UnmetDependency
-from .dependency import Dependency
 from .control import ExecNode
 
 # execution result.
@@ -29,7 +28,7 @@ class Runner(object):
       finish()
 
     """
-    def __init__(self, dependency_file, reporter, continue_=False,
+    def __init__(self, dep_class, dependency_file, reporter, continue_=False,
                  always_execute=False, verbosity=0):
         """@param dependency_file: (string) file path of the db file
         @param reporter: reporter to be used. It can be a class or an object
@@ -37,7 +36,7 @@ class Runner(object):
         @param always_execute: (bool) execute even if up-to-date or ignored
         @param verbosity: (int) 0,1,2 see Task.execute
         """
-        self.dep_manager = Dependency(dependency_file)
+        self.dep_manager = dep_class(dependency_file)
         self.reporter = reporter
         self.continue_ = continue_
         self.always_execute = always_execute
@@ -291,9 +290,9 @@ class MRunner(Runner):
         else:
             return True
 
-    def __init__(self, dependency_file, reporter, continue_=False,
+    def __init__(self, dep_class, dependency_file, reporter, continue_=False,
                  always_execute=False, verbosity=0, num_process=1):
-        Runner.__init__(self, dependency_file, reporter, continue_,
+        Runner.__init__(self, dep_class, dependency_file, reporter, continue_,
                         always_execute, verbosity)
         self.num_process = num_process
 

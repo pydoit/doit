@@ -3,6 +3,7 @@ import sys
 
 from .cmdparse import CmdOption, CmdParse
 from .exceptions import InvalidCommand
+from .dependency import backend_map
 from . import loader
 
 
@@ -87,6 +88,17 @@ opt_depfile = {'name': 'dep_file',
                'default': ".doit.db",
                'help': "file used to save successful runs"
                }
+
+# dependency file DB backend
+opt_backend = {
+    'name': 'backend',
+    'short':'',
+    'long': 'backend',
+    'type': str,
+    'default': "dbm",
+    'help': ("Select dependency file backend." +
+             "Available options dbm, json, sqlite3. [default: %(default)s]")
+}
 
 
 #### options related to dodo.py
@@ -182,13 +194,15 @@ class DoitCmdBase(Command):
     cmd_options => list of option dictionary (see CmdOption)
     _execute => method, argument names must be option names
     """
-    base_options = (opt_depfile,)
+    base_options = (opt_depfile, opt_backend)
 
-    def __init__(self, task_loader=None, dep_file=None, config=None,
-                 task_list=None, sel_tasks=None, outstream=None):
+    def __init__(self, task_loader=None, dep_file=None, backend=None,
+                 config=None, task_list=None, sel_tasks=None, outstream=None):
         """this initializer is usually just used on tests"""
         self._loader = task_loader or TaskLoader()
         Command.__init__(self)
+        # TODO: helper to test code should not be here
+        self.dep_class = backend_map.get(backend)
         self.dep_file = dep_file   # (str) filename usually '.doit.db'
         self.config = config or {} # config from dodo.py & cmdline
         self.task_list = task_list # list of tasks
@@ -215,6 +229,7 @@ class DoitCmdBase(Command):
         # merge config values into params
         params.update_defaults(self.config)
         self.dep_file = params['dep_file']
+        self.dep_class = backend_map.get(params['backend'])
         params['pos_args'] = args # hack
         params['continue_'] = params.get('continue') # hack
 

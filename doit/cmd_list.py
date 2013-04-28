@@ -1,4 +1,3 @@
-from .dependency import Dependency
 from .cmd_base import DoitCmdBase, check_tasks_exist, subtasks_iter
 
 opt_listall = {'name': 'subtasks',
@@ -55,7 +54,7 @@ class List(DoitCmdBase):
     def dep_manager(self):
         """manager with access to task status (run, up-to-date...)"""
         if not hasattr(self, '_dep_manager'):
-            self._dep_manager = Dependency(self.dep_file)
+            self._dep_manager = self.dep_class(self.dep_file)
         return self._dep_manager
 
 

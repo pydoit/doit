@@ -157,8 +157,8 @@ class Run(DoitCmdBase):
                 reporter_obj = reporter_cls
 
 
-            run_args = [self.dep_file, reporter_obj, continue_, always,
-                        verbosity]
+            run_args = [self.dep_class, self.dep_file, reporter_obj,
+                        continue_, always, verbosity]
 
             if num_process == 0:
                 RunnerClass = Runner

@@ -16,7 +16,8 @@ class TestCmdIgnore(object):
 
     def testIgnoreAll(self, tasks, depfile):
         output = StringIO()
-        cmd = Ignore(outstream=output, dep_file=depfile.name, task_list=tasks)
+        cmd = Ignore(outstream=output, dep_file=depfile.name,
+                     backend='dbm', task_list=tasks)
         cmd._execute([])
         got = output.getvalue().split("\n")[:-1]
         assert ["You cant ignore all tasks! Please select a task."] == got, got
@@ -26,7 +27,8 @@ class TestCmdIgnore(object):
 
     def testIgnoreOne(self, tasks, depfile):
         output = StringIO()
-        cmd = Ignore(outstream=output, dep_file=depfile.name, task_list=tasks)
+        cmd = Ignore(outstream=output, dep_file=depfile.name,
+                     backend='dbm', task_list=tasks)
         cmd._execute(["t2", "t1"])
         got = output.getvalue().split("\n")[:-1]
         assert ["ignoring t2", "ignoring t1"] == got
@@ -37,7 +39,8 @@ class TestCmdIgnore(object):
 
     def testIgnoreGroup(self, tasks, depfile):
         output = StringIO()
-        cmd = Ignore(outstream=output, dep_file=depfile.name, task_list=tasks)
+        cmd = Ignore(outstream=output, dep_file=depfile.name,
+                     backend='dbm', task_list=tasks)
         cmd._execute(["g1"])
         got = output.getvalue().split("\n")[:-1]
 
@@ -51,7 +54,8 @@ class TestCmdIgnore(object):
     # if task dependency not from a group dont ignore it
     def testDontIgnoreTaskDependency(self, tasks, depfile):
         output = StringIO()
-        cmd = Ignore(outstream=output, dep_file=depfile.name, task_list=tasks)
+        cmd = Ignore(outstream=output, dep_file=depfile.name,
+                     backend='dbm', task_list=tasks)
         cmd._execute(["t3"])
         dep = Dependency(depfile.name)
         assert '1' == dep._get("t3", "ignore:")
@@ -59,5 +63,6 @@ class TestCmdIgnore(object):
 
     def testIgnoreInvalid(self, tasks, depfile):
         output = StringIO()
-        cmd = Ignore(outstream=output, dep_file=depfile.name, task_list=tasks)
+        cmd = Ignore(outstream=output, dep_file=depfile.name,
+                     backend='dbm', task_list=tasks)
         pytest.raises(InvalidCommand, cmd._execute, ["XXX"])
