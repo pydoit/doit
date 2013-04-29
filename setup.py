@@ -42,12 +42,16 @@ class PyTest(Command):
 
 
 # FIXME just put link to webpage
-long_description = open('doc/index.rst', 'rb'
-                        ).read().decode('utf-8').split('Quick Start')[0]
+long_description = """
+`doit` comes from the idea of bringing the power of build-tools
+to execute any kind of **task**
+
+`website/docs <http://pydoit.org>`_
+"""
 
 setup(name = 'doit',
       description = 'doit - Automation Tool',
-      version = '0.21.dev0',
+      version = '0.21.0',
       license = 'MIT',
       author = 'Eduardo Naufel Schettino',
       author_email = 'schettino72@gmail.com',
@@ -81,4 +85,3 @@ setup(name = 'doit',
       install_requires = install_requires,
       long_description = long_description,
       )
-

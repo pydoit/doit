@@ -4,7 +4,7 @@ Changes
 =======
 
 
-0.21.0
+0.21.0 (*2013-04-29*)
 ======================
 
 - fix #38: `doit.tools.create_folder()` raise error if file exists in path
