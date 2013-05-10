@@ -326,7 +326,8 @@ class TestPythonAction(object):
     def test_str(self):
         def str_sample(): return True
         my_action = action.PythonAction(str_sample)
-        assert "Python: function str_sample" == str(my_action), "'%s'"%str(my_action)
+        assert "Python: function" in str(my_action)
+        assert "str_sample" in str(my_action)
 
     def test_repr(self):
         def repr_sample(): return True
