@@ -130,16 +130,14 @@ class CmdAction(BaseAction):
                 process.terminate()
                 input_.read()
                 raise
-            # unbuffered ? process.stdout.read(1)
-            if line:
-                capture.write(line)
-                if realtime:
-                    if sys.version > '3': # pragma: no cover
-                        realtime.write(line)
-                    else:
-                        realtime.write(line.encode(encoding))
-            if not line and process.poll() != None:
+            if not line:
                 break
+            capture.write(line)
+            if realtime:
+                if sys.version > '3': # pragma: no cover
+                    realtime.write(line)
+                else:
+                    realtime.write(line.encode(encoding))
 
 
     def execute(self, out=None, err=None):
