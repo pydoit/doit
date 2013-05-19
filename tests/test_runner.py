@@ -505,7 +505,8 @@ class TestMReporter(object):
         mp_reporter = runner.MReporter(fake_runner, reporter)
         my_task = Task("task x", [])
         mp_reporter.add_success(my_task)
-        got = fake_runner.result_q.get(True, 1)
+        # note limit is 2 seconds because of http://bugs.python.org/issue17707
+        got = fake_runner.result_q.get(True, 2)
         assert {'name': "task x", "reporter": 'add_success'} == got
 
     def testNonReporterMethod(self, reporter):
