@@ -221,10 +221,10 @@ class TestGenerateTasksGenerator(object):
         def f_xpto():
             for i in range(3):
                 yield {'basename':str(i), 'actions' :["xpto"]}
-        tasks = generate_tasks("xpto", f_xpto())
+        tasks = sorted(generate_tasks("xpto", f_xpto()), key=lambda t:t.name)
         assert isinstance(tasks[0], Task)
         assert 3 == len(tasks)
-        assert "0" == tasks[1].name
+        assert "0" == tasks[0].name
         assert not tasks[0].is_subtask
         assert not tasks[1].is_subtask
 
