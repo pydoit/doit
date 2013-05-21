@@ -3,6 +3,12 @@
 Changes
 =======
 
+0.21.1 (*2013-05-21*)
+======================
+
+- fix tests on python3.3.1
+- fix race condition on CmdAction (affected only python>=3.3.1)
+
 
 0.21.0 (*2013-04-29*)
 ======================
