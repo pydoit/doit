@@ -2,27 +2,32 @@ from .cmd_base import DoitCmdBase
 from .cmd_base import check_tasks_exist, tasks_and_deps_iter, subtasks_iter
 
 
-opt_clean_dryrun = {'name': 'dryrun',
-                    'short': 'n', # like make dry-run
-                    'long': 'dry-run',
-                    'type': bool,
-                    'default': False,
-                    'help': 'print actions without really executing them'}
+opt_clean_dryrun = {
+    'name': 'dryrun',
+    'short': 'n', # like make dry-run
+    'long': 'dry-run',
+    'type': bool,
+    'default': False,
+    'help': 'print actions without really executing them',
+    }
 
-opt_clean_cleandep = {'name': 'cleandep',
-                    'short': 'c', # clean
-                    'long': 'clean-dep',
-                    'type': bool,
-                    'default': False,
-                    'help': 'clean task dependencies too'}
+opt_clean_cleandep = {
+    'name': 'cleandep',
+    'short': 'c', # clean
+    'long': 'clean-dep',
+    'type': bool,
+    'default': False,
+    'help': 'clean task dependencies too',
+    }
 
 opt_clean_cleanall = {
     'name': 'cleanall',
-    'short': 'a', # clean
+    'short': 'a', # all
     'long': 'clean-all',
     'type': bool,
     'default': False,
-    'help': 'clean all task'}
+    'help': 'clean all task',
+    }
 
 
 class Clean(DoitCmdBase):

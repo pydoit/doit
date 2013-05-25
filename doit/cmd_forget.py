@@ -1,4 +1,15 @@
-from .cmd_base import DoitCmdBase, check_tasks_exist, subtasks_iter
+from .cmd_base import DoitCmdBase, check_tasks_exist
+from .cmd_base import tasks_and_deps_iter, subtasks_iter
+
+
+opt_forget_taskdep = {
+    'name': 'forget_sub',
+    'short': 's',
+    'long': 'follow-sub',
+    'type': bool,
+    'default': False,
+    'help': 'forget task dependencies too',
+    }
 
 
 class Forget(DoitCmdBase):
@@ -6,9 +17,9 @@ class Forget(DoitCmdBase):
     doc_usage = "[TASK ...]"
     doc_description = None
 
-    cmd_options = ()
+    cmd_options = (opt_forget_taskdep, )
 
-    def _execute(self):
+    def _execute(self, forget_sub):
         """remove saved data successful runs from DB
         """
         dependency_manager = self.dep_class(self.dep_file)
@@ -22,14 +33,20 @@ class Forget(DoitCmdBase):
         else:
             tasks = dict([(t.name, t) for t in self.task_list])
             check_tasks_exist(tasks, self.sel_tasks)
+            forget_list = self.sel_tasks
 
-            for task_name in self.sel_tasks:
-                # for group tasks also remove all tasks from group
-                sub_list = [t.name for t in subtasks_iter(tasks,
-                                                          tasks[task_name])]
-                for to_forget in [task_name] + sub_list:
-                    # forget it - remove from dependency file
-                    dependency_manager.remove(to_forget)
-                    self.outstream.write("forgeting %s\n" % to_forget)
+            if forget_sub:
+                to_forget = list(tasks_and_deps_iter(tasks, forget_list, True))
+            else:
+                to_forget = []
+                for name in forget_list:
+                    task = tasks[name]
+                    to_forget.append(task)
+                    to_forget.extend(subtasks_iter(tasks, task))
+
+            for task in to_forget:
+                # forget it - remove from dependency file
+                dependency_manager.remove(task.name)
+                self.outstream.write("forgeting %s\n" % task.name)
 
         dependency_manager.close()
