@@ -59,7 +59,6 @@ class TestTaskInit(object):
         p1 = {'name':'p1', 'default':'p1-default'}
         p2 = {'name':'p2', 'default':'', 'short':'m'}
         t = task.Task("MyName", None, params=[p1, p2])
-        t._init_options()
         assert 'p1-default' == t.options['p1']
         assert '' == t.options['p2']
 

@@ -97,7 +97,7 @@ class Task(object):
 
         self.name = name
         self.taskcmd = TaskParse([CmdOption(opt) for opt in params])
-        self.options = None
+        self.options = self._init_options()
         self.setup_tasks = list(setup)
 
         # actions
@@ -229,16 +229,12 @@ class Task(object):
         """put default values on options. this will be overwritten, if params
         options were passed on the command line.
         """
-        # FIXME call _init_options just once and not check if this.options is None
-        # because its value may be set in a different place... (like uptodate())
-        if self.options is None:
-            # ignore positional parameters
-            self.options = self.taskcmd.parse('')[0]
+        # ignore positional parameters
+        return self.taskcmd.parse('')[0]
 
 
     def _init_getargs(self):
         """task getargs attribute define implicit task dependencies"""
-        self._init_options()
         for arg_name, desc in six.iteritems(self.getargs):
 
             # tuple (task_id, key_name)
@@ -292,7 +288,6 @@ class Task(object):
     @property
     def actions(self):
         """lazy creation of action instances"""
-        self._init_options()
         if self._action_instances is None:
             self._action_instances = [create_action(a, self) for a in self._actions]
         return self._action_instances
@@ -334,7 +329,6 @@ class Task(object):
         """Executes task's teardown
         @return failure: see CmdAction.execute
         """
-        self._init_options()
         task_stdout, task_stderr = self._get_out_err(out, err, verbosity)
         for action in self.teardown:
             action_return = action.execute(task_stdout, task_stderr)
@@ -348,7 +342,6 @@ class Task(object):
         @ivar dryrun (bool): if True clean tasks are not executed
                              (just print out what would be executed)
         """
-        self._init_options()
         # if clean is True remove all targets
         if self._remove_targets is True:
             clean_targets(self, dryrun)
