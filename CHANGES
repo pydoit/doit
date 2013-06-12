@@ -79,7 +79,7 @@ Changes
 - fix #12 Action.out and Action.err not set when using multiprocessing
 - fix #16 fix `forget` command on gdbm backend
 - fix #14 improve parallel execution (better process utilization)
-- fix #9 cacl_dep create implicit task_dep if a file_dep returned is a also a target
+- fix #9 calc_dep create implicit task_dep if a file_dep returned is a also a target
 - added tools.result_dep
 - fix #15 tools.result_dep supports group-tasks
 - DEPRECATE task attribute `result_dep` (use tools.result_dep)
@@ -127,7 +127,7 @@ Changes
 
 - added tools.InteractiveAction (#865290)
 - bash completion script
-- sub-command list: tasks on aphabetical order, better formatting (#872829)
+- sub-command list: tasks on alphabetical order, better formatting (#872829)
 - fix ``uptodate`` to accept instance methods callables (#871967)
 - added command line option ``--seek-file``
 - added ``tools.check_unchanged_timestamp`` (#862606)
@@ -140,7 +140,7 @@ Changes
 - performance speed improvements
 - fix bug on unicode output when task fails
 - ConsoleReporter does not output task's title for successful tasks that start with an ``_``
-- added ``tools.config_changed`` (to be used wirh ``uptodate``)
+- added ``tools.config_changed`` (to be used with ``uptodate``)
 - ``teardown`` actions are executed in reverse order they were registered
 - added ``doit.get_var`` to get variables passed from command line
 - getargs creates implicit "setup" task not a "task_dep"
@@ -163,7 +163,7 @@ Changes
 - support for python 3.2
 - fix bug on unicode filenames & unicode output (#737904)
 - fix bug when using getargs together with multiprocess (#742953)
-- fix for dumbdmb backend
+- fix for dumbdbm backend
 - fix task execution order when using "auto" command
 - fix getargs when used with sub-tasks
 - fix calc_dep when used with "auto" command
@@ -220,7 +220,7 @@ Changes
 - sub-command "list" filter tasks passed as positional parameters
 - tools.set_trace, PDB with stdout redirection (#494903)
 - accept command line optional parameters passed before sub-command (#494901)
-- give a clear errror message if .doit.db file is corrupted (#500269)
+- give a clear error message if .doit.db file is corrupted (#500269)
 - added task option "getargs". actions can use computed values from other tasks (#486569)
 - python-action might return a dictionary on success
 

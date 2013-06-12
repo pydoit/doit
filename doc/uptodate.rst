@@ -10,11 +10,11 @@ result-dependency
 ----------------------
 
 In some cases you can not determine if a task is "up-to-date" only based on
-input files, the input could come from a database or an extrernal process.
+input files, the input could come from a database or an external process.
 *doit* defines a "result-dependency" to deal with these cases without need to
-create an intermediate file with the reulsts of the process.
+create an intermediate file with the results of the process.
 
-i.e. Suppose you want to send an email everytime you run *doit* on a mercurial
+i.e. Suppose you want to send an email every time you run *doit* on a mercurial
 repository that contains a new revision number.
 
 .. literalinclude:: tutorial/taskresult.py
@@ -76,7 +76,7 @@ time it was executed is bigger than 5 minutes.
 
 
 ``timeout`` is function that takes an ``int`` (seconds) or ``timedelta`` as a
-paramter. It returns a callable suitable to be used as an ``uptodate`` callable.
+parameter. It returns a callable suitable to be used as an ``uptodate`` callable.
 
 
 
@@ -135,7 +135,7 @@ The callable must take at least two positional parameters ``task`` and ``values`
 The callable can also be represented by a tuple (callable, args, kwargs).
 
    -  ``task`` parameter will give you access to task object. So you have access
-      to its metadata and opportunity to modifiy the task itself!
+      to its metadata and opportunity to modify the task itself!
    -  ``values`` is a dictionary with the computed values saved in the last
        successful execution of the task.
 
@@ -144,7 +144,7 @@ Let's start with trivial example.
 
 .. literalinclude:: tutorial/uptodate_callable.py
 
-Note that `check_outdated` function is not actully using the parameters.
+Note that `check_outdated` function is not actually using the parameters.
 You could also execute this function in the task-creator and pass the value
 to to `uptodate`. The advantage of just passing the callable is that this
 check will not be executed at all if the task was not selected to be executed.
@@ -179,7 +179,7 @@ The next line we use the ``task`` parameter adding
 ``save_executed`` to ``task.value_savers``.So whenever this task is executed this
 task value 'run-once' will be saved.
 
-Finnaly the return value should be a boolean to indicate if the task is
+Finally the return value should be a boolean to indicate if the task is
 up-to-date or not. Remember that the 'values' parameter contains the dict with
 the values saved from last successful execution of the task.
 So it just checks if this task was executed before by looking for the
@@ -211,10 +211,10 @@ a simplified version that only accept integers (seconds) as a parameter.
 This is a class-based implementation where the objects are made callable
 by implementing a ``__call__`` method.
 
-On ``__init__`` we just save the ``timout_limit`` as an attribute.
+On ``__init__`` we just save the ``timeout_limit`` as an attribute.
 
 The ``__call__`` is very similar with the ``run-once`` implementation.
-First it defines a function (``save_now``) that is registred
+First it defines a function (``save_now``) that is registered
 into ``task.value_savers``. Than it compares the current time
 with the time that was saved on last successful execution.
 
@@ -234,8 +234,8 @@ way `doit` works. When an object is passed ``uptodate`` and this
 object's class has a method named ``configure_task`` it will be called
 during the task creation.
 
-The base class ``dependency.UptodateCaclulator`` gives access to
-an attribute named ``tasks_dict`` containg a dictionary with
+The base class ``dependency.UptodateCalculator`` gives access to
+an attribute named ``tasks_dict`` containing a dictionary with
 all task objects where the ``key`` is the task name (this is used to get all
 sub-tasks from a task-group). And also a method called ``get_val`` to access
 the saved values and results from any task.

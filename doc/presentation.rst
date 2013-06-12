@@ -95,7 +95,7 @@ doit - do what?
 
 it's up to you!
 
-doit is a tool to help you execute **your** tasks in a effecient way.
+doit is a tool to help you execute **your** tasks in a efficient way.
 
 
 doit - how it works

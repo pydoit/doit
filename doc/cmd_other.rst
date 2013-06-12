@@ -34,7 +34,7 @@ list
    install : install executable (TODO)
 
 
-By default task name and description are listed. The task description is taken from the first line of task function doc-string. You can also set it using the *doc* attribute on the task dictionary. It is possible to ommit the description using the option *-q*/*--quiet*.
+By default task name and description are listed. The task description is taken from the first line of task function doc-string. You can also set it using the *doc* attribute on the task dictionary. It is possible to omit the description using the option *-q*/*--quiet*.
 
 By default sub-tasks are not listed. It can list sub-tasks using the option *--all*.
 
@@ -142,8 +142,8 @@ auto (watch)
 
 .. note::
 
-   The `dodo` file is actually re-loaded/executed in a separate procees
-   everytime tasks need to be re-executed.
+   The `dodo` file is actually re-loaded/executed in a separate process
+   every time tasks need to be re-executed.
 
 
 
@@ -170,7 +170,7 @@ The output is a list of files prefixed with `R` for open in read mode
 or `W` for open in write mode.
 The files are listed in chronological order.
 
-This is a debugging feature wiht many lilmitations.
+This is a debugging feature with many limitations.
   * can strace only one task at a time
   * can only strace CmdAction
   * the process being traced itself might have some kind of cache,

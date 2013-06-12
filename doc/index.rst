@@ -84,12 +84,12 @@ Other features...
 
 .. topic:: self documented
 
-  `doit` command allows you to list and obtain help/documentaion for tasks
+  `doit` command allows you to list and obtain help/documentation for tasks
   (:ref:`more <cmd-list>`)
 
 .. topic:: inotify integration
 
-  built-in support for a long-running process that automaticly re-execute tasks
+  built-in support for a long-running process that automatically re-execute tasks
   based on file changes by external process (linux/mac only)
   (:ref:`more <cmd-auto>`)
 

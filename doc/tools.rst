@@ -28,7 +28,7 @@ Return task name task actions from a task. This function can be used as 'title' 
 InteractiveAction (action)
 -----------------------------
 
-An IteractiveAction is like a CmdAction but with the following differences:
+An InteractiveAction is like a CmdAction but with the following differences:
 
   * the output is never captured
   * it is always successful (return code is not used)
@@ -42,12 +42,12 @@ This is useful for executing long running process like a web-server.
 PythonInteractiveAction (action)
 ----------------------------------
 
-Similar to IteractiveAction but for PythonAction.
+Similar to InteractiveAction but for PythonAction.
 
 
 set_trace
 -----------
 
-`doit` by default redirects stdout and stderr. Because of this when you try to use the python debugger with ``pdb.set_trace``, it does not work propoerly. To make sure you get a propper PDB shell you should use doit.tools.set_trace instead of ``pdb.set_trace``.
+`doit` by default redirects stdout and stderr. Because of this when you try to use the python debugger with ``pdb.set_trace``, it does not work properly. To make sure you get a proper PDB shell you should use doit.tools.set_trace instead of ``pdb.set_trace``.
 
 .. literalinclude:: tutorial/settrace.py

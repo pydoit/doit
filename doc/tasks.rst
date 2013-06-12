@@ -60,8 +60,8 @@ python-action
 
 If `action` is a python callable or a tuple `(callable, *args, **kwargs)`
 - only `callable` is required.
-The callable must be a funcion, method or callable object.
-Classes and built-in funcions are not allowed.
+The callable must be a function, method or callable object.
+Classes and built-in functions are not allowed.
 ``args`` is a sequence and ``kwargs`` is a dictionary that will be used
 as positional and keywords arguments for the callable.
 see `Keyword Arguments <http://docs.python.org/tutorial/controlflow.html#keyword-arguments>`_.
@@ -100,7 +100,7 @@ The result of the task follows the shell convention.
 If the process exits with the value `0` it is successful.
 Any other value means the task failed.
 
-Note that the string must be escaped acoording to
+Note that the string must be escaped according to
 `python string formatting <http://docs.python.org/2.7/library/stdtypes.html#string-formatting-operations>`_.
 
 
@@ -152,7 +152,7 @@ It is possible to explicit set a task name with the parameter ``basename``.
 When explicit using ``basename`` the task-creator is not limited
 to create only one task.
 Using ``yield`` it can generate several tasks at once.
-It is also possible to ``yield`` a generator that genrate tasks.
+It is also possible to ``yield`` a generator that generate tasks.
 This is useful to write some generic/reusable task-creators.
 
 .. literalinclude:: tutorial/task_reusable.py
@@ -366,7 +366,7 @@ You can select sub-tasks from the command line specifying its full name.
 wildcard selection
 ^^^^^^^^^^^^^^^^^^^^
 
-You can also select tasks to be executed using a `glob <http://docs.python.org/library/glob.html>`_ like syntax (it must contais a ``*``).
+You can also select tasks to be executed using a `glob <http://docs.python.org/library/glob.html>`_ like syntax (it must contains a ``*``).
 
 .. code-block:: console
 

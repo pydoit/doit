@@ -8,7 +8,7 @@ uptodate
 ----------
 
 Apart from file dependencies you can extend `doit` to support other ways
-to determine if a task is up-to-date throught the attribute ``uptodate``.
+to determine if a task is up-to-date through the attribute ``uptodate``.
 
 This can be used in cases where you need to some kind of calculation to
 determine if the task is up-to-date or not.
@@ -32,7 +32,7 @@ determine if the task is up-to-date or not.
 ``uptodate`` elements can also be a callable that will be executed on runtime
 (not when the task is being created).
 The section ``custom-uptodate`` will explain in details how to extend `doit`
-writing your own callables for ``uptodate``. This callables will tipically
+writing your own callables for ``uptodate``. This callables will typically
 compare a value on the present time with a value calculated on the last
 successful execution.
 
@@ -41,7 +41,7 @@ They are all included in module `doit.tools` and will be discussed in detail
 later:
 
   * ``result_dep``: check if the result of another task has changed
-  * ``run_once``: execute a task only once (used for tasks wihtout dependencies)
+  * ``run_once``: execute a task only once (used for tasks without dependencies)
   * ``timeout``: indicate that a task should "expire" after a certain time interval
   * ``config_changed``: check for changes in a "configuration" string or dictionary
   * ``check_timestamp_unchanged``: check access, status change/create or modify timestamp of a given file/directory
@@ -117,7 +117,7 @@ Calculation of dependencies might be an expensive operation, so not suitable
 to be done on load time by task-creators.
 For this situation is better to delegate
 the calculation of dependencies to another task.
-The task calcutating dependencies must have a python-action returning a
+The task calculating dependencies must have a python-action returning a
 dictionary with `file_dep`, `task_dep`, `uptodate` or another `calc_dep`.
 
 On the example below ``mod_deps`` prints on the screen all direct dependencies

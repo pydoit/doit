@@ -2,6 +2,7 @@
 
 import glob
 import os
+import subprocess
 
 import pytest
 
@@ -97,12 +98,31 @@ def task_epydoc():
             'file_dep': CODE_FILES,
             'targets': [target_path]}
 
+
+def task_spell():
+    """spell checker for doc files"""
+    # spell always return successful code (0)
+    # so this checks if the output is empty
+    def check_no_output(doc_file):
+        cmd = 'hunspell -l -p doc/dictionary.txt %s'
+        output = subprocess.check_output(cmd % doc_file, shell=True)
+        return len(output) == 0
+
+    for doc_file in glob.glob('doc/*.rst'):
+        yield {
+            'name': doc_file,
+            'actions': [(check_no_output, (doc_file,))],
+            'file_dep': ['doc/dictionary.txt', doc_file],
+            }
+
+
 def task_sphinx():
     """generate website docs (include analytics)"""
     action = "sphinx-build -b html -d %s_build/doctrees -A include_analytics=1 %s %s"
     return {
         'actions': [action % (DOC_ROOT, DOC_ROOT, DOC_BUILD_PATH)],
         'verbosity': 2,
+        'task_dep': ['spell'],
         }
 
 
