@@ -52,7 +52,7 @@ process of source code. `doit` was designed to solve a broader range of tasks.
      it can be customized for each task (:ref:`more <attr-uptodate>`)
    - *target* files are not required in order to check if a task is up-to-date
      (:ref:`more <up-to-date-def>`)
-   - *dependencies* can be dinamically calculated by other tasks
+   - *dependencies* can be dynamically calculated by other tasks
      (:ref:`more <attr-calc_dep>`)
 
 

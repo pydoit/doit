@@ -17,7 +17,7 @@ determine if the task is up-to-date or not.
 
  * ``False`` indicates that the task is NOT up-to-date
  * ``True`` indicates that the task is up-to-date
- * ``None`` values will just be ignored. This is used when the value is dinamically calculated
+ * ``None`` values will just be ignored. This is used when the value is dynamically calculated
 
 
 .. note::
