@@ -1,13 +1,13 @@
 # bash completion for doit
 # reference => http://www.debian-administration.org/articles/317
+# patch => http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=711879
 
 _doit()
 {
-    local cur prev basetask sub_cmds tasks i dodof
+    local cur prev words cword basetask sub_cmds tasks i dodof
     COMPREPLY=()
-    COMP_WORDBREAKS=${COMP_WORDBREAKS//:} # remove colon from word separator list
-    cur="${COMP_WORDS[COMP_CWORD]}"
-    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    # remove colon from word separator list because doit uses colon on task names
+    _get_comp_words_by_ref -n : cur prev words cword
     # list of doit sub-commands
     sub_cmds="help run clean list forget ignore auto dumpdb"
 
@@ -28,14 +28,14 @@ _doit()
 
 
     # get name of the dodo file
-    for (( i=0; i < ${#COMP_WORDS[@]}; i++)); do
-        case "${COMP_WORDS[i]}" in
+    for (( i=0; i < ${#words[@]}; i++)); do
+        case "${words[i]}" in
         -f)
-            dodof=${COMP_WORDS[i+1]}
+            dodof=${words[i+1]}
             break
             ;;
         --file=*)
-            dodof=${COMP_WORDS[i]/*=/}
+            dodof=${words[i]/*=/}
             break
             ;;
         esac
@@ -55,6 +55,7 @@ _doit()
         # sub-tasks
         tasks=$(doit list --file="$dodof" --quiet --all ${basetask})
         COMPREPLY=( $(compgen -W "${tasks}" -- ${cur}) )
+        __ltrim_colon_completions "$cur"
         return 0
     # without colons get only top tasks
     else
@@ -64,7 +65,7 @@ _doit()
 
     # match for first parameter must be sub-command or task
     # FIXME doit accepts options "-" in the first parameter but we ignore this case
-    if [[ ${COMP_CWORD} == 1 ]] ; then
+    if [[ ${cword} == 1 ]] ; then
         COMPREPLY=( $(compgen -W "${sub_cmds} ${tasks}" -- ${cur}) )
         return 0
     fi

@@ -6,6 +6,9 @@ Changes
 0.22.0
 ======================
 
+- fix #51: bash completion does not mess up with global COMP_WORDBREAKS
+- fix docs spelling and added task to check spelling
+- fix #47: Task.options can always be accessed from `uptodate` code
 - fix #45: cmd forget, added option -s/--follow-sub to forget task_dep too
 
 
