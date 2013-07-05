@@ -3,9 +3,11 @@
 Changes
 =======
 
-0.22.0
+
+0.22.0 (*2013-07-05*)
 ======================
 
+- fix #49: skip unicode tests on systems with non utf8 locale
 - fix #51: bash completion does not mess up with global COMP_WORDBREAKS
 - fix docs spelling and added task to check spelling
 - fix #47: Task.options can always be accessed from `uptodate` code

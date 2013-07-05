@@ -3,14 +3,17 @@
 import os
 import sys
 import tempfile
+import locale
+locale # quiet pyflakes
+
 import six
 from six import StringIO
-
 import pytest
 from mock import Mock
 
 from doit import action
 from doit.exceptions import TaskError, TaskFailed
+
 
 #path to test folder
 TEST_PATH = os.path.dirname(__file__)
@@ -176,6 +179,9 @@ class TestCmd_print_process_output(object):
         pytest.raises(Exception, my_action._print_process_output,
                        Mock(), not_unicode, Mock(), Mock())
 
+    # dont test unicode if system locale doesnt support unicode
+    # see https://bitbucket.org/schettino72/doit/pull-request/11
+    @pytest.mark.skipif('six.PY3 and locale.getlocale()[1] is None')
     def test_unicode_string(self, tmpfile):
         my_action = action.CmdAction("")
         unicode_in = tempfile.TemporaryFile('w+b')
@@ -183,6 +189,7 @@ class TestCmd_print_process_output(object):
         unicode_in.seek(0)
         my_action._print_process_output(Mock(), unicode_in, Mock(), tmpfile)
 
+    @pytest.mark.skipif('six.PY3 and locale.getlocale()[1] is None')
     def test_unicode_string2(self, tmpfile):
         # this \uXXXX has a different behavior!
         my_action = action.CmdAction("")
