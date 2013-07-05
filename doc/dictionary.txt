@@ -224,3 +224,5 @@ withenvY
 x'
 xxx
 xyz
+utf8
+WORDBREAKS

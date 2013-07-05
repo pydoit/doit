@@ -106,13 +106,16 @@ def task_spell():
     def check_no_output(doc_file):
         cmd = 'hunspell -l -p doc/dictionary.txt %s'
         output = subprocess.check_output(cmd % doc_file, shell=True)
-        return len(output) == 0
+        if len(output) != 0:
+            print(output)
+            return False
 
     for doc_file in glob.glob('doc/*.rst'):
         yield {
             'name': doc_file,
             'actions': [(check_no_output, (doc_file,))],
             'file_dep': ['doc/dictionary.txt', doc_file],
+            'verbosity': 2,
             }
 
 
