@@ -7,8 +7,8 @@ import six
 import pytest
 
 from doit.task import Task
-from doit.dependency import get_md5, md5sum, check_modified, UptodateCalculator
-from doit.dependency import DbmDB, DatabaseException
+from doit.dependency import get_md5, get_file_md5, check_modified
+from doit.dependency import DbmDB, DatabaseException, UptodateCalculator
 from doit.dependency import JsonDependency, DbmDependency, SqliteDependency
 from .conftest import get_abspath, depfile
 
@@ -23,7 +23,7 @@ def test_md5():
     filePath = os.path.join(os.path.dirname(__file__),"sample_md5.txt")
     # result got using command line md5sum
     expected = "45d1503cb985898ab5bd8e58973007dd"
-    assert expected == md5sum(filePath)
+    assert expected == get_file_md5(filePath)
 
 
 ####
@@ -286,7 +286,7 @@ class TestCheckModified(object):
     def test_size_md5(self, dependency1):
         timestamp = os.path.getmtime(dependency1)
         size = os.path.getsize(dependency1)
-        md5 = md5sum(dependency1)
+        md5 = get_file_md5(dependency1)
         dep_stat = os.stat(dependency1)
         # incorrect size dont check md5
         assert check_modified(dependency1, dep_stat, (timestamp+1, size+1, ''))

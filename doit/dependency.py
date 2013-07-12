@@ -38,16 +38,22 @@ def get_md5(input_data):
         byte_data = input_data
     return hashlib.md5(byte_data).hexdigest()
 
-def md5sum(path):
+def get_file_md5(path):
     """Calculate the md5 sum from file content.
 
     @param path: (string) file path
     @return: (string) md5
     """
-    file_data = open(path,'rb')
-    result = get_md5(file_data.read())
-    file_data.close()
-    return result
+    with open(path,'rb') as file_data:
+        md5 = hashlib.md5()
+        block_size = 128 * md5.block_size
+        while True:
+            data = file_data.read(block_size)
+            if not data:
+                break
+            md5.update(data)
+    return md5.hexdigest()
+
 
 
 def check_modified(file_path, file_stat, state):
@@ -68,7 +74,7 @@ def check_modified(file_path, file_stat, state):
     if file_stat.st_size != size:
         return True
     # 3 - check md5
-    return file_md5 != md5sum(file_path)
+    return file_md5 != get_file_md5(file_path)
 
 
 class JsonDB(object):
@@ -406,7 +412,7 @@ class DependencyBase(object):
             if current and current[0] == timestamp:
                 continue
             size = os.path.getsize(dep)
-            self._set(task.name, dep, (timestamp, size, md5sum(dep)))
+            self._set(task.name, dep, (timestamp, size, get_file_md5(dep)))
 
 
     def get_values(self, task_name):
