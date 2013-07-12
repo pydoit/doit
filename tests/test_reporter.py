@@ -1,3 +1,5 @@
+# coding=UTF-8
+
 import sys
 from six import StringIO
 
@@ -21,6 +23,15 @@ class TestConsoleReporter(object):
         t1 = Task("with_action",[(do_nothing,)])
         rep.execute_task(t1)
         assert ".  with_action\n" == rep.outstream.getvalue()
+
+    def test_executeTask_unicode(self):
+        rep = reporter.ConsoleReporter(StringIO(), {})
+        def do_nothing():pass
+        task_name = "中文 with_action"
+        t1 = Task(task_name, [(do_nothing,)])
+        rep.execute_task(t1)
+        assert ".  中文 with_action\n" == rep.outstream.getvalue()
+
 
     def test_executeHidden(self):
         rep = reporter.ConsoleReporter(StringIO(), {})
@@ -69,16 +80,16 @@ class TestConsoleReporter(object):
     def test_addFailure(self):
         rep = reporter.ConsoleReporter(StringIO(), {})
         try:
-            raise Exception("original exception message here")
+            raise Exception("original 中文 exception message here")
         except Exception as e:
             catched = CatchedException("catched exception there", e)
         rep.add_failure(Task("t_name", None), catched)
         rep.complete_run()
         got = rep.outstream.getvalue()
         # description
-        assert "Exception: original exception message here" in got, got
+        assert "Exception: original 中文 exception message here" in got, got
         # traceback
-        assert """raise Exception("original exception message here")""" in got
+        assert """raise Exception("original 中文 exception message here")""" in got
         # catched message
         assert "catched exception there" in got
 
