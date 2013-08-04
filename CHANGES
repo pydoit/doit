@@ -3,11 +3,12 @@
 Changes
 =======
 
-0.23.0
-========
+0.22.1 (*2013-08-04*)
+===========================
 
  - fix reporter output in py3 was being displayed as bytes instead of string
  - fix pr#12 read file in chuncks when calculating MD5
+ - fix #54 - remove distribute boostraping during instalation
 
 
 0.22.0 (*2013-07-05*)
