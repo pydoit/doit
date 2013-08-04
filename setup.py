@@ -2,12 +2,6 @@
 
 from distutils.core import setup, Command
 
-import sys
-if sys.version_info >= (3,0):
-    from distribute_setup import use_setuptools
-    use_setuptools()
-    from setuptools import setup
-
 
 ########### platform specific stuff #############
 import platform
@@ -41,7 +35,6 @@ class PyTest(Command):
         raise SystemExit(errno)
 
 
-# FIXME just put link to webpage
 long_description = """
 `doit` comes from the idea of bringing the power of build-tools
 to execute any kind of **task**
