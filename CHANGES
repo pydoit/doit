@@ -3,6 +3,12 @@
 Changes
 =======
 
+DEV
+===========================
+
+ - support definition of group tasks using basename wihtout any task
+
+
 0.22.1 (*2013-08-04*)
 ===========================
 

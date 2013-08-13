@@ -188,11 +188,21 @@ def _generate_task_from_yield(tasks, func_name, task_dict, gen_doc):
     # if has 'name' this is a sub-task
     if 'name' in task_dict:
         basename = basename or func_name
+        # if subname is None attributes from group task
+        if task_dict['name'] is None:
+            task_dict['name'] = basename
+            task_dict['actions'] = None
+            group_task = dict_to_task(task_dict)
+            group_task.has_subtask = True
+            tasks[basename] = group_task
+            return
+
         # name is '<task>.<subtask>'
         task_dict['name'] = "%s:%s"% (basename, task_dict['name'])
         sub_task = dict_to_task(task_dict)
         sub_task.is_subtask = True
 
+        # get/create task group
         group_task = tasks.get(basename)
         if group_task:
             if not group_task.has_subtask:
