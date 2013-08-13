@@ -17,11 +17,6 @@ wishlist
 . action to be executed on when ctrl-c is hit on auto mode
 
 
-needs volunteer
-----------------
-
-. windows (#1)
-
 
 big refactorings
 ------------------
