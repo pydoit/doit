@@ -44,6 +44,7 @@ class Auto(DoitCmdBase):
         deps = set()
         for task in tasks_and_deps_iter(tasks, sel_tasks):
             deps.update(task.file_dep)
+            deps.update(task.watch)
         return deps
 
 
