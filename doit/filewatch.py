@@ -23,10 +23,19 @@ class FileModifyWatcher(object):
     """
     supported_platforms = ('Darwin', 'Linux')
 
-    def __init__(self, file_list):
+    def __init__(self, path_list):
         """@param file_list (list-str): files to be watched"""
-        self.file_list = set([os.path.abspath(f) for f in file_list])
-        self.watch_dirs = set([os.path.dirname(f) for f in self.file_list])
+        self.file_list = set()
+        self.watch_dirs = set() # all dirs to be watched
+        self.notify_dirs = set() # dirs that generate notification whatever file
+        for filename in path_list:
+            path = os.path.abspath(filename)
+            if os.path.isfile(path):
+                self.file_list.add(path)
+                self.watch_dirs.add(os.path.dirname(path))
+            else:
+                self.notify_dirs.add(path)
+                self.watch_dirs.add(path)
         self.platform = get_platform_system()
         if self.platform not in self.supported_platforms:
             msg = "Unsupported platform '%s'\n" % self.platform
@@ -37,11 +46,12 @@ class FileModifyWatcher(object):
     def _handle(self, event):
         """calls platform specific handler"""
         if self.platform == 'Darwin': # pragma: no cover
-            if event.name in self.file_list:
-                self.handle_event(event)
+            filename = event.name
         elif self.platform == 'Linux':
-            if event.pathname in self.file_list:
-                self.handle_event(event)
+            filename = event.pathname
+        if (filename in self.file_list or
+            os.path.dirname(filename) in self.notify_dirs):
+            self.handle_event(event)
 
     def handle_event(self, event):
         """this should be sub-classed """
@@ -104,4 +114,3 @@ class FileModifyWatcher(object):
 
         elif self.platform == 'Linux':
             self._loop_linux(loop_callback)
-
