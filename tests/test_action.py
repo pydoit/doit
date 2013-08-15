@@ -220,6 +220,18 @@ class TestWriter(object):
         assert "hello" == w2.getvalue()
 
 
+class TestChangePath(object):
+    def test_changePath(self):
+        my_action = action.CmdAction('pwd', cwd='/tmp')
+        my_action.execute()
+        assert "/tmp\n" == my_action.out, repr(my_action.out)
+
+    def test_anotherPath(self):
+        my_action = action.CmdAction('pwd', cwd='/')
+        my_action.execute()
+        assert "/\n" == my_action.out, repr(my_action.out)
+
+
 ############# PythonAction
 
 class TestPythonAction(object):
