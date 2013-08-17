@@ -221,15 +221,21 @@ class TestWriter(object):
 
 
 class TestChangePath(object):
-    def test_changePath(self):
-        my_action = action.CmdAction('pwd', cwd='/tmp')
+    def test_changePath(self, tmpdir):
+        path = tmpdir.mkdir("foo")
+        #command = 'python -c "import os; print(os.getcwd())"'
+        command = 'pwd'
+        my_action = action.CmdAction(command, cwd=path)
         my_action.execute()
-        assert "/tmp\n" == my_action.out, repr(my_action.out)
+        assert path + "\n" == my_action.out, repr(my_action.out)
 
-    def test_anotherPath(self):
-        my_action = action.CmdAction('pwd', cwd='/')
+    def test_noPathSet(self, tmpdir):
+        path = tmpdir.mkdir("foo")
+        #command = 'python -c "import os; print(os.getcwd())"'
+        command = 'pwd'
+        my_action = action.CmdAction(command)
         my_action.execute()
-        assert "/\n" == my_action.out, repr(my_action.out)
+        assert path + "\n" != my_action.out, repr(my_action.out)
 
 
 ############# PythonAction
