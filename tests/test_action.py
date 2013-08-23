@@ -223,19 +223,17 @@ class TestWriter(object):
 class TestChangePath(object):
     def test_changePath(self, tmpdir):
         path = tmpdir.mkdir("foo")
-        #command = 'python -c "import os; print(os.getcwd())"'
-        command = 'pwd'
-        my_action = action.CmdAction(command, cwd=path)
+        command = 'python -c "import os; print(os.getcwd())"'
+        my_action = action.CmdAction(command, cwd=path.strpath)
         my_action.execute()
         assert path + "\n" == my_action.out, repr(my_action.out)
 
     def test_noPathSet(self, tmpdir):
         path = tmpdir.mkdir("foo")
-        #command = 'python -c "import os; print(os.getcwd())"'
-        command = 'pwd'
+        command = 'python -c "import os; print(os.getcwd())"'
         my_action = action.CmdAction(command)
         my_action.execute()
-        assert path + "\n" != my_action.out, repr(my_action.out)
+        assert path.strpath + "\n" != my_action.out, repr(my_action.out)
 
 
 ############# PythonAction
