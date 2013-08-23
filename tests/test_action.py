@@ -220,6 +220,22 @@ class TestWriter(object):
         assert "hello" == w2.getvalue()
 
 
+class TestChangePath(object):
+    def test_changePath(self, tmpdir):
+        path = tmpdir.mkdir("foo")
+        command = 'python -c "import os; print(os.getcwd())"'
+        my_action = action.CmdAction(command, cwd=path.strpath)
+        my_action.execute()
+        assert path + "\n" == my_action.out, repr(my_action.out)
+
+    def test_noPathSet(self, tmpdir):
+        path = tmpdir.mkdir("foo")
+        command = 'python -c "import os; print(os.getcwd())"'
+        my_action = action.CmdAction(command)
+        my_action.execute()
+        assert path.strpath + "\n" != my_action.out, repr(my_action.out)
+
+
 ############# PythonAction
 
 class TestPythonAction(object):

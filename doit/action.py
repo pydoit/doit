@@ -91,9 +91,10 @@ class CmdAction(BaseAction):
          changed and targets. ie. "zip %(targets)s %(changed)s"
     @ivar task(Task): reference to task that contains this action
     @ivar save_out: (str) name used to save output in `values`
+    @ivar cwd: directory where the command should be executed
     """
 
-    def __init__(self, action, task=None, save_out=None): #pylint: disable=W0231
+    def __init__(self, action, task=None, save_out=None, cwd=None): #pylint: disable=W0231
         self._action = action
         self.task = task
         self.out = None
@@ -101,6 +102,7 @@ class CmdAction(BaseAction):
         self.result = None
         self.values = {}
         self.save_out = save_out
+        self.cwd = cwd
 
     @property
     def action(self):
@@ -161,7 +163,7 @@ class CmdAction(BaseAction):
             return TaskError("CmdAction Error creating command string", exc)
 
         # spawn task process
-        process = subprocess.Popen(action, shell=True,
+        process = subprocess.Popen(action, shell=True, cwd=self.cwd,
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         output = StringIO()
