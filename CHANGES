@@ -7,6 +7,7 @@ DEV
 ===========================
 
  - support definition of group tasks using basename wihtout any task
+ - added task property 'watch' to specific extra files/folders in auto command
 
 
 0.22.1 (*2013-08-04*)
