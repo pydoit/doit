@@ -123,7 +123,7 @@ opt_cwd = {'name': 'cwdPath',
 
 # seek dodo file on parent folders
 opt_seek_file = {'name': 'seek_file',
-                 'short': '',
+                 'short': 'k',
                  'long': 'seek-file',
                  'type': bool,
                  'default': False,
