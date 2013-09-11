@@ -44,6 +44,11 @@ class TestCmdAction(object):
         got = my_action.execute()
         assert got is None
 
+    def test_success_noshell(self):
+        my_action = action.CmdAction(PROGRAM.split(), shell=False)
+        got = my_action.execute()
+        assert got is None
+
     def test_error(self):
         my_action = action.CmdAction("%s 1 2 3" % PROGRAM)
         got = my_action.execute()
@@ -78,6 +83,26 @@ class TestCmdAction(object):
         my_action = action.CmdAction("%s 1 2" % PROGRAM)
         my_action.execute()
         assert {} == my_action.values
+
+
+class TestCmdActionParams(object):
+    def test_invalid_param_stdout(self):
+        pytest.raises(action.InvalidTask, action.CmdAction,
+                      [PROGRAM], stdout=None)
+
+    def test_changePath(self, tmpdir):
+        path = tmpdir.mkdir("foo")
+        command = 'python -c "import os; print(os.getcwd())"'
+        my_action = action.CmdAction(command, cwd=path.strpath)
+        my_action.execute()
+        assert path + "\n" == my_action.out, repr(my_action.out)
+
+    def test_noPathSet(self, tmpdir):
+        path = tmpdir.mkdir("foo")
+        command = 'python -c "import os; print(os.getcwd())"'
+        my_action = action.CmdAction(command)
+        my_action.execute()
+        assert path.strpath + "\n" != my_action.out, repr(my_action.out)
 
 
 class TestCmdVerbosity(object):
@@ -170,6 +195,11 @@ class TestCmdExpandAction(object):
         got = my_action.execute()
         assert isinstance(got, TaskError)
 
+    def test_string_list_cant_be_expanded(self):
+        cmd = ["python",  "%s/myecho.py" % TEST_PATH]
+        task = FakeTask([],[],[], {})
+        my_action = action.CmdAction(cmd, task)
+        assert cmd == my_action.expand_action()
 
 
 class TestCmd_print_process_output(object):
@@ -219,21 +249,6 @@ class TestWriter(object):
         assert "hello" == w1.getvalue()
         assert "hello" == w2.getvalue()
 
-
-class TestChangePath(object):
-    def test_changePath(self, tmpdir):
-        path = tmpdir.mkdir("foo")
-        command = 'python -c "import os; print(os.getcwd())"'
-        my_action = action.CmdAction(command, cwd=path.strpath)
-        my_action.execute()
-        assert path + "\n" == my_action.out, repr(my_action.out)
-
-    def test_noPathSet(self, tmpdir):
-        path = tmpdir.mkdir("foo")
-        command = 'python -c "import os; print(os.getcwd())"'
-        my_action = action.CmdAction(command)
-        my_action.execute()
-        assert path.strpath + "\n" != my_action.out, repr(my_action.out)
 
 
 ############# PythonAction
@@ -552,6 +567,12 @@ class TestCreateAction(object):
     def testStringAction(self):
         my_action = action.create_action("xpto 14 7", self.mytask)
         assert isinstance(my_action, action.CmdAction)
+        assert my_action.shell == True
+
+    def testListStringAction(self):
+        my_action = action.create_action(["xpto", 14, 7], self.mytask)
+        assert isinstance(my_action, action.CmdAction)
+        assert my_action.shell == False
 
     def testMethodAction(self):
         def dumb(): return

@@ -86,15 +86,24 @@ class CmdAction(BaseAction):
     """
     Command line action. Spawns a new process.
 
-    @ivar action(str): Command to be passed to the shell subprocess.
-         It may contain python mapping strings with the keys: dependencies,
+    @ivar action(str,list,callable): subprocess command string or string list,
+         see subprocess.Popen first argument.
+         It may also be a callable that generates the command string.
+         Strings may contain python mappings with the keys: dependencies,
          changed and targets. ie. "zip %(targets)s %(changed)s"
     @ivar task(Task): reference to task that contains this action
     @ivar save_out: (str) name used to save output in `values`
-    @ivar cwd: directory where the command should be executed
+    @ivar shell: use shell to execute command
+                 see subprocess.Popen `shell` attribute
+    @ivar pkwargs: Popen arguments except 'stdout' and 'stderr'
     """
 
-    def __init__(self, action, task=None, save_out=None, cwd=None): #pylint: disable=W0231
+    def __init__(self, action, task=None, save_out=None, shell=True,
+                 **pkwargs): #pylint: disable=W0231
+        for forbidden in ('stdout', 'stderr'):
+            if forbidden in pkwargs:
+                msg = "CmdAction can't take param named '{}'."
+                raise InvalidTask(msg.format(forbidden))
         self._action = action
         self.task = task
         self.out = None
@@ -102,13 +111,15 @@ class CmdAction(BaseAction):
         self.result = None
         self.values = {}
         self.save_out = save_out
-        self.cwd = cwd
+        self.shell = shell
+        self.pkwargs = pkwargs
 
     @property
     def action(self):
-        if isinstance(self._action, six.string_types):
+        if isinstance(self._action, (six.string_types, list)):
             return self._action
         else:
+            # action can be a callable that returns a string command
             ref, args, kw = normalize_callable(self._action)
             kwargs = self._prepare_kwargs(self.task, ref, args, kw)
             return ref(*args, **kwargs)
@@ -163,8 +174,10 @@ class CmdAction(BaseAction):
             return TaskError("CmdAction Error creating command string", exc)
 
         # spawn task process
-        process = subprocess.Popen(action, shell=True, cwd=self.cwd,
-                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process = subprocess.Popen(
+            action, shell=self.shell,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            **self.pkwargs)
 
         output = StringIO()
         errput = StringIO()
@@ -206,6 +219,10 @@ class CmdAction(BaseAction):
         @returns (string) - expanded string after substitution
         """
         if not self.task:
+            return self.action
+
+        # cant expand keywords if action is a list of strings
+        if isinstance(self.action, list):
             return self.action
 
         subs_dict = {'targets' : " ".join(self.task.targets),
@@ -373,7 +390,10 @@ def create_action(action, task_ref):
         return action
 
     if isinstance(action, six.string_types):
-        return CmdAction(action, task_ref)
+        return CmdAction(action, task_ref, shell=True)
+
+    if isinstance(action, list):
+        return CmdAction(action, task_ref, shell=False)
 
     if isinstance(action, tuple):
         if len(action) > 3:

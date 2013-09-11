@@ -224,7 +224,7 @@ class InteractiveAction(CmdAction):
     """
     def execute(self, out=None, err=None):
         action = self.expand_action()
-        process = subprocess.Popen(action, shell=True)
+        process = subprocess.Popen(action, shell=self.shell, **self.pkwargs)
         try:
             process.wait()
         except KeyboardInterrupt:

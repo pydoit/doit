@@ -8,9 +8,9 @@ DEV
 
  - support definition of group tasks using basename without any task
  - added task property `watch` to specific extra files/folders in auto command
- - CmdActions support specifying `cwd` for subprocess
+ - CmdAction support for all arguments of subprocess.Popen, but stdout and stderr
  - added command option `-k` as short for `--seek-file`
-
+ - task action can be specified as a list of strings (executed using subprocess.Popen shell=False)
 
 
 0.22.1 (*2013-08-04*)
