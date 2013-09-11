@@ -21,10 +21,19 @@ PY_FILES = CODE_FILES + TESTING_FILES
 
 def task_checker():
     """run pyflakes on all project files"""
+
+    def add_pyflakes_builtins():
+        os.environ['PYFLAKES_BUILTINS'] = 'unicode'
+    yield {
+        'basename': '_pyflakes_builtins',
+        'actions': [add_pyflakes_builtins]
+        }
+
     for module in PY_FILES:
         yield {'actions': ["pyflakes %(dependencies)s"],
                'name':module,
                'file_dep':(module,),
+               'task_dep':['_pyflakes_builtins'],
                'title': (lambda task: task.name)}
 
 def run_test(test):
