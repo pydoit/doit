@@ -6,9 +6,9 @@ Changes
 DEV
 ===========================
 
- - support definition of group tasks using basename wihtout any task
- - added task property 'watch' to specific extra files/folders in auto command
- - CmdActions support specifying 'cwd' for subprocess
+ - support definition of group tasks using basename without any task
+ - added task property `watch` to specific extra files/folders in auto command
+ - CmdActions support specifying `cwd` for subprocess
  - added command option `-k` as short for `--seek-file`
 
 
@@ -17,8 +17,8 @@ DEV
 ===========================
 
  - fix reporter output in py3 was being displayed as bytes instead of string
- - fix pr#12 read file in chuncks when calculating MD5
- - fix #54 - remove distribute boostraping during instalation
+ - fix pr#12 read file in chunks when calculating MD5
+ - fix #54 - remove distribute bootstrapping during installation
 
 
 0.22.0 (*2013-07-05*)

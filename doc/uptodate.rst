@@ -2,8 +2,8 @@
 custom uptodate
 ================
 
-The basics of `uptodate` was already introduced. Here we gonna look in more
-details the implementations shipped with `doit`. And the API used by those.
+The basics of `uptodate` was already introduced. Here we look in more
+detail into the implementations shipped with `doit`. And the API used by those.
 
 
 result-dependency
@@ -28,9 +28,9 @@ time *doit* was executed.
 The "result" from the dependent task compared between different runs is given
 by its last action.
 The content for python-action is the value of the returned string or dict.
-For cmd-actions is the output send to stdout plus stderr.
+For cmd-actions it is the output send to stdout plus stderr.
 
-`result_dep` also support group-tasks, in this case it will check that the
+`result_dep` also supports group-tasks. In this case it will check that the
 result of all subtasks did not change. And also the existing sub-tasks are
 the same.
 
@@ -40,11 +40,11 @@ run-once
 ---------------
 
 Sometimes there is no dependency for a task but you do not want to execute it
-all the time. If "run_once" the task will not be executed again after the first
+all the time. With "run_once" the task will not be executed again after the first
 successful run. This is mostly used together with targets.
 
 Suppose you need to download something from internet.
-There is no dependency though you do not want to download it many times.
+There is no dependency, but you do not want to download it many times.
 
 
 .. literalinclude:: tutorial/download.py
@@ -69,7 +69,7 @@ timeout
 
 ``timeout`` is used to expire a task after a certain time interval.
 
-i.e. You want to re-execute a task only if the time elapsed since the last the
+i.e. You want to re-execute a task only if the time elapsed since the last
 time it was executed is bigger than 5 minutes.
 
 .. literalinclude:: tutorial/timeout.py
@@ -153,7 +153,7 @@ check will not be executed at all if the task was not selected to be executed.
 Example: run-once implementation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Most of the time a `uptodate` implementation will compare the current value
+Most of the time an `uptodate` implementation will compare the current value
 of something with the value it had last time the task was executed.
 
 We already saw how tasks can save values by returning dict on its actions.
@@ -173,7 +173,7 @@ Let's take a look in the ``run_once`` implementation.
 .. literalinclude:: tutorial/run_once.py
 
 The function ``save_executed`` returns a dict. In this case it is not checking
-for any value because it just check it the task was ever executed.
+for any value because it just checks it the task was ever executed.
 
 The next line we use the ``task`` parameter adding
 ``save_executed`` to ``task.value_savers``.So whenever this task is executed this
@@ -190,8 +190,9 @@ Example: timeout implementation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Let's look another example, the ``timeout``. The main difference is that
-we actually pass the parameter ``timeout_limit``. Here we gonna present
-a simplified version that only accept integers (seconds) as a parameter.
+we actually pass the parameter ``timeout_limit``. Here we present
+a simplified version that only accepts integers (seconds) as a parameter.
+
 
 .. code-block:: python
 
@@ -222,12 +223,12 @@ with the time that was saved on last successful execution.
 Example: result_dep implementation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The ``result_dep`` is more complicated due 2 factors. It needs to modify
+The ``result_dep`` is more complicated due to two factors. It needs to modify
 the task's ``task_dep``. It needs to check the task's saved values and metadata
 from a task different from where it is being applied.
 
 A ``result_dep`` implies that its dependency is also a ``task_dep``.
-We have seen that the callable take a `task` parameter that we used
+We have seen that the callable takes a `task` parameter that we used
 to modify the task object. The problem is that modifying ``task_dep``
 when the callable gets called would be "too late" according to the
 way `doit` works. When an object is passed ``uptodate`` and this

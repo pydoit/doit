@@ -2,6 +2,13 @@
 Command line interface - run
 ==============================
 
+A general `doit` command goes like this:
+
+.. code-block:: console
+
+    $ doit [<sub-command>] [<options>] [<task|target> <task_options>]* [<variables>]
+
+
 The `doit` command line contains several sub-commands. Most of the time you just
 want to execute your tasks, that's what *run* does. Since it is by far the most
 common operation it is also the default, so if you don't specify any sub-command
@@ -27,7 +34,9 @@ This is specially useful when testing `doit` with different python versions.
 dodo file
 ----------
 
-By default all commands are relative to ``dodo.py`` in the current folder. You can specify a different *dodo* file containing task with the flag ``-f``. (This is valid for all sub-commands)
+By default all commands are relative to ``dodo.py`` in the current folder.
+You can specify a different *dodo* file containing task with the flag ``-f``.
+This flag is valid for all sub-commands.
 
 
 .. code-block:: console
@@ -76,12 +85,14 @@ You can control the verbosity by:
     hello
 
 
+.. _parameters:
+
 parameters
 -----------
 
 It is possible to pass option parameters to the task through the command line.
 
-Just a add a 'params' field to the task dictionary. `params` must be a list of
+Just add a 'params' field to the task dictionary. `params` must be a list of
 dictionaries where every entry is an option parameter. Each parameter must
 define a name, and a default value. It can optionally define a "short" and
 "long" names to be used from the command line (it follows unix command line
@@ -128,7 +139,9 @@ By default when you run `doit` only the task name is printed out on the output. 
 dir (cwd)
 -----------
 
-By default relative paths of file used on the `dodo` file and the "current working directory" used on python execution is the same as the location of the `dodo` file. You can specify a different *cwd* with the --dir/-d option.
+By default the directory of the `dodo` file is used as the
+"current working directory" on python execution.
+You can specify a different *cwd* with the *-d*/*--dir* option.
 
 .. code-block:: console
 

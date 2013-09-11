@@ -157,7 +157,7 @@ and kept with *zero* bugs in the tracker.
 
 Development is done based on real world use cases.
 If I don't need a feature and nobody never asked for it, it is not implemented ;)
-It is well designed and have a very small code base
+It is well designed and has a very small code base
 so adding new features isn't hard.
 
 If you use `doit` please drop me a line telling me your experience...

@@ -2,7 +2,7 @@
 Tools
 ======
 
-`doit.tools` includes some commonly used code. This are not used by the `doit`
+`doit.tools` includes some commonly used code. These are not used by the `doit`
 core, you can see it as a "standard library".
 The functions/class used with `uptodate` were already introduced in the previous
 section.
@@ -24,6 +24,8 @@ Return task name task actions from a task. This function can be used as 'title' 
 
 .. literalinclude:: tutorial/titlewithactions.py
 
+
+.. _tools.InteractiveAction:
 
 InteractiveAction (action)
 -----------------------------

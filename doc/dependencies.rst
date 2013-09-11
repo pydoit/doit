@@ -57,7 +57,7 @@ or there is a missing `target`.
 If a task does not define any of these dependencies it will always be executed.
 
 Apart from these dependencies used to determine if a task is up-to-date or not.
-``doit`` also include other kind of dependencies to help you combine tasks
+``doit`` also includes other kind of dependencies to help you combine tasks
 so they are executed in appropriate order.
 
 
@@ -100,7 +100,7 @@ the mercurial repository on the tar file.
 groups
 ^^^^^^^
 
-You can define group of tasks by adding tasks as dependencies and setting
+You can define a group of tasks by adding tasks as dependencies and setting
 its `actions` to ``None``.
 
 .. literalinclude:: tutorial/group.py
@@ -115,7 +115,7 @@ calculated-dependencies
 
 Calculation of dependencies might be an expensive operation, so not suitable
 to be done on load time by task-creators.
-For this situation is better to delegate
+For this situation it is better to delegate
 the calculation of dependencies to another task.
 The task calculating dependencies must have a python-action returning a
 dictionary with `file_dep`, `task_dep`, `uptodate` or another `calc_dep`.

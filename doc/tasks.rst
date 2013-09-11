@@ -45,7 +45,7 @@ Actions
 --------
 
 Every *task* must define **actions**.
-It can optionally defines other attributes like `targets`, `file_dep`,
+It can optionally define other attributes like `targets`, `file_dep`,
 `verbosity`, `doc` ...
 
 Actions define what the task actually do.
@@ -126,7 +126,7 @@ custom actions
 ^^^^^^^^^^^^^^^^^^^
 
 It is possible to create other type of actions,
-check `tools.InteractiveAction` as an example.
+check :ref:`tools.InteractiveAction<tools.InteractiveAction>` as an example.
 
 
 
@@ -137,7 +137,7 @@ By default a task name is taken from the name of the python function
 that generates the task.
 For example a `def task_hello` would create a task named ``hello``.
 
-It is possible to explicit set a task name with the parameter ``basename``.
+It is possible to explicitly set a task name with the parameter ``basename``.
 
 .. literalinclude:: tutorial/task_name.py
 
@@ -232,10 +232,10 @@ file_dep (file dependency)
 
 Different from most build-tools dependencies are on tasks, not on targets.
 So `doit` can take advantage of the "execute only if not up-to-date" feature
-even for tasks that not define targets.
+even for tasks that don't define targets.
 
-Lets say you work with a dynamic language (python in this example).
-You don't need to compile anything but you probably wants to apply a lint-like
+Let's say you work with a dynamic language (python in this example).
+You don't need to compile anything but you probably want to apply a lint-like
 tool (i.e. `pyflakes <http://pypi.python.org/pypi/pyflakes>`_) to your
 source code files. You can define the source code as a dependency to the task.
 
@@ -268,7 +268,7 @@ Lets take the compilation example again.
 
 * If there are no changes in the dependency the task execution is skipped.
 * But if the target is removed the task is executed again.
-* But only if does not exist. If the target is modified but the dependencies
+* But only if it does not exist. If the target is modified but the dependencies
   do not change the task is not executed again.
 
 .. code-block:: console
@@ -375,6 +375,8 @@ You can also select tasks to be executed using a `glob <http://docs.python.org/l
     .  create_file:file2.txt
     .  create_file:file3.txt
 
+
+.. _command line variables:
 
 command line variables (*doit.get_var*)
 -----------------------------------------

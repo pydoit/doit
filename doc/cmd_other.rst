@@ -2,7 +2,8 @@
 Other Commands
 ================
 
-Lets use more complex example to demonstrate the command line features. The example below is used to manage a very simple C project.
+Let's use a more complex example to demonstrate the command line features.
+The example below is used to manage a very simple C project.
 
 
 .. literalinclude:: tutorial/cproject.py
@@ -152,7 +153,7 @@ dumpdb
 
 `doit` saves internal data in a file (`.doit.db` be default).
 It uses a binary format (whatever python's dbm is using in your system).
-This command will simply dumps its content in readable text format in the output.
+This command will simply dump its content in readable text format in the output.
 
 .. code-block:: console
 

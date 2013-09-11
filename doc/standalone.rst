@@ -8,7 +8,7 @@ Requirements
 --------------
 
 The standalone script should be created on a system where doit and dependencies are
-installed. Apart from doit dependencies it also requires the the libraries "py" and "py.test".
+installed. Apart from doit dependencies it also requires the libraries "py" and "py.test".
 
 Usage
 -------
