@@ -227,3 +227,6 @@ xxx
 xyz
 utf8
 WORDBREAKS
+Popen
+popen
+CmdAction's

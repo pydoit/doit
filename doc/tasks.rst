@@ -12,17 +12,18 @@ So a task can be anything you can code :)
 
 Tasks are defined in plain `python <http://python.org/>`_ module with some
 conventions.
-A function that starts with the name `task_` defines a *task-creator* recognized
-by `doit`.
-These functions must return (or yield) dictionaries representing a *task*.
-A python module/file that defines *tasks* for `doit` is called **dodo** file
-(that is something like a `Makefile` for `make`).
 
 .. note::
 
     You should be comfortable with python basics. If you don't know python yet
     check `Python tutorial <http://docs.python.org/tut/>`_.
 
+
+A function that starts with the name `task_` defines a *task-creator* recognized
+by `doit`.
+These functions must return (or yield) dictionaries representing a *task*.
+A python module/file that defines *tasks* for `doit` is called **dodo** file
+(that is something like a `Makefile` for `make`).
 
 Take a look at this example (file dodo.py):
 
@@ -48,11 +49,10 @@ Every *task* must define **actions**.
 It can optionally define other attributes like `targets`, `file_dep`,
 `verbosity`, `doc` ...
 
-Actions define what the task actually do.
-A task can define any number of actions.
-The action "result" is used to determine if task execution was successful or not.
-
+Actions define what the task actually does.
+*Actions* is always a list that can have any number of elements.
 There 2 basic kinds of `actions`: *cmd-action* and *python-action*.
+The action "result" is used to determine if task execution was successful or not.
 
 
 python-action
@@ -94,17 +94,23 @@ file is loaded.
 cmd-action
 ^^^^^^^^^^^
 
-If `action` is a string it will be executed by the shell.
+CmdAction's are executed in a subprocess (using python
+`subprocess.Popen <http://docs.python.org/3.7/library/subprocess.html#popen-constructor>`_).
 
-The result of the task follows the shell convention.
-If the process exits with the value `0` it is successful.
-Any other value means the task failed.
+If `action` is a string, the command will be executed through the shell.
+(Popen argument shell=True).
 
 Note that the string must be escaped according to
 `python string formatting <http://docs.python.org/2.7/library/stdtypes.html#string-formatting-operations>`_.
 
 
 .. literalinclude:: tutorial/cmd_actions.py
+
+
+If `action` is a list of strings, by default it will be executed **without the shell** (Popen argument shell=False).
+
+.. literalinclude:: tutorial/cmd_actions_list.py
+
 
 It is easy to include dynamic (on-the-fly) behavior to your tasks with
 python code from the `dodo` file. Let's take a look at another example:
@@ -119,6 +125,18 @@ For complex commands it is also possible to pass a callable that returns
 the command string. In this case you must explicit import CmdAction.
 
 .. literalinclude:: tutorial/cmd_from_callable.py
+
+.. note::
+
+  Different from `subprocess.Popen`, `CmdAction` `shell` argument defaults to
+  `True`. All other `Popen` arguments can also be passed in `CmdAction` except
+  `stdout` and `stderr`
+
+
+
+The result of the task follows the shell convention.
+If the process exits with the value `0` it is successful.
+Any other value means the task failed.
 
 
 
