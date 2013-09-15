@@ -5,13 +5,16 @@ generate a standalone python script including doit and its dependencies
 Requirements
 --------------
 
-The standalone script should be created on a system where doit and dependencies are
-installed. Apart from doit dependencies it also requires the the libraries "py" and "py.test".
+The standalone script should be created on a system where doit and dependencies
+are installed. Apart from doit dependencies it also requires the the
+libraries "py" and "py.test".
 
 Usage
 -------
 
-The script ``genstandalone.py`` will create a standalone 'doit' on the current working directory. So it should be executed in the path where the standalone will be distributed, i.e.::
+The script ``genstandalone.py`` will create a standalone 'doit' on the current
+working directory. So it should be executed in the path where the standalone
+will be distributed, i.e.::
 
   /my/project/path $ python ../../path/to/doit/genstandalone.py
 
@@ -35,7 +38,7 @@ from _pytest.genscript import generate_script
 def get_required_packages():
     # TODO: DRY, this was copied from setup.py
     platform_system = platform.system()
-    install_requires = []
+    install_requires = ['six']
 
     # auto command dependencies to watch file-system
     if platform_system == "Darwin":
@@ -51,10 +54,7 @@ def generate_doit_standalone(script_name='doit'):
 
     pkgs = get_required_packages()
     pkgs.append('doit')
-    script = generate_script(
-        'import sys; from doit.doit_cmd import cmd_main; sys.exit(cmd_main(sys.argv[1:]))',
-        pkgs,
-        )
+    script = generate_script('import doit.__main__', pkgs)
     genscript = py.path.local(script_name)
     genscript.write(script)
     # adds permission owner execute
@@ -64,4 +64,3 @@ def generate_doit_standalone(script_name='doit'):
 
 if __name__ == "__main__":
     generate_doit_standalone()
-
