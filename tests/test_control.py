@@ -411,7 +411,30 @@ class TestTaskDispatcher_update_waiting(object):
         assert deque([n1]) == td.ready
         assert 0 == len(td.waiting)
 
-    # test_wait_calc is tested on TestTaskDispatcher_add_task.test_calc_dep
+    def test_waiting_node_updated(self):
+        tasks = {'t1': Task('t1', None, calc_dep=['t2'], task_dep=['t4']),
+                 't2': Task('t2', None),
+                 't3': Task('t3', None),
+                 't4': Task('t4', None),
+                 }
+        td = TaskDispatcher(tasks, [], None)
+        n1 = td._gen_node(None, 't1')
+        n1_gen = td._add_task(n1)
+        n2 = n1_gen.next()
+        assert 't2' == n2.task.name
+        assert 't4' == n1_gen.next().task.name
+        assert 'wait' == n1_gen.next()
+        assert set() == n1.calc_dep
+        assert td.waiting == set()
+
+        n2.run_status = 'done'
+        n2.task.values = {'calc_dep': ['t2', 't3'], 'task_dep':['t5']}
+        assert n1.calc_dep == set()
+        assert n1.task_dep == []
+        td._update_waiting(n2)
+        assert n1.calc_dep == set(['t3'])
+        assert n1.task_dep == ['t5']
+
 
 
 class TestTaskDispatcher_dispatcher_generator(object):

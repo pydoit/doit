@@ -307,6 +307,7 @@ class TaskDispatcher(object):
             else:
                 node.parent_status(dep_node)
 
+
         # update ExecNode setting parent/dependent relationship
         for name in wait_for:
             self.nodes[name].waiting_me.add(node)
@@ -427,26 +428,31 @@ class TaskDispatcher(object):
                 # calc_dep might add new deps that can be run without
                 # waiting for the completion of the remaining deps
                 is_ready = True
+                self._process_calc_dep_results(node, waiting_node)
 
-                # refresh this task dependencies with values got from calc_dep
-                values = node.task.values
-                len_task_deps = len(node.task.task_dep)
-                old_calc_dep = node.task.calc_dep.copy()
-                waiting_node.task.update_deps(values)
-                TaskControl.add_implicit_task_dep(
-                    self.targets, waiting_node.task,
-                    values.get('file_dep', []))
-
-                # update node's list of non-processed dependencies
-                new_task_dep = waiting_node.task.task_dep[len_task_deps:]
-                waiting_node.task_dep.extend(new_task_dep)
-                new_calc_dep = waiting_node.task.calc_dep - old_calc_dep
-                waiting_node.calc_dep.update(new_calc_dep)
 
             # this node can be further processed
             if is_ready and (waiting_node in self.waiting):
                 self.ready.append(waiting_node)
                 self.waiting.remove(waiting_node)
+
+
+    def _process_calc_dep_results(self, node, waiting_node):
+        # refresh this task dependencies with values got from calc_dep
+        values = node.task.values
+        len_task_deps = len(waiting_node.task.task_dep)
+        old_calc_dep = waiting_node.task.calc_dep.copy()
+        waiting_node.task.update_deps(values)
+        TaskControl.add_implicit_task_dep(
+            self.targets, waiting_node.task,
+            values.get('file_dep', []))
+
+        # update node's list of non-processed dependencies
+        new_task_dep = waiting_node.task.task_dep[len_task_deps:]
+        waiting_node.task_dep.extend(new_task_dep)
+        new_calc_dep = waiting_node.task.calc_dep - old_calc_dep
+        waiting_node.calc_dep.update(new_calc_dep)
+
 
 
     def _dispatcher_generator(self, selected_tasks):
