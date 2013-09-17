@@ -352,7 +352,7 @@ class TaskDispatcher(object):
             self._node_add_wait_run(node, task_dep_list)
 
             if (node.calc_dep or node.task_dep):
-                continue
+                continue # pragma: no cover # coverage cant catch this #198
             elif (node.wait_run or node.wait_run_calc):
                 yield 'wait'
             else:

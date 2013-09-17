@@ -232,6 +232,22 @@ class TestTaskDispatcher_node_add_wait_run(object):
         td._node_add_wait_run(n1, ['t2'])
         assert n1.bad_deps
 
+    def test_calc_dep_already_executed(self):
+        tasks = {'t1': Task('t1', None, calc_dep=['t2']),
+                 't2': Task('t2', None),
+                 }
+        td = TaskDispatcher(tasks, [], None)
+        n1 = td._gen_node(None, 't1')
+        n2 = td._gen_node(None, 't2')
+        n2.run_status = 'done'
+        n2.task.values = {'calc_dep': ['t3'], 'task_dep':['t5']}
+        td._node_add_wait_run(n1, ['t2'], calc=True)
+        # n1 is updated with results from t2
+        assert n1.calc_dep == set(['t2', 't3'])
+        assert n1.task_dep == ['t5']
+        # n1 doesnt need to wait any calc_dep to be executed
+        assert n1.wait_run_calc == set()
+
 
 class TestTaskDispatcher_add_task(object):
     def test_no_deps(self):
@@ -310,6 +326,22 @@ class TestTaskDispatcher_add_task(object):
         n3.run_status = 'done'
         td._update_waiting(n3)
         assert tasks['t1'] == n1.step()
+
+
+    def test_calc_dep_already_executed(self):
+        tasks = {'t1': Task('t1', None, calc_dep=['t2']),
+                 't2': Task('t2', None),
+                 't3': Task('t3', None),
+                 }
+        td = TaskDispatcher(tasks, {'intermediate': 't3'}, None)
+        n1 = td._gen_node(None, 't1')
+        n2 = td._gen_node(None, 't2')
+        n2.run_status = 'done'
+        n2.task.values = {'calc_dep': ['t3']}
+        assert 't3' == n1.step().task.name
+        assert set() == n1.wait_run
+        assert set() == n1.wait_run_calc
+        #assert False
 
 
     def test_setup_task__run(self):
