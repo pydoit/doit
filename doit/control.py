@@ -306,6 +306,8 @@ class TaskDispatcher(object):
                 wait_for.add(name)
             else:
                 node.parent_status(dep_node)
+                if calc:
+                    self._process_calc_dep_results(dep_node, node)
 
 
         # update ExecNode setting parent/dependent relationship
@@ -335,18 +337,23 @@ class TaskDispatcher(object):
         # add calc_dep & task_dep until all processed
         # calc_dep may add more deps so need to loop until nothing left
         while True:
-            for calc_dep in node.calc_dep:
-                yield self._gen_node(node, calc_dep)
-            self._node_add_wait_run(node, node.calc_dep, calc=True)
+            calc_dep_list = list(node.calc_dep)
             node.calc_dep.clear()
-
-            # add task_dep
-            for task_dep in node.task_dep:
-                yield self._gen_node(node, task_dep)
-            self._node_add_wait_run(node, node.task_dep)
+            task_dep_list = node.task_dep[:]
             node.task_dep = []
 
-            if (node.wait_run or node.wait_run_calc):
+            for calc_dep in calc_dep_list:
+                yield self._gen_node(node, calc_dep)
+            self._node_add_wait_run(node, calc_dep_list, calc=True)
+
+            # add task_dep
+            for task_dep in task_dep_list:
+                yield self._gen_node(node, task_dep)
+            self._node_add_wait_run(node, task_dep_list)
+
+            if (node.calc_dep or node.task_dep):
+                continue
+            elif (node.wait_run or node.wait_run_calc):
                 yield 'wait'
             else:
                 break
