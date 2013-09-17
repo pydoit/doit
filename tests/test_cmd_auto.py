@@ -46,15 +46,15 @@ class FakeLoader(TaskLoader):
 
 class TestAuto(object):
 
-    def test_invalid_args(self, dependency1, depfile):
+    def test_invalid_args(self, dependency1, depfile_name):
         t1 = Task("t1", [""], file_dep=[dependency1])
-        cmd = cmd_auto.Auto(task_loader=FakeLoader([t1], depfile.name))
+        cmd = cmd_auto.Auto(task_loader=FakeLoader([t1], depfile_name))
         pytest.raises(InvalidCommand, cmd.execute, None, 't2')
 
 
-    def test_run_wait(self, dependency1, depfile):
+    def test_run_wait(self, dependency1, depfile_name):
         t1 = Task("t1", [""], file_dep=[dependency1])
-        cmd = cmd_auto.Auto(task_loader=FakeLoader([t1], depfile.name))
+        cmd = cmd_auto.Auto(task_loader=FakeLoader([t1], depfile_name))
 
         run_wait_proc = Process(target=cmd.run_watch,
                                 args=(DefaultUpdate(), []))

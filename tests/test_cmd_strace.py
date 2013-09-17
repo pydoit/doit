@@ -10,13 +10,13 @@ from doit.cmd_strace import Strace
 
 class TestCmdRun(object):
 
-    def test_dep(self, dependency1, depfile):
+    def test_dep(self, dependency1, depfile_name):
         output = StringIO()
         task = Task("tt", ["cat %(dependencies)s"],
                     file_dep=['tests/data/dependency1'])
         cmd = Strace(outstream=output)
         cmd._loader.load_tasks = mock.Mock(return_value=([task], {}))
-        params = DefaultUpdate(dep_file=depfile.name, show_all=False,
+        params = DefaultUpdate(dep_file=depfile_name, show_all=False,
                                keep_trace=False, backend='dbm')
         result = cmd.execute(params, ['tt'])
         assert 0 == result
@@ -25,26 +25,26 @@ class TestCmdRun(object):
         assert "R %s" % dep_path in got[0]
 
 
-    def test_opt_show_all(self, dependency1, depfile):
+    def test_opt_show_all(self, dependency1, depfile_name):
         output = StringIO()
         task = Task("tt", ["cat %(dependencies)s"],
                     file_dep=['tests/data/dependency1'])
         cmd = Strace(outstream=output)
         cmd._loader.load_tasks = mock.Mock(return_value=([task], {}))
-        params = DefaultUpdate(dep_file=depfile.name, show_all=True,
+        params = DefaultUpdate(dep_file=depfile_name, show_all=True,
                                keep_trace=False, backend='dbm')
         result = cmd.execute(params, ['tt'])
         assert 0 == result
         got = output.getvalue().split("\n")
         assert "cat" in got[0]
 
-    def test_opt_keep_trace(self, dependency1, depfile):
+    def test_opt_keep_trace(self, dependency1, depfile_name):
         output = StringIO()
         task = Task("tt", ["cat %(dependencies)s"],
                     file_dep=['tests/data/dependency1'])
         cmd = Strace(outstream=output)
         cmd._loader.load_tasks = mock.Mock(return_value=([task], {}))
-        params = DefaultUpdate(dep_file=depfile.name, show_all=True,
+        params = DefaultUpdate(dep_file=depfile_name, show_all=True,
                                keep_trace=True, backend='dbm')
         result = cmd.execute(params, ['tt'])
         assert 0 == result
@@ -54,13 +54,13 @@ class TestCmdRun(object):
         os.unlink(cmd.TRACE_OUT)
 
 
-    def test_target(self, dependency1, depfile):
+    def test_target(self, dependency1, depfile_name):
         output = StringIO()
         task = Task("tt", ["touch %(targets)s"],
                     targets=['tests/data/dependency1'])
         cmd = Strace(outstream=output)
         cmd._loader.load_tasks = mock.Mock(return_value=([task], {}))
-        params = DefaultUpdate(dep_file=depfile.name, show_all=False,
+        params = DefaultUpdate(dep_file=depfile_name, show_all=False,
                                keep_trace=False, backend='dbm')
         result = cmd.execute(params, ['tt'])
         assert 0 == result
@@ -68,7 +68,7 @@ class TestCmdRun(object):
         tgt_path = os.path.abspath("tests/data/dependency1")
         assert "W %s" % tgt_path in got[0]
 
-    def test_ignore_python_actions(self, dependency1, depfile):
+    def test_ignore_python_actions(self, dependency1, depfile_name):
         output = StringIO()
         def py_open():
             with open(dependency1) as ignore:
@@ -76,7 +76,7 @@ class TestCmdRun(object):
         task = Task("tt", [py_open])
         cmd = Strace(outstream=output)
         cmd._loader.load_tasks = mock.Mock(return_value=([task], {}))
-        params = DefaultUpdate(dep_file=depfile.name, show_all=False,
+        params = DefaultUpdate(dep_file=depfile_name, show_all=False,
                                keep_trace=False, backend='dbm')
         result = cmd.execute(params, ['tt'])
         assert 0 == result

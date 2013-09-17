@@ -83,6 +83,20 @@ def depfile(request):
 
     return dep_file
 
+@pytest.fixture
+def depfile_name(request):
+    # copied from tempdir plugin
+    name = request._pyfuncitem.name
+    name = py.std.re.sub("[\W]", "_", name)
+    my_tmpdir = request.config._tmpdirhandler.mktemp(name, numbered=True)
+    depfile_name = (os.path.join(my_tmpdir.strpath, "testdb"))
+
+    def remove_depfile():
+        remove_db(depfile_name)
+    request.addfinalizer(remove_depfile)
+
+    return depfile_name
+
 
 @pytest.fixture
 def restore_cwd(request):
