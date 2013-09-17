@@ -360,11 +360,11 @@ class SqliteDB(object):
 class DependencyBase(object):
     """Manage tasks dependencies (abstract class)
 
-    Each dependency is a saved in "db". the "db" can have json or dbm
+    Each dependency is saved in "db". the "db" can have json or dbm
     format where there is a dictionary for every task. each task has a
     dictionary where key is a dependency (abs file path), and the value is the
     dependency signature.
-    Apart from dependencies onther values are also saved on the task dictionary
+    Apart from dependencies other values are also saved on the task dictionary
      * 'result:', 'task:<task-name>', 'ignore:'
      * user(task) defined values are defined in '_values_:' sub-dict
 

@@ -444,8 +444,8 @@ class MRunner(Runner):
                     self.teardown()
                     return # no more tasks to execute finish this process
 
-                # do nothing. this used to start the subprocess even if no task
-                # is available when process is created.
+                # do nothing. this is used to start the subprocess even
+                # if no task is available when process is created.
                 if isinstance(recv_task, Hold):
                     continue
 

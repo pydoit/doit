@@ -11,6 +11,7 @@ DEV
  - CmdAction support for all arguments of subprocess.Popen, but stdout and stderr
  - added command option `-k` as short for `--seek-file`
  - task action can be specified as a list of strings (executed using subprocess.Popen shell=False)
+ - fix #60: result of calc_dep only considered if not run yet
 
 
 0.22.1 (*2013-08-04*)
