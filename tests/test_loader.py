@@ -254,6 +254,12 @@ class TestGenerateTasksGenerator(object):
                        'actions' :["a"]}
         pytest.raises(InvalidTask, generate_tasks, "xpto", f_xpto())
 
+    def testGeneratorNameCanNotRepeat(self):
+        def f_xpto():
+            yield {'basename':'bn', 'name': 'xxx', 'actions' :["xpto"]}
+            yield {'basename':'bn', 'name': 'xxx', 'actions' :["xpto2"]}
+        pytest.raises(InvalidTask, generate_tasks, "xpto", f_xpto())
+
     def testGeneratorDocString(self):
         def f_xpto():
             "the doc"

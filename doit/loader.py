@@ -198,7 +198,10 @@ def _generate_task_from_yield(tasks, func_name, task_dict, gen_doc):
             return
 
         # name is '<task>.<subtask>'
-        task_dict['name'] = "%s:%s"% (basename, task_dict['name'])
+        full_name = "%s:%s"% (basename, task_dict['name'])
+        if full_name in tasks:
+            raise InvalidTask(msg_dup % (func_name, full_name))
+        task_dict['name'] = full_name
         sub_task = dict_to_task(task_dict)
         sub_task.is_subtask = True
 
