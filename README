@@ -44,7 +44,8 @@ doit is tested on python 2.6, 2.7, 3.2, 3.3.
 dependencies
 =============
 
-- pyinotify (linux) [all python versions]
+- six
+- pyinotify (linux)
 - macfsevents (mac)
 
 Tools required for development:
@@ -56,19 +57,6 @@ Tools required for development:
 - epydoc * API doc generator
 - sphinx * doc tool
 - pyflakes * syntax checker
-
-
-tests
-=======
-
-You can use a standalone script:
-
-  $ python runtests.py
-
-or use py.test - http://pytest.org
-
-  $ py.test
-
 
 
 developemnt setup
@@ -85,6 +73,20 @@ from `dev_requirements.txt`:
 
   (dev)doit$ pip install --editable .
   (dev)doit$ pip install --requirement dev_requirements.txt
+
+
+
+tests
+=======
+
+You can use the standalone script:
+
+  $ python runtests.py
+
+or use py.test - http://pytest.org
+
+  $ py.test
+
 
 
 documentation
