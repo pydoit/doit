@@ -3,8 +3,8 @@
 Changes
 =======
 
-DEV
-===========================
+0.23.0 (*2013-09-20*)
+======================
 
  - support definition of group tasks using basename without any task
  - added task property `watch` to specific extra files/folders in auto command
@@ -17,7 +17,7 @@ DEV
 
 
 0.22.1 (*2013-08-04*)
-===========================
+======================
 
  - fix reporter output in py3 was being displayed as bytes instead of string
  - fix pr#12 read file in chunks when calculating MD5

@@ -3,11 +3,13 @@
 from distutils.core import setup, Command
 
 
+install_requires = ['six']
+
+
 ########### platform specific stuff #############
 import platform
 platform_system = platform.system()
 
-install_requires = ['six']
 # auto command dependencies to watch file-system
 if platform_system == "Darwin":
     install_requires.append('macfsevents')
@@ -44,7 +46,7 @@ to execute any kind of **task**
 
 setup(name = 'doit',
       description = 'doit - Automation Tool',
-      version = '0.23.dev0',
+      version = '0.23.0',
       license = 'MIT',
       author = 'Eduardo Naufel Schettino',
       author_email = 'schettino72@gmail.com',
