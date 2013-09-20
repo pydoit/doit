@@ -62,6 +62,13 @@
 <em>Your logo here</em>
 
 <h3>Sponsor/Donate to <em>doit</em></h3>
+
+{% if include_gittip %}
+<script data-gittip-username="schettino72"
+        data-gittip-widget="button"
+        src="//gttp.co/v1.js"></script>
+{% endif %}
+
 <div style="margin-left:2em;">
 <form action="https://www.paypal.com/cgi-bin/webscr" method="post">
 <input type="hidden" name="cmd" value="_s-xclick">
@@ -73,7 +80,7 @@
 <br/>
 
 <div style="font-size:75%">
-Why Donate? Donations will be used to sponsor futher development of the project and participation in conferences.<br/>
+Why Donate? Donations will be used to sponsor futher development of the project.<br/>
 <br/>
 For coorporate donations the logo of your company will be placed on this website side-bar (see above). For more information please contact <em>schettino72</em>&#64<span>gmail.com</span><br/>
 </div>

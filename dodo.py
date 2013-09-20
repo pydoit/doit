@@ -130,9 +130,10 @@ def task_spell():
 
 def task_sphinx():
     """generate website docs (include analytics)"""
-    action = "sphinx-build -b html -d %s_build/doctrees -A include_analytics=1 %s %s"
+    action = "sphinx-build -b html %s -d %s_build/doctrees %s %s"
+    opts = "-A include_analytics=1 -A include_gittip=1"
     return {
-        'actions': [action % (DOC_ROOT, DOC_ROOT, DOC_BUILD_PATH)],
+        'actions': [action % (opts, DOC_ROOT, DOC_ROOT, DOC_BUILD_PATH)],
         'verbosity': 2,
         'task_dep': ['spell'],
         }
