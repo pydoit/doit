@@ -13,7 +13,7 @@ Task Dictionary parameters
 Tasks are defined by functions starting with the string ``task_``. It must return a dictionary describing the task with the following fields:
 
 actions [required]:
-  - type: Python-Task -> tuple (callable, `*args`, `**kwargs`)
+  - type: Python-Task -> callable or tuple (callable, `*args`, `**kwargs`)
   - type: Cmd-Task -> string or list of strings (each item is a different command). to be executed by shell.
   - type: Group-Task -> None.
 
@@ -80,6 +80,10 @@ verbosity:
 
 title:
  - type: callable taking one parameter as argument (the task reference)
+
+watch:
+ - type: list. items:
+   * (string) path to be watched when using the `auto` command
 """
 
 
@@ -94,6 +98,7 @@ class Help(DoitCmdBase):
         """print doit "usage" (basic help) instructions"""
         print("doit -- automation tool")
         print("http://pydoit.org")
+        print('')
         print("Commands")
         for cmd in sorted(six.itervalues(cmds), key=attrgetter('name')):
             six.print_("  doit %s \t\t %s" % (cmd.name, cmd.doc_purpose))

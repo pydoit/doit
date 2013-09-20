@@ -17,6 +17,12 @@ help
 
 You can also get help from each available command. e.g. `doit help run`.
 
+.. note::
+
+    Not all options/parameters are documented below.
+    Always check `doit help <cmd>` to see a complete list of options.
+
+
 `doit help task` will display information on all fields/attributes a task dictionary from a `dodo` file accepts.
 
 
@@ -133,8 +139,11 @@ auto (watch)
 
    Supported on Linux and Mac only.
 
-`auto` sub-command is an alternative way of executing your tasks. It is a long running process that only terminates when it is interrupted (Ctrl-C). When started it will execute the given tasks. After that it will watch the file system for modifications in the file-dependencies.  When a file is modified the tasks are re-executed.
-
+`auto` sub-command is an alternative way of executing your tasks.
+It is a long running process that only terminates when it is interrupted (Ctrl-C).
+When started it will execute the given tasks. After that it will watch the
+file system for modifications in the file-dependencies.
+When a file is modified the tasks are re-executed.
 
 .. code-block:: console
 
@@ -145,6 +154,16 @@ auto (watch)
 
    The `dodo` file is actually re-loaded/executed in a separate process
    every time tasks need to be re-executed.
+
+
+``watch`` parameter
+^^^^^^^^^^^^^^^^^^^^^
+
+Apart from ``file_dep`` you can use the parameter ``watch`` to pass extra
+paths to be watched for (including folders). The ``watch`` parameter can also
+be specified for a group of "sub-tasks".
+
+.. literalinclude:: tutorial/empty_subtasks.py
 
 
 

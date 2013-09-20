@@ -95,25 +95,19 @@ cmd-action
 ^^^^^^^^^^^
 
 CmdAction's are executed in a subprocess (using python
-`subprocess.Popen <http://docs.python.org/3.7/library/subprocess.html#popen-constructor>`_).
+`subprocess.Popen <http://docs.python.org/library/subprocess.html#popen-constructor>`_).
 
 If `action` is a string, the command will be executed through the shell.
 (Popen argument shell=True).
 
 Note that the string must be escaped according to
-`python string formatting <http://docs.python.org/2.7/library/stdtypes.html#string-formatting-operations>`_.
-
-
-.. literalinclude:: tutorial/cmd_actions.py
-
-
-If `action` is a list of strings, by default it will be executed **without the shell** (Popen argument shell=False).
-
-.. literalinclude:: tutorial/cmd_actions_list.py
-
+`python string formatting <http://docs.python.org/library/stdtypes.html#string-formatting-operations>`_.
 
 It is easy to include dynamic (on-the-fly) behavior to your tasks with
 python code from the `dodo` file. Let's take a look at another example:
+
+
+.. literalinclude:: tutorial/cmd_actions.py
 
 .. note::
 
@@ -121,10 +115,21 @@ python code from the `dodo` file. Let's take a look at another example:
   so in this example the line `msg = 3 * "hi! "` will always be executed.
 
 
+If `action` is a list of strings, by default it will be executed **without the shell** (Popen argument shell=False).
+
+.. literalinclude:: tutorial/cmd_actions_list.py
+
+
 For complex commands it is also possible to pass a callable that returns
 the command string. In this case you must explicit import CmdAction.
 
 .. literalinclude:: tutorial/cmd_from_callable.py
+
+
+You might also explicitly import ``CmdAction`` in case you want to pass extra
+parameters to ``Popen`` like ``cwd``.
+All keyword parameter from ``Popen`` can be used on ``CmdAction`` (except
+``stdout`` and ``stderr``).
 
 .. note::
 
@@ -181,6 +186,22 @@ This is useful to write some generic/reusable task-creators.
   .  t2
   .  t1
 
+
+avoiding empty sub-tasks
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you are not sure sub-tasks will be created for a given ``basename``
+but you want to make sure that a task exist,
+you can yield a sub-task with ``name`` equal to ``None``.
+This can also used to set the task ``doc`` and ``watch`` attribute.
+
+.. literalinclude:: tutorial/empty_subtasks.py
+
+.. code-block:: console
+
+  $ doit
+  $ doit list
+  do_x   docs for X
 
 
 sub-tasks

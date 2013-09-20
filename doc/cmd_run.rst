@@ -6,7 +6,7 @@ A general `doit` command goes like this:
 
 .. code-block:: console
 
-    $ doit [<sub-command>] [<options>] [<task|target> <task_options>]* [<variables>]
+    $ doit [run] [<options>] [<task|target> <task_options>]* [<variables>]
 
 
 The `doit` command line contains several sub-commands. Most of the time you just
