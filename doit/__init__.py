@@ -23,7 +23,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = (0, 23, 0)
+__version__ = (0, 24, 'dev0')
 
 
 # used to save variable values passed from command line
