@@ -2,6 +2,7 @@ import os
 
 import pytest
 
+import doit
 from doit.exceptions import InvalidDodoFile, InvalidCommand
 from doit.task import InvalidTask, Task
 from doit.loader import flat_generator, get_module
@@ -50,10 +51,13 @@ class TestGetModule(object):
         pytest.raises(InvalidDodoFile, get_module, fileName, seek_parent=True)
 
     def testSetCwd(self, cwd):
+        initial_wd = os.getcwd()
         fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
         cwd = os.path.join(os.path.dirname(__file__), "data")
+        assert cwd != initial_wd # make sure test is not too easy
         get_module(fileName, cwd)
         assert os.getcwd() == cwd, os.getcwd()
+        assert doit.initial_workdir == initial_wd
 
     def testInvalidCwd(self, cwd):
         fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")

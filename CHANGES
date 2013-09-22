@@ -3,6 +3,12 @@
 Changes
 =======
 
+0.24.0
+======================
+
+
+ - fix #62: added the absolute path from which doit is invoked `doit.initial_workdir`
+
 0.23.0 (*2013-09-20*)
 ======================
 

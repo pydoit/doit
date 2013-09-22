@@ -38,3 +38,8 @@ def get_var(name, default=None):
 
 def set_var(name, value):
     CMDLINE_VARS[name] = value
+
+
+# Directory path from where doit was executed.
+# Set by loader, to be used on dodo.py by users.
+initial_workdir = None
