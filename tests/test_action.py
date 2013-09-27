@@ -240,7 +240,7 @@ class TestCmdSaveOuput(object):
 
 
 class TestWriter(object):
-    def test_writer(self):
+    def test_write(self):
         w1 = StringIO()
         w2 = StringIO()
         writer = action.Writer(w1, w2)
@@ -249,6 +249,35 @@ class TestWriter(object):
         assert "hello" == w1.getvalue()
         assert "hello" == w2.getvalue()
 
+    def test_isatty_true(self):
+        w1 = StringIO()
+        w1.isatty = lambda: True
+        w2 = StringIO()
+        writer = action.Writer(w1, w2)
+        assert not writer.isatty()
+
+    def test_isatty_false(self):
+        w1 = StringIO()
+        w1.isatty = lambda: True
+        w2 = StringIO()
+        w2.isatty = lambda: True
+        writer = action.Writer(w1, w2)
+        assert writer.isatty()
+
+    def test_isatty_overwrite_yes(self):
+        w1 = StringIO()
+        w1.isatty = lambda: True
+        w2 = StringIO()
+        writer = action.Writer(w1)
+        writer.add_writer(w2, True)
+
+    def test_isatty_overwrite_no(self):
+        w1 = StringIO()
+        w1.isatty = lambda: True
+        w2 = StringIO()
+        w2.isatty = lambda: True
+        writer = action.Writer(w1)
+        writer.add_writer(w2, False)
 
 
 ############# PythonAction

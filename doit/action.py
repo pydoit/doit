@@ -247,7 +247,18 @@ class Writer(object):
     """write to many streams"""
     def __init__(self, *writers):
         """@param writers - file stream like objects"""
-        self.writers = writers
+        self.writers = []
+        self._isatty = True
+        for writer in writers:
+            self.add_writer(writer)
+
+    def add_writer(self, stream, isatty=None):
+        """adds a stream to the list of writers
+        @param isatty: (bool) if specified overwrites real isatty from stream
+        """
+        self.writers.append(stream)
+        isatty = stream.isatty() if (isatty is None) else isatty
+        self._isatty = self._isatty and isatty
 
     def write(self, text):
         """write 'text' to all streams"""
@@ -258,6 +269,9 @@ class Writer(object):
         """flush all streams"""
         for stream in self.writers:
             stream.flush()
+
+    def isatty(self):
+        return self._isatty
 
 
 class PythonAction(BaseAction):
@@ -323,18 +337,20 @@ class PythonAction(BaseAction):
         # set std stream
         old_stdout = sys.stdout
         output = StringIO()
+        out_writer = Writer()
+        # capture output but preserve isatty() from original stream
+        out_writer.add_writer(output, old_stdout.isatty())
+        if out:
+            out_writer.add_writer(out)
+        sys.stdout = out_writer
+
         old_stderr = sys.stderr
         errput = StringIO()
-
-        out_list = [output]
-        if out:
-            out_list.append(out)
-        err_list = [errput]
+        err_writer = Writer()
+        err_writer.add_writer(errput, old_stderr.isatty())
         if err:
-            err_list.append(err)
-
-        sys.stdout = Writer(*out_list)
-        sys.stderr = Writer(*err_list)
+            err_writer.add_writer(err)
+        sys.stderr = err_writer
 
         kwargs = self._prepare_kwargs()
 

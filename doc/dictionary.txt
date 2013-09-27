@@ -230,3 +230,5 @@ WORDBREAKS
 Popen
 popen
 CmdAction's
+workdir
+isatty

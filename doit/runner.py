@@ -31,7 +31,7 @@ class Runner(object):
     def __init__(self, dep_class, dependency_file, reporter, continue_=False,
                  always_execute=False, verbosity=0):
         """@param dependency_file: (string) file path of the db file
-        @param reporter: reporter to be used. It can be a class or an object
+        @param reporter: reporter object to be used
         @param continue_: (bool) execute all tasks even after a task failure
         @param always_execute: (bool) execute even if up-to-date or ignored
         @param verbosity: (int) 0,1,2 see Task.execute
