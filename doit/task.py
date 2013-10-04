@@ -12,6 +12,16 @@ from .exceptions import CatchedException, InvalidTask
 from .action import create_action, PythonAction
 
 
+def first_line(doc):
+    """extract first non-blank line from text, to extract docstring title"""
+    if doc is not None:
+        for line in doc.splitlines():
+            striped = line.strip()
+            if striped:
+                return striped
+    return ''
+
+
 class Task(object):
     """Task
 
@@ -258,13 +268,7 @@ class Task(object):
     def _init_doc(doc):
         """process task "doc" attribute"""
         # store just first non-empty line as documentation string
-        if doc is not None:
-            for line in doc.splitlines():
-                striped = line.strip()
-                if striped:
-                    return striped
-        return ''
-
+        return first_line(doc)
 
     @staticmethod
     def check_attr(task, attr, value, valid):
