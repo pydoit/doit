@@ -199,6 +199,7 @@ class DoitCmdBase(Command):
     def __init__(self, task_loader=None, dep_file=None, backend=None,
                  config=None, task_list=None, sel_tasks=None, outstream=None):
         """this initializer is usually just used on tests"""
+        # FIXME 'or TaskLoader()' below is hack for tests
         self._loader = task_loader or TaskLoader()
         Command.__init__(self)
         # TODO: helper to test code should not be here

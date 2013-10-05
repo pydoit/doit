@@ -18,10 +18,12 @@ from .cmd_ignore import Ignore
 from .cmd_auto import Auto
 from .cmd_dumpdb import DumpDB
 from .cmd_strace import Strace
+from .cmd_completion import TabCompletion
 
 
 class DoitMain(object):
-    DOIT_CMDS = Help, Run, List, Clean, Forget, Ignore, Auto, DumpDB, Strace
+    DOIT_CMDS = (Help, Run, List, Clean, Forget, Ignore, Auto, DumpDB,
+                 Strace, TabCompletion)
     TASK_LOADER = DodoTaskLoader
 
     def __init__(self, task_loader=None):
@@ -43,7 +45,7 @@ class DoitMain(object):
         for cmd_cls in (self.DOIT_CMDS):
             if issubclass(cmd_cls, DoitCmdBase):
                 cmd = cmd_cls(task_loader=self.task_loader)
-                cmd.doit_app = self # hack used by Help command
+                cmd.doit_app = self # hack used by Help/TabComplete command
             else:
                 cmd = cmd_cls()
             sub_cmds[cmd.name] = cmd
