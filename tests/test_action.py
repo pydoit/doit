@@ -535,7 +535,7 @@ class TestPythonActionPrepareKwargsMeta(object):
         my_action.execute()
         assert got == ['a', 'b', 'c']
 
-    def test_extra_arg_default_disallowed(self, task_depchanged):
+    def test_meta_arg_default_disallowed(self, task_depchanged):
         def py_callable(a, b, changed=None): pass
         my_action = action.PythonAction(py_callable, ('a', 'b'),
                                         task=task_depchanged)
@@ -566,8 +566,6 @@ class TestPythonActionPrepareKwargsMeta(object):
         assert got == ['a', 'b', ['changed']]
 
 
-
-class TestPythonActionOptions(object):
     def test_task_options(self):
         got = []
         def py_callable(opt1, opt3):
@@ -578,6 +576,14 @@ class TestPythonActionOptions(object):
         my_action.execute()
         assert ['1',3] == got, repr(got)
 
+    def test_option_default_allowed(self, task_depchanged):
+        got = []
+        def py_callable(opt2='ABC'):
+            got.append(opt2)
+        task = FakeTask([],[],[],{'opt2':'123'})
+        my_action = action.PythonAction(py_callable, task=task)
+        my_action.execute()
+        assert ['123'] == got, repr(got)
 
 ##############
 

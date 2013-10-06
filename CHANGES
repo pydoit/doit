@@ -10,6 +10,7 @@ Changes
  - fix #62: added the absolute path from which doit is invoked `doit.initial_workdir`
  - fix #36: added method `isatty()` to `action.Writer`
  - added command `tabcompletion`
+ - fix #56: allow python actions to have default values for task parameters
 
 
 0.23.0 (*2013-09-20*)

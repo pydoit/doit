@@ -45,13 +45,14 @@ class BaseAction(object):
         except TypeError:
             argspec = inspect.getargspec(func.__call__)
         # use task meta information as extra_args
-        extra_args = {
+        meta_args = {
             'task': task,
             'targets': task.targets,
             'dependencies': task.file_dep,
             'changed': task.dep_changed,
             }
 
+        extra_args = dict(meta_args)
         # tasks parameter options
         extra_args.update(task.options)
         kwargs = kwargs.copy()
@@ -63,10 +64,10 @@ class BaseAction(object):
 
                 # it is forbidden to use default values for this arguments
                 # because the user might be unware of this magic.
-                if (argspec.defaults and
+                if (key in meta_args and argspec.defaults and
                     len(argspec.defaults) > (len(argspec.args) - (arg_pos+1))):
-                    msg = ("%s.%s: '%s' argument default value not allowed "
-                           "(reserved by doit)"
+                    msg = ("Task %s, action %s(): The argument '%s' is not "
+                           "allowed  to have a default value (reserved by doit)"
                            % (task.name, func.__name__, key))
                     raise InvalidTask(msg)
 
