@@ -33,7 +33,7 @@ def task_checker():
         yield {'actions': ["pyflakes %(dependencies)s"],
                'name':module,
                'file_dep':(module,),
-               'task_dep':['_pyflakes_builtins'],
+               'setup':['_pyflakes_builtins'],
                'title': (lambda task: task.name)}
 
 def run_test(test):

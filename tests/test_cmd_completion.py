@@ -1,7 +1,5 @@
 from six import StringIO
-import pytest
 
-from doit.exceptions import InvalidCommand
 from doit.task import Task
 from doit.cmd_base import TaskLoader, DodoTaskLoader
 from doit.cmd_completion import TabCompletion
@@ -25,7 +23,7 @@ class TestCmdCompletion(object):
         output = StringIO()
         cmd = TabCompletion(task_loader=DodoTaskLoader(), outstream=output)
         cmd.doit_app = DoitMain()
-        cmd.execute({'hardcode_tasks': False}, [])
+        cmd.execute({'shell':'bash', 'hardcode_tasks': False}, [])
         got = output.getvalue()
         assert 'dodof' in got
         assert 't1' not in got
@@ -34,7 +32,7 @@ class TestCmdCompletion(object):
         output = StringIO()
         cmd = TabCompletion(task_loader=FakeLoader(), outstream=output)
         cmd.doit_app = DoitMain()
-        cmd.execute({'hardcode_tasks': True}, [])
+        cmd.execute({'shell':'bash', 'hardcode_tasks': True}, [])
         got = output.getvalue()
         assert 'dodo.py' not in got
         assert 't1' in got
