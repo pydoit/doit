@@ -40,6 +40,14 @@ class TestDefaultUpdate(object):
 
 class TestCmdOption(object):
 
+    def test_repr(self):
+        opt = CmdOption({'name':'opt1', 'default':'',
+                         'short':'o', 'long':'other'})
+        assert "CmdOption(" in repr(opt)
+        assert "'name':'opt1'" in repr(opt)
+        assert "'short':'o'" in repr(opt)
+        assert "'long':'other'" in repr(opt)
+
     def test_non_required_fields(self):
         opt1 = CmdOption({'name':'op1', 'default':''})
         assert '' == opt1.long

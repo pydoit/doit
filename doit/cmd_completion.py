@@ -91,10 +91,11 @@ class TabCompletion(DoitCmdBase):
     @staticmethod
     def _zsh_arg_line(opt):
         """create a text line for completion of a command arg"""
-        # '(-c|--continue)'{-c,--continue}'[continue executing tasks even after a failure (default: False)]' \
-        #   "'--db-file[file used to save successful runs]' \"
+        # '(-c|--continue)'{-c,--continue}'[continue executing tasks...]' \
+        # '--db-file[file used to save successful runs]' \
         if opt.short and opt.long:
-            tmpl = "'(-{0.short}|--{0.long})'{{-{0.short}, --{0.long}}}'[{0.help}]' \ "
+            tmpl = ("'(-{0.short}|--{0.long})'{{-{0.short}, --{0.long}}}'"
+                    "[{0.help}]' \ ")
         elif not opt.short and opt.long:
             tmpl = "'--{0.long}[{0.help}]' \ "
         elif opt.short and not opt.long:
@@ -159,14 +160,16 @@ class TabCompletion(DoitCmdBase):
 
 
 
+############## templates
+# Variables starting with 'pt_' belongs to the Python Template
+# to generate the script.
+# Remaining are shell variables used in the script.
+
+
 ################################################################
 ############### bash template
 
 
-
-# Variables starting with 'pt_' belongs to the Python Template
-# to generate the script.
-# Remaining are shell variables used in the script.
 bash_start = """# bash completion for $pt_bin_name
 # auto-generate by `$pt_bin_name tabcomplention`
 

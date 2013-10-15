@@ -10,6 +10,10 @@ class DefaultUpdate(dict):
     """A dictionary that has an "update_defaults" method where
     only items with default values are updated.
 
+    This is used when you have a dict that has multiple source of values
+    (i.e. hardcoded, config file, command line). And values are updated
+    beggining from the source with higher priority.
+
     A default value is added with the method set_default or add_defaults.
     """
     def __init__(self, *args, **kwargs):
@@ -93,7 +97,8 @@ class CmdOption(object):
 
 
     def __repr__(self):
-        tmpl = "{0}({{'name':{1.name}, 'short':{1.short}, 'long':{1.long} }})"
+        tmpl = ("{0}({{'name':{1.name!r}, 'short':{1.short!r}," +
+                "'long':{1.long!r} }})")
         return tmpl.format(self.__class__.__name__, self)
 
     @staticmethod
@@ -140,6 +145,7 @@ class CmdOption(object):
             opt_help = 'opposite of --%s' % self.long
             text.append(self._print_2_columns(opt_str, opt_help))
         return text
+
 
 
 class CmdParse(object):
