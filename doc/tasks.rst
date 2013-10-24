@@ -187,23 +187,6 @@ This is useful to write some generic/reusable task-creators.
   .  t1
 
 
-avoiding empty sub-tasks
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-If you are not sure sub-tasks will be created for a given ``basename``
-but you want to make sure that a task exist,
-you can yield a sub-task with ``name`` equal to ``None``.
-This can also used to set the task ``doc`` and ``watch`` attribute.
-
-.. literalinclude:: tutorial/empty_subtasks.py
-
-.. code-block:: console
-
-  $ doit
-  $ doit list
-  do_x   docs for X
-
-
 sub-tasks
 ---------
 
@@ -224,6 +207,23 @@ additional field ``name``.
     .  create_file:file1.txt
     .  create_file:file2.txt
 
+
+
+avoiding empty sub-tasks
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you are not sure sub-tasks will be created for a given ``basename``
+but you want to make sure that a task exist,
+you can yield a sub-task with ``name`` equal to ``None``.
+This can also used to set the task ``doc`` and ``watch`` attribute.
+
+.. literalinclude:: tutorial/empty_subtasks.py
+
+.. code-block:: console
+
+  $ doit
+  $ doit list
+  do_x   docs for X
 
 
 
