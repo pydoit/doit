@@ -257,6 +257,12 @@ bash_end = """
         return 0
     fi
 
+    # if command is help complete with tasks or sub-commands
+    if [[ ${words[1]} == "help" ]] ; then
+        COMPREPLY=( $(compgen -W "${sub_cmds} ${tasks}" -- ${cur}) )
+        return 0
+    fi
+
     # if there is already one parameter match only tasks (no commands)
     COMPREPLY=( $(compgen -W "${tasks}" -- ${cur}) )
 

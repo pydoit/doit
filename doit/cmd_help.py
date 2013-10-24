@@ -90,7 +90,7 @@ watch:
 
 class Help(DoitCmdBase):
     doc_purpose = "show help"
-    doc_usage = ""
+    doc_usage = "[TASK] [COMMAND]"
     doc_description = None
 
     @staticmethod
