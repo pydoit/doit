@@ -94,27 +94,30 @@ class TabCompletion(DoitCmdBase):
         # '(-c|--continue)'{-c,--continue}'[continue executing tasks...]' \
         # '--db-file[file used to save successful runs]' \
         if opt.short and opt.long:
-            tmpl = ("'(-{0.short}|--{0.long})'{{-{0.short}, --{0.long}}}'"
-                    "[{0.help}]' \ ")
+            tmpl = ("'(-{0.short}|--{0.long})'{{-{0.short},--{0.long}}}'"
+                    "[{help}]' \\")
         elif not opt.short and opt.long:
-            tmpl = "'--{0.long}[{0.help}]' \ "
+            tmpl = "'--{0.long}[{help}]' \\"
         elif opt.short and not opt.long:
-            tmpl = "'-{0.short}[{0.help}]' \ "
+            tmpl = "'-{0.short}[{help}]' \\"
         else: # without short or long options cant be really used
             return ''
-        return tmpl.format(opt).replace('\n', ' ')
+        ohelp = opt.help.replace(']', '\]')
+        return tmpl.format(opt, help=ohelp).replace('\n', ' ')
 
 
     @staticmethod
     def _zsh_cmd_args(cmd, arg_lines):
         """create the content for "case" statement with all command options """
-        tmpl = """    {cmd_name})
-     _command_args=(
-      {args_body}
-    )
-    ;;
+        tmpl = """
+      ({cmd_name})
+          _command_args=(
+            {args_body}
+            ''
+        )
+      ;;
 """
-        args_body = '\n      '.join(arg_lines)
+        args_body = '\n            '.join(arg_lines)
         return tmpl.format(cmd_name=cmd.name, args_body=args_body)
 
 
@@ -140,8 +143,8 @@ class TabCompletion(DoitCmdBase):
 
         template_vars = {
             'pt_bin_name': sys.argv[0].split('/')[-1],
-            'pt_cmds': '\n'.join(cmds_desc),
-            'pt_cmds_args': '\n'.join(cmds_args),
+            'pt_cmds':'\n    '.join(cmds_desc),
+            'pt_cmds_args':'\n'.join(cmds_args),
         #     'pt_list_param': pt_list_param,
         }
 
@@ -276,25 +279,46 @@ complete -F _$pt_bin_name $pt_bin_name
 ############### zsh template
 
 
-zsh_start = """
-#compdef _$pt_bin_name
+zsh_start = """#compdef $pt_bin_name
 
-local -a _1st_arguments
-_1st_arguments=(
-$pt_cmds
-   )
+_$pt_bin_name() {
+    local -a commands tasks
+    # format is 'completion:description'
+    commands=(
+    $pt_cmds
+    )
 
-_arguments '*:: :->command'
+    # FIXME get real task list
+    tasks=(
+        'ut: run unit-tests'
+        'check: pyflakes'
+    )
 
-if (( CURRENT == 1 )); then
-   _describe -t commands "_$pt_bin_name command" _1st_arguments
-   return
-fi
+    # complete command or task name
+    if (( CURRENT == 2 )); then
+        _arguments -A : '::cmd:(($commands))' '::task:(($tasks))'
+        return
+    fi
 
-local -a _command_args
-case "$words[1]" in
-  $pt_cmds_args
-esac
+    # revome program name from $words and decrement CURRENT
+    local curcontext context state state_desc line
+    _arguments -C '*:: :->'
 
-_arguments $_command_args && return 0
+    # complete sub-command or task options
+    local -a _command_args
+    case "$words[1]" in
+        $pt_cmds_args
+
+        # shouldnt happed but... default completes task names
+        (*)
+           _command_args='*::task:(($tasks))'
+        ;;
+    esac
+
+    # -A no options will be completed after the first non-option argument
+    _arguments -A : $_command_args
+    return 0
+}
+
+_doit
 """
