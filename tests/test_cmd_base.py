@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 from doit.cmdparse import CmdParseError, CmdOption
@@ -79,7 +81,7 @@ class TestCommand(object):
 
 
 class TestModuleTaskLoader(object):
-    def test_load_tasks(self, cwd):
+    def test_load_tasks(self):
         cmd = Command()
         members = {'task_xxx1': lambda : {'actions':[]},
                    'task_no': 'strings are not tasks',
@@ -93,7 +95,8 @@ class TestModuleTaskLoader(object):
 
 
 class TestDodoTaskLoader(object):
-    def test_load_tasks(self, cwd):
+    def test_load_tasks(self, restore_cwd):
+        os.chdir(os.path.dirname(__file__))
         cmd = Command()
         params = {'dodoFile': 'loader_sample.py',
                   'cwdPath': None,

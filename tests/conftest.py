@@ -100,23 +100,11 @@ def depfile_name(request):
 
 @pytest.fixture
 def restore_cwd(request):
-    """set cwd to parent folder of this file."""
+    """restore cwd to its initial value after test finishes."""
     previous = os.getcwd()
     def restore_cwd():
         os.chdir(previous)
     request.addfinalizer(restore_cwd)
-
-@pytest.fixture
-def cwd(request):
-    """set cwd to parent folder of this file."""
-    cwd = {}
-    cwd['previous'] = os.getcwd()
-    cwd['current'] = os.path.abspath(os.path.dirname(__file__))
-    os.chdir(cwd['current'])
-    def restore_cwd():
-        os.chdir(cwd['previous'])
-    request.addfinalizer(restore_cwd)
-    return cwd
 
 
 # create a list of sample tasks

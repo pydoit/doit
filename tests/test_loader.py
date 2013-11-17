@@ -19,12 +19,12 @@ class TestFlatGenerator(object):
 
 
 class TestGetModule(object):
-    def testAbsolutePath(self, cwd):
+    def testAbsolutePath(self, restore_cwd):
         fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
         dodo_module = get_module(fileName)
         assert hasattr(dodo_module, 'task_xxx1')
 
-    def testRelativePath(self, cwd):
+    def testRelativePath(self, restore_cwd):
         # test relative import but test should still work from any path
         # so change cwd.
         this_path = os.path.join(os.path.dirname(__file__),'..')
@@ -37,20 +37,20 @@ class TestGetModule(object):
         fileName = os.path.join(os.path.dirname(__file__),"i_dont_exist.py")
         pytest.raises(InvalidDodoFile, get_module, fileName)
 
-    def testInParentDir(self, cwd):
-        os.chdir('data')
+    def testInParentDir(self, restore_cwd):
+        os.chdir(os.path.join(os.path.dirname(__file__), "data"))
         fileName = "loader_sample.py"
         pytest.raises(InvalidDodoFile, get_module, fileName)
         get_module(fileName, seek_parent=True)
         # cwd is changed to location of dodo.py
         assert os.getcwd() == os.path.dirname(os.path.abspath(fileName))
 
-    def testWrongFileNameInParentDir(self, cwd):
-        os.chdir('data')
+    def testWrongFileNameInParentDir(self, restore_cwd):
+        os.chdir(os.path.join(os.path.dirname(__file__), "data"))
         fileName = os.path.join("i_dont_exist.py")
         pytest.raises(InvalidDodoFile, get_module, fileName, seek_parent=True)
 
-    def testSetCwd(self, cwd):
+    def testSetCwd(self, restore_cwd):
         initial_wd = os.getcwd()
         fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
         cwd = os.path.join(os.path.dirname(__file__), "data")
@@ -59,7 +59,7 @@ class TestGetModule(object):
         assert os.getcwd() == cwd, os.getcwd()
         assert doit.initial_workdir == initial_wd
 
-    def testInvalidCwd(self, cwd):
+    def testInvalidCwd(self, restore_cwd):
         fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
         cwd = os.path.join(os.path.dirname(__file__), "dataX")
         pytest.raises(InvalidCommand, get_module, fileName, cwd)
