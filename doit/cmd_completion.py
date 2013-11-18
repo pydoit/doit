@@ -3,6 +3,7 @@
 import sys
 from string import Template
 
+from .exceptions import InvalidCommand
 from .cmd_base import DoitCmdBase
 
 
@@ -50,7 +51,8 @@ class TabCompletion(DoitCmdBase):
         elif opt_values['shell'] == 'zsh':
             self._generate_zsh(opt_values, pos_args)
         else:
-            print('Invalid option')
+            msg = 'Invalid option for --shell "{}"'
+            raise InvalidCommand(msg.format(opt_values['shell']))
 
 
     def _generate_bash(self, opt_values, pos_args):
@@ -106,9 +108,22 @@ class TabCompletion(DoitCmdBase):
         return tmpl.format(opt, help=ohelp).replace('\n', ' ')
 
 
-    @staticmethod
-    def _zsh_cmd_args(cmd, arg_lines):
+    @classmethod
+    def _zsh_arg_list(cls, cmd):
+        """return list of arguments lines for zsh completion"""
+        args = []
+        for opt in cmd.options:
+            args.append(cls._zsh_arg_line(opt))
+        if 'TASK' in cmd.doc_usage:
+            args.append("'*::task:(($tasks))'")
+        if 'COMMAND' in cmd.doc_usage:
+            args.append("'::cmd:(($commands))'")
+        return args
+
+    @classmethod
+    def _zsh_cmd_args(cls, cmd):
         """create the content for "case" statement with all command options """
+        arg_lines = cls._zsh_arg_list(cmd)
         tmpl = """
       ({cmd_name})
           _command_args=(
@@ -121,31 +136,23 @@ class TabCompletion(DoitCmdBase):
         return tmpl.format(cmd_name=cmd.name, args_body=args_body)
 
 
+    # TODO:
+    # option to hard-code tasks
+    # detect correct dodo-file location
+    # complete sub-tasks
+    # task options
     def _generate_zsh(self, opt_values, pos_args):
-        # # some applications built with doit do not use dodo.py files
-        # for opt in self.options:
-        #     if opt.name=='dodoFile':
-        #         get_dodo_part = bash_get_dodo
-        #         pt_list_param = '--file="$dodof"'
-        #         break
-        # else:
-        #     get_dodo_part = ''
-        #     pt_list_param = ''
-
+        # deal with doit commands
         cmds_desc = []
         cmds_args = []
         for cmd in self.doit_app.sub_cmds.values():
             cmds_desc.append("    '{}: {}'".format(cmd.name, cmd.doc_purpose))
-            args = []
-            for opt in cmd.options:
-                args.append(self._zsh_arg_line(opt))
-            cmds_args.append(self._zsh_cmd_args(cmd, args))
+            cmds_args.append(self._zsh_cmd_args(cmd))
 
         template_vars = {
             'pt_bin_name': sys.argv[0].split('/')[-1],
             'pt_cmds':'\n    '.join(cmds_desc),
             'pt_cmds_args':'\n'.join(cmds_args),
-        #     'pt_list_param': pt_list_param,
         }
 
         # if opt_values['hardcode_tasks']:
@@ -288,11 +295,8 @@ _$pt_bin_name() {
     $pt_cmds
     )
 
-    # FIXME get real task list
-    tasks=(
-        'ut: run unit-tests'
-        'check: pyflakes'
-    )
+    # split output by lines to create an array
+    tasks=("${(f)$($pt_bin_name list --template '{name}: {doc}')}")
 
     # complete command or task name
     if (( CURRENT == 2 )); then
@@ -309,7 +313,7 @@ _$pt_bin_name() {
     case "$words[1]" in
         $pt_cmds_args
 
-        # shouldnt happed but... default completes task names
+        # default completes task names
         (*)
            _command_args='*::task:(($tasks))'
         ;;
