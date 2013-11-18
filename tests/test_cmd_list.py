@@ -10,7 +10,7 @@ from tests.conftest import tasks_sample
 
 class TestCmdList(object):
 
-    def testDefault(self, depfile):
+    def testQuiet(self, depfile):
         output = StringIO()
         tasks = tasks_sample()
         cmd_list = List(outstream=output, dep_file=depfile.name,
@@ -34,6 +34,16 @@ class TestCmdList(object):
         assert len(expected) == len(got)
         for exp1, got1 in zip(expected, got):
             assert exp1 == got1.split(None, 1)
+
+    def testCustomTemplate(self, depfile):
+        output = StringIO()
+        tasks = tasks_sample()
+        cmd_list = List(outstream=output, dep_file=depfile.name,
+                        task_list=tasks)
+        cmd_list._execute(template='xxx {name} xxx {doc}')
+        got = [line.strip() for line in output.getvalue().split('\n') if line]
+        assert 'xxx g1 xxx g1 doc string' == got[0]
+        assert 'xxx t3 xxx t3 doc string' == got[3]
 
     def testDependencies(self, depfile):
         my_task = Task("t2", [""], file_dep=['d2.txt'])
