@@ -1,10 +1,26 @@
 import inspect
 import sys
 
+import doit
 from .cmdparse import CmdOption, CmdParse
-from .exceptions import InvalidCommand
+from .exceptions import InvalidCommand, InvalidDodoFile
 from .dependency import backend_map
 from . import loader
+
+
+def version_tuple(ver_in):
+    """convert a version string or tuple into a 3-element tuple with ints
+    Any part that is not a number (dev0, a2, b4) will be converted to -1
+    """
+    result = []
+    parts = ver_in.split('.') if isinstance(ver_in, str) else ver_in
+    for rev in parts:
+        try:
+            result.append(int(rev))
+        except:
+            result.append(-1)
+    assert len(result) == 3
+    return result
 
 
 class Command(object):
@@ -226,6 +242,16 @@ class DoitCmdBase(Command):
         self.task_list, self.config = self._loader.load_tasks(self, params,
                                                               args)
         self.sel_tasks = args or self.config.get('default_tasks')
+
+        # check minversion
+        minversion = self.config.get('minversion')
+        if minversion:
+            if version_tuple(minversion) > version_tuple(doit.__version__):
+                msg = ('Please update doit. '
+                'Minimum version required is {required}. '
+                'You are using {actual}. ')
+                raise InvalidDodoFile(msg.format(required=minversion,
+                                                 actual=doit.__version__))
 
         # merge config values into params
         params.update_defaults(self.config)

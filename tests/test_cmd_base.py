@@ -2,12 +2,20 @@ import os
 
 import pytest
 
+import doit
 from doit.cmdparse import CmdParseError, CmdOption
-from doit.exceptions import InvalidCommand
+from doit.exceptions import InvalidCommand, InvalidDodoFile
 from doit.task import Task
-from doit.cmd_base import Command, DoitCmdBase
+from doit.cmd_base import version_tuple, Command, DoitCmdBase
 from doit.cmd_base import ModuleTaskLoader, DodoTaskLoader
 from doit.cmd_base import check_tasks_exist, tasks_and_deps_iter, subtasks_iter
+
+
+def test_version_tuple():
+    assert [1,2,3] == version_tuple([1,2,3])
+    assert [1,2,3] == version_tuple('1.2.3')
+    assert [0,2,0] == version_tuple('0.2.0')
+    assert [0,2,-1] == version_tuple('0.2.dev1')
 
 
 opt_bool = {'name': 'flag',
@@ -110,28 +118,63 @@ class TestDodoTaskLoader(object):
 
 
 class TestDoitCmdBase(object):
-    def test(self):
-        class MyCmd(DoitCmdBase):
-            doc_purpose = "fake for testing"
-            doc_usage = "[TASK ...]"
-            doc_description = None
+    class MyCmd(DoitCmdBase):
+        doc_purpose = "fake for testing"
+        doc_usage = "[TASK ...]"
+        doc_description = None
 
-            opt_my = {
-                'name': 'my_opt',
-                'short':'m',
-                'long': 'mine',
-                'type': str,
-                'default': 'xxx',
-                'help': "my option"
-               }
+        opt_my = {
+            'name': 'my_opt',
+            'short':'m',
+            'long': 'mine',
+            'type': str,
+            'default': 'xxx',
+            'help': "my option"
+           }
 
-            cmd_options = (opt_my,)
+        cmd_options = (opt_my,)
 
-            def _execute(self, my_opt):
-                return my_opt
+        def _execute(self, my_opt):
+            return my_opt
 
-        mycmd = MyCmd(DodoTaskLoader())
+    # command with lower level execute() method
+    def test_new_cmd(self):
+        class MyRawCmd(self.MyCmd):
+            def execute(self, params, args):
+                return params['my_opt']
+
+        members = {'task_xxx1': lambda : {'actions':[]},}
+        loader = ModuleTaskLoader(members)
+        mycmd = MyRawCmd(loader)
         assert 'min' == mycmd.parse_execute(['--mine', 'min'])
+
+
+    # command with _execute() method
+    def test_execute(self):
+        members = {'task_xxx1': lambda : {'actions':[]},}
+        loader = ModuleTaskLoader(members)
+
+        mycmd = self.MyCmd(loader)
+        assert 'min' == mycmd.parse_execute(['--mine', 'min'])
+
+    # command with _execute() method
+    def test_minversion(self, monkeypatch):
+        members = {
+            'task_xxx1': lambda : {'actions':[]},
+            'DOIT_CONFIG': {'minversion': '5.2.3'},
+            }
+        loader = ModuleTaskLoader(members)
+
+        # version ok
+        monkeypatch.setattr(doit, '__version__', '7.5.8')
+        mycmd = self.MyCmd(loader)
+        assert 'xxx' == mycmd.parse_execute([])
+
+        # version too old
+        monkeypatch.setattr(doit, '__version__', '5.2.1')
+        mycmd = self.MyCmd(loader)
+        pytest.raises(InvalidDodoFile, mycmd.parse_execute, [])
+
 
 
 

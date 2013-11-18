@@ -9,6 +9,7 @@ import pytest
 from doit.tools import create_folder
 
 DOIT_CONFIG = {
+    'minversion': '0.24.dev0',
     'default_tasks': ['checker', 'ut'],
 #    'backend': 'sqlite3',
     }
