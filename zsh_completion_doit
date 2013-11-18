@@ -1,0 +1,195 @@
+#compdef doit
+
+_doit() {
+    local -a commands tasks
+    # format is 'completion:description'
+    commands=(
+        'dumpdb: dump dependency DB'
+        'run: run tasks'
+        'help: show help'
+        'strace: use strace to list file_deps and targets'
+        'auto: automatically execute tasks when a dependency changes'
+        'list: list tasks from dodo file'
+        'ignore: ignore task (skip) on subsequent runs'
+        'clean: clean action / remove targets'
+        'tabcompletion: generate script for tab-complention'
+        'forget: clear successful run status from internal DB'
+    )
+
+    # split output by lines to create an array
+    tasks=("${(f)$(doit list --template '{name}: {doc}')}")
+
+    # complete command or task name
+    if (( CURRENT == 2 )); then
+        _arguments -A : '::cmd:(($commands))' '::task:(($tasks))'
+        return
+    fi
+
+    # revome program name from $words and decrement CURRENT
+    local curcontext context state state_desc line
+    _arguments -C '*:: :->'
+
+    # complete sub-command or task options
+    local -a _command_args
+    case "$words[1]" in
+        
+      (dumpdb)
+          _command_args=(
+            '--db-file[file used to save successful runs]' \
+            ''
+        )
+      ;;
+
+
+      (run)
+          _command_args=(
+            '--db-file[file used to save successful runs]' \
+            '--backend[Select dependency file backend.Available options dbm, json, sqlite3. [default: %(default)s\]]' \
+            '(-f|--file)'{-f,--file}'[load task from dodo FILE [default: %(default)s\]]' \
+            '(-d|--dir)'{-d,--dir}'[set path to be used as cwd directory (file paths on dodo file are relative to dodo.py location.]' \
+            '(-k|--seek-file)'{-k,--seek-file}'[seek dodo file on parent folders [default: %(default)s\]]' \
+            '(-a|--always-execute)'{-a,--always-execute}'[always execute tasks even if up-to-date [default: %(default)s\]]' \
+            '(-c|--continue)'{-c,--continue}'[continue executing tasks even after a failure [default: %(default)s\]]' \
+            '(-v|--verbosity)'{-v,--verbosity}'[0 capture (do not print) stdout/stderr from task. 1 capture stdout only. 2 do not capture anything (print everything immediately). [default: 1\]]' \
+            '(-r|--reporter)'{-r,--reporter}'[Choose output reporter. Available: 'default': report output on console 'executed-only': no output for skipped (up-to-date) and group tasks 'json': output result in json format [default: %(default)s\] ]' \
+            '(-o|--output-file)'{-o,--output-file}'[write output into file [default: stdout\]]' \
+            '(-n|--process)'{-n,--process}'[number of subprocesses[default: %(default)s\]]' \
+            '(-P|--parallel-type)'{-P,--parallel-type}'[Tasks can be executed in parallel in different ways: 'process': uses python multiprocessing module 'thread': uses threads [default: %(default)s\] ]' \
+            '*::task:(($tasks))'
+            ''
+        )
+      ;;
+
+
+      (help)
+          _command_args=(
+            '--db-file[file used to save successful runs]' \
+            '--backend[Select dependency file backend.Available options dbm, json, sqlite3. [default: %(default)s\]]' \
+            '(-f|--file)'{-f,--file}'[load task from dodo FILE [default: %(default)s\]]' \
+            '(-d|--dir)'{-d,--dir}'[set path to be used as cwd directory (file paths on dodo file are relative to dodo.py location.]' \
+            '(-k|--seek-file)'{-k,--seek-file}'[seek dodo file on parent folders [default: %(default)s\]]' \
+            '*::task:(($tasks))'
+            '::cmd:(($commands))'
+            ''
+        )
+      ;;
+
+
+      (strace)
+          _command_args=(
+            '--db-file[file used to save successful runs]' \
+            '--backend[Select dependency file backend.Available options dbm, json, sqlite3. [default: %(default)s\]]' \
+            '(-f|--file)'{-f,--file}'[load task from dodo FILE [default: %(default)s\]]' \
+            '(-d|--dir)'{-d,--dir}'[set path to be used as cwd directory (file paths on dodo file are relative to dodo.py location.]' \
+            '(-k|--seek-file)'{-k,--seek-file}'[seek dodo file on parent folders [default: %(default)s\]]' \
+            '(-a|--all)'{-a,--all}'[display all files (not only from within CWD path)]' \
+            '(-k|--keep)'{-k,--keep}'[save strace command output into strace.txt]' \
+            '*::task:(($tasks))'
+            ''
+        )
+      ;;
+
+
+      (auto)
+          _command_args=(
+            '--db-file[file used to save successful runs]' \
+            '--backend[Select dependency file backend.Available options dbm, json, sqlite3. [default: %(default)s\]]' \
+            '(-f|--file)'{-f,--file}'[load task from dodo FILE [default: %(default)s\]]' \
+            '(-d|--dir)'{-d,--dir}'[set path to be used as cwd directory (file paths on dodo file are relative to dodo.py location.]' \
+            '(-k|--seek-file)'{-k,--seek-file}'[seek dodo file on parent folders [default: %(default)s\]]' \
+            '(-v|--verbosity)'{-v,--verbosity}'[0 capture (do not print) stdout/stderr from task. 1 capture stdout only. 2 do not capture anything (print everything immediately). [default: 1\]]' \
+            
+            '*::task:(($tasks))'
+            ''
+        )
+      ;;
+
+
+      (list)
+          _command_args=(
+            '--db-file[file used to save successful runs]' \
+            '--backend[Select dependency file backend.Available options dbm, json, sqlite3. [default: %(default)s\]]' \
+            '(-f|--file)'{-f,--file}'[load task from dodo FILE [default: %(default)s\]]' \
+            '(-d|--dir)'{-d,--dir}'[set path to be used as cwd directory (file paths on dodo file are relative to dodo.py location.]' \
+            '(-k|--seek-file)'{-k,--seek-file}'[seek dodo file on parent folders [default: %(default)s\]]' \
+            '--all[list include all sub-tasks from dodo file]' \
+            '(-q|--quiet)'{-q,--quiet}'[print just task name (less verbose than default)]' \
+            '(-s|--status)'{-s,--status}'[print task status (R)un, (U)p-to-date, (I)gnored]' \
+            '(-p|--private)'{-p,--private}'[print private tasks (start with '_')]' \
+            '--deps[print list of dependencies (file dependencies only)]' \
+            '--template[display entries with template]' \
+            '*::task:(($tasks))'
+            ''
+        )
+      ;;
+
+
+      (ignore)
+          _command_args=(
+            '--db-file[file used to save successful runs]' \
+            '--backend[Select dependency file backend.Available options dbm, json, sqlite3. [default: %(default)s\]]' \
+            '(-f|--file)'{-f,--file}'[load task from dodo FILE [default: %(default)s\]]' \
+            '(-d|--dir)'{-d,--dir}'[set path to be used as cwd directory (file paths on dodo file are relative to dodo.py location.]' \
+            '(-k|--seek-file)'{-k,--seek-file}'[seek dodo file on parent folders [default: %(default)s\]]' \
+            '*::task:(($tasks))'
+            ''
+        )
+      ;;
+
+
+      (clean)
+          _command_args=(
+            '--db-file[file used to save successful runs]' \
+            '--backend[Select dependency file backend.Available options dbm, json, sqlite3. [default: %(default)s\]]' \
+            '(-f|--file)'{-f,--file}'[load task from dodo FILE [default: %(default)s\]]' \
+            '(-d|--dir)'{-d,--dir}'[set path to be used as cwd directory (file paths on dodo file are relative to dodo.py location.]' \
+            '(-k|--seek-file)'{-k,--seek-file}'[seek dodo file on parent folders [default: %(default)s\]]' \
+            '(-c|--clean-dep)'{-c,--clean-dep}'[clean task dependencies too]' \
+            '(-a|--clean-all)'{-a,--clean-all}'[clean all task]' \
+            '(-n|--dry-run)'{-n,--dry-run}'[print actions without really executing them]' \
+            '*::task:(($tasks))'
+            ''
+        )
+      ;;
+
+
+      (tabcompletion)
+          _command_args=(
+            '--db-file[file used to save successful runs]' \
+            '--backend[Select dependency file backend.Available options dbm, json, sqlite3. [default: %(default)s\]]' \
+            '(-f|--file)'{-f,--file}'[load task from dodo FILE [default: %(default)s\]]' \
+            '(-d|--dir)'{-d,--dir}'[set path to be used as cwd directory (file paths on dodo file are relative to dodo.py location.]' \
+            '(-k|--seek-file)'{-k,--seek-file}'[seek dodo file on parent folders [default: %(default)s\]]' \
+            '(-s|--shell)'{-s,--shell}'[Completion code for SHELL. default: "bash". options: [bash, zsh\]]' \
+            '--hardcode-tasks[Hardcode tasks from current task list.]' \
+            ''
+        )
+      ;;
+
+
+      (forget)
+          _command_args=(
+            '--db-file[file used to save successful runs]' \
+            '--backend[Select dependency file backend.Available options dbm, json, sqlite3. [default: %(default)s\]]' \
+            '(-f|--file)'{-f,--file}'[load task from dodo FILE [default: %(default)s\]]' \
+            '(-d|--dir)'{-d,--dir}'[set path to be used as cwd directory (file paths on dodo file are relative to dodo.py location.]' \
+            '(-k|--seek-file)'{-k,--seek-file}'[seek dodo file on parent folders [default: %(default)s\]]' \
+            '(-s|--follow-sub)'{-s,--follow-sub}'[forget task dependencies too]' \
+            '*::task:(($tasks))'
+            ''
+        )
+      ;;
+
+
+        # default completes task names
+        (*)
+           _command_args='*::task:(($tasks))'
+        ;;
+    esac
+
+    # -A no options will be completed after the first non-option argument
+    _arguments -A : $_command_args
+    return 0
+}
+
+_doit
