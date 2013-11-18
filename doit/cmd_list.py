@@ -58,13 +58,9 @@ class List(DoitCmdBase):
         return self._dep_manager
 
 
-    def _print_task(self, task, col1_len, quiet, status, list_deps):
+    def _print_task(self, template, task, status, list_deps):
         """print a single task"""
-        col1_fmt = "%%-%ds" % (col1_len + 3)
-        task_str = col1_fmt % task.name
-        # add doc
-        if (not quiet) and task.doc:
-            task_str += "%s" % task.doc
+        line_data = {'name': task.name, 'doc':task.doc}
         # FIXME group task status is never up-to-date
         if status:
             # FIXME: 'ignore' handling is ugly
@@ -72,9 +68,9 @@ class List(DoitCmdBase):
                 task_status = 'ignore'
             else:
                 task_status = self.dep_manager.get_status(task, None)
-            task_str = "%s %s" % (self.STATUS_MAP[task_status], task_str)
+            line_data['status'] = self.STATUS_MAP[task_status]
 
-        self.outstream.write("%s\n" % task_str)
+        self.outstream.write(template.format(**line_data))
 
         # print dependencies
         if list_deps:
@@ -125,8 +121,16 @@ class List(DoitCmdBase):
         if not private:
             print_list = [t for t in print_list if (not t.name.startswith('_'))]
 
-        # print list of tasks
+        # set template
         max_name_len = max(len(t.name) for t in print_list) if print_list else 0
+        template = '{name:<' + str(max_name_len + 3) + '}'
+        if (not quiet):
+            template += '{doc}'
+        if status:
+            template = '{status} ' + template
+        template += '\n'
+
+        # print list of tasks
         for task in sorted(print_list):
-            self._print_task(task, max_name_len, quiet, status, list_deps)
+            self._print_task(template, task, status, list_deps)
         return 0
