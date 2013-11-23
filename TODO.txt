@@ -1,3 +1,8 @@
+
+see
+
+https://bitbucket.org/schettino72/doit/issues?status=new&status=open
+
 0.X
 ----------
 
