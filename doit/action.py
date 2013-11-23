@@ -103,7 +103,7 @@ class CmdAction(BaseAction):
                  **pkwargs): #pylint: disable=W0231
         for forbidden in ('stdout', 'stderr'):
             if forbidden in pkwargs:
-                msg = "CmdAction can't take param named '{}'."
+                msg = "CmdAction can't take param named '{0}'."
                 raise InvalidTask(msg.format(forbidden))
         self._action = action
         self.task = task

@@ -51,7 +51,7 @@ class TabCompletion(DoitCmdBase):
         elif opt_values['shell'] == 'zsh':
             self._generate_zsh(opt_values, pos_args)
         else:
-            msg = 'Invalid option for --shell "{}"'
+            msg = 'Invalid option for --shell "{0}"'
             raise InvalidCommand(msg.format(opt_values['shell']))
 
 
@@ -78,10 +78,10 @@ class TabCompletion(DoitCmdBase):
         if opt_values['hardcode_tasks']:
             self.task_list, self.config = self._loader.load_tasks(
                 self, opt_values, pos_args)
-            tmpl_vars['pt_tasks'] = '"{}"'.format(
+            tmpl_vars['pt_tasks'] = '"{0}"'.format(
                 ' '.join(t.name for t in self.task_list if not t.is_subtask))
         else:
-            tmpl_list_cmd = "$({} list {} --quiet 2>/dev/null)"
+            tmpl_list_cmd = "$({0} list {1} --quiet 2>/dev/null)"
             tmpl_vars['pt_tasks'] = tmpl_list_cmd.format(pt_bin_name,
                                                          pt_list_param)
 
@@ -146,7 +146,7 @@ class TabCompletion(DoitCmdBase):
         cmds_desc = []
         cmds_args = []
         for cmd in self.doit_app.sub_cmds.values():
-            cmds_desc.append("    '{}: {}'".format(cmd.name, cmd.doc_purpose))
+            cmds_desc.append("    '{0}: {1}'".format(cmd.name, cmd.doc_purpose))
             cmds_args.append(self._zsh_cmd_args(cmd))
 
         template_vars = {

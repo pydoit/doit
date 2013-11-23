@@ -7,8 +7,13 @@ python:
     - "3.3"
     - 'pypy'
 
+before-install:
+  - sudo apt-get install strace
+
 install:
   - "pip install . --use-mirrors"
+  # See https://github.com/travis-ci/travis-cookbooks/issues/155
+  - sudo rm -rf /dev/shm && sudo ln -s /run/shm /dev/shm
 
 branches:
   only:
