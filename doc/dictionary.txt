@@ -232,3 +232,16 @@ popen
 CmdAction's
 workdir
 isatty
+'minversion'
+minversion
+tabcompletion
+zsh
+autoload
+fpath
+cp
+app
+hardcode
+Uz
+compinit
+'0
+0'

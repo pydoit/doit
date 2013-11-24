@@ -225,6 +225,19 @@ The option --output-file/-o let you output the result to a file.
     $ doit --output-file result.txt
 
 
+initial_workdir
+-----------------
+
+When `doit` executes by default it will use the location of `dodo.py`
+as the current working directory (unless --dir is specified).
+The value of `doit.initial_workdir` will contain the path from where
+`doit` was invoked from.
+
+This can be used for example set which tasks will be executed:
+
+.. literalinclude:: tutorial/initial_workdir.py
+
+
 config
 --------
 
@@ -251,6 +264,29 @@ You need to check `doit_cmd.py <https://bitbucket.org/schettino72/doit/src/tip/d
   The parameters `--file` and `--dir` can not be used on config because they control how the dodo file itself is loaded.
 
 
+minversion
+^^^^^^^^^^^^
+
+`minversion` can be used to specify the minimum/oldest `doit` version
+that can be used with a `dodo.py` file.
+
+For example if your `dodo.py` makes use of a feature added at `doit X`
+and distribute it. If another user who tries this `dodo.py` with a version
+older that `X`, doit will display an error warning the user to update `doit`.
+
+.. code-block:: console
+
+    DOIT_CONFIG = {
+        'minversion': '0.24.0',
+    }
+
+
+.. note::
+
+  This feature was added on `doit` 0.24.0.
+  Older Versions will not check or display error messages.
+
+
 returned value
 ------------------
 
@@ -261,15 +297,4 @@ returned value
  * 2 => error executing task
  * 3 => error before task execution starts
         (in this case the reporter is not used)
-
-
-
-bash completion
------------------
-
-Bash completion for `doit` to auto-complete task names is available at `bash_completion_doit <https://bitbucket.org/schettino72/doit/src/tip/bash_completion_doit>`_ . To activate it:
-
-.. code-block:: console
-
-  $ source <path-to-file>/bash_completion_doit
 

@@ -76,9 +76,6 @@ but often you want to create this metadata programmatically.
      def my_task_action(dependencies):
           # do something
 
-     # or with a object
-     MyCustomTask2(my_param)
-
 
 Other features...
 
@@ -97,6 +94,11 @@ Other features...
 
   process output can be completely customized through *reporters*
   (:ref:`more <reporter>`)
+
+.. topic:: tab-completion
+
+  tab-completion for commands/task (supports bash and zsh)
+  (:ref:`more <tabcompletion>`)
 
 
 .. topic:: extensible
@@ -148,7 +150,7 @@ Status
 
 This blog `post <http://schettino72.wordpress.com/2008/04/14/doit-a-build-tool-tale/>`_ explains how everything started in 2008.
 
-`doit` is under active development. Version 0.23 released on 2013-09.
+`doit` is under active development. Version 0.24 released on 2013-11.
 
 `doit` core features are quite stable. So if there is no recent development,
 it does NOT mean `doit` is not being maintained...
@@ -156,7 +158,8 @@ The project has 100% unit-test code coverage
 and kept with *zero* bugs in the tracker.
 
 Development is done based on real world use cases.
-If I don't need a feature and nobody never asked for it, it is not implemented ;)
+If I don't need a feature and nobody never asked/implemented it,
+it is not implemented ;)
 It is well designed and has a very small code base
 so adding new features isn't hard.
 

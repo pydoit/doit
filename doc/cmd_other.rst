@@ -166,6 +166,59 @@ be specified for a group of "sub-tasks".
 .. literalinclude:: tutorial/empty_subtasks.py
 
 
+.. _tabcompletion:
+
+tabcompletion
+----------------
+
+This command creates a completion for bash or zsh.
+The generated script is written on stdout.
+
+bash
+^^^^^^
+
+To use a completion script you need to `source` it first.
+
+.. code-block:: console
+
+  $ doit tabcompletion > bash_completion_doit
+  $ source bash_completion_doit
+
+
+zsh
+^^^^^
+
+zsh completion scripts should be placed in a folder in the "autoload" path.
+
+.. code-block:: sh
+
+    # add folder with completion scripts
+    fpath=(~/.zsh/completion $fpath)
+
+    # Use modern completion system
+    autoload -Uz compinit
+    compinit
+
+
+.. code-block:: console
+
+  $ doit tabcompletion --shell zsh > _doit
+  $ cp _doit ~/.zsh/tabcompletion/_doit
+
+
+hard-coding tasks
+^^^^^^^^^^^^^^^^^^^^
+
+If you are creating an application based on `doit`
+or if you tasks take a long time to load you may create
+a completion script that includes the list of tasks
+from your dodo.py.
+
+.. code-block:: console
+
+  $ my_app tabcompletion --hardcode-tasks > _my_app
+
+
 
 dumpdb
 --------
