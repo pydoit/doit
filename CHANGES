@@ -6,6 +6,7 @@ Changes
 0.24.0
 ======================
 
+ - reporter added `initialize()`
  - cmd `list`: added option `--template`
  - dodo.py can specify minimum required doit version with DOIT_CONFIG['minversion']
  - #62: added the absolute path from which doit is invoked `doit.initial_workdir`

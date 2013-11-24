@@ -11,6 +11,12 @@ from doit.compat import json
 
 class TestConsoleReporter(object):
 
+    def test_initialize(self):
+        rep = reporter.ConsoleReporter(StringIO(), {})
+        rep.initialize([Task("t_name", None)])
+        # no output on initialize
+        assert "" in rep.outstream.getvalue()
+
     def test_startTask(self):
         rep = reporter.ConsoleReporter(StringIO(), {})
         rep.get_status(Task("t_name", None))
