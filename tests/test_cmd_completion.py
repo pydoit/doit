@@ -100,3 +100,11 @@ class TestCmdCompletionZsh(object):
         cmd.execute({'shell':'zsh', 'hardcode_tasks': False}, [])
         got = output.getvalue()
         assert "tabcompletion: generate script" in got
+
+    def test_hardcoded_tasks(self, doit_app):
+        output = StringIO()
+        cmd = TabCompletion(task_loader=FakeLoader(), outstream=output)
+        cmd.doit_app = doit_app
+        cmd.execute({'shell':'zsh', 'hardcode_tasks': True}, [])
+        got = output.getvalue()
+        assert 't1' in got

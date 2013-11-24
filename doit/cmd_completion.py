@@ -137,7 +137,6 @@ class TabCompletion(DoitCmdBase):
 
 
     # TODO:
-    # option to hard-code tasks
     # detect correct dodo-file location
     # complete sub-tasks
     # task options
@@ -155,14 +154,18 @@ class TabCompletion(DoitCmdBase):
             'pt_cmds_args':'\n'.join(cmds_args),
         }
 
-        # if opt_values['hardcode_tasks']:
-        #     self.task_list, self.config = self._loader.load_tasks(
-        #         self, opt_values, pos_args)
-        #     template_vars['pt_tasks'] = '"{}"'.format(
-        #         ' '.join(t.name for t in self.task_list if not t.is_subtask))
-        # else:
-        #     tmpl_tasks = Template("$($pt_bin_name list $pt_list_param --quiet 2>/dev/null)")
-        #     template_vars['pt_tasks'] = tmpl_tasks.safe_substitute(template_vars)
+        if opt_values['hardcode_tasks']:
+            self.task_list, self.config = self._loader.load_tasks(
+                self, opt_values, pos_args)
+            lines = []
+            for task in self.task_list:
+                if not task.is_subtask:
+                    lines.append("'{0}: {1}'".format(task.name, task.doc))
+            template_vars['pt_tasks'] = '(\n{0}\n)'.format('\n'.join(lines))
+        else:
+            tmpl_tasks = Template('''("${(f)$($pt_bin_name list --template '{name}: {doc}')}")''')
+            template_vars['pt_tasks'] = tmpl_tasks.safe_substitute(template_vars)
+
 
         template = Template(zsh_start)
         self.outstream.write(template.safe_substitute(template_vars))
@@ -296,7 +299,7 @@ _$pt_bin_name() {
     )
 
     # split output by lines to create an array
-    tasks=("${(f)$($pt_bin_name list --template '{name}: {doc}')}")
+    tasks=$pt_tasks
 
     # complete command or task name
     if (( CURRENT == 2 )); then
