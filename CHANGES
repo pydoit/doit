@@ -6,6 +6,7 @@ Changes
 0.25.0
 ==========
 
+ - added doit.run() to make it easier to turn a dodo file into executable
 
 
 0.24.0 (*2013-11-24*)
