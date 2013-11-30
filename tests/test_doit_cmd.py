@@ -16,7 +16,6 @@ class TestRun(object):
     def test_version(self, capsys):
         cmd_main(["--version"])
         out, err = capsys.readouterr()
-        assert "bin" in out
         assert "lib" in out
 
     def test_usage(self, capsys):

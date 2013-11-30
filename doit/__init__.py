@@ -23,7 +23,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-__version__ = (0, 25, 'dev0')
+from doit.version import VERSION
+
+__version__ = VERSION
 
 
 # used to save variable values passed from command line

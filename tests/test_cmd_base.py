@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-import doit
+from doit import version
 from doit.cmdparse import CmdParseError, CmdOption
 from doit.exceptions import InvalidCommand, InvalidDodoFile
 from doit.task import Task
@@ -166,12 +166,12 @@ class TestDoitCmdBase(object):
         loader = ModuleTaskLoader(members)
 
         # version ok
-        monkeypatch.setattr(doit, '__version__', '7.5.8')
+        monkeypatch.setattr(version, 'VERSION', '7.5.8')
         mycmd = self.MyCmd(loader)
         assert 'xxx' == mycmd.parse_execute([])
 
         # version too old
-        monkeypatch.setattr(doit, '__version__', '5.2.1')
+        monkeypatch.setattr(version, 'VERSION', '5.2.1')
         mycmd = self.MyCmd(loader)
         pytest.raises(InvalidDodoFile, mycmd.parse_execute, [])
 

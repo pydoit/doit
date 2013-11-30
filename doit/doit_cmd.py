@@ -6,6 +6,7 @@ import traceback
 import six
 
 import doit
+from .version import VERSION
 from .exceptions import InvalidDodoFile, InvalidCommand, InvalidTask
 from .cmdparse import CmdParseError
 from .cmd_base import DodoTaskLoader, DoitCmdBase
@@ -33,9 +34,8 @@ class DoitMain(object):
     @staticmethod
     def print_version():
         """print doit version (includes path location)"""
-        six.print_(".".join([str(i) for i in doit.__version__]))
-        six.print_("bin @", os.path.abspath(__file__))
-        six.print_("lib @", os.path.dirname(os.path.abspath(doit.__file__)))
+        six.print_(".".join([str(i) for i in VERSION]))
+        six.print_("lib @", os.path.dirname(os.path.abspath(__file__)))
 
 
     def get_commands(self):
