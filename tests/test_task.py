@@ -429,6 +429,17 @@ class TestTaskDoc(object):
         assert "" == t.doc
 
 
+class TestTaskUpdateFromPickle(object):
+    def test_change_value(self):
+        t = task.Task("my_name", ["action"])
+        assert {} == t.values
+        class FakePickle():
+            def __init__(self):
+                self.values = [1,2,3]
+        t.update_from_pickle(FakePickle())
+        assert [1,2,3] == t.values
+        assert 'my_name' == t.name
+
 class TestDictToTask(object):
     def testDictOkMinimum(self):
         dict_ = {'name':'simple','actions':['xpto 14']}

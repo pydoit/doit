@@ -77,7 +77,7 @@ class TestAuto(object):
 
     def test_execute(self, monkeypatch):
         # use dumb operation instead of executing RUN command and waiting event
-        def fake_run(self, params, args):
+        def fake_run(self, params, args): # pragma: no cover
             5 + 2
         monkeypatch.setattr(cmd_auto.Auto, 'run_watch', fake_run)
 

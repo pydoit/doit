@@ -456,7 +456,8 @@ class MRunner(Runner):
                 # so we need to get task from this process and update it
                 # to get dynamic task attributes.
                 task = self.tasks[recv_task.name]
-                if self.Child == Process:
+                if self.Child == Process: # pragma: no cover ...
+                    # ... actually covered but subprocess doesnt get it.
                     task.update_from_pickle(recv_task)
 
                 result = {'name': task.name}

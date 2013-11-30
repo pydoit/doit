@@ -30,7 +30,6 @@ __version__ = VERSION
 
 from doit.doit_cmd import get_var
 from doit.api import run
-
 get_var, run # pyflakes
 
 # Directory path from where doit was executed.
