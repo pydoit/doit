@@ -5,7 +5,6 @@ import sys
 import traceback
 import six
 
-import doit
 from .version import VERSION
 from .exceptions import InvalidDodoFile, InvalidCommand, InvalidTask
 from .cmdparse import CmdParseError
@@ -20,6 +19,21 @@ from .cmd_auto import Auto
 from .cmd_dumpdb import DumpDB
 from .cmd_strace import Strace
 from .cmd_completion import TabCompletion
+
+
+# used to save variable values passed from command line
+_CMDLINE_VARS = None
+
+def reset_vars():
+    global _CMDLINE_VARS
+    _CMDLINE_VARS = {}
+
+def get_var(name, default=None):
+    return _CMDLINE_VARS.get(name, default)
+
+def set_var(name, value):
+    _CMDLINE_VARS[name] = value
+
 
 
 class DoitMain(object):
@@ -57,12 +71,12 @@ class DoitMain(object):
         return list of args without processed variables
         """
         # get cmdline variables from args
-        doit.reset_vars()
+        reset_vars()
         args_no_vars = []
         for arg in cmd_args:
             if (arg[0] != '-') and ('=' in arg):
                 name, value = arg.split('=', 1)
-                doit.set_var(name, value)
+                set_var(name, value)
             else:
                 args_no_vars.append(arg)
         return args_no_vars

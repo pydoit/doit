@@ -28,19 +28,8 @@ from doit.version import VERSION
 __version__ = VERSION
 
 
-# used to save variable values passed from command line
-CMDLINE_VARS = None
-
-def reset_vars():
-    global CMDLINE_VARS
-    CMDLINE_VARS = {}
-
-def get_var(name, default=None):
-    return CMDLINE_VARS.get(name, default)
-
-def set_var(name, value):
-    CMDLINE_VARS[name] = value
-
+from doit.doit_cmd import get_var
+get_var # pyflakes
 
 # Directory path from where doit was executed.
 # Set by loader, to be used on dodo.py by users.
