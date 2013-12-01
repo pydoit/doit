@@ -28,10 +28,10 @@ from doit.version import VERSION
 __version__ = VERSION
 
 
+from doit import loader
 from doit.doit_cmd import get_var
 from doit.api import run
 get_var, run # pyflakes
 
-# Directory path from where doit was executed.
-# Set by loader, to be used on dodo.py by users.
-initial_workdir = None
+def get_initial_workdir():
+    return loader.initial_workdir

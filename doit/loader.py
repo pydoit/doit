@@ -5,11 +5,14 @@ import sys
 import inspect
 import six
 
-import doit
 from .compat import is_bound_method
 from .exceptions import InvalidTask, InvalidCommand, InvalidDodoFile
 from .task import Task, dict_to_task
 
+
+# Directory path from where doit was executed.
+# Set by loader, to be used on dodo.py by users.
+initial_workdir = None
 
 # TASK_STRING: (string) prefix used to identify python function
 # that are task generators in a dodo file.
@@ -38,7 +41,8 @@ def get_module(dodo_file, cwd=None, seek_parent=False):
     @param seek_parent(bool): search for dodo_file in parent paths if not found
     @return (module) dodo module
     """
-    doit.initial_workdir = os.getcwd()
+    global initial_workdir
+    initial_workdir = os.getcwd()
     def exist_or_raise(path):
         """raise exception if file on given path doesnt exist"""
         if not os.path.exists(path):
@@ -56,7 +60,7 @@ def get_module(dodo_file, cwd=None, seek_parent=False):
             exist_or_raise(dodo_path)
         else:
             # try to find file in any folder above
-            current_dir = doit.initial_workdir
+            current_dir = initial_workdir
             dodo_path = os.path.join(current_dir, dodo_file)
             file_name = os.path.basename(dodo_path)
             parent = os.path.dirname(dodo_path)

@@ -17,7 +17,7 @@ DOIT_CONFIG = {
 
 # change default tasks based on dir from where doit was run
 sub1_dir = os.path.join(os.path.dirname(__file__), 'sub1')
-if doit.initial_workdir == sub1_dir:
+if doit.get_initial_workdir() == sub1_dir:
     DOIT_CONFIG['default_tasks'] = ['sub1']
 
 

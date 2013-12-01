@@ -6,7 +6,9 @@ Changes
 0.25.0
 ==========
 
- - added doit.run() to make it easier to turn a dodo file into executable
+ - BACKWARD INCOMPATIBLE: use function `doit.get_initial_workdir()`
+   instead of variable `doit.initial_workdir`
+ - #69: added doit.run() to make it easier to turn a dodo file into executable
 
 
 0.24.0 (*2013-11-24*)
