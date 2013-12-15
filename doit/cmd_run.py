@@ -97,6 +97,16 @@ opt_parallel_type = {
 }
 
 
+# pdb post-mortem
+opt_pdb = {
+    'name':'pdb',
+    'short':'',
+    'long':'pdb',
+    'type': bool,
+    'default': None,
+    'help':
+"""get into PDB (python debugger) post-mortem in case of unhadled exception"""
+    }
 
 
 class Run(DoitCmdBase):
@@ -106,7 +116,7 @@ class Run(DoitCmdBase):
 
     cmd_options = (opt_always, opt_continue, opt_verbosity,
                    opt_reporter, opt_outfile, opt_num_process,
-                   opt_parallel_type)
+                   opt_parallel_type, opt_pdb)
 
     def _execute(self, outfile,
                  verbosity=None, always=False, continue_=False,

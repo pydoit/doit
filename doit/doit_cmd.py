@@ -110,13 +110,14 @@ class DoitMain(object):
 
         # get specified sub-command or use default='run'
         if len(args) == 0 or args[0] not in list(six.iterkeys(self.sub_cmds)):
-            command = 'run'
+            cmd_name = 'run'
         else:
-            command = args.pop(0)
+            cmd_name = args.pop(0)
+        command = self.sub_cmds[cmd_name]
 
         # execute command
         try:
-            return self.sub_cmds[command].parse_execute(args)
+            return command.parse_execute(args)
 
         # dont show traceback for user errors.
         except (CmdParseError, InvalidDodoFile,
@@ -125,5 +126,8 @@ class DoitMain(object):
             return 3
 
         except Exception:
+            if command.opt_values.get('pdb'): # pragma: no cover
+                import pdb
+                pdb.post_mortem(sys.exc_info()[2])
             sys.stderr.write(traceback.format_exc())
             return 3

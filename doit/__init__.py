@@ -31,7 +31,8 @@ __version__ = VERSION
 from doit import loader
 from doit.doit_cmd import get_var
 from doit.api import run
-get_var, run # pyflakes
+
+__all__ = ['get_var', 'run']
 
 def get_initial_workdir():
     return loader.initial_workdir

@@ -50,6 +50,7 @@ class Command(object):
         self.name = self.name or self.__class__.__name__.lower()
         Command.CMD_LIST.append(self.name)
         self.options = self.set_options()
+        self.opt_values = None # option values
 
     def set_options(self):
         """@reutrn list of CmdOption
@@ -73,6 +74,7 @@ class Command(object):
         @returns: result of self.execute
         """
         params, args = CmdParse(self.options).parse(in_args)
+        self.opt_values = params
         return self.execute(params, args)
 
 
