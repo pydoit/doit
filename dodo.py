@@ -114,7 +114,9 @@ def task_spell():
     # spell always return successful code (0)
     # so this checks if the output is empty
     def check_no_output(doc_file):
-        cmd = 'hunspell -l -p doc/dictionary.txt %s'
+        # -l list misspelled words
+        # -p set path of personal dictionary
+        cmd = 'hunspell -l -d en_US -p doc/dictionary.txt %s'
         output = subprocess.check_output(cmd % doc_file, shell=True)
         if len(output) != 0:
             print(output)

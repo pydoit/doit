@@ -51,6 +51,7 @@ It can optionally define other attributes like `targets`, `file_dep`,
 
 Actions define what the task actually does.
 *Actions* is always a list that can have any number of elements.
+The actions of a task are always run sequentially.
 There 2 basic kinds of `actions`: *cmd-action* and *python-action*.
 The action "result" is used to determine if task execution was successful or not.
 

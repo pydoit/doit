@@ -164,6 +164,7 @@ parallel execution
 -------------------
 
 `doit` supports parallel execution --process/-n.
+This allows different tasks to be run in parallel, as long any dependencies are met.
 By default the `multiprocessing <http://docs.python.org/library/multiprocessing.html>`_
 module is used.
 So the same restrictions also apply to the use of multiprocessing in `doit`.
@@ -179,6 +180,11 @@ You can also execute in parallel using threads by specifying the option
 
     $ doit -n 3 -P thread
 
+
+.. note::
+
+   The actions of a single task are always run sequentially;
+   only tasks and sub-tasks are affected by the parallel execution option.
 
 .. _reporter:
 
