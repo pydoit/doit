@@ -216,8 +216,10 @@ class check_timestamp_unchanged(object):
 
 
 # action class
-class InteractiveAction(CmdAction):
-    """Action to handle Interactive shell process:
+class LongRunning(CmdAction):
+    """Action to handle a Long running shell process,
+    usually a server or service.
+    Peoperties:
         * the output is never captured
         * it is always successful (return code is not used)
         * "swallow" KeyboardInterrupt
@@ -228,7 +230,26 @@ class InteractiveAction(CmdAction):
         try:
             process.wait()
         except KeyboardInterrupt:
-            pass # normal way to stop interactive process
+            # normal way to stop interactive process
+            pass
+
+# the name InteractiveAction is deprecated on 0.25
+InteractiveAction = LongRunning
+
+
+class Interactive(CmdAction):
+    """Action to handle Interactive shell process:
+        * the output is never captured
+    """
+    def execute(self, out=None, err=None):
+        action = self.expand_action()
+        process = subprocess.Popen(action, shell=self.shell, **self.pkwargs)
+        process.wait()
+        if process.returncode != 0:
+            return exceptions.TaskFailed(
+                "Interactive command failed: '%s' returned %s" %
+                (action, process.returncode))
+
 
 
 # action class

@@ -6,6 +6,8 @@ Changes
 0.25.0
 ==========
 
+ - DEPRECATED `tools.InteractiveAction` renamed to `tools.LongRunning`
+ - added `tools.Interactive` for use with interactive commands
  - BACKWARD INCOMPATIBLE: use function `doit.get_initial_workdir()`
    instead of variable `doit.initial_workdir`
  - #69: added doit.run() to make it easier to turn a dodo file into executable

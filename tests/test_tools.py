@@ -285,22 +285,37 @@ class TestCheckTimestampUnchanged(object):
         assert check_a._key != check_m._key
 
 
-class TestInteractiveAction(object):
+class TestLongRunning(object):
     def test_success(self):
         TEST_PATH = os.path.dirname(__file__)
         PROGRAM = "python %s/sample_process.py" % TEST_PATH
-        my_action = tools.InteractiveAction(PROGRAM + " please fail")
+        my_action = tools.LongRunning(PROGRAM + " please fail")
         got = my_action.execute()
         assert got is None
 
     def test_ignore_keyboard_interrupt(self, monkeypatch):
-        my_action = tools.InteractiveAction('')
+        my_action = tools.LongRunning('')
         class FakeRaiseInterruptProcess(object):
             def __init__(self, *args, **kwargs):
                 pass
             def wait(self):
                 raise KeyboardInterrupt()
         monkeypatch.setattr(tools.subprocess, 'Popen', FakeRaiseInterruptProcess)
+        got = my_action.execute()
+        assert got is None
+
+class TestInteractive(object):
+    def test_fail(self):
+        TEST_PATH = os.path.dirname(__file__)
+        PROGRAM = "python %s/sample_process.py" % TEST_PATH
+        my_action = tools.Interactive(PROGRAM + " please fail")
+        got = my_action.execute()
+        assert isinstance(got, exceptions.TaskFailed)
+
+    def test_success(self):
+        TEST_PATH = os.path.dirname(__file__)
+        PROGRAM = "python %s/sample_process.py" % TEST_PATH
+        my_action = tools.Interactive(PROGRAM + " ok")
         got = my_action.execute()
         assert got is None
 
