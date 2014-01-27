@@ -187,9 +187,11 @@ class Task(object):
                 args = list(item[1]) if len(item)>1 else []
                 kwargs = item[2] if len(item)>2 else {}
                 uptodate.append((call, args, kwargs))
+            elif isinstance(item, six.string_types):
+                uptodate.append((item, [], {}))
             else:
                 msg = ("%s. task invalid 'uptodate' item '%r'. " +
-                       "Must be bool, None, callable or tuple " +
+                       "Must be bool, None, str, callable or tuple " +
                        "(callable, args, kwargs).")
                 raise InvalidTask(msg % (self.name, item))
         return uptodate

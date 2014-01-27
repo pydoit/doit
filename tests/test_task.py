@@ -104,6 +104,10 @@ class TestTaskUpToDate(object):
                       uptodate=[(custom_check, [123], {'xxx':'yyy'})])
         assert t.uptodate[0] == (custom_check, [123], {'xxx':'yyy'})
 
+    def test_str(self):
+        t = task.Task("Task X", ["taskcmd"], uptodate=['my-cmd xxx'])
+        assert t.uptodate[0] == ('my-cmd xxx', [], {})
+
     def test_object_with_configure(self):
         class Check(object):
             def __call__(self): return True

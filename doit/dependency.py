@@ -2,6 +2,7 @@
 
 import os
 import hashlib
+import subprocess
 import six
 if six.PY3: # pragma: no cover
     from dbm import dumb
@@ -476,6 +477,11 @@ class DependencyBase(object):
                     utd.setup(self, tasks_dict)
                 # 3) call it and get result
                 uptodate_result = utd(*args, **utd_kwargs)
+            elif isinstance(utd, six.string_types):
+                # TODO py3.3 has subprocess.DEVNULL
+                with open(os.devnull, 'wb') as null:
+                    uptodate_result = subprocess.call(
+                        utd, shell=True, stderr=null, stdout=null) == 0
             # parameter is a value
             else:
                 uptodate_result = utd
