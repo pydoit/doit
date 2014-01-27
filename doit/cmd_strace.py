@@ -2,6 +2,7 @@ import sys
 import os
 import re
 
+from .exceptions import InvalidCommand
 from .action import CmdAction
 from .task import Task
 from .cmd_run import Run
@@ -54,7 +55,10 @@ So this is NOT 100% reliable, use with care!
         """remove existing output file if any and do sanity checking"""
         if os.path.exists(self.TRACE_OUT): # pragma: no cover
             os.unlink(self.TRACE_OUT)
-        assert len(args) == 1, 'doit strace failed, must select task to strace'
+        if len(args) != 1:
+            msg = ('doit strace failed, must select *one* task to strace.'
+                   '\nCheck `doit help strace`.')
+            raise InvalidCommand(msg)
         result = Run.execute(self, params, args)
         if (not params['keep_trace']) and os.path.exists(self.TRACE_OUT):
             os.unlink(self.TRACE_OUT)

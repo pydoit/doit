@@ -2,7 +2,9 @@ import os.path
 from six import StringIO
 
 import mock
+import pytest
 
+from doit.exceptions import InvalidCommand
 from doit.cmdparse import DefaultUpdate
 from doit.task import Task
 from doit.cmd_strace import Strace
@@ -80,4 +82,12 @@ class TestCmdRun(object):
                                keep_trace=False, backend='dbm')
         result = cmd.execute(params, ['tt'])
         assert 0 == result
+
+    def test_invalid_command_args(self):
+        output = StringIO()
+        cmd = Strace(outstream=output)
+        # fails if number of args != 1
+        pytest.raises(InvalidCommand, cmd.execute, {}, [])
+        pytest.raises(InvalidCommand, cmd.execute, {}, ['t1', 't2'])
+
 

@@ -6,6 +6,7 @@ Changes
 0.25.0
 ==========
 
+ - fix: `strace` raises `InvalidCommand` instead of using `assert`
  - #28: task `uptotade` support string to be executed as shell command
  - DEPRECATED `tools.InteractiveAction` renamed to `tools.LongRunning`
  - added `tools.Interactive` for use with interactive commands
