@@ -16,7 +16,7 @@ Project Details
  - Source code & Project management on bitbucket - https://bitbucket.org/schettino72/doit
  - Website & docs - http://pydoit.org
  - Discussion group - https://groups.google.com/forum/#!forum/python-doit
- - Official github mirror at - https://github.com/schettino72/doit
+ - Official github mirror at - https://github.com/pydoit/doit
 
 license
 =======
@@ -105,7 +105,28 @@ To create it (after installing doit):
 The website will also includes epydoc generated API documentation.
 
 
+github mirror
+===============
+
+* install hg-git (http://hg-git.github.io/) `sudo pip install hg-git`.
+
+* enable the extension. on `~/.hgrc`::
+
+    [extensions]
+    hggit =
+
+* add a named path `github` on `doit/.hg/hgrc`::
+
+    [paths]
+    default = https://bitbucket.org/schettino72/doit
+    github = git+ssh://git@github.com/pydoit/doit.git
+
+* make sure you have a ssh key registred on github ::
+
+   $ hg push github
+
+
 continuous integration
 ==========================
 
-travis - https://travis-ci.org/schettino72/doit
+travis - https://travis-ci.org/pydoit/doit
