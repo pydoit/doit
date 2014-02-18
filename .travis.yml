@@ -11,7 +11,7 @@ before_install:
 
 install:
   - "pip install . --use-mirrors"
-  - pip install python-coveralls
+  - pip install pyflakes python-coveralls
   # See https://github.com/travis-ci/travis-cookbooks/issues/155
   - sudo rm -rf /dev/shm && sudo ln -s /run/shm /dev/shm
 
