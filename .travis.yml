@@ -11,6 +11,7 @@ before_install:
 
 install:
   - "pip install . --use-mirrors"
+  - pip install python-coveralls
   # See https://github.com/travis-ci/travis-cookbooks/issues/155
   - sudo rm -rf /dev/shm && sudo ln -s /run/shm /dev/shm
 
@@ -20,7 +21,12 @@ branches:
     - test
 
 
-script: py.test
+script:
+   - doit checker
+   - py.test
+   - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then "coverage run --parallel-mode `which py.test` "; "coverage combine"; fi
+after_success:
+  - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then coveralls; fi
 
 notifications:
     email:
