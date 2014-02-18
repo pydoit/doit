@@ -10,6 +10,8 @@ The example below is used to manage a very simple C project.
 
 
 
+.. _cmd-help:
+
 help
 -------
 
