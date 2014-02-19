@@ -20,7 +20,7 @@ README
 doit - automation tool
 ======================
 
-doit comes from the idea of bringing the power of build-tools to
+*doit* comes from the idea of bringing the power of build-tools to
 execute any kind of task
 
 
@@ -50,7 +50,9 @@ see AUTHORS file
 install
 =======
 
-doit is tested on python 2.6, 2.7, 3.2, 3.3, 3.4.
+*doit* is tested on python 2.6, 2.7, 3.2, 3.3, 3.4.
+
+::
 
  $ python setup.py install
 
@@ -76,14 +78,16 @@ Tools required for development:
 developemnt setup
 ==================
 
-The best way to setup an environment to develop `doit` itself is to
+The best way to setup an environment to develop *doit* itself is to
 create a virtualenv...
+
+::
 
   doit$ virtualen dev
   (dev)doit$ dev/bin/activate
 
-install `doit` as "editable", and add development dependencies
-from `dev_requirements.txt`:
+install ``doit`` as "editable", and add development dependencies
+from `dev_requirements.txt`::
 
   (dev)doit$ pip install --editable .
   (dev)doit$ pip install --requirement dev_requirements.txt
@@ -93,11 +97,13 @@ from `dev_requirements.txt`:
 tests
 =======
 
-You can use the standalone script:
+You can use the standalone script::
 
   $ python runtests.py
 
 or use py.test - http://pytest.org
+
+::
 
   $ py.test
 
@@ -106,13 +112,15 @@ or use py.test - http://pytest.org
 documentation
 =============
 
-`doc` folder contains ReST documentation based on Sphinx.
+``doc`` folder contains ReST documentation based on Sphinx.
 
-  doc$ make html
+::
+
+ doc$ make html
 
 They are the base for creating the website. The only difference is
 that the website includes analytics tracking.
-To create it (after installing doit):
+To create it (after installing *doit*)::
 
  $ doit website
 
@@ -122,7 +130,7 @@ The website will also includes epydoc generated API documentation.
 contributing
 ==============
 
-On bitbucket create pull requests on `default` branch.
+On bitbucket create pull requests on ``default`` branch.
 
 On github create pull requests using a named feature branch.
 
@@ -133,14 +141,14 @@ github mirror setup
 This is only needed if you will manage both upstream in github and bitbucket.
 For using github only just use `git` normaly and ignore it is a mirror.
 
-* install hg-git (http://hg-git.github.io/) `sudo pip install hg-git`.
+* install hg-git (http://hg-git.github.io/) ``sudo pip install hg-git``.
 
-* enable the extension. on `~/.hgrc`::
+* enable the extension. on ``~/.hgrc``::
 
     [extensions]
     hggit =
 
-* add a named path `github` on `doit/.hg/hgrc`::
+* add a named path ``github`` on ``doit/.hg/hgrc``::
 
     [paths]
     default = https://bitbucket.org/schettino72/doit
