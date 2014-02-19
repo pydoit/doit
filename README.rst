@@ -2,6 +2,20 @@
 README
 ================
 
+.. display some badges
+
+.. image:: https://pypip.in/v/doit/badge.png
+        :target: https://pypi.python.org/pypi/doit
+
+.. image:: https://pypip.in/d/doit/badge.png
+        :target: https://pypi.python.org/pypi/doit
+
+.. image:: https://travis-ci.org/pydoit/doit.png?branch=master
+  :target: https://travis-ci.org/pydoit/doit
+
+.. image:: https://coveralls.io/repos/pydoit/doit/badge.png?branch=master
+  :target: https://coveralls.io/r/pydoit/doit?branch=master
+
 
 doit - automation tool
 ======================
@@ -36,7 +50,7 @@ see AUTHORS file
 install
 =======
 
-doit is tested on python 2.6, 2.7, 3.2, 3.3.
+doit is tested on python 2.6, 2.7, 3.2, 3.3, 3.4.
 
  $ python setup.py install
 
@@ -105,8 +119,19 @@ To create it (after installing doit):
 The website will also includes epydoc generated API documentation.
 
 
-github mirror
-===============
+contributing
+==============
+
+On bitbucket create pull requests on `default` branch.
+
+On github create pull requests using a named feature branch.
+
+
+github mirror setup
+=====================
+
+This is only needed if you will manage both upstream in github and bitbucket.
+For using github only just use `git` normaly and ignore it is a mirror.
 
 * install hg-git (http://hg-git.github.io/) `sudo pip install hg-git`.
 
@@ -125,8 +150,3 @@ github mirror
 
    $ hg push github
 
-
-continuous integration
-==========================
-
-travis - https://travis-ci.org/pydoit/doit
