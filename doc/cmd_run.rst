@@ -96,10 +96,8 @@ Just add a 'params' field to the task dictionary. `params` must be a list of
 dictionaries where every entry is an option parameter. Each parameter must
 define a name, and a default value. It can optionally define a "short" and
 "long" names to be used from the command line (it follows unix command line
-conventions). It may also specify a `type` the parameter should be converted to,
-and a `help` message displayed when :ref:`doit help <cmd-help>` is called
-on the task.
-
+conventions). It may also specify additional attributes, such as
+its `type` and `help` (see :ref:`below <parameters-attributes>`).
 
 
 See the example:
@@ -123,6 +121,81 @@ For cmd-actions use python string substitution notation:
     $ doit cmd_params -f "-c --other value"
     .  cmd_params
     mycmd -c --other value xxx
+
+
+.. _parameters-attributes:
+
+All parameters attributes
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Here is the list of all attributes a given task parameter could accepts:
+
+``'name'``
+    Name of the parameter, and that with which parameter is called
+    from command-line: e.g. for a parameter whose name is ``'param'``,
+    this parameter is actually called with ``--param``.
+    It should be unique among others.
+
+    :required:  True
+    :type:      `str`
+
+``'short'``
+    Short parameter form, used for e.g. ``-p value``.
+
+    :required:  optional
+    :type:      `str`
+
+``'long'``
+    Long parameter form, used for e.g. ``--parameter value``
+    when it differs from its `name`.
+
+    :required:  optional
+    :type:      `str`
+    :default:   value of ``'name'``
+
+``'type'``
+    Type to which the value must be converted when passed to the parameter.
+
+    :required:  optional
+    :type:      any `callable` (e.g. a `function`) accepting a single argument
+                as a `str` and returning a value
+    :default:   `str`
+
+``'default'``
+    Default value to affect to parameter, whether or not it is set through
+    command-line.
+
+    :required:  True
+
+``'help'``
+    Help message associated to this parameter, shown when
+    :ref:`help task <cmd-help>` is called for this task,
+    e.g. ``doit help mytask``.
+
+    :required:  optional
+    :type:      `str`
+
+``'inverse'``
+    [only for `bool` parameter]
+    Set inverse flag long parameter name (see example below).
+
+    :required:  optional
+    :type:      `str`
+
+    Example, given following code:
+
+    .. literalinclude:: tutorial/parameters_inverse.py
+
+    calls to task `with_flag` show flag on or off:
+
+    .. code-block:: console
+
+        $ doit with_flag
+        .  with_flag
+        Flag On
+        $ doit with_flag --flagoff
+        .  with_flag
+        Flag Off
 
 
 title

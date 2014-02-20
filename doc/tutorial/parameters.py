@@ -20,8 +20,7 @@ def task_cmd_params():
                        'short':'f',
                        'long': 'flag',
                        'default': '',
-                       'help': ('helpful message about this flag, '
-                                'displayed by ``doit help cmd_params``')}],
+                       'help': 'helpful message about this flag'}],
             'verbosity': 2
             }
 
