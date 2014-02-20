@@ -67,11 +67,11 @@ class TestAuto(object):
         for x in range(5):
             try:
                 got = open(target1, 'r').read()
-                print got
+                print(got)
                 if got == 'ok':
                     break
             except:
-                print 'busy'
+                print('busy')
             time.sleep(0.1)
         else: # pragma: no cover
             raise Exception("target not created")
@@ -89,7 +89,7 @@ class TestAuto(object):
             fd.write("hi" + str(time.asctime()))
             fd.close()
 
-            run_wait_proc.join(.5)
+            run_wait_proc.join(1)
             if run_wait_proc.is_alive(): # pragma: no cover
                 run_wait_proc.terminate()
                 raise Exception("process not terminated")
