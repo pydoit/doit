@@ -52,26 +52,46 @@ class TestAuto(object):
         pytest.raises(InvalidCommand, cmd.execute, None, 't2')
 
 
-    def test_run_wait(self, dependency1, depfile_name):
-        t1 = Task("t1", [""], file_dep=[dependency1])
+    def test_run_wait(self, dependency1, target1, depfile_name):
+        def ok():
+            with open(target1, 'w') as fp:
+                fp.write('ok')
+        t1 = Task("t1", [ok], file_dep=[dependency1])
         cmd = cmd_auto.Auto(task_loader=FakeLoader([t1], depfile_name))
 
         run_wait_proc = Process(target=cmd.run_watch,
                                 args=(DefaultUpdate(), []))
         run_wait_proc.start()
 
-        # wait for task to run
-        time.sleep(.5)
+        # wait until task is executed
+        for x in range(5):
+            try:
+                got = open(target1, 'r').read()
+                if got == 'ok':
+                    break
+            except:
+                pass
+            time.sleep(0.1)
+        else: # pragma: no cover
+            raise Exception("target not created")
 
         # write on file to terminate process
         fd = open(dependency1, 'w')
         fd.write("hi" + str(time.asctime()))
         fd.close()
 
-        run_wait_proc.join(1)
+        run_wait_proc.join(.2)
         if run_wait_proc.is_alive(): # pragma: no cover
-            run_wait_proc.terminate()
-            raise Exception("process not terminated")
+            # this test is very flaky so we give it one more chance...
+            # write on file to terminate process
+            fd = open(dependency1, 'w')
+            fd.write("hi" + str(time.asctime()))
+            fd.close()
+
+            run_wait_proc.join(.2)
+            if run_wait_proc.is_alive(): # pragma: no cover
+                run_wait_proc.terminate()
+                raise Exception("process not terminated")
         assert 0 == run_wait_proc.exitcode
 
 

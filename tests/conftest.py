@@ -35,6 +35,18 @@ def dependency1(request):
 
     return path
 
+# fixture to create a sample file to be used as file_dep
+@pytest.fixture
+def target1(request):
+    path = get_abspath("data/target1")
+    if os.path.exists(path):
+        os.remove(path)
+    def remove_path():
+        if os.path.exists(path):
+            os.remove(path)
+    request.addfinalizer(remove_path)
+    return path
+
 
 # fixture for "doit.db". create/remove for every test
 def remove_db(filename):
