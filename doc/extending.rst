@@ -7,11 +7,14 @@ Extending `doit`
 `doit` is built to be extended and this can be done in several levels.
 So far we have seen:
 
-1) Task creator functions can be placed in a "lib" and then imported in a dodo.py
-2) User's can create new ways to define when a task is up-to-date using
-   the `uptodate` task parameter
-3) The output can be configured by creating custom reports
+1) User's can create new ways to define when a task is up-to-date using
+   the `uptodate` task parameter (:ref:`more <uptodate_api>`)
+2) Tasks can be created in different styles by creating a custom
+   task creators (:ref:`more <create-doit-tasks>`)
+3) The output can be configured by creating custom
+   reports (:ref:`more <reporter>`)
 4) You can customize how tasks are executed by creating new Action types
+   (:ref:`more <custom-actions>`)
 
 Apart from those `doit` also expose it's internal API so you can create
 new applications on top of `doit`.

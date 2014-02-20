@@ -123,6 +123,7 @@ If a file is a target of another task you should probably add
 .. literalinclude:: tutorial/check_timestamp_unchanged.py
 
 
+.. _uptodate_api:
 
 uptodate API
 --------------

@@ -145,6 +145,7 @@ If the process exits with the value `0` it is successful.
 Any other value means the task failed.
 
 
+.. _custom-actions:
 
 custom actions
 ^^^^^^^^^^^^^^^^^^^
@@ -444,11 +445,12 @@ If task name starts with an underscore '_', it will not be included in the outpu
 
 .. _create-doit-tasks:
 
+
 custom task definition
 ------------------------
 
 Apart from collect functions that start with the name `task_`.
-The *doit* loader will also execute the `create_doit_tasks`
+The *doit* loader will also execute the ``create_doit_tasks``
 callable from any object that contains this attribute.
 
 
@@ -457,4 +459,37 @@ callable from any object that contains this attribute.
 The `project letsdoit <https://bitbucket.org/takluyver/letsdoit>`_
 has some real-world implementations.
 
-For simple examples to help you create your own check this `blog post <http://blog.schettino72.net/posts/doit-task-creation.html>`_.
+For simple examples to help you create your own check this
+`blog post <http://blog.schettino72.net/posts/doit-task-creation.html>`_.
+
+
+importing tasks
+---------------
+
+The *doit* loader will look at **all** objects in the namespace of the *dodo*.
+It will look for functions staring with ``task_`` and objects with
+``create_doit_tasks``.
+So it is also possible to load task definitions from other
+modules just by importing them into your *dodo* file.
+
+.. literalinclude:: tutorial/import_tasks.py
+
+.. code-block:: console
+
+    $ doit list
+    echo
+    hello
+    sample
+
+
+.. note::
+
+   Importing tasks from different modules is useful if you want to split
+   your task definitions in different modules.
+
+   The best way to create re-usable tasks that can be used in several projects
+   is to call functions that return task dict's.
+   For example take a look at a reusable *pyflakes*
+   `task generator <https://github.com/pydoit/doit-py/blob/master/doitpy/pyflakes.py>`_.
+   Check the project `doit-py <https://github.com/pydoit/doit-py>`_
+   for more examples.
