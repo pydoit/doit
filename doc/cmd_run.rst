@@ -92,12 +92,12 @@ parameters
 
 It is possible to pass option parameters to the task through the command line.
 
-Just add a 'params' field to the task dictionary. `params` must be a list of
+Just add a ``params`` field to the task dictionary. ``params`` must be a list of
 dictionaries where every entry is an option parameter. Each parameter must
 define a name, and a default value. It can optionally define a "short" and
 "long" names to be used from the command line (it follows unix command line
 conventions). It may also specify additional attributes, such as
-its `type` and `help` (see :ref:`below <parameters-attributes>`).
+`type` and `help` (see :ref:`below <parameters-attributes>`).
 
 
 See the example:
@@ -123,61 +123,65 @@ For cmd-actions use python string substitution notation:
     mycmd -c --other value xxx
 
 
+
 .. _parameters-attributes:
 
 All parameters attributes
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Here is the list of all attributes a given task parameter could accepts:
+Here is the list of all attributes ``param`` accepts:
 
-``'name'``
-    Name of the parameter, and that with which parameter is called
-    from command-line: e.g. for a parameter whose name is ``'param'``,
-    this parameter is actually called with ``--param``.
+``name``
+    Name of the parameter, identifier used as name of the the parameter
+    on python code.
     It should be unique among others.
 
     :required:  True
     :type:      `str`
 
-``'short'``
+``default``
+    Default value used when it is set through command-line.
+
+    :required:  True
+
+``short``
     Short parameter form, used for e.g. ``-p value``.
 
     :required:  optional
     :type:      `str`
 
-``'long'``
+``long``
     Long parameter form, used for e.g. ``--parameter value``
     when it differs from its `name`.
 
     :required:  optional
     :type:      `str`
-    :default:   value of ``'name'``
 
-``'type'``
-    Type to which the value must be converted when passed to the parameter.
+``type``
+    Actually it can be any python callable.
+    It coverts the string value received from command line to whatever
+    value to be used on python code.
+
+    If the ``type`` is ``bool`` the parameter is treated as an *option flag*
+    where no value should be specified, value is set to ``True``.
+    Example: ``doit mytask --flag``.
 
     :required:  optional
-    :type:      any `callable` (e.g. a `function`) accepting a single argument
-                as a `str` and returning a value
+    :type:      `callable` (e.g. a `function`)
     :default:   `str`
 
-``'default'``
-    Default value to affect to parameter, whether or not it is set through
-    command-line.
-
-    :required:  True
-
-``'help'``
+``help``
     Help message associated to this parameter, shown when
-    :ref:`help task <cmd-help>` is called for this task,
+    :ref:`help <cmd-help>` is called for this task,
     e.g. ``doit help mytask``.
 
     :required:  optional
     :type:      `str`
 
-``'inverse'``
+``inverse``
     [only for `bool` parameter]
-    Set inverse flag long parameter name (see example below).
+    Set inverse flag long parameter name, value will be set to ``False``
+    (see example below).
 
     :required:  optional
     :type:      `str`

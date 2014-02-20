@@ -70,7 +70,9 @@ params:
    - default [required] default value for parameter
    - short [optional] (string - 1 letter) short option string
    - long [optional] (string) long option string
-   - type [optional] the option will be converted to this type
+   - type [optional] (callable) the option will be converted to this type
+   - help [optional] (string) description displayed by help command
+   - inverse [optional] (string) for a bool parameter set value to False
 
 verbosity:
  - type: int

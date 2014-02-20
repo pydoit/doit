@@ -71,6 +71,9 @@ set some class variables and implement the `execute` method.
    :members: execute
 
 
+``cmd_options`` uses the same format as
+:ref:`task parameters <parameters-attributes>`.
+
 Example: scaffolding
 ----------------------
 

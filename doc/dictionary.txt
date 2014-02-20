@@ -249,3 +249,6 @@ x'
 xxx
 xyz
 zsh
+str
+mytask
+flagoff
