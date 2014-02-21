@@ -88,6 +88,7 @@ class TestFileWatcher(object):
         fd = open(stop_file, 'w')
         fd.write("hi")
         fd.close()
+        time.sleep(0.1)
         loop_thread.join(1)
         assert not loop_thread.isAlive()
 
