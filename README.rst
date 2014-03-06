@@ -66,7 +66,7 @@ dependencies
 
 Tools required for development:
 
-- merucrial * VCS
+- mercurial * VCS
 - py.test * unit-tests
 - mock * unit-tests
 - coverage * code coverage
@@ -75,7 +75,7 @@ Tools required for development:
 - pyflakes * syntax checker
 
 
-developemnt setup
+development setup
 ==================
 
 The best way to setup an environment to develop *doit* itself is to
@@ -83,7 +83,7 @@ create a virtualenv...
 
 ::
 
-  doit$ virtualen dev
+  doit$ virtualenv dev
   (dev)doit$ dev/bin/activate
 
 install ``doit`` as "editable", and add development dependencies
@@ -139,7 +139,7 @@ github mirror setup
 =====================
 
 This is only needed if you will manage both upstream in github and bitbucket.
-For using github only just use `git` normaly and ignore it is a mirror.
+For using github only just use `git` normally and ignore it is a mirror.
 
 * install hg-git (http://hg-git.github.io/) ``sudo pip install hg-git``.
 
@@ -154,7 +154,7 @@ For using github only just use `git` normaly and ignore it is a mirror.
     default = https://bitbucket.org/schettino72/doit
     github = git+ssh://git@github.com/pydoit/doit.git
 
-* make sure you have a ssh key registred on github ::
+* make sure you have a ssh key registered on github ::
 
    $ hg push github
 

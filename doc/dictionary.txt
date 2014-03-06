@@ -63,11 +63,13 @@ LongRunning
 MD5
 ModuleTaskLoader
 MyCustomTask2
+Naufel
 PDB
 Popen
 PyPi
 PythonAction
 PythonInteractiveAction
+README
 ReST
 SCons
 Schettino
@@ -77,6 +79,7 @@ TODO
 TaskLoader
 UptodateCalculator
 Uz
+VCS
 WORDBREAKS
 Waf
 ZeroReporter
@@ -115,6 +118,7 @@ defs
 dep
 dep'
 deps
+dev
 dict
 dict's
 dir
@@ -124,6 +128,7 @@ dumpdb
 efg
 encodable
 env
+epydoc
 eq
 faq
 file'
@@ -131,6 +136,7 @@ file0
 file1
 file2
 file3
+flagoff
 fnmatch
 folderXXX
 foo
@@ -140,6 +146,7 @@ gdbm
 genstandalone
 getargs
 gif
+github
 gmail
 google
 hardcode
@@ -147,6 +154,8 @@ hashlib
 hello2
 helloworld
 hg
+hggit
+hgrc
 html
 init
 inotify
@@ -175,6 +184,7 @@ msg
 mtime
 mycmd
 mygroup
+mytask
 namespace
 once'
 os
@@ -203,6 +213,7 @@ python3
 quickstart
 repr
 rst2s5
+runtests
 s'
 s5defs
 schettino72
@@ -218,7 +229,9 @@ sqlite3
 startswith
 stderr
 stdout
+str
 strace
+sudo
 t1
 t2
 t3
@@ -240,6 +253,7 @@ unicode
 unix
 uptodate
 utf8
+virtualenv
 wget
 wildcard
 withenvX
@@ -249,6 +263,3 @@ x'
 xxx
 xyz
 zsh
-str
-mytask
-flagoff
