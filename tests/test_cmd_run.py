@@ -70,7 +70,28 @@ class TestCmdRun(object):
                       task_list=tasks_sample(), sel_tasks=["g1.a"])
         cmd_run._execute(output)
         got = output.getvalue().split("\n")[:-1]
-        assert [".  g1.a"] == got, repr(got)
+        assert [".  g1.a"] == got
+
+    def testProcessRunSingle(self, depfile_name):
+        output = StringIO()
+        cmd_run = Run(backend='dbm', dep_file=depfile_name,
+                      task_list=tasks_sample(), sel_tasks=["t3"])
+        cmd_run._execute(output, single=True)
+        got = output.getvalue().split("\n")[:-1]
+        # t1 is a depenendency of t3 but not included
+        assert [".  t3"] == got
+
+    def testProcessRunSingleSubtasks(self, depfile_name):
+        output = StringIO()
+        task_list = tasks_sample()
+        assert task_list[4].name == 'g1.b'
+        task_list[4].task_dep = ['t3']
+        cmd_run = Run(backend='dbm', dep_file=depfile_name,
+                      task_list=task_list, sel_tasks=["g1"])
+        cmd_run._execute(output, single=True)
+        got = output.getvalue().split("\n")[:-1]
+        # t3 is a depenendency of g1.b but not included
+        assert [".  g1.a", ".  g1.b"] == got
 
     def testProcessRunEmptyFilter(self, depfile_name):
         output = StringIO()
@@ -128,7 +149,7 @@ class TestCmdRun(object):
             outfile = open('test.out', 'r')
             got = outfile.read()
             outfile.close()
-            assert ".  g1.a\n" == got, repr(got)
+            assert ".  g1.a\n" == got
         finally:
             if os.path.exists('test.out'):
                 os.remove('test.out')

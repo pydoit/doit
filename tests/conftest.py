@@ -39,7 +39,7 @@ def dependency1(request):
 @pytest.fixture
 def target1(request):
     path = get_abspath("data/target1")
-    if os.path.exists(path):
+    if os.path.exists(path): # pragma: no cover
         os.remove(path)
     def remove_path():
         if os.path.exists(path):
@@ -122,12 +122,18 @@ def restore_cwd(request):
 # create a list of sample tasks
 def tasks_sample():
     tasks_sample = [
+        # 0
         Task("t1", [""], doc="t1 doc string"),
+        # 1
         Task("t2", [""], file_dep=['tests/data/dependency1'],
              doc="t2 doc string"),
-        Task("g1", None, doc="g1 doc string"),
+        # 2
+        Task("g1", None, doc="g1 doc string", has_subtask=True),
+        # 3
         Task("g1.a", [""], doc="g1.a doc string", is_subtask=True),
+        # 4
         Task("g1.b", [""], doc="g1.b doc string", is_subtask=True),
+        # 5
         Task("t3", [""], doc="t3 doc string", task_dep=["t1"])
         ]
     tasks_sample[2].task_dep = ['g1.a', 'g1.b']

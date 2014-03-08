@@ -56,6 +56,16 @@ opt_continue = {'name': 'continue',
                 }
 
 
+opt_single = {'name': 'single',
+              'short': 's',
+              'long': 'single',
+              'type': bool,
+              'default': False,
+              'help': "Execute only specfied tasks ignoring their task_dep "
+                      "[default: %(default)s]"
+              }
+
+
 opt_num_process = {'name': 'num_process',
                    'short': 'n',
                    'long': 'process',
@@ -116,11 +126,12 @@ class Run(DoitCmdBase):
 
     cmd_options = (opt_always, opt_continue, opt_verbosity,
                    opt_reporter, opt_outfile, opt_num_process,
-                   opt_parallel_type, opt_pdb)
+                   opt_parallel_type, opt_pdb, opt_single)
 
     def _execute(self, outfile,
                  verbosity=None, always=False, continue_=False,
-                 reporter='default', num_process=0, par_type='process'):
+                 reporter='default', num_process=0, par_type='process',
+                 single=False):
         """
         @param reporter: (str) one of provided reporters or ...
                          (class) user defined reporter class (can only be specified
@@ -131,6 +142,16 @@ class Run(DoitCmdBase):
         # self.control is saved on instance to be used by 'auto' command
         self.control = TaskControl(self.task_list)
         self.control.process(self.sel_tasks)
+
+        if single:
+            for task_name in self.sel_tasks:
+                task = self.control.tasks[task_name]
+                if task.has_subtask:
+                    for task_name in task.task_dep:
+                        sub_task = self.control.tasks[task_name]
+                        sub_task.task_dep = []
+                else:
+                    task.task_dep = []
 
         # reporter
         if isinstance(reporter, six.string_types):
