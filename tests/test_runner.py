@@ -485,6 +485,20 @@ class TestRunner_run_tasks(object):
         assert 0 == len(reporter.log)
 
 
+    def testActionModifiesFiledep(self, reporter, RunnerClass, depfile_name):
+        extra_dep = os.path.join(os.path.dirname(__file__), 'sample_md5.txt')
+        def action_add_filedep(task):
+            task.file_dep.add(extra_dep)
+        t1 = Task("t1", [(my_print, ["out a"] ), action_add_filedep] )
+        my_runner = RunnerClass(Dependency, depfile_name, reporter)
+        my_runner.run_tasks(TaskDispatcher({'t1':t1}, [], ['t1']))
+        assert runner.SUCCESS == my_runner.finish()
+        assert ('start', t1) == reporter.log.pop(0), reporter.log
+        assert ('execute', t1) == reporter.log.pop(0)
+        assert ('success', t1) == reporter.log.pop(0)
+        assert t1.file_dep == set([extra_dep])
+
+
     # SystemExit runner should not interfere with SystemExit
     def testSystemExitRaises(self, reporter, RunnerClass, depfile_name):
         t1 = Task("t1", [_exit])

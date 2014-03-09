@@ -387,8 +387,7 @@ class MRunner(Runner):
             else:
                 # success set values taken from subprocess result
                 catched_excp = None
-                task.result = result['result']
-                task.values = result['values']
+                task.update_from_pickle(result['task'])
                 for action, output in zip(task.actions, result['out']):
                     action.out = output
                 for action, output in zip(task.actions, result['err']):
@@ -464,8 +463,7 @@ class MRunner(Runner):
                 t_result = self.execute_task(task)
 
                 if t_result is None:
-                    result['result'] = task.result
-                    result['values'] = task.values
+                    result['task'] = task
                     result['out'] = [a.out for a in task.actions]
                     result['err'] = [a.err for a in task.actions]
                 else:
