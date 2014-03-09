@@ -481,7 +481,13 @@ class MRunner(Runner):
 class MThreadRunner(MRunner):
     """Parallel runner using threads"""
     Queue = staticmethod(queue.Queue)
-    Child = staticmethod(Thread)
+    # use a daemon thread to make sure process is terminated if there is
+    # an uncatch exception and threads are not correctly joined.
+    class DaemonThread(Thread):
+        def __init__(self, *args, **kwargs):
+            Thread.__init__(self, *args, **kwargs)
+            self.daemon = True
+    Child = staticmethod(DaemonThread)
 
     @staticmethod
     def available():
