@@ -217,6 +217,7 @@ class TestSaveSuccess(object):
         pdepfile.save_success(t1)
         assert pdepfile._get("taskId_X",filePath) is not None
         assert pdepfile._get("taskId_X",filePath2) is not None
+        assert set(pdepfile._get("taskId_X", 'deps:')) == t1.file_dep
 
     def test_save_values(self, pdepfile):
         t1 = Task('t1', None)
@@ -337,6 +338,35 @@ class TestGetStatus(object):
         # execute again
         assert 'run' == pdepfile.get_status(t1, {})
         assert dependencies == t1.dep_changed
+
+    def test_fileDependencies_changed(self, pdepfile):
+        filePath = get_abspath("data/dependency1")
+        ff = open(filePath,"w")
+        ff.write("part1")
+        ff.close()
+
+        filePath2 = get_abspath("data/dependency2")
+        ff = open(filePath,"w")
+        ff.write("part1")
+        ff.close()
+
+        dependencies = [filePath, filePath2]
+        t1 = Task("t1", None, dependencies)
+
+        # first time execute
+        assert 'run' == pdepfile.get_status(t1, {})
+        assert dependencies == t1.dep_changed
+
+        # second time no
+        pdepfile.save_success(t1)
+        assert 'up-to-date' == pdepfile.get_status(t1, {})
+        assert [] == t1.dep_changed
+
+        # remove dependency filePath2
+        t1 = Task("t1", None, [filePath])
+        # execute again
+        assert 'run' == pdepfile.get_status(t1, {})
+        assert [] == t1.dep_changed
 
 
     def test_file_dependency_not_exist(self, pdepfile):

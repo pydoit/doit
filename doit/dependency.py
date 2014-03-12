@@ -415,6 +415,10 @@ class DependencyBase(object):
             size = os.path.getsize(dep)
             self._set(task.name, dep, (timestamp, size, get_file_md5(dep)))
 
+        # save list of file_deps
+        self._set(task.name, 'deps:', tuple(task.file_dep))
+
+
 
     def get_values(self, task_name):
         """get all saved values from a task
@@ -506,8 +510,12 @@ class DependencyBase(object):
                 return 'run'
 
         # check for modified file_dep
-        changed = []
-        status = 'up-to-date' # initial assumption
+        changed = [] # list of file_dep that changed
+        previous = self._get(task.name, 'deps:')
+        if previous and set(previous) != task.file_dep:
+             status = 'run'
+        else:
+            status = 'up-to-date' # initial assumption
         for dep in tuple(task.file_dep):
             try:
                 file_stat = os.stat(dep)
