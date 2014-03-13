@@ -60,6 +60,7 @@ InvalidCommand
 JSON
 KeyboardInterrupt
 LongRunning
+longrunning
 MD5
 ModuleTaskLoader
 MyCustomTask2
@@ -180,6 +181,7 @@ maxdepth
 md5
 metadata
 minversion
+mortem
 msg
 mtime
 mycmd
@@ -249,6 +251,7 @@ toctree
 tsetup
 txt
 txt'
+unhandled
 unicode
 unix
 uptodate

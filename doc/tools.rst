@@ -25,31 +25,39 @@ Return task name task actions from a task. This function can be used as 'title' 
 .. literalinclude:: tutorial/titlewithactions.py
 
 
-.. _tools.InteractiveAction:
+.. _tools.LongRunning:
 
-InteractiveAction (action)
+LongRunning (action)
 -----------------------------
 
-An InteractiveAction is like a CmdAction but with the following differences:
+.. autoclass:: doit.tools.LongRunning
 
-  * the output is never captured
-  * it is always successful (return code is not used)
-  * "swallow" KeyboardInterrupt
 
 This is useful for executing long running process like a web-server.
 
-.. literalinclude:: tutorial/interactiveaction.py
+.. literalinclude:: tutorial/longrunning.py
+
+
+Interactive (action)
+----------------------------------
+
+.. autoclass:: doit.tools.Interactive
+
 
 
 PythonInteractiveAction (action)
 ----------------------------------
 
-Similar to InteractiveAction but for PythonAction.
+.. autoclass:: doit.tools.PythonInteractiveAction
+
 
 
 set_trace
 -----------
 
-`doit` by default redirects stdout and stderr. Because of this when you try to use the python debugger with ``pdb.set_trace``, it does not work properly. To make sure you get a proper PDB shell you should use doit.tools.set_trace instead of ``pdb.set_trace``.
+`doit` by default redirects stdout and stderr. Because of this when you try to
+use the python debugger with ``pdb.set_trace``, it does not work properly.
+To make sure you get a proper PDB shell you should use doit.tools.set_trace
+instead of ``pdb.set_trace``.
 
 .. literalinclude:: tutorial/settrace.py

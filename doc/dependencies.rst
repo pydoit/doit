@@ -13,7 +13,8 @@ to determine if a task is up-to-date through the attribute ``uptodate``.
 This can be used in cases where you need to some kind of calculation to
 determine if the task is up-to-date or not.
 
-``uptodate`` is a list where each element can be True, False, None or a callable.
+``uptodate`` is a list where each element can be True, False, None, a callable
+or a command(string).
 
  * ``False`` indicates that the task is NOT up-to-date
  * ``True`` indicates that the task is up-to-date
@@ -28,6 +29,10 @@ determine if the task is up-to-date or not.
   i.e. if uptodate==True but a file_dep changes the task is still
   considered **not** up-to-date.
 
+
+If an ``uptodate`` item is a string it will be executed on the shell.
+If the process exits with the code ``0``, it is considered as up-to-date.
+All other values would be considered as not up-to-date.
 
 ``uptodate`` elements can also be a callable that will be executed on runtime
 (not when the task is being created).

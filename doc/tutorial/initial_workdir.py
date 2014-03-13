@@ -1,5 +1,5 @@
 ### README
-# Sample to test doit.initial_workdir
+# Sample to test doit.get_initial_workdir
 # First create a folder named 'sub1'.
 # Invoking doit from the root folder will execute both tasks 'base' and 'sub1'.
 # Invoking 'doit -k' from path 'sub1' will execute only task 'sub1'

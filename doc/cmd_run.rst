@@ -47,172 +47,75 @@ This flag is valid for all sub-commands.
 *doit* can seek for the ``dodo.py`` file on parent folders if the the option ``--seek-file`` is specified.
 
 
+as an executable file
+-----------------------
+
+It is possible to make a ``dodo`` file become an executable on its own
+by calling the ``doit.run()``, you need to pass the ``globals``:
+
+
+.. literalinclude:: tutorial/executable.py
+
+.. note::
+
+  The ``doit.run()`` method will call ``sys.exit()`` so any code after it
+  will not be executed.
+
+
+
+returned value
+------------------
+
+``doit`` process returns:
+
+ * 0 => all tasks executed successfully
+ * 1 => task failed
+ * 2 => error executing task
+ * 3 => error before task execution starts
+        (in this case the reporter is not used)
+
+
+
+config
+--------
+
+Command line parameters can be set straight on a `dodo` file. This example below sets the default tasks to be run, the `continue` option, and a different reporter.
+
+.. literalinclude:: tutorial/doit_config.py
+
+So if you just execute
+
+.. code-block:: console
+
+   $ doit
+
+it will have the same effect as executing
+
+.. code-block:: console
+
+   $ doit --continue --reporter json my_task_1 my_task_2
+
+You need to check `doit_cmd.py <https://bitbucket.org/schettino72/doit/src/tip/doit/doit_cmd.py>`_ to find out how parameter maps to config names.
+
+.. note::
+
+  The parameters `--file` and `--dir` can not be used on config because
+  they control how the dodo file itself is loaded.
+
+
+
+
+.. _verbosity_option:
+
 verbosity
 -----------
 
-By default the stdout from a task is captured and its stderr is sent to the console. If the task fails or there is an error the stdout and a traceback (if any) is displayed.
-
-There are 3 levels of verbosity:
-
-0:
-  capture (do not print) stdout/stderr from task.
-
-1 (default):
-  capture stdout only.
-
-2:
-  do not capture anything (print everything immediately).
-
-
-You can control the verbosity by:
-
-* --verbosity/-v command line option.
-
-  change verbosity of all executed tasks.
+Option to change the default global task :ref:`verbosity<verbosity>` value.
 
 .. code-block:: console
 
     $ doit --verbosity 2
 
-* task attribute verbosity
-
-.. literalinclude:: tutorial/verbosity.py
-
-.. code-block:: console
-
-    $ doit
-    .  print
-    hello
-
-
-.. _parameters:
-
-parameters
------------
-
-It is possible to pass option parameters to the task through the command line.
-
-Just add a ``params`` field to the task dictionary. ``params`` must be a list of
-dictionaries where every entry is an option parameter. Each parameter must
-define a name, and a default value. It can optionally define a "short" and
-"long" names to be used from the command line (it follows unix command line
-conventions). It may also specify additional attributes, such as
-`type` and `help` (see :ref:`below <parameters-attributes>`).
-
-
-See the example:
-
-.. literalinclude:: tutorial/parameters.py
-
-
-For python-actions the python function must define arguments with the same name as a task parameter.
-
-.. code-block:: console
-
-    $ doit py_params -p abc --param2 4
-    .  py_params
-    abc
-    9
-
-For cmd-actions use python string substitution notation:
-
-.. code-block:: console
-
-    $ doit cmd_params -f "-c --other value"
-    .  cmd_params
-    mycmd -c --other value xxx
-
-
-
-.. _parameters-attributes:
-
-All parameters attributes
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Here is the list of all attributes ``param`` accepts:
-
-``name``
-    Name of the parameter, identifier used as name of the the parameter
-    on python code.
-    It should be unique among others.
-
-    :required:  True
-    :type:      `str`
-
-``default``
-    Default value used when it is set through command-line.
-
-    :required:  True
-
-``short``
-    Short parameter form, used for e.g. ``-p value``.
-
-    :required:  optional
-    :type:      `str`
-
-``long``
-    Long parameter form, used for e.g. ``--parameter value``
-    when it differs from its `name`.
-
-    :required:  optional
-    :type:      `str`
-
-``type``
-    Actually it can be any python callable.
-    It coverts the string value received from command line to whatever
-    value to be used on python code.
-
-    If the ``type`` is ``bool`` the parameter is treated as an *option flag*
-    where no value should be specified, value is set to ``True``.
-    Example: ``doit mytask --flag``.
-
-    :required:  optional
-    :type:      `callable` (e.g. a `function`)
-    :default:   `str`
-
-``help``
-    Help message associated to this parameter, shown when
-    :ref:`help <cmd-help>` is called for this task,
-    e.g. ``doit help mytask``.
-
-    :required:  optional
-    :type:      `str`
-
-``inverse``
-    [only for `bool` parameter]
-    Set inverse flag long parameter name, value will be set to ``False``
-    (see example below).
-
-    :required:  optional
-    :type:      `str`
-
-    Example, given following code:
-
-    .. literalinclude:: tutorial/parameters_inverse.py
-
-    calls to task `with_flag` show flag on or off:
-
-    .. code-block:: console
-
-        $ doit with_flag
-        .  with_flag
-        Flag On
-        $ doit with_flag --flagoff
-        .  with_flag
-        Flag Off
-
-
-title
--------
-
-By default when you run `doit` only the task name is printed out on the output. You can customize the output passing a "title" function to the task:
-
-.. literalinclude:: tutorial/title.py
-
-.. code-block:: console
-
-    $ doit
-    .  executing... Cmd: echo abc efg
 
 
 dir (cwd)
@@ -235,6 +138,18 @@ By default the execution of tasks is halted on the first task failure or error. 
 .. code-block:: console
 
     $ doit --continue
+
+
+single task execution
+----------------------
+
+The option ``-s/--single`` can be used to execute a task without executing
+its task dependencies.
+
+.. code-block:: console
+
+    $ doit -s do_something
+
 
 
 .. _parallel-execution:
@@ -310,12 +225,20 @@ The option --output-file/-o let you output the result to a file.
     $ doit --output-file result.txt
 
 
-initial_workdir
------------------
+pdb
+-------
+
+If the option ``--pdb`` is used, a post-mortem debugger will be launched in case
+of a unhandled exception while loading tasks.
+
+
+
+get_initial_workdir
+---------------------
 
 When `doit` executes by default it will use the location of `dodo.py`
 as the current working directory (unless --dir is specified).
-The value of `doit.initial_workdir` will contain the path from where
+The value of `doit.get_initial_workdir` will contain the path from where
 `doit` was invoked from.
 
 This can be used for example set which tasks will be executed:
@@ -323,34 +246,8 @@ This can be used for example set which tasks will be executed:
 .. literalinclude:: tutorial/initial_workdir.py
 
 
-config
---------
-
-Command line parameters can be set straight on a `dodo` file. This example below sets the default tasks to be run, the `continue` option, and a different reporter.
-
-.. literalinclude:: tutorial/doit_config.py
-
-So if you just execute
-
-.. code-block:: console
-
-   $ doit
-
-it will have the same effect as executing
-
-.. code-block:: console
-
-   $ doit --continue --reporter json my_task_1 my_task_2
-
-You need to check `doit_cmd.py <https://bitbucket.org/schettino72/doit/src/tip/doit/doit_cmd.py>`_ to find out how parameter maps to config names.
-
-.. note::
-
-  The parameters `--file` and `--dir` can not be used on config because they control how the dodo file itself is loaded.
-
-
 minversion
-^^^^^^^^^^^^
+-------------
 
 `minversion` can be used to specify the minimum/oldest `doit` version
 that can be used with a `dodo.py` file.
@@ -371,15 +268,4 @@ older that `X`, doit will display an error warning the user to update `doit`.
   This feature was added on `doit` 0.24.0.
   Older Versions will not check or display error messages.
 
-
-returned value
-------------------
-
-``doit`` process returns:
-
- * 0 => all tasks executed successfully
- * 1 => task failed
- * 2 => error executing task
- * 3 => error before task execution starts
-        (in this case the reporter is not used)
 
