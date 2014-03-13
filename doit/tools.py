@@ -219,7 +219,8 @@ class check_timestamp_unchanged(object):
 class LongRunning(CmdAction):
     """Action to handle a Long running shell process,
     usually a server or service.
-    Peoperties:
+    Properties:
+
         * the output is never captured
         * it is always successful (return code is not used)
         * "swallow" KeyboardInterrupt
@@ -239,7 +240,8 @@ InteractiveAction = LongRunning
 
 class Interactive(CmdAction):
     """Action to handle Interactive shell process:
-        * the output is never captured
+
+       * the output is never captured
     """
     def execute(self, out=None, err=None):
         action = self.expand_action()
@@ -255,9 +257,9 @@ class Interactive(CmdAction):
 # action class
 class PythonInteractiveAction(PythonAction):
     """Action to handle Interactive python:
-        * the output is never captured
-        * it is always successful (return code is not used)
-          unless a exeception is raised
+
+       * the output is never captured
+       * it is successful unless a exeception is raised
     """
     def execute(self, out=None, err=None):
         kwargs = self._prepare_kwargs()
