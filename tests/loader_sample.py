@@ -12,5 +12,5 @@ def task_xxx1():
 def task_yyy2():
     return {'actions':None}
 
-def bad_seed():
+def bad_seed(): # pragma: no cover
     pass

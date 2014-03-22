@@ -355,7 +355,7 @@ class TestGetStatus(object):
 
         # first time execute
         assert 'run' == pdepfile.get_status(t1, {})
-        assert dependencies == t1.dep_changed
+        assert sorted(dependencies) == sorted(t1.dep_changed)
 
         # second time no
         pdepfile.save_success(t1)
