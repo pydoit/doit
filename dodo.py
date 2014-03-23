@@ -5,6 +5,9 @@ import os
 import subprocess
 
 import pytest
+from doitpy.pyflakes import Pyflakes
+from doitpy.coverage import Config, Coverage, PythonPackage
+
 
 from doit.tools import create_folder
 
@@ -20,22 +23,10 @@ TESTING_FILES = glob.glob("tests/*.py")
 PY_FILES = CODE_FILES + TESTING_FILES
 
 
-def task_checker():
-    """run pyflakes on all project files"""
-
-    def add_pyflakes_builtins():
-        os.environ['PYFLAKES_BUILTINS'] = 'unicode'
-    yield {
-        'basename': '_pyflakes_builtins',
-        'actions': [add_pyflakes_builtins]
-        }
-
-    for module in PY_FILES:
-        yield {'actions': ["pyflakes %(dependencies)s"],
-               'name':module,
-               'file_dep':(module,),
-               'setup':['_pyflakes_builtins'],
-               'title': (lambda task: task.name)}
+def task_pyflakes():
+    flaker = Pyflakes()
+    yield flaker.tasks('doit/*.py')
+    yield flaker.tasks('tests/*.py')
 
 def run_test(test):
     return not bool(pytest.main(test))
@@ -51,7 +42,6 @@ def task_ut():
 
 ################## coverage tasks
 
-from doitpy.coverage import Config, Coverage, PythonPackage
 def task_coverage():
     """show coverage for all modules including tests"""
     cov = Coverage([PythonPackage('doit', 'tests')],
@@ -62,14 +52,6 @@ def task_coverage():
     yield cov.src()
     yield cov.by_module()
 
-
-############# python3
-
-def task_test3():
-    """run unitests on python3"""
-    return {'actions': ["py.test-3.2"],
-            'verbosity': 2,
-            }
 
 
 ############################ website
