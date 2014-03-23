@@ -27,8 +27,8 @@ class TestHelp(object):
         assert "task doc" in out # doc
         assert "" in out # params
 
-    def test_help_wrong_name(self, capsys):
-        cmd_main(["help", "wrong_name"])
+    def test_help_wrong_name(self, capsys, restore_cwd):
+        cmd_main(["help", "-f", "tests/loader_sample.py", "wrong_name"])
         out, err = capsys.readouterr()
         assert "doit list" in out
 

@@ -22,10 +22,9 @@ branches:
 
 
 script:
-   - doit pyflakes
+   - if [[ $TRAVIS_PYTHON_VERSION != '2.6' ]]; then doit pyflakes; fi
    - py.test
-   - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then coverage run --parallel-mode `which py.test`; fi
-   - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then coverage combine; fi
+   - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then doit coverage; fi
 after_success:
   - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then coveralls; fi
 
