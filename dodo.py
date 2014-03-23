@@ -51,37 +51,16 @@ def task_ut():
 
 ################## coverage tasks
 
+from doitpy.coverage import Config, Coverage, PythonPackage
 def task_coverage():
     """show coverage for all modules including tests"""
-    return {'actions':
-                ["coverage run --parallel-mode `which py.test` ",
-                 "coverage combine",
-                 ("coverage report --show-missing %s" %
-                  " ".join(CODE_FILES + TEST_FILES))
-                 ],
-            'verbosity': 2}
-
-
-def task_coverage_code():
-    """show coverage for all modules (exclude tests)"""
-    return {'actions':
-                ["coverage run --parallel-mode `which py.test` ",
-                 "coverage combine",
-                 "coverage report --show-missing %s" % " ".join(CODE_FILES)],
-            'verbosity': 2}
-
-
-def task_coverage_module():
-    """show coverage for individual modules"""
-    to_strip = len('tests/test_')
-    for test in TEST_FILES:
-        source = "doit/" + test[to_strip:]
-        yield {'name': test,
-               'actions':
-                   ["coverage run --parallel-mode `which py.test` -v %s" % test,
-                    "coverage combine",
-                    "coverage report --show-missing %s %s" % (source, test)],
-               'verbosity': 2}
+    cov = Coverage([PythonPackage('doit', 'tests')],
+                   config=Config(branch=False, parallel=True,
+                          omit=['tests/myecho.py', 'tests/sample_process.py'],)
+                   )
+    yield cov.all()
+    yield cov.src()
+    yield cov.by_module()
 
 
 ############# python3

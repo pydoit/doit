@@ -1,9 +1,13 @@
+import os
 import sys
+
+import pytest
 
 from doit.api import run
 
-def test_execute(monkeypatch):
-    monkeypatch.setattr(sys, 'argv', ['did'])
+
+def test_execute(monkeypatch, depfile_name):
+    monkeypatch.setattr(sys, 'argv', ['did', '--db-file', depfile_name])
     try:
         def hi():
             print('hi')
