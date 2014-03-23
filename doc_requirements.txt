@@ -1,0 +1,5 @@
+# modules required to generate documentation
+# $ pip install --requirement doc_requirements.txt
+
+sphinx
+epydoc
