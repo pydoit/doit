@@ -3,8 +3,9 @@
 Changes
 =======
 
-0.25.0
-==========
+
+0.25.0 (*2014-03-26*)
+======================
 
  - BACKWARD INCOMPATIBLE: use function `doit.get_initial_workdir()`
    instead of variable `doit.initial_workdir`
