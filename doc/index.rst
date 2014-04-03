@@ -124,6 +124,7 @@ What people are saying about `doit`
   Some time ago, I grew frustrated with Make and Ant and started porting my build files to every build tool I found (SCons, Waf, etc.). Each time, as soon as I stepped out of already available rules, I ran into some difficult to overcome stumbling blocks. Then I discovered this little gem of simplicity: doit. It's Python-based. It doesn't try to be smart, it does not try to be cool, it just works. If you are looking for a flexible little build tool for different languages and tasks, give it a chance. (...) - `lelele <http://www.hnsearch.com/search#request/all&q=python-doit.sourceforge.net&start=0>`_
 
 
+`Success Stories... <stories.html>`_
 
 Project Details
 ===============
@@ -138,7 +139,7 @@ Project Details
 
 * This web site is hosted on http://pages.github.com
 
-* `doit-recipes <https://bitbucket.org/schettino72/doit-recipes/wiki/Home>`_ contains a collection of non-trivial examples and a list of projects using `doit`.
+* `doit projects <https://github.com/pydoit>`_ contains a collection of non-trivial examples and re-usable task generators for `doit`.
 
 * Professional support and consulting services available from `doit`
   creator & maintainer (*schettino72* at gmail.com).

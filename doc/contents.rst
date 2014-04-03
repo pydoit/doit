@@ -21,6 +21,7 @@ Contents:
    extending
    standalone
    faq
+   stories
    changes
    related
 

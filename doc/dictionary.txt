@@ -44,6 +44,7 @@
 2to3
 API
 BaseAction
+Biomechanics
 CFEngine
 CMake
 CmdAction
@@ -52,6 +53,7 @@ CmdActions
 Config
 ConsoleReporter
 Ctrl
+Dembia
 DoitMain
 Gliwinski
 Guo
@@ -60,7 +62,6 @@ InvalidCommand
 JSON
 KeyboardInterrupt
 LongRunning
-longrunning
 MD5
 ModuleTaskLoader
 MyCustomTask2
@@ -96,6 +97,7 @@ backend
 backends
 bar'
 basename
+biomechanics
 bitbucket
 bool
 c'
@@ -174,6 +176,7 @@ lelele
 letsdoit
 linux
 literalinclude
+longrunning
 lovin
 macfsevents
 makedirs
@@ -262,6 +265,7 @@ wildcard
 withenvX
 withenvY
 workdir
+workflow
 x'
 xxx
 xyz
