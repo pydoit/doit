@@ -2,6 +2,10 @@
 
 {% block extrahead %}
 <style>
+  body {
+    font-size: 16px;
+  }
+
   div.topic {
     padding: 2px;
     background-color: #F8F4A6;
@@ -20,6 +24,11 @@
 
   div.related ul li a.external-link {
     padding-right: 13px;
+  }
+
+  .sidebartext {
+    font-size: 75%;
+    line-height: 130%;
   }
 
 </style>
@@ -66,7 +75,7 @@
 <h3>Sponsors</h3>
 <em>Your logo here</em>
 
-<h3>Sponsor/Donate to <em>doit</em></h3>
+<h3>Sponsor/Donate</h3>
 
 {% if include_gittip %}
 <script data-gittip-username="schettino72"
@@ -84,10 +93,20 @@
 </div>
 <br/>
 
-<div style="font-size:75%">
-Why Donate? Donations will be used to sponsor futher development of the project.<br/>
+<div class="sidebartext">
+Why Donate? Donations will be used to sponsor further development of the project.<br/>
 <br/>
-For coorporate donations the logo of your company will be placed on this website side-bar (see above). For more information please contact <em>schettino72</em>&#64<span>gmail.com</span><br/>
+For corporate donations the logo of your company will be placed on this website side-bar (see above). For more information please contact <em>schettino72</em>&#64<span>gmail.com</span><br/>
+</div>
+
+<h3>Hire me</h3>
+<div class="sidebartext">
+Looking for a python developer with a proven record of designing and developing
+robust and well tested applications?
+The creator and maintainer of <em>doit</em> is available for hire.
+Full-time, part-time or one-off job.
+<br/>
+Contact: <em>schettino72</em>&#64<span>gmail.com</span>
 </div>
 
 
