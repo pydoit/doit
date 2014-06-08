@@ -34,7 +34,7 @@ class TestCmdForget(object):
                             backend='dbm', task_list=tasks, sel_tasks=[])
         cmd_forget._execute(False)
         got = output.getvalue().split("\n")[:-1]
-        assert ["forgeting all tasks"] == got, repr(output.getvalue())
+        assert ["forgetting all tasks"] == got, repr(output.getvalue())
         dep = Dependency(depfile_name)
         for task in tasks:
             assert None == dep._get(task.name, "dep")
@@ -47,7 +47,7 @@ class TestCmdForget(object):
                             sel_tasks=["t2", "t1"])
         cmd_forget._execute(False)
         got = output.getvalue().split("\n")[:-1]
-        assert ["forgeting t2", "forgeting t1"] == got
+        assert ["forgetting t2", "forgetting t1"] == got
         dep = Dependency(depfile_name)
         assert None == dep._get("t1", "dep")
         assert None == dep._get("t2", "dep")
@@ -60,7 +60,7 @@ class TestCmdForget(object):
                             backend='dbm', task_list=tasks, sel_tasks=["g1"])
         cmd_forget._execute(False)
         got = output.getvalue().split("\n")[:-1]
-        assert "forgeting g1" == got[0]
+        assert "forgetting g1" == got[0]
 
         dep = Dependency(depfile_name)
         assert "1" == dep._get("t1", "dep")

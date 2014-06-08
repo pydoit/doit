@@ -83,7 +83,8 @@ def task_spell():
             print(output)
             return False
 
-    for doc_file in glob.glob('doc/*.rst') + ['README.rst']:
+    extra_docs = ['README.rst'] #, 'doc/_templates/layout.html']
+    for doc_file in glob.glob('doc/*.rst') + extra_docs:
         yield {
             'name': doc_file,
             'actions': [(check_no_output, (doc_file,))],

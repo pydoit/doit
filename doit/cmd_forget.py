@@ -27,7 +27,7 @@ class Forget(DoitCmdBase):
         # no task specified. forget all
         if not self.sel_tasks:
             dependency_manager.remove_all()
-            self.outstream.write("forgeting all tasks\n")
+            self.outstream.write("forgetting all tasks\n")
 
         # forget tasks from list
         else:
@@ -47,6 +47,6 @@ class Forget(DoitCmdBase):
             for task in to_forget:
                 # forget it - remove from dependency file
                 dependency_manager.remove(task.name)
-                self.outstream.write("forgeting %s\n" % task.name)
+                self.outstream.write("forgetting %s\n" % task.name)
 
         dependency_manager.close()
