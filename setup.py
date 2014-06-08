@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
-from distutils.core import setup, Command
+from setuptools import setup
+from setuptools.command.test import test as TestCommand
 
 
 install_requires = ['six']
@@ -16,16 +17,11 @@ if platform_system == "Darwin":
 elif platform_system == "Linux":
     install_requires.append('pyinotify')
 
-scripts = ['bin/doit']
-# platform specific scripts
-if platform_system == "Windows":
-    scripts.append('bin/doit.bat')
-
 ##################################################
 
 
 # http://pytest.org/goodpractises.html
-class PyTest(Command):
+class PyTest(TestCommand):
     user_options = []
     def initialize_options(self):
         pass
@@ -46,7 +42,7 @@ to execute any kind of **task**
 
 setup(name = 'doit',
       description = 'doit - Automation Tool',
-      version = '0.25.0',
+      version = '0.26.dev0',
       license = 'MIT',
       author = 'Eduardo Naufel Schettino',
       author_email = 'schettino72@gmail.com',
@@ -76,8 +72,12 @@ setup(name = 'doit',
         ],
 
       packages = ['doit'],
-      scripts = scripts,
       cmdclass = {'test': PyTest},
       install_requires = install_requires,
       long_description = long_description,
+      entry_points = {
+          'console_scripts': [
+              'doit = doit.__main__:main'
+          ]
+      },
       )
