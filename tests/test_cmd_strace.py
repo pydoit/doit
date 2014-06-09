@@ -10,7 +10,8 @@ from doit.task import Task
 from doit.cmd_strace import Strace
 
 
-class TestCmdRun(object):
+@pytest.mark.skipif("os.system('strace -V') != 0")
+class TestCmdStrace(object):
 
     def test_dep(self, dependency1, depfile_name):
         output = StringIO()
