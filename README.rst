@@ -73,6 +73,7 @@ Tools required for development:
 - epydoc * API doc generator
 - sphinx * doc tool
 - pyflakes * syntax checker
+- doit-py * helper to run dev tasks
 
 
 development setup
