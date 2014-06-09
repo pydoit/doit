@@ -4,6 +4,7 @@ import os
 import sys
 import inspect
 import six
+from collections import OrderedDict
 
 from .compat import is_bound_method
 from .exceptions import InvalidTask, InvalidCommand, InvalidDodoFile
@@ -251,7 +252,7 @@ def generate_tasks(func_name, gen_result, gen_doc=None):
 
     # a generator
     if inspect.isgenerator(gen_result):
-        tasks = {} # task_name: task
+        tasks = OrderedDict() # task_name: task
         # the generator return subtasks as dictionaries
         for task_dict, x_doc in flat_generator(gen_result, gen_doc):
             _generate_task_from_yield(tasks, func_name, task_dict, x_doc)

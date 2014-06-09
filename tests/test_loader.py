@@ -175,7 +175,7 @@ class TestGenerateTasksGenerator(object):
         def f_xpto():
             for i in range(3):
                 yield {'name':str(i), 'actions' :["xpto -%d"%i]}
-        tasks = sorted(generate_tasks("xpto", f_xpto()))
+        tasks = generate_tasks("xpto", f_xpto())
         assert isinstance(tasks[0], Task)
         assert 4 == len(tasks)
         assert not tasks[0].is_subtask
@@ -192,7 +192,7 @@ class TestGenerateTasksGenerator(object):
         def f_first_level():
             for i in range(2):
                 yield f_xpto(str(i))
-        tasks = sorted(generate_tasks("xpto", f_first_level()))
+        tasks = generate_tasks("xpto", f_first_level())
         assert isinstance(tasks[0], Task)
         assert 7 == len(tasks)
         assert not tasks[0].is_subtask
