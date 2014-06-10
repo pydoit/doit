@@ -28,12 +28,15 @@ def tmpfile(request):
 
 
 class FakeTask(object):
-    def __init__(self, file_dep, dep_changed, targets, options):
+    def __init__(self, file_dep, dep_changed, targets, options,
+                 pos_arg=None, pos_arg_val=None):
         self.name = "Fake"
         self.file_dep = file_dep
         self.dep_changed = dep_changed
         self.targets = targets
         self.options = options
+        self.pos_arg = pos_arg
+        self.pos_arg_val = pos_arg_val
 
 
 ############# CmdAction
@@ -166,7 +169,16 @@ class TestCmdExpandAction(object):
         my_action = action.CmdAction(cmd, task)
         assert my_action.execute() is None
         got = my_action.out.strip()
-        assert "3 - abc def" == got, repr(got)
+        assert "3 - abc def" == got
+
+    def test_task_pos_arg(self):
+        cmd = "python %s/myecho.py" % TEST_PATH
+        cmd += " %(pos)s"
+        task = FakeTask([],[],[],{}, 'pos', ['hi', 'there'])
+        my_action = action.CmdAction(cmd, task)
+        assert my_action.execute() is None
+        got = my_action.out.strip()
+        assert "hi there" == got
 
     def test_callable_return_command_str(self):
         def get_cmd(opt1, opt2):
@@ -575,6 +587,15 @@ class TestPythonActionPrepareKwargsMeta(object):
         my_action = action.PythonAction(py_callable, task=task)
         my_action.execute()
         assert ['1',3] == got, repr(got)
+
+    def test_task_pos_arg(self):
+        got = []
+        def py_callable(pos):
+            got.append(pos)
+        task = FakeTask([],[],[],{}, 'pos', ['hi', 'there'])
+        my_action = action.PythonAction(py_callable, task=task)
+        my_action.execute()
+        assert [['hi', 'there']] == got, repr(got)
 
     def test_option_default_allowed(self, task_depchanged):
         got = []

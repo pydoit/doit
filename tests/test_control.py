@@ -117,6 +117,14 @@ class TestTaskControlCmdOptions(object):
         assert ['t3', 't1'] == tc._filter_tasks(options)
         assert "hello option!" == tc.tasks['t3'].options['opt1']
 
+    def testPosParam(self):
+        tasks = list(TASKS_SAMPLE)
+        tasks.append(Task("tP", [""],[],[], pos_arg='myp'))
+        tc = TaskControl(tasks)
+        args = ["tP", "hello option!", "t1"]
+        assert ['tP',] == tc._filter_tasks(args)
+        assert ["hello option!", "t1"] == tc.tasks['tP'].pos_arg_val
+
 
 class TestExecNode(object):
     def test_repr(self):

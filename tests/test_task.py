@@ -58,9 +58,11 @@ class TestTaskInit(object):
         # when task is created, options contain the default values
         p1 = {'name':'p1', 'default':'p1-default'}
         p2 = {'name':'p2', 'default':'', 'short':'m'}
-        t = task.Task("MyName", None, params=[p1, p2])
+        t = task.Task("MyName", None, params=[p1, p2], pos_arg='pos')
         assert 'p1-default' == t.options['p1']
         assert '' == t.options['p2']
+        assert 'pos' == t.pos_arg
+        assert None == t.pos_arg_val # always unitialized
 
     def test_setup(self):
         t = task.Task("task5", ['action'], setup=["task2"])

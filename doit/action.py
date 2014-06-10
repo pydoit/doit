@@ -55,6 +55,8 @@ class BaseAction(object):
         extra_args = dict(meta_args)
         # tasks parameter options
         extra_args.update(task.options)
+        if task.pos_arg is not None:
+            extra_args[task.pos_arg] = task.pos_arg_val
         kwargs = kwargs.copy()
 
         for key in six.iterkeys(extra_args):
@@ -233,6 +235,9 @@ class CmdAction(BaseAction):
             subs_dict['changed'] = " ".join(self.task.dep_changed)
         # task option parameters
         subs_dict.update(self.task.options)
+        # convert postional parameters from list space-separated string
+        if self.task.pos_arg:
+            subs_dict[self.task.pos_arg] = ' '.join(self.task.pos_arg_val)
         return self.action % subs_dict
 
     def __str__(self):

@@ -6,7 +6,9 @@ Changes
 0.26.dev
 =============
 
- - fix #79. Use setuptools and `entry_points`.
+ - fix #79. Use setuptools and `entry_points`
+ - order of yielded tasks is preserved
+ - fix #68. pass positional args to tasks
 
 
 0.25.0 (*2014-03-26*)

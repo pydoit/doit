@@ -113,16 +113,26 @@ class TaskControl(object):
     def _process_filter(self, task_selection):
         """process cmd line task options
         [task_name [-task_opt [opt_value]] ...] ...
+
+        @param task_selection: list of strings with task names/params or target
+        @return list of task names. Expanding glob and removed params
         """
         filter_list = []
         def add_filtered_task(seq, f_name):
-            """can be filter by target or task name """
+            """add task to list `filter_list` and set task.options from params
+            @return list - str: of elements not yet
+            """
             filter_list.append(f_name)
+            # only tasks specified by name can contain parameters
             if f_name in self.tasks:
                 # parse task_selection
                 the_task = self.tasks[f_name]
                 # remaining items are other tasks not positional options
                 the_task.options, seq = the_task.taskcmd.parse(seq)
+                # if task takes positional parameters set all as pos_arg_val
+                if the_task.pos_arg is not None:
+                    the_task.pos_arg_val = seq
+                    seq = []
             return seq
 
         # process...
@@ -142,7 +152,7 @@ class TaskControl(object):
     def _filter_tasks(self, task_selection):
         """Select tasks specified by filter.
 
-        filter can specify tasks to be execute by task name or target.
+        @param task_selection: list of strings with task names/params or target
         @return (list) of string. where elements are task name.
         """
         selected_task = []
@@ -164,7 +174,10 @@ class TaskControl(object):
 
 
     def process(self, task_selection):
-        """@return (list - string) each element is the name of a task"""
+        """
+        @param task_selection: list of strings with task names/params
+        @return (list - string) each element is the name of a task
+        """
         # execute only tasks in the filter in the order specified by filter
         if task_selection is not None:
             self.selected_tasks = self._filter_tasks(task_selection)

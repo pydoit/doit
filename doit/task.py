@@ -51,6 +51,9 @@ class Task(object):
 
     @ivar options: (dict) calculated params values (from getargs and taskopt)
     @ivar taskopt: (cmdparse.CmdParse)
+    @ivar pos_arg: (str) name of parameter in action to receive positional
+                     parameters from command line
+    @ivar pos_arg_val: (list - str) list of positional parameters values
     @ivar custom_title: function reference that takes a task object as
                         parameter and returns a string.
     """
@@ -71,6 +74,7 @@ class Task(object):
                   'teardown': ((list, tuple), ()),
                   'doc': (string_types, (None,)),
                   'params': ((list, tuple,), ()),
+                  'pos_arg': (string_types, (None,)),
                   'verbosity': ((), (None,0,1,2,)),
                   'getargs': ((dict,), ()),
                   'title': ((types.FunctionType,), (None,)),
@@ -82,7 +86,8 @@ class Task(object):
                  task_dep=(), uptodate=(),
                  calc_dep=(), setup=(), clean=(), teardown=(),
                  is_subtask=False, has_subtask=False,
-                 doc=None, params=(), verbosity=None, title=None, getargs=None,
+                 doc=None, params=(), pos_arg=None,
+                 verbosity=None, title=None, getargs=None,
                  watch=()):
         """sanity checks and initialization
 
@@ -102,6 +107,8 @@ class Task(object):
         self.check_attr(name, 'teardown', teardown, self.valid_attr['teardown'])
         self.check_attr(name, 'doc', doc, self.valid_attr['doc'])
         self.check_attr(name, 'params', params, self.valid_attr['params'])
+        self.check_attr(name, 'pos_arg', pos_arg,
+                        self.valid_attr['pos_arg'])
         self.check_attr(name, 'verbosity', verbosity,
                         self.valid_attr['verbosity'])
         self.check_attr(name, 'getargs', getargs, self.valid_attr['getargs'])
@@ -111,6 +118,8 @@ class Task(object):
         self.name = name
         self.taskcmd = TaskParse([CmdOption(opt) for opt in params])
         self.options = self._init_options()
+        self.pos_arg = pos_arg
+        self.pos_arg_val = None # to be set when parsing command line
         self.setup_tasks = list(setup)
 
         # actions
