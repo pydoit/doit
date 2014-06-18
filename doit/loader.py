@@ -4,8 +4,8 @@ import os
 import sys
 import inspect
 import six
-from collections import OrderedDict
 
+from .compat import OrderedDict
 from .compat import is_bound_method
 from .exceptions import InvalidTask, InvalidCommand, InvalidDodoFile
 from .task import Task, dict_to_task

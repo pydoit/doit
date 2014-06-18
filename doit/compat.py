@@ -15,6 +15,12 @@ except ImportError: # pragma: no cover
     import json
 json # pyflakes
 
+# OrderedDict was added to stdlib on py27
+try:
+    from collections import OrderedDict
+except ImportError: # pragma: no cover
+    from ordereddict import OrderedDict
+OrderedDict # pyflakes
 
 # compat for inspect.ismethod
 if PY3: # pragma: no cover

@@ -1,5 +1,7 @@
 #! /usr/bin/env python
 
+import sys
+
 from setuptools import setup
 from setuptools.command.test import test as TestCommand
 
@@ -18,6 +20,10 @@ elif platform_system == "Linux":
     install_requires.append('pyinotify')
 
 ##################################################
+
+if sys.version_info < (2, 7):
+    install_requires.append('ordereddict')
+
 
 
 # http://pytest.org/goodpractises.html
