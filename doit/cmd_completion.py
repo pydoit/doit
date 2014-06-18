@@ -305,7 +305,7 @@ bash_end = """
     COMPREPLY=( $(compgen -W "${tasks}" -- ${cur}) )
 
 }
-complete -F _$pt_bin_name $pt_bin_name
+complete -o filenames -F _$pt_bin_name $pt_bin_name
 """
 
 

@@ -123,4 +123,4 @@ _doit()
     COMPREPLY=( $(compgen -W "${tasks}" -- ${cur}) )
 
 }
-complete -F _doit doit
+complete -o filenames -F _doit doit
