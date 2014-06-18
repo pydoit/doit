@@ -63,7 +63,7 @@ class TabCompletion(DoitCmdBase):
         if 'COMMAND' in cmd.doc_usage:
             comp.append('${sub_cmds}')
         if comp:
-            completion = '-W "{}"'.format(' '.join(comp))
+            completion = '-W "{0}"'.format(' '.join(comp))
         else:
             completion = '-f' # complete file
         return bash_subcmd_arg.format(cmd_name=cmd.name, completion=completion)
