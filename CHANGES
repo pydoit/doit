@@ -9,6 +9,7 @@ Changes
  - fix #79. Use setuptools and `entry_points`
  - order of yielded tasks is preserved
  - fix #68. pass positional args to tasks
+ - fix tab-completion on BASH for sub-commands that take file arguments
 
 
 0.25.0 (*2014-03-26*)

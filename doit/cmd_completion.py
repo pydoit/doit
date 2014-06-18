@@ -54,6 +54,20 @@ class TabCompletion(DoitCmdBase):
             msg = 'Invalid option for --shell "{0}"'
             raise InvalidCommand(msg.format(opt_values['shell']))
 
+    @classmethod
+    def _bash_cmd_args(cls, cmd):
+        """return case item for completion of specific sub-command"""
+        comp = []
+        if 'TASK' in cmd.doc_usage:
+            comp.append('${tasks}')
+        if 'COMMAND' in cmd.doc_usage:
+            comp.append('${sub_cmds}')
+        if comp:
+            completion = '-W "{}"'.format(' '.join(comp))
+        else:
+            completion = '-f' # complete file
+        return bash_subcmd_arg.format(cmd_name=cmd.name, completion=completion)
+
 
     def _generate_bash(self, opt_values, pos_args):
         # some applications built with doit do not use dodo.py files
@@ -85,8 +99,17 @@ class TabCompletion(DoitCmdBase):
             tmpl_vars['pt_tasks'] = tmpl_list_cmd.format(pt_bin_name,
                                                          pt_list_param)
 
+        # case statement to complete sub-commands
+        cmds_args = []
+        for cmd in self.doit_app.sub_cmds.values():
+            cmds_args.append(self._bash_cmd_args(cmd))
+        comp_subcmds = ("\n    case ${words[1]} in\n" +
+                        "".join(cmds_args) +
+                        "\n    esac\n")
+
         template = Template(bash_start + bash_opt_file + get_dodo_part +
-                            bash_task_list + bash_end)
+                            bash_task_list + bash_first_arg +
+                            comp_subcmds + bash_end)
         self.outstream.write(template.safe_substitute(tmpl_vars))
 
 
@@ -262,20 +285,22 @@ bash_task_list = """
 
 """
 
-bash_end = """
+bash_first_arg = """
     # match for first parameter must be sub-command or task
     # FIXME doit accepts options "-" in the first parameter but we ignore this case
     if [[ ${cword} == 1 ]] ; then
         COMPREPLY=( $(compgen -W "${sub_cmds} ${tasks}" -- ${cur}) )
         return 0
     fi
+"""
 
-    # if command is help complete with tasks or sub-commands
-    if [[ ${words[1]} == "help" ]] ; then
-        COMPREPLY=( $(compgen -W "${sub_cmds} ${tasks}" -- ${cur}) )
-        return 0
-    fi
+bash_subcmd_arg = """
+        {cmd_name})
+            COMPREPLY=( $(compgen {completion} -- $cur) )
+            return 0
+            ;;"""
 
+bash_end = """
     # if there is already one parameter match only tasks (no commands)
     COMPREPLY=( $(compgen -W "${tasks}" -- ${cur}) )
 

@@ -75,11 +75,49 @@ _doit()
         return 0
     fi
 
-    # if command is help complete with tasks or sub-commands
-    if [[ ${words[1]} == "help" ]] ; then
-        COMPREPLY=( $(compgen -W "${sub_cmds} ${tasks}" -- ${cur}) )
-        return 0
-    fi
+    case ${words[1]} in
+
+        dumpdb)
+            COMPREPLY=( $(compgen -f -- $cur) )
+            return 0
+            ;;
+        run)
+            COMPREPLY=( $(compgen -W "${tasks}" -- $cur) )
+            return 0
+            ;;
+        help)
+            COMPREPLY=( $(compgen -W "${tasks} ${sub_cmds}" -- $cur) )
+            return 0
+            ;;
+        strace)
+            COMPREPLY=( $(compgen -W "${tasks}" -- $cur) )
+            return 0
+            ;;
+        auto)
+            COMPREPLY=( $(compgen -W "${tasks}" -- $cur) )
+            return 0
+            ;;
+        list)
+            COMPREPLY=( $(compgen -W "${tasks}" -- $cur) )
+            return 0
+            ;;
+        ignore)
+            COMPREPLY=( $(compgen -W "${tasks}" -- $cur) )
+            return 0
+            ;;
+        clean)
+            COMPREPLY=( $(compgen -W "${tasks}" -- $cur) )
+            return 0
+            ;;
+        tabcompletion)
+            COMPREPLY=( $(compgen -f -- $cur) )
+            return 0
+            ;;
+        forget)
+            COMPREPLY=( $(compgen -W "${tasks}" -- $cur) )
+            return 0
+            ;;
+    esac
 
     # if there is already one parameter match only tasks (no commands)
     COMPREPLY=( $(compgen -W "${tasks}" -- ${cur}) )

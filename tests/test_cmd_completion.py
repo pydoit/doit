@@ -6,6 +6,7 @@ from doit.cmdparse import CmdOption
 from doit.task import Task
 from doit.cmd_base import Command, TaskLoader, DodoTaskLoader
 from doit.cmd_completion import TabCompletion
+from doit.cmd_help import Help
 from doit.doit_cmd import DoitMain
 
 # doesnt test the shell scripts. just test its creation!
@@ -25,6 +26,7 @@ class FakeLoader(TaskLoader):
 def doit_app(request):
     app = DoitMain()
     app.sub_cmds['tabcompletion'] = TabCompletion()
+    app.sub_cmds['help'] = Help()
     return app
 
 def test_invalid_shell_option(doit_app):
@@ -53,6 +55,19 @@ class TestCmdCompletionBash(object):
         got = output.getvalue()
         assert 'dodo.py' not in got
         assert 't1' in got
+
+    def test_cmd_takes_file_args(self, doit_app):
+        output = StringIO()
+        cmd = TabCompletion(task_loader=FakeLoader(), outstream=output)
+        cmd.doit_app = doit_app
+        cmd.execute({'shell':'bash', 'hardcode_tasks': False}, [])
+        got = output.getvalue()
+        assert """help)
+            COMPREPLY=( $(compgen -W "${tasks} ${sub_cmds}" -- $cur) )
+            return 0"""  in got
+        assert """tabcompletion)
+            COMPREPLY=( $(compgen -f -- $cur) )
+            return 0"""  in got
 
 
 class TestCmdCompletionZsh(object):
