@@ -352,5 +352,5 @@ _$pt_bin_name() {
     return 0
 }
 
-_doit
+_$pt_bin_name
 """
