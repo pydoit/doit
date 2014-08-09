@@ -20,7 +20,6 @@ opt_show_all = {
 
 opt_keep_trace = {
     'name':'keep_trace',
-    'short':'k',
     'long':'keep',
     'type': bool,
     'default': False,
