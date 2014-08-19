@@ -1,5 +1,6 @@
 import inspect
 import sys
+from collections import deque
 
 from . import version
 from .cmdparse import CmdOption, CmdParse
@@ -288,16 +289,16 @@ def tasks_and_deps_iter(tasks, sel_tasks, yield_duplicates=False):
     @param sel_tasks(list - str)
     """
     processed = set() # str - task name
-    to_process = set(sel_tasks) # str - task name
+    to_process = deque(sel_tasks) # str - task name
     # get initial task
     while to_process:
-        task = tasks[to_process.pop()]
+        task = tasks[to_process.popleft()]
         processed.add(task.name)
         yield task
         # FIXME this does not take calc_dep into account
         for task_dep in task.task_dep + task.setup_tasks:
             if (task_dep not in processed) and (task_dep not in to_process):
-                to_process.add(task_dep)
+                to_process.append(task_dep)
             elif yield_duplicates:
                 yield tasks[task_dep]
 

@@ -81,13 +81,12 @@ class Clean(DoitCmdBase):
             # including repeated entries will garantee that deps are listed
             # first when the list is reversed
             to_clean = list(tasks_and_deps_iter(tasks, clean_list, True))
-            to_clean.reverse()
         # include only subtasks in list
         else:
             to_clean = []
-            for name in clean_list:
+            for name in reversed(clean_list):
                 task = tasks[name]
-                to_clean.extend(subtasks_iter(tasks, task))
                 to_clean.append(task)
-
+                to_clean.extend(subtasks_iter(tasks, task))
+        to_clean.reverse()
         self.clean_tasks(to_clean, dryrun)
