@@ -29,6 +29,3 @@ Installing
    for Windows users:
 
    * New releases are not tested on Windows.
-
-   * There is a bug on setuptools. Check this
-     `bug <http://bugs.launchpad.net/doit/+bug/218276>`_ for instructions.

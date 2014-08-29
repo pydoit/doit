@@ -2,6 +2,12 @@
 Other Commands
 ================
 
+.. note::
+
+    Not all options/arguments are documented below.
+    Always check `doit help <cmd>` to see a complete list of options.
+
+
 Let's use a more complex example to demonstrate the command line features.
 The example below is used to manage a very simple C project.
 
@@ -18,12 +24,6 @@ help
 `doit` comes with several commands. `doit help` will list all available commands.
 
 You can also get help from each available command. e.g. `doit help run`.
-
-.. note::
-
-    Not all options/parameters are documented below.
-    Always check `doit help <cmd>` to see a complete list of options.
-
 
 `doit help task` will display information on all fields/attributes a task dictionary from a `dodo` file accepts.
 
@@ -43,15 +43,37 @@ list
    install : install executable (TODO)
 
 
-By default task name and description are listed. The task description is taken from the first line of task function doc-string. You can also set it using the *doc* attribute on the task dictionary. It is possible to omit the description using the option *-q*/*--quiet*.
+By default task name and description are listed. The task description is taken
+from the first line of task function doc-string. You can also set it using the
+*doc* attribute on the task dictionary. It is possible to omit the description
+using the option *-q*/*--quiet*.
 
-By default sub-tasks are not listed. It can list sub-tasks using the option *--all*.
+By default sub-tasks are not listed. It can list sub-tasks using the option
+*--all*.
 
-By default task names that start with an underscore(*_*) are not listed. They are listed if the option *-p*/*--private* is used.
+By default task names that start with an underscore(*_*) are not listed. They
+are listed if the option *-p*/*--private* is used.
 
 Task status can be printed using the option *-s*/*--status*.
 
 Task's file-dependencies can be printed using the option *--deps*.
+
+
+info
+-------
+
+You can check a task meta-data using the *info* command.
+This might be useful when have some complex code generating
+the task meta-data.
+
+.. code-block:: console
+
+    $ doit info link
+    name:'link'
+
+    file_dep:set(['command.o', 'kbd.o', 'main.o'])
+
+    targets:['edit']
 
 
 
@@ -59,7 +81,11 @@ forget
 -------
 
 
-Suppose you change the compilation parameters in the compile action. Or you changed the code from a python-action. *doit* will think your task is up-to-date based on  the dependencies but actually it is not! In this case you can use the *forget* command to make sure the given task will be executed again even with no changes in the dependencies.
+Suppose you change the compilation parameters in the compile action. Or you
+changed the code from a python-action. *doit* will think your task is up-to-date
+based on the dependencies but actually it is not! In this case you can use the
+*forget* command to make sure the given task will be executed again even with no
+changes in the dependencies.
 
 If you do not specify any task, the default tasks are "*forget*".
 
@@ -76,9 +102,13 @@ If you do not specify any task, the default tasks are "*forget*".
 clean
 ------
 
-A common scenario is a task that needs to "revert" its actions. A task may include a *clean* attribute. This attribute can be ``True`` to remove all of its target files. If there is a folder as a target it will be removed if the folder is empty, otherwise it will display a warning message.
+A common scenario is a task that needs to "revert" its actions. A task may
+include a *clean* attribute. This attribute can be ``True`` to remove all of its
+target files. If there is a folder as a target it will be removed if the folder
+is empty, otherwise it will display a warning message.
 
-The *clean* attribute can be a list of actions, again, an action could be a string with a shell command or a tuple with a python callable.
+The *clean* attribute can be a list of actions, again, an action could be a
+string with a shell command or a tuple with a python callable.
 
 If you want to clean the targets and add some custom clean actions,
 you can include the `doit.task.clean_targets` instead of passing `True`:
@@ -110,7 +140,9 @@ If you want check which tasks the clean operation would affect you can use the o
 ignore
 -------
 
-It is possible to set a task to be ignored/skipped (that is not executed). This is useful for example when you are performing checks in several files and you want to skip the check in some of them temporarily.
+It is possible to set a task to be ignored/skipped (that is, not executed). This
+is useful, for example, when you are performing checks in several files and you
+want to skip the check in some of them temporarily.
 
 .. literalinclude:: tutorial/subtasks.py
 
@@ -128,7 +160,8 @@ It is possible to set a task to be ignored/skipped (that is not executed). This 
     !! create_file:file1.txt
     .  create_file:file2.txt
 
-Note the ``!!``, it means that task was ignored. To reverse the `ignore` use `forget` sub-command.
+Note the ``!!``, it means that task was ignored. To reverse the `ignore` use
+`forget` sub-command.
 
 
 
@@ -141,8 +174,8 @@ auto (watch)
 
    Supported on Linux and Mac only.
 
-`auto` sub-command is an alternative way of executing your tasks.
-It is a long running process that only terminates when it is interrupted (Ctrl-C).
+`auto` sub-command is an alternative way of executing your tasks.  It is a long
+running process that only terminates when it is interrupted (Ctrl-C).
 When started it will execute the given tasks. After that it will watch the
 file system for modifications in the file-dependencies.
 When a file is modified the tasks are re-executed.

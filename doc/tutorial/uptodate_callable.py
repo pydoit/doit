@@ -2,7 +2,7 @@
 def fake_get_value_from_db():
     return 5
 
-def check_outdated(task, values):
+def check_outdated():
     total = fake_get_value_from_db()
     return total > 10
 

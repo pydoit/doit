@@ -139,7 +139,7 @@ Project Details
 
 * This web site is hosted on http://pages.github.com
 
-* `doit projects <https://github.com/pydoit>`_ contains a collection of non-trivial examples and re-usable task generators for `doit`.
+* `doit projects <https://github.com/pydoit>`_ contains a collection of non-trivial examples and re-usable task creators for `doit`.
 
 * Professional support and consulting services available from `doit`
   creator & maintainer (*schettino72* at gmail.com).
@@ -151,17 +151,14 @@ Status
 
 This blog `post <http://schettino72.wordpress.com/2008/04/14/doit-a-build-tool-tale/>`_ explains how everything started in 2008.
 
-`doit` is under active development. Version 0.25 released on 2014-03.
+`doit` is under active development. Version 0.26 released on 2014-08.
 
-`doit` core features are quite stable. So if there is no recent development,
+`doit` core features are quite stable. If there is no recent development,
 it does NOT mean `doit` is not being maintained...
 The project has 100% unit-test code coverage
 and kept with *zero* bugs in the tracker.
 
 Development is done based on real world use cases.
-If I don't need a feature and nobody never asked/implemented it,
-it is not implemented ;)
-It is well designed and has a very small code base
-so adding new features isn't hard.
+It is well designed and has a small code base,
+so adding new features is not hard. Patches are welcome.
 
-If you use `doit` please drop me a line telling me your experience...

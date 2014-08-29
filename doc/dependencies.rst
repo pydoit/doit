@@ -43,7 +43,7 @@ successful execution.
 
 `doit` includes several implementations to be used as ``uptodate``.
 They are all included in module `doit.tools` and will be discussed in detail
-later:
+:ref:`later <uptodate_api>`:
 
   * ``result_dep``: check if the result of another task has changed
   * ``run_once``: execute a task only once (used for tasks without dependencies)

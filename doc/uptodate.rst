@@ -2,7 +2,8 @@
 custom uptodate
 ================
 
-The basics of `uptodate` was already introduced. Here we look in more
+The basics of `uptodate` was already :ref:`introduced <attr-uptodate>`.
+Here we look in more
 detail into some implementations shipped with `doit`. And the API used by those.
 
 
@@ -132,20 +133,13 @@ This section will explain how to extend ``doit`` writing an ``uptodate``
 implementation. So unless you need to write an ``uptodate`` implementation
 you can skip this.
 
-The callable must take at least two positional parameters ``task`` and ``values``.
-The callable can also be represented by a tuple (callable, args, kwargs).
-
-   -  ``task`` parameter will give you access to task object. So you have access
-      to its metadata and opportunity to modify the task itself!
-   -  ``values`` is a dictionary with the computed values saved in the last
-       successful execution of the task.
-
-
-Let's start with trivial example.
+Let's start with trivial example. `uptodate` is a function that returns
+a boolean value.
 
 .. literalinclude:: tutorial/uptodate_callable.py
 
-Note that `check_outdated` function is not actually using the parameters.
+Note that `check_outdated` function is not actually using the arguments
+`task` and `values`.
 You could also execute this function in the task-creator and pass the value
 to to `uptodate`. The advantage of just passing the callable is that this
 check will not be executed at all if the task was not selected to be executed.
@@ -168,6 +162,15 @@ callables. These callables should return a dict that will be saved together
 with other task values. The ``value_savers`` will be executed after all actions.
 
 The second step is to actually compare the saved value with its "current" value.
+
+The `uptodate` callable can take two positional parameters ``task`` and ``values``. The callable can also be represented by a tuple (callable, args, kwargs).
+
+
+   -  ``task`` parameter will give you access to task object. So you have access
+      to its metadata and opportunity to modify the task itself!
+   -  ``values`` is a dictionary with the computed values saved in the last
+       successful execution of the task.
+
 
 Let's take a look in the ``run_once`` implementation.
 
@@ -225,7 +228,7 @@ Example: result_dep implementation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The ``result_dep`` is more complicated due to two factors. It needs to modify
-the task's ``task_dep``. It needs to check the task's saved values and metadata
+the task's ``task_dep``. And it needs to check the task's saved values and metadata
 from a task different from where it is being applied.
 
 A ``result_dep`` implies that its dependency is also a ``task_dep``.

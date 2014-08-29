@@ -419,7 +419,7 @@ You can also select tasks to be executed using a `glob <http://docs.python.org/l
 
 .. _parameters:
 
-parameters
+arguments
 -----------
 
 It is possible to pass option parameters to the task through the command line.
@@ -532,6 +532,37 @@ Here is the list of all attributes ``param`` accepts:
         $ doit with_flag --flagoff
         .  with_flag
         Flag Off
+
+
+positional arguments
+------------------------
+
+Tasks might also get positional arguments from the command line
+as standard unix commands do,
+with positional arguments *after* optional arguments.
+
+.. literalinclude:: tutorial/pos.py
+
+.. code-block:: console
+
+    $ doit pos_args -p 4 foo bar
+    .  pos_args
+    param1 is: 4
+    positional-0: foo
+    positional-1: bar
+
+
+.. warning::
+
+   If a task accepts positional arguments, it is not allowed to pass
+   other tasks after it in the command line. For example if `task1`
+   takes positional arguments you can not call::
+
+     $ doit task1 pos1 task2
+
+   As the string `task2` would be interpreted as positional argument from
+   `task1` not as another task name.
+
 
 
 

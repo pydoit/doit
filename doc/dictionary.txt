@@ -7,6 +7,7 @@
 'cc
 'changed'
 'clean'
+'command
 'command'
 'dependencies'
 'display'
@@ -19,8 +20,11 @@
 'input
 'insert'
 'java
+'kbd
 'kbd'
 'library'
+'link'
+'main
 'main'
 'make'
 'minversion'
@@ -191,15 +195,19 @@ mycmd
 mygroup
 mytask
 namespace
+o'
 once'
 os
 outfile
 param
+param1
 param2
 params
 pdb
 perl
 popen
+pos
+pos1
 pre
 prev
 programmatically
@@ -242,6 +250,7 @@ t2
 t3
 tabcompletion
 task1
+task2
 taskorder
 taskresult
 tasks'

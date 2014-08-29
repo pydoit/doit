@@ -51,7 +51,7 @@ calc_dep:
 
 getargs:
   - type: dictionary
-    * key: string with the name of the function parater (used in a python-action)
+    * key: string with the name of the function argument (used in a python-action)
     * value: tuple of (<task-name>, <variable-name>)
 
 teardown:
@@ -73,6 +73,9 @@ params:
    - type [optional] (callable) the option will be converted to this type
    - help [optional] (string) description displayed by help command
    - inverse [optional] (string) for a bool parameter set value to False
+
+pos_arg:
+ - type: string -> name of the function argument to receive list of positional arguments
 
 verbosity:
  - type: int
