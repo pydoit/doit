@@ -6,6 +6,7 @@ Changes
 0.26.dev
 =============
 
+ - `uptodate` callable "magic" arguments `task` and `values` are now optional
  - added command `info` to display task metadata
  - command `clean` smarter execution order
  - remove `strace` short option `-k` because it conflicts with `run` option

@@ -42,7 +42,7 @@ class BaseAction(object):
 
         try:
             argspec = inspect.getargspec(func)
-        except TypeError:
+        except TypeError: # a callable object, not a function
             argspec = inspect.getargspec(func.__call__)
         # use task meta information as extra_args
         meta_args = {

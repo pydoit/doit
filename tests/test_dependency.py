@@ -426,13 +426,15 @@ class TestGetStatus(object):
         assert 'up-to-date' == pdepfile.get_status(t1, {})
 
 
-    def test_UptodateCallable_True(self, pdepfile):
-        def check(task, values): return True
+    def test_UptodateFunction_True(self, pdepfile):
+        def check(task, values):
+            assert task.name == 't1'
+            return True
         t1 = Task("t1", None, uptodate=[check])
         pdepfile.save_success(t1)
         assert 'up-to-date' == pdepfile.get_status(t1, {})
 
-    def test_UptodateCallable_False(self, pdepfile):
+    def test_UptodateFunction_False(self, pdepfile):
         filePath = get_abspath("data/dependency1")
         ff = open(filePath,"w")
         ff.write("part1")
@@ -450,6 +452,28 @@ class TestGetStatus(object):
         assert 'run' == pdepfile.get_status(t1, {})
         assert [] == t1.dep_changed
 
+    def test_UptodateFunction_without_args_True(self, pdepfile):
+        def check(): return True
+        t1 = Task("t1", None, uptodate=[check])
+        pdepfile.save_success(t1)
+        assert 'up-to-date' == pdepfile.get_status(t1, {})
+
+    def test_UptodateFunction_extra_args_True(self, pdepfile):
+        def check(task, values, control):
+            assert task.name == 't1'
+            return control>30
+        t1 = Task("t1", None, uptodate=[ (check, [34]) ])
+        pdepfile.save_success(t1)
+        assert 'up-to-date' == pdepfile.get_status(t1, {})
+
+    def test_UptodateCallable_True(self, pdepfile):
+        class MyChecker(object):
+            def __call__(self, task, values):
+                assert task.name == 't1'
+                return True
+        t1 = Task("t1", None, uptodate=[ MyChecker() ])
+        pdepfile.save_success(t1)
+        assert 'up-to-date' == pdepfile.get_status(t1, {})
 
     def test_UptodateCallable_added_attributes(self, pdepfile):
         task_dict = "fake dict"

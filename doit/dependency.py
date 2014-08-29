@@ -3,6 +3,7 @@
 import os
 import hashlib
 import subprocess
+import inspect
 import six
 if six.PY3: # pragma: no cover
     from dbm import dumb
@@ -474,11 +475,23 @@ class DependencyBase(object):
             # if parameter is a callable
             if hasattr(utd, '__call__'):
                 # FIXME control verbosity, check error messages
-                # 1) prepare arguments
-                args = [task, self.get_values(task.name)] + utd_args
-                # 2) setup object with global info all tasks
+                # 1) setup object with global info all tasks
                 if isinstance(utd, UptodateCalculator):
                     utd.setup(self, tasks_dict)
+                # 2) add magic positional args for `task` and `values`
+                # if present.
+                magic_args = []
+                try:
+                    spec_args = inspect.getargspec(utd).args
+                except TypeError: # a callable object, not a function
+                    # remove first argument (`self`)
+                    spec_args = inspect.getargspec(utd.__call__).args[1:]
+                for i, name in enumerate(spec_args):
+                    if i == 0 and name == 'task':
+                        magic_args.append(task)
+                    elif i == 1 and name == 'values':
+                        magic_args.append(self.get_values(task.name))
+                args = magic_args + utd_args
                 # 3) call it and get result
                 uptodate_result = utd(*args, **utd_kwargs)
             elif isinstance(utd, six.string_types):
