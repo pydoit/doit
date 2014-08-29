@@ -13,6 +13,7 @@ from .cmd_help import Help
 from .cmd_run import Run
 from .cmd_clean import Clean
 from .cmd_list import List
+from .cmd_info import Info
 from .cmd_forget import Forget
 from .cmd_ignore import Ignore
 from .cmd_auto import Auto
@@ -37,7 +38,7 @@ def set_var(name, value):
 
 
 class DoitMain(object):
-    DOIT_CMDS = (Help, Run, List, Clean, Forget, Ignore, Auto, DumpDB,
+    DOIT_CMDS = (Help, Run, List, Info, Clean, Forget, Ignore, Auto, DumpDB,
                  Strace, TabCompletion)
     TASK_LOADER = DodoTaskLoader
 

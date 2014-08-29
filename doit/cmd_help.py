@@ -31,6 +31,10 @@ task_dep:
   - type: list. items:
     * task name (string)
 
+setup:
+ - type: list. items:
+   * task name (string)
+
 targets:
   - type: list of strings
   - each item is file-path relative to the dodo file (accepts both files and folders)
@@ -49,10 +53,6 @@ getargs:
   - type: dictionary
     * key: string with the name of the function parater (used in a python-action)
     * value: tuple of (<task-name>, <variable-name>)
-
-setup:
- - type: list. items:
-   * task name (string)
 
 teardown:
  - type: (list) of actions (see above)

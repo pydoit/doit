@@ -117,6 +117,7 @@ class Task(object):
 
         self.name = name
         self.taskcmd = TaskParse([CmdOption(opt) for opt in params])
+        self.params = params # save just for use on command `info`
         self.options = self._init_options()
         self.pos_arg = pos_arg
         self.pos_arg_val = None # to be set when parsing command line
