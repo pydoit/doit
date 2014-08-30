@@ -1,7 +1,6 @@
 """Manage (save/check) task dependency-on-files data."""
 
 import os
-import sys
 import hashlib
 import subprocess
 import inspect
