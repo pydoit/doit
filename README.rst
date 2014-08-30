@@ -4,8 +4,9 @@ README
 
 .. display some badges
 
-.. image:: https://pypip.in/v/doit/badge.png
-        :target: https://pypi.python.org/pypi/doit
+.. disable as this is showing the wrong version number
+   .. image:: https://pypip.in/v/doit/badge.png
+           :target: https://pypi.python.org/pypi/doit
 
 .. image:: https://pypip.in/d/doit/badge.png
         :target: https://pypi.python.org/pypi/doit
@@ -27,10 +28,9 @@ execute any kind of task
 Project Details
 ===============
 
- - Source code & Project management on bitbucket - https://bitbucket.org/schettino72/doit
+ - Project management on github - https://github.com/pydoit/doit
  - Website & docs - http://pydoit.org
  - Discussion group - https://groups.google.com/forum/#!forum/python-doit
- - Official github mirror at - https://github.com/pydoit/doit
 
 license
 =======
@@ -66,7 +66,7 @@ dependencies
 
 Tools required for development:
 
-- mercurial * VCS
+- git * VCS
 - py.test * unit-tests
 - mock * unit-tests
 - coverage * code coverage
@@ -131,31 +131,6 @@ The website will also includes epydoc generated API documentation.
 contributing
 ==============
 
-On bitbucket create pull requests on ``default`` branch.
-
 On github create pull requests using a named feature branch.
 
-
-github mirror setup
-=====================
-
-This is only needed if you will manage both upstream in github and bitbucket.
-For using github only just use `git` normally and ignore it is a mirror.
-
-* install hg-git (http://hg-git.github.io/) ``sudo pip install hg-git``.
-
-* enable the extension. on ``~/.hgrc``::
-
-    [extensions]
-    hggit =
-
-* add a named path ``github`` on ``doit/.hg/hgrc``::
-
-    [paths]
-    default = https://bitbucket.org/schettino72/doit
-    github = git+ssh://git@github.com/pydoit/doit.git
-
-* make sure you have a ssh key registered on github ::
-
-   $ hg push github
 

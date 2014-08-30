@@ -1,7 +1,7 @@
 
 see
 
-https://bitbucket.org/schettino72/doit/issues?status=new&status=open
+https://github.com/pydoit/doit/issues
 
 0.X
 ----------

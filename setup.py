@@ -48,7 +48,7 @@ to execute any kind of **task**
 
 setup(name = 'doit',
       description = 'doit - Automation Tool',
-      version = '0.26.dev0',
+      version = '0.26.0',
       license = 'MIT',
       author = 'Eduardo Naufel Schettino',
       author_email = 'schettino72@gmail.com',

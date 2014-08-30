@@ -1,3 +1,4 @@
+import six
 from six import StringIO
 
 import pytest
@@ -19,7 +20,7 @@ class TestCmdInfo(object):
 
     def test_info_unicode(self, depfile):
         output = StringIO()
-        task = Task("t1", [], file_dep=[u'tests/data/dependency1'])
+        task = Task("t1", [], file_dep=[six.u('tests/data/dependency1')])
         cmd = Info(outstream=output, dep_file=depfile.name, task_list=[task])
         cmd._execute(['t1'])
         assert """name:'t1'""" in output.getvalue()

@@ -1,2 +1,6 @@
 *.pyc
 tests/data/*
+.doit.db
+doit.egg-info
+MANIFEST
+revision.txt

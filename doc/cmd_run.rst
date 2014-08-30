@@ -95,7 +95,9 @@ it will have the same effect as executing
 
    $ doit --continue --reporter json my_task_1 my_task_2
 
-You need to check `doit_cmd.py <https://bitbucket.org/schettino72/doit/src/tip/doit/doit_cmd.py>`_ to find out how parameter maps to config names.
+You need to check `doit_cmd.py
+<https://github.com/pydoit/doit/blob/master/doit/doit_cmd.py>`_ to find out how
+parameter maps to config names.
 
 .. note::
 
@@ -204,7 +206,11 @@ Apart from the default it also includes:
 custom reporter
 -----------------
 
-It is possible to define your own custom reporter. Check the code on `doit/reporter.py <https://bitbucket.org/schettino72/doit/src/tip/doit/reporter.py>`_ ... It is easy to get started by sub-classing the default reporter as shown below. The custom reporter must be configured using DOIT_CONFIG dict.
+It is possible to define your own custom reporter. Check the code on
+`doit/reporter.py
+<https://github.com/pydoit/doit/blob/master/doit/reporter.py>`_ ... It is easy
+to get started by sub-classing the default reporter as shown below. The custom
+reporter must be configured using DOIT_CONFIG dict.
 
 .. literalinclude:: tutorial/custom_reporter.py
 

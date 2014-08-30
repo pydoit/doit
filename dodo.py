@@ -12,7 +12,7 @@ from doitpy.coverage import Config, Coverage, PythonPackage
 from doit.tools import create_folder
 
 DOIT_CONFIG = {
-    'minversion': '0.24.dev0',
+    'minversion': '0.24.0',
     'default_tasks': ['pyflakes', 'ut'],
 #    'backend': 'sqlite3',
     }
@@ -134,7 +134,7 @@ def task_website_update():
 
 def task_revision():
     """create file with repo rev number"""
-    return {'actions': ["hg tip --template '{rev}:{node}' > revision.txt"]}
+    return {'actions': ["git rev-list --branches=master --max-count=1 HEAD > revision.txt"]}
 
 def task_manifest():
     """create manifest file for distutils """
@@ -146,7 +146,7 @@ def task_manifest():
         assert sys.version_info < (2,7) or sys.version_info > (2,7,2)
 
     # create manifest will all files under version control without .hg* files
-    cmd = """hg manifest | grep -vE ".*\.hg.*" > MANIFEST """
+    cmd = """git ls-tree --name-only -r HEAD > MANIFEST"""
     cmd2 = "echo 'revision.txt' >> MANIFEST"
     return {'actions': [check_version, cmd, cmd2]}
 

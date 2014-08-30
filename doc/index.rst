@@ -133,7 +133,7 @@ Project Details
 
 * Download from `PyPi <http://pypi.python.org/pypi/doit>`_
 
-* Project management (bug tracker, feature requests and source code ) on `bitbucket <https://bitbucket.org/schettino72/doit>`_.
+* Project management (bug tracker, feature requests and source code ) on `bitbucket <https://github.com/pydoit/doit>`_.
 
 * Questions and feedback on `google group <http://groups.google.co.in/group/python-doit>`_.
 
