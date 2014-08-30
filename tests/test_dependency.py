@@ -475,6 +475,15 @@ class TestGetStatus(object):
         pdepfile.save_success(t1)
         assert 'up-to-date' == pdepfile.get_status(t1, {})
 
+    def test_UptodateMethod_True(self, pdepfile):
+        class MyChecker(object):
+            def check(self, task, values):
+                assert task.name == 't1'
+                return True
+        t1 = Task("t1", None, uptodate=[ MyChecker().check ])
+        pdepfile.save_success(t1)
+        assert 'up-to-date' == pdepfile.get_status(t1, {})
+
     def test_UptodateCallable_added_attributes(self, pdepfile):
         task_dict = "fake dict"
         class My_uptodate(UptodateCalculator):

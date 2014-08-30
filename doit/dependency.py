@@ -1,6 +1,7 @@
 """Manage (save/check) task dependency-on-files data."""
 
 import os
+import sys
 import hashlib
 import subprocess
 import inspect
@@ -480,12 +481,14 @@ class DependencyBase(object):
                     utd.setup(self, tasks_dict)
                 # 2) add magic positional args for `task` and `values`
                 # if present.
-                magic_args = []
-                try:
+                # get args removing self if present
+                if inspect.isfunction(utd):
                     spec_args = inspect.getargspec(utd).args
-                except TypeError: # a callable object, not a function
-                    # remove first argument (`self`)
+                elif inspect.ismethod(utd):
+                    spec_args = inspect.getargspec(utd).args[1:]
+                else:
                     spec_args = inspect.getargspec(utd.__call__).args[1:]
+                magic_args = []
                 for i, name in enumerate(spec_args):
                     if i == 0 and name == 'task':
                         magic_args.append(task)

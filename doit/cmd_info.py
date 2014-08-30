@@ -16,7 +16,7 @@ def my_safe_repr(obj, context, maxlevels, level):
     http://stackoverflow.com/questions/16888409/
            suppress-unicode-prefix-on-strings-when-using-pprint
     """
-    typ = pprint._type(obj)
+    typ = type(obj)
     if six.PY2 and typ is unicode:
         obj = str(obj)
     return pprint._safe_repr(obj, context, maxlevels, level)
