@@ -7,6 +7,8 @@ import subprocess
 import pytest
 from doitpy.pyflakes import Pyflakes
 from doitpy.coverage import Config, Coverage, PythonPackage
+from doitpy import docs
+from doitpy import pypi
 
 
 from doit.tools import create_folder
@@ -40,8 +42,6 @@ def task_ut():
                'verbosity': 0}
 
 
-################## coverage tasks
-
 def task_coverage():
     """show coverage for all modules including tests"""
     cov = Coverage([PythonPackage('doit', 'tests')],
@@ -70,38 +70,12 @@ def task_epydoc():
             'targets': [target_path]}
 
 
-def task_spell():
-    """spell checker for doc files"""
-    # spell always return successful code (0)
-    # so this checks if the output is empty
-    def check_no_output(doc_file):
-        # -l list misspelled words
-        # -p set path of personal dictionary
-        cmd = 'hunspell -l -d en_US -p doc/dictionary.txt %s'
-        output = subprocess.check_output(cmd % doc_file, shell=True)
-        if len(output) != 0:
-            print(output)
-            return False
-
-    extra_docs = ['README.rst'] #, 'doc/_templates/layout.html']
-    for doc_file in glob.glob('doc/*.rst') + extra_docs:
-        yield {
-            'name': doc_file,
-            'actions': [(check_no_output, (doc_file,))],
-            'file_dep': ['doc/dictionary.txt', doc_file],
-            'verbosity': 2,
-            }
-
-
-def task_sphinx():
-    """generate website docs (include analytics)"""
-    action = "sphinx-build -b html %s -d %s_build/doctrees %s %s"
-    opts = "-A include_analytics=1 -A include_gittip=1"
-    return {
-        'actions': [action % (opts, DOC_ROOT, DOC_ROOT, DOC_BUILD_PATH)],
-        'verbosity': 2,
-        'task_dep': ['spell'],
-        }
+def task_docs():
+    doc_files = glob.glob('doc/*.rst') + ['README.rst']
+    yield docs.spell(doc_files, 'doc/dictionary.txt')
+    sphinx_opts = "-A include_analytics=1 -A include_gittip=1"
+    yield docs.sphinx(DOC_ROOT, DOC_BUILD_PATH, sphinx_opts=sphinx_opts,
+                      task_dep=['spell'])
 
 
 def task_website():
@@ -129,39 +103,13 @@ def task_website_update():
 
 
 
-################### dist
-
-
-def task_revision():
-    """create file with repo rev number"""
-    return {'actions': ["git rev-list --branches=master --max-count=1 HEAD > revision.txt"]}
-
-def task_manifest():
-    """create manifest file for distutils """
-
-    def check_version():
-        # using a MANIFEST file directly is broken on python2.7
-        # http://bugs.python.org/issue11104
-        import sys
-        assert sys.version_info < (2,7) or sys.version_info > (2,7,2)
-
-    # create manifest will all files under version control without .hg* files
-    cmd = """git ls-tree --name-only -r HEAD > MANIFEST"""
-    cmd2 = "echo 'revision.txt' >> MANIFEST"
-    return {'actions': [check_version, cmd, cmd2]}
-
-def task_sdist():
-    """create source dist package"""
-    return {'actions': ["python setup.py sdist"],
-            'task_dep': ['revision', 'manifest'],
-            }
-
-def task_pypi():
-    """upload package to pypi"""
-    return {'actions': ["python setup.py sdist upload"],
-            'task_dep': ['revision', 'manifest'],
-            }
-
+def task_package():
+    """create/upload package to pypi"""
+    pkg = pypi.PyPi()
+    yield pkg.revision_git()
+    yield pkg.manifest_git()
+    yield pkg.sdist()
+    yield pkg.sdist_upload()
 
 
 

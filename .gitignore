@@ -6,3 +6,4 @@ MANIFEST
 revision.txt
 doc/_build
 .coverage
+dist
