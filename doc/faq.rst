@@ -29,3 +29,12 @@ If `dodo.py` was an implicit `file_dep`:
 
  * how would you disable it?
  * should imported files from your `dodo.py` also be a `file_dep`?
+
+
+How to make a dependency on all files in a folder?
+----------------------------------------------------
+
+``file_dep`` does NOT support folders.
+If you want to specify all files from a folder you can use a third
+party library like `pathlib <https://pypi.python.org/pypi/pathlib>`_ (
+`pathlib` was add on python's 3.4 stdlib).

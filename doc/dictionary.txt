@@ -3,14 +3,17 @@
 'a'
 'actions'
 'b'
+'backend'
 'c'
 'cc
 'changed'
 'clean'
 'command
 'command'
+'dep
 'dependencies'
 'display'
+'doit
 'doit'
 'echo
 'echo'
@@ -20,6 +23,7 @@
 'input
 'insert'
 'java
+'json'
 'kbd
 'kbd'
 'library'
@@ -157,6 +161,7 @@ github
 gmail
 google
 hardcode
+hashbang
 hashlib
 hello2
 helloworld
@@ -175,6 +180,7 @@ java
 js
 jsFile
 json
+json'
 kwargs
 lelele
 letsdoit
@@ -203,6 +209,7 @@ param
 param1
 param2
 params
+pathlib
 pdb
 perl
 popen
@@ -241,6 +248,7 @@ sourceforge
 sqlite3
 startswith
 stderr
+stdlib
 stdout
 str
 strace

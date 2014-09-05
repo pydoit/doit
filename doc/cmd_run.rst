@@ -50,6 +50,20 @@ This flag is valid for all sub-commands.
 as an executable file
 -----------------------
 
+using a hashbang
+^^^^^^^^^^^^^^^^^^^^^
+
+If you have `doit` installed on ``/usr/bin`` use the following hashbang:
+
+.. code-block:: bash
+
+   #! /usr/bin/doit -f
+
+
+
+using the API
+^^^^^^^^^^^^^^
+
 It is possible to make a ``dodo`` file become an executable on its own
 by calling the ``doit.run()``, you need to pass the ``globals``:
 
@@ -79,7 +93,7 @@ returned value
 config
 --------
 
-Command line parameters can be set straight on a `dodo` file. This example below sets the default tasks to be run, the `continue` option, and a different reporter.
+Command line parameters can be set straight on a `dodo` file. This example below sets the default tasks to be run, the ``continue`` option, and a different reporter.
 
 .. literalinclude:: tutorial/doit_config.py
 
@@ -101,10 +115,44 @@ parameter maps to config names.
 
 .. note::
 
-  The parameters `--file` and `--dir` can not be used on config because
+  The parameters ``--file`` and ``--dir`` can not be used on config because
   they control how the dodo file itself is loaded.
 
 
+DB backend
+--------------
+
+`doit` saves the results of your tasks runs in a "DB-file", it supports
+different backends:
+
+ - `dbm`: (default) It uses `python dbm module <https://docs.python.org/3/library/dbm.html>`_. The actual DBM used depends on what is available on your machine/platform.
+
+ - `json`: Plain text using a json structure, it is slow but good for debugging.
+
+ - `sqlite3`: (experimental) very slow implementation, support concurrent access.
+
+
+From the command line you can select the backend using the ``--backend`` option.
+
+It is quite easy to add a new backend for any key-value store.
+
+
+DB-file
+----------
+
+Option ``--db-file`` sets the name of the file to save the "DB",
+default is ``.doit.db``.
+Note that DBM backends might save more than one file, in this case
+the specified name is used as a base name.
+
+To configure in a `dodo` file the field name is ``dep_file``
+
+.. code-block:: python
+
+    DOIT_CONFIG = {
+        'backend': 'json',
+        'dep_file': 'doit-db.json',
+    }
 
 
 .. _verbosity_option:

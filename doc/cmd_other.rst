@@ -258,7 +258,7 @@ from your dodo.py.
 dumpdb
 --------
 
-`doit` saves internal data in a file (`.doit.db` be default).
+`doit` saves internal data in a file (`.doit.db` by default).
 It uses a binary format (whatever python's dbm is using in your system).
 This command will simply dump its content in readable text format in the output.
 
