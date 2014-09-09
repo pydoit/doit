@@ -135,7 +135,7 @@ Project Details
 
 * Project management (bug tracker, feature requests and source code ) on `github <https://github.com/pydoit/doit>`_.
 
-* Questions and feedback on `google group <http://groups.google.co.in/group/python-doit>`_.
+* Questions and feedback on `google group <http://groups.google.co.in/group/python-doit>`_. Please do **not** send questions to my private email.
 
 * This web site is hosted on http://pages.github.com
 
