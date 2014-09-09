@@ -1,4 +1,4 @@
-"""generate shell script with tab complention code for doit commands/tasks"""
+"""generate shell script with tab completion code for doit commands/tasks"""
 
 import sys
 from string import Template
@@ -39,7 +39,7 @@ class TabCompletion(DoitCmdBase):
     it will always call doit while evaluating the options.
 
     """
-    doc_purpose = "generate script for tab-complention"
+    doc_purpose = "generate script for tab-completion"
     doc_usage = ""
     doc_description = None
 
@@ -207,7 +207,7 @@ class TabCompletion(DoitCmdBase):
 
 
 bash_start = """# bash completion for $pt_bin_name
-# auto-generate by `$pt_bin_name tabcomplention`
+# auto-generate by `$pt_bin_name tabcompletion`
 
 # to activate it you need to 'source' the generate script
 # $ source <generated-script>
