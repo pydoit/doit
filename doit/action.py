@@ -98,10 +98,14 @@ class CmdAction(BaseAction):
     @ivar save_out: (str) name used to save output in `values`
     @ivar shell: use shell to execute command
                  see subprocess.Popen `shell` attribute
+    @ivar encoding (str): encoding of the process output
+    @ivar decode_error (str): value for decode() `errors` param
+                              while decoding process output
     @ivar pkwargs: Popen arguments except 'stdout' and 'stderr'
     """
 
     def __init__(self, action, task=None, save_out=None, shell=True,
+                 encoding='utf-8', decode_error='replace',
                  **pkwargs): #pylint: disable=W0231
         for forbidden in ('stdout', 'stderr'):
             if forbidden in pkwargs:
@@ -115,6 +119,8 @@ class CmdAction(BaseAction):
         self.values = {}
         self.save_out = save_out
         self.shell = shell
+        self.encoding = encoding
+        self.decode_error = decode_error
         self.pkwargs = pkwargs
 
     @property
@@ -129,8 +135,8 @@ class CmdAction(BaseAction):
 
 
     def _print_process_output(self, process, input_, capture, realtime):
-        """read 'input_' untill process is terminated
-        write 'input_' content to 'capture' and 'realtime' streams
+        """read 'input_' (bytes) untill process is terminated
+        write 'input_' content to 'capture' (string) and 'realtime' stream
         """
         if realtime:
             if hasattr(realtime, 'encoding'):
@@ -141,7 +147,8 @@ class CmdAction(BaseAction):
         while True:
             # line buffered
             try:
-                line = input_.readline().decode('utf-8')
+                line = input_.readline().decode(self.encoding,
+                                                errors=self.decode_error)
             except:
                 process.terminate()
                 input_.read()

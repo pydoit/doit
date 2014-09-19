@@ -3,6 +3,15 @@
 Changes
 =======
 
+0.27.0
+======================
+
+ - `CmdAction` added parameters `encoding` and `decode_error`
+ -  BACKWARD INCOMPATIBLE: `CmdAction` would always decode process output
+                            using `errors='strict'` default changed to `replace`
+
+
+
 0.26.0 (*2014-08-30*)
 ======================
 

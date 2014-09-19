@@ -39,6 +39,7 @@
 'result
 'run
 'setup'
+'strict'
 'success
 'targets'
 'teardown'

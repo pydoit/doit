@@ -7,7 +7,7 @@ import locale
 locale # quiet pyflakes
 
 import six
-from six import StringIO
+from six import StringIO, BytesIO
 import pytest
 from mock import Mock
 
@@ -215,11 +215,34 @@ class TestCmdExpandAction(object):
 
 
 class TestCmd_print_process_output(object):
-    def test_non_unicode_string(self):
-        my_action = action.CmdAction("")
-        not_unicode = StringIO('\xc0')
-        pytest.raises(Exception, my_action._print_process_output,
-                       Mock(), not_unicode, Mock(), Mock())
+    def test_non_unicode_string_error_strict(self):
+        my_action = action.CmdAction("", decode_error='strict')
+        not_unicode = BytesIO(six.b('\xa9'))
+        realtime = Mock()
+        realtime.encoding = 'utf-8'
+        pytest.raises(UnicodeDecodeError, my_action._print_process_output,
+                      Mock(), not_unicode, Mock(), realtime)
+
+    def test_non_unicode_string_error_replace(self):
+        my_action = action.CmdAction("") # default is decode_error = 'replace'
+        not_unicode = BytesIO(six.b('\xa9'))
+        realtime = Mock()
+        realtime.encoding = 'utf-8'
+        capture = StringIO()
+        my_action._print_process_output(Mock(), not_unicode, capture, realtime)
+        # get the replacement char
+        assert u'�' == capture.getvalue()
+
+    def test_non_unicode_string_ok(self):
+        my_action = action.CmdAction("", encoding='iso-8859-1')
+        not_unicode = BytesIO(six.b('\xa9'))
+        realtime = Mock()
+        realtime.encoding = 'utf-8'
+        capture = StringIO()
+        my_action._print_process_output(Mock(), not_unicode, capture, realtime)
+        # get the correct char from latin-1 encoding
+        assert u'©' == capture.getvalue()
+
 
     # dont test unicode if system locale doesnt support unicode
     # see https://bitbucket.org/schettino72/doit/pull-request/11
@@ -239,6 +262,7 @@ class TestCmd_print_process_output(object):
         unicode_in.write(six.u(" 中文 \u2018").encode('utf-8'))
         unicode_in.seek(0)
         my_action._print_process_output(Mock(), unicode_in, Mock(), tmpfile)
+
 
 
 class TestCmdSaveOuput(object):
