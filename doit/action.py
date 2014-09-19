@@ -148,7 +148,7 @@ class CmdAction(BaseAction):
             # line buffered
             try:
                 line = input_.readline().decode(self.encoding,
-                                                errors=self.decode_error)
+                                                self.decode_error)
             except:
                 process.terminate()
                 input_.read()
