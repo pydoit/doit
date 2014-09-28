@@ -8,7 +8,7 @@ import pytest
 from doitpy.pyflakes import Pyflakes
 from doitpy.coverage import Config, Coverage, PythonPackage
 from doitpy import docs
-from doitpy import pypi
+from doitpy.package import Package
 
 
 from doit.tools import create_folder
@@ -105,7 +105,7 @@ def task_website_update():
 
 def task_package():
     """create/upload package to pypi"""
-    pkg = pypi.PyPi()
+    pkg = Package()
     yield pkg.revision_git()
     yield pkg.manifest_git()
     yield pkg.sdist()

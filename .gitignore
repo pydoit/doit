@@ -2,7 +2,7 @@
 tests/data/*
 .doit.db
 doit.egg-info
-MANIFEST
+MANIFEST.in
 revision.txt
 doc/_build
 .coverage

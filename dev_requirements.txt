@@ -5,4 +5,4 @@ pyflakes
 pytest
 mock
 coverage
-doit-py>=0.2.0
+doit-py>=0.3.0
