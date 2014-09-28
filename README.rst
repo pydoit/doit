@@ -4,15 +4,15 @@ README
 
 .. display some badges
 
-.. disable as this is showing the wrong version number
-   .. image:: https://pypip.in/v/doit/badge.png
-           :target: https://pypi.python.org/pypi/doit
+.. image:: https://pypip.in/v/doit/badge.png
+        :target: https://pypi.python.org/pypi/doit
 
 .. image:: https://pypip.in/d/doit/badge.png
         :target: https://pypi.python.org/pypi/doit
 
-.. image:: https://travis-ci.org/pydoit/doit.png?branch=master
-  :target: https://travis-ci.org/pydoit/doit
+.. disable this until i figure out how to debug unstable tests
+  .. image:: https://travis-ci.org/pydoit/doit.png?branch=master
+    :target: https://travis-ci.org/pydoit/doit
 
 .. image:: https://coveralls.io/repos/pydoit/doit/badge.png?branch=master
   :target: https://coveralls.io/r/pydoit/doit?branch=master
