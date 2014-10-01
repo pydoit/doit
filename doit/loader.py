@@ -112,7 +112,7 @@ def load_tasks(dodo_module, command_names=()):
     for name, ref in six.iteritems(dodo_module):
 
         # function is a task creator because of its name
-        if inspect.isfunction(ref) and name.startswith(TASK_STRING):
+        if (inspect.isfunction(ref) or inspect.ismethod(ref)) and name.startswith(TASK_STRING):
             # remove TASK_STRING prefix from name
             task_name = name[prefix_len:]
 
