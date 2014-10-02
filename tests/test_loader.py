@@ -113,6 +113,27 @@ class TestLoadTasks(object):
         assert len(task_list) == 1
         assert task_list[0].file_dep == set(['fooy'])
 
+    def testUse_class_method(self):
+        class Dodo(object):
+            def foo(self):
+                pass
+
+            def task_method1(self):
+                return {'actions':None}
+
+            def task_method2(self):
+                return {'actions':None}
+
+        dodo = Dodo()
+
+        import inspect
+        methods = dict(inspect.getmembers(dodo, predicate=inspect.ismethod))
+
+        task_list = load_tasks(methods)
+        assert 2 == len(task_list)
+        assert 'method1' == task_list[0].name
+        assert 'method2' == task_list[1].name
+
 
 class TestDodoConfig(object):
 
