@@ -95,10 +95,10 @@ def get_module(dodo_file, cwd=None, seek_parent=False):
     return __import__(os.path.splitext(file_name)[0])
 
 
-def load_tasks(dodo_module, command_names=()):
+def load_tasks(task_creators, command_names=()):
     """Get task generators and generate tasks
 
-    @param dodo_module: (dict) containing the task generators, it might
+    @param task_creators: (dict) containing the task creators, it might
                         contain other stuff
     @param command_names: (list - str) blacklist for task names
     @return task_list (list) of Tasks in the order they were defined on the file
@@ -108,11 +108,12 @@ def load_tasks(dodo_module, command_names=()):
     # a task generator function name starts with the string TASK_STRING
     funcs = []
     prefix_len = len(TASK_STRING)
-    # get all functions defined in the module
-    for name, ref in six.iteritems(dodo_module):
+    # get all functions that are task_creators
+    for name, ref in six.iteritems(task_creators):
 
         # function is a task creator because of its name
-        if inspect.isfunction(ref) and name.startswith(TASK_STRING):
+        if ((inspect.isfunction(ref) or inspect.ismethod(ref)) and
+            name.startswith(TASK_STRING)):
             # remove TASK_STRING prefix from name
             task_name = name[prefix_len:]
 

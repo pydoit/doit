@@ -64,6 +64,7 @@ ConsoleReporter
 Ctrl
 Dembia
 DoitMain
+GH
 Gliwinski
 Guo
 InteractiveAction

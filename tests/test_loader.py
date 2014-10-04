@@ -1,4 +1,5 @@
 import os
+import inspect
 
 import pytest
 
@@ -112,6 +113,23 @@ class TestLoadTasks(object):
         task_list = load_tasks({'Foo':Foo, 'foo':Foo()})
         assert len(task_list) == 1
         assert task_list[0].file_dep == set(['fooy'])
+
+    def testUse_object_methods(self):
+        class Dodo(object):
+            def foo(self):
+                pass
+
+            def task_method1(self):
+                return {'actions':None}
+
+            def task_method2(self):
+                return {'actions':None}
+
+        methods = dict(inspect.getmembers(Dodo()))
+        task_list = load_tasks(methods)
+        assert 2 == len(task_list)
+        assert 'method1' == task_list[0].name
+        assert 'method2' == task_list[1].name
 
 
 class TestDodoConfig(object):

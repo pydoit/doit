@@ -76,6 +76,9 @@ by calling the ``doit.run()``, you need to pass the ``globals``:
   will not be executed.
 
 
+``doit.run()`` parameter will be passed to a :ref:`ModuleTaskLoader <ModuleTaskLoader>` to find your tasks.
+
+
 
 returned value
 ------------------
