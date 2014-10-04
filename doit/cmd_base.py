@@ -172,12 +172,12 @@ class TaskLoader(object):
         raise NotImplementedError()
 
     @staticmethod
-    def _load_from_module(module, cmd_list):
+    def _load_from(namespace, cmd_list):
         """load task from a module or dict with module members"""
-        if inspect.ismodule(module):
-            members = dict(inspect.getmembers(module))
+        if inspect.ismodule(namespace):
+            members = dict(inspect.getmembers(namespace))
         else:
-            members = module
+            members = namespace
         task_list = loader.load_tasks(members, cmd_list)
         doit_config = loader.load_doit_config(members)
         return task_list, doit_config
@@ -193,7 +193,7 @@ class ModuleTaskLoader(TaskLoader):
         self.mod_dict = mod_dict
 
     def load_tasks(self, cmd, params, args):
-        return self._load_from_module(self.mod_dict, cmd.CMD_LIST)
+        return self._load_from(self.mod_dict, cmd.CMD_LIST)
 
 
 class DodoTaskLoader(TaskLoader):
@@ -203,7 +203,7 @@ class DodoTaskLoader(TaskLoader):
     def load_tasks(self, cmd, params, args):
         dodo_module = loader.get_module(params['dodoFile'], params['cwdPath'],
                                         params['seek_file'])
-        return self._load_from_module(dodo_module, cmd.CMD_LIST)
+        return self._load_from(dodo_module, cmd.CMD_LIST)
 
 
 

@@ -9,7 +9,7 @@ Changes
  - `CmdAction` added parameters `encoding` and `decode_error`
  -  BACKWARD INCOMPATIBLE: `CmdAction` would always decode process output
                             using `errors='strict'` default changed to `replace`
- - task can be defined as class method
+ - fix GH-#6: `loader.task_loader()` accepts methods as *task creators*
 
 
 0.26.0 (*2014-08-30*)

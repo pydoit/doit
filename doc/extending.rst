@@ -46,6 +46,8 @@ task available is defined using a dict (so no `dodo.py` will be used).
 .. literalinclude:: tutorial/custom_loader.py
 
 
+.. _ModuleTaskLoader:
+
 Example: load tasks from a module
 -------------------------------------
 
@@ -54,6 +56,9 @@ where this module specifies tasks in the same way as in `dodo.py`.
 `ModuleTaskLoader` is included in `doit` source.
 
 .. literalinclude:: tutorial/module_loader.py
+
+`ModuleTaskLoader` can take also take a `dict` where its items are functions
+or methods of an object.
 
 
 
