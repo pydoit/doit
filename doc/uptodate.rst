@@ -7,6 +7,8 @@ Here we look in more
 detail into some implementations shipped with `doit`. And the API used by those.
 
 
+.. _result_dep:
+
 result-dependency
 ----------------------
 
@@ -35,9 +37,10 @@ For cmd-actions it is the output send to stdout plus stderr.
 result of all subtasks did not change. And also the existing sub-tasks are
 the same.
 
+.. _run_once:
 
 
-run-once
+run_once()
 ---------------
 
 Sometimes there is no dependency for a task but you do not want to execute it
@@ -64,9 +67,10 @@ Note that even with *run_once* the file will be downloaded again in case the tar
     .  get_pylogo
 
 
+.. _timeout:
 
-timeout
----------
+timeout()
+-----------
 
 ``timeout`` is used to expire a task after a certain time interval.
 
@@ -80,9 +84,10 @@ time it was executed is bigger than 5 minutes.
 parameter. It returns a callable suitable to be used as an ``uptodate`` callable.
 
 
+.. _config_changed:
 
-config_changed
----------------
+config_changed()
+-----------------
 
 ``config_changed`` is used to check if any "configuration" value for the task has
 changed. Config values can be a string or dict.
@@ -93,8 +98,10 @@ and only a digest/checksum of the dictionaries keys and values are saved.
 .. literalinclude:: tutorial/config_params.py
 
 
-check_timestamp_unchanged
---------------------------
+.. _check_timestamp_unchanged:
+
+check_timestamp_unchanged()
+-----------------------------
 
 ``check_timestamp_unchanged`` is used to check if specified timestamp of a given
 file/dir is unchanged since last run.
