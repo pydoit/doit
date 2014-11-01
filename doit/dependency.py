@@ -116,6 +116,10 @@ class JsonDB(object):
         finally:
             db_file.close()
 
+    def close(self):
+        """close any open file descriptors"""
+        pass
+
     def set(self, task_id, dependency, value):
         """Store value in the DB."""
         if task_id not in self._db:
@@ -201,10 +205,14 @@ class DbmDB(object):
         self.dirty = set()
 
     def dump(self):
-        """save/close DBM file"""
+        """save DBM file"""
         for task_id in self.dirty:
             self._dbm[task_id] = json.dumps(self._db[task_id])
+
+    def close(self):
+        """close DBM file"""
         self._dbm.close()
+
 
 
     @encode_task_id
@@ -345,8 +353,11 @@ class SqliteDB(object):
         return False
 
     def dump(self):
-        """save/close sqlite3 DB file"""
+        """save sqlite3 DB file"""
         self._conn.commit()
+
+    def close(self):
+        """close sqlite3 DB file"""
         self._conn.close()
 
     def remove(self, task_id):
@@ -357,6 +368,71 @@ class SqliteDB(object):
         """remove saved dependecies from DB for all task"""
         self._conn.execute('delete from doit')
 
+
+class DryRunDB(object):
+    """thin layer, caching database writes, but preventing database modification"""
+    """required for some databases (e.g. sql) that directly write to disc"""
+
+    def __init__(self, backend):
+        self.backend = backend
+        self.name = self.backend.name
+
+         # current additional database state
+        self._remove = set()
+        self._remove_all = False
+        self._cache = {}
+
+    def get(self, task_id, dependency):
+        """Get value stored in the DB.
+
+        @return: (string) or (None) if entry not found
+        """
+
+        if task_id in self._cache and dependency in self._cache[task_id]:
+            return self._cache[task_id]
+
+        if self._remove_all or task_id in self._remove:
+            return None
+
+        # pass through to backend
+        return self.backend.get(task_id, dependency)
+
+    def set(self, task_id, dependency, value):
+        """Store value in the DB."""
+        if task_id not in self._cache:
+            self._cache[task_id] = {}
+
+        if task_id in self._remove:
+            self._remove.remove(task_id)
+
+        self._cache[task_id] = value
+
+    def in_(self, task_id):
+        if task_id in self.cache:
+            return True
+
+        if self._remove_all or task_id in self._remove:
+            return False
+
+        # pass through to backend
+        return self.backend.in_(task_id)
+
+    def dump(self):
+        """ignore save database file request"""
+        pass
+
+    def close(self):
+        self.backend.close()
+
+    def remove(self, task_id):
+        """remove saved dependecies from DB for taskId"""
+        self._remove.add(task_id)
+
+    def remove_all(self):
+        """remove saved dependecies from DB for all task"""
+        self._remove_all = True
+        self._remove = set()
+        self._cache = {}
 
 
 class DependencyBase(object):
@@ -388,6 +464,7 @@ class DependencyBase(object):
         """Write DB in file"""
         if not self._closed:
             self.backend.dump()
+            self.backend.close()
             self._closed = True
 
 
@@ -548,18 +625,27 @@ class DependencyBase(object):
 
 class JsonDependency(DependencyBase):
     """Task dependency manager with JSON backend"""
-    def __init__(self, name):
-        DependencyBase.__init__(self, JsonDB(name))
+    def __init__(self, name, dry_run=False):
+        database = JsonDB(name)
+        if dry_run:
+            database = DryRunDB(database)
+        DependencyBase.__init__(self, database)
 
 class DbmDependency(DependencyBase):
     """Task dependency manager with DBM backend"""
-    def __init__(self, name):
-        DependencyBase.__init__(self, DbmDB(name))
+    def __init__(self, name, dry_run=False):
+        database = DbmDB(name)
+        if dry_run:
+            database = DryRunDB(database)
+        DependencyBase.__init__(self, database)
 
 class SqliteDependency(DependencyBase):
     """Task dependency manager with sqlite backend"""
-    def __init__(self, name):
-        DependencyBase.__init__(self, SqliteDB(name))
+    def __init__(self, name, dry_run=False):
+        database = SqliteDB(name)
+        if dry_run:
+            database = DryRunDB(database)
+        DependencyBase.__init__(self, database)
 
 # map string used in cmdline option to class
 backend_map = {

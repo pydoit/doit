@@ -193,6 +193,16 @@ By default the execution of tasks is halted on the first task failure or error. 
     $ doit --continue
 
 
+dry-run
+--------
+
+To quickly see which tasks have to be rebuild, the option ``--dry-run`` disables task execution. The output shows which tasks need to be updated.
+
+.. code-block:: console
+
+    $ doit --dry-run
+
+
 single task execution
 ----------------------
 
@@ -324,5 +334,3 @@ older that `X`, doit will display an error warning the user to update `doit`.
 
   This feature was added on `doit` 0.24.0.
   Older Versions will not check or display error messages.
-
-

@@ -10,7 +10,7 @@ Changes
  -  BACKWARD INCOMPATIBLE: `CmdAction` would always decode process output
                             using `errors='strict'` default changed to `replace`
  - fix GH-#6: `loader.task_loader()` accepts methods as *task creators*
-
+ - added --dry-run option to run action
 
 0.26.0 (*2014-08-30*)
 ======================
@@ -369,4 +369,3 @@ Changes
 ====================
 
 - initial release
-
