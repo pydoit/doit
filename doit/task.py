@@ -10,6 +10,7 @@ import six
 from .cmdparse import CmdOption, TaskParse
 from .exceptions import CatchedException, InvalidTask
 from .action import create_action, PythonAction
+from .dependency import UptodateCalculator
 
 
 def first_line(doc):
@@ -132,12 +133,15 @@ class Task(object):
 
         self._init_deps(file_dep, task_dep, calc_dep)
 
-        self.value_savers = []
-        self.uptodate = self._init_uptodate(uptodate) if uptodate else []
+        uptodate = uptodate if uptodate else []
 
         self.getargs = getargs
         if self.getargs:
-            self._init_getargs()
+            uptodate.extend(self._init_getargs())
+
+        self.value_savers = []
+        self.uptodate = self._init_uptodate(uptodate)
+
         self.targets = targets
         self.is_subtask = is_subtask
         self.has_subtask = has_subtask
@@ -261,6 +265,8 @@ class Task(object):
 
     def _init_getargs(self):
         """task getargs attribute define implicit task dependencies"""
+        check_result = set()
+
         for arg_name, desc in six.iteritems(self.getargs):
 
             # tuple (task_id, key_name)
@@ -273,7 +279,9 @@ class Task(object):
                 raise InvalidTask(msg)
 
             if parts[0] not in self.setup_tasks:
-                self.setup_tasks.append(parts[0])
+                check_result.add(parts[0])
+
+        return [result_dep(t) for t in check_result]
 
 
     @staticmethod
@@ -471,3 +479,46 @@ def clean_targets(task, dryrun):
             six.print_(msg % (task.name, dir_))
             if not dryrun:
                 os.rmdir(dir_)
+
+
+# uptodate
+class result_dep(UptodateCalculator):
+    """check if result of the given task was modified
+    """
+    def __init__(self, dep_task_name):
+        self.dep_name = dep_task_name
+        self.result_name = '_result:%s' % self.dep_name
+
+    def configure_task(self, task):
+        """to be called by doit when create the task"""
+        # result_dep creates an implicit task_dep
+        task.setup_tasks.append(self.dep_name)
+
+    def _result_single(self):
+        """get result from a single task"""
+        return self.get_val(self.dep_name, 'result:')
+
+    def _result_group(self, dep_task):
+        """get result from a group task
+        the result is the combination of results of all sub-tasks
+        """
+        prefix = dep_task.name + ":"
+        sub_tasks = {}
+        for sub in dep_task.task_dep:
+            if sub.startswith(prefix):
+                sub_tasks[sub] = self.get_val(sub, 'result:')
+        return sub_tasks
+
+    def __call__(self, task, values):
+        """return True if result is the same as last run"""
+        dep_task = self.tasks_dict[self.dep_name]
+        if not dep_task.has_subtask:
+            dep_result = self._result_single()
+        else:
+            dep_result = self._result_group(dep_task)
+        task.value_savers.append(lambda: {self.result_name: dep_result})
+
+        last_success = values.get(self.result_name)
+        if last_success is None:
+            return False
+        return (last_success == dep_result)

@@ -6,9 +6,12 @@ Changes
 0.27.0
 ======================
 
+ - BACKWARD INCOMPATIBLE: `result_dep` creates an implicit `setup`
+                          (was `task_dep`)
+ - BACKWARD INCOMPATIBLE: `getargs` creates an implicit `result_dep`
  - `CmdAction` added parameters `encoding` and `decode_error`
- -  BACKWARD INCOMPATIBLE: `CmdAction` would always decode process output
-                            using `errors='strict'` default changed to `replace`
+ - BACKWARD INCOMPATIBLE: `CmdAction` would always decode process output
+                          using `errors='strict'` default changed to `replace`
  - fix GH-#6: `loader.task_loader()` accepts methods as *task creators*
 
 

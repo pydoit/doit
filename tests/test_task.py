@@ -171,8 +171,9 @@ class TestTask_Getargs(object):
     def test_ok(self):
         getargs = {'x' : ('t1','x'), 'y': ('t2','z')}
         t = task.Task('t3', None, getargs=getargs)
-        assert 't1' in t.setup_tasks
-        assert 't2' in t.setup_tasks
+        assert len(t.uptodate) == 2
+        assert ['t1', 't2'] == sorted([t.uptodate[0][0].dep_name,
+                                       t.uptodate[1][0].dep_name])
 
     def test_invalid_desc(self):
         getargs = {'x' : 't1'}
@@ -457,3 +458,72 @@ class TestDictToTask(object):
 
     def testDictMissingFieldAction(self):
         pytest.raises(action.InvalidTask, task.dict_to_task, {'name':'xpto 14'})
+
+
+
+class TestResultDep(object):
+    def test_single(self, depfile):
+        dep_manager = depfile
+
+        tasks = {'t1': task.Task("t1", None, uptodate=[task.result_dep('t2')]),
+                 't2': task.Task("t2", None),
+                 }
+        # _config_task was executed and t2 added as task_dep
+        assert ['t2'] == tasks['t1'].setup_tasks
+
+        # first t2 result
+        tasks['t2'].result = 'yes'
+        dep_manager.save_success(tasks['t2'])
+        assert 'run' == dep_manager.get_status(tasks['t1'], tasks)  # first time
+
+        tasks['t1'].save_extra_values()
+        dep_manager.save_success(tasks['t1'])
+        assert 'up-to-date' == dep_manager.get_status(tasks['t1'], tasks)
+
+        # t2 result changed
+        tasks['t2'].result = '222'
+        dep_manager.save_success(tasks['t2'])
+
+        tasks['t1'].save_extra_values()
+        dep_manager.save_success(tasks['t1'])
+        assert 'run' == dep_manager.get_status(tasks['t1'], tasks)
+
+        tasks['t1'].save_extra_values()
+        dep_manager.save_success(tasks['t1'])
+        assert 'up-to-date' == dep_manager.get_status(tasks['t1'], tasks)
+
+
+    def test_group(self, depfile):
+        dep_manager = depfile
+
+        tasks = {'t1': task.Task("t1", None, uptodate=[task.result_dep('t2')]),
+                 't2': task.Task("t2", None, task_dep=['t2:a', 't2:b'],
+                                 has_subtask=True),
+                 't2:a': task.Task("t2:a", None),
+                 't2:b': task.Task("t2:b", None),
+                 }
+        # _config_task was executed and t2 added as task_dep
+        assert ['t2'] == tasks['t1'].setup_tasks
+
+        # first t2 result
+        tasks['t2:a'].result = 'yes1'
+        dep_manager.save_success(tasks['t2:a'])
+        tasks['t2:b'].result = 'yes2'
+        dep_manager.save_success(tasks['t2:b'])
+        assert 'run' == dep_manager.get_status(tasks['t1'], tasks)  # first time
+
+        tasks['t1'].save_extra_values()
+        dep_manager.save_success(tasks['t1'])
+        assert 'up-to-date' == dep_manager.get_status(tasks['t1'], tasks)
+
+        # t2 result changed
+        tasks['t2:a'].result = '222'
+        dep_manager.save_success(tasks['t2:a'])
+
+        tasks['t1'].save_extra_values()
+        dep_manager.save_success(tasks['t1'])
+        assert 'run' == dep_manager.get_status(tasks['t1'], tasks)
+
+        tasks['t1'].save_extra_values()
+        dep_manager.save_success(tasks['t1'])
+        assert 'up-to-date' == dep_manager.get_status(tasks['t1'], tasks)

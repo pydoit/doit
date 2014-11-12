@@ -116,7 +116,7 @@ class TestLoadTasks(object):
 
     def testUse_object_methods(self):
         class Dodo(object):
-            def foo(self):
+            def foo(self): # pragma: no cover
                 pass
 
             def task_method1(self):

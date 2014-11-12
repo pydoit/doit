@@ -9,9 +9,9 @@ import subprocess
 import six
 
 from . import exceptions
-from .dependency import UptodateCalculator
 from .action import CmdAction, PythonAction
-
+from .task import result_dep # imported for backward compatibility
+result_dep # pyflakes
 
 # action
 def create_folder(dir_path):
@@ -42,50 +42,6 @@ def run_once(task, values):
         return {'run-once': True}
     task.value_savers.append(save_executed)
     return values.get('run-once', False)
-
-
-
-# uptodate
-class result_dep(UptodateCalculator):
-    """check if result of the given task was modified
-    """
-    def __init__(self, dep_task_name):
-        self.dep_name = dep_task_name
-        self.result_name = '_result:%s' % self.dep_name
-
-    def configure_task(self, task):
-        """to be called by doit when create the task"""
-        # result_dep creates an implicit task_dep
-        task.task_dep.append(self.dep_name)
-
-    def _result_single(self):
-        """get result from a single task"""
-        return self.get_val(self.dep_name, 'result:')
-
-    def _result_group(self, dep_task):
-        """get result from a group task
-        the result is the combination of results of all sub-tasks
-        """
-        prefix = dep_task.name + ":"
-        sub_tasks = {}
-        for sub in dep_task.task_dep:
-            if sub.startswith(prefix):
-                sub_tasks[sub] = self.get_val(sub, 'result:')
-        return sub_tasks
-
-    def __call__(self, task, values):
-        """return True if result is the same as last run"""
-        dep_task = self.tasks_dict[self.dep_name]
-        if not dep_task.has_subtask:
-            dep_result = self._result_single()
-        else:
-            dep_result = self._result_group(dep_task)
-        task.value_savers.append(lambda: {self.result_name: dep_result})
-
-        last_success = values.get(self.result_name)
-        if last_success is None:
-            return False
-        return (last_success == dep_result)
 
 
 
