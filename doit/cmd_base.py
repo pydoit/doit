@@ -115,7 +115,7 @@ opt_backend = {
     'long': 'backend',
     'type': str,
     'default': "dbm",
-    'help': ("Select dependency file backend." +
+    'help': ("Select dependency file backend. " +
              "Available options dbm, json, sqlite3. [default: %(default)s]")
 }
 
@@ -137,7 +137,7 @@ opt_cwd = {'name': 'cwdPath',
            'type': str,
            'default': None,
            'help':("set path to be used as cwd directory (file paths on " +
-                   "dodo file are relative to dodo.py location.")
+                   "dodo file are relative to dodo.py location).")
            }
 
 # seek dodo file on parent folders

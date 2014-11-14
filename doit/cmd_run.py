@@ -61,7 +61,7 @@ opt_single = {'name': 'single',
               'long': 'single',
               'type': bool,
               'default': False,
-              'help': "Execute only specfied tasks ignoring their task_dep "
+              'help': "Execute only specified tasks ignoring their task_dep "
                       "[default: %(default)s]"
               }
 
@@ -71,7 +71,7 @@ opt_num_process = {'name': 'num_process',
                    'long': 'process',
                    'type': int,
                    'default': 0,
-                   'help': "number of subprocesses"
+                   'help': "number of subprocesses "
                    "[default: %(default)s]"
                    }
 
@@ -115,7 +115,7 @@ opt_pdb = {
     'type': bool,
     'default': None,
     'help':
-"""get into PDB (python debugger) post-mortem in case of unhadled exception"""
+"""get into PDB (python debugger) post-mortem in case of unhandled exception"""
     }
 
 
