@@ -47,6 +47,11 @@ class Command(object):
     # sequence of dicts
     cmd_options = tuple()
 
+    # `execute_tasks` indicates wheather this command execute task's actions.
+    # This is used by the loader to indicate when delayed task creation
+    # should be used.
+    execute_tasks = False
+
     def __init__(self):
         self.name = self.name or self.__class__.__name__.lower()
         Command.CMD_LIST.append(self.name)
@@ -172,13 +177,13 @@ class TaskLoader(object):
         raise NotImplementedError()
 
     @staticmethod
-    def _load_from(namespace, cmd_list):
+    def _load_from(cmd, namespace, cmd_list):
         """load task from a module or dict with module members"""
         if inspect.ismodule(namespace):
             members = dict(inspect.getmembers(namespace))
         else:
             members = namespace
-        task_list = loader.load_tasks(members, cmd_list)
+        task_list = loader.load_tasks(members, cmd_list, cmd.execute_tasks)
         doit_config = loader.load_doit_config(members)
         return task_list, doit_config
 
@@ -193,7 +198,7 @@ class ModuleTaskLoader(TaskLoader):
         self.mod_dict = mod_dict
 
     def load_tasks(self, cmd, params, args):
-        return self._load_from(self.mod_dict, cmd.CMD_LIST)
+        return self._load_from(cmd, self.mod_dict, cmd.CMD_LIST)
 
 
 class DodoTaskLoader(TaskLoader):
@@ -203,7 +208,7 @@ class DodoTaskLoader(TaskLoader):
     def load_tasks(self, cmd, params, args):
         dodo_module = loader.get_module(params['dodoFile'], params['cwdPath'],
                                         params['seek_file'])
-        return self._load_from(dodo_module, cmd.CMD_LIST)
+        return self._load_from(cmd, dodo_module, cmd.CMD_LIST)
 
 
 

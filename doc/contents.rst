@@ -14,6 +14,7 @@ Contents:
    install
    tasks
    dependencies
+   delayed
    uptodate
    cmd_run
    cmd_other

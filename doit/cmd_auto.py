@@ -32,6 +32,7 @@ class Auto(DoitCmdBase):
     doc_purpose = "automatically execute tasks when a dependency changes"
     doc_usage = "[TASK ...]"
     doc_description = None
+    execute_tasks = True
 
     cmd_options = (opt_verbosity, opt_reporter)
 

@@ -6,6 +6,7 @@ Changes
 0.27.0
 ======================
 
+ - fix GH-#14: add support for delayed task creation
  - fix GH-#15: `auto` (linux) inotify also listen for `MOVE_TO` events
  - BACKWARD INCOMPATIBLE: `result_dep` creates an implicit `setup`
                           (was `task_dep`)

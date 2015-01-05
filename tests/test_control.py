@@ -3,7 +3,7 @@ from collections import deque
 import pytest
 
 from doit.exceptions import InvalidDodoFile, InvalidCommand
-from doit.task import InvalidTask, Task
+from doit.task import InvalidTask, Task, DelayedLoader
 from doit.control import TaskControl, TaskDispatcher, ExecNode
 from doit.control import no_none
 
@@ -367,6 +367,34 @@ class TestTaskDispatcher_add_task(object):
         assert tasks['t1'] == next(gen)  # second time
 
 
+    def test_delayed_creation(self):
+        def creator():
+            yield {'name': 'foo', 'actions': None}
+        delayed_loader = DelayedLoader(creator, executed='t2')
+        tasks = {'t1': Task('t1', None, loader=delayed_loader),
+                 't2': Task('t2', None),
+                 }
+        td = TaskDispatcher(tasks, [], None)
+        n1 = td._gen_node(None, 't1')
+        gen = td._add_task(n1)
+
+        # first returned node is `t2` because it is an implicit task_dep
+        n2 = next(gen)
+        assert n2.task.name == 't2'
+
+        # wait until t2 is finished
+        n3 = next(gen)
+        assert n3 == 'wait'
+
+        # after t2 is done, generator is reseted
+        tasks['t2'].run_status = 'done'
+        td._update_waiting(n2)
+        n4 = next(gen)
+        assert n4 == "reset generator"
+        pytest.raises(AssertionError, next, gen)
+
+
+
 class TestTaskDispatcher_get_next_node(object):
     def test_none(self):
         tasks = {'t1': Task('t1', None, task_dep=['t2']),
@@ -489,4 +517,29 @@ class TestTaskDispatcher_dispatcher_generator(object):
         assert "hold on" == next(gen)
         assert "hold on" == next(gen) # hold until t2 is done
         assert tasks[0] == gen.send(n2).task
+        pytest.raises(StopIteration, lambda gen: next(gen), gen)
+
+
+    def test_delayed_creation(self):
+        def creator():
+            yield {'name': 'foo', 'actions': None, 'file_dep': ['bar']}
+            yield {'name': 'foo2', 'actions': None, 'targets': ['bar']}
+        delayed_loader = DelayedLoader(creator, executed='t2')
+        tasks = [Task('t1', None, loader=delayed_loader),
+                 Task('t2', None)]
+
+        control = TaskControl(tasks)
+        control.process(['t1'])
+        gen = control.task_dispatcher().generator
+        n1 = next(gen)
+        assert n1.task.name == "t2"
+        assert "hold on" == next(gen)
+        assert "hold on" == next(gen) # hold until t2 is done
+        n2 = gen.send(n1)
+        assert n2.task.name == "t1:foo2"
+        n3 = gen.send(n2)
+        assert n3.task.name == "t1:foo"
+        assert n3.task.task_dep == ['t1:foo2'] # implicit dep added
+        n4 = gen.send(n3)
+        assert n4.task.name == "t1"
         pytest.raises(StopIteration, lambda gen: next(gen), gen)

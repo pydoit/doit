@@ -23,12 +23,28 @@ def first_line(doc):
     return ''
 
 
+class DelayedLoader(object):
+    """contains info for delayed creation of tasks from a task-creator
+
+    @ivar creator: reference to task-creator function
+    @ivar task_dep: (str) name of task that should be executed before the
+                    the loader call the creator function
+    """
+    def __init__(self, creator, executed=None):
+        self.creator = creator
+        self.task_dep = executed
+
+# used to indicate that a task had DelayedLoader but was already created
+DelayedLoaded = False
+
+
 class Task(object):
     """Task
 
     @ivar name string
     @ivar actions: list - L{BaseAction}
     @ivar clean_actions: list - L{BaseAction}
+    @ivar loader (DelayedLoader)
     @ivar teardown (list - L{BaseAction})
     @ivar targets: (list -string)
     @ivar task_dep: (list - string)
@@ -89,7 +105,7 @@ class Task(object):
                  is_subtask=False, has_subtask=False,
                  doc=None, params=(), pos_arg=None,
                  verbosity=None, title=None, getargs=None,
-                 watch=()):
+                 watch=(), loader=None):
         """sanity checks and initialization
 
         @param params: (list of dict for parameters) see cmdparse.CmdOption
@@ -132,6 +148,11 @@ class Task(object):
             self._actions = list(actions[:])
 
         self._init_deps(file_dep, task_dep, calc_dep)
+
+        # loaders create an implicity task_dep
+        self.loader = loader
+        if self.loader and self.loader.task_dep:
+            self.task_dep.append(loader.task_dep)
 
         uptodate = uptodate if uptodate else []
 
@@ -405,7 +426,7 @@ class Task(object):
 
 
     # when using multiprocessing Tasks are pickled.
-    def __getstate__(self):
+    def pickle_safe_dict(self):
         """remove attributes that might contain unpickleble content
         mostly probably closures
         """
@@ -419,12 +440,12 @@ class Task(object):
         del to_pickle['uptodate']
         return to_pickle
 
-    def __eq__(self, other):
-        return self.name == other.name
-
     def update_from_pickle(self, pickle_obj):
         """update self with data from pickled Task"""
-        self.__dict__.update(pickle_obj.__dict__)
+        self.__dict__.update(pickle_obj)
+
+    def __eq__(self, other):
+        return self.name == other.name
 
     def __lt__(self, other):
         """used on default sorting of tasks (alphabetically by name)"""

@@ -123,6 +123,7 @@ class Run(DoitCmdBase):
     doc_purpose = "run tasks"
     doc_usage = "[TASK/TARGET...]"
     doc_description = None
+    execute_tasks = True
 
     cmd_options = (opt_always, opt_continue, opt_verbosity,
                    opt_reporter, opt_outfile, opt_num_process,

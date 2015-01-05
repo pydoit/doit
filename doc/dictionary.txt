@@ -215,6 +215,7 @@ params
 pathlib
 pdb
 perl
+picklable
 popen
 pos
 pos1

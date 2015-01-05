@@ -4,8 +4,8 @@ from collections import deque
 import six
 
 from .exceptions import InvalidTask, InvalidCommand, InvalidDodoFile
-from .task import Task
-
+from .task import Task, DelayedLoaded
+from .loader import generate_tasks
 
 
 class TaskControl(object):
@@ -57,7 +57,7 @@ class TaskControl(object):
                 task.task_dep.extend(self._get_wild_tasks(pattern))
 
         self._check_dep_names()
-        self._init_implicit_deps()
+        self.set_implicit_deps(self.targets, task_list)
 
 
     def _check_dep_names(self):
@@ -75,27 +75,39 @@ class TaskControl(object):
                     raise InvalidTask(msg % (task.name, setup_task))
 
 
-    def _init_implicit_deps(self):
-        """get task_dep based on file_dep on a target from another task"""
+    @staticmethod
+    def set_implicit_deps(targets, task_list):
+        """set/add task_dep based on file_dep on a target from another task
+        @param targets: (dict) fileName -> task_name
+        @param task_list: (list - Task) task with newly added file_dep
+        """
         # 1) create a dictionary associating every target->task. where the task
         # builds that target.
-        for task in six.itervalues(self.tasks):
+        for task in task_list:
             for target in task.targets:
-                if target in self.targets:
+                if target in targets:
                     msg = ("Two different tasks can't have a common target." +
                            "'%s' is a target for %s and %s.")
                     raise InvalidTask(msg % (target, task.name,
-                                             self.targets[target]))
-                self.targets[target] = task.name
+                                             targets[target]))
+                targets[target] = task.name
+
         # 2) now go through all dependencies and check if they are target from
         # another task.
-        for task in six.itervalues(self.tasks):
-            self.add_implicit_task_dep(self.targets, task, task.file_dep)
+        # FIXME - when used with delayed tasks needs to check if
+        #         any new target matches any old file_dep.
+        for task in task_list:
+            TaskControl.add_implicit_task_dep(targets, task, task.file_dep)
 
 
     @staticmethod
     def add_implicit_task_dep(targets, task, deps_list):
-        """add tasks which created targets are file_dep for this task"""
+        """add implicit task_dep for `task` for newly added `file_dep`
+
+        @param targets: (dict) fileName -> task_name
+        @param task: (Task) task with newly added file_dep
+        @param dep_list: (list - str): list of file_dep for task
+        """
         for dep in deps_list:
             if (dep in targets and targets[dep] not in task.task_dep):
                 task.task_dep.append(targets[dep])
@@ -212,6 +224,7 @@ class ExecNode(object):
     """
     def __init__(self, task, parent):
         self.task = task
+        self.parent = parent
         # list of dependencies not processed by _add_task yet
         self.task_dep = task.task_dep[:]
         self.calc_dep = task.calc_dep.copy()
@@ -311,14 +324,18 @@ class TaskDispatcher(object):
         @param task_list (list - str) tasks that node should wait for
         @param calc (bool) task_list is for calc_dep
         """
-        # remove tasks that were already executed from task_list
+        # wait_for: contains tasks that `node` needs to wait for and
+        # were not executed yet.
         wait_for = set()
         for name in task_list:
             dep_node = self.nodes[name]
             if (not dep_node) or dep_node.run_status in (None, 'run'):
                 wait_for.add(name)
             else:
+                # if dep task was already executed:
+                # a) set parent status
                 node.parent_status(dep_node)
+                # b) update dependencies from calc_dep results
                 if calc:
                     self._process_calc_dep_results(dep_node, node)
 
@@ -364,12 +381,26 @@ class TaskDispatcher(object):
                 yield self._gen_node(node, task_dep)
             self._node_add_wait_run(node, task_dep_list)
 
+            # do not wait until all possible task_dep are created
             if (node.calc_dep or node.task_dep):
                 continue # pragma: no cover # coverage cant catch this #198
             elif (node.wait_run or node.wait_run_calc):
                 yield 'wait'
             else:
                 break
+
+        if this_task.loader:
+            ref = this_task.loader.creator
+            new_tasks = generate_tasks(this_task.name, ref(), ref.__doc__)
+            TaskControl.set_implicit_deps(self.targets, new_tasks)
+            del self.nodes[this_task.name]
+            for nt in new_tasks:
+                nt.loader = DelayedLoaded
+                self.tasks[nt.name] = nt
+            # this task was placeholder to execute the loader
+            # now it needs to be re-processed with the real task
+            yield "reset generator"
+            assert False, "This generator can not be used again"
 
         # add itself
         yield this_task
@@ -511,6 +542,10 @@ class TaskDispatcher(object):
             # got new ExecNode, add to ready_queue
             elif isinstance(next_step, ExecNode):
                 self.ready.append(next_step)
+
+            # node just performed a delayed creation of tasks, restart
+            elif next_step == "reset generator":
+                node = self._gen_node(node.parent, node.task.name)
 
             # got 'wait', add ExecNode to waiting queue
             else:

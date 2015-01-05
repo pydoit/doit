@@ -37,6 +37,27 @@ class TestTaskCheckInput(object):
 
 
 
+class TestTaskCompare(object):
+    def test_equal(self):
+        # only task name is used to compare for equality
+        t1 = task.Task("foo", None)
+        t2 = task.Task("bar", None)
+        t3 = task.Task("foo", None)
+        assert t1 != t2
+        assert t1 == t3
+
+
+    def test_lt(self):
+        # task name is used to compare/sort tasks
+        t1 = task.Task("foo", None)
+        t2 = task.Task("bar", None)
+        t3 = task.Task("gee", None)
+        assert t1 > t2
+        sorted_names = sorted(t.name for t in (t1,t2,t3))
+        assert sorted_names == ['bar', 'foo', 'gee']
+
+
+
 class TestTaskInit(object):
 
     def test_groupTask(self):
@@ -165,6 +186,15 @@ class TestTaskDeps(object):
         assert ['taskY'] == my_task.task_dep
         assert set(['calcX', 'calcY']) == my_task.calc_dep
         assert [(None, None, None), (True, None, None)] == my_task.uptodate
+
+
+
+class TestTask_Loader(object):
+    def test_delayed_after_execution(self):
+        # after `executed` creates an implicit task_dep
+        delayed = task.DelayedLoader(lambda: None, executed='foo')
+        t1 = task.Task('bar', None, loader=delayed)
+        assert t1.task_dep == ['foo']
 
 
 class TestTask_Getargs(object):
@@ -443,7 +473,7 @@ class TestTaskUpdateFromPickle(object):
         class FakePickle():
             def __init__(self):
                 self.values = [1,2,3]
-        t.update_from_pickle(FakePickle())
+        t.update_from_pickle(FakePickle().__dict__)
         assert [1,2,3] == t.values
         assert 'my_name' == t.name
 

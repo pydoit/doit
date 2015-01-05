@@ -5,7 +5,7 @@ import pytest
 
 import doit
 from doit.exceptions import InvalidDodoFile, InvalidCommand
-from doit.task import InvalidTask, Task
+from doit.task import InvalidTask, DelayedLoader, Task
 from doit.loader import flat_generator, get_module
 from doit.loader import load_tasks, load_doit_config, generate_tasks
 
@@ -87,6 +87,27 @@ class TestLoadTasks(object):
         assert 2 == len(task_list)
         assert 'xxx1' == task_list[0].name
         assert 'yyy2' == task_list[1].name
+
+    def testCreateAfterDecorator(self):
+        @doit.create_after('yyy2')
+        def task_zzz3(): # pragma: no cover
+            pass
+
+        # create_after annotates the function
+        assert isinstance(task_zzz3.doit_create_after, DelayedLoader)
+        assert task_zzz3.doit_create_after.task_dep == 'yyy2'
+
+    def testInitialLoadDelayedTask(self, dodo):
+        @doit.create_after('yyy2')
+        def task_zzz3(): # pragma: no cover
+            raise Exception('Cant be executed on load phase')
+        dodo['task_zzz3'] = task_zzz3
+
+        # placeholder task is created with `loader` attribute
+        task_list = load_tasks(dodo, allow_delayed=True)
+        z_task = [t for t in task_list if t.name=='zzz3'][0]
+        assert z_task.loader.task_dep == 'yyy2'
+        assert z_task.loader.creator == task_zzz3
 
     def testNameInBlacklist(self):
         dodo_module = {'task_cmd_name': lambda:None}

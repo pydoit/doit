@@ -5,8 +5,9 @@ import six
 import pytest
 from mock import Mock
 
+from doit.exceptions import InvalidTask
 from doit.dependency import Dependency
-from doit.task import Task
+from doit.task import Task, DelayedLoader
 from doit.control import TaskDispatcher, ExecNode
 from doit import runner
 
@@ -20,7 +21,8 @@ def _error():
     raise Exception("I am the exception.\n")
 def _exit():
     raise SystemExit()
-
+def simple_result():
+    return 'my-result'
 
 class FakeReporter(object):
     """Just log everything in internal attribute - used on tests"""
@@ -284,6 +286,7 @@ class TestTask_RunAll(object):
         t2 = Task('t2', [lambda: {'file_dep':[1]}])
         my_runner = runner.Runner(Dependency, depfile_name, reporter)
         my_runner.run_all(TaskDispatcher({'t1':t1, 't2':t2}, [], ['t1', 't2']))
+        assert runner.ERROR == my_runner.final_result
         assert ('start', t2) == reporter.log.pop(0)
         assert ('execute', t2) == reporter.log.pop(0)
         assert ('success', t2) == reporter.log.pop(0)
@@ -498,7 +501,6 @@ class TestRunner_run_tasks(object):
         assert ('success', t1) == reporter.log.pop(0)
         assert t1.file_dep == set([extra_dep])
 
-
     # SystemExit runner should not interfere with SystemExit
     def testSystemExitRaises(self, reporter, RunnerClass, depfile_name):
         t1 = Task("t1", [_exit])
@@ -530,45 +532,54 @@ class TestMReporter(object):
         assert not hasattr(mp_reporter, 'no_existent_method')
 
 
+class TestJobTask(object):
+    def test_not_picklable(self):
+        def non_top_function(): pass
+        t1 = Task('t1', [non_top_function])
+        pytest.raises(InvalidTask, runner.JobTask, t1)
+
+
 @pytest.mark.skipif('not runner.MRunner.available()')
-class TestMRunner_get_next_task(object):
+class TestMRunner_get_next_job(object):
     # simple normal case
     def test_run_task(self, reporter, depfile_name):
         t1 = Task('t1', [])
         t2 = Task('t2', [])
         run = runner.MRunner(Dependency, depfile_name, reporter)
         run._run_tasks_init(TaskDispatcher({'t1':t1, 't2':t2}, [], ['t1', 't2']))
-        assert t1 == run.get_next_task(None).task
-        assert t2 == run.get_next_task(None).task
-        assert None == run.get_next_task(None)
+        assert t1.name == run.get_next_job(None).name
+        assert t2.name == run.get_next_job(None).name
+        assert None == run.get_next_job(None)
 
     def test_stop_running(self, reporter, depfile_name):
         t1 = Task('t1', [])
         t2 = Task('t2', [])
         run = runner.MRunner(Dependency, depfile_name, reporter)
         run._run_tasks_init(TaskDispatcher({'t1':t1, 't2':t2}, [], ['t1', 't2']))
-        assert t1 == run.get_next_task(None).task
+        assert t1.name == run.get_next_job(None).name
         run._stop_running = True
-        assert None == run.get_next_task(None)
+        assert None == run.get_next_job(None)
 
     def test_waiting(self, reporter, depfile_name):
         t1 = Task('t1', [])
         t2 = Task('t2', [], setup=('t1',))
         run = runner.MRunner(Dependency, depfile_name, reporter)
-        run._run_tasks_init(TaskDispatcher({'t1':t1, 't2':t2}, [], ['t2']))
+        dispatcher = TaskDispatcher({'t1':t1, 't2':t2}, [], ['t2'])
+        run._run_tasks_init(dispatcher)
 
         # first start task 1
-        n1 = run.get_next_task(None)
-        assert t1 == n1.task
+        j1 = run.get_next_job(None)
+        assert t1.name == j1.name
 
         # hold until t1 is done
-        assert isinstance(run.get_next_task(None), runner.Hold)
-        assert isinstance(run.get_next_task(None), runner.Hold)
-        n1.run_status = 'done'
+        assert isinstance(run.get_next_job(None), runner.JobHold)
+        assert isinstance(run.get_next_job(None), runner.JobHold)
 
-        n2 = run.get_next_task(n1)
-        assert t2 == n2.task
-        assert None == run.get_next_task(n2)
+        n1 = dispatcher.nodes[j1.name]
+        n1.run_status = 'done'
+        j2 = run.get_next_job(n1)
+        assert t2.name == j2.name
+        assert None == run.get_next_job(dispatcher.nodes[j2.name])
 
 
     def test_waiting_controller(self, reporter, depfile_name):
@@ -578,12 +589,33 @@ class TestMRunner_get_next_task(object):
         run._run_tasks_init(TaskDispatcher({'t1':t1, 't2':t2}, [], ['t1', 't2']))
 
         # first task ok
-        assert t1 == run.get_next_task(None).task
+        assert t1.name == run.get_next_job(None).name
 
         # hold until t1 finishes
         assert 0 == run.free_proc
-        assert isinstance(run.get_next_task(None), runner.Hold)
+        assert isinstance(run.get_next_job(None), runner.JobHold)
         assert 1 == run.free_proc
+
+
+    def test_delayed_loaded(self, reporter, depfile_name):
+        def create():
+            return {'basename':'t1', 'actions': None}
+        t1 = Task('t1', [], loader=DelayedLoader(create, executed='t2'))
+        t2 = Task('t2', [])
+        run = runner.MRunner(Dependency, depfile_name, reporter)
+        dispatcher = TaskDispatcher({'t1':t1, 't2':t2}, [], ['t1', 't2'])
+        run._run_tasks_init(dispatcher)
+        assert t2.name == run.get_next_job(None).name
+        assert runner.JobHold.type == run.get_next_job(None).type
+
+        # after t2 is done t1 can be dispatched
+        n2 = dispatcher.nodes[t2.name]
+        n2.run_status = 'done'
+        j1 = run.get_next_job(n2)
+        assert t1.name == j1.name
+        # the job for t1 contains the whole task since sub-process dont
+        # have it
+        assert j1.type == runner.JobTask.type
 
 
 
@@ -641,7 +673,37 @@ class TestMRunner_start_process(object):
         run.finish()
         assert 2 == len(proc_list)
         assert t1.name == task_q.get().name
-        assert isinstance(task_q.get(), runner.Hold)
+        assert isinstance(task_q.get(), runner.JobHold)
+
+
+class TestMRunner_parallel_run_tasks(object):
+
+    @pytest.mark.skipif('not runner.MRunner.available()')
+    def test_task_not_picklabe_multiprocess(self, reporter, depfile_name):
+        def creator():
+            return {'basename': 't2', 'actions': [lambda: 5]}
+        t1 = Task("t1", [(my_print, ["out a"] )] )
+        t2 = Task("t2", None, loader=DelayedLoader(creator, executed='t1'))
+        my_runner = runner.MRunner(Dependency, depfile_name, reporter)
+        dispatcher = TaskDispatcher({'t1':t1, 't2':t2}, [], ['t1', 't2'])
+        pytest.raises(InvalidTask, my_runner.run_tasks, dispatcher)
+
+    def test_task_not_picklabe_thread(self, reporter, depfile_name):
+        def creator():
+            return {'basename': 't2', 'actions': [lambda: True]}
+        t1 = Task("t1", [(my_print, ["out a"] )] )
+        t2 = Task("t2", None, loader=DelayedLoader(creator, executed='t1'))
+        my_runner = runner.MThreadRunner(Dependency, depfile_name, reporter)
+        dispatcher = TaskDispatcher({'t1':t1, 't2':t2}, [], ['t1', 't2'])
+        # threaded code have no problems with closures
+        my_runner.run_tasks(dispatcher)
+        assert ('start', t1) == reporter.log.pop(0), reporter.log
+        assert ('execute', t1) == reporter.log.pop(0)
+        assert ('success', t1) == reporter.log.pop(0)
+        assert ('start', t2) == reporter.log.pop(0)
+        assert ('execute', t2) == reporter.log.pop(0)
+        assert ('success', t2) == reporter.log.pop(0)
+
 
 
 @pytest.mark.skipif('not runner.MRunner.available()')
@@ -649,13 +711,29 @@ class TestMRunner_execute_task(object):
     def test_hold(self, reporter, depfile_name):
         run = runner.MRunner(Dependency, depfile_name, reporter)
         task_q = Queue()
-        task_q.put(runner.Hold()) # to test
+        task_q.put(runner.JobHold()) # to test
         task_q.put(None) # to terminate function
         result_q = Queue()
         run.execute_task_subprocess(task_q, result_q)
         run.finish()
         # nothing was done
-        assert result_q.empty() # pragma: no cover (coverage bug?)
+        assert result_q.empty()
+
+    def test_full_task(self, reporter, depfile_name):
+        # test execute_task_subprocess can receive a full Task object
+        run = runner.MRunner(Dependency, depfile_name, reporter)
+        t1 = Task('t1', [simple_result])
+        task_q = Queue()
+        task_q.put(runner.JobTask(t1)) # to test
+        task_q.put(None) # to terminate function
+        result_q = Queue()
+        run.execute_task_subprocess(task_q, result_q)
+        run.finish()
+        # check result
+        assert result_q.get() == {'name': 't1', 'reporter': 'execute_task'}
+        assert result_q.get()['task']['result'] == 'my-result'
+        assert result_q.empty()
+
 
 
 def test_MThreadRunner_available():
