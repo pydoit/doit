@@ -125,10 +125,10 @@ def load_tasks(namespace, command_names=(), allow_delayed=False):
     # sort by the order functions were defined (line number)
     # TODO: this ordering doesnt make sense when generators come
     # from different modules
-    funcs.sort(key=lambda obj:obj[2])
+    funcs.sort(key=lambda obj: obj[2])
 
     task_list = []
-    for name, ref, line in funcs:
+    for name, ref, _ in funcs:
         delayed = (allow_delayed and getattr(ref, 'doit_create_after', None))
 
         if delayed:

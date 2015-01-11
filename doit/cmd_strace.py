@@ -77,10 +77,10 @@ So this is NOT 100% reliable, use with care!
         # add task to print report
         report_strace = Task(
             'strace_report',
-            actions = [(find_deps, [self.outstream, self.TRACE_OUT, show_all])],
-            verbosity = 2,
-            task_dep = [selected],
-            uptodate = [False],
+            actions=[(find_deps, [self.outstream, self.TRACE_OUT, show_all])],
+            verbosity=2,
+            task_dep=[selected],
+            uptodate=[False],
         )
         self.task_list.append(report_strace)
         self.sel_tasks.append(report_strace.name)
@@ -115,7 +115,8 @@ def find_deps(outstream, strace_out, show_all):
     # , (\[.*\])*          # ignore elments if inside [] - used by execve
     # (?P<mode>[^)]*)\)    # get mode opening file
     #  = ].*               # check syscall was successful""",
-    regex = re.compile(r'.*\("(?P<file>[^"]*)", (\[.*\])*(?P<mode>[^)]*)\) = [^-].*')
+    regex = re.compile(r'.*\("(?P<file>[^"]*)",' +
+                       r' (\[.*\])*(?P<mode>[^)]*)\) = [^-].*')
 
     read = set()
     write = set()

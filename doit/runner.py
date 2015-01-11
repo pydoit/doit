@@ -358,7 +358,7 @@ class MRunner(Runner):
                 # If sub-process already contains the Task object send
                 # only safe pickle data, otherwise send whole object.
                 task = node.task
-                if task.loader is DelayedLoaded and self.Child==Process:
+                if task.loader is DelayedLoaded and self.Child == Process:
                     return JobTask(task)
                 else:
                     return JobTaskPickle(task)
@@ -517,9 +517,10 @@ class MRunner(Runner):
 class MThreadRunner(MRunner):
     """Parallel runner using threads"""
     Queue = staticmethod(queue.Queue)
-    # use a daemon thread to make sure process is terminated if there is
-    # an uncatch exception and threads are not correctly joined.
     class DaemonThread(Thread):
+        """daemon thread to make sure process is terminated if there is
+        an uncatch exception and threads are not correctly joined.
+        """
         def __init__(self, *args, **kwargs):
             Thread.__init__(self, *args, **kwargs)
             self.daemon = True

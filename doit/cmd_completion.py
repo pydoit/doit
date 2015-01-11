@@ -72,7 +72,7 @@ class TabCompletion(DoitCmdBase):
     def _generate_bash(self, opt_values, pos_args):
         # some applications built with doit do not use dodo.py files
         for opt in self.options:
-            if opt.name=='dodoFile':
+            if opt.name == 'dodoFile':
                 get_dodo_part = bash_get_dodo
                 pt_list_param = '--file="$dodof"'
                 break
@@ -127,7 +127,7 @@ class TabCompletion(DoitCmdBase):
             tmpl = "'-{0.short}[{help}]' \\"
         else: # without short or long options cant be really used
             return ''
-        ohelp = opt.help.replace(']', '\]')
+        ohelp = opt.help.replace(']', r'\]')
         return tmpl.format(opt, help=ohelp).replace('\n', ' ')
 
 
@@ -186,8 +186,9 @@ class TabCompletion(DoitCmdBase):
                     lines.append("'{0}: {1}'".format(task.name, task.doc))
             template_vars['pt_tasks'] = '(\n{0}\n)'.format('\n'.join(lines))
         else:
-            tmpl_tasks = Template('''("${(f)$($pt_bin_name list --template '{name}: {doc}')}")''')
-            template_vars['pt_tasks'] = tmpl_tasks.safe_substitute(template_vars)
+            tmp_tasks = Template(
+                '''("${(f)$($pt_bin_name list --template '{name}: {doc}')}")''')
+            template_vars['pt_tasks'] = tmp_tasks.safe_substitute(template_vars)
 
 
         template = Template(zsh_start)

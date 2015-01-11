@@ -1,3 +1,5 @@
+"""command doit info - display info on task metadata"""
+
 from __future__ import print_function
 
 import pprint
@@ -9,7 +11,6 @@ from .exceptions import InvalidCommand
 
 
 
-
 def my_safe_repr(obj, context, maxlevels, level):
     """pretty print supressing unicode prefix
 
@@ -17,12 +18,14 @@ def my_safe_repr(obj, context, maxlevels, level):
            suppress-unicode-prefix-on-strings-when-using-pprint
     """
     typ = type(obj)
-    if six.PY2 and typ is unicode:
+    if six.PY2 and typ is six.text_type:
         obj = str(obj)
     return pprint._safe_repr(obj, context, maxlevels, level)
 
 
 class Info(DoitCmdBase):
+    """command doit info"""
+
     doc_purpose = "show info about a task"
     doc_usage = "TASK"
     doc_description = None
@@ -37,19 +40,20 @@ class Info(DoitCmdBase):
         # dict of all tasks
         tasks = dict([(t.name, t) for t in self.task_list])
 
-        pp = pprint.PrettyPrinter(indent=4, stream=self.outstream)
-        pp.format = my_safe_repr
+        printer = pprint.PrettyPrinter(indent=4, stream=self.outstream)
+        printer.format = my_safe_repr
 
         task = tasks[task_name]
-        for attr in (
+        task_attrs = (
             'name', 'file_dep', 'task_dep', 'setup_tasks', 'calc_dep',
             'targets',
             # these fields usually contains reference to python functions
             # 'actions', 'clean', 'uptodate', 'teardown', 'title'
             'getargs', 'params', 'verbosity', 'watch'
-            ):
+        )
+        for attr in task_attrs:
             value = getattr(task, attr)
             # by default only print fields that have non-empty value
             if value:
                 self.outstream.write('\n{0}:'.format(attr))
-                pp.pprint(getattr(task, attr))
+                printer.pprint(getattr(task, attr))

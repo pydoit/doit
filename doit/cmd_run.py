@@ -11,69 +11,72 @@ from .cmd_base import DoitCmdBase
 
 
 # verbosity
-opt_verbosity = {'name':'verbosity',
-                 'short':'v',
-                 'long':'verbosity',
-                 'type':int,
-                 'default': None,
-                 'help':
-"""0 capture (do not print) stdout/stderr from task.
+opt_verbosity = {
+    'name':'verbosity',
+    'short':'v',
+    'long':'verbosity',
+    'type':int,
+    'default': None,
+    'help': """0 capture (do not print) stdout/stderr from task.
 1 capture stdout only.
 2 do not capture anything (print everything immediately).
 [default: 1]"""
-                 }
+}
 
 
 # select output file
-opt_outfile = {'name': 'outfile',
-            'short':'o',
-            'long': 'output-file',
-            'type': str,
-            'default': sys.stdout,
-            'help':"write output into file [default: stdout]"
-            }
+opt_outfile = {
+    'name': 'outfile',
+    'short':'o',
+    'long': 'output-file',
+    'type': str,
+    'default': sys.stdout,
+    'help':"write output into file [default: stdout]"
+}
 
 
 # always execute task
-opt_always = {'name': 'always',
-              'short': 'a',
-              'long': 'always-execute',
-              'type': bool,
-              'default': False,
-              'help': "always execute tasks even if up-to-date [default: "
-                      "%(default)s]"
-              }
+opt_always = {
+    'name': 'always',
+    'short': 'a',
+    'long': 'always-execute',
+    'type': bool,
+    'default': False,
+    'help': "always execute tasks even if up-to-date [default: %(default)s]",
+}
 
 # continue executing tasks even after a failure
-opt_continue = {'name': 'continue',
-                'short': 'c',
-                'long': 'continue',
-                'inverse': 'no-continue',
-                'type': bool,
-                'default': False,
-                'help': "continue executing tasks even after a failure "
-                        "[default: %(default)s]"
-                }
+opt_continue = {
+    'name': 'continue',
+    'short': 'c',
+    'long': 'continue',
+    'inverse': 'no-continue',
+    'type': bool,
+    'default': False,
+    'help': ("continue executing tasks even after a failure " +
+             "[default: %(default)s]"),
+}
 
 
-opt_single = {'name': 'single',
-              'short': 's',
-              'long': 'single',
-              'type': bool,
-              'default': False,
-              'help': "Execute only specified tasks ignoring their task_dep "
-                      "[default: %(default)s]"
-              }
+opt_single = {
+    'name': 'single',
+    'short': 's',
+    'long': 'single',
+    'type': bool,
+    'default': False,
+    'help': ("Execute only specified tasks ignoring their task_dep " +
+             "[default: %(default)s]"),
+}
 
 
-opt_num_process = {'name': 'num_process',
-                   'short': 'n',
-                   'long': 'process',
-                   'type': int,
-                   'default': 0,
-                   'help': "number of subprocesses "
-                   "[default: %(default)s]"
-                   }
+opt_num_process = {
+    'name': 'num_process',
+    'short': 'n',
+    'long': 'process',
+    'type': int,
+    'default': 0,
+    'help': "number of subprocesses [default: %(default)s]"
+}
 
 
 # reporter
@@ -83,8 +86,7 @@ opt_reporter = {
     'long':'reporter',
     'type':str, #TODO type choice (limit the accepted strings)
     'default': 'default',
-    'help':
-"""Choose output reporter. Available:
+    'help': """Choose output reporter. Available:
 'default': report output on console
 'executed-only': no output for skipped (up-to-date) and group tasks
 'json': output result in json format
@@ -98,8 +100,7 @@ opt_parallel_type = {
     'long':'parallel-type',
     'type':str,
     'default': 'process',
-    'help':
-"""Tasks can be executed in parallel in different ways:
+    'help': """Tasks can be executed in parallel in different ways:
 'process': uses python multiprocessing module
 'thread': uses threads
 [default: %(default)s]
@@ -134,10 +135,11 @@ class Run(DoitCmdBase):
                  reporter='default', num_process=0, par_type='process',
                  single=False):
         """
-        @param reporter: (str) one of provided reporters or ...
-                         (class) user defined reporter class (can only be specified
-               from DOIT_CONFIG - never from command line)
-                         (reporter instance) - only used in unittests
+        @param reporter:
+               (str) one of provided reporters or ...
+               (class) user defined reporter class (can only be specified
+                       from DOIT_CONFIG - never from command line)
+               (reporter instance) - only used in unittests
         """
         # get tasks to be executed
         # self.control is saved on instance to be used by 'auto' command
@@ -200,8 +202,8 @@ class Run(DoitCmdBase):
                     if not MRunner.available():
                         RunnerClass = MThreadRunner
                         sys.stderr.write(
-                        "WARNING: multiprocessing module not available, " +
-                        "running in parallel using threads.")
+                            "WARNING: multiprocessing module not available, " +
+                            "running in parallel using threads.")
                 elif par_type == 'thread':
                     RunnerClass = MThreadRunner
                 else:

@@ -46,7 +46,7 @@ def get_file_md5(path):
     @param path: (string) file path
     @return: (string) md5
     """
-    with open(path,'rb') as file_data:
+    with open(path, 'rb') as file_data:
         md5 = hashlib.md5()
         block_size = 128 * md5.block_size
         while True:
@@ -283,22 +283,25 @@ class SqliteDB(object):
         self.name = name
         self._conn = self._sqlite3(self.name)
 
-    def _sqlite3(self, name):
+    @staticmethod
+    def _sqlite3(name):
         """Open/create a sqlite3 DB file"""
         def dict_factory(cursor, row):
-            d = {}
+            """convert row to dict"""
+            data = {}
             for idx, col in enumerate(cursor.description):
-                d[col[0]] = row[idx]
-            return d
+                data[col[0]] = row[idx]
+            return data
         def converter(data):
             return json.loads(data.decode('utf-8'))
 
         sqlite3.register_adapter(list, json.dumps)
         sqlite3.register_adapter(dict, json.dumps)
         sqlite3.register_converter("json", converter)
-        conn = sqlite3.connect(self.name,
-                    detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES,
-                    isolation_level=None)
+        conn = sqlite3.connect(
+            name,
+            detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES,
+            isolation_level=None)
         conn.row_factory = dict_factory
         sqlscript = """
             create table if not exists doit (
@@ -314,7 +317,7 @@ class SqliteDB(object):
                 'To fix the issue you can just remove the database file(s) '
                 'and a new one will be generated.'
                 'Original error: %(msg)s'
-                % {'filename': repr(self.name), 'msg': str(exception)})
+                % {'filename': repr(name), 'msg': str(exception)})
             raise DatabaseException(new_message)
         return conn
 
@@ -528,7 +531,7 @@ class DependencyBase(object):
         changed = [] # list of file_dep that changed
         previous = self._get(task.name, 'deps:')
         if previous and set(previous) != task.file_dep:
-             status = 'run'
+            status = 'run'
         else:
             status = 'up-to-date' # initial assumption
         for dep in tuple(task.file_dep):

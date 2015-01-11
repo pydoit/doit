@@ -244,7 +244,8 @@ class JsonReporter(object):
         if self.errors:
             log_err += "\n".join(self.errors)
 
-        task_result_list = [tr.to_dict() for tr in six.itervalues(self.t_results)]
+        task_result_list = [
+            tr.to_dict() for tr in six.itervalues(self.t_results)]
         json_data = {'tasks': task_result_list,
                      'out': log_out,
                      'err': log_err}

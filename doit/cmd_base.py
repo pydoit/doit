@@ -105,13 +105,14 @@ class Command(object):
 ######################################################################
 
 # choose internal dependency file.
-opt_depfile = {'name': 'dep_file',
-               'short':'',
-               'long': 'db-file',
-               'type': str,
-               'default': ".doit.db",
-               'help': "file used to save successful runs"
-               }
+opt_depfile = {
+    'name': 'dep_file',
+    'short':'',
+    'long': 'db-file',
+    'type': str,
+    'default': ".doit.db",
+    'help': "file used to save successful runs"
+}
 
 # dependency file DB backend
 opt_backend = {
@@ -127,33 +128,36 @@ opt_backend = {
 
 #### options related to dodo.py
 # select dodo file containing tasks
-opt_dodo = {'name': 'dodoFile',
-            'short':'f',
-            'long': 'file',
-            'type': str,
-            'default': 'dodo.py',
-            'help':"load task from dodo FILE [default: %(default)s]"
-            }
+opt_dodo = {
+    'name': 'dodoFile',
+    'short':'f',
+    'long': 'file',
+    'type': str,
+    'default': 'dodo.py',
+    'help':"load task from dodo FILE [default: %(default)s]"
+}
 
 # cwd
-opt_cwd = {'name': 'cwdPath',
-           'short':'d',
-           'long': 'dir',
-           'type': str,
-           'default': None,
-           'help':("set path to be used as cwd directory (file paths on " +
-                   "dodo file are relative to dodo.py location).")
-           }
+opt_cwd = {
+    'name': 'cwdPath',
+    'short':'d',
+    'long': 'dir',
+    'type': str,
+    'default': None,
+    'help':("set path to be used as cwd directory (file paths on " +
+            "dodo file are relative to dodo.py location).")
+}
 
 # seek dodo file on parent folders
-opt_seek_file = {'name': 'seek_file',
-                 'short': 'k',
-                 'long': 'seek-file',
-                 'type': bool,
-                 'default': False,
-                 'help': ("seek dodo file on parent folders " +
-                          "[default: %(default)s]")
-                 }
+opt_seek_file = {
+    'name': 'seek_file',
+    'short': 'k',
+    'long': 'seek-file',
+    'type': bool,
+    'default': False,
+    'help': ("seek dodo file on parent folders " +
+             "[default: %(default)s]")
+}
 
 
 class TaskLoader(object):
@@ -270,7 +274,7 @@ class DoitCmdBase(Command):
 
         # magic - create dict based on signature of _execute method
         args_name = inspect.getargspec(self._execute)[0]
-        exec_params = dict((n, params[n]) for n in args_name if n!='self')
+        exec_params = dict((n, params[n]) for n in args_name if n != 'self')
         return self._execute(**exec_params)
 
 

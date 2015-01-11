@@ -92,11 +92,11 @@ class Task(object):
                   'doc': (string_types, (None,)),
                   'params': ((list, tuple,), ()),
                   'pos_arg': (string_types, (None,)),
-                  'verbosity': ((), (None,0,1,2,)),
+                  'verbosity': ((), (None, 0, 1, 2,)),
                   'getargs': ((dict,), ()),
                   'title': ((types.FunctionType,), (None,)),
                   'watch': ((list, tuple), ()),
-                  }
+    }
 
 
     def __init__(self, name, actions, file_dep=(), targets=(),
@@ -219,8 +219,8 @@ class Task(object):
                 uptodate.append((item, [], {}))
             elif isinstance(item, tuple):
                 call = item[0]
-                args = list(item[1]) if len(item)>1 else []
-                kwargs = item[2] if len(item)>2 else {}
+                args = list(item[1]) if len(item) > 1 else []
+                kwargs = item[2] if len(item) > 2 else {}
                 uptodate.append((call, args, kwargs))
             elif isinstance(item, six.string_types):
                 uptodate.append((item, [], {}))
@@ -263,11 +263,12 @@ class Task(object):
 
 
     # FIXME should support setup also
-    _expand_map = {'task_dep': _expand_task_dep,
-                   'file_dep': _expand_file_dep,
-                   'calc_dep': _expand_calc_dep,
-                   'uptodate': _extend_uptodate,
-                   }
+    _expand_map = {
+        'task_dep': _expand_task_dep,
+        'file_dep': _expand_file_dep,
+        'calc_dep': _expand_calc_dep,
+        'uptodate': _extend_uptodate,
+    }
     def update_deps(self, deps):
         """expand all kinds of dep input"""
         for dep, dep_values in six.iteritems(deps):
@@ -338,7 +339,8 @@ class Task(object):
     def actions(self):
         """lazy creation of action instances"""
         if self._action_instances is None:
-            self._action_instances = [create_action(a, self) for a in self._actions]
+            self._action_instances = [
+                create_action(a, self) for a in self._actions]
         return self._action_instances
 
 
@@ -465,7 +467,7 @@ def dict_to_task(task_dict):
     # check required fields
     if 'actions' not in task_dict:
         raise InvalidTask("Task %s must contain 'actions' field. %s" %
-                          (task_dict['name'],task_dict))
+                          (task_dict['name'], task_dict))
 
     # user friendly. dont go ahead with invalid input.
     task_attrs = list(six.iterkeys(task_dict))
@@ -473,7 +475,7 @@ def dict_to_task(task_dict):
     for key in task_attrs:
         if key not in valid_attrs:
             raise InvalidTask("Task %s contains invalid field: '%s'"%
-                              (task_dict['name'],key))
+                              (task_dict['name'], key))
 
     return Task(**task_dict)
 
@@ -542,4 +544,4 @@ class result_dep(UptodateCalculator):
         last_success = values.get(self.result_name)
         if last_success is None:
             return False
-        return (last_success == dep_result)
+        return last_success == dep_result

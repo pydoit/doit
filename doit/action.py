@@ -212,12 +212,12 @@ class CmdAction(BaseAction):
         # it doesnt make so much difference to return as Error or Failed anyway
         if process.returncode > 125:
             return TaskError("Command error: '%s' returned %s" %
-                            (action,process.returncode))
+                             (action, process.returncode))
 
         # task failure
         if process.returncode != 0:
             return TaskFailed("Command failed: '%s' returned %s" %
-                             (action,process.returncode))
+                              (action, process.returncode))
 
         # save stdout in values
         if self.save_out:

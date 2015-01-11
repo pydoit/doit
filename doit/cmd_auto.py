@@ -12,12 +12,13 @@ from .cmd_base import tasks_and_deps_iter
 from .cmd_base import DoitCmdBase, check_tasks_exist
 from .cmd_run import opt_verbosity, Run
 
-opt_reporter = {'name':'reporter',
-                 'short': None,
-                 'long': None,
-                 'type':str,
-                 'default': 'executed-only',
-                }
+opt_reporter = {
+    'name':'reporter',
+    'short': None,
+    'long': None,
+    'type':str,
+    'default': 'executed-only',
+}
 
 
 class Auto(DoitCmdBase):
@@ -70,17 +71,17 @@ class Auto(DoitCmdBase):
         started = time.time()
 
         # execute tasks using Run Command
-        ar = Run(task_loader=self._loader)
-        params.add_defaults(CmdParse(ar.options).parse([])[0])
-        result = ar.execute(params, args)
+        arun = Run(task_loader=self._loader)
+        params.add_defaults(CmdParse(arun.options).parse([])[0])
+        result = arun.execute(params, args)
 
         # get list of files to watch on file system
-        watch_files = self._find_file_deps(ar.control.tasks,
-                                           ar.control.selected_tasks)
+        watch_files = self._find_file_deps(arun.control.tasks,
+                                           arun.control.selected_tasks)
 
         # Check for timestamp changes since run started,
         # if change, restart straight away
-        if not self._dep_changed(watch_files, started, ar.control.targets):
+        if not self._dep_changed(watch_files, started, arun.control.targets):
             # set event handler. just terminate process.
             class DoitAutoRun(FileModifyWatcher):
                 def handle_event(self, event):
@@ -101,8 +102,8 @@ class Auto(DoitCmdBase):
 
         while True:
             try:
-                p = Process(target=self.run_watch, args=(params, args))
-                p.start()
-                p.join()
+                proc = Process(target=self.run_watch, args=(params, args))
+                proc.start()
+                proc.join()
             except KeyboardInterrupt:
                 return 0

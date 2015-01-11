@@ -56,7 +56,8 @@ class Clean(DoitCmdBase):
         @param cleandep (bool): execute clean from task_dep
         @param cleanall (bool): clean all tasks
         @var default_tasks (list - string): list of default tasks
-        @var selected_tasks (list - string): list of tasks selected from cmd line
+        @var selected_tasks (list - string): list of tasks selected
+                                             from cmd-line
         """
         tasks = dict([(t.name, t) for t in self.task_list])
         default_tasks = self.config.get('default_tasks')

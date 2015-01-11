@@ -111,7 +111,7 @@ class List(DoitCmdBase):
         return print_list
 
 
-    def _list_all(self, tasks, include_subtasks):
+    def _list_all(self, include_subtasks):
         """list of tasks"""
         print_list = []
         for task in self.task_list:
@@ -133,11 +133,11 @@ class List(DoitCmdBase):
             # list only tasks passed on command line
             print_list = self._list_filtered(tasks, filter_tasks, subtasks)
         else:
-            print_list = self._list_all(tasks, subtasks)
+            print_list = self._list_all(subtasks)
 
         # exclude private tasks
         if not private:
-            print_list = [t for t in print_list if (not t.name.startswith('_'))]
+            print_list = [t for t in print_list if not t.name.startswith('_')]
 
         # set template
         if template is None:
@@ -146,7 +146,7 @@ class List(DoitCmdBase):
                 max_name_len = max(len(t.name) for t in print_list)
 
             template = '{name:<' + str(max_name_len + 3) + '}'
-            if (not quiet):
+            if not quiet:
                 template += '{doc}'
             if status:
                 template = '{status} ' + template
