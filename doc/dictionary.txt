@@ -237,7 +237,6 @@ python3
 quickstart
 repr
 rst2s5
-runtests
 s'
 s5defs
 schettino72

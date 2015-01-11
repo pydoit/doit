@@ -3,7 +3,6 @@
 import sys
 
 from setuptools import setup
-from setuptools.command.test import test as TestCommand
 
 
 install_requires = ['six']
@@ -24,19 +23,6 @@ elif platform_system == "Linux":
 if sys.version_info < (2, 7):
     install_requires.append('ordereddict')
 
-
-
-# http://pytest.org/goodpractises.html
-class PyTest(TestCommand):
-    user_options = []
-    def initialize_options(self):
-        pass
-    def finalize_options(self):
-        pass
-    def run(self):
-        import sys, subprocess
-        errno = subprocess.call([sys.executable, 'runtests.py'])
-        raise SystemExit(errno)
 
 
 long_description = """
@@ -78,7 +64,6 @@ setup(name = 'doit',
         ],
 
       packages = ['doit'],
-      cmdclass = {'test': PyTest},
       install_requires = install_requires,
       long_description = long_description,
       entry_points = {

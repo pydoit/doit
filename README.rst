@@ -98,11 +98,7 @@ from `dev_requirements.txt`::
 tests
 =======
 
-You can use the standalone script::
-
-  $ python runtests.py
-
-or use py.test - http://pytest.org
+Use py.test - http://pytest.org
 
 ::
 
