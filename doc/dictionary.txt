@@ -157,7 +157,6 @@ foo
 foo'
 fpath
 gdbm
-genstandalone
 getargs
 gif
 github

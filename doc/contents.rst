@@ -20,7 +20,6 @@ Contents:
    cmd_other
    tools
    extending
-   standalone
    faq
    stories
    changes
