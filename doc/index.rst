@@ -129,7 +129,7 @@ What people are saying about `doit`
 Project Details
 ===============
 
-* This is an open-source project (`MIT license <http://opensource.org/licenses/mit-license.php>`_) written in python. Runs on Python 2.6 through 3.4 with a single codebase.
+* This is an open-source project (`MIT license <http://opensource.org/licenses/mit-license.php>`_) written in python. Runs on Python 2.7 through 3.4 with a single codebase.
 
 * Download from `PyPi <http://pypi.python.org/pypi/doit>`_
 

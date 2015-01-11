@@ -21,7 +21,7 @@ else:
 # note: to check which DBM backend is being used:
 #       >>> anydbm._defaultmod
 
-from .compat import json
+import json
 import sqlite3
 
 

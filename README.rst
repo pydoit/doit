@@ -50,7 +50,7 @@ see AUTHORS file
 install
 =======
 
-*doit* is tested on python 2.6, 2.7, 3.2, 3.3, 3.4.
+*doit* is tested on python 2.7, 3.2, 3.3, 3.4.
 
 ::
 

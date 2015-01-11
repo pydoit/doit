@@ -3,10 +3,9 @@
 import sys
 import time
 import datetime
+import json
 import six
 from six import StringIO
-
-from .compat import json
 
 
 class ConsoleReporter(object):

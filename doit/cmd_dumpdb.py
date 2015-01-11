@@ -1,5 +1,6 @@
 import pprint
 import six
+import json
 if six.PY3: # pragma: no cover
     import dbm
     from dbm import whichdb
@@ -8,8 +9,6 @@ else:
     from whichdb import whichdb
 
 
-
-from .compat import json
 from .exceptions import InvalidCommand
 from .cmd_base import Command, opt_depfile
 
