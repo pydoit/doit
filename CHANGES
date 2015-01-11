@@ -6,13 +6,14 @@ Changes
 0.27.0
 ======================
 
+ - fix GH-#15: `auto` (linux) inotify also listen for `MOVE_TO` events
  - BACKWARD INCOMPATIBLE: `result_dep` creates an implicit `setup`
                           (was `task_dep`)
- - BACKWARD INCOMPATIBLE: `getargs` creates an implicit `result_dep`
- - `CmdAction` added parameters `encoding` and `decode_error`
+ - BACKWARD INCOMPATIBLE: GH-#9 `getargs` creates an implicit `result_dep`
+ - GH-#4 `CmdAction` added parameters `encoding` and `decode_error`
  - BACKWARD INCOMPATIBLE: `CmdAction` would always decode process output
                           using `errors='strict'` default changed to `replace`
- - fix GH-#6: `loader.task_loader()` accepts methods as *task creators*
+ - GH-#6: `loader.task_loader()` accepts methods as *task creators*
 
 
 0.26.0 (*2014-08-30*)

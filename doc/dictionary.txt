@@ -72,6 +72,7 @@ InvalidCommand
 JSON
 KeyboardInterrupt
 LongRunning
+L485
 MD5
 ModuleTaskLoader
 MyCustomTask2

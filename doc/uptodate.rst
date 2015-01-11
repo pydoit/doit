@@ -145,8 +145,6 @@ a boolean value.
 
 .. literalinclude:: tutorial/uptodate_callable.py
 
-Note that `check_outdated` function is not actually using the arguments
-`task` and `values`.
 You could also execute this function in the task-creator and pass the value
 to to `uptodate`. The advantage of just passing the callable is that this
 check will not be executed at all if the task was not selected to be executed.
@@ -235,12 +233,13 @@ Example: result_dep implementation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The ``result_dep`` is more complicated due to two factors. It needs to modify
-the task's ``task_dep``. And it needs to check the task's saved values and metadata
+the task's ``setup_tasks``.
+And it needs to check the task's saved values and metadata
 from a task different from where it is being applied.
 
-A ``result_dep`` implies that its dependency is also a ``task_dep``.
+A ``result_dep`` implies that its dependency is also a ``setup``.
 We have seen that the callable takes a `task` parameter that we used
-to modify the task object. The problem is that modifying ``task_dep``
+to modify the task object. The problem is that modifying ``setup_tasks``
 when the callable gets called would be "too late" according to the
 way `doit` works. When an object is passed ``uptodate`` and this
 object's class has a method named ``configure_task`` it will be called
@@ -252,47 +251,4 @@ all task objects where the ``key`` is the task name (this is used to get all
 sub-tasks from a task-group). And also a method called ``get_val`` to access
 the saved values and results from any task.
 
-
-.. code-block:: python
-
-    class result_dep(UptodateCalculator):
-        """check if result of the given task was modified
-        """
-        def __init__(self, dep_task_name):
-            self.dep_name = dep_task_name
-            self.result_name = '_result:%s' % self.dep_name
-
-        def configure_task(self, task):
-            """to be called by doit when create the task"""
-            # result_dep creates an implicit task_dep
-            task.task_dep.append(self.dep_name)
-
-        def _result_single(self):
-            """get result from a single task"""
-            return self.get_val(self.dep_name, 'result:')
-
-        def _result_group(self, dep_task):
-            """get result from a group task
-            the result is the combination of results of all sub-tasks
-            """
-            prefix = dep_task.name + ":"
-            sub_tasks = {}
-            for sub in dep_task.task_dep:
-                if sub.startswith(prefix):
-                    sub_tasks[sub] = self.get_val(sub, 'result:')
-            return sub_tasks
-
-        def __call__(self, task, values):
-            """return True if result is the same as last run"""
-            dep_task = self.tasks_dict[self.dep_name]
-            if not dep_task.has_subtask:
-                dep_result = self._result_single()
-            else:
-                dep_result = self._result_group(dep_task)
-            task.value_savers.append(lambda: {self.result_name: dep_result})
-
-            last_success = values.get(self.result_name)
-            if last_success is None:
-                return False
-            return (last_success == dep_result)
-
+See the `result_dep` `source <https://github.com/pydoit/doit/blob/master/doit/task.py#L485>`_.
