@@ -6,6 +6,7 @@ Changes
 0.27.0
 ======================
 
+ - allow task-creators to return/yield Task instances
  - drop python 2.6 support
  - removed unmaintained genstandalone script
  - removed runtests.py script and support to run tests through setup.py

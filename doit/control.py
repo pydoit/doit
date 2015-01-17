@@ -224,7 +224,6 @@ class ExecNode(object):
     """
     def __init__(self, task, parent):
         self.task = task
-        self.parent = parent
         # list of dependencies not processed by _add_task yet
         self.task_dep = task.task_dep[:]
         self.calc_dep = task.calc_dep.copy()
@@ -254,6 +253,14 @@ class ExecNode(object):
 
         # generator from TaskDispatcher._add_task
         self.generator = None
+
+    def reset_task(self, task, generator):
+        """reset task & generator after task is created by its own `loader`"""
+        task.loader = DelayedLoaded
+        self.task = task
+        self.task_dep = task.task_dep[:]
+        self.calc_dep = task.calc_dep.copy()
+        self.generator = generator
 
     def parent_status(self, parent_node):
         if parent_node.run_status == 'failure':
@@ -393,9 +400,9 @@ class TaskDispatcher(object):
             ref = this_task.loader.creator
             new_tasks = generate_tasks(this_task.name, ref(), ref.__doc__)
             TaskControl.set_implicit_deps(self.targets, new_tasks)
-            del self.nodes[this_task.name]
             for nt in new_tasks:
-                nt.loader = DelayedLoaded
+                if not nt.loader:
+                    nt.loader = DelayedLoaded
                 self.tasks[nt.name] = nt
             # this task was placeholder to execute the loader
             # now it needs to be re-processed with the real task
@@ -545,7 +552,8 @@ class TaskDispatcher(object):
 
             # node just performed a delayed creation of tasks, restart
             elif next_step == "reset generator":
-                node = self._gen_node(node.parent, node.task.name)
+                node.reset_task(self.tasks[node.task.name],
+                                self._add_task(node))
 
             # got 'wait', add ExecNode to waiting queue
             else:

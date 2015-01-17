@@ -3,7 +3,7 @@ from collections import deque
 import pytest
 
 from doit.exceptions import InvalidDodoFile, InvalidCommand
-from doit.task import InvalidTask, Task, DelayedLoader
+from doit.task import InvalidTask, Task, DelayedLoader, DelayedLoaded
 from doit.control import TaskControl, TaskDispatcher, ExecNode
 from doit.control import no_none
 
@@ -369,7 +369,7 @@ class TestTaskDispatcher_add_task(object):
 
     def test_delayed_creation(self):
         def creator():
-            yield {'name': 'foo', 'actions': None}
+            yield Task('foo', None, loader=DelayedLoader(lambda : None))
         delayed_loader = DelayedLoader(creator, executed='t2')
         tasks = {'t1': Task('t1', None, loader=delayed_loader),
                  't2': Task('t2', None),
@@ -391,6 +391,10 @@ class TestTaskDispatcher_add_task(object):
         td._update_waiting(n2)
         n4 = next(gen)
         assert n4 == "reset generator"
+
+        # recursive loader is preserved
+        assert isinstance(td.tasks['foo'].loader, DelayedLoader)
+
         pytest.raises(AssertionError, next, gen)
 
 
@@ -522,24 +526,36 @@ class TestTaskDispatcher_dispatcher_generator(object):
 
     def test_delayed_creation(self):
         def creator():
-            yield {'name': 'foo', 'actions': None, 'file_dep': ['bar']}
+            yield {'name': 'foo1', 'actions': None, 'file_dep': ['bar']}
             yield {'name': 'foo2', 'actions': None, 'targets': ['bar']}
+
         delayed_loader = DelayedLoader(creator, executed='t2')
-        tasks = [Task('t1', None, loader=delayed_loader),
+        tasks = [Task('t0', None, task_dep=['t1']),
+                 Task('t1', None, loader=delayed_loader),
                  Task('t2', None)]
 
         control = TaskControl(tasks)
-        control.process(['t1'])
-        gen = control.task_dispatcher().generator
-        n1 = next(gen)
-        assert n1.task.name == "t2"
+        control.process(['t0'])
+        disp = control.task_dispatcher()
+        gen = disp.generator
+        nt2 = next(gen)
+        assert nt2.task.name == "t2"
+
+        # wait for t2 to be executed
         assert "hold on" == next(gen)
         assert "hold on" == next(gen) # hold until t2 is done
-        n2 = gen.send(n1)
-        assert n2.task.name == "t1:foo2"
-        n3 = gen.send(n2)
-        assert n3.task.name == "t1:foo"
-        assert n3.task.task_dep == ['t1:foo2'] # implicit dep added
-        n4 = gen.send(n3)
-        assert n4.task.name == "t1"
+
+        # delayed creation of tasks for t1 does not mess existing info
+        assert disp.nodes['t1'].waiting_me == set([disp.nodes['t0']])
+        nf2 = gen.send(nt2)
+        assert disp.nodes['t1'].waiting_me == set([disp.nodes['t0']])
+
+        assert nf2.task.name == "t1:foo2"
+        nf1 = gen.send(nf2)
+        assert nf1.task.name == "t1:foo1"
+        assert nf1.task.task_dep == ['t1:foo2'] # implicit dep added
+        nt1 = gen.send(nf1)
+        assert nt1.task.name == "t1"
+        nt0 = gen.send(nt1)
+        assert nt0.task.name == "t0"
         pytest.raises(StopIteration, lambda gen: next(gen), gen)
