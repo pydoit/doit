@@ -280,6 +280,10 @@ def generate_tasks(func_name, gen_result, gen_doc=None):
     @param gen_doc: (string/None) docstring from the task generator function
     @return: (list - Task)
     """
+    # a task instance, just return it without any processing
+    if isinstance(gen_result, Task):
+        return (gen_result,)
+
     # task described as a dictionary
     if isinstance(gen_result, dict):
         return [_generate_task_from_return(func_name, gen_result, gen_doc)]
@@ -289,7 +293,10 @@ def generate_tasks(func_name, gen_result, gen_doc=None):
         tasks = OrderedDict() # task_name: task
         # the generator return subtasks as dictionaries
         for task_dict, x_doc in flat_generator(gen_result, gen_doc):
-            _generate_task_from_yield(tasks, func_name, task_dict, x_doc)
+            if isinstance(task_dict, Task):
+                tasks[task_dict.name] = task_dict
+            else:
+                _generate_task_from_yield(tasks, func_name, task_dict, x_doc)
 
         if tasks:
             return list(six.itervalues(tasks))

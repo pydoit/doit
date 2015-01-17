@@ -178,11 +178,16 @@ class TestGenerateTaskNone(object):
         assert len(tasks) == 0
 
 
-class TestGenerateTasksDict(object):
+class TestGenerateTasksSingle(object):
     def testDict(self):
         tasks = generate_tasks("my_name", {'actions':['xpto 14']})
         assert isinstance(tasks[0], Task)
         assert "my_name" == tasks[0].name
+
+    def testTaskObj(self):
+        tasks = generate_tasks("foo", Task('bar', None))
+        assert 1 == len(tasks)
+        assert tasks[0].name == 'bar'
 
     def testBaseName(self):
         tasks = generate_tasks("function_name", {
@@ -239,6 +244,18 @@ class TestGenerateTasksGenerator(object):
         assert tasks[1].is_subtask
         assert "xpto:0-0" == tasks[1].name
         assert "xpto:1-2" == tasks[-1].name
+
+
+    def testGeneratorReturnTaskObj(self):
+        def foo(base_name):
+            for i in range(3):
+                name = "%s-%d" % (base_name, i)
+                yield Task(name, actions=["xpto -%d"%i])
+        tasks = generate_tasks("foo", foo('bar'))
+        assert 3 == len(tasks)
+        assert tasks[0].name == 'bar-0'
+        assert tasks[1].name == 'bar-1'
+        assert tasks[2].name == 'bar-2'
 
 
     def testGeneratorDoesntReturnDict(self):
