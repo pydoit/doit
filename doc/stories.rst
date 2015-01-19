@@ -50,3 +50,31 @@ Also, the ability to script anything directly into the workflow is
 important, and `Make` can't do that.
 `CMake` was another option, but that's not general enough.
 `doit` is just completely generic, and the interface is simple yet very flexible.
+
+
+
+`Computational Metagenomics Lab <http://cibiocm.bitbucket.org>`_ / University of Trento, Italy
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+by `Nicola Segata <http://cibiocm.bitbucket.org>`_
+
+My laboratory of Computational Metagenomics at University of Trento studies 
+the human microbiome, i.e. the huge microbial diversity populating our body.
+
+Our analyses involve processing several thousands of microbial genomes (long sequences of DNA) 
+with a series of computational steps (mostly written in python) on subset of those genomes. 
+Genomes are organized in a hierarchical structure (the taxonomy) and many steps of our 
+pipelines need to take into account these dependencies.
+
+`doit` is just the right way to do this. We actually even tried to implement
+something like this on our own, but we are now switching to `doit` because it has all 
+the features we need and it is intuitive to use. We particularly love the possibility of
+specifying dependences "on the fly".
+
+We are now thinking to convert all our pipelines to the `doit` format. given the importance
+of `doit` for our research and its potential for bioinformatic pipelines we are happy
+to support this project scientifically (by citing it in our papers, mentioning it in our funding requests, etc). 
+
+Thanks for developing `doit`, it's just wonderful for computational biology (and for many other tasks, of course, but this is our research field:)!
+
+
