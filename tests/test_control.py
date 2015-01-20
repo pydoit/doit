@@ -3,7 +3,7 @@ from collections import deque
 import pytest
 
 from doit.exceptions import InvalidDodoFile, InvalidCommand
-from doit.task import InvalidTask, Task, DelayedLoader, DelayedLoaded
+from doit.task import InvalidTask, Task, DelayedLoader
 from doit.control import TaskControl, TaskDispatcher, ExecNode
 from doit.control import no_none
 
