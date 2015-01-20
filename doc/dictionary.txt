@@ -71,9 +71,10 @@ InteractiveAction
 InvalidCommand
 JSON
 KeyboardInterrupt
-LongRunning
 L485
+LongRunning
 MD5
+Metagenomics
 ModuleTaskLoader
 MyCustomTask2
 Naufel
@@ -86,10 +87,12 @@ README
 ReST
 SCons
 Schettino
+Segata
 SetupSample
 Subclassing
 TODO
 TaskLoader
+Trento
 UptodateCalculator
 Uz
 VCS
@@ -108,6 +111,7 @@ backend
 backends
 bar'
 basename
+bioinformatic
 biomechanics
 bitbucket
 bool
@@ -157,6 +161,7 @@ foo
 foo'
 fpath
 gdbm
+genstandalone
 getargs
 gif
 github
@@ -195,6 +200,7 @@ makedirs
 maxdepth
 md5
 metadata
+microbiome
 minversion
 mortem
 msg
@@ -205,6 +211,7 @@ mytask
 namespace
 o'
 once'
+online
 os
 outfile
 param
@@ -236,6 +243,7 @@ python3
 quickstart
 repr
 rst2s5
+runtests
 s'
 s5defs
 schettino72

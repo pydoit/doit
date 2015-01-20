@@ -133,11 +133,11 @@ Project Details
 
 * Download from `PyPi <http://pypi.python.org/pypi/doit>`_
 
-* Please check the comunity `guidelines <https://github.com/pydoit/doit/blob/master/CONTRIBUTING.md>`_ before asking questions and reporting issues.
+* Please check the community `guidelines <https://github.com/pydoit/doit/blob/master/CONTRIBUTING.md>`_ before asking questions and reporting issues.
 
 * Project management (bug tracker, feature requests and source code ) on `github <https://github.com/pydoit/doit>`_.
 
-* Questions and feedback on `google group <http://groups.google.co.in/group/python-doit>`_. Please do **not** send questions to my private email.
+* Questions and feedback on `Google group <http://groups.google.co.in/group/python-doit>`_. Please do **not** send questions to my private email.
 
 * This web site is hosted on http://pages.github.com
 

@@ -3,8 +3,17 @@
 Success Stories
 ====================
 
+
+Do you have a success story? Please share it!
+
+Send a pull-request on github describing your project, how `doit` is used,
+and why `doit` was chosen.
+
+
 .. contents::
    :local:
+
+
 
 Scientific
 ------------
@@ -12,7 +21,7 @@ Scientific
 Biomechanics Lab / Stanford University, USA
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-by `Christopher Dembia <http://chrisdembia.github.io>`_
+by `Christopher Dembia <http://chrisdembia.github.io>`_ (2014-04-03)
 
 
 I am a graduate student in a biomechanics lab that studies how humans coordinate
@@ -54,27 +63,41 @@ important, and `Make` can't do that.
 
 
 `Computational Metagenomics Lab <http://cibiocm.bitbucket.org>`_ / University of Trento, Italy
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-by `Nicola Segata <http://cibiocm.bitbucket.org>`_
+by `Nicola Segata <http://cibiocm.bitbucket.org>`_ (2015-01-20)
 
-My laboratory of Computational Metagenomics at University of Trento studies 
-the human microbiome, i.e. the huge microbial diversity populating our body.
+My laboratory of Computational Metagenomics at University of Trento studies the
+human microbiome, i.e. the huge microbial diversity populating our body.
 
-Our analyses involve processing several thousands of microbial genomes (long sequences of DNA) 
-with a series of computational steps (mostly written in python) on subset of those genomes. 
-Genomes are organized in a hierarchical structure (the taxonomy) and many steps of our 
-pipelines need to take into account these dependencies.
+Our analyses involve processing several thousands of microbial genomes (long
+sequences of DNA) with a series of computational steps (mostly written in
+python) on subset of those genomes.  Genomes are organized in a hierarchical
+structure (the taxonomy) and many steps of our pipelines need to take into
+account these dependencies.
 
 `doit` is just the right way to do this. We actually even tried to implement
-something like this on our own, but we are now switching to `doit` because it has all 
-the features we need and it is intuitive to use. We particularly love the possibility of
-specifying dependences "on the fly".
+something like this on our own, but we are now switching to `doit` because it
+has all the features we need and it is intuitive to use. We particularly love
+the possibility of specifying dependences "on the fly".
 
-We are now thinking to convert all our pipelines to the `doit` format. given the importance
-of `doit` for our research and its potential for bioinformatic pipelines we are happy
-to support this project scientifically (by citing it in our papers, mentioning it in our funding requests, etc). 
+We are now thinking to convert all our pipelines to the `doit` format. Given the
+importance of `doit` for our research and its potential for bioinformatic
+pipelines we are happy to support this project scientifically (by citing it in
+our papers, mentioning it in our funding requests, etc).
 
-Thanks for developing `doit`, it's just wonderful for computational biology (and for many other tasks, of course, but this is our research field:)!
+Thanks for developing `doit`, it's just wonderful for computational biology (and
+for many other tasks, of course, but this is our research field:)!
+
+
+
+Content Generation
+---------------------
+
+
+Nikola
+^^^^^^^^
+
+`Nikola <http://getnikola.com/>`_ is a Static Site and Blog Generator. It is `open-source <https://github.com/getnikola/nikola>`_!
 
 
