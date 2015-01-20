@@ -1,8 +1,7 @@
 
 
 Success Stories
-====================
-
+===============
 
 Do you have a success story? Please share it!
 
@@ -16,10 +15,10 @@ and why `doit` was chosen.
 
 
 Scientific
-------------
+----------
 
 Biomechanics Lab / Stanford University, USA
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 by `Christopher Dembia <http://chrisdembia.github.io>`_ (2014-04-03)
 
@@ -63,7 +62,7 @@ important, and `Make` can't do that.
 
 
 `Computational Metagenomics Lab <http://cibiocm.bitbucket.org>`_ / University of Trento, Italy
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 by `Nicola Segata <http://cibiocm.bitbucket.org>`_ (2015-01-20)
 
@@ -92,12 +91,24 @@ for many other tasks, of course, but this is our research field:)!
 
 
 Content Generation
----------------------
+------------------
 
 
 Nikola
-^^^^^^^^
+^^^^^^
 
-`Nikola <http://getnikola.com/>`_ is a Static Site and Blog Generator. It is `open-source <https://github.com/getnikola/nikola>`_!
+by `the Nikola team <https://getnikola.com/>`
 
+`Nikola <https://getnikola.com/>`_ is a Static Site and Blog Generator.  doit
+is used to process all the tasks required for building the website (HTML files,
+indexes, RSS, copying files…).  Use of doit makes Nikola unique: unlike other
+static site generators, Nikola regenerates only the files that were changed
+since last build (and not all files in the site!).  ``nikola build``, the
+centerpiece of Nikola, is basically the usual ``doit run`` command.
 
+doit is what makes Nikola extremely fast, even for large sites.  Only a handful
+of files actually *change* on a rebuild.  Using the dependency architecture of
+doit (for files and configuration), we are able to rebuild only what is needed.
+
+Nikola is an `open-source <https://github.com/getnikola/nikola>`_ project with
+many users and contributors.
