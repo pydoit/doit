@@ -2,9 +2,12 @@ from .cmd_base import DoitCmdBase
 from .cmd_base import check_tasks_exist, tasks_and_deps_iter, subtasks_iter
 
 
-opt_clean_dryrun = {
+opt_dryrun = {
     'name': 'dryrun',
-    'short': 'n', # like make dry-run
+    # like make dry-run
+    # clashes with run --process
+    # possibly use -j short for --process
+    # 'short': 'n',
     'long': 'dry-run',
     'type': bool,
     'default': False,
@@ -36,7 +39,7 @@ class Clean(DoitCmdBase):
     doc_description = ("If no task is specified clean default tasks and "
                        "set --clean-dep automatically.")
 
-    cmd_options = (opt_clean_cleandep, opt_clean_cleanall, opt_clean_dryrun)
+    cmd_options = (opt_clean_cleandep, opt_clean_cleanall, opt_dryrun)
 
 
     def clean_tasks(self, tasks, dryrun):

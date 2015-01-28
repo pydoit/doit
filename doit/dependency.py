@@ -5,6 +5,7 @@ import hashlib
 import subprocess
 import inspect
 import six
+import time
 if six.PY3: # pragma: no cover
     from dbm import dumb
     import dbm as ddbm
@@ -116,6 +117,10 @@ class JsonDB(object):
         finally:
             db_file.close()
 
+    def close(self):
+        """close any open file descriptors"""
+        pass
+
     def set(self, task_id, dependency, value):
         """Store value in the DB."""
         if task_id not in self._db:
@@ -201,10 +206,14 @@ class DbmDB(object):
         self.dirty = set()
 
     def dump(self):
-        """save/close DBM file"""
+        """save DBM file"""
         for task_id in self.dirty:
             self._dbm[task_id] = json.dumps(self._db[task_id])
+
+    def close(self):
+        """close DBM file"""
         self._dbm.close()
+
 
 
     @encode_task_id
@@ -348,8 +357,11 @@ class SqliteDB(object):
         return False
 
     def dump(self):
-        """save/close sqlite3 DB file"""
+        """save sqlite3 DB file"""
         self._conn.commit()
+
+    def close(self):
+        """close sqlite3 DB file"""
         self._conn.close()
 
     def remove(self, task_id):
@@ -359,6 +371,7 @@ class SqliteDB(object):
     def remove_all(self):
         """remove saved dependecies from DB for all task"""
         self._conn.execute('delete from doit')
+
 
 
 
@@ -377,20 +390,29 @@ class DependencyBase(object):
     @ivar _closed: (bool) DB was flushed to file
     """
 
-    def __init__(self, backend):
+    def __init__(self, backend, dry_run):
         self._closed = False
         self.backend = backend
-        self._set = self.backend.set
+        # do not write back, ignore dependency errors
+        self.dry_run = dry_run
         self._get = self.backend.get
         self.remove = self.backend.remove
         self.remove_all = self.backend.remove_all
         self._in = self.backend.in_
         self.name = self.backend.name
+        self.dry_run_change_set = set()
+
+    def _set(self, task_id, dependency, value):
+        if not self.dry_run:
+            self.backend.set(task_id, dependency, value)
 
     def close(self):
         """Write DB in file"""
         if not self._closed:
-            self.backend.dump()
+            if not self.dry_run:
+                self.backend.dump()
+
+            self.backend.close()
             self._closed = True
 
 
@@ -408,16 +430,35 @@ class DependencyBase(object):
             else:
                 self._set(task.name, "result:", get_md5(task.result))
 
-        # file-dep
-        for dep in task.file_dep:
-            timestamp = os.path.getmtime(dep)
-            # time optimization. if dep is already saved with current timestamp
-            # skip calculating md5
-            current = self._get(task.name, dep)
-            if current and current[0] == timestamp:
-                continue
-            size = os.path.getsize(dep)
-            self._set(task.name, dep, (timestamp, size, get_file_md5(dep)))
+        # save task dependencies checksums for content aware change recognition
+        if not self.dry_run:
+            for dep in task.file_dep:
+                timestamp = os.path.getmtime(dep)
+                size = os.path.getsize(dep)
+
+                # time optimization. if dep is already saved with current timestamp
+                # skip calculating md5
+                current = self._get(task.name, dep)
+                if current and current[0] == timestamp and current[1] == size:
+                    continue
+
+                hash = get_file_md5(dep)
+                self._set(task.name, dep, (timestamp, size, hash))
+               
+        else:
+            # In dry-run dependencies do not necessarily exist. Dependencies
+            # are cached only to be able to detect at a later time whether
+            # this task has to be rebuilt. Thus for dry-run the dependencies
+            # do not have to be saved.
+
+            # Dry run should return a worse case estimation
+            # of target to run, i.e. tasks should invalidate
+            # tasks depending on them. This dependency is
+            # implicit in file timestamps - and made explicit
+            # here for dry run.
+
+            for t in task.targets:
+                self.dry_run_change_set.add(t)
 
         # save list of file_deps
         self._set(task.name, 'deps:', tuple(task.file_dep))
@@ -526,7 +567,7 @@ class DependencyBase(object):
             if not os.path.exists(targ):
                 task.dep_changed = list(task.file_dep)
                 return 'run'
-
+            
         # check for modified file_dep
         changed = [] # list of file_dep that changed
         previous = self._get(task.name, 'deps:')
@@ -535,11 +576,32 @@ class DependencyBase(object):
         else:
             status = 'up-to-date' # initial assumption
         for dep in tuple(task.file_dep):
+            needs_rebuild = False
+            
+            if self.dry_run and dep in self.dry_run_change_set:
+                needs_rebuild = True
+
+            file_stat = None
             try:
                 file_stat = os.stat(dep)
             except os.error:
-                raise Exception("Dependent file '%s' does not exist." % dep)
-            if check_modified(dep, file_stat, self._get(task.name, dep)):
+               # dependency does not exist, are we in dry run? Otherwise
+               # assume rebuild.
+               
+               if not self.dry_run:
+                   raise Exception("Dependent file '%s' does not exist." % dep)
+               else:
+                   # If a dependency is not found in dry-run, report that
+                   # the target must be rebuilt. Upon running either the
+                   # dependency is rebuilt or an error will be reported.
+                   
+                   needs_rebuild = True
+
+            if file_stat is None or check_modified(dep, file_stat, self._get(task.name, dep)):
+                needs_rebuild = True
+                       
+
+            if needs_rebuild:
                 changed.append(dep)
                 status = 'run'
 
@@ -551,18 +613,18 @@ class DependencyBase(object):
 
 class JsonDependency(DependencyBase):
     """Task dependency manager with JSON backend"""
-    def __init__(self, name):
-        DependencyBase.__init__(self, JsonDB(name))
+    def __init__(self, name, dry_run=False):
+        DependencyBase.__init__(self, JsonDB(name), dry_run)
 
 class DbmDependency(DependencyBase):
     """Task dependency manager with DBM backend"""
-    def __init__(self, name):
-        DependencyBase.__init__(self, DbmDB(name))
+    def __init__(self, name, dry_run=False):
+        DependencyBase.__init__(self, DbmDB(name), dry_run)
 
 class SqliteDependency(DependencyBase):
     """Task dependency manager with sqlite backend"""
-    def __init__(self, name):
-        DependencyBase.__init__(self, SqliteDB(name))
+    def __init__(self, name, dry_run=False):
+        DependencyBase.__init__(self, SqliteDB(name), dry_run)
 
 # map string used in cmdline option to class
 backend_map = {

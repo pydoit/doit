@@ -79,6 +79,14 @@ opt_num_process = {
 }
 
 
+opt_dryrun = {'name': 'dry_run',
+                   'long': 'dry-run',
+                   'type': bool,
+                   'default': False,
+                   'help': "Don't actually run any tasks, just print them."
+                   "[default: %(default)s]"
+                   }
+
 # reporter
 opt_reporter = {
     'name':'reporter',
@@ -128,12 +136,13 @@ class Run(DoitCmdBase):
 
     cmd_options = (opt_always, opt_continue, opt_verbosity,
                    opt_reporter, opt_outfile, opt_num_process,
-                   opt_parallel_type, opt_pdb, opt_single)
+                   opt_dryrun, opt_parallel_type, opt_pdb,
+                   opt_single)
 
     def _execute(self, outfile,
                  verbosity=None, always=False, continue_=False,
-                 reporter='default', num_process=0, par_type='process',
-                 single=False):
+                 reporter='default', num_process=0, dry_run=False,
+                 par_type='process', single=False):
         """
         @param reporter:
                (str) one of provided reporters or ...
@@ -175,6 +184,10 @@ class Run(DoitCmdBase):
             use_verbosity = verbosity
         show_out = use_verbosity < 2 # show on error report
 
+        # for dry-run silently ignore parallel execution
+        if dry_run:
+            num_process = 0
+
         # outstream
         if isinstance(outfile, six.string_types):
             outstream = codecs.open(outfile, 'w', encoding='utf-8')
@@ -192,7 +205,7 @@ class Run(DoitCmdBase):
 
 
             run_args = [self.dep_class, self.dep_file, reporter_obj,
-                        continue_, always, verbosity]
+                        continue_, always, dry_run, verbosity]
 
             if num_process == 0:
                 RunnerClass = Runner

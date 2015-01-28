@@ -29,17 +29,18 @@ class Runner(object):
 
     """
     def __init__(self, dep_class, dependency_file, reporter, continue_=False,
-                 always_execute=False, verbosity=0):
+                 always_execute=False, dry_run=False, verbosity=0):
         """@param dependency_file: (string) file path of the db file
         @param reporter: reporter object to be used
         @param continue_: (bool) execute all tasks even after a task failure
         @param always_execute: (bool) execute even if up-to-date or ignored
         @param verbosity: (int) 0,1,2 see Task.execute
         """
-        self.dep_manager = dep_class(dependency_file)
+        self.dep_manager = dep_class(dependency_file, dry_run)
         self.reporter = reporter
         self.continue_ = continue_
         self.always_execute = always_execute
+        self.dry_run = dry_run
         self.verbosity = verbosity
 
         self.teardown_list = [] # list of tasks to be teardown
@@ -156,12 +157,16 @@ class Runner(object):
 
     def execute_task(self, task):
         """execute task's actions"""
+        self.reporter.execute_task(task)
+
+        if self.dry_run:
+            return None
+
         # register cleanup/teardown
         if task.teardown:
             self.teardown_list.append(task)
 
         # finally execute it!
-        self.reporter.execute_task(task)
         return task.execute(sys.stdout, sys.stderr, self.verbosity)
 
 
@@ -172,7 +177,11 @@ class Runner(object):
         if catched_excp is None:
             node.run_status = "successful"
             task.save_extra_values()
+
+            # do not save dependencies for dry-run
+            # might not exist
             self.dep_manager.save_success(task)
+                
             self.reporter.add_success(task)
         # task error
         else:
@@ -208,7 +217,9 @@ class Runner(object):
         """run teardown from all tasks"""
         for task in reversed(self.teardown_list):
             self.reporter.teardown_task(task)
-            catched = task.execute_teardown(sys.stdout, sys.stderr,
+            catched = None
+            if not self.dry_run:
+                catched = task.execute_teardown(sys.stdout, sys.stderr,
                                             self.verbosity)
             if catched:
                 msg = "ERROR: task '%s' teardown action" % task.name
@@ -321,9 +332,9 @@ class MRunner(Runner):
             return True
 
     def __init__(self, dep_class, dependency_file, reporter, continue_=False,
-                 always_execute=False, verbosity=0, num_process=1):
+                 always_execute=False, verbosity=0, dry_run=False, num_process=1):
         Runner.__init__(self, dep_class, dependency_file, reporter, continue_,
-                        always_execute, verbosity)
+                        always_execute, dry_run, verbosity)
         self.num_process = num_process
 
         self.free_proc = 0   # number of free process
