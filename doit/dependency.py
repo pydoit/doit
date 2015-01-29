@@ -433,17 +433,21 @@ class DependencyBase(object):
         # save task dependencies checksums for content aware change recognition
         if not self.dry_run:
             for dep in task.file_dep:
-                timestamp = os.path.getmtime(dep)
-                size = os.path.getsize(dep)
+                try:
+                    timestamp = os.path.getmtime(dep)
+                    size = os.path.getsize(dep)
 
-                # time optimization. if dep is already saved with current timestamp
-                # skip calculating md5
-                current = self._get(task.name, dep)
-                if current and current[0] == timestamp and current[1] == size:
-                    continue
+                    # time optimization. if dep is already saved with current timestamp
+                    # skip calculating md5
+                    current = self._get(task.name, dep)
+                    if current and current[0] == timestamp and current[1] == size:
+                        continue
 
-                hash = get_file_md5(dep)
-                self._set(task.name, dep, (timestamp, size, hash))
+                    hash = get_file_md5(dep)
+                    self._set(task.name, dep, (timestamp, size, hash))
+
+                except os.error:
+                    raise Exception("Dependent file '%s' does not exist." % dep)
                
         else:
             # In dry-run dependencies do not necessarily exist. Dependencies
