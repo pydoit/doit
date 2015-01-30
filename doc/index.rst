@@ -1,8 +1,29 @@
-Introduction
-==============
 
-`doit` comes from the idea of bringing the power of build-tools
-to execute any kind of **task**
+.. rubric::
+    `doit` is a task management & automation tool
+
+.. rubric::
+    `doit` comes from the idea of bringing the power of build-tools
+    to execute any kind of **task**
+
+`doit` is a modern-build tool designed to be both simple to use
+and capable of dealing with complex work-flows. It is comparable to
+`make <http://www.gnu.org/software/make/>`_,
+`rake <http://docs.seattlerb.org/rake/>`_,
+`SCons <http://scons.org/>`_ ...
+
+`doit` is a completely generic tool, it was NOT designed *only* for compilation
+of a specific language nor for only for compile/link style tasks.
+
+`doit` is suitable to be used in many different
+domains like: test automation, scientific pipelines, content generation,
+source-code compilation, configuration management, etc. Check some
+`success stories <stories.html>`_ ...
+
+
+
+introduction
+============
 
 A **task** describes some computation to be done (*actions*),
 and contains some extra meta-data.
@@ -24,22 +45,29 @@ and contains some extra meta-data.
   - a single task may define more than one action.
 
 
+.. topic:: task meta-data
+
+  - task meta-data includes a description of input file for the *actions*
+    (**dependencies**), and result files **targets**
+  - there are many other meta-data fields to control how and when a task is
+    executed...
+
 *doit* uses the task's meta-data to:
 
 .. topic:: cache task results
 
    `doit` checks if the task is **up-to-date** and skips its execution if the
-   task would produce the same result (cached) of a previous execution.
+   task would produce the same result of a previous execution.
 
 .. topic:: correct execution order
 
-  By checking the inter-dependency between tasks `doit` ensures that tasks
-  will be execute in the correct order.
+   By checking the inter-dependency between tasks `doit` ensures that tasks
+   will be execute in the correct order.
 
 .. topic:: parallel execution
 
-  built-in support for parallel (threaded or multi-process) task execution
-  (:ref:`more <parallel-execution>`)
+   built-in support for parallel (threaded or multi-process) task execution
+   (:ref:`more <parallel-execution>`)
 
 
 Traditional build-tools were created mainly to deal with compile/link
@@ -64,18 +92,17 @@ but often you want to create this metadata programmatically.
 
    `doit` uses plain python modules to create tasks (and its meta-data)
 
+
+.. topic:: debugger
+
+   Since plain python is used to define your tasks the python debugger (`pdb`)
+   is available as in any other python application
+
+
 .. topic:: customizable task definition
 
-   By default tasks are described by a `dict`.
-   But it can be easily customized. (:ref:`more <create-doit-tasks>`) like:
-
-.. code-block:: python
-
-     # with a decorator
-     @task(file_dep=['input.txt'])
-     def my_task_action(dependencies):
-          # do something
-
+   By default tasks are described by a python `dict`.
+   But it can be easily customized. (:ref:`more <create-doit-tasks>`)
 
 Other features...
 
@@ -97,7 +124,7 @@ Other features...
 
 .. topic:: tab-completion
 
-  tab-completion for commands/task (supports bash and zsh)
+  built-in support tab-completion for commands/task (supports bash and zsh)
   (:ref:`more <tabcompletion>`)
 
 
