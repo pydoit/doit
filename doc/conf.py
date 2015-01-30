@@ -48,7 +48,7 @@ master_doc = 'contents'
 
 # General information about the project.
 project = u'doit'
-copyright = u'2014, Eduardo Schettino'
+copyright = u'2008-2015, Eduardo Schettino'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
