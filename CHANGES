@@ -3,21 +3,22 @@
 Changes
 =======
 
-0.27.0
+0.27.0 (*2015-01-30*)
 ======================
 
- - allow task-creators to return/yield Task instances
- - drop python 2.6 support
- - removed unmaintained genstandalone script
- - removed runtests.py script and support to run tests through setup.py
- - fix GH-#14: add support for delayed task creation
- - fix GH-#15: `auto` (linux) inotify also listen for `MOVE_TO` events
+ - BACKWARD INCOMPATIBLE: drop python 2.6 support
+ - BACKWARD INCOMPATIBLE: removed unmaintained genstandalone script
+ - BACKWARD INCOMPATIBLE: removed runtests.py script and support to run
+                          tests through setup.py
  - BACKWARD INCOMPATIBLE: `result_dep` creates an implicit `setup`
                           (was `task_dep`)
  - BACKWARD INCOMPATIBLE: GH-#9 `getargs` creates an implicit `result_dep`
- - GH-#4 `CmdAction` added parameters `encoding` and `decode_error`
  - BACKWARD INCOMPATIBLE: `CmdAction` would always decode process output
                           using `errors='strict'` default changed to `replace`
+ - allow task-creators to return/yield Task instances
+ - fix GH-#14: add support for delayed task creation
+ - fix GH-#15: `auto` (linux) inotify also listen for `MOVE_TO` events
+ - GH-#4 `CmdAction` added parameters `encoding` and `decode_error`
  - GH-#6: `loader.task_loader()` accepts methods as *task creators*
  - added --dry-run option to run action
 

@@ -2,7 +2,6 @@
 
 import glob
 import os
-import subprocess
 
 import pytest
 from doitpy.pyflakes import Pyflakes
@@ -27,6 +26,7 @@ PY_FILES = CODE_FILES + TESTING_FILES
 
 def task_pyflakes():
     flaker = Pyflakes()
+    yield flaker('dodo.py')
     yield flaker.tasks('doit/*.py')
     yield flaker.tasks('tests/*.py')
 
