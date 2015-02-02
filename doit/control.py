@@ -20,10 +20,12 @@ class TaskControl(object):
     should be executed. Also apply filter to exclude tasks from
     execution. And parse task cmd line options.
 
-    @ivar tasks: (dict) Key: task name ([taskgen.]name)
-                               Value: L{Task} instance
-    @ivar targets: (dict) Key: fileName
-                          Value: task_name
+    @ivar tasks: Key: task name ([taskgen.]name)
+                 Value: L{Task} instance
+    @type tasks: dict
+    @ivar targets: Key: fileName
+                   Value: task_name
+    @type targets: dict
     """
 
     def __init__(self, task_list):

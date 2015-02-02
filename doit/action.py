@@ -89,18 +89,23 @@ class CmdAction(BaseAction):
     """
     Command line action. Spawns a new process.
 
-    @ivar action(str,list,callable): subprocess command string or string list,
+    @ivar action: subprocess command string or string list,
          see subprocess.Popen first argument.
          It may also be a callable that generates the command string.
          Strings may contain python mappings with the keys: dependencies,
          changed and targets. ie. "zip %(targets)s %(changed)s"
-    @ivar task(Task): reference to task that contains this action
-    @ivar save_out: (str) name used to save output in `values`
+    @type action: (str,list,callable)
+    @ivar task: reference to task that contains this action
+    @type task: L{Task}
+    @ivar save_out:  name used to save output in `values`
+    @type save_out: str
     @ivar shell: use shell to execute command
                  see subprocess.Popen `shell` attribute
-    @ivar encoding (str): encoding of the process output
-    @ivar decode_error (str): value for decode() `errors` param
-                              while decoding process output
+    @ivar encoding: encoding of the process output
+    @type encoding: str
+    @ivar decode_error: value for decode() `errors` param
+                        while decoding process output
+    @type decode_error: str
     @ivar pkwargs: Popen arguments except 'stdout' and 'stderr'
     """
 
@@ -290,10 +295,14 @@ class Writer(object):
 class PythonAction(BaseAction):
     """Python action. Execute a python callable.
 
-    @ivar py_callable: (callable) Python callable
-    @ivar args: (sequence)  Extra arguments to be passed to py_callable
-    @ivar kwargs: (dict) Extra keyword arguments to be passed to py_callable
-    @ivar task(Task): reference to task that contains this action
+    @ivar py_callable: Python callable
+    @type py_callable: callable
+    @ivar args: Extra arguments to be passed to py_callable
+    @type args: sequence
+    @ivar kwargs: Extra keyword arguments to be passed to py_callable
+    @type kwargs: dict
+    @ivar task: reference to task that contains this action
+    @type task: L{Task}
     """
     def __init__(self, py_callable, args=None, kwargs=None, task=None):
         #pylint: disable=W0231
