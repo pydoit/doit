@@ -581,25 +581,24 @@ class DependencyBase(object):
             status = 'up-to-date' # initial assumption
         for dep in tuple(task.file_dep):
             needs_rebuild = False
-            
+
+            # Are we in dry-run and the dependency would have been rebuilt?
             if self.dry_run and dep in self.dry_run_change_set:
+                # Then target must be rebuilt.
                 needs_rebuild = True
 
             file_stat = None
             try:
                 file_stat = os.stat(dep)
             except os.error:
-               # dependency does not exist, are we in dry run? Otherwise
-               # assume rebuild.
-               
-               if not self.dry_run:
-                   raise Exception("Dependent file '%s' does not exist." % dep)
+               # Dependency does not exist.
+
+               if self.dry_run and dep in self.dry_run_change_set:
+                   # We are in dry run, normally dependency would normally been built
+                   pass
                else:
-                   # If a dependency is not found in dry-run, report that
-                   # the target must be rebuilt. Upon running either the
-                   # dependency is rebuilt or an error will be reported.
-                   
-                   needs_rebuild = True
+                   # report error
+                   raise Exception("Dependent file '%s' does not exist." % dep)
 
             if file_stat is None or check_modified(dep, file_stat, self._get(task.name, dep)):
                 needs_rebuild = True
