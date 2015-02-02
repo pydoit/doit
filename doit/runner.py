@@ -229,7 +229,9 @@ class Runner(object):
 
     def run_all(self, task_dispatcher):
         """entry point to run tasks
-        @ivar task_dispatcher (TaskDispatcher)
+
+        @param task_dispatcher:
+        @type task_dispatcher: L{TaskDispatcher}
         """
         try:
             if hasattr(self.reporter, 'initialize'):

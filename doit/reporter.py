@@ -11,8 +11,10 @@ from six import StringIO
 class ConsoleReporter(object):
     """Default reporter. print results on console/terminal (stdout/stderr)
 
-    @ivar show_out (bool): include captured stdout on failure report
-    @ivar show_err (bool): include captured stderr on failure report
+    @ivar show_out: include captured stdout on failure report
+    @type show_out: bool
+    @ivar show_err: include captured stderr on failure report
+    @type show_err: bool
     """
     def __init__(self, outstream, options):
         # save non-succesful result information (include task errors)

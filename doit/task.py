@@ -27,8 +27,9 @@ class DelayedLoader(object):
     """contains info for delayed creation of tasks from a task-creator
 
     @ivar creator: reference to task-creator function
-    @ivar task_dep: (str) name of task that should be executed before the
+    @ivar task_dep: name of task that should be executed before the
                     the loader call the creator function
+    @type task_dep: str
     """
     def __init__(self, creator, executed=None):
         self.creator = creator
@@ -41,36 +42,59 @@ DelayedLoaded = False
 class Task(object):
     """Task
 
-    @ivar name string
-    @ivar actions: list - L{BaseAction}
-    @ivar clean_actions: list - L{BaseAction}
-    @ivar loader (DelayedLoader)
-    @ivar teardown (list - L{BaseAction})
-    @ivar targets: (list -string)
-    @ivar task_dep: (list - string)
-    @ivar wild_dep: (list - string) task dependency using wildcard *
-    @ivar file_dep: (set - string)
-    @ivar calc_dep: (set - string) reference to a task
-    @ivar dep_changed (list - string): list of file-dependencies that changed
-          (are not up_to_date). this must be set before
-    @ivar uptodate: (list - bool/None) use bool/computed value instead of
-                                       checking dependencies
-    @ivar value_savers (list - callables) that return dicts to be added to
-                           task values. Always executed on main process.
-                           To be used by `uptodate` implementations.
-    @ivar setup_tasks (list - string): references to task-names
-    @ivar is_subtask: (bool) indicate this task is a subtask
-    @ivar has_subtask: (bool) indicate this task has subtasks
-    @ivar result: (str) last action "result". used to check task-result-dep
-    @ivar values: (dict) values saved by task that might be used by other tasks
-    @ivar getargs: (dict) values from other tasks
-    @ivar doc: (string) task documentation
+    @ivar name:
+    @type name: str
+    @ivar actions:
+    @type actions: list - L{BaseAction}
+    @ivar clean_actions:
+    @type clean_actions: list - L{BaseAction}
+    @ivar loader:
+    @type loader: L{DelayedLoader}
+    @ivar teardown:
+    @type teardown: list - L{BaseAction}
+    @ivar targets: 
+    @type targets: list -str
+    @ivar task_dep: 
+    @type task_dep: list - str
+    @ivar wild_dep: task dependency using wildcard *
+    @type wild_dep: list - str
+    @ivar file_dep:
+    @type file_dep: set - str
+    @ivar calc_dep:  reference to a task
+    @type calc_dep: set - str
+    @ivar dep_changed: (are not up_to_date). this must be set before
+    @type dep_changed: list - str
+    @ivar uptodate: use bool/computed value instead of
+                    checking dependencies
+    @type uptodate: list - bool/None
+    @ivar value_savers: that return dicts to be added to
+                        task values. Always executed on main process.
+                        To be used by `uptodate` implementations.
+    @type value_savers: list - callable
+    @ivar setup_tasks: references to task-names
+    @type setup_tasks: list - str
+    @ivar is_subtask: indicate this task is a subtask
+    @type is_subtask: bool
+    @ivar has_subtask: indicate this task has subtasks
+    @type has_subtask: bool
+    @ivar result: last action "result". used to check task-result-dep
+    @type result: str
+    @ivar values: values saved by task that might be used by other tasks
+    @type values: dict
+    @ivar getargs: values from other tasks
+    @type getargs: dict
+    @ivar doc: task documentation
+    @type doc: str
 
-    @ivar options: (dict) calculated params values (from getargs and taskopt)
-    @ivar taskopt: (cmdparse.CmdParse)
-    @ivar pos_arg: (str) name of parameter in action to receive positional
-                     parameters from command line
-    @ivar pos_arg_val: (list - str) list of positional parameters values
+    @ivar options: calculated params values (from getargs and taskopt)
+    @type options: dict
+    @ivar taskopt:
+    @type taskopt: L{cmdparse.CmdParse}
+    @ivar pos_arg: name of parameter in action to receive positional
+                   parameters from command line
+    @type pos_arg: str
+    @ivar pos_arg_val: list of positional parameters values
+    @type pos_arg_val: list - str
     @ivar custom_title: function reference that takes a task object as
                         parameter and returns a string.
     """

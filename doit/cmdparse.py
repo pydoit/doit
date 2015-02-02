@@ -151,7 +151,8 @@ class CmdOption(object):
 class CmdParse(object):
     """Process string with command options
 
-    @ivar options: (list - CmdOption)
+    @ivar options:
+    @type options: list - L{CmdOption}
     """
     _type = "Command"
 

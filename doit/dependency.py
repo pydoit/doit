@@ -169,10 +169,14 @@ class DbmDB(object):
     to the 'dirty' set. Only on 'dump' all dirty items values are encoded
     in json into _dbm and the DBM file is saved.
 
-    @ivar name: (str) file name/path
-    @ivar _dbm: (dbm) items with json encoded values
-    @ivar _db: (dict) items with python-dict as value
-    @ivar dirty: (set) id of modified tasks
+    @ivar name: file name/path
+    @type name: str
+    @ivar _dbm: items with json encoded values
+    @type _dbm: dbm
+    @ivar _db: items with python-dict as value
+    @type _db: dict
+    @ivar dirty: id of modified tasks
+    @type dirty: set
     """
     DBM_CONTENT_ERROR_MSG = 'db type could not be determined'
 
@@ -373,8 +377,10 @@ class DependencyBase(object):
      * 'result:', 'task:<task-name>', 'ignore:'
      * user(task) defined values are defined in '_values_:' sub-dict
 
-    @ivar name: (string) filepath of the DB file
-    @ivar _closed: (bool) DB was flushed to file
+    @ivar name: filepath of the DB file
+    @type name: str
+    @ivar _closed: DB was flushed to file
+    @type _closed: bool
     """
 
     def __init__(self, backend):
