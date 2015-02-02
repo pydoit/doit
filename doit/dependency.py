@@ -512,7 +512,7 @@ class DependencyBase(object):
 
         task.dep_changed (list-strings): file-dependencies that are not
         up-to-date if task not up-to-date because of a target, returned value
-        will contain all file-dependencies reagrdless they are up-to-date
+        will contain all file-dependencies regardless they are up-to-date
         or not.
         """
         task.dep_changed = []
