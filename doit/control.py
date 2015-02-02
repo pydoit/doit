@@ -210,7 +210,7 @@ class TaskControl(object):
 
 
 class ExecNode(object):
-    """Each task will have an instace of this
+    """Each task will have an instance of this
     This used to keep track of waiting events and the generator for dep nodes
 
     @ivar run_status (str): contains the result of Dependency.get_status

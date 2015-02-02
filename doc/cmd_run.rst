@@ -193,6 +193,17 @@ By default the execution of tasks is halted on the first task failure or error. 
     $ doit --continue
 
 
+dry-run
+--------
+
+To quickly see which tasks might have to be rebuild, the option ``--dry-run`` disables task execution. The output shows which tasks that possibly need to be updated. 
+
+.. code-block:: console
+
+    $ doit --dry-run
+
+Note: Without actual execution doit is unable to know which target contents will change. Dry run assumes that all targets are changed and outputs a list of possible executed tasks.
+
 single task execution
 ----------------------
 

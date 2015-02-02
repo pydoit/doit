@@ -194,8 +194,9 @@ class TestSaveSuccess(object):
         #self.test_save_file_md5(pdepfile)
         filePath = get_abspath("data/dependency1")
         t1 = Task("taskId_X", None, [filePath])
-        pdepfile._set(t1.name, filePath, (345, 0, "fake"))
+        pdepfile._set(t1.name, filePath, (345, 111, "fake"))
         monkeypatch.setattr(os.path, 'getmtime', lambda x: 345)
+        monkeypatch.setattr(os.path, 'getsize', lambda x: 111)
         # save but md5 is not modified
         pdepfile.save_success(t1)
         got = pdepfile._get("taskId_X", filePath)

@@ -20,6 +20,7 @@ Changes
  - fix GH-#15: `auto` (linux) inotify also listen for `MOVE_TO` events
  - GH-#4 `CmdAction` added parameters `encoding` and `decode_error`
  - GH-#6: `loader.task_loader()` accepts methods as *task creators*
+ - added --dry-run option to run action
 
 
 0.26.0 (*2014-08-30*)
@@ -379,4 +380,3 @@ Changes
 ====================
 
 - initial release
-

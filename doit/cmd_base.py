@@ -59,7 +59,7 @@ class Command(object):
         self.opt_values = None # option values
 
     def set_options(self):
-        """@reutrn list of CmdOption
+        """@return list of CmdOption
         """
         opt_list = self.cmd_options
         return [CmdOption(opt) for opt in opt_list]
