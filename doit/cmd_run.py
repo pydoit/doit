@@ -8,6 +8,7 @@ from .control import TaskControl
 from .runner import Runner, MRunner, MThreadRunner
 from .reporter import REPORTERS
 from .cmd_base import DoitCmdBase
+from .dependency import CHECKERS
 
 
 # verbosity
@@ -94,6 +95,19 @@ opt_reporter = {
 """
 }
 
+opt_check_file_uptodate = {
+    'name': 'check_file_uptodate',
+    'short': '',
+    'long': 'check_file_uptodate',
+    'type': str,
+    'default': 'md5',
+    'help': """\
+Choose how to check if files have been modified. Available:
+'md5': use the md5sum
+'timestamp': use the timestamp
+"""
+}
+
 opt_parallel_type = {
     'name':'par_type',
     'short':'P',
@@ -128,12 +142,13 @@ class Run(DoitCmdBase):
 
     cmd_options = (opt_always, opt_continue, opt_verbosity,
                    opt_reporter, opt_outfile, opt_num_process,
-                   opt_parallel_type, opt_pdb, opt_single)
+                   opt_parallel_type, opt_pdb, opt_single,
+                   opt_check_file_uptodate)
 
     def _execute(self, outfile,
                  verbosity=None, always=False, continue_=False,
                  reporter='default', num_process=0, par_type='process',
-                 single=False):
+                 single=False, check_file_uptodate='md5'):
         """
         @param reporter:
                (str) one of provided reporters or ...
@@ -159,40 +174,51 @@ class Run(DoitCmdBase):
         # reporter
         if isinstance(reporter, six.string_types):
             if reporter not in REPORTERS:
-                msg = ("No reporter named '%s'."
+                msg = ("No reporter named '{}'."
                        " Type 'doit help run' to see a list "
                        "of available reporters.")
-                raise InvalidCommand(msg % reporter)
+                raise InvalidCommand(msg.format(reporter))
             reporter_cls = REPORTERS[reporter]
         else:
             # user defined class
             reporter_cls = reporter
+
+        # check_file_uptodate
+        if isinstance(check_file_uptodate, six.string_types):
+            if check_file_uptodate not in CHECKERS:
+                msg = ("No check_file_uptodate named '{}'."
+                       " Type 'doit help run' to see a list "
+                       "of available checkers.")
+                raise InvalidCommand(msg.format(check_file_uptodate))
+            checker_cls = CHECKERS[check_file_uptodate]
+        else:
+            # user defined class
+            checker_cls = check_file_uptodate
 
         # verbosity
         if verbosity is None:
             use_verbosity = Task.DEFAULT_VERBOSITY
         else:
             use_verbosity = verbosity
-        show_out = use_verbosity < 2 # show on error report
+        show_out = use_verbosity < 2  # show on error report
 
         # outstream
         if isinstance(outfile, six.string_types):
             outstream = codecs.open(outfile, 'w', encoding='utf-8')
-        else: # outfile is a file-like object (like StringIO or sys.stdout)
+        else:  # outfile is a file-like object (like StringIO or sys.stdout)
             outstream = outfile
 
         # run
         try:
             # FIXME stderr will be shown twice in case of task error/failure
             if isinstance(reporter_cls, type):
-                reporter_obj = reporter_cls(outstream, {'show_out':show_out,
+                reporter_obj = reporter_cls(outstream, {'show_out': show_out,
                                                         'show_err': True})
-            else: # also accepts reporter instances
+            else:  # also accepts reporter instances
                 reporter_obj = reporter_cls
 
-
             run_args = [self.dep_class, self.dep_file, reporter_obj,
-                        continue_, always, verbosity]
+                        checker_cls, continue_, always, verbosity]
 
             if num_process == 0:
                 RunnerClass = Runner

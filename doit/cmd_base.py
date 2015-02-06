@@ -260,8 +260,8 @@ class DoitCmdBase(Command):
         if minversion:
             if version_tuple(minversion) > version_tuple(version.VERSION):
                 msg = ('Please update doit. '
-                'Minimum version required is {required}. '
-                'You are using {actual}. ')
+                       'Minimum version required is {required}. '
+                       'You are using {actual}. ')
                 raise InvalidDodoFile(msg.format(required=minversion,
                                                  actual=version.VERSION))
 

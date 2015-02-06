@@ -267,6 +267,7 @@ The execution of the task's actions is skipped.
 Note the ``--`` (2 dashes, one space) on the command output on the second
 time it is executed. It means, this task was up-to-date and not executed.
 
+.. _file-dep:
 
 file_dep (file dependency)
 -----------------------------
