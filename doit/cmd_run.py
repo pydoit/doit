@@ -133,7 +133,7 @@ class Run(DoitCmdBase):
     def _execute(self, outfile,
                  verbosity=None, always=False, continue_=False,
                  reporter='default', num_process=0, par_type='process',
-                 single=False):
+                 single=False, modified_checkers=None):
         """
         @param reporter:
                (str) one of provided reporters or ...
@@ -185,14 +185,13 @@ class Run(DoitCmdBase):
         try:
             # FIXME stderr will be shown twice in case of task error/failure
             if isinstance(reporter_cls, type):
-                reporter_obj = reporter_cls(outstream, {'show_out':show_out,
+                reporter_obj = reporter_cls(outstream, {'show_out': show_out,
                                                         'show_err': True})
             else: # also accepts reporter instances
                 reporter_obj = reporter_cls
 
-
             run_args = [self.dep_class, self.dep_file, reporter_obj,
-                        continue_, always, verbosity]
+                        continue_, always, verbosity, modified_checkers]
 
             if num_process == 0:
                 RunnerClass = Runner

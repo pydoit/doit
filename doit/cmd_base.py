@@ -260,8 +260,8 @@ class DoitCmdBase(Command):
         if minversion:
             if version_tuple(minversion) > version_tuple(version.VERSION):
                 msg = ('Please update doit. '
-                'Minimum version required is {required}. '
-                'You are using {actual}. ')
+                       'Minimum version required is {required}. '
+                       'You are using {actual}. ')
                 raise InvalidDodoFile(msg.format(required=minversion,
                                                  actual=version.VERSION))
 
@@ -271,6 +271,7 @@ class DoitCmdBase(Command):
         self.dep_class = backend_map.get(params['backend'])
         params['pos_args'] = args # hack
         params['continue_'] = params.get('continue') # hack
+        params['modified_checkers'] = self.config.get('modified_checkers') # hack
 
         # magic - create dict based on signature of _execute method
         args_name = inspect.getargspec(self._execute)[0]

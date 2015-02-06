@@ -25,12 +25,10 @@ import json
 import sqlite3
 
 
-USE_FILE_TIMESTAMP = True
-
-
 class DatabaseException(Exception):
     """Exception class for whatever backend exception"""
     pass
+
 
 def get_md5(input_data):
     """return md5 from string or unicode"""
@@ -39,6 +37,7 @@ def get_md5(input_data):
     else:
         byte_data = input_data
     return hashlib.md5(byte_data).hexdigest()
+
 
 def get_file_md5(path):
     """Calculate the md5 sum from file content.
@@ -55,28 +54,6 @@ def get_file_md5(path):
                 break
             md5.update(data)
     return md5.hexdigest()
-
-
-
-def check_modified(file_path, file_stat, state):
-    """check if file in file_path is modified from previous "state"
-    @param file_path (string): file path
-    @param file_stat: the value returned from os.stat(file_path)
-    @param state (tuple), timestamp, size, md5
-    @returns (bool):
-    """
-    if state is None:
-        return True
-
-    timestamp, size, file_md5 = state
-    # 1 - if timestamp is not modified file is the same
-    if USE_FILE_TIMESTAMP and file_stat.st_mtime == timestamp:
-        return False
-    # 2 - if size is different file is modified
-    if file_stat.st_size != size:
-        return True
-    # 3 - check md5
-    return file_md5 != get_file_md5(file_path)
 
 
 class JsonDB(object):
@@ -377,7 +354,7 @@ class DependencyBase(object):
     @ivar _closed: (bool) DB was flushed to file
     """
 
-    def __init__(self, backend):
+    def __init__(self, backend, modified_checkers=None):
         self._closed = False
         self.backend = backend
         self._set = self.backend.set
@@ -386,6 +363,10 @@ class DependencyBase(object):
         self.remove_all = self.backend.remove_all
         self._in = self.backend.in_
         self.name = self.backend.name
+
+        self.checkers = {'timestamp': True, 'size': True, 'md5': True}
+        if modified_checkers is not None:
+            self.checkers.update(modified_checkers)
 
     def close(self):
         """Write DB in file"""
@@ -410,14 +391,18 @@ class DependencyBase(object):
 
         # file-dep
         for dep in task.file_dep:
-            timestamp = os.path.getmtime(dep)
-            # time optimization. if dep is already saved with current timestamp
-            # skip calculating md5
-            current = self._get(task.name, dep)
-            if current and current[0] == timestamp:
-                continue
-            size = os.path.getsize(dep)
-            self._set(task.name, dep, (timestamp, size, get_file_md5(dep)))
+            if self.checkers['timestamp']:
+                timestamp = os.path.getmtime(dep)
+                # time optimization. if dep is already saved with current
+                # timestamp skip calculating md5
+                current = self._get(task.name, dep)
+                if current and current[0] == timestamp:
+                    continue
+            else:
+                timestamp = None
+            size = os.path.getsize(dep) if self.checkers['size'] else None
+            md5 = get_file_md5(dep) if self.checkers['md5'] else None
+            self._set(task.name, dep, (timestamp, size, md5))
 
         # save list of file_deps
         self._set(task.name, 'deps:', tuple(task.file_dep))
@@ -528,41 +513,70 @@ class DependencyBase(object):
                 return 'run'
 
         # check for modified file_dep
-        changed = [] # list of file_dep that changed
         previous = self._get(task.name, 'deps:')
         if previous and set(previous) != task.file_dep:
             status = 'run'
         else:
-            status = 'up-to-date' # initial assumption
-        for dep in tuple(task.file_dep):
-            try:
-                file_stat = os.stat(dep)
-            except os.error:
-                raise Exception("Dependent file '%s' does not exist." % dep)
-            if check_modified(dep, file_stat, self._get(task.name, dep)):
-                changed.append(dep)
-                status = 'run'
+            status = 'up-to-date'  # initial assumption
 
-        task.dep_changed = changed #FIXME create a separate function for this
+        # list of file_dep that changed
+        changed = [dep for dep in tuple(task.file_dep)
+                   if self.check_modified(dep, self._get(task.name, dep))]
+        if len(changed) > 0:
+            status = 'run'
+
+        task.dep_changed = changed  # FIXME create a separate function for this
         return status
+
+    def check_modified(self, file_path, state):
+        """Check if file in file_path is modified from previous "state"
+
+        @param file_path (string): file path
+        @param file_stat: the value returned from os.stat(file_path)
+        @param state (tuple), timestamp, size, md5
+        @returns (bool):
+        """
+        try:
+            file_stat = os.stat(file_path)
+        except OSError:
+            raise Exception("Dependent file '%s' does not exist." % file_path)
+
+        if state is None:
+            return True
+
+        timestamp, size, file_md5 = state
+
+        # 1 - if timestamp is not modified file is the same
+        if self.checkers['timestamp'] and file_stat.st_mtime == timestamp:
+            return False
+
+        # 2 - if size is different file is modified
+        if self.checkers['size'] and file_stat.st_size != size:
+            return True
+
+        # 3 - check md5
+        if self.checkers['md5'] and file_md5 == get_file_md5(file_path):
+            return False
+
+        return True  # Assume modified by default ?
 
 
 ####################
 
 class JsonDependency(DependencyBase):
     """Task dependency manager with JSON backend"""
-    def __init__(self, name):
-        DependencyBase.__init__(self, JsonDB(name))
+    def __init__(self, name, **kwargs):
+        DependencyBase.__init__(self, JsonDB(name), **kwargs)
 
 class DbmDependency(DependencyBase):
     """Task dependency manager with DBM backend"""
-    def __init__(self, name):
-        DependencyBase.__init__(self, DbmDB(name))
+    def __init__(self, name, **kwargs):
+        DependencyBase.__init__(self, DbmDB(name), **kwargs)
 
 class SqliteDependency(DependencyBase):
     """Task dependency manager with sqlite backend"""
-    def __init__(self, name):
-        DependencyBase.__init__(self, SqliteDB(name))
+    def __init__(self, name, **kwargs):
+        DependencyBase.__init__(self, SqliteDB(name), **kwargs)
 
 # map string used in cmdline option to class
 backend_map = {
