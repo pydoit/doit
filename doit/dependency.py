@@ -338,6 +338,96 @@ class SqliteDB(object):
         self._conn.execute('delete from doit')
 
 
+class BaseChecker(object):
+    """Base Checker that must be inherited."""
+
+    def __init__(self, backend):
+        self.backend = backend
+        self._set = self.backend.set
+        self._get = self.backend.get
+
+    def check_modified(self, file_path, state):
+        """Check if file in file_path is modified from previous "state".
+
+        @param file_path (string): file path
+        @param state (tuple), timestamp, size, md5
+        @returns (bool): True if dep is modified
+        """
+        pass
+
+    def save_state(self, task, dep):
+        """Save info after a task is successfuly executed"""
+        pass
+
+
+class DefaultChecker(BaseChecker):
+    """Default checker. Use the timestamp, size and md5sum."""
+
+    def check_modified(self, file_path, state):
+        try:
+            file_stat = os.stat(file_path)
+        except OSError:
+            raise Exception("Dependent file '%s' does not exist." % file_path)
+
+        if state is None:
+            return True
+
+        timestamp, size, file_md5 = state
+
+        # 1 - if timestamp is not modified file is the same
+        if file_stat.st_mtime == timestamp:
+            return False
+
+        # 2 - if size is different file is modified
+        if file_stat.st_size != size:
+            return True
+
+        # 3 - check md5
+        return file_md5 != get_file_md5(file_path)
+
+    def save_state(self, task, dep):
+        timestamp = os.path.getmtime(dep)
+        # time optimization. if dep is already saved with current
+        # timestamp skip calculating md5
+        current = self._get(task.name, dep)
+        if current and current[0] == timestamp:
+            return
+        size = os.path.getsize(dep)
+        md5 = get_file_md5(dep)
+        self._set(task.name, dep, (timestamp, size, md5))
+
+
+class TimestampChecker(BaseChecker):
+    """Checker that use only the timestamp, size."""
+
+    def check_modified(self, file_path, state):
+        try:
+            file_stat = os.stat(file_path)
+        except OSError:
+            raise Exception("Dependent file '%s' does not exist." % file_path)
+
+        if state is None:
+            return True
+
+        timestamp, size, _ = state
+
+        # 1 - if timestamp is not modified file is the same
+        if file_stat.st_mtime == timestamp:
+            return False
+
+        # 2 - if size is different file is modified
+        return file_stat.st_size != size
+
+    def save_state(self, task, dep):
+        timestamp = os.path.getmtime(dep)
+        size = os.path.getsize(dep)
+        self._set(task.name, dep, (timestamp, size, None))
+
+
+# name of checkers class available
+CHECKERS = {'default': DefaultChecker,
+            'timestamp': TimestampChecker}
+
 
 class DependencyBase(object):
     """Manage tasks dependencies (abstract class)
@@ -354,8 +444,9 @@ class DependencyBase(object):
     @ivar _closed: (bool) DB was flushed to file
     """
 
-    def __init__(self, backend, modified_checkers=None):
+    def __init__(self, backend, checker_cls=None):
         self._closed = False
+        self.checker = (checker_cls or DefaultChecker)(backend)
         self.backend = backend
         self._set = self.backend.set
         self._get = self.backend.get
@@ -363,10 +454,6 @@ class DependencyBase(object):
         self.remove_all = self.backend.remove_all
         self._in = self.backend.in_
         self.name = self.backend.name
-
-        self.checkers = {'timestamp': True, 'size': True, 'md5': True}
-        if modified_checkers is not None:
-            self.checkers.update(modified_checkers)
 
     def close(self):
         """Write DB in file"""
@@ -391,23 +478,10 @@ class DependencyBase(object):
 
         # file-dep
         for dep in task.file_dep:
-            if self.checkers['timestamp']:
-                timestamp = os.path.getmtime(dep)
-                # time optimization. if dep is already saved with current
-                # timestamp skip calculating md5
-                current = self._get(task.name, dep)
-                if current and current[0] == timestamp:
-                    continue
-            else:
-                timestamp = None
-            size = os.path.getsize(dep) if self.checkers['size'] else None
-            md5 = get_file_md5(dep) if self.checkers['md5'] else None
-            self._set(task.name, dep, (timestamp, size, md5))
+            self.checker.save_state(task, dep)
 
         # save list of file_deps
         self._set(task.name, 'deps:', tuple(task.file_dep))
-
-
 
     def get_values(self, task_name):
         """get all saved values from a task
@@ -423,7 +497,7 @@ class DependencyBase(object):
         """
         if not self._in(task_id):
             # FIXME do not use generic exception
-            raise Exception("taskid '%s' has no computed value!" % task_id)
+            raise Exception("taskid '%s' has no computed v, DefaultCheckeralue!" % task_id)
         values = self.get_values(task_id)
         if key_name not in values:
             msg = "Invalid arg name. Task '%s' has no value for '%s'."
@@ -520,45 +594,14 @@ class DependencyBase(object):
             status = 'up-to-date'  # initial assumption
 
         # list of file_dep that changed
+        check_modified = self.checker.check_modified
         changed = [dep for dep in tuple(task.file_dep)
-                   if self.check_modified(dep, self._get(task.name, dep))]
+                   if check_modified(dep, self._get(task.name, dep))]
         if len(changed) > 0:
             status = 'run'
 
         task.dep_changed = changed  # FIXME create a separate function for this
         return status
-
-    def check_modified(self, file_path, state):
-        """Check if file in file_path is modified from previous "state"
-
-        @param file_path (string): file path
-        @param file_stat: the value returned from os.stat(file_path)
-        @param state (tuple), timestamp, size, md5
-        @returns (bool):
-        """
-        try:
-            file_stat = os.stat(file_path)
-        except OSError:
-            raise Exception("Dependent file '%s' does not exist." % file_path)
-
-        if state is None:
-            return True
-
-        timestamp, size, file_md5 = state
-
-        # 1 - if timestamp is not modified file is the same
-        if self.checkers['timestamp'] and file_stat.st_mtime == timestamp:
-            return False
-
-        # 2 - if size is different file is modified
-        if self.checkers['size'] and file_stat.st_size != size:
-            return True
-
-        # 3 - check md5
-        if self.checkers['md5'] and file_md5 == get_file_md5(file_path):
-            return False
-
-        return True  # Assume modified by default ?
 
 
 ####################

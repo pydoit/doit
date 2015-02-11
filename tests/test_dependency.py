@@ -11,7 +11,7 @@ from doit.task import Task
 from doit.dependency import get_md5, get_file_md5
 from doit.dependency import DbmDB, DatabaseException, UptodateCalculator
 from doit.dependency import JsonDependency, DbmDependency, SqliteDependency
-from doit.dependency import DependencyBase
+from doit.dependency import DependencyBase, TimestampChecker
 from .conftest import get_abspath, depfile
 
 #path to test folder
@@ -156,7 +156,6 @@ class TestDependencyDb(object):
         assert None == pdepfile._get("taskId_YYY","dep_1")
 
 
-
 class TestSaveSuccess(object):
 
     def test_save_result(self, pdepfile):
@@ -260,7 +259,6 @@ class TestGetValue(object):
         pytest.raises(Exception, pdepfile.get_value, 't1', 'z')
 
 
-
 class TestRemoveSuccess(object):
     def test_save_result(self, pdepfile):
         t1 = Task('t_name', None)
@@ -282,13 +280,13 @@ class TestCheckModified(object):
 
     def test_None(self, dependency1):
         dep = DependencyBase(Mock())
-        assert dep.check_modified(dependency1, None)
+        assert dep.checker.check_modified(dependency1, None)
 
     def test_timestamp(self, dependency1):
         dep = DependencyBase(Mock())
         timestamp = os.path.getmtime(dependency1)
-        assert not dep.check_modified(dependency1, (timestamp, 0, ''))
-        assert dep.check_modified(dependency1, (timestamp+1, 0, ''))
+        assert not dep.checker.check_modified(dependency1, (timestamp, 0, ''))
+        assert dep.checker.check_modified(dependency1, (timestamp+1, 0, ''))
 
     def test_size_md5(self, dependency1):
         dep = DependencyBase(Mock())
@@ -296,16 +294,18 @@ class TestCheckModified(object):
         size = os.path.getsize(dependency1)
         md5 = get_file_md5(dependency1)
         # incorrect size dont check md5
-        assert dep.check_modified(dependency1, (timestamp+1, size+1, ''))
+        assert dep.checker.check_modified(dependency1,
+                                          (timestamp+1, size+1, ''))
         # correct size check md5
-        assert not dep.check_modified(dependency1, (timestamp+1, size, md5))
-        assert dep.check_modified(dependency1, (timestamp+1, size, ''))
+        assert not dep.checker.check_modified(dependency1,
+                                              (timestamp+1, size, md5))
+        assert dep.checker.check_modified(dependency1, (timestamp+1, size, ''))
 
     def test_without_md5(self, dependency1):
-        dep = DependencyBase(Mock(), modified_checkers={'md5': False})
+        dep = DependencyBase(Mock(), checker_cls=TimestampChecker)
         md5 = get_file_md5(dependency1)
         # correct md5 but don't use it
-        assert dep.check_modified(dependency1, (0, 0, md5))
+        assert dep.checker.check_modified(dependency1, (0, 0, md5))
 
 
 class TestGetStatus(object):

@@ -271,7 +271,6 @@ class DoitCmdBase(Command):
         self.dep_class = backend_map.get(params['backend'])
         params['pos_args'] = args # hack
         params['continue_'] = params.get('continue') # hack
-        params['modified_checkers'] = self.config.get('modified_checkers') # hack
 
         # magic - create dict based on signature of _execute method
         args_name = inspect.getargspec(self._execute)[0]
