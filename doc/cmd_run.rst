@@ -271,6 +271,42 @@ from a task while it is being executed,
 this is controlled by the ``verbosity`` param.
 
 
+check_file_uptodate
+-------------------
+
+`doit` provides different options to check if files are up to date.
+Use the option ``--check_file_uptodate`` to choose:
+
+ * default: use the timestamp, size and md5sum of the file.
+ * timestamp: use only the timestamp and size.
+
+.. code-block:: console
+
+    $ doit --reporter timestamp
+
+
+custom check_file_uptodate
+--------------------------
+
+It is possible to define your own custom up to date checker. Check the code on
+`doit/dependency.py
+<https://github.com/pydoit/doit/blob/master/doit/dependency.py>`_ ... It is
+easy to get started by sub-classing the default reporter as shown below. The
+custom reporter must be configured using DOIT_CONFIG dict.
+
+.. code-block:: python
+
+    from doit.dependency import BaseChecker
+
+    class MyChecker(BaseChecker):
+        """With this checker, files are always out of date."""
+        def check_modified(self, file_path, state):
+            return True
+        def save_state(self, task, dep):
+            pass
+
+    DOIT_CONFIG = {'check_file_uptodate': MyChecker}
+
 
 output-file
 ------------
