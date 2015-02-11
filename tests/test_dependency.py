@@ -11,12 +11,23 @@ from doit.task import Task
 from doit.dependency import get_md5, get_file_md5
 from doit.dependency import DbmDB, DatabaseException, UptodateCalculator
 from doit.dependency import JsonDependency, DbmDependency, SqliteDependency
-from doit.dependency import DependencyBase, TimestampChecker
+from doit.dependency import DependencyBase, TimestampChecker, BaseChecker
 from .conftest import get_abspath, depfile
 
 #path to test folder
 TEST_PATH = os.path.dirname(__file__)
 PROGRAM = "python %s/sample_process.py" % TEST_PATH
+
+
+class MyChecker(BaseChecker):
+    """With this checker, files are always out of date."""
+
+    def check_modified(self, file_path, state):
+        return True
+
+    def save_state(self, task, dep):
+        pass
+
 
 def test_unicode_md5():
     data = six.u("我")
@@ -25,7 +36,7 @@ def test_unicode_md5():
 
 
 def test_md5():
-    filePath = os.path.join(os.path.dirname(__file__),"sample_md5.txt")
+    filePath = os.path.join(os.path.dirname(__file__), "sample_md5.txt")
     # result got using command line md5sum
     expected = "45d1503cb985898ab5bd8e58973007dd"
     assert expected == get_file_md5(filePath)
@@ -306,6 +317,14 @@ class TestCheckModified(object):
         md5 = get_file_md5(dependency1)
         # correct md5 but don't use it
         assert dep.checker.check_modified(dependency1, (0, 0, md5))
+
+    def test_custom_checker(self, pdepfile, dependency1):
+        pdepfile.checker = MyChecker(pdepfile.backend)
+        t1 = Task("taskId_X", None, [dependency1])
+        pdepfile.save_success(t1)
+        assert pdepfile.checker.check_modified(dependency1, (0, 0, None))
+        assert 'run' == pdepfile.get_status(t1, {})
+        assert 'run' == pdepfile.get_status(t1, {})
 
 
 class TestGetStatus(object):
