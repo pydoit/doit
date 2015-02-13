@@ -339,7 +339,7 @@ class SqliteDB(object):
 
 
 class FileChangedChecker(object):
-    """Base Checker that must be inherited."""
+    """Base checker for dependencies, must be inherited."""
 
     def check_modified(self, file_path, state):
         """Check if file in file_path is modified from previous "state".
@@ -361,7 +361,7 @@ class FileChangedChecker(object):
 
 
 class MD5Checker(FileChangedChecker):
-    """MD5 checker. Use the timestamp, size and md5sum."""
+    """MD5 checker, uses the md5sum."""
 
     def check_modified(self, file_path, state):
         """Check if file in file_path is modified from previous "state".
@@ -404,7 +404,7 @@ class MD5Checker(FileChangedChecker):
 
 
 class TimestampChecker(FileChangedChecker):
-    """Checker that use only the timestamp, size."""
+    """Checker that use only the timestamp."""
 
     def check_modified(self, file_path, state):
         try:
