@@ -11,7 +11,7 @@ from doit.task import Task
 from doit.dependency import get_md5, get_file_md5
 from doit.dependency import DbmDB, DatabaseException, UptodateCalculator
 from doit.dependency import JsonDependency, DbmDependency, SqliteDependency
-from doit.dependency import DependencyBase, TimestampChecker, BaseChecker
+from doit.dependency import DependencyBase, TimestampChecker, FileChangedChecker
 from .conftest import get_abspath, depfile
 
 #path to test folder
@@ -19,7 +19,7 @@ TEST_PATH = os.path.dirname(__file__)
 PROGRAM = "python %s/sample_process.py" % TEST_PATH
 
 
-class MyChecker(BaseChecker):
+class MyChecker(FileChangedChecker):
     """With this checker, files are always out of date."""
 
     def check_modified(self, file_path, state):

@@ -338,7 +338,7 @@ class SqliteDB(object):
         self._conn.execute('delete from doit')
 
 
-class BaseChecker(object):
+class FileChangedChecker(object):
     """Base Checker that must be inherited."""
 
     def __init__(self, backend):
@@ -360,7 +360,7 @@ class BaseChecker(object):
         pass
 
 
-class DefaultChecker(BaseChecker):
+class DefaultChecker(FileChangedChecker):
     """Default checker. Use the timestamp, size and md5sum."""
 
     def check_modified(self, file_path, state):
@@ -397,7 +397,7 @@ class DefaultChecker(BaseChecker):
         self._set(task.name, dep, (timestamp, size, md5))
 
 
-class TimestampChecker(BaseChecker):
+class TimestampChecker(FileChangedChecker):
     """Checker that use only the timestamp, size."""
 
     def check_modified(self, file_path, state):
