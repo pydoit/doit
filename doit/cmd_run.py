@@ -174,10 +174,10 @@ class Run(DoitCmdBase):
         # reporter
         if isinstance(reporter, six.string_types):
             if reporter not in REPORTERS:
-                msg = ("No reporter named '%s'."
+                msg = ("No reporter named '{}'."
                        " Type 'doit help run' to see a list "
                        "of available reporters.")
-                raise InvalidCommand(msg % reporter)
+                raise InvalidCommand(msg.format(reporter))
             reporter_cls = REPORTERS[reporter]
         else:
             # user defined class
@@ -186,10 +186,10 @@ class Run(DoitCmdBase):
         # check_file_uptodate
         if isinstance(check_file_uptodate, six.string_types):
             if check_file_uptodate not in CHECKERS:
-                msg = ("No check_file_uptodate named '%s'."
+                msg = ("No check_file_uptodate named '{}'."
                        " Type 'doit help run' to see a list "
                        "of available checkers.")
-                raise InvalidCommand(msg % check_file_uptodate)
+                raise InvalidCommand(msg.format(check_file_uptodate))
             checker_cls = CHECKERS[check_file_uptodate]
         else:
             # user defined class
