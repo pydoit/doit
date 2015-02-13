@@ -100,11 +100,11 @@ opt_check_file_uptodate = {
     'short': '',
     'long': 'check_file_uptodate',
     'type': str,
-    'default': 'default',
+    'default': 'md5',
     'help': """\
 Choose how to check if files have been modified. Available:
-'default': use timestamp, size and md5sum
-'timestamp': use only timestamp and size
+'md5': use the md5sum
+'timestamp': use the timestamp
 """
 }
 
@@ -148,7 +148,7 @@ class Run(DoitCmdBase):
     def _execute(self, outfile,
                  verbosity=None, always=False, continue_=False,
                  reporter='default', num_process=0, par_type='process',
-                 single=False, check_file_uptodate='default'):
+                 single=False, check_file_uptodate='md5'):
         """
         @param reporter:
                (str) one of provided reporters or ...

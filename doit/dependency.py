@@ -350,7 +350,8 @@ class FileChangedChecker(object):
         """Check if file in file_path is modified from previous "state".
 
         @param file_path (string): file path
-        @param state (tuple), timestamp, size, md5
+        @param state (tuple): state that was previously saved with
+            ``save_state``
         @returns (bool): True if dep is modified
         """
         pass
@@ -360,10 +361,16 @@ class FileChangedChecker(object):
         pass
 
 
-class DefaultChecker(FileChangedChecker):
-    """Default checker. Use the timestamp, size and md5sum."""
+class MD5Checker(FileChangedChecker):
+    """MD5 checker. Use the timestamp, size and md5sum."""
 
     def check_modified(self, file_path, state):
+        """Check if file in file_path is modified from previous "state".
+
+        @param file_path (string): file path
+        @param state (tuple): timestamp, size, md5
+        @returns (bool): True if dep is modified
+        """
         try:
             file_stat = os.stat(file_path)
         except OSError:
@@ -425,7 +432,7 @@ class TimestampChecker(FileChangedChecker):
 
 
 # name of checkers class available
-CHECKERS = {'default': DefaultChecker,
+CHECKERS = {'md5': MD5Checker,
             'timestamp': TimestampChecker}
 
 
@@ -446,7 +453,7 @@ class DependencyBase(object):
 
     def __init__(self, backend, checker_cls=None):
         self._closed = False
-        self.checker = (checker_cls or DefaultChecker)(backend)
+        self.checker = (checker_cls or MD5Checker)(backend)
         self.backend = backend
         self._set = self.backend.set
         self._get = self.backend.get
@@ -497,7 +504,7 @@ class DependencyBase(object):
         """
         if not self._in(task_id):
             # FIXME do not use generic exception
-            raise Exception("taskid '%s' has no computed v, DefaultCheckeralue!" % task_id)
+            raise Exception("taskid '%s' has no computed value!" % task_id)
         values = self.get_values(task_id)
         if key_name not in values:
             msg = "Invalid arg name. Task '%s' has no value for '%s'."
