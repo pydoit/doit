@@ -416,11 +416,10 @@ class TimestampChecker(FileChangedChecker):
         if state is None:
             return True
 
-        timestamp, _, _ = state
-        return mtime != timestamp
+        return mtime != state
 
     def get_state(self, task, dep, current_state):
-        return os.path.getmtime(dep), None, None
+        return os.path.getmtime(dep)
 
 
 # name of checkers class available
@@ -476,6 +475,7 @@ class DependencyBase(object):
                 self._set(task.name, "result:", get_md5(task.result))
 
         # file-dep
+        self._set(task.name, 'checker:', self.checker.__class__.__name__)
         for dep in task.file_dep:
             state = self.checker.get_state(task, dep,
                                            self._get(task.name, dep))
@@ -587,6 +587,12 @@ class DependencyBase(object):
             if not os.path.exists(targ):
                 task.dep_changed = list(task.file_dep)
                 return 'run'
+
+        # check for modified file_dep checker
+        previous = self._get(task.name, 'checker:')
+        if previous and previous != self.checker.__class__.__name__:
+            task.dep_changed = list(task.file_dep)
+            return 'run'
 
         # check for modified file_dep
         previous = self._get(task.name, 'deps:')

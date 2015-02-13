@@ -302,12 +302,6 @@ class TestCheckModified(object):
                                               (timestamp+1, size, md5))
         assert dep.checker.check_modified(dependency1, (timestamp+1, size, ''))
 
-    def test_without_md5(self, dependency1):
-        dep = DependencyBase(Mock(), checker_cls=TimestampChecker)
-        md5 = get_file_md5(dependency1)
-        # correct md5 but don't use it
-        assert dep.checker.check_modified(dependency1, (0, 0, md5))
-
     def test_custom_checker(self, pdepfile, dependency1):
         class MyChecker(FileChangedChecker):
             """With this checker, files are always out of date."""
@@ -319,6 +313,22 @@ class TestCheckModified(object):
         pdepfile.save_success(t1)
         assert pdepfile.checker.check_modified(dependency1, (0, 0, None))
         assert 'run' == pdepfile.get_status(t1, {})
+        assert 'run' == pdepfile.get_status(t1, {})
+
+
+class TestTimestampChecker(object):
+    def test_timestamp(self, pdepfile, dependency1):
+        pdepfile.checker = TimestampChecker()
+        assert pdepfile.checker.check_modified(dependency1, 0)
+        assert not pdepfile.checker.check_modified(
+            dependency1, os.path.getmtime(dependency1))
+
+    def test_change_checker(self, pdepfile, dependency1):
+        t1 = Task("taskId_X", None, [dependency1])
+        pdepfile.save_success(t1)
+        assert 'up-to-date' == pdepfile.get_status(t1, {})
+
+        pdepfile.checker = TimestampChecker()
         assert 'run' == pdepfile.get_status(t1, {})
 
 
