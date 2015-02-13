@@ -374,7 +374,8 @@ class MD5Checker(FileChangedChecker):
         try:
             file_stat = os.stat(file_path)
         except OSError:
-            raise Exception("Dependent file '%s' does not exist." % file_path)
+            raise Exception("Dependent file '{}' does not exist."
+                            .format(file_path))
 
         if state is None:
             return True
@@ -409,26 +410,19 @@ class TimestampChecker(FileChangedChecker):
 
     def check_modified(self, file_path, state):
         try:
-            file_stat = os.stat(file_path)
+            mtime = os.path.getmtime(file_path)
         except OSError:
-            raise Exception("Dependent file '%s' does not exist." % file_path)
+            raise Exception("Dependent file '{}' does not exist."
+                            .format(file_path))
 
         if state is None:
             return True
 
-        timestamp, size, _ = state
-
-        # 1 - if timestamp is not modified file is the same
-        if file_stat.st_mtime == timestamp:
-            return False
-
-        # 2 - if size is different file is modified
-        return file_stat.st_size != size
+        timestamp, _, _ = state
+        return mtime != timestamp
 
     def save_state(self, task, dep):
-        timestamp = os.path.getmtime(dep)
-        size = os.path.getsize(dep)
-        self._set(task.name, dep, (timestamp, size, None))
+        self._set(task.name, dep, (os.path.getmtime(dep), None, None))
 
 
 # name of checkers class available
