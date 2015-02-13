@@ -341,23 +341,22 @@ class SqliteDB(object):
 class FileChangedChecker(object):
     """Base Checker that must be inherited."""
 
-    def __init__(self, backend):
-        self.backend = backend
-        self._set = self.backend.set
-        self._get = self.backend.get
-
     def check_modified(self, file_path, state):
         """Check if file in file_path is modified from previous "state".
 
         @param file_path (string): file path
         @param state (tuple): state that was previously saved with
-            ``save_state``
+            ``get_state``
         @returns (bool): True if dep is modified
         """
         pass
 
-    def save_state(self, task, dep):
-        """Save info after a task is successfuly executed"""
+    def get_state(self, task, dep, current_state):
+        """Compute the state of a task after it has been successfuly executed.
+
+        @param task (Task): the task object.
+        @param dep (str): path of the dependency file.
+        """
         pass
 
 
@@ -393,16 +392,15 @@ class MD5Checker(FileChangedChecker):
         # 3 - check md5
         return file_md5 != get_file_md5(file_path)
 
-    def save_state(self, task, dep):
+    def get_state(self, task, dep, current_state):
         timestamp = os.path.getmtime(dep)
         # time optimization. if dep is already saved with current
         # timestamp skip calculating md5
-        current = self._get(task.name, dep)
-        if current and current[0] == timestamp:
+        if current_state and current_state[0] == timestamp:
             return
         size = os.path.getsize(dep)
         md5 = get_file_md5(dep)
-        self._set(task.name, dep, (timestamp, size, md5))
+        return timestamp, size, md5
 
 
 class TimestampChecker(FileChangedChecker):
@@ -421,8 +419,8 @@ class TimestampChecker(FileChangedChecker):
         timestamp, _, _ = state
         return mtime != timestamp
 
-    def save_state(self, task, dep):
-        self._set(task.name, dep, (os.path.getmtime(dep), None, None))
+    def get_state(self, task, dep, current_state):
+        return os.path.getmtime(dep), None, None
 
 
 # name of checkers class available
@@ -447,7 +445,7 @@ class DependencyBase(object):
 
     def __init__(self, backend, checker_cls=None):
         self._closed = False
-        self.checker = (checker_cls or MD5Checker)(backend)
+        self.checker = (checker_cls or MD5Checker)()
         self.backend = backend
         self._set = self.backend.set
         self._get = self.backend.get
@@ -479,7 +477,10 @@ class DependencyBase(object):
 
         # file-dep
         for dep in task.file_dep:
-            self.checker.save_state(task, dep)
+            state = self.checker.get_state(task, dep,
+                                           self._get(task.name, dep))
+            if state is not None:
+                self._set(task.name, dep, state)
 
         # save list of file_deps
         self._set(task.name, 'deps:', tuple(task.file_dep))
@@ -609,18 +610,20 @@ class DependencyBase(object):
 
 class JsonDependency(DependencyBase):
     """Task dependency manager with JSON backend"""
-    def __init__(self, name, **kwargs):
-        DependencyBase.__init__(self, JsonDB(name), **kwargs)
+    def __init__(self, name, checker_cls=None):
+        DependencyBase.__init__(self, JsonDB(name), checker_cls=checker_cls)
+
 
 class DbmDependency(DependencyBase):
     """Task dependency manager with DBM backend"""
-    def __init__(self, name, **kwargs):
-        DependencyBase.__init__(self, DbmDB(name), **kwargs)
+    def __init__(self, name, checker_cls=None):
+        DependencyBase.__init__(self, DbmDB(name), checker_cls=checker_cls)
+
 
 class SqliteDependency(DependencyBase):
     """Task dependency manager with sqlite backend"""
-    def __init__(self, name, **kwargs):
-        DependencyBase.__init__(self, SqliteDB(name), **kwargs)
+    def __init__(self, name, checker_cls=None):
+        DependencyBase.__init__(self, SqliteDB(name), checker_cls=checker_cls)
 
 # map string used in cmdline option to class
 backend_map = {

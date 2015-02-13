@@ -19,16 +19,6 @@ TEST_PATH = os.path.dirname(__file__)
 PROGRAM = "python %s/sample_process.py" % TEST_PATH
 
 
-class MyChecker(FileChangedChecker):
-    """With this checker, files are always out of date."""
-
-    def check_modified(self, file_path, state):
-        return True
-
-    def save_state(self, task, dep):
-        pass
-
-
 def test_unicode_md5():
     data = six.u("我")
     # no exception is raised
@@ -319,7 +309,12 @@ class TestCheckModified(object):
         assert dep.checker.check_modified(dependency1, (0, 0, md5))
 
     def test_custom_checker(self, pdepfile, dependency1):
-        pdepfile.checker = MyChecker(pdepfile.backend)
+        class MyChecker(FileChangedChecker):
+            """With this checker, files are always out of date."""
+            def check_modified(self, file_path, state):
+                return True
+
+        pdepfile.checker = MyChecker()
         t1 = Task("taskId_X", None, [dependency1])
         pdepfile.save_success(t1)
         assert pdepfile.checker.check_modified(dependency1, (0, 0, None))
