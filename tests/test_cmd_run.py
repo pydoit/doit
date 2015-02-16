@@ -8,7 +8,7 @@ from doit.exceptions import InvalidCommand
 from doit.task import Task
 from doit import reporter, runner
 from doit.cmd_run import Run
-from doit.dependency import FileChangedChecker
+from doit.dependency import MD5Checker
 from tests.conftest import tasks_sample
 
 
@@ -139,10 +139,8 @@ class TestCmdRun(object):
                       output, check_file_uptodate="i dont exist")
 
     def testCustomChecker(self, depfile_name):
-
-        class MyChecker(FileChangedChecker):
-            def check_modified(self, file_path, state):
-                return True
+        class MyChecker(MD5Checker):
+            pass
 
         output = StringIO()
         cmd_run = Run(backend='dbm', dep_file=depfile_name,

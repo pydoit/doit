@@ -350,7 +350,7 @@ class FileChangedChecker(object):
         @returns (bool): True if dep is modified
 
         """
-        pass
+        raise NotImplementedError()
 
     def get_state(self, dep, current_state):
         """Compute the state of a task after it has been successfuly executed.
@@ -361,7 +361,7 @@ class FileChangedChecker(object):
         @returns (tuple): the new state. Return None if the state is unchanged.
 
         """
-        pass
+        raise NotImplementedError()
 
 
 class MD5Checker(FileChangedChecker):

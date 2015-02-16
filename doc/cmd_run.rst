@@ -303,7 +303,7 @@ custom checker must be configured using DOIT_CONFIG dict.
         """With this checker, files are always out of date."""
         def check_modified(self, file_path, state):
             return True
-        def get_state(self, task, dep, current_state):
+        def get_state(self, dep, current_state):
             pass
 
     DOIT_CONFIG = {'check_file_uptodate': MyChecker}
