@@ -348,14 +348,18 @@ class FileChangedChecker(object):
         @param state (tuple): state that was previously saved with
             ``get_state``
         @returns (bool): True if dep is modified
+
         """
         pass
 
-    def get_state(self, task, dep, current_state):
+    def get_state(self, dep, current_state):
         """Compute the state of a task after it has been successfuly executed.
 
-        @param task (Task): the task object.
         @param dep (str): path of the dependency file.
+        @param current_state (tuple): the current state, saved from a previous
+            execution of the task (None if the task was never run).
+        @returns (tuple): the new state. Return None if the state is unchanged.
+
         """
         pass
 
@@ -392,7 +396,7 @@ class MD5Checker(FileChangedChecker):
         # 3 - check md5
         return file_md5 != get_file_md5(file_path)
 
-    def get_state(self, task, dep, current_state):
+    def get_state(self, dep, current_state):
         timestamp = os.path.getmtime(dep)
         # time optimization. if dep is already saved with current
         # timestamp skip calculating md5
@@ -418,7 +422,7 @@ class TimestampChecker(FileChangedChecker):
 
         return mtime != state
 
-    def get_state(self, task, dep, current_state):
+    def get_state(self, dep, current_state):
         return os.path.getmtime(dep)
 
 
@@ -477,8 +481,7 @@ class DependencyBase(object):
         # file-dep
         self._set(task.name, 'checker:', self.checker.__class__.__name__)
         for dep in task.file_dep:
-            state = self.checker.get_state(task, dep,
-                                           self._get(task.name, dep))
+            state = self.checker.get_state(dep, self._get(task.name, dep))
             if state is not None:
                 self._set(task.name, dep, state)
 
