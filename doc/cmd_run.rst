@@ -275,15 +275,15 @@ this is controlled by the ``verbosity`` param.
 check_file_uptodate
 -------------------
 
-`doit` provides different options to check if files are up to date.
-Use the option ``--check_file_uptodate`` to choose:
+`doit` provides different options to check if dependency files are up to date
+(see :ref:`file-dep`).  Use the option ``--check_file_uptodate`` to choose:
 
- * md5: use the md5sum of the file.
- * timestamp: use only the timestamp and size.
+ * md5: use the md5sum.
+ * timestamp: use the timestamp.
 
 .. code-block:: console
 
-    $ doit --reporter timestamp
+    $ doit --check_file_uptodate timestamp
 
 
 custom check_file_uptodate
