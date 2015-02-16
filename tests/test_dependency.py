@@ -330,6 +330,18 @@ class TestTimestampChecker(object):
 
         pdepfile.checker = TimestampChecker()
         assert 'run' == pdepfile.get_status(t1, {})
+        pdepfile.save_success(t1)
+        assert 'up-to-date' == pdepfile.get_status(t1, {})
+
+    def test_file_dependency_not_exist(self, pdepfile):
+        pdepfile.checker = TimestampChecker()
+        filePath = get_abspath("data/dependency_not_exist")
+        t1 = Task("t1", None, [filePath])
+        pytest.raises(Exception, pdepfile.get_status, t1, {})
+
+    def test_None(self, dependency1):
+        checker = TimestampChecker()
+        assert checker.check_modified(dependency1, None)
 
 
 class TestGetStatus(object):

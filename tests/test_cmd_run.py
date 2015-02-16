@@ -8,6 +8,7 @@ from doit.exceptions import InvalidCommand
 from doit.task import Task
 from doit import reporter, runner
 from doit.cmd_run import Run
+from doit.dependency import FileChangedChecker
 from tests.conftest import tasks_sample
 
 
@@ -129,6 +130,25 @@ class TestCmdRun(object):
         cmd_run._execute(output, reporter=MyReporter)
         got = output.getvalue().split("\n")[:-1]
         assert 'MyReporter.start t1' == got[0]
+
+    def testInvalidChecker(self, depfile_name):
+        output = StringIO()
+        cmd_run = Run(backend='dbm', dep_file=depfile_name,
+                      task_list=tasks_sample())
+        pytest.raises(InvalidCommand, cmd_run._execute,
+                      output, check_file_uptodate="i dont exist")
+
+    def testCustomChecker(self, depfile_name):
+
+        class MyChecker(FileChangedChecker):
+            def check_modified(self, file_path, state):
+                return True
+
+        output = StringIO()
+        cmd_run = Run(backend='dbm', dep_file=depfile_name,
+                      task_list=[tasks_sample()[0]])
+        result = cmd_run._execute(output, check_file_uptodate=MyChecker)
+        assert 0 == result
 
     def testSetVerbosity(self, depfile_name):
         output = StringIO()
