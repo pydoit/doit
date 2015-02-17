@@ -152,15 +152,17 @@ class TestDoitCmdBase(object):
 
 
     # command with _execute() method
-    def test_execute(self):
+    def test_execute(self, depfile_name):
         members = {'task_xxx1': lambda : {'actions':[]},}
         loader = ModuleTaskLoader(members)
 
         mycmd = self.MyCmd(loader)
-        assert 'min' == mycmd.parse_execute(['--mine', 'min'])
+        assert 'min' == mycmd.parse_execute([
+            '--db-file', depfile_name,
+            '--mine', 'min'])
 
     # command with _execute() method
-    def test_minversion(self, monkeypatch):
+    def test_minversion(self, depfile_name, monkeypatch):
         members = {
             'task_xxx1': lambda : {'actions':[]},
             'DOIT_CONFIG': {'minversion': '5.2.3'},
@@ -170,7 +172,7 @@ class TestDoitCmdBase(object):
         # version ok
         monkeypatch.setattr(version, 'VERSION', '7.5.8')
         mycmd = self.MyCmd(loader)
-        assert 'xxx' == mycmd.parse_execute([])
+        assert 'xxx' == mycmd.parse_execute(['--db-file', depfile_name])
 
         # version too old
         monkeypatch.setattr(version, 'VERSION', '5.2.1')
@@ -185,13 +187,14 @@ class TestDoitCmdBase(object):
         pytest.raises(InvalidCommand, mycmd.execute, params, args)
 
 
-    def testCustomChecker(self):
+    def testCustomChecker(self, depfile_name):
         class MyChecker(FileChangedChecker):
             pass
 
         mycmd = self.MyCmd(ModuleTaskLoader({}))
         params, args = CmdParse(mycmd.options).parse([])
         params['check_file_uptodate'] = MyChecker
+        params['dep_file'] = depfile_name
         mycmd.execute(params, args)
         assert isinstance(mycmd.dep_manager.checker, MyChecker)
 
