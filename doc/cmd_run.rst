@@ -283,13 +283,13 @@ check_file_uptodate
 
 .. note::
 
-   The `timestamp` checker considers a file is not up-to-date if the there is
+   The `timestamp` checker considers a file is not up-to-date if there is
    **any** change in the the modified time (`mtime`), it does not matter if
    the new time is in the future or past of the original timestamp.
 
 
-You can set this option from command line, but you probably set it for all
-commands using `DOIT_CONFIG`.
+You can set this option from command line, but you probably want to set it for
+all commands using `DOIT_CONFIG`.
 
 .. code-block:: console
 
