@@ -8,16 +8,15 @@ from doit.exceptions import InvalidCommand
 from doit.task import Task
 from doit import reporter, runner
 from doit.cmd_run import Run
-from doit.dependency import MD5Checker
-from tests.conftest import tasks_sample
+from tests.conftest import tasks_sample, CmdFactory
 
 
 class TestCmdRun(object):
 
     def testProcessRun(self, dependency1, depfile_name):
         output = StringIO()
-        cmd_run = Run(backend='dbm', dep_file=depfile_name,
-                      task_list=tasks_sample())
+        cmd_run = CmdFactory(Run, backend='dbm', dep_file=depfile_name,
+                             task_list=tasks_sample())
         result = cmd_run._execute(output)
         assert 0 == result
         got = output.getvalue().split("\n")[:-1]
@@ -25,8 +24,8 @@ class TestCmdRun(object):
 
     def testProcessRunMP(self, dependency1, depfile_name):
         output = StringIO()
-        cmd_run = Run(backend='dbm', dep_file=depfile_name,
-                      task_list=tasks_sample())
+        cmd_run = CmdFactory(Run, backend='dbm', dep_file=depfile_name,
+                             task_list=tasks_sample())
         result = cmd_run._execute(output, num_process=1)
         assert 0 == result
         got = output.getvalue().split("\n")[:-1]
@@ -34,8 +33,8 @@ class TestCmdRun(object):
 
     def testProcessRunMThread(self, dependency1, depfile_name):
         output = StringIO()
-        cmd_run = Run(backend='dbm', dep_file=depfile_name,
-                      task_list=tasks_sample())
+        cmd_run = CmdFactory(Run, backend='dbm', dep_file=depfile_name,
+                             task_list=tasks_sample())
         result = cmd_run._execute(output, num_process=1, par_type='thread')
         assert 0 == result
         got = output.getvalue().split("\n")[:-1]
@@ -43,8 +42,8 @@ class TestCmdRun(object):
 
     def testInvalidParType(self, dependency1, depfile_name):
         output = StringIO()
-        cmd_run = Run(backend='dbm', dep_file=depfile_name,
-                      task_list=tasks_sample())
+        cmd_run = CmdFactory(Run, backend='dbm', dep_file=depfile_name,
+                             task_list=tasks_sample())
         pytest.raises(InvalidCommand, cmd_run._execute,
                       output, num_process=1, par_type='not_exist')
 
@@ -55,8 +54,8 @@ class TestCmdRun(object):
         monkeypatch.setattr(runner.MRunner, "available",
                             Mock(return_value=False))
         output = StringIO()
-        cmd_run = Run(backend='dbm', dep_file=depfile_name,
-                      task_list=tasks_sample())
+        cmd_run = CmdFactory(Run, backend='dbm', dep_file=depfile_name,
+                             task_list=tasks_sample())
         result = cmd_run._execute(output, num_process=1)
         assert 0 == result
         got = output.getvalue().split("\n")[:-1]
@@ -67,16 +66,16 @@ class TestCmdRun(object):
 
     def testProcessRunFilter(self, depfile_name):
         output = StringIO()
-        cmd_run = Run(backend='dbm', dep_file=depfile_name,
-                      task_list=tasks_sample(), sel_tasks=["g1.a"])
+        cmd_run = CmdFactory(Run, backend='dbm', dep_file=depfile_name,
+                             task_list=tasks_sample(), sel_tasks=["g1.a"])
         cmd_run._execute(output)
         got = output.getvalue().split("\n")[:-1]
         assert [".  g1.a"] == got
 
     def testProcessRunSingle(self, depfile_name):
         output = StringIO()
-        cmd_run = Run(backend='dbm', dep_file=depfile_name,
-                      task_list=tasks_sample(), sel_tasks=["t3"])
+        cmd_run = CmdFactory(Run, backend='dbm', dep_file=depfile_name,
+                             task_list=tasks_sample(), sel_tasks=["t3"])
         cmd_run._execute(output, single=True)
         got = output.getvalue().split("\n")[:-1]
         # t1 is a depenendency of t3 but not included
@@ -87,8 +86,8 @@ class TestCmdRun(object):
         task_list = tasks_sample()
         assert task_list[4].name == 'g1.b'
         task_list[4].task_dep = ['t3']
-        cmd_run = Run(backend='dbm', dep_file=depfile_name,
-                      task_list=task_list, sel_tasks=["g1"])
+        cmd_run = CmdFactory(Run, backend='dbm', dep_file=depfile_name,
+                             task_list=task_list, sel_tasks=["g1"])
         cmd_run._execute(output, single=True)
         got = output.getvalue().split("\n")[:-1]
         # t3 is a depenendency of g1.b but not included
@@ -96,16 +95,16 @@ class TestCmdRun(object):
 
     def testProcessRunEmptyFilter(self, depfile_name):
         output = StringIO()
-        cmd_run = Run(backend='dbm', dep_file=depfile_name,
-                      task_list=tasks_sample(), sel_tasks=[])
+        cmd_run = CmdFactory(Run, backend='dbm', dep_file=depfile_name,
+                             task_list=tasks_sample(), sel_tasks=[])
         cmd_run._execute(output)
         got = output.getvalue().split("\n")[:-1]
         assert [] == got
 
     def testInvalidReporter(self, depfile_name):
         output = StringIO()
-        cmd_run = Run(backend='dbm', dep_file=depfile_name,
-                      task_list=tasks_sample())
+        cmd_run = CmdFactory(Run, backend='dbm', dep_file=depfile_name,
+                             task_list=tasks_sample())
         pytest.raises(InvalidCommand, cmd_run._execute,
                       output, reporter="i dont exist")
 
@@ -114,8 +113,8 @@ class TestCmdRun(object):
         class MyReporter(reporter.ConsoleReporter):
             def get_status(self, task):
                 self.outstream.write('MyReporter.start %s\n' % task.name)
-        cmd_run = Run(backend='dbm', dep_file=depfile_name,
-                      task_list=[tasks_sample()[0]])
+        cmd_run = CmdFactory(Run, backend='dbm', dep_file=depfile_name,
+                             task_list=[tasks_sample()[0]])
         cmd_run._execute(output, reporter=MyReporter(output, {}))
         got = output.getvalue().split("\n")[:-1]
         assert 'MyReporter.start t1' == got[0]
@@ -125,28 +124,11 @@ class TestCmdRun(object):
         class MyReporter(reporter.ConsoleReporter):
             def get_status(self, task):
                 self.outstream.write('MyReporter.start %s\n' % task.name)
-        cmd_run = Run(backend='dbm', dep_file=depfile_name,
-                      task_list=[tasks_sample()[0]])
+        cmd_run = CmdFactory(Run, backend='dbm', dep_file=depfile_name,
+                             task_list=[tasks_sample()[0]])
         cmd_run._execute(output, reporter=MyReporter)
         got = output.getvalue().split("\n")[:-1]
         assert 'MyReporter.start t1' == got[0]
-
-    def testInvalidChecker(self, depfile_name):
-        output = StringIO()
-        cmd_run = Run(backend='dbm', dep_file=depfile_name,
-                      task_list=tasks_sample())
-        pytest.raises(InvalidCommand, cmd_run._execute,
-                      output, check_file_uptodate="i dont exist")
-
-    def testCustomChecker(self, depfile_name):
-        class MyChecker(MD5Checker):
-            pass
-
-        output = StringIO()
-        cmd_run = Run(backend='dbm', dep_file=depfile_name,
-                      task_list=[tasks_sample()[0]])
-        result = cmd_run._execute(output, check_file_uptodate=MyChecker)
-        assert 0 == result
 
     def testSetVerbosity(self, depfile_name):
         output = StringIO()
@@ -155,13 +137,14 @@ class TestCmdRun(object):
         def my_execute(out, err, verbosity):
             used_verbosity.append(verbosity)
         t.execute = my_execute
-        cmd_run = Run(backend='dbm', dep_file=depfile_name, task_list=[t])
+        cmd_run = CmdFactory(Run, backend='dbm', dep_file=depfile_name,
+                             task_list=[t])
         cmd_run._execute(output, verbosity=2)
         assert 2 == used_verbosity[0], used_verbosity
 
     def test_outfile(self, depfile_name):
-        cmd_run = Run(backend='dbm', dep_file=depfile_name,
-                      task_list=tasks_sample(), sel_tasks=["g1.a"])
+        cmd_run = CmdFactory(Run, backend='dbm', dep_file=depfile_name,
+                             task_list=tasks_sample(), sel_tasks=["g1.a"])
         cmd_run._execute('test.out')
         try:
             outfile = open('test.out', 'r')

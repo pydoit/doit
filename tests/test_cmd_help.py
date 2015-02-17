@@ -20,15 +20,17 @@ class TestHelp(object):
         out, err = capsys.readouterr()
         assert "Purpose: list tasks from dodo file" in out
 
-    def test_help_task_name(self, capsys, restore_cwd):
-        cmd_main(["help", "-f", "tests/loader_sample.py", "xxx1"])
+    def test_help_task_name(self, capsys, restore_cwd, depfile_name):
+        cmd_main(["help", "-f", "tests/loader_sample.py",
+                  "--db-file", depfile_name, "xxx1"])
         out, err = capsys.readouterr()
         assert "xxx1" in out # name
         assert "task doc" in out # doc
         assert "" in out # params
 
-    def test_help_wrong_name(self, capsys, restore_cwd):
-        cmd_main(["help", "-f", "tests/loader_sample.py", "wrong_name"])
+    def test_help_wrong_name(self, capsys, restore_cwd, depfile_name):
+        cmd_main(["help", "-f", "tests/loader_sample.py",
+                  "--db-file", depfile_name, "wrong_name"])
         out, err = capsys.readouterr()
         assert "doit list" in out
 

@@ -66,65 +66,65 @@ def reporter(request):
 
 
 class TestRunner(object):
-    def testInit(self, reporter, depfile_name):
-        my_runner = runner.Runner(Dependency, depfile_name, reporter)
+    def testInit(self, reporter, dep_manager):
+        my_runner = runner.Runner(dep_manager, reporter)
         assert False == my_runner._stop_running
         assert runner.SUCCESS == my_runner.final_result
 
 
 class TestRunner_SelectTask(object):
-    def test_ready(self, reporter, depfile_name):
+    def test_ready(self, reporter, dep_manager):
         t1 = Task("taskX", [(my_print, ["out a"] )])
-        my_runner = runner.Runner(Dependency, depfile_name, reporter)
+        my_runner = runner.Runner(dep_manager, reporter)
         assert True == my_runner.select_task(ExecNode(t1, None), {})
         assert ('start', t1) == reporter.log.pop(0)
         assert not reporter.log
 
-    def test_DependencyError(self, reporter, depfile_name):
+    def test_DependencyError(self, reporter, dep_manager):
         t1 = Task("taskX", [(my_print, ["out a"] )],
                   file_dep=["i_dont_exist"])
-        my_runner = runner.Runner(Dependency, depfile_name, reporter)
+        my_runner = runner.Runner(dep_manager, reporter)
         assert False == my_runner.select_task(ExecNode(t1, None), {})
         assert ('start', t1) == reporter.log.pop(0)
         assert ('fail', t1) == reporter.log.pop(0)
         assert not reporter.log
 
-    def test_upToDate(self, reporter, depfile_name):
+    def test_upToDate(self, reporter, dep_manager):
         t1 = Task("taskX", [(my_print, ["out a"] )], file_dep=[__file__])
-        my_runner = runner.Runner(Dependency, depfile_name, reporter)
+        my_runner = runner.Runner(dep_manager, reporter)
         my_runner.dep_manager.save_success(t1)
         assert False == my_runner.select_task(ExecNode(t1, None), {})
         assert ('start', t1) == reporter.log.pop(0)
         assert ('up-to-date', t1) == reporter.log.pop(0)
         assert not reporter.log
 
-    def test_ignore(self, reporter, depfile_name):
+    def test_ignore(self, reporter, dep_manager):
         t1 = Task("taskX", [(my_print, ["out a"] )])
-        my_runner = runner.Runner(Dependency, depfile_name, reporter)
+        my_runner = runner.Runner(dep_manager, reporter)
         my_runner.dep_manager.ignore(t1)
         assert False == my_runner.select_task(ExecNode(t1, None), {})
         assert ('start', t1) == reporter.log.pop(0)
         assert ('ignore', t1) == reporter.log.pop(0)
         assert not reporter.log
 
-    def test_alwaysExecute(self, reporter, depfile_name):
+    def test_alwaysExecute(self, reporter, dep_manager):
         t1 = Task("taskX", [(my_print, ["out a"] )])
-        my_runner = runner.Runner(Dependency, depfile_name, reporter, always_execute=True)
+        my_runner = runner.Runner(dep_manager, reporter, always_execute=True)
         my_runner.dep_manager.save_success(t1)
         assert True == my_runner.select_task(ExecNode(t1, None), {})
         assert ('start', t1) == reporter.log.pop(0)
         assert not reporter.log
 
-    def test_noSetup_ok(self, reporter, depfile_name):
+    def test_noSetup_ok(self, reporter, dep_manager):
         t1 = Task("taskX", [(my_print, ["out a"] )])
-        my_runner = runner.Runner(Dependency, depfile_name, reporter)
+        my_runner = runner.Runner(dep_manager, reporter)
         assert True == my_runner.select_task(ExecNode(t1, None), {})
         assert ('start', t1) == reporter.log.pop(0)
         assert not reporter.log
 
-    def test_withSetup(self, reporter, depfile_name):
+    def test_withSetup(self, reporter, dep_manager):
         t1 = Task("taskX", [(my_print, ["out a"] )], setup=["taskY"])
-        my_runner = runner.Runner(Dependency, depfile_name, reporter)
+        my_runner = runner.Runner(dep_manager, reporter)
         # defer execution
         n1 = ExecNode(t1, None)
         assert False == my_runner.select_task(n1, {})
@@ -135,7 +135,7 @@ class TestRunner_SelectTask(object):
         assert not reporter.log
 
 
-    def test_getargs_ok(self, reporter, depfile_name):
+    def test_getargs_ok(self, reporter, dep_manager):
         def ok(): return {'x':1}
         def check_x(my_x): return my_x == 1
         t1 = Task('t1', [(ok,)])
@@ -143,7 +143,7 @@ class TestRunner_SelectTask(object):
         t2 = Task('t2', [(check_x,)], getargs={'my_x':('t1','x')})
         n2 = ExecNode(t2, None)
         tasks_dict = {'t1': t1, 't2':t2}
-        my_runner = runner.Runner(Dependency, depfile_name, reporter)
+        my_runner = runner.Runner(dep_manager, reporter)
 
         # t2 gives chance for setup tasks to be executed
         assert False == my_runner.select_task(n2, tasks_dict)
@@ -163,7 +163,7 @@ class TestRunner_SelectTask(object):
         assert not reporter.log
         assert {'my_x': 1} == t2.options
 
-    def test_getargs_fail(self, reporter, depfile_name):
+    def test_getargs_fail(self, reporter, dep_manager):
         # invalid getargs. Exception wil be raised and task will fail
         def check_x(my_x): return True
         t1 = Task('t1', [lambda :True])
@@ -171,7 +171,7 @@ class TestRunner_SelectTask(object):
         t2 = Task('t2', [(check_x,)], getargs={'my_x':('t1','x')})
         n2 = ExecNode(t2, None)
         tasks_dict = {'t1': t1, 't2':t2}
-        my_runner = runner.Runner(Dependency, depfile_name, reporter)
+        my_runner = runner.Runner(dep_manager, reporter)
 
         # t2 gives chance for setup tasks to be executed
         assert False == my_runner.select_task(n2, tasks_dict)
@@ -191,13 +191,13 @@ class TestRunner_SelectTask(object):
         assert not reporter.log
 
 
-    def test_getargs_dict(self, reporter, depfile_name):
+    def test_getargs_dict(self, reporter, dep_manager):
         def ok(): return {'x':1}
         t1 = Task('t1', [(ok,)])
         n1 = ExecNode(t1, None)
         t2 = Task('t2', None, getargs={'my_x':('t1', None)})
         tasks_dict = {'t1': t1, 't2':t2}
-        my_runner = runner.Runner(Dependency, depfile_name, reporter)
+        my_runner = runner.Runner(dep_manager, reporter)
         t1_result = my_runner.execute_task(t1)
         my_runner.process_task_result(n1, t1_result)
 
@@ -207,13 +207,13 @@ class TestRunner_SelectTask(object):
         assert {'my_x': {'x':1}} == t2.options
 
 
-    def test_getargs_group(self, reporter, depfile_name):
+    def test_getargs_group(self, reporter, dep_manager):
         def ok(): return {'x':1}
         t1 = Task('t1', None, task_dep=['t1:a'], has_subtask=True)
         t1a = Task('t1:a', [(ok,)], is_subtask=True)
         t2 = Task('t2', None, getargs={'my_x':('t1', None)})
         tasks_dict = {'t1': t1, 't1a':t1a, 't2':t2}
-        my_runner = runner.Runner(Dependency, depfile_name, reporter)
+        my_runner = runner.Runner(dep_manager, reporter)
         t1a_result = my_runner.execute_task(t1a)
         my_runner.process_task_result(ExecNode(t1a, None), t1a_result)
 
@@ -224,13 +224,13 @@ class TestRunner_SelectTask(object):
 
 
 
-    def test_getargs_group_value(self, reporter, depfile_name):
+    def test_getargs_group_value(self, reporter, dep_manager):
         def ok(): return {'x':1}
         t1 = Task('t1', None, task_dep=['t1:a'], has_subtask=True)
         t1a = Task('t1:a', [(ok,)], is_subtask=True)
         t2 = Task('t2', None, getargs={'my_x':('t1', 'x')})
         tasks_dict = {'t1': t1, 't1a':t1a, 't2':t2}
-        my_runner = runner.Runner(Dependency, depfile_name, reporter)
+        my_runner = runner.Runner(dep_manager, reporter)
         t1a_result = my_runner.execute_task(t1a)
         my_runner.process_task_result(ExecNode(t1a, None), t1a_result)
 
@@ -242,35 +242,35 @@ class TestRunner_SelectTask(object):
 
 
 class TestTask_Teardown(object):
-    def test_ok(self, reporter, depfile_name):
+    def test_ok(self, reporter, dep_manager):
         touched = []
         def touch():
             touched.append(1)
         t1 = Task('t1', [], teardown=[(touch,)])
-        my_runner = runner.Runner(Dependency, depfile_name, reporter)
+        my_runner = runner.Runner(dep_manager, reporter)
         my_runner.teardown_list = [t1]
         my_runner.teardown()
         assert 1 == len(touched)
         assert ('teardown', t1) == reporter.log.pop(0)
         assert not reporter.log
 
-    def test_reverse_order(self, reporter, depfile_name):
+    def test_reverse_order(self, reporter, dep_manager):
         def do_nothing():pass
         t1 = Task('t1', [], teardown=[do_nothing])
         t2 = Task('t2', [], teardown=[do_nothing])
-        my_runner = runner.Runner(Dependency, depfile_name, reporter)
+        my_runner = runner.Runner(dep_manager, reporter)
         my_runner.teardown_list = [t1, t2]
         my_runner.teardown()
         assert ('teardown', t2) == reporter.log.pop(0)
         assert ('teardown', t1) == reporter.log.pop(0)
         assert not reporter.log
 
-    def test_errors(self, reporter, depfile_name):
+    def test_errors(self, reporter, dep_manager):
         def raise_something(x):
             raise Exception(x)
         t1 = Task('t1', [], teardown=[(raise_something,['t1 blow'])])
         t2 = Task('t2', [], teardown=[(raise_something,['t2 blow'])])
-        my_runner = runner.Runner(Dependency, depfile_name, reporter)
+        my_runner = runner.Runner(dep_manager, reporter)
         my_runner.teardown_list = [t1, t2]
         my_runner.teardown()
         assert ('teardown', t2) == reporter.log.pop(0)
@@ -281,10 +281,10 @@ class TestTask_Teardown(object):
 
 
 class TestTask_RunAll(object):
-    def test_reporter_runtime_error(self, reporter, depfile_name):
+    def test_reporter_runtime_error(self, reporter, dep_manager):
         t1 = Task('t1', [], calc_dep=['t2'])
         t2 = Task('t2', [lambda: {'file_dep':[1]}])
-        my_runner = runner.Runner(Dependency, depfile_name, reporter)
+        my_runner = runner.Runner(dep_manager, reporter)
         my_runner.run_all(TaskDispatcher({'t1':t1, 't2':t2}, [], ['t1', 't2']))
         assert runner.ERROR == my_runner.final_result
         assert ('start', t2) == reporter.log.pop(0)
@@ -309,20 +309,20 @@ def ok2(): return "different"
 
 class TestRunner_run_tasks(object):
 
-    def test_teardown(self, reporter, RunnerClass, depfile_name):
+    def test_teardown(self, reporter, RunnerClass, dep_manager):
         t1 = Task('t1', [], teardown=[ok])
         t2 = Task('t2', [])
-        my_runner = RunnerClass(Dependency, depfile_name, reporter)
+        my_runner = RunnerClass(dep_manager, reporter)
         assert [] == my_runner.teardown_list
         my_runner.run_tasks(TaskDispatcher({'t1':t1, 't2':t2}, [], ['t1', 't2']))
         my_runner.finish()
         assert ('teardown', t1) == reporter.log[-1]
 
     # testing whole process/API
-    def test_success(self, reporter, RunnerClass, depfile_name):
+    def test_success(self, reporter, RunnerClass, dep_manager):
         t1 = Task("t1", [(my_print, ["out a"] )] )
         t2 = Task("t2", [(my_print, ["out a"] )] )
-        my_runner = RunnerClass(Dependency, depfile_name, reporter)
+        my_runner = RunnerClass(dep_manager, reporter)
         my_runner.run_tasks(TaskDispatcher({'t1':t1, 't2':t2}, [], ['t1', 't2']))
         assert runner.SUCCESS == my_runner.finish()
         assert ('start', t1) == reporter.log.pop(0), reporter.log
@@ -333,14 +333,14 @@ class TestRunner_run_tasks(object):
         assert ('success', t2) == reporter.log.pop(0)
 
     # test result, value, out, err are saved into task
-    def test_result(self, reporter, RunnerClass, depfile_name):
+    def test_result(self, reporter, RunnerClass, dep_manager):
         def my_action():
             import sys
             sys.stdout.write('out here')
             sys.stderr.write('err here')
             return {'bb': 5}
         task = Task("taskY", [my_action] )
-        my_runner = RunnerClass(Dependency, depfile_name, reporter)
+        my_runner = RunnerClass(dep_manager, reporter)
         assert None == task.result
         assert {} == task.values
         assert [None] == [a.out for a in task.actions]
@@ -353,10 +353,10 @@ class TestRunner_run_tasks(object):
         assert ['err here'] == [a.err for a in task.actions]
 
     # whenever a task fails remaining task are not executed
-    def test_failureOutput(self, reporter, RunnerClass, depfile_name):
+    def test_failureOutput(self, reporter, RunnerClass, dep_manager):
         t1 = Task("t1", [_fail])
         t2 = Task("t2", [_fail])
-        my_runner = RunnerClass(Dependency, depfile_name, reporter)
+        my_runner = RunnerClass(dep_manager, reporter)
         my_runner.run_tasks(TaskDispatcher({'t1':t1, 't2':t2}, [], ['t1', 't2']))
         assert runner.FAILURE == my_runner.finish()
         assert ('start', t1) == reporter.log.pop(0)
@@ -366,10 +366,10 @@ class TestRunner_run_tasks(object):
         assert 0 == len(reporter.log)
 
 
-    def test_error(self, reporter, RunnerClass, depfile_name):
+    def test_error(self, reporter, RunnerClass, dep_manager):
         t1 = Task("t1", [_error])
         t2 = Task("t2", [_error])
-        my_runner = RunnerClass(Dependency, depfile_name, reporter)
+        my_runner = RunnerClass(dep_manager, reporter)
         my_runner.run_tasks(TaskDispatcher({'t1':t1, 't2':t2}, [], ['t1', 't2']))
         assert runner.ERROR == my_runner.finish()
         assert ('start', t1) == reporter.log.pop(0)
@@ -394,18 +394,19 @@ class TestRunner_run_tasks(object):
         targets = [filePath]
 
         t1 = Task("t1", [my_print], dependencies, targets)
-        my_runner = RunnerClass(Dependency, depfile_name, reporter)
+        dep_manager = Dependency(depfile_name)
+        my_runner = RunnerClass(dep_manager, reporter)
         my_runner.run_tasks(TaskDispatcher({'t1':t1}, [], ['t1']))
         assert runner.SUCCESS == my_runner.finish()
         d = Dependency(depfile_name)
         assert d._get("t1", os.path.abspath(depPath))
 
 
-    def test_continue(self, reporter, RunnerClass, depfile_name):
+    def test_continue(self, reporter, RunnerClass, dep_manager):
         t1 = Task("t1", [(_fail,)] )
         t2 = Task("t2", [(_error,)] )
         t3 = Task("t3", [(ok,)])
-        my_runner = RunnerClass(Dependency, depfile_name, reporter, continue_=True)
+        my_runner = RunnerClass(dep_manager, reporter, continue_=True)
         disp = TaskDispatcher({'t1':t1, 't2':t2, 't3':t3}, [], ['t1', 't2', 't3'])
         my_runner.run_tasks(disp)
         assert runner.ERROR == my_runner.finish()
@@ -422,11 +423,11 @@ class TestRunner_run_tasks(object):
 
 
     def test_continue_dont_execute_parent_of_failed_task(self, reporter,
-                                                         RunnerClass, depfile_name):
+                                                         RunnerClass, dep_manager):
         t1 = Task("t1", [(_error,)] )
         t2 = Task("t2", [(ok,)], task_dep=['t1'])
         t3 = Task("t3", [(ok,)])
-        my_runner = RunnerClass(Dependency, depfile_name, reporter, continue_=True)
+        my_runner = RunnerClass(dep_manager, reporter, continue_=True)
         disp = TaskDispatcher({'t1':t1, 't2':t2, 't3':t3}, [], ['t1', 't2', 't3'])
         my_runner.run_tasks(disp)
         assert runner.ERROR == my_runner.finish()
@@ -441,10 +442,10 @@ class TestRunner_run_tasks(object):
         assert 0 == len(reporter.log)
 
 
-    def test_continue_dep_error(self, reporter, RunnerClass, depfile_name):
+    def test_continue_dep_error(self, reporter, RunnerClass, dep_manager):
         t1 = Task("t1", [(ok,)], file_dep=['i_dont_exist'] )
         t2 = Task("t2", [(ok,)], task_dep=['t1'])
-        my_runner = RunnerClass(Dependency, depfile_name, reporter, continue_=True)
+        my_runner = RunnerClass(dep_manager, reporter, continue_=True)
         disp = TaskDispatcher({'t1':t1, 't2':t2}, [], ['t1', 't2'])
         my_runner.run_tasks(disp)
         assert runner.ERROR == my_runner.finish()
@@ -455,10 +456,10 @@ class TestRunner_run_tasks(object):
         assert 0 == len(reporter.log)
 
 
-    def test_continue_ignored_dep(self, reporter, RunnerClass, depfile_name):
+    def test_continue_ignored_dep(self, reporter, RunnerClass, dep_manager):
         t1 = Task("t1", [(ok,)], )
         t2 = Task("t2", [(ok,)], task_dep=['t1'])
-        my_runner = RunnerClass(Dependency, depfile_name, reporter, continue_=True)
+        my_runner = RunnerClass(dep_manager, reporter, continue_=True)
         my_runner.dep_manager.ignore(t1)
         disp = TaskDispatcher({'t1':t1, 't2':t2}, [], ['t1', 't2'])
         my_runner.run_tasks(disp)
@@ -470,13 +471,13 @@ class TestRunner_run_tasks(object):
         assert 0 == len(reporter.log)
 
 
-    def test_getargs(self, reporter, RunnerClass, depfile_name):
+    def test_getargs(self, reporter, RunnerClass, dep_manager):
         def use_args(arg1):
             six.print_(arg1)
         def make_args(): return {'myarg':1}
         t1 = Task("t1", [(use_args,)], getargs=dict(arg1=('t2','myarg')) )
         t2 = Task("t2", [(make_args,)])
-        my_runner = RunnerClass(Dependency, depfile_name, reporter)
+        my_runner = RunnerClass(dep_manager, reporter)
         my_runner.run_tasks(TaskDispatcher({'t1':t1, 't2':t2}, [], ['t1', 't2']))
         assert runner.SUCCESS == my_runner.finish()
         assert ('start', t1) == reporter.log.pop(0)
@@ -488,12 +489,12 @@ class TestRunner_run_tasks(object):
         assert 0 == len(reporter.log)
 
 
-    def testActionModifiesFiledep(self, reporter, RunnerClass, depfile_name):
+    def testActionModifiesFiledep(self, reporter, RunnerClass, dep_manager):
         extra_dep = os.path.join(os.path.dirname(__file__), 'sample_md5.txt')
         def action_add_filedep(task):
             task.file_dep.add(extra_dep)
         t1 = Task("t1", [(my_print, ["out a"] ), action_add_filedep] )
-        my_runner = RunnerClass(Dependency, depfile_name, reporter)
+        my_runner = RunnerClass(dep_manager, reporter)
         my_runner.run_tasks(TaskDispatcher({'t1':t1}, [], ['t1']))
         assert runner.SUCCESS == my_runner.finish()
         assert ('start', t1) == reporter.log.pop(0), reporter.log
@@ -502,9 +503,9 @@ class TestRunner_run_tasks(object):
         assert t1.file_dep == set([extra_dep])
 
     # SystemExit runner should not interfere with SystemExit
-    def testSystemExitRaises(self, reporter, RunnerClass, depfile_name):
+    def testSystemExitRaises(self, reporter, RunnerClass, dep_manager):
         t1 = Task("t1", [_exit])
-        my_runner = RunnerClass(Dependency, depfile_name, reporter)
+        my_runner = RunnerClass(dep_manager, reporter)
         disp = TaskDispatcher({'t1':t1}, [], ['t1'])
         pytest.raises(SystemExit, my_runner.run_tasks, disp)
         my_runner.finish()
@@ -542,28 +543,28 @@ class TestJobTask(object):
 @pytest.mark.skipif('not runner.MRunner.available()')
 class TestMRunner_get_next_job(object):
     # simple normal case
-    def test_run_task(self, reporter, depfile_name):
+    def test_run_task(self, reporter, dep_manager):
         t1 = Task('t1', [])
         t2 = Task('t2', [])
-        run = runner.MRunner(Dependency, depfile_name, reporter)
+        run = runner.MRunner(dep_manager, reporter)
         run._run_tasks_init(TaskDispatcher({'t1':t1, 't2':t2}, [], ['t1', 't2']))
         assert t1.name == run.get_next_job(None).name
         assert t2.name == run.get_next_job(None).name
         assert None == run.get_next_job(None)
 
-    def test_stop_running(self, reporter, depfile_name):
+    def test_stop_running(self, reporter, dep_manager):
         t1 = Task('t1', [])
         t2 = Task('t2', [])
-        run = runner.MRunner(Dependency, depfile_name, reporter)
+        run = runner.MRunner(dep_manager, reporter)
         run._run_tasks_init(TaskDispatcher({'t1':t1, 't2':t2}, [], ['t1', 't2']))
         assert t1.name == run.get_next_job(None).name
         run._stop_running = True
         assert None == run.get_next_job(None)
 
-    def test_waiting(self, reporter, depfile_name):
+    def test_waiting(self, reporter, dep_manager):
         t1 = Task('t1', [])
         t2 = Task('t2', [], setup=('t1',))
-        run = runner.MRunner(Dependency, depfile_name, reporter)
+        run = runner.MRunner(dep_manager, reporter)
         dispatcher = TaskDispatcher({'t1':t1, 't2':t2}, [], ['t2'])
         run._run_tasks_init(dispatcher)
 
@@ -582,10 +583,10 @@ class TestMRunner_get_next_job(object):
         assert None == run.get_next_job(dispatcher.nodes[j2.name])
 
 
-    def test_waiting_controller(self, reporter, depfile_name):
+    def test_waiting_controller(self, reporter, dep_manager):
         t1 = Task('t1', [])
         t2 = Task('t2', [], calc_dep=('t1',))
-        run = runner.MRunner(Dependency, depfile_name, reporter)
+        run = runner.MRunner(dep_manager, reporter)
         run._run_tasks_init(TaskDispatcher({'t1':t1, 't2':t2}, [], ['t1', 't2']))
 
         # first task ok
@@ -597,12 +598,12 @@ class TestMRunner_get_next_job(object):
         assert 1 == run.free_proc
 
 
-    def test_delayed_loaded(self, reporter, depfile_name):
+    def test_delayed_loaded(self, reporter, dep_manager):
         def create():
             return {'basename':'t1', 'actions': None}
         t1 = Task('t1', [], loader=DelayedLoader(create, executed='t2'))
         t2 = Task('t2', [])
-        run = runner.MRunner(Dependency, depfile_name, reporter)
+        run = runner.MRunner(dep_manager, reporter)
         dispatcher = TaskDispatcher({'t1':t1, 't2':t2}, [], ['t1', 't2'])
         run._run_tasks_init(dispatcher)
         assert t2.name == run.get_next_job(None).name
@@ -622,13 +623,13 @@ class TestMRunner_get_next_job(object):
 @pytest.mark.skipif('not runner.MRunner.available()')
 class TestMRunner_start_process(object):
     # 2 process, 3 tasks
-    def test_all_processes(self, reporter, monkeypatch, depfile_name):
+    def test_all_processes(self, reporter, monkeypatch, dep_manager):
         mock_process = Mock()
         monkeypatch.setattr(runner.MRunner, 'Child', mock_process)
         t1 = Task('t1', [])
         t2 = Task('t2', [])
         td = TaskDispatcher({'t1':t1, 't2':t2}, [], ['t1', 't2'])
-        run = runner.MRunner(Dependency, depfile_name, reporter, num_process=2)
+        run = runner.MRunner(dep_manager, reporter, num_process=2)
         run._run_tasks_init(td)
         result_q = Queue()
         task_q = Queue()
@@ -641,12 +642,12 @@ class TestMRunner_start_process(object):
 
 
     # 2 process, 1 task
-    def test_less_processes(self, reporter, monkeypatch, depfile_name):
+    def test_less_processes(self, reporter, monkeypatch, dep_manager):
         mock_process = Mock()
         monkeypatch.setattr(runner.MRunner, 'Child', mock_process)
         t1 = Task('t1', [])
         td = TaskDispatcher({'t1':t1}, [], ['t1'])
-        run = runner.MRunner(Dependency, depfile_name, reporter, num_process=2)
+        run = runner.MRunner(dep_manager, reporter, num_process=2)
         run._run_tasks_init(td)
         result_q = Queue()
         task_q = Queue()
@@ -658,13 +659,13 @@ class TestMRunner_start_process(object):
 
 
     # 2 process, 2 tasks (but only one task can be started)
-    def test_waiting_process(self, reporter, monkeypatch, depfile_name):
+    def test_waiting_process(self, reporter, monkeypatch, dep_manager):
         mock_process = Mock()
         monkeypatch.setattr(runner.MRunner, 'Child', mock_process)
         t1 = Task('t1', [])
         t2 = Task('t2', [], task_dep=['t1'])
         td = TaskDispatcher({'t1':t1, 't2':t2}, [], ['t1', 't2'])
-        run = runner.MRunner(Dependency, depfile_name, reporter, num_process=2)
+        run = runner.MRunner(dep_manager, reporter, num_process=2)
         run._run_tasks_init(td)
         result_q = Queue()
         task_q = Queue()
@@ -679,21 +680,21 @@ class TestMRunner_start_process(object):
 class TestMRunner_parallel_run_tasks(object):
 
     @pytest.mark.skipif('not runner.MRunner.available()')
-    def test_task_not_picklabe_multiprocess(self, reporter, depfile_name):
+    def test_task_not_picklabe_multiprocess(self, reporter, dep_manager):
         def creator():
             return {'basename': 't2', 'actions': [lambda: 5]}
         t1 = Task("t1", [(my_print, ["out a"] )] )
         t2 = Task("t2", None, loader=DelayedLoader(creator, executed='t1'))
-        my_runner = runner.MRunner(Dependency, depfile_name, reporter)
+        my_runner = runner.MRunner(dep_manager, reporter)
         dispatcher = TaskDispatcher({'t1':t1, 't2':t2}, [], ['t1', 't2'])
         pytest.raises(InvalidTask, my_runner.run_tasks, dispatcher)
 
-    def test_task_not_picklabe_thread(self, reporter, depfile_name):
+    def test_task_not_picklabe_thread(self, reporter, dep_manager):
         def creator():
             return {'basename': 't2', 'actions': [lambda: True]}
         t1 = Task("t1", [(my_print, ["out a"] )] )
         t2 = Task("t2", None, loader=DelayedLoader(creator, executed='t1'))
-        my_runner = runner.MThreadRunner(Dependency, depfile_name, reporter)
+        my_runner = runner.MThreadRunner(dep_manager, reporter)
         dispatcher = TaskDispatcher({'t1':t1, 't2':t2}, [], ['t1', 't2'])
         # threaded code have no problems with closures
         my_runner.run_tasks(dispatcher)
@@ -708,8 +709,8 @@ class TestMRunner_parallel_run_tasks(object):
 
 @pytest.mark.skipif('not runner.MRunner.available()')
 class TestMRunner_execute_task(object):
-    def test_hold(self, reporter, depfile_name):
-        run = runner.MRunner(Dependency, depfile_name, reporter)
+    def test_hold(self, reporter, dep_manager):
+        run = runner.MRunner(dep_manager, reporter)
         task_q = Queue()
         task_q.put(runner.JobHold()) # to test
         task_q.put(None) # to terminate function
@@ -719,9 +720,9 @@ class TestMRunner_execute_task(object):
         # nothing was done
         assert result_q.empty()
 
-    def test_full_task(self, reporter, depfile_name):
+    def test_full_task(self, reporter, dep_manager):
         # test execute_task_subprocess can receive a full Task object
-        run = runner.MRunner(Dependency, depfile_name, reporter)
+        run = runner.MRunner(dep_manager, reporter)
         t1 = Task('t1', [simple_result])
         task_q = Queue()
         task_q.put(runner.JobTask(t1)) # to test

@@ -5,13 +5,12 @@ import time
 import six
 
 import pytest
-from mock import Mock
 
 from doit.task import Task
 from doit.dependency import get_md5, get_file_md5
 from doit.dependency import DbmDB, DatabaseException, UptodateCalculator
 from doit.dependency import JsonDependency, DbmDependency, SqliteDependency
-from doit.dependency import DependencyBase, TimestampChecker, FileChangedChecker
+from doit.dependency import FileChangedChecker, MD5Checker, TimestampChecker
 from .conftest import get_abspath, depfile
 
 #path to test folder
@@ -277,30 +276,33 @@ class TestIgnore(object):
         assert '1' == pdepfile._get(t1.name, "ignore:")
 
 
-class TestCheckModified(object):
-
-    def test_None(self, dependency1):
-        dep = DependencyBase(Mock())
-        assert dep.checker.check_modified(dependency1, None)
-
+class TestMD5Checker(object):
     def test_timestamp(self, dependency1):
-        dep = DependencyBase(Mock())
-        timestamp = os.path.getmtime(dependency1)
-        assert not dep.checker.check_modified(dependency1, (timestamp, 0, ''))
-        assert dep.checker.check_modified(dependency1, (timestamp+1, 0, ''))
+        checker = MD5Checker()
+        state = checker.get_state(dependency1, None)
+        state2 = (state[0], state[1]+1, '')
+        file_stat = os.stat(dependency1)
+        # dep considered the same as long as timestamp is unchanged
+        assert not checker.check_modified(dependency1, file_stat, state2)
 
-    def test_size_md5(self, dependency1):
-        dep = DependencyBase(Mock())
-        timestamp = os.path.getmtime(dependency1)
-        size = os.path.getsize(dependency1)
-        md5 = get_file_md5(dependency1)
-        # incorrect size dont check md5
-        assert dep.checker.check_modified(dependency1,
-                                          (timestamp+1, size+1, ''))
-        # correct size check md5
-        assert not dep.checker.check_modified(dependency1,
-                                              (timestamp+1, size, md5))
-        assert dep.checker.check_modified(dependency1, (timestamp+1, size, ''))
+    def test_size(self, dependency1):
+        checker = MD5Checker()
+        state = checker.get_state(dependency1, None)
+        state2 = (state[0]+1, state[1]+1, state[2])
+        file_stat = os.stat(dependency1)
+        # if size changed for sure modified (md5 is not checked)
+        assert checker.check_modified(dependency1, file_stat, state2)
+
+    def test_md5(self, dependency1):
+        checker = MD5Checker()
+        state = checker.get_state(dependency1, None)
+        file_stat = os.stat(dependency1)
+        # same size and md5
+        state2 = (state[0]+1, state[1], state[2])
+        assert not checker.check_modified(dependency1, file_stat, state2)
+        # same size, different md5
+        state3 = (state[0]+1, state[1], 'not me')
+        assert checker.check_modified(dependency1, file_stat, state3)
 
 
 class TestCustomChecker(object):
@@ -311,51 +313,17 @@ class TestCustomChecker(object):
 
         checker = MyChecker()
         pytest.raises(NotImplementedError, checker.get_state, None, None)
-        pytest.raises(NotImplementedError, checker.check_modified, None, None)
-
-    def test_custom_checker(self, pdepfile, dependency1):
-        class MyChecker(FileChangedChecker):
-            """With this checker, files are always out of date."""
-            def check_modified(self, file_path, state):
-                return True
-
-            def get_state(self, dep, current_state):
-                return ()
-
-        pdepfile.checker = MyChecker()
-        t1 = Task("taskId_X", None, [dependency1])
-        pdepfile.save_success(t1)
-        assert pdepfile.checker.check_modified(dependency1, (0, 0, None))
-        assert 'run' == pdepfile.get_status(t1, {})
-        assert 'run' == pdepfile.get_status(t1, {})
+        pytest.raises(NotImplementedError, checker.check_modified,
+                      None, None, None)
 
 
 class TestTimestampChecker(object):
-    def test_timestamp(self, pdepfile, dependency1):
-        pdepfile.checker = TimestampChecker()
-        assert pdepfile.checker.check_modified(dependency1, 0)
-        assert not pdepfile.checker.check_modified(
-            dependency1, os.path.getmtime(dependency1))
-
-    def test_change_checker(self, pdepfile, dependency1):
-        t1 = Task("taskId_X", None, [dependency1])
-        pdepfile.save_success(t1)
-        assert 'up-to-date' == pdepfile.get_status(t1, {})
-
-        pdepfile.checker = TimestampChecker()
-        assert 'run' == pdepfile.get_status(t1, {})
-        pdepfile.save_success(t1)
-        assert 'up-to-date' == pdepfile.get_status(t1, {})
-
-    def test_file_dependency_not_exist(self, pdepfile):
-        pdepfile.checker = TimestampChecker()
-        filePath = get_abspath("data/dependency_not_exist")
-        t1 = Task("t1", None, [filePath])
-        pytest.raises(Exception, pdepfile.get_status, t1, {})
-
-    def test_None(self, dependency1):
+    def test_timestamp(self, dependency1):
         checker = TimestampChecker()
-        assert checker.check_modified(dependency1, None)
+        state = checker.get_state(dependency1, None)
+        file_stat = os.stat(dependency1)
+        assert not checker.check_modified(dependency1, file_stat, state)
+        assert checker.check_modified(dependency1, file_stat, state+1)
 
 
 class TestGetStatus(object):
@@ -432,6 +400,18 @@ class TestGetStatus(object):
         filePath = get_abspath("data/dependency_not_exist")
         t1 = Task("t1", None, [filePath])
         pytest.raises(Exception, pdepfile.get_status, t1, {})
+
+
+    def test_change_checker(self, pdepfile, dependency1):
+        t1 = Task("taskId_X", None, [dependency1])
+        pdepfile.checker = TimestampChecker()
+        pdepfile.save_success(t1)
+        assert 'up-to-date' == pdepfile.get_status(t1, {})
+        # change of checker force `run` again
+        pdepfile.checker = MD5Checker()
+        assert 'run' == pdepfile.get_status(t1, {})
+        pdepfile.save_success(t1)
+        assert 'up-to-date' == pdepfile.get_status(t1, {})
 
 
     # if there is no dependency the task is always executed

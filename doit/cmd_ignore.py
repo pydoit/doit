@@ -19,7 +19,6 @@ class Ignore(DoitCmdBase):
             self.outstream.write(msg)
             return
 
-        dependency_manager = self.dep_class(self.dep_file)
         tasks = dict([(t.name, t) for t in self.task_list])
         check_tasks_exist(tasks, ignore_tasks)
 
@@ -28,7 +27,7 @@ class Ignore(DoitCmdBase):
             sub_list = [t.name for t in subtasks_iter(tasks, tasks[task_name])]
             for to_ignore in [task_name] + sub_list:
                 # ignore it - remove from dependency file
-                dependency_manager.ignore(tasks[to_ignore])
+                self.dep_manager.ignore(tasks[to_ignore])
                 self.outstream.write("ignoring %s\n" % to_ignore)
 
-        dependency_manager.close()
+        self.dep_manager.close()

@@ -5,26 +5,24 @@ import pytest
 from doit.exceptions import InvalidCommand
 from doit.task import Task
 from doit.cmd_list import List
-from tests.conftest import tasks_sample
+from tests.conftest import tasks_sample, CmdFactory
 
 
 class TestCmdList(object):
 
-    def testQuiet(self, depfile):
+    def testQuiet(self):
         output = StringIO()
         tasks = tasks_sample()
-        cmd_list = List(outstream=output, dep_file=depfile.name,
-                        task_list=tasks)
+        cmd_list = CmdFactory(List, outstream=output, task_list=tasks)
         cmd_list._execute()
         got = [line.strip() for line in output.getvalue().split('\n') if line]
         expected = [t.name for t in tasks if not t.is_subtask]
         assert sorted(expected) == got
 
-    def testDoc(self, depfile):
+    def testDoc(self):
         output = StringIO()
         tasks = tasks_sample()
-        cmd_list = List(outstream=output, dep_file=depfile.name,
-                        task_list=tasks)
+        cmd_list = CmdFactory(List, outstream=output, task_list=tasks)
         cmd_list._execute(quiet=False)
         got = [line for line in output.getvalue().split('\n') if line]
         expected = []
@@ -35,57 +33,51 @@ class TestCmdList(object):
         for exp1, got1 in zip(expected, got):
             assert exp1 == got1.split(None, 1)
 
-    def testCustomTemplate(self, depfile):
+    def testCustomTemplate(self):
         output = StringIO()
         tasks = tasks_sample()
-        cmd_list = List(outstream=output, dep_file=depfile.name,
-                        task_list=tasks)
+        cmd_list = CmdFactory(List, outstream=output, task_list=tasks)
         cmd_list._execute(template='xxx {name} xxx {doc}')
         got = [line.strip() for line in output.getvalue().split('\n') if line]
         assert 'xxx g1 xxx g1 doc string' == got[0]
         assert 'xxx t3 xxx t3 doc string' == got[3]
 
-    def testDependencies(self, depfile):
+    def testDependencies(self):
         my_task = Task("t2", [""], file_dep=['d2.txt'])
         output = StringIO()
-        cmd_list = List(outstream=output, dep_file=depfile.name,
-                        task_list=[my_task])
+        cmd_list = CmdFactory(List, outstream=output, task_list=[my_task])
         cmd_list._execute(list_deps=True)
         got = output.getvalue()
         assert "d2.txt" in got
 
-    def testSubTask(self, depfile):
+    def testSubTask(self):
         output = StringIO()
         tasks = tasks_sample()
-        cmd_list = List(outstream=output, dep_file=depfile.name,
-                        task_list=tasks)
+        cmd_list = CmdFactory(List, outstream=output, task_list=tasks)
         cmd_list._execute(subtasks=True)
         got = [line.strip() for line in output.getvalue().split('\n') if line]
         expected = [t.name for t in sorted(tasks)]
         assert expected == got
 
-    def testFilter(self, depfile):
+    def testFilter(self):
         output = StringIO()
-        cmd_list = List(outstream=output, dep_file=depfile.name,
-                        task_list=tasks_sample())
+        cmd_list = CmdFactory(List, outstream=output, task_list=tasks_sample())
         cmd_list._execute(pos_args=['g1', 't2'])
         got = [line.strip() for line in output.getvalue().split('\n') if line]
         expected = ['g1', 't2']
         assert expected == got
 
-    def testFilterSubtask(self, depfile):
+    def testFilterSubtask(self):
         output = StringIO()
-        cmd_list = List(outstream=output, dep_file=depfile.name,
-                        task_list=tasks_sample())
+        cmd_list = CmdFactory(List, outstream=output, task_list=tasks_sample())
         cmd_list._execute(pos_args=['g1.a'])
         got = [line.strip() for line in output.getvalue().split('\n') if line]
         expected = ['g1.a']
         assert expected == got
 
-    def testFilterAll(self, depfile):
+    def testFilterAll(self):
         output = StringIO()
-        cmd_list = List(outstream=output, dep_file=depfile.name,
-                        task_list=tasks_sample())
+        cmd_list = CmdFactory(List, outstream=output, task_list=tasks_sample())
         cmd_list._execute(subtasks=True, pos_args=['g1'])
         got = [line.strip() for line in output.getvalue().split('\n') if line]
         expected = ['g1', 'g1.a', 'g1.b']
@@ -98,7 +90,7 @@ class TestCmdList(object):
         depfile.close()
 
         output = StringIO()
-        cmd_list = List(outstream=output, dep_file=depfile.name,
+        cmd_list = CmdFactory(List, outstream=output, dep_file=depfile.name,
                         backend='dbm', task_list=task_list)
         cmd_list._execute(status=True)
         got = [line.strip() for line in output.getvalue().split('\n') if line]
@@ -106,30 +98,27 @@ class TestCmdList(object):
         assert 'I t1' in got
         assert 'U t2' in got
 
-    def testNoPrivate(self, depfile):
+    def testNoPrivate(self):
         task_list = list(tasks_sample())
         task_list.append(Task("_s3", [""]))
         output = StringIO()
-        cmd_list = List(outstream=output, dep_file=depfile.name,
-                        task_list=task_list)
+        cmd_list = CmdFactory(List, outstream=output, task_list=task_list)
         cmd_list._execute(pos_args=['_s3'])
         got = [line.strip() for line in output.getvalue().split('\n') if line]
         expected = []
         assert expected == got
 
-    def testWithPrivate(self, depfile):
+    def testWithPrivate(self):
         task_list = list(tasks_sample())
         task_list.append(Task("_s3", [""]))
         output = StringIO()
-        cmd_list = List(outstream=output, dep_file=depfile.name,
-                        task_list=task_list)
+        cmd_list = CmdFactory(List, outstream=output, task_list=task_list)
         cmd_list._execute(private=True, pos_args=['_s3'])
         got = [line.strip() for line in output.getvalue().split('\n') if line]
         expected = ['_s3']
         assert expected == got
 
-    def testListInvalidTask(self, depfile):
+    def testListInvalidTask(self):
         output = StringIO()
-        cmd_list = List(outstream=output, dep_file=depfile.name,
-                        task_list=tasks_sample())
+        cmd_list = CmdFactory(List, outstream=output, task_list=tasks_sample())
         pytest.raises(InvalidCommand, cmd_list._execute, pos_args=['xxx'])

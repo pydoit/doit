@@ -2,10 +2,12 @@ import inspect
 import sys
 from collections import deque
 
+import six
+
 from . import version
 from .cmdparse import CmdOption, CmdParse
 from .exceptions import InvalidCommand, InvalidDodoFile
-from .dependency import backend_map
+from .dependency import backend_map, CHECKERS
 from . import loader
 
 
@@ -125,6 +127,21 @@ opt_backend = {
              "Available options dbm, json, sqlite3. [default: %(default)s]")
 }
 
+opt_check_file_uptodate = {
+    'name': 'check_file_uptodate',
+    'short': '',
+    'long': 'check_file_uptodate',
+    'type': str,
+    'default': 'md5',
+    'help': """\
+Choose how to check if files have been modified.
+Available options [default: %(default)s]:
+  'md5': use the md5sum
+  'timestamp': use the timestamp
+"""
+}
+
+
 
 #### options related to dodo.py
 # select dodo file containing tasks
@@ -222,21 +239,13 @@ class DoitCmdBase(Command):
     cmd_options => list of option dictionary (see CmdOption)
     _execute => method, argument names must be option names
     """
-    base_options = (opt_depfile, opt_backend)
+    base_options = (opt_depfile, opt_backend, opt_check_file_uptodate)
 
-    def __init__(self, task_loader=None, dep_file=None, backend=None,
-                 config=None, task_list=None, sel_tasks=None, outstream=None):
+    def __init__(self, task_loader):
         """this initializer is usually just used on tests"""
-        # FIXME 'or TaskLoader()' below is hack for tests
-        self._loader = task_loader or TaskLoader()
+        self._loader = task_loader
         Command.__init__(self)
-        # TODO: helper to test code should not be here
-        self.dep_class = backend_map.get(backend)
-        self.dep_file = dep_file   # (str) filename usually '.doit.db'
-        self.config = config or {} # config from dodo.py & cmdline
-        self.task_list = task_list # list of tasks
-        self.sel_tasks = sel_tasks # from command line or default_tasks
-        self.outstream = outstream or sys.stdout
+        self.outstream = sys.stdout
 
     def set_options(self):
         """from base class - merge base_options, loader_options and cmd_options
@@ -265,10 +274,26 @@ class DoitCmdBase(Command):
                 raise InvalidDodoFile(msg.format(required=minversion,
                                                  actual=version.VERSION))
 
+        # check_file_uptodate
+        check_file_uptodate = params['check_file_uptodate']
+        if isinstance(check_file_uptodate, six.string_types):
+            if check_file_uptodate not in CHECKERS:
+                msg = ("No check_file_uptodate named '{}'."
+                       " Type 'doit help run' to see a list "
+                       "of available checkers.")
+                raise InvalidCommand(msg.format(check_file_uptodate))
+            checker_cls = CHECKERS[check_file_uptodate]
+        else:
+            # user defined class
+            checker_cls = check_file_uptodate
+
+
         # merge config values into params
         params.update_defaults(self.config)
         self.dep_file = params['dep_file']
-        self.dep_class = backend_map.get(params['backend'])
+        dep_class = backend_map.get(params['backend'])
+        # note the command have the responsability to call dep_manager.close()
+        self.dep_manager = dep_class(params['dep_file'], checker_cls)
         params['pos_args'] = args # hack
         params['continue_'] = params.get('continue') # hack
 

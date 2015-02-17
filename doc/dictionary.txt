@@ -300,3 +300,9 @@ x'
 xxx
 xyz
 zsh
+md5sum
+'check
+uptodate'
+'timestamp'
+FileChangedChecker
+MyChecker

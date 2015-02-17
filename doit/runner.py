@@ -28,15 +28,16 @@ class Runner(object):
       finish()
 
     """
-    def __init__(self, dep_class, dependency_file, reporter, checker_cls=None,
-                 continue_=False, always_execute=False, verbosity=0):
-        """@param dependency_file: (string) file path of the db file
+    def __init__(self, dep_manager, reporter, continue_=False,
+                 always_execute=False, verbosity=0):
+        """
+        @param dep_manager: DependencyBase
         @param reporter: reporter object to be used
         @param continue_: (bool) execute all tasks even after a task failure
         @param always_execute: (bool) execute even if up-to-date or ignored
         @param verbosity: (int) 0,1,2 see Task.execute
         """
-        self.dep_manager = dep_class(dependency_file, checker_cls=checker_cls)
+        self.dep_manager = dep_manager
         self.reporter = reporter
         self.continue_ = continue_
         self.always_execute = always_execute
@@ -320,11 +321,10 @@ class MRunner(Runner):
         else:
             return True
 
-    def __init__(self, dep_class, dependency_file, reporter, checker_cls=None,
-                 continue_=False, always_execute=False, verbosity=0,
-                 num_process=1):
-        Runner.__init__(self, dep_class, dependency_file, reporter,
-                        checker_cls=None, continue_=continue_,
+    def __init__(self, dep_manager, reporter,
+                 continue_=False, always_execute=False,
+                 verbosity=0, num_process=1):
+        Runner.__init__(self, dep_manager, reporter, continue_=continue_,
                         always_execute=always_execute, verbosity=verbosity)
         self.num_process = num_process
 

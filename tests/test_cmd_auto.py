@@ -8,7 +8,7 @@ from doit.exceptions import InvalidCommand
 from doit.task import Task
 from doit.cmd_base import TaskLoader
 from doit import cmd_auto
-
+from .conftest import CmdFactory
 
 
 class TestFindFileDeps(object):
@@ -57,7 +57,8 @@ class TestAuto(object):
             with open(target1, 'w') as fp:
                 fp.write('ok')
         t1 = Task("t1", [ok], file_dep=[dependency1])
-        cmd = cmd_auto.Auto(task_loader=FakeLoader([t1], depfile_name))
+        cmd = CmdFactory(cmd_auto.Auto,
+                         task_loader=FakeLoader([t1], depfile_name))
 
         run_wait_proc = Process(target=cmd.run_watch,
                                 args=(DefaultUpdate(), []))
@@ -109,7 +110,7 @@ class TestAuto(object):
             raise KeyboardInterrupt()
         monkeypatch.setattr(cmd_auto.Process, 'join', join_interrupt)
 
-        cmd = cmd_auto.Auto()
+        cmd = CmdFactory(cmd_auto.Auto)
         cmd.execute(None, None)
 
 

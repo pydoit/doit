@@ -8,7 +8,7 @@ from doit.exceptions import InvalidCommand
 from doit.cmdparse import DefaultUpdate
 from doit.task import Task
 from doit.cmd_strace import Strace
-
+from .conftest import CmdFactory
 
 @pytest.mark.skipif("os.system('strace -V') != 0")
 class TestCmdStrace(object):
@@ -17,10 +17,11 @@ class TestCmdStrace(object):
         output = StringIO()
         task = Task("tt", ["cat %(dependencies)s"],
                     file_dep=['tests/data/dependency1'])
-        cmd = Strace(outstream=output)
+        cmd = CmdFactory(Strace, outstream=output)
         cmd._loader.load_tasks = mock.Mock(return_value=([task], {}))
         params = DefaultUpdate(dep_file=depfile_name, show_all=False,
-                               keep_trace=False, backend='dbm')
+                               keep_trace=False, backend='dbm',
+                               check_file_uptodate='md5')
         result = cmd.execute(params, ['tt'])
         assert 0 == result
         got = output.getvalue().split("\n")
@@ -32,10 +33,11 @@ class TestCmdStrace(object):
         output = StringIO()
         task = Task("tt", ["cat %(dependencies)s"],
                     file_dep=['tests/data/dependency1'])
-        cmd = Strace(outstream=output)
+        cmd = CmdFactory(Strace, outstream=output)
         cmd._loader.load_tasks = mock.Mock(return_value=([task], {}))
         params = DefaultUpdate(dep_file=depfile_name, show_all=True,
-                               keep_trace=False, backend='dbm')
+                               keep_trace=False, backend='dbm',
+                               check_file_uptodate='md5')
         result = cmd.execute(params, ['tt'])
         assert 0 == result
         got = output.getvalue().split("\n")
@@ -45,10 +47,11 @@ class TestCmdStrace(object):
         output = StringIO()
         task = Task("tt", ["cat %(dependencies)s"],
                     file_dep=['tests/data/dependency1'])
-        cmd = Strace(outstream=output)
+        cmd = CmdFactory(Strace, outstream=output)
         cmd._loader.load_tasks = mock.Mock(return_value=([task], {}))
         params = DefaultUpdate(dep_file=depfile_name, show_all=True,
-                               keep_trace=True, backend='dbm')
+                               keep_trace=True, backend='dbm',
+                               check_file_uptodate='md5')
         result = cmd.execute(params, ['tt'])
         assert 0 == result
         got = output.getvalue().split("\n")
@@ -61,10 +64,11 @@ class TestCmdStrace(object):
         output = StringIO()
         task = Task("tt", ["touch %(targets)s"],
                     targets=['tests/data/dependency1'])
-        cmd = Strace(outstream=output)
+        cmd = CmdFactory(Strace, outstream=output)
         cmd._loader.load_tasks = mock.Mock(return_value=([task], {}))
         params = DefaultUpdate(dep_file=depfile_name, show_all=False,
-                               keep_trace=False, backend='dbm')
+                               keep_trace=False, backend='dbm',
+                               check_file_uptodate='md5')
         result = cmd.execute(params, ['tt'])
         assert 0 == result
         got = output.getvalue().split("\n")
@@ -77,16 +81,17 @@ class TestCmdStrace(object):
             with open(dependency1) as ignore:
                 ignore
         task = Task("tt", [py_open])
-        cmd = Strace(outstream=output)
+        cmd = CmdFactory(Strace, outstream=output)
         cmd._loader.load_tasks = mock.Mock(return_value=([task], {}))
         params = DefaultUpdate(dep_file=depfile_name, show_all=False,
-                               keep_trace=False, backend='dbm')
+                               keep_trace=False, backend='dbm',
+                               check_file_uptodate='md5')
         result = cmd.execute(params, ['tt'])
         assert 0 == result
 
     def test_invalid_command_args(self):
         output = StringIO()
-        cmd = Strace(outstream=output)
+        cmd = CmdFactory(Strace, outstream=output)
         # fails if number of args != 1
         pytest.raises(InvalidCommand, cmd.execute, {}, [])
         pytest.raises(InvalidCommand, cmd.execute, {}, ['t1', 't2'])

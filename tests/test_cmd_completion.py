@@ -8,6 +8,7 @@ from doit.cmd_base import Command, TaskLoader, DodoTaskLoader
 from doit.cmd_completion import TabCompletion
 from doit.cmd_help import Help
 from doit.doit_cmd import DoitMain
+from .conftest import CmdFactory
 
 # doesnt test the shell scripts. just test its creation!
 
@@ -25,12 +26,12 @@ class FakeLoader(TaskLoader):
 @pytest.fixture
 def doit_app(request):
     app = DoitMain()
-    app.sub_cmds['tabcompletion'] = TabCompletion()
-    app.sub_cmds['help'] = Help()
+    app.sub_cmds['tabcompletion'] = CmdFactory(TabCompletion)
+    app.sub_cmds['help'] = CmdFactory(Help)
     return app
 
 def test_invalid_shell_option(doit_app):
-    cmd = TabCompletion()
+    cmd = CmdFactory(TabCompletion)
     pytest.raises(InvalidCommand, cmd.execute,
                   {'shell':'another_shell', 'hardcode_tasks': False}, [])
 
@@ -39,7 +40,8 @@ class TestCmdCompletionBash(object):
 
     def test_with_dodo__dinamic_tasks(self, doit_app):
         output = StringIO()
-        cmd = TabCompletion(task_loader=DodoTaskLoader(), outstream=output)
+        cmd = CmdFactory(TabCompletion, task_loader=DodoTaskLoader(),
+                         outstream=output)
         cmd.doit_app = doit_app
         cmd.execute({'shell':'bash', 'hardcode_tasks': False}, [])
         got = output.getvalue()
@@ -49,7 +51,8 @@ class TestCmdCompletionBash(object):
 
     def test_no_dodo__hardcoded_tasks(self, doit_app):
         output = StringIO()
-        cmd = TabCompletion(task_loader=FakeLoader(), outstream=output)
+        cmd = CmdFactory(TabCompletion, task_loader=FakeLoader(),
+                         outstream=output)
         cmd.doit_app = doit_app
         cmd.execute({'shell':'bash', 'hardcode_tasks': True}, [])
         got = output.getvalue()
@@ -58,7 +61,8 @@ class TestCmdCompletionBash(object):
 
     def test_cmd_takes_file_args(self, doit_app):
         output = StringIO()
-        cmd = TabCompletion(task_loader=FakeLoader(), outstream=output)
+        cmd = CmdFactory(TabCompletion, task_loader=FakeLoader(),
+                         outstream=output)
         cmd.doit_app = doit_app
         cmd.execute({'shell':'bash', 'hardcode_tasks': False}, [])
         got = output.getvalue()
@@ -110,7 +114,8 @@ class TestCmdCompletionZsh(object):
 
     def test_cmds_with_params(self, doit_app):
         output = StringIO()
-        cmd = TabCompletion(task_loader=DodoTaskLoader(), outstream=output)
+        cmd = CmdFactory(TabCompletion, task_loader=DodoTaskLoader(),
+                         outstream=output)
         cmd.doit_app = doit_app
         cmd.execute({'shell':'zsh', 'hardcode_tasks': False}, [])
         got = output.getvalue()
@@ -118,7 +123,8 @@ class TestCmdCompletionZsh(object):
 
     def test_hardcoded_tasks(self, doit_app):
         output = StringIO()
-        cmd = TabCompletion(task_loader=FakeLoader(), outstream=output)
+        cmd = CmdFactory(TabCompletion, task_loader=FakeLoader(),
+                         outstream=output)
         cmd.doit_app = doit_app
         cmd.execute({'shell':'zsh', 'hardcode_tasks': True}, [])
         got = output.getvalue()

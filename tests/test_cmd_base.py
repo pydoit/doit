@@ -3,8 +3,10 @@ import os
 import pytest
 
 from doit import version
-from doit.cmdparse import CmdParseError, CmdOption
+from doit.cmdparse import CmdParseError, CmdOption, CmdParse
+
 from doit.exceptions import InvalidCommand, InvalidDodoFile
+from doit.dependency import FileChangedChecker
 from doit.task import Task
 from doit.cmd_base import version_tuple, Command, DoitCmdBase
 from doit.cmd_base import ModuleTaskLoader, DodoTaskLoader
@@ -175,6 +177,23 @@ class TestDoitCmdBase(object):
         mycmd = self.MyCmd(loader)
         pytest.raises(InvalidDodoFile, mycmd.parse_execute, [])
 
+
+    def testInvalidChecker(self):
+        mycmd = self.MyCmd(ModuleTaskLoader({}))
+        params, args = CmdParse(mycmd.options).parse([])
+        params['check_file_uptodate'] = 'i dont exist'
+        pytest.raises(InvalidCommand, mycmd.execute, params, args)
+
+
+    def testCustomChecker(self):
+        class MyChecker(FileChangedChecker):
+            pass
+
+        mycmd = self.MyCmd(ModuleTaskLoader({}))
+        params, args = CmdParse(mycmd.options).parse([])
+        params['check_file_uptodate'] = MyChecker
+        mycmd.execute(params, args)
+        assert isinstance(mycmd.dep_manager.checker, MyChecker)
 
 
 

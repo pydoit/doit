@@ -5,7 +5,7 @@ import pytest
 from doit.exceptions import InvalidCommand
 from doit.dependency import Dependency
 from doit.cmd_forget import Forget
-from .conftest import tasks_sample
+from .conftest import tasks_sample, CmdFactory
 
 
 class TestCmdForget(object):
@@ -30,8 +30,8 @@ class TestCmdForget(object):
     def testForgetAll(self, tasks, depfile_name):
         self._add_task_deps(tasks, depfile_name)
         output = StringIO()
-        cmd_forget = Forget(outstream=output, dep_file=depfile_name,
-                            backend='dbm', task_list=tasks, sel_tasks=[])
+        cmd_forget = CmdFactory(Forget, outstream=output, dep_file=depfile_name,
+                                backend='dbm', task_list=tasks, sel_tasks=[])
         cmd_forget._execute(False)
         got = output.getvalue().split("\n")[:-1]
         assert ["forgetting all tasks"] == got, repr(output.getvalue())
@@ -42,9 +42,9 @@ class TestCmdForget(object):
     def testForgetOne(self, tasks, depfile_name):
         self._add_task_deps(tasks, depfile_name)
         output = StringIO()
-        cmd_forget = Forget(outstream=output, dep_file=depfile_name,
-                            backend='dbm', task_list=tasks,
-                            sel_tasks=["t2", "t1"])
+        cmd_forget = CmdFactory(Forget, outstream=output, dep_file=depfile_name,
+                                backend='dbm', task_list=tasks,
+                                sel_tasks=["t2", "t1"])
         cmd_forget._execute(False)
         got = output.getvalue().split("\n")[:-1]
         assert ["forgetting t2", "forgetting t1"] == got
@@ -56,8 +56,9 @@ class TestCmdForget(object):
     def testForgetGroup(self, tasks, depfile_name):
         self._add_task_deps(tasks, depfile_name)
         output = StringIO()
-        cmd_forget = Forget(outstream=output, dep_file=depfile_name,
-                            backend='dbm', task_list=tasks, sel_tasks=["g1"])
+        cmd_forget = CmdFactory(
+            Forget, outstream=output, dep_file=depfile_name,
+            backend='dbm', task_list=tasks, sel_tasks=["g1"])
         cmd_forget._execute(False)
         got = output.getvalue().split("\n")[:-1]
         assert "forgetting g1" == got[0]
@@ -73,8 +74,9 @@ class TestCmdForget(object):
     def testForgetTaskDependency(self, tasks, depfile_name):
         self._add_task_deps(tasks, depfile_name)
         output = StringIO()
-        cmd_forget = Forget(outstream=output, dep_file=depfile_name,
-                            backend='dbm', task_list=tasks, sel_tasks=["t3"])
+        cmd_forget = CmdFactory(
+            Forget, outstream=output, dep_file=depfile_name,
+            backend='dbm', task_list=tasks, sel_tasks=["t3"])
         cmd_forget._execute(True)
         dep = Dependency(depfile_name)
         assert None == dep._get("t3", "dep")
@@ -84,8 +86,9 @@ class TestCmdForget(object):
     def testDontForgetTaskDependency(self, tasks, depfile_name):
         self._add_task_deps(tasks, depfile_name)
         output = StringIO()
-        cmd_forget = Forget(outstream=output, dep_file=depfile_name,
-                            backend='dbm', task_list=tasks, sel_tasks=["t3"])
+        cmd_forget = CmdFactory(
+            Forget, outstream=output, dep_file=depfile_name,
+            backend='dbm', task_list=tasks, sel_tasks=["t3"])
         cmd_forget._execute(False)
         dep = Dependency(depfile_name)
         assert None == dep._get("t3", "dep")
@@ -94,6 +97,7 @@ class TestCmdForget(object):
     def testForgetInvalid(self, tasks, depfile_name):
         self._add_task_deps(tasks, depfile_name)
         output = StringIO()
-        cmd_forget = Forget(outstream=output, dep_file=depfile_name,
-                            backend='dbm', task_list=tasks, sel_tasks=["XXX"])
+        cmd_forget = CmdFactory(
+            Forget, outstream=output, dep_file=depfile_name,
+            backend='dbm', task_list=tasks, sel_tasks=["XXX"])
         pytest.raises(InvalidCommand, cmd_forget._execute, False)

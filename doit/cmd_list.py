@@ -68,14 +68,6 @@ class List(DoitCmdBase):
     STATUS_MAP = {'ignore': 'I', 'up-to-date': 'U', 'run': 'R'}
 
 
-    @property
-    def dep_manager(self):
-        """manager with access to task status (run, up-to-date...)"""
-        if not hasattr(self, '_dep_manager'):
-            self._dep_manager = self.dep_class(self.dep_file)
-        return self._dep_manager
-
-
     def _print_task(self, template, task, status, list_deps):
         """print a single task"""
         line_data = {'name': task.name, 'doc':task.doc}

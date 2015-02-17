@@ -3,6 +3,13 @@
 Changes
 =======
 
+0.28.0
+======
+
+ - fix GH-#22: Allow to customize how file_dep are checked
+ - BACKWARD INCOMPATIBLE: signature for custom DB backend changed
+
+
 0.27.0 (*2015-01-30*)
 ======================
 

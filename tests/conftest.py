@@ -11,9 +11,9 @@ else:
 import py
 import pytest
 
-from doit.dependency import Dependency
+from doit.dependency import Dependency, backend_map, MD5Checker
 from doit.task import Task
-
+from doit.cmd_base import TaskLoader
 
 def get_abspath(relativePath):
     """ return abs file path relative to this file"""
@@ -109,6 +109,10 @@ def depfile_name(request):
 
     return depfile_name
 
+@pytest.fixture
+def dep_manager(request, depfile_name):
+    return Dependency(depfile_name)
+
 
 @pytest.fixture
 def restore_cwd(request):
@@ -139,6 +143,21 @@ def tasks_sample():
     tasks_sample[2].task_dep = ['g1.a', 'g1.b']
     return tasks_sample
 
+
+def CmdFactory(cls, outstream=None, task_loader=None, dep_file=None,
+               backend=None, config=None, task_list=None, sel_tasks=None):
+    """helper for test code, so test can call _execute() directly"""
+    cmd = cls(task_loader) if task_loader else cls(TaskLoader())
+    if outstream:
+        cmd.outstream = outstream
+    if backend:
+        dep_class = backend_map.get(backend)
+        cmd.dep_manager = dep_class(dep_file, MD5Checker)
+    cmd.dep_file = dep_file   # (str) filename usually '.doit.db'
+    cmd.config = config or {} # config from dodo.py & cmdline
+    cmd.task_list = task_list # list of tasks
+    cmd.sel_tasks = sel_tasks # from command line or default_tasks
+    return cmd
 
 
 # mokey patch multiprocessing to enable  code coverage

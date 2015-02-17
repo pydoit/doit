@@ -278,22 +278,34 @@ check_file_uptodate
 `doit` provides different options to check if dependency files are up to date
 (see :ref:`file-dep`).  Use the option ``--check_file_uptodate`` to choose:
 
- * md5: use the md5sum.
- * timestamp: use the timestamp.
+ * `md5`: use the md5sum.
+ * `timestamp`: use the timestamp.
+
+.. note::
+
+   The `timestamp` checker considers a file is not up-to-date if the there is
+   **any** change in the the modified time (`mtime`), it does not matter if
+   the new time is in the future or past of the original timestamp.
+
+
+You can set this option from command line, but you probably set it for all
+commands using `DOIT_CONFIG`.
 
 .. code-block:: console
 
-    $ doit --check_file_uptodate timestamp
+    DOIT_CONFIG = {'check_file_uptodate': 'timestamp'}
+
+
 
 
 custom check_file_uptodate
---------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 It is possible to define your own custom up to date checker. Check the code on
 `doit/dependency.py
-<https://github.com/pydoit/doit/blob/master/doit/dependency.py>`_ ... It is
-easy to get started by sub-classing ``FileChangedChecker`` as shown below. The
-custom checker must be configured using DOIT_CONFIG dict.
+<https://github.com/pydoit/doit/blob/master/doit/dependency.py>`_ ...
+Sub-class ``FileChangedChecker`` and define the 2 required methods as shown
+below. The custom checker must be configured using DOIT_CONFIG dict.
 
 .. code-block:: python
 
@@ -301,7 +313,7 @@ custom checker must be configured using DOIT_CONFIG dict.
 
     class MyChecker(FileChangedChecker):
         """With this checker, files are always out of date."""
-        def check_modified(self, file_path, state):
+        def check_modified(self, file_path, file_stat, state):
             return True
         def get_state(self, dep, current_state):
             pass

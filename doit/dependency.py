@@ -341,12 +341,12 @@ class SqliteDB(object):
 class FileChangedChecker(object):
     """Base checker for dependencies, must be inherited."""
 
-    def check_modified(self, file_path, state):
+    def check_modified(self, file_path, file_stat, state):
         """Check if file in file_path is modified from previous "state".
 
         @param file_path (string): file path
-        @param state (tuple): state that was previously saved with
-            ``get_state``
+        @param file_stat: result of os.stat() of file_path
+        @param state: state that was previously saved with ``get_state()``
         @returns (bool): True if dep is modified
 
         """
@@ -358,31 +358,28 @@ class FileChangedChecker(object):
         @param dep (str): path of the dependency file.
         @param current_state (tuple): the current state, saved from a previous
             execution of the task (None if the task was never run).
-        @returns (tuple): the new state. Return None if the state is unchanged.
+        @returns: the new state. Return None if the state is unchanged.
 
+        The parameter `current_state` is passed to allow speed optimization,
+        see MD5Checker.get_state().
         """
         raise NotImplementedError()
 
 
 class MD5Checker(FileChangedChecker):
-    """MD5 checker, uses the md5sum."""
+    """MD5 checker, uses the md5sum.
 
-    def check_modified(self, file_path, state):
+    This is the default checker used by doit.
+
+    As an optimization the check uses (timestamp, file-size, md5).
+    If the timestamp is the same it considers that the file has the same
+    content. If file size is different its content certainly is modified.
+    Finally the md5 is used for a different timestamp with the same size.
+    """
+
+    def check_modified(self, file_path, file_stat, state):
         """Check if file in file_path is modified from previous "state".
-
-        @param file_path (string): file path
-        @param state (tuple): timestamp, size, md5
-        @returns (bool): True if dep is modified
         """
-        try:
-            file_stat = os.stat(file_path)
-        except OSError:
-            raise Exception("Dependent file '{}' does not exist."
-                            .format(file_path))
-
-        if state is None:
-            return True
-
         timestamp, size, file_md5 = state
 
         # 1 - if timestamp is not modified file is the same
@@ -395,6 +392,7 @@ class MD5Checker(FileChangedChecker):
 
         # 3 - check md5
         return file_md5 != get_file_md5(file_path)
+
 
     def get_state(self, dep, current_state):
         timestamp = os.path.getmtime(dep)
@@ -410,19 +408,11 @@ class MD5Checker(FileChangedChecker):
 class TimestampChecker(FileChangedChecker):
     """Checker that use only the timestamp."""
 
-    def check_modified(self, file_path, state):
-        try:
-            mtime = os.path.getmtime(file_path)
-        except OSError:
-            raise Exception("Dependent file '{}' does not exist."
-                            .format(file_path))
-
-        if state is None:
-            return True
-
-        return mtime != state
+    def check_modified(self, file_path, file_stat, state):
+        return file_stat.st_mtime != state
 
     def get_state(self, dep, current_state):
+        """@returns float: mtime for file `dep`"""
         return os.path.getmtime(dep)
 
 
@@ -446,10 +436,12 @@ class DependencyBase(object):
     @ivar _closed: (bool) DB was flushed to file
     """
 
-    def __init__(self, backend, checker_cls=None):
+    DB_CLASS = None  # a class with DB interface (i.e. JsonDB, DbmDB, ...)
+
+    def __init__(self, backend_name, checker_cls=MD5Checker):
         self._closed = False
-        self.checker = (checker_cls or MD5Checker)()
-        self.backend = backend
+        self.checker = checker_cls()
+        self.backend = self.DB_CLASS(backend_name)
         self._set = self.backend.set
         self._get = self.backend.get
         self.remove = self.backend.remove
@@ -487,6 +479,7 @@ class DependencyBase(object):
 
         # save list of file_deps
         self._set(task.name, 'deps:', tuple(task.file_dep))
+
 
     def get_values(self, task_name):
         """get all saved values from a task
@@ -595,6 +588,9 @@ class DependencyBase(object):
         previous = self._get(task.name, 'checker:')
         if previous and previous != self.checker.__class__.__name__:
             task.dep_changed = list(task.file_dep)
+            # remove all saved values otherwise they might be re-used by
+            # some optmization on MD5Checker.get_state()
+            self.remove(task.name)
             return 'run'
 
         # check for modified file_dep
@@ -606,8 +602,16 @@ class DependencyBase(object):
 
         # list of file_dep that changed
         check_modified = self.checker.check_modified
-        changed = [dep for dep in tuple(task.file_dep)
-                   if check_modified(dep, self._get(task.name, dep))]
+        changed = []
+        for dep in task.file_dep:
+            state = self._get(task.name, dep)
+            try:
+                file_stat = os.stat(dep)
+            except OSError:
+                raise Exception("Dependent file '{}' does not exist."
+                                .format(dep))
+            if state is None or check_modified(dep, file_stat, state):
+                changed.append(dep)
         if len(changed) > 0:
             status = 'run'
 
@@ -619,20 +623,17 @@ class DependencyBase(object):
 
 class JsonDependency(DependencyBase):
     """Task dependency manager with JSON backend"""
-    def __init__(self, name, checker_cls=None):
-        DependencyBase.__init__(self, JsonDB(name), checker_cls=checker_cls)
+    DB_CLASS = JsonDB
 
 
 class DbmDependency(DependencyBase):
     """Task dependency manager with DBM backend"""
-    def __init__(self, name, checker_cls=None):
-        DependencyBase.__init__(self, DbmDB(name), checker_cls=checker_cls)
+    DB_CLASS = DbmDB
 
 
 class SqliteDependency(DependencyBase):
     """Task dependency manager with sqlite backend"""
-    def __init__(self, name, checker_cls=None):
-        DependencyBase.__init__(self, SqliteDB(name), checker_cls=checker_cls)
+    DB_CLASS = SqliteDB
 
 # map string used in cmdline option to class
 backend_map = {
