@@ -14,6 +14,7 @@ _doit() {
         'clean: clean action / remove targets'
         'tabcompletion: generate script for tab-complention'
         'forget: clear successful run status from internal DB'
+        'reset-dep: recompute and save the state of file dependencies without executing actions'
     )
 
     # split output by lines to create an array
@@ -32,7 +33,7 @@ _doit() {
     # complete sub-command or task options
     local -a _command_args
     case "$words[1]" in
-        
+
       (dumpdb)
           _command_args=(
             '--db-file[file used to save successful runs]' \
@@ -98,7 +99,7 @@ _doit() {
             '(-d|--dir)'{-d,--dir}'[set path to be used as cwd directory (file paths on dodo file are relative to dodo.py location.]' \
             '(-k|--seek-file)'{-k,--seek-file}'[seek dodo file on parent folders [default: %(default)s\]]' \
             '(-v|--verbosity)'{-v,--verbosity}'[0 capture (do not print) stdout/stderr from task. 1 capture stdout only. 2 do not capture anything (print everything immediately). [default: 1\]]' \
-            
+
             '*::task:(($tasks))'
             ''
         )
@@ -175,6 +176,19 @@ _doit() {
             '(-d|--dir)'{-d,--dir}'[set path to be used as cwd directory (file paths on dodo file are relative to dodo.py location.]' \
             '(-k|--seek-file)'{-k,--seek-file}'[seek dodo file on parent folders [default: %(default)s\]]' \
             '(-s|--follow-sub)'{-s,--follow-sub}'[forget task dependencies too]' \
+            '*::task:(($tasks))'
+            ''
+        )
+      ;;
+
+
+      (reset-dep)
+          _command_args=(
+            '--db-file[file used to save successful runs]' \
+            '--backend[Select dependency file backend.Available options dbm, json, sqlite3. [default: %(default)s\]]' \
+            '(-f|--file)'{-f,--file}'[load task from dodo FILE [default: %(default)s\]]' \
+            '(-d|--dir)'{-d,--dir}'[set path to be used as cwd directory (file paths on dodo file are relative to dodo.py location.]' \
+            '(-k|--seek-file)'{-k,--seek-file}'[seek dodo file on parent folders [default: %(default)s\]]' \
             '*::task:(($tasks))'
             ''
         )

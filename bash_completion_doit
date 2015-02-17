@@ -14,7 +14,7 @@ _doit()
     # remove colon from word separator list because doit uses colon on task names
     _get_comp_words_by_ref -n : cur prev words cword
     # list of sub-commands
-    sub_cmds="dumpdb run help strace auto list ignore clean tabcompletion forget"
+    sub_cmds="dumpdb run help strace auto list ignore clean tabcompletion forget reset-dep"
 
 
     # options that take file/dir as values should complete file-system
@@ -114,6 +114,10 @@ _doit()
             return 0
             ;;
         forget)
+            COMPREPLY=( $(compgen -W "${tasks}" -- $cur) )
+            return 0
+            ;;
+        reset-dep)
             COMPREPLY=( $(compgen -W "${tasks}" -- $cur) )
             return 0
             ;;
