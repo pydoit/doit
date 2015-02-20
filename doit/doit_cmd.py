@@ -127,7 +127,7 @@ class DoitMain(object):
             return 3
 
         except Exception:
-            if command.opt_values.get('pdb'): # pragma: no cover
+            if command.pdb: # pragma: no cover
                 import pdb
                 pdb.post_mortem(sys.exc_info()[2])
             sys.stderr.write(traceback.format_exc())

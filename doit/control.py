@@ -179,7 +179,7 @@ class TaskControl(object):
                 selected_task.append(self.targets[filter_])
             else:
                 msg = ('cmd `run` invalid parameter: "%s".' +
-                       'Must be a task, or a target.\n' +
+                       ' Must be a task, or a target.\n' +
                        'Type "doit list" to see available tasks')
                 raise InvalidCommand(msg % filter_)
         return selected_task

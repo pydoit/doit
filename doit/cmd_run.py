@@ -180,6 +180,7 @@ class Run(DoitCmdBase):
             outstream = codecs.open(outfile, 'w', encoding='utf-8')
         else:  # outfile is a file-like object (like StringIO or sys.stdout)
             outstream = outfile
+        self.outstream = outstream
 
         # run
         try:
