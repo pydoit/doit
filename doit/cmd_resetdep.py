@@ -27,16 +27,28 @@ class ResetDep(DoitCmdBase):
                 task_list.extend(subtasks_iter(tasks, task))
         else:
             task_list = self.task_list
-            # self.outstream.write("processing all tasks\n")
 
+        write = self.outstream.write
         for task in task_list:
-            run_status = self.dep_manager.get_status(task, tasks)
+            # Save this now because dep_manager.get_status will remove the task
+            # from the db if the checker changed.
+            task.values = self.dep_manager.get_values(task.name)
+            task.results = self.dep_manager.get_results(task.name)
+
+            try:
+                run_status = self.dep_manager.get_status(task, tasks)
+            except Exception:
+                run_status = 'run'
+
             if run_status == 'up-to-date':
-                self.outstream.write("skip %s\n" % task.name)
+                write("skip %s\n" % task.name)
                 continue
 
-            task.values = self.dep_manager.get_values(task.name)
-            self.dep_manager.save_success(task)
-            self.outstream.write("processed %s\n" % task.name)
+            try:
+                self.dep_manager.save_success(task)
+            except OSError:
+                write("skip (missing file_dep) %s\n" % task.name)
+            else:
+                write("processed %s\n" % task.name)
 
         self.dep_manager.close()

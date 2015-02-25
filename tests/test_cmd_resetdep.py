@@ -2,10 +2,10 @@ import pytest
 from six import StringIO
 
 from doit.cmd_resetdep import ResetDep
-from doit.dependency import TimestampChecker
+from doit.dependency import TimestampChecker, get_md5, get_file_md5
 from doit.exceptions import InvalidCommand
 from doit.task import Task
-from tests.conftest import tasks_sample, CmdFactory
+from tests.conftest import tasks_sample, CmdFactory, get_abspath
 
 
 class TestCmdResetDep(object):
@@ -28,6 +28,10 @@ class TestCmdResetDep(object):
         cmd_list._execute()
         got = output.getvalue()
         assert "processed t2\n" == got
+
+        dep = list(my_task.file_dep)[0]
+        timestamp, size, md5 = depfile._get(my_task.name, dep)
+        assert get_file_md5(get_abspath("data/dependency1")) == md5
 
     def test_file_dep_up_to_date(self, depfile, dependency1):
         my_task = Task("t2", [""], file_dep=['tests/data/dependency1'])
@@ -65,3 +69,29 @@ class TestCmdResetDep(object):
         cmd_list = CmdFactory(ResetDep, outstream=output, task_list=tasks,
                               dep_manager=depfile)
         pytest.raises(InvalidCommand, cmd_list._execute, pos_args=['xxx'])
+
+    def test_missing_file_dep(self, depfile):
+        my_task = Task("t2", [""], file_dep=['tests/data/missing'])
+        output = StringIO()
+        cmd_list = CmdFactory(ResetDep, outstream=output, task_list=[my_task],
+                              dep_manager=depfile)
+        cmd_list._execute()
+        got = output.getvalue()
+        assert "skip (missing file_dep) t2\n" == got
+
+    def test_values_and_results(self, depfile, dependency1):
+        my_task = Task("t2", [""], file_dep=['tests/data/dependency1'])
+        my_task.result = "result"
+        my_task.values = {'x': 5, 'y': 10}
+        depfile.save_success(my_task)
+        depfile.checker = TimestampChecker()  # trigger task update
+        output = StringIO()
+        cmd_list = CmdFactory(ResetDep, outstream=output, task_list=[my_task],
+                              dep_manager=depfile)
+        cmd_list._execute()
+        got = output.getvalue()
+        # ipdb> from doit.dependency import DbmDependency
+        # ipdb> db = DbmDependency(depfile.name)
+        assert "processed t2\n" == got
+        assert {'x': 5, 'y': 10} == depfile.get_values(my_task.name)
+        assert get_md5('result') == depfile.get_results(my_task.name)

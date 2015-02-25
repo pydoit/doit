@@ -480,7 +480,6 @@ class DependencyBase(object):
         # save list of file_deps
         self._set(task.name, 'deps:', tuple(task.file_dep))
 
-
     def get_values(self, task_name):
         """get all saved values from a task
         @return dict
@@ -501,6 +500,12 @@ class DependencyBase(object):
             msg = "Invalid arg name. Task '%s' has no value for '%s'."
             raise Exception(msg % (task_id, key_name))
         return values[key_name]
+
+    def get_results(self, task_name):
+        """get all saved results from a task
+        @return dict or md5sum
+        """
+        return self._get(task_name, 'result:')
 
     def remove_success(self, task):
         """remove saved info from task"""
