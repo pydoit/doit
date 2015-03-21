@@ -144,10 +144,10 @@ def register_doit_as_IPython_magic():
     .. Tip::
         To permanently add this magic-function to your IPython, create a new script 
         inside your startup-profile (``~/.ipython/profile_default/startup/doit_magic.ipy``) 
-        with the following content::
+        with the following content:
         
-            from doit import doit_cmd
-            doit_cmd.register_doit_as_IPython_magic()
+            from doit.doit_cmd import register_doit_as_IPython_magic
+            register_doit_as_IPython_magic()
 
     """
     from IPython.core.magic import register_line_magic
@@ -160,9 +160,20 @@ def register_doit_as_IPython_magic():
         Run *doit* with `task_creators` from all interactive variables (IPython's global namespace).
         
         Examples:
-            %doit --help      ## Show help for options and arguments.
-            %doit list        ## List any tasks discovered.
-            %doit             ## Run any tasks
+        
+            >>> %doit --help          ## Show help for options and arguments.
+
+            >>> def task_foo():
+                    return {'actions': ['echo hi IPython'], 
+                            'verbosity': 2}
+            
+            >>> %doit list            ## List any tasks discovered.
+            foo
+            
+            >>> %doit                 ## Run any tasks.
+            .  foo
+            hi IPython
+
         """
         ip = get_ipython()    # @UndefinedVariable
         commander       = DoitMain(ModuleTaskLoader(ip.user_module))
