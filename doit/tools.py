@@ -239,3 +239,53 @@ def set_trace(): # pragma: no cover
     import sys
     debugger = pdb.Pdb(stdin=sys.__stdin__, stdout=sys.__stdout__)
     debugger.set_trace(sys._getframe().f_back) #pylint: disable=W0212
+
+
+
+def register_doit_as_IPython_magic():
+    """
+    Defines a ``%doit`` magic function[1] that discovers and execute tasks  
+    from IPython's interactive variables (global namespace).
+    
+    It will fail if not invoked from within an interactive IPython shell.
+    
+    .. Tip::
+        To permanently add this magic-function to your IPython, create a new script 
+        inside your startup-profile (``~/.ipython/profile_default/startup/doit_magic.ipy``) 
+        with the following content:
+        
+            from doit.tools import register_doit_as_IPython_magic
+            register_doit_as_IPython_magic()
+    
+    [1] http://ipython.org/ipython-doc/dev/interactive/tutorial.html#magic-functions
+
+    """
+    from IPython.core.magic import register_line_magic
+
+    from doit.cmd_base import ModuleTaskLoader
+    
+    @register_line_magic
+    def doit(line):
+        """
+        Run *doit* with `task_creators` from all interactive variables (IPython's global namespace).
+        
+        Examples:
+        
+            >>> %doit --help          ## Show help for options and arguments.
+
+            >>> def task_foo():
+                    return {'actions': ['echo hi IPython'], 
+                            'verbosity': 2}
+            
+            >>> %doit list            ## List any tasks discovered.
+            foo
+            
+            >>> %doit                 ## Run any tasks.
+            .  foo
+            hi IPython
+
+        """
+        import get_ipython              ## @UnresolvedImport
+        ip          = get_ipython()     ## Would scream if not invoked from interactive-shell.
+        commander   = DoitMain(ModuleTaskLoader(ip.user_module))
+        commander.run(line.split())

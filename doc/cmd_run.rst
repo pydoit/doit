@@ -80,6 +80,12 @@ by calling the ``doit.run()``, you need to pass the ``globals``:
 ``doit.run()`` parameter will be passed to a :ref:`ModuleTaskLoader <ModuleTaskLoader>` to find your tasks.
 
 
+from IPython
+------------------
+
+You can install and use the `%doit` magic function to load tasks defined directly in IPython's 
+global namespace (:ref:`more <tools.IPython>`).
+
 
 returned value
 ------------------

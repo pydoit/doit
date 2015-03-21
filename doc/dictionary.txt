@@ -54,6 +54,7 @@
 API
 BaseAction
 Biomechanics
+Blog
 CFEngine
 CMake
 CmdAction
@@ -69,6 +70,8 @@ Gliwinski
 Guo
 InteractiveAction
 InvalidCommand
+IPython
+IPython's
 JSON
 KeyboardInterrupt
 L485
@@ -115,6 +118,7 @@ basename
 bioinformatic
 biomechanics
 bitbucket
+blog
 bool
 c'
 calc
@@ -181,6 +185,7 @@ init
 inotify
 interactiveaction
 internet
+ipython
 isatty
 iteritems
 iterkeys
@@ -235,6 +240,7 @@ py'
 py3
 pyFiles
 pychecker
+pycon
 pyflakes
 pygments
 pyinotify
