@@ -140,6 +140,15 @@ def register_doit_as_IPython_magic():
     from IPython's interactive variables (global namespace).
     
     It will fail if not invoked from within an interactive IPython shell.
+    
+    .. Tip::
+        To permanently add this magic-function to your IPython, create a new script 
+        inside your startup-profile (``~/.ipython/profile_default/startup/doit_magic.ipy``) 
+        with the following content::
+        
+            from doit import doit_cmd
+            doit_cmd.register_doit_as_IPython_magic()
+
     """
     from IPython.core.magic import register_line_magic
 
