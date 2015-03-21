@@ -175,6 +175,10 @@ def register_doit_as_IPython_magic():
             hi IPython
 
         """
-        ip = get_ipython()    # @UndefinedVariable
+        try:
+            import get_ipython ## Workaround pyflake complaints.
+        except ImportError:
+            pass
+        ip = get_ipython()
         commander       = DoitMain(ModuleTaskLoader(ip.user_module))
         commander.run(line.split())
