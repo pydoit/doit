@@ -132,3 +132,29 @@ class DoitMain(object):
                 pdb.post_mortem(sys.exc_info()[2])
             sys.stderr.write(traceback.format_exc())
             return 3
+
+
+def register_doit_as_IPython_magic():
+    """
+    Defines a ``%doit`` magic function that discovers and execute tasks  
+    from IPython's interactive variables (global namespace).
+    
+    It will fail if not invoked from within an interactive IPython shell.
+    """
+    from IPython.core.magic import register_line_magic
+
+    from doit.cmd_base import ModuleTaskLoader
+    
+    @register_line_magic
+    def doit(line):
+        """
+        Run *doit* with `task_creators` from all interactive variables (IPython's global namespace).
+        
+        Examples:
+            %doit --help      ## Show help for options and arguments.
+            %doit list        ## List any tasks discovered.
+            %doit             ## Run any tasks
+        """
+        ip = get_ipython()    # @UndefinedVariable
+        commander       = DoitMain(ModuleTaskLoader(ip.user_module))
+        commander.run(line.split())
