@@ -1,3 +1,4 @@
+:orphan:
 
 .. rubric::
     `doit` is a task management & automation tool

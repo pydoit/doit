@@ -78,8 +78,8 @@ First you need to register the new magic function into ipython shell.
 
 .. code-block:: pycon
 
-    >>> import doit
-    >>> doit.tools.register_doit_as_IPython_magic()
+    >>> from doit.tools import register_doit_as_IPython_magic
+    >>> register_doit_as_IPython_magic()
     
 
 .. Tip::

@@ -54,6 +54,7 @@
 API
 BaseAction
 Biomechanics
+Blog
 CFEngine
 CMake
 CmdAction
@@ -117,6 +118,7 @@ basename
 bioinformatic
 biomechanics
 bitbucket
+blog
 bool
 c'
 calc
