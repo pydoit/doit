@@ -249,6 +249,15 @@ def register_doit_as_IPython_magic():  # pragma: no cover
 
     It will fail if not invoked from within an interactive IPython shell.
 
+    .. Tip::
+        To permanently add this magic-function to your IPython, create a new
+        script inside your startup-profile
+        (``~/.ipython/profile_default/startup/doit_magic.ipy``) with the
+        following content:
+
+            from doit.tools import register_doit_as_IPython_magic
+            register_doit_as_IPython_magic()
+
     [1] http://ipython.org/ipython-doc/dev/interactive/tutorial.html#magic-functions
     """
     from IPython.core.magic import register_line_magic
@@ -259,8 +268,28 @@ def register_doit_as_IPython_magic():  # pragma: no cover
 
     @register_line_magic
     def doit(line):
-        """Run *doit* with `task_creators` from all interactive variables
+        """
+        Run *doit* with `task_creators` from all interactive variables
         (IPython's global namespace).
+
+        Run *doit* with `task_creators` from all interactive variables
+        (IPython's global namespace).
+
+        Examples:
+
+            >>> %doit --help          ## Show help for options and arguments.
+
+            >>> def task_foo():
+                    return {'actions': ['echo hi IPython'],
+                            'verbosity': 2}
+
+            >>> %doit list            ## List any tasks discovered.
+            foo
+
+            >>> %doit                 ## Run any tasks.
+            .  foo
+            hi IPython
+
         """
         ip = get_ipython()
         commander = DoitMain(ModuleTaskLoader(ip.user_module))
