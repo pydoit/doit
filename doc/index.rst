@@ -130,7 +130,8 @@ Other features...
 
 .. topic:: IPython integration
 
-  provide `%doit` magic function that loads tasks defined directly in IPython's global namespace
+  provide `%doit` magic function that loads tasks defined directly in IPython's
+  global namespace
   (:ref:`more <tools.IPython>`)
 
 .. topic:: extensible

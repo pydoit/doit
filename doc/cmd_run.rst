@@ -83,8 +83,8 @@ by calling the ``doit.run()``, you need to pass the ``globals``:
 from IPython
 ------------------
 
-You can install and use the `%doit` magic function to load tasks defined directly in IPython's 
-global namespace (:ref:`more <tools.IPython>`).
+You can install and use the `%doit` magic function to load tasks defined
+directly in IPython's global namespace (:ref:`more <tools.IPython>`).
 
 
 returned value
