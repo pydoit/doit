@@ -143,6 +143,7 @@ cron
 ctime
 cwd
 dbm
+debian
 defs
 dep
 dep'
@@ -188,6 +189,7 @@ hg
 hggit
 hgrc
 html
+hunspell
 init
 inotify
 interactiveaction
