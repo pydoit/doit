@@ -11,7 +11,7 @@ Changes
  - GH-#31: Add IPython `%doit` magic-function loading tasks from its global
    namespace
  - fix issue when using unicode strings to specify `minversion` on python 2
-
+ - fix GH-#29 auto command in conjunction with task arguments
 
 
 0.27.0 (*2015-01-30*)

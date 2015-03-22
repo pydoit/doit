@@ -1,10 +1,7 @@
 import time
 from multiprocessing import Process
 
-import pytest
-
 from doit.cmdparse import DefaultUpdate
-from doit.exceptions import InvalidCommand
 from doit.task import Task
 from doit.cmd_base import TaskLoader
 from doit import cmd_auto
@@ -48,8 +45,10 @@ class TestAuto(object):
 
     def test_invalid_args(self, dependency1, depfile_name):
         t1 = Task("t1", [""], file_dep=[dependency1])
-        cmd = cmd_auto.Auto(task_loader=FakeLoader([t1], depfile_name))
-        pytest.raises(InvalidCommand, cmd.execute, None, 't2')
+        task_loader = FakeLoader([t1], depfile_name)
+        cmd = CmdFactory(cmd_auto.Auto, task_loader=task_loader)
+        # terminates with error number
+        assert cmd.parse_execute(['t2']) == 3
 
 
     def test_run_wait(self, dependency1, target1, depfile_name):
@@ -112,5 +111,3 @@ class TestAuto(object):
 
         cmd = CmdFactory(cmd_auto.Auto)
         cmd.execute(None, None)
-
-

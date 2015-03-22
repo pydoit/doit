@@ -6,10 +6,11 @@ import time
 import sys
 from multiprocessing import Process
 
+from .exceptions import InvalidCommand
 from .cmdparse import CmdParse
 from .filewatch import FileModifyWatcher
 from .cmd_base import tasks_and_deps_iter
-from .cmd_base import DoitCmdBase, check_tasks_exist
+from .cmd_base import DoitCmdBase
 from .cmd_run import opt_verbosity, Run
 
 opt_reporter = {
@@ -73,7 +74,12 @@ class Auto(DoitCmdBase):
         # execute tasks using Run Command
         arun = Run(task_loader=self._loader)
         params.add_defaults(CmdParse(arun.options).parse([])[0])
-        result = arun.execute(params, args)
+        try:
+            result = arun.execute(params, args)
+        # ??? actually tested but coverage doesnt get it...
+        except InvalidCommand as err: # pragma: no cover
+            sys.stderr.write("ERROR: %s\n" % str(err))
+            sys.exit(3)
 
         # get list of files to watch on file system
         watch_files = self._find_file_deps(arun.control.tasks,
@@ -85,7 +91,7 @@ class Auto(DoitCmdBase):
             # set event handler. just terminate process.
             class DoitAutoRun(FileModifyWatcher):
                 def handle_event(self, event):
-                    #print "FS EVENT -> ", event
+                    # print("FS EVENT -> {}".format(event))
                     sys.exit(result)
             file_watcher = DoitAutoRun(watch_files)
             # kick start watching process
@@ -94,16 +100,13 @@ class Auto(DoitCmdBase):
 
     def execute(self, params, args):
         """loop executing tasks until process is interrupted"""
-        # check provided task names
-        if args:
-            task_list = self._loader.load_tasks(self, params, args)[0]
-            tasks = dict([(t.name, t) for t in task_list])
-            check_tasks_exist(tasks, args)
-
         while True:
             try:
                 proc = Process(target=self.run_watch, args=(params, args))
                 proc.start()
                 proc.join()
+                # if error on given command line, terminate.
+                if proc.exitcode == 3:
+                    return 3
             except KeyboardInterrupt:
                 return 0
