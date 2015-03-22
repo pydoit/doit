@@ -272,9 +272,6 @@ def register_doit_as_IPython_magic():  # pragma: no cover
         Run *doit* with `task_creators` from all interactive variables
         (IPython's global namespace).
 
-        Run *doit* with `task_creators` from all interactive variables
-        (IPython's global namespace).
-
         Examples:
 
             >>> %doit --help          ## Show help for options and arguments.
