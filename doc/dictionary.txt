@@ -69,6 +69,8 @@ Gliwinski
 Guo
 InteractiveAction
 InvalidCommand
+IPython
+IPython's
 JSON
 KeyboardInterrupt
 L485
@@ -181,6 +183,7 @@ init
 inotify
 interactiveaction
 internet
+ipython
 isatty
 iteritems
 iterkeys
@@ -235,6 +238,7 @@ py'
 py3
 pyFiles
 pychecker
+pycon
 pyflakes
 pygments
 pyinotify

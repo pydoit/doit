@@ -127,6 +127,10 @@ Other features...
   built-in support tab-completion for commands/task (supports bash and zsh)
   (:ref:`more <tabcompletion>`)
 
+.. topic:: IPython integration
+
+  provide `%doit` magic function that loads tasks defined directly in IPython's global namespace
+  (:ref:`more <tools.IPython>`)
 
 .. topic:: extensible
 

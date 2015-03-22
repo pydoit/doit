@@ -6,7 +6,7 @@ A general `doit` command goes like this:
 
 .. code-block:: console
 
-    $ doit [run] [<options>] [<task|target> <tasksoptions>]* [<variables>]
+    $ doit [run] [<options>] [<task|target> <task_options>]* [<variables>]
 
 
 The `doit` command line contains several sub-commands. Most of the time you just
@@ -83,44 +83,8 @@ by calling the ``doit.run()``, you need to pass the ``globals``:
 from IPython
 ------------------
 
-A handy possibility for interactive experimentation is to define tasks from 
-within *ipython* sessions and use the ``%doit`` magic function to discover 
-and execute them.
-
-First you need to register the new magic function into ipython shell.
-
-.. code-block:: pycon
-
-    >>> import doit
-    >>> doit.doit_cmd.register_doit_as_IPython_magic()
-    
-
-.. Tip::
-    To permanently add this magic-function to your IPython, create a new script 
-    inside your startup-profile (i.e. :file:`~/.ipython/profile_default/startup/doit_magic.ipy`) 
-    with the following content::
-    
-        from doit.doit_cmd import register_doit_as_IPython_magic
-        register_doit_as_IPython_magic()
-
-
-Examples:
-
-.. code-block:: pycon
-
-    >>> %doit --help          ## Show help for options and arguments.
-
-    >>> def task_foo():
-            return {'actions': ['echo hi IPython'],
-                    'verbosity': 2}
-    
-    >>> %doit list            ## List any tasks discovered.
-    foo
-    
-    >>> %doit                 ## Run any tasks.
-    .  foo
-    hi IPython
-
+You can install and use the `%doit` magic function to load tasks defined directly in IPython's 
+global namespace (:ref:`more <tools.IPython>`).
 
 
 returned value
@@ -153,7 +117,7 @@ it will have the same effect as executing
 
 .. code-block:: console
 
-   $ doit --continue --reporter json my_tasks1 my_tasks2
+   $ doit --continue --reporter json my_task_1 my_task_2
 
 You need to check `doit_cmd.py
 <https://github.com/pydoit/doit/blob/master/doit/doit_cmd.py>`_ to find out how
