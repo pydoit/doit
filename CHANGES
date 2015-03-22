@@ -8,7 +8,10 @@ Changes
 
  - fix GH-#22: Allow to customize how file_dep are checked
  - BACKWARD INCOMPATIBLE: signature for custom DB backend changed
- - GH-#31: Add IPython `%doit` magic-function loading tasks from its global namespace.
+ - GH-#31: Add IPython `%doit` magic-function loading tasks from its global
+   namespace
+ - fix issue when using unicode strings to specify `minversion` on python 2
+
 
 
 0.27.0 (*2015-01-30*)

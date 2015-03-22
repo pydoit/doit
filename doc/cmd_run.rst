@@ -368,6 +368,10 @@ For example if your `dodo.py` makes use of a feature added at `doit X`
 and distribute it. If another user who tries this `dodo.py` with a version
 older that `X`, doit will display an error warning the user to update `doit`.
 
+`minversion` can be specified as a string or a 3-element tuple with integer
+values. If specified as a string any part that is not a number i.e.(dev0, a2,
+b4) will be converted to -1.
+
 .. code-block:: console
 
     DOIT_CONFIG = {

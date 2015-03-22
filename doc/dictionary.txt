@@ -7,6 +7,7 @@
 'c'
 'cc
 'changed'
+'check
 'clean'
 'command
 'command'
@@ -43,6 +44,7 @@
 'success
 'targets'
 'teardown'
+'timestamp'
 'title'
 'values'
 'verbosity'
@@ -65,13 +67,14 @@ ConsoleReporter
 Ctrl
 Dembia
 DoitMain
+FileChangedChecker
 GH
 Gliwinski
 Guo
-InteractiveAction
-InvalidCommand
 IPython
 IPython's
+InteractiveAction
+InvalidCommand
 JSON
 KeyboardInterrupt
 L485
@@ -79,6 +82,7 @@ LongRunning
 MD5
 Metagenomics
 ModuleTaskLoader
+MyChecker
 MyCustomTask2
 Naufel
 PDB
@@ -87,8 +91,8 @@ PyPi
 PythonAction
 PythonInteractiveAction
 README
-ReST
 RSS
+ReST
 SCons
 Schettino
 Segata
@@ -103,6 +107,7 @@ VCS
 WORDBREAKS
 Waf
 ZeroReporter
+a2
 abc
 api
 app
@@ -111,6 +116,7 @@ atime
 attr
 autoclass
 autoload
+b4
 backend
 backends
 bar'
@@ -142,6 +148,7 @@ dep
 dep'
 deps
 dev
+dev0
 dict
 dict's
 dir
@@ -205,6 +212,7 @@ macfsevents
 makedirs
 maxdepth
 md5
+md5sum
 metadata
 microbiome
 minversion
@@ -294,6 +302,7 @@ unhandled
 unicode
 unix
 uptodate
+uptodate'
 utf8
 virtualenv
 wget
@@ -306,9 +315,3 @@ x'
 xxx
 xyz
 zsh
-md5sum
-'check
-uptodate'
-'timestamp'
-FileChangedChecker
-MyChecker
