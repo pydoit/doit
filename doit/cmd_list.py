@@ -52,7 +52,7 @@ opt_disp_graph = {
     'long': 'graph',
     'type': bool,
     'default': False,
-    'help': "display a dependency graph with selected (or all) tasks using matplotlib"
+    'help': "display a dependency-graph with selected (or all) tasks (required networkx & matplotlib libs)."
     }
 
 opt_template = {
@@ -143,7 +143,7 @@ class List(DoitCmdBase):
             'wild_dep':     {'node_type':'wildcard'},
         }
 
-        graph = nx.MultiDiGraph()
+        graph = nx.DiGraph()
         def add_graph_node(node, node_type, add_deps=False):
             if node in graph:
                 return
@@ -175,19 +175,19 @@ class List(DoitCmdBase):
 
         return graph
 
-    def _display_graph(self, graph, temlate):
+    def _display_graph(self, graph, template):
         import networkx as nx
         from matplotlib import pyplot as plt
 
         def find_node_attr(g, attr, value):
-            return [n for n,d in g.nodes(data=True) if d[attr] == value]
+            return [n for n,d in g.nodes_iter(data=True) if d[attr] == value]
         def find_edge_attr(g, attr, value):
-            return [(n1,n2) for n1,n2,d in g.edges(data=True) if d[attr] == value]
+            return [(n1,n2) for n1,n2,d in g.edges_iter(data=True) if d[attr] == value]
 
         node_type_styles = {
-            'task':     { 'node_color': 'g', 'node_shape': 'o'},
-            'file':     { 'node_color': 'b', 'node_shape': 's'},
-            'wildcard': { 'node_color': 'c', 'node_shape': 'd'},
+            'task':     { 'node_color': 'g', 'node_shape': 's'},
+            'file':     { 'node_color': 'b', 'node_shape': 'o'},
+            'wildcard': { 'node_color': 'c', 'node_shape': '8'},
         }
         dep_type_styles = {
             ## TASK-dependencies
@@ -202,19 +202,23 @@ class List(DoitCmdBase):
 
         pos = nx.spring_layout(graph, dim=2)
         for item_type, style in node_type_styles.items():
-            nodes = find_node_attr(graph, 'type', item_type)
+            nodes       = find_node_attr(graph, 'type', item_type)
             nx.draw_networkx_nodes(graph, pos, nodes,
-                                   label=item_type,
+                                   label=item_type, alpha=0.8,
                                    **style)
         for item_type, style in dep_type_styles.items():
-            edges = find_edge_attr(graph, 'type', item_type)
-            nx.draw_networkx_edges(graph, pos, edges,
-                                   label=item_type, alpha=0.4,
+            edges       = find_edge_attr(graph, 'type', item_type)
+            edge_col    = nx.draw_networkx_edges(graph, pos, edges,
+                                   label=item_type, alpha=0.5,
                                    **style)
-        nx.draw_networkx_labels(graph, pos) ## TODO: Use template for labels.
+            if edge_col:
+                edge_col.set_label(None)    ## Remove duplicate label on DiGraph.
+        labels = {n: (template.format(name=n, **d) if d['type'] == 'task' else n)
+                       for n,d in graph.nodes_iter(data=True)}
+        nx.draw_networkx_labels(graph, pos, labels)
         ax = plt.gca()
-        ax.legend(framealpha=0.5)
-        ax.set_frame_on(False)
+        ax.legend(scatterpoints=1, framealpha=0.5)
+        #ax.set_frame_on(False)
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().set_visible(False)
         plt.subplots_adjust(0,0,1,1)
@@ -242,6 +246,10 @@ class List(DoitCmdBase):
             print_list = [t for t in print_list if not t.name.startswith('_')]
 
         if disp_graph:
+            if template is None:
+                template = '{name}'
+                if status:
+                    template = '({status})' + template
             task_names = None
             if filter_tasks or not private:
                 task_names = [task.name for task in print_list]
