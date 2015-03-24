@@ -86,9 +86,11 @@ class DoitMain(object):
                       Like ConfigParser.read() param filenames
         """
         self.config.read(filenames)
-        for name, _ in self.config.items('command'):
-            obj_name, mod_name = name.split('@')
-            self.plugins.add('command', mod_name, obj_name)
+
+        if self.config.has_section('command'):
+            for name, _ in self.config.items('command'):
+                obj_name, mod_name = name.split('@')
+                self.plugins.add('command', mod_name, obj_name)
 
 
     @staticmethod
