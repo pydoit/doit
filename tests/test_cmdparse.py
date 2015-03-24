@@ -107,6 +107,12 @@ opt_no = {'name': 'no',
           'default': 5,
           'help': 'user cant modify me'}
 
+opt_append = { 'name': 'list',
+             'short': 'l',
+             'long': 'list',
+             'type': list,
+             'default': [],
+             'help': 'use many -l to make a list'}
 
 
 class TestCmdOption_help_doc(object):
@@ -127,17 +133,18 @@ class TestCommand(object):
 
     @pytest.fixture
     def cmd(self, request):
-        opt_list = (opt_bool, opt_rare, opt_int, opt_no)
+        opt_list = (opt_bool, opt_rare, opt_int, opt_no, opt_append)
         options = [CmdOption(o) for o in opt_list]
         cmd = CmdParse(options)
         return cmd
 
 
     def test_short(self, cmd):
-        assert "fn:" == cmd.get_short(), cmd.get_short()
+        assert "fn:l:" == cmd.get_short(), cmd.get_short()
 
     def test_long(self, cmd):
-        assert ["flag", "no-flag", "rare-bool", "number="] == cmd.get_long()
+        longs = ["flag", "no-flag", "rare-bool", "number=", "list="]
+        assert longs == cmd.get_long()
 
     def test_getOption(self, cmd):
         # short
@@ -153,26 +160,33 @@ class TestCommand(object):
         opt, is_inverse = cmd.get_option('not-there')
         assert (None, None) == (opt, is_inverse)
 
+        opt, is_inverse = cmd.get_option('--list')
+        assert (opt_append['name'], False) == (opt.name, is_inverse)
+
 
     def test_parseDefaults(self, cmd):
         params, args = cmd.parse([])
         assert False == params['flag']
         assert 5 == params['num']
+        assert [] == params['list']
 
     def test_parseShortValues(self, cmd):
-        params, args = cmd.parse(['-n','89','-f'])
+        params, args = cmd.parse(['-n','89','-f', '-l', 'foo', '-l', 'bar'])
         assert True == params['flag']
         assert 89 == params['num']
+        assert ['foo', 'bar'] == params['list']
 
     def test_parseLongValues(self, cmd):
-        params, args = cmd.parse(['--rare-bool','--num','89', '--no-flag'])
+        params, args = cmd.parse(['--rare-bool','--num','89', '--no-flag',
+                                  '--list', 'flip', '--list', 'flop'])
         assert True == params['rare']
         assert False == params['flag']
         assert 89 == params['num']
+        assert ['foo', 'bar', 'flip', 'flop'] == params['list']
 
     def test_parsePositionalArgs(self, cmd):
-        params, args = cmd.parse(['-f','p1','p2','--sub-arg'])
-        assert ['p1','p2','--sub-arg'] == args
+        params, args = cmd.parse(['-f','p1','p2'])
+        assert ['p1','p2'] == args
 
     def test_parseError(self, cmd):
         pytest.raises(CmdParseError, cmd.parse, ['--not-exist-param'])
