@@ -70,7 +70,7 @@ class DoitMain(object):
                  Strace, TabCompletion)
     TASK_LOADER = DodoTaskLoader
 
-    def __init__(self, task_loader=None, config_filenames='doit.cfg'):
+    def __init__(self, task_loader=None, config_filenames=['doit.cfg']):
         self.task_loader = task_loader if task_loader else self.TASK_LOADER()
         self.sub_cmds = {} # dict with available sub-commands
         self.plugins = PluginRegistry()
@@ -85,7 +85,12 @@ class DoitMain(object):
         :param files: str or list of str.
                       Like ConfigParser.read() param filenames
         """
-        self.config.read(filenames)
+        filenames = [filenames] if type(filenames) is str else filenames
+        existing_filenames = filter(os.path.exists, filenames)
+        if not existing_filenames:
+            return None
+        
+        self.config.read(existing_filenames)
         for name, _ in self.config.items('command'):
             obj_name, mod_name = name.split('@')
             self.plugins.add('command', mod_name, obj_name)
