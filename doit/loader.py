@@ -3,6 +3,7 @@
 import os
 import sys
 import inspect
+import importlib
 import six
 from collections import OrderedDict
 
@@ -93,7 +94,7 @@ def get_module(dodo_file, cwd=None, seek_parent=False):
     os.chdir(full_cwd)
 
     # get module containing the tasks
-    return __import__(os.path.splitext(file_name)[0])
+    return importlib.import_module(os.path.splitext(file_name)[0])
 
 
 

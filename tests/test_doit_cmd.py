@@ -1,15 +1,46 @@
+import os
+
 import pytest
 from mock import Mock
 
 from doit import get_var
 from doit.exceptions import InvalidCommand
-from doit.doit_cmd import DoitMain
 from doit.cmd_run import Run
 from doit.cmd_list import List
+from doit import doit_cmd
+
+
+
+class TestPluginRegistry(object):
+    def test_get_empty_list_for_whatever_category(self):
+        plugins = doit_cmd.PluginRegistry()
+        assert [] == plugins['foo']
+        assert [] == plugins['whatever name']
+
+    def test_add_many(self):
+        plugins = doit_cmd.PluginRegistry()
+        plugins.add('category1', 'pytest', 'raises')
+        plugins.add('category1', 'mock', 'Mock')
+        plugins.add('category2', 'doit.cmd_run', 'Run')
+        assert 2 == len(plugins['category1'])
+        assert pytest.raises is plugins['category1'][0]
+        assert Mock is plugins['category1'][1]
+        assert 1 == len(plugins['category2'])
+        assert Run is plugins['category2'][0]
+
+
+class TestLoadINI(object):
+    def test_load_plugins_command(self):
+        config_filename = os.path.join(os.path.dirname(__file__), 'sample.cfg')
+        main = doit_cmd.DoitMain(config_filenames=config_filename)
+        assert 1 == len(main.plugins['command'])
+        assert main.plugins['command'][0].name == 'mycmd'
+        # test loaded plugin command is actually used
+        assert 'mycmd' in main.get_commands()
 
 
 def cmd_main(args):
-    return DoitMain().run(args)
+    return doit_cmd.DoitMain().run(args)
 
 
 class TestRun(object):
