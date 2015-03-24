@@ -38,6 +38,12 @@ class TestLoadINI(object):
         # test loaded plugin command is actually used
         assert 'mycmd' in main.get_commands()
 
+    def test_load_nonexistent_config(self):
+        nonexistent = os.path.join(os.path.dirname(__file__),
+                                   'sample_doesntexist.cfg')
+        main = doit_cmd.DoitMain(config_filenames=[nonexistent])
+        assert len(main.plugins['command']) == 0
+        
 
 def cmd_main(args):
     return doit_cmd.DoitMain().run(args)
