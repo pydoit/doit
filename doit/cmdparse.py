@@ -4,7 +4,7 @@ Built on top of getopt. optparse can't handle sub-commands.
 """
 import getopt
 import six
-
+import copy
 
 class DefaultUpdate(dict):
     """A dictionary that has an "update_defaults" method where
@@ -80,8 +80,11 @@ class CmdOption(object):
                 raise CmdParseError(msg % (opt_dict, field))
 
         self.name = opt_dict.pop('name')
-        self.default = opt_dict.pop('default')
         self.type = opt_dict.pop('type', str)
+        default = opt_dict.pop('default')
+        if self.type is list:
+            default = copy.copy(default)
+        self.default = default
         self.short = opt_dict.pop('short', '')
         self.long = opt_dict.pop('long', '')
         self.inverse = opt_dict.pop('inverse', '')
@@ -94,7 +97,6 @@ class CmdOption(object):
         if opt_dict:
             msg = "CmdOption dict contains invalid property '%s'"
             raise CmdParseError(msg % list(six.iterkeys(opt_dict)))
-
 
     def __repr__(self):
         tmpl = ("{0}({{'name':{1.name!r}, 'short':{1.short!r}," +
@@ -224,6 +226,8 @@ class CmdParse(object):
             this, inverse = self.get_option(opt)
             if this.type is bool:
                 params[this.name] = not inverse
+            elif this.type is list:
+                params[this.name].append(val)
             else:
                 try:
                     params[this.name] = this.type(val)

@@ -460,6 +460,17 @@ For python-actions the python function must define arguments with the same name 
     abc
     9
 
+Need a list in your python function? Specify an option with ``type``
+set to ``list``.
+
+.. code-block:: console
+
+    $ doit py_params_list -l milk -l eggs -l bread
+    .  py_params_list
+    milk
+    eggs
+    bread
+
 For cmd-actions use python string substitution notation:
 
 .. code-block:: console

@@ -14,6 +14,20 @@ def task_py_params():
             'verbosity':2,
             }
 
+def task_py_params_list():
+    def print_a_list(list):
+        for item in list:
+            print item
+    return {'actions':[(print_a_list,)],
+            'params':[{'name':'list',
+                       'short':'l',
+                       'long': 'list',
+                       'type': list,
+                       'default': [],
+                       'help': 'Collect a list with multiple -l flags'}],
+            'verbosity':2,
+            }
+
 def task_cmd_params():
     return {'actions':["echo mycmd %(flag)s xxx"],
             'params':[{'name':'flag',
