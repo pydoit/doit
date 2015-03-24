@@ -59,6 +59,7 @@ Biomechanics
 Blog
 CFEngine
 CMake
+CamelCase
 CmdAction
 CmdAction's
 CmdActions
@@ -66,11 +67,13 @@ Config
 ConsoleReporter
 Ctrl
 Dembia
+DoIt
 DoitMain
 FileChangedChecker
 GH
 Gliwinski
 Guo
+INI
 IPython
 IPython's
 InteractiveAction
@@ -239,6 +242,7 @@ pathlib
 pdb
 perl
 picklable
+plugin
 popen
 pos
 pos1
