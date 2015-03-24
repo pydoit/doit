@@ -390,6 +390,9 @@ class PythonAction(BaseAction):
         elif isinstance(returned_value, dict):
             self.values = returned_value
             self.result = returned_value
+        elif isinstance(returned_value, TaskFailed) \
+             or isinstance(returned_value, TaskError):
+            return returned_value
         else:
             return TaskError("Python Task error: '%s'. It must return:\n"
                              "False for failed task.\n"
