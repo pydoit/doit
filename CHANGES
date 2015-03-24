@@ -14,7 +14,8 @@ Changes
  - read configuration options from INI files
  - fix issue when using unicode strings to specify `minversion` on python 2
  - fix GH-#27 auto command in conjunction with task arguments
-
+ - PythonAction can handle TaskError or TaskFailed exceptions
+ 
 
 0.27.0 (*2015-01-30*)
 ======================

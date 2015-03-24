@@ -68,13 +68,16 @@ as positional and keywords arguments for the callable.
 see `Keyword Arguments <http://docs.python.org/tutorial/controlflow.html#keyword-arguments>`_.
 
 
-The result of the task is given by the returned value of the ``action`` function.
-So it must return a *boolean* value `True`, `None`,
-a dictionary or a string to indicate successful completion of the task.
-Use `False` to indicate task failed.
-If it raises an exception, it will be considered an error.
-If it returns any other type it will also be considered an error
-but this behavior might change in future versions.
+The result of the task is given by the returned value of the
+``action`` function.  It must return `True`, `None`, a dictionary, or
+a string to indicate successful completion of the task.  Returning
+`False` indicates the task generally failed. To provide a more
+detailed description of how the task failed, return an instance of
+:py:class:`TaskFailed` or :py:class:`TaskError`.  If the action raises
+an exception, it will be considered an error.  If the action returns a
+type other than the types already discussed, the action will be
+considered a failure, although this behavior might change in future
+versions.
 
 .. literalinclude:: tutorial/tutorial_02.py
 
