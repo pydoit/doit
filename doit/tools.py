@@ -290,4 +290,26 @@ def register_doit_as_IPython_magic():  # pragma: no cover
         """
         ip = get_ipython()
         commander = DoitMain(ModuleTaskLoader(ip.user_module))
-        commander.run(line.split())
+
+        ## Override db-files location inside ipython-profile dir,
+        #    which is certainly writable.
+        #
+        prof_dir    = ip.profile_dir.location
+        opt_db_file = ['--db-file', os.path.join(prof_dir, 'db', '.doit.db')]
+        args = line.split()
+        if not args:
+            args = opt_db_file
+        elif args[0] in ["--version", "--help"]:
+            pass
+        else:
+            ## Modified "implicit `run`" logic here,
+            #    in comparison to ``DoitMain.run()`` so as
+            #    to avoid not yet populated commands-list.
+            #
+            if args[0].startswith('-'):
+                ## Assuming implicit 'run' command.
+                args = opt_db_file + args
+            else:
+                args = args[:1] + opt_db_file + args[1:]
+
+        commander.run(args)
