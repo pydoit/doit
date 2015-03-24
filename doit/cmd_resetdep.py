@@ -4,11 +4,25 @@ from .cmd_base import subtasks_iter
 
 class ResetDep(DoitCmdBase):
     name = "reset-dep"
-    doc_purpose = "recompute the state of file dependencies"
+    doc_purpose = ("recompute and save the state of file dependencies without "
+                   "executing actions")
     doc_usage = "[TASK ...]"
-    doc_description = None
-
     cmd_options = ()
+    doc_description = """
+This command allows to recompute the informations on file dependencies
+(timestamp, md5sum, ... depending on the ``check_file_uptodate`` setting), and
+save this in the database, without executing the actions.
+
+The command run on all tasks by default, but it is possible to specify a list
+of tasks to work on.
+
+This is useful when the targets of your tasks already exist, and you want doit
+to consider your tasks as up-to-date. One use-case for this command is when you
+change the ``check_file_uptodate`` setting, which cause doit to consider all
+your tasks as not up-to-date. It is also useful if you start using doit while
+some of your data as already been computed, or when you add a file dependency
+to a task that has already run.
+"""
 
     def _execute(self, pos_args=None):
         filter_tasks = pos_args
@@ -38,17 +52,23 @@ class ResetDep(DoitCmdBase):
             try:
                 run_status = self.dep_manager.get_status(task, tasks)
             except Exception:
+                # Skip exception when a depencency file is missing, and force
+                # the state computation
                 run_status = 'run'
 
+            # An 'up-to-date' status means that it is useless to recompute the
+            # state: file deps and targets exists, the state has not changed,
+            # there is nothing more to do.
             if run_status == 'up-to-date':
-                write("skip %s\n" % task.name)
+                write("skip {}\n".format(task.name))
                 continue
 
             try:
                 self.dep_manager.save_success(task)
-            except OSError:
-                write("skip (missing file_dep) %s\n" % task.name)
+            except OSError as e:
+                write("failed {} (missing file_dep: {})\n".format(
+                    task.name, str(e)))
             else:
-                write("processed %s\n" % task.name)
+                write("processed {}\n".format(task.name))
 
         self.dep_manager.close()

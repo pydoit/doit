@@ -77,7 +77,8 @@ class TestCmdResetDep(object):
                               dep_manager=depfile)
         cmd_list._execute()
         got = output.getvalue()
-        assert "skip (missing file_dep) t2\n" == got
+        assert ("failed t2 (missing file_dep: [Errno 2] No such file or "
+                "directory: 'tests/data/missing')\n") == got
 
     def test_values_and_results(self, depfile, dependency1):
         my_task = Task("t2", [""], file_dep=['tests/data/dependency1'])
