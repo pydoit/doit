@@ -5,7 +5,7 @@ import sys
 from setuptools import setup
 
 
-install_requires = ['six']
+install_requires = ['six', 'networkx']
 
 
 ########### platform specific stuff #############
