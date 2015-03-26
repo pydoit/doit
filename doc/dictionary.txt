@@ -7,6 +7,7 @@
 'c'
 'cc
 'changed'
+'check
 'clean'
 'command
 'command'
@@ -43,6 +44,7 @@
 'success
 'targets'
 'teardown'
+'timestamp'
 'title'
 'values'
 'verbosity'
@@ -54,8 +56,10 @@
 API
 BaseAction
 Biomechanics
+Blog
 CFEngine
 CMake
+CamelCase
 CmdAction
 CmdAction's
 CmdActions
@@ -63,10 +67,15 @@ Config
 ConsoleReporter
 Ctrl
 Dembia
+DoIt
 DoitMain
+FileChangedChecker
 GH
 Gliwinski
 Guo
+INI
+IPython
+IPython's
 InteractiveAction
 InvalidCommand
 JSON
@@ -76,6 +85,7 @@ LongRunning
 MD5
 Metagenomics
 ModuleTaskLoader
+MyChecker
 MyCustomTask2
 Naufel
 PDB
@@ -84,8 +94,8 @@ PyPi
 PythonAction
 PythonInteractiveAction
 README
-ReST
 RSS
+ReST
 SCons
 Schettino
 Segata
@@ -100,6 +110,7 @@ VCS
 WORDBREAKS
 Waf
 ZeroReporter
+a2
 abc
 api
 app
@@ -108,6 +119,7 @@ atime
 attr
 autoclass
 autoload
+b4
 backend
 backends
 bar'
@@ -115,6 +127,7 @@ basename
 bioinformatic
 biomechanics
 bitbucket
+blog
 bool
 c'
 calc
@@ -133,11 +146,13 @@ cron
 ctime
 cwd
 dbm
+debian
 defs
 dep
 dep'
 deps
 dev
+dev0
 dict
 dict's
 dir
@@ -177,10 +192,12 @@ hg
 hggit
 hgrc
 html
+hunspell
 init
 inotify
 interactiveaction
 internet
+ipython
 isatty
 iteritems
 iterkeys
@@ -200,6 +217,7 @@ macfsevents
 makedirs
 maxdepth
 md5
+md5sum
 metadata
 microbiome
 minversion
@@ -224,6 +242,7 @@ pathlib
 pdb
 perl
 picklable
+plugin
 popen
 pos
 pos1
@@ -235,6 +254,7 @@ py'
 py3
 pyFiles
 pychecker
+pycon
 pyflakes
 pygments
 pyinotify
@@ -288,6 +308,7 @@ unhandled
 unicode
 unix
 uptodate
+uptodate'
 utf8
 virtualenv
 wget
@@ -300,9 +321,3 @@ x'
 xxx
 xyz
 zsh
-md5sum
-'check
-uptodate'
-'timestamp'
-FileChangedChecker
-MyChecker

@@ -16,7 +16,10 @@ def version_tuple(ver_in):
     Any part that is not a number (dev0, a2, b4) will be converted to -1
     """
     result = []
-    parts = ver_in.split('.') if isinstance(ver_in, str) else ver_in
+    if isinstance(ver_in, six.string_types):
+        parts = ver_in.split('.')
+    else:
+        parts = ver_in
     for rev in parts:
         try:
             result.append(int(rev))

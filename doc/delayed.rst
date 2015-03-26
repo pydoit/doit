@@ -26,6 +26,14 @@ execution of the specified task in the `executed` param.
 .. literalinclude:: tutorial/delayed.py
 
 
+.. note::
+
+   Since the metadata of a delayed task is only created on demand,
+   it is currently not possible to set a `basename` for delayed tasks.
+   That is because *doit* needs to know which task-creator function should be
+   executed in order to create the requested task. See this
+   `issue <https://github.com/pydoit/doit/issues/30>`_ for a proposed solution.
+
 .. warning::
 
    There is a limitation in the use of the delayed task creation with

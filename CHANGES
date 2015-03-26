@@ -9,6 +9,13 @@ Changes
  - fix GH-#22: Allow to customize how file_dep are checked
  - GH-#25: Add a `reset-dep` command to recompute dependencies state
  - BACKWARD INCOMPATIBLE: signature for custom DB backend changed
+ - GH-#22: Allow to customize how file_dep are checked
+ - GH-#31: Add IPython `%doit` magic-function loading tasks from its global
+   namespace
+ - GH-#32 plugin system
+ - read configuration options from INI files
+ - fix issue when using unicode strings to specify `minversion` on python 2
+ - fix GH-#27 auto command in conjunction with task arguments
 
 
 0.27.0 (*2015-01-30*)

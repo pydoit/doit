@@ -61,3 +61,55 @@ To make sure you get a proper PDB shell you should use doit.tools.set_trace
 instead of ``pdb.set_trace``.
 
 .. literalinclude:: tutorial/settrace.py
+
+
+.. _tools.IPython:
+
+IPython integration
+----------------------
+
+A handy possibility for interactive experimentation is to define tasks from
+within *ipython* sessions and use the ``%doit`` `magic function
+<http://ipython.org/ipython-doc/dev/interactive/tutorial.html#magic-functions>`_
+to discover and execute them.
+
+
+First you need to register the new magic function into ipython shell.
+
+.. code-block:: pycon
+
+    >>> from doit.tools import register_doit_as_IPython_magic
+    >>> register_doit_as_IPython_magic()
+
+
+.. Tip::
+    To permanently add this magic-function to your IPython include it on your
+    `profile <http://ipython.org/ipython-doc/3/config/intro.html?highlight=profile#profiles>`_,
+    create a new script inside your startup-profile
+    (i.e. :file:`~/.ipython/profile_default/startup/doit_magic.ipy`)
+    with the following content::
+
+        from doit.tools import register_doit_as_IPython_magic
+        register_doit_as_IPython_magic()
+
+Then you can define your `task_creator` functions and invoke them with `%doit`
+magic-function, instead of invoking the cmd-line script with a :file:`dodo.py`
+file.
+
+
+Examples:
+
+.. code-block:: pycon
+
+    >>> %doit --help          ## Show help for options and arguments.
+
+    >>> def task_foo():
+            return {'actions': ["echo hi IPython"],
+                    'verbosity': 2}
+
+    >>> %doit list            ## List any tasks discovered.
+    foo
+
+    >>> %doit                 ## Run any tasks.
+    .  foo
+    hi IPython

@@ -2,6 +2,15 @@
 FAQ
 =======
 
+
+Why is `doit` written in all lowercase instead of CamelCase?
+-------------------------------------------------------------
+
+At first it would be written in CamelCase `DoIt` but depending on the font
+some people would read it as `dolt <http://en.wiktionary.org/wiki/dolt#Noun>`_
+with an `L` instead of `I`. So I just set it as lowercase to avoid confusion.
+
+
 *doit* is too verbose, why don't you use decorators?
 -----------------------------------------------------
 

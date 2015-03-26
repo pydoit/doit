@@ -124,6 +124,20 @@ To create it (after installing *doit*)::
 The website will also includes epydoc generated API documentation.
 
 
+spell checking
+--------------
+
+All documentation is spell checked using the task `spell`::
+
+  $ doit spell
+
+It is a bit annoying that code snippets and names always fails the check,
+these words must be added into the file `doc/dictionary.txt`.
+
+The spell checker currently uses `hunspell`, to install it on debian based
+systems install the hunspell package: `apt-get install hunspell`.
+
+
 contributing
 ==============
 
