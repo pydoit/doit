@@ -102,6 +102,8 @@ Segata
 SetupSample
 Subclassing
 TODO
+TaskError
+TaskFailed
 TaskLoader
 Trento
 UptodateCalculator

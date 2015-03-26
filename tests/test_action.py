@@ -367,7 +367,7 @@ class TestPythonAction(object):
         ye_olde_action = action.PythonAction(error_sample)
         ret = ye_olde_action.execute()
         assert str(ret).endswith("so sad\n")
-        
+
     def test_error_exception(self):
         def error_sample(): raise Exception("asdf")
         my_action = action.PythonAction(error_sample)
