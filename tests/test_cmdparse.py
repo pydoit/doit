@@ -185,8 +185,8 @@ class TestCommand(object):
         assert ['flip', 'flop'] == params['list']
 
     def test_parsePositionalArgs(self, cmd):
-        params, args = cmd.parse(['-f','p1','p2', '--rare-bool'])
-        assert ['p1','p2'] == args
+        params, args = cmd.parse(['-f','p1','p2', '--sub-arg'])
+        assert ['p1','p2', '--sub-arg'] == args
 
     def test_parseError(self, cmd):
         pytest.raises(CmdParseError, cmd.parse, ['--not-exist-param'])
