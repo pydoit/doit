@@ -182,7 +182,7 @@ class TestCommand(object):
         assert True == params['rare']
         assert False == params['flag']
         assert 89 == params['num']
-        assert ['foo', 'bar', 'flip', 'flop'] == params['list']
+        assert ['flip', 'flop'] == params['list']
 
     def test_parsePositionalArgs(self, cmd):
         params, args = cmd.parse(['-f','p1','p2'])
