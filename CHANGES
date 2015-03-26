@@ -6,6 +6,8 @@ Changes
 0.28.0
 ======
 
+ - fix GH-#22: Allow to customize how file_dep are checked
+ - GH-#25: Add a `reset-dep` command to recompute dependencies state
  - BACKWARD INCOMPATIBLE: signature for custom DB backend changed
  - GH-#22: Allow to customize how file_dep are checked
  - GH-#31: Add IPython `%doit` magic-function loading tasks from its global

@@ -106,7 +106,10 @@ class Help(DoitCmdBase):
         print('')
         print("Commands")
         for cmd in sorted(six.itervalues(cmds), key=attrgetter('name')):
-            six.print_("  doit %s \t\t %s" % (cmd.name, cmd.doc_purpose))
+            # the command name is padded with spaces and must be 16 character
+            # wide at maximum (this corresponds to the length of
+            # 'help <task-name>')
+            six.print_("  doit {:16s}  {}".format(cmd.name, cmd.doc_purpose))
         print("")
         print("  doit help              show help / reference")
         print("  doit help task         show help on task dictionary fields")

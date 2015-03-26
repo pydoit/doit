@@ -24,6 +24,7 @@ from .cmd_auto import Auto
 from .cmd_dumpdb import DumpDB
 from .cmd_strace import Strace
 from .cmd_completion import TabCompletion
+from .cmd_resetdep import ResetDep
 
 
 # used to save variable values passed from command line
@@ -67,7 +68,7 @@ class PluginRegistry(object):
 
 class DoitMain(object):
     DOIT_CMDS = (Help, Run, List, Info, Clean, Forget, Ignore, Auto, DumpDB,
-                 Strace, TabCompletion)
+                 Strace, TabCompletion, ResetDep)
     TASK_LOADER = DodoTaskLoader
 
     def __init__(self, task_loader=None, config_filenames='doit.cfg'):
