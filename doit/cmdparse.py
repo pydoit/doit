@@ -4,7 +4,7 @@ Built on top of getopt. optparse can't handle sub-commands.
 """
 import getopt
 import six
-
+import copy
 
 class DefaultUpdate(dict):
     """A dictionary that has an "update_defaults" method where
@@ -209,10 +209,7 @@ class CmdParse(object):
         params = DefaultUpdate()
         # add default values
         for opt in self.options:
-            if opt.type is list:
-                params.set_default(opt.name, list())
-            else:
-                params.set_default(opt.name, opt.default)
+            params.set_default(opt.name, copy.copy(opt.default))
 
         # parse options using getopt
         try:
