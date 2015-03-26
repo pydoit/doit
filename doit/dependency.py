@@ -30,6 +30,11 @@ class DatabaseException(Exception):
     pass
 
 
+class DependencyException(Exception):
+    """Exception class for whatever backend exception"""
+    pass
+
+
 def get_md5(input_data):
     """return md5 from string or unicode"""
     if isinstance(input_data, six.text_type):
@@ -501,8 +506,8 @@ class DependencyBase(object):
             raise Exception(msg % (task_id, key_name))
         return values[key_name]
 
-    def get_results(self, task_name):
-        """get all saved results from a task
+    def get_result(self, task_name):
+        """get the result saved from a task
         @return dict or md5sum
         """
         return self._get(task_name, 'result:')
@@ -522,6 +527,9 @@ class DependencyBase(object):
     # TODO add option to log this
     def get_status(self, task, tasks_dict):
         """Check if task is up to date. set task.dep_changed
+
+        If the checker class changed since the previous run, the task is
+        deleted, to be sure that its state is not re-used.
 
         @param task: (Task)
         @param tasks_dict: (dict: Task) passed to objects used on uptodate
@@ -612,9 +620,9 @@ class DependencyBase(object):
             state = self._get(task.name, dep)
             try:
                 file_stat = os.stat(dep)
-            except OSError:
-                raise Exception("Dependent file '{}' does not exist."
-                                .format(dep))
+            except OSError as e:
+                raise DependencyException("Dependent file '{}' does not exist."
+                                          .format(dep))
             if state is None or check_modified(dep, file_stat, state):
                 changed.append(dep)
         if len(changed) > 0:

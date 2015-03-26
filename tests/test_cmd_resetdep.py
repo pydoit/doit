@@ -13,9 +13,9 @@ class TestCmdResetDep(object):
     def test_execute(self, depfile, dependency1):
         output = StringIO()
         tasks = tasks_sample()
-        cmd_list = CmdFactory(ResetDep, outstream=output, task_list=tasks,
-                              dep_manager=depfile)
-        cmd_list._execute()
+        cmd_reset = CmdFactory(ResetDep, outstream=output, task_list=tasks,
+                               dep_manager=depfile)
+        cmd_reset._execute()
         got = [line.strip() for line in output.getvalue().split('\n') if line]
         expected = ["processed %s" % t.name for t in tasks]
         assert sorted(expected) == sorted(got)
@@ -23,9 +23,9 @@ class TestCmdResetDep(object):
     def test_file_dep(self, depfile, dependency1):
         my_task = Task("t2", [""], file_dep=['tests/data/dependency1'])
         output = StringIO()
-        cmd_list = CmdFactory(ResetDep, outstream=output, task_list=[my_task],
-                              dep_manager=depfile)
-        cmd_list._execute()
+        cmd_reset = CmdFactory(ResetDep, outstream=output, task_list=[my_task],
+                               dep_manager=depfile)
+        cmd_reset._execute()
         got = output.getvalue()
         assert "processed t2\n" == got
 
@@ -37,9 +37,9 @@ class TestCmdResetDep(object):
         my_task = Task("t2", [""], file_dep=['tests/data/dependency1'])
         depfile.save_success(my_task)
         output = StringIO()
-        cmd_list = CmdFactory(ResetDep, outstream=output, task_list=[my_task],
-                              dep_manager=depfile)
-        cmd_list._execute()
+        cmd_reset = CmdFactory(ResetDep, outstream=output, task_list=[my_task],
+                               dep_manager=depfile)
+        cmd_reset._execute()
         got = output.getvalue()
         assert "skip t2\n" == got
 
@@ -48,37 +48,37 @@ class TestCmdResetDep(object):
         depfile.save_success(my_task)
         depfile.checker = TimestampChecker()
         output = StringIO()
-        cmd_list = CmdFactory(ResetDep, outstream=output, task_list=[my_task],
-                              dep_manager=depfile)
-        cmd_list._execute()
+        cmd_reset = CmdFactory(ResetDep, outstream=output, task_list=[my_task],
+                               dep_manager=depfile)
+        cmd_reset._execute()
         got = output.getvalue()
         assert "processed t2\n" == got
 
     def test_filter(self, depfile, dependency1):
         output = StringIO()
         tasks = tasks_sample()
-        cmd_list = CmdFactory(ResetDep, outstream=output, task_list=tasks,
-                              dep_manager=depfile)
-        cmd_list._execute(pos_args=['t2'])
+        cmd_reset = CmdFactory(ResetDep, outstream=output, task_list=tasks,
+                               dep_manager=depfile)
+        cmd_reset._execute(pos_args=['t2'])
         got = output.getvalue()
         assert "processed t2\n" == got
 
     def test_invalid_task(self, depfile):
         output = StringIO()
         tasks = tasks_sample()
-        cmd_list = CmdFactory(ResetDep, outstream=output, task_list=tasks,
-                              dep_manager=depfile)
-        pytest.raises(InvalidCommand, cmd_list._execute, pos_args=['xxx'])
+        cmd_reset = CmdFactory(ResetDep, outstream=output, task_list=tasks,
+                               dep_manager=depfile)
+        pytest.raises(InvalidCommand, cmd_reset._execute, pos_args=['xxx'])
 
     def test_missing_file_dep(self, depfile):
         my_task = Task("t2", [""], file_dep=['tests/data/missing'])
         output = StringIO()
-        cmd_list = CmdFactory(ResetDep, outstream=output, task_list=[my_task],
-                              dep_manager=depfile)
-        cmd_list._execute()
+        cmd_reset = CmdFactory(ResetDep, outstream=output, task_list=[my_task],
+                               dep_manager=depfile)
+        cmd_reset._execute()
         got = output.getvalue()
-        assert ("failed t2 (missing file_dep: [Errno 2] No such file or "
-                "directory: 'tests/data/missing')\n") == got
+        assert ("failed t2 (Dependent file 'tests/data/missing' does not "
+                "exist.)\n") == got
 
     def test_values_and_results(self, depfile, dependency1):
         my_task = Task("t2", [""], file_dep=['tests/data/dependency1'])
@@ -87,12 +87,10 @@ class TestCmdResetDep(object):
         depfile.save_success(my_task)
         depfile.checker = TimestampChecker()  # trigger task update
         output = StringIO()
-        cmd_list = CmdFactory(ResetDep, outstream=output, task_list=[my_task],
-                              dep_manager=depfile)
-        cmd_list._execute()
+        cmd_reset = CmdFactory(ResetDep, outstream=output, task_list=[my_task],
+                               dep_manager=depfile)
+        cmd_reset._execute()
         got = output.getvalue()
-        # ipdb> from doit.dependency import DbmDependency
-        # ipdb> db = DbmDependency(depfile.name)
         assert "processed t2\n" == got
         assert {'x': 5, 'y': 10} == depfile.get_values(my_task.name)
-        assert get_md5('result') == depfile.get_results(my_task.name)
+        assert get_md5('result') == depfile.get_result(my_task.name)

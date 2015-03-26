@@ -1,5 +1,6 @@
 from .cmd_base import DoitCmdBase, check_tasks_exist
 from .cmd_base import subtasks_iter
+from .dependency import DependencyException
 
 
 class ResetDep(DoitCmdBase):
@@ -46,15 +47,19 @@ to a task that has already run.
         for task in task_list:
             # Save this now because dep_manager.get_status will remove the task
             # from the db if the checker changed.
-            task.values = self.dep_manager.get_values(task.name)
-            task.results = self.dep_manager.get_results(task.name)
+            values = self.dep_manager.get_values(task.name)
+            result = self.dep_manager.get_result(task.name)
 
             try:
                 run_status = self.dep_manager.get_status(task, tasks)
-            except Exception:
+            except DependencyException as e:
                 # Skip exception when a depencency file is missing, and force
                 # the state computation
-                run_status = 'run'
+                write("failed {} ({})\n".format(task.name, str(e)))
+                continue
+
+            task.values = values
+            # task.result = result
 
             # An 'up-to-date' status means that it is useless to recompute the
             # state: file deps and targets exists, the state has not changed,
@@ -63,12 +68,9 @@ to a task that has already run.
                 write("skip {}\n".format(task.name))
                 continue
 
-            try:
-                self.dep_manager.save_success(task)
-            except OSError as e:
-                write("failed {} (missing file_dep: {})\n".format(
-                    task.name, str(e)))
-            else:
-                write("processed {}\n".format(task.name))
+            self.dep_manager.save_success(task)
+            # Store the result directly, so that it is not hashed a second time
+            self.dep_manager._set(task.name, "result:", result)
+            write("processed {}\n".format(task.name))
 
         self.dep_manager.close()
