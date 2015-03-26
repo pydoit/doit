@@ -620,7 +620,7 @@ class DependencyBase(object):
             state = self._get(task.name, dep)
             try:
                 file_stat = os.stat(dep)
-            except OSError as e:
+            except OSError:
                 raise DependencyException("Dependent file '{}' does not exist."
                                           .format(dep))
             if state is None or check_modified(dep, file_stat, state):
