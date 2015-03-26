@@ -209,7 +209,10 @@ class CmdParse(object):
         params = DefaultUpdate()
         # add default values
         for opt in self.options:
-            params.set_default(opt.name, opt.default)
+            if opt.type is list:
+                params.set_default(opt.name, list())
+            else:
+                params.set_default(opt.name, opt.default)
 
         # parse options using getopt
         try:
