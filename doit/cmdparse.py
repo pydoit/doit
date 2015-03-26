@@ -237,8 +237,8 @@ class CmdParse(object):
 
         # parse options using getopt
         try:
-            opts, args = getopt.gnu_getopt(in_args, self.get_short(),
-                                           self.get_long())
+            opts, args = getopt.getopt(in_args, self.get_short(),
+                                       self.get_long())
         except Exception as error:
             msg = "Error parsing %s: %s (parsing options: %s)"
             raise CmdParseError(msg % (self._type, str(error), in_args))
