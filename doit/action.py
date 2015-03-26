@@ -180,6 +180,8 @@ class CmdAction(BaseAction):
         """
         try:
             action = self.expand_action()
+        except InvalidTask:
+            raise
         except Exception as exc:
             return TaskError("CmdAction Error creating command string", exc)
 
@@ -245,7 +247,11 @@ class CmdAction(BaseAction):
         # convert postional parameters from list space-separated string
         if self.task.pos_arg:
             subs_dict[self.task.pos_arg] = ' '.join(self.task.pos_arg_val)
-        return self.action % subs_dict
+        try:
+            return self.action % subs_dict
+        except KeyError as ex:
+            msg = "%r can not substitute string-field '%s'; must be one of: %s"
+            raise InvalidTask(msg % (self, ex.args[0], list(subs_dict)))
 
     def __str__(self):
         return "Cmd: %s" % self._action
