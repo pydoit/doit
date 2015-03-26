@@ -68,13 +68,26 @@ as positional and keywords arguments for the callable.
 see `Keyword Arguments <http://docs.python.org/tutorial/controlflow.html#keyword-arguments>`_.
 
 
-The result of the task is given by the returned value of the ``action`` function.
-So it must return a *boolean* value `True`, `None`,
-a dictionary or a string to indicate successful completion of the task.
-Use `False` to indicate task failed.
-If it raises an exception, it will be considered an error.
-If it returns any other type it will also be considered an error
-but this behavior might change in future versions.
+The result of the task is given by the returned value of the
+``action`` function.
+
+For **successful** completion it must return one of:
+
+* `True`
+* `None`
+* a dictionary
+* a string
+
+For **unsuccessful** completion it must return one of:
+
+* `False` indicates the task generally failed
+* if it raises any exception, it will be considered an error
+* it can also explicitly return an instance of :py:class:`TaskFailed`
+  or :py:class:`TaskError`
+
+If the action returns a type other than the types already discussed, the action
+will be considered a failure, although this behavior might change in future
+versions.
 
 .. literalinclude:: tutorial/tutorial_02.py
 
@@ -82,7 +95,7 @@ The function `task_hello` is a *task-creator*, not the task itself.
 The body of the task-creator function is always executed when the dodo
 file is loaded.
 
-.. note::
+.. topic:: task-creators vs actions
 
   The body of task-creators are executed even if the task is not going
   to be executed.

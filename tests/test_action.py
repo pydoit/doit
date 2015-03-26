@@ -353,6 +353,21 @@ class TestPythonAction(object):
         got = my_action.execute()
         assert isinstance(got, TaskError)
 
+    def test_error_taskfail(self):
+        # should get the same exception as was returned from the
+        # user's function
+        def error_sample(): return TaskFailed("too bad")
+        ye_olde_action = action.PythonAction(error_sample)
+        ret = ye_olde_action.execute()
+        assert isinstance(ret, TaskFailed)
+        assert str(ret).endswith("too bad\n")
+
+    def test_error_taskerror(self):
+        def error_sample(): return TaskError("so sad")
+        ye_olde_action = action.PythonAction(error_sample)
+        ret = ye_olde_action.execute()
+        assert str(ret).endswith("so sad\n")
+
     def test_error_exception(self):
         def error_sample(): raise Exception("asdf")
         my_action = action.PythonAction(error_sample)
