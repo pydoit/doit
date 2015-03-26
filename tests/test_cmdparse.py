@@ -185,7 +185,7 @@ class TestCommand(object):
         assert ['flip', 'flop'] == params['list']
 
     def test_parsePositionalArgs(self, cmd):
-        params, args = cmd.parse(['-f','p1','p2'])
+        params, args = cmd.parse(['-f','p1','p2', '--rare-bool'])
         assert ['p1','p2'] == args
 
     def test_parseError(self, cmd):
