@@ -80,7 +80,10 @@ class CmdOption(object):
                 raise CmdParseError(msg % (opt_dict, field))
 
         self.name = opt_dict.pop('name')
-        self._default = opt_dict.pop('default')
+        default = opt_dict.pop('default')
+        if self.type is list:
+            default = copy.copy(default)
+        self.default = default
         self.type = opt_dict.pop('type', str)
         self.short = opt_dict.pop('short', '')
         self.long = opt_dict.pop('long', '')
@@ -94,13 +97,6 @@ class CmdOption(object):
         if opt_dict:
             msg = "CmdOption dict contains invalid property '%s'"
             raise CmdParseError(msg % list(six.iterkeys(opt_dict)))
-
-    @property
-    def default(self):
-        if self.type is list or isinstance(self.type, dict):
-            return copy.copy(self._default)
-        else:
-            return self._default
 
     def __repr__(self):
         tmpl = ("{0}({{'name':{1.name!r}, 'short':{1.short!r}," +
