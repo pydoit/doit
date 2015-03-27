@@ -84,7 +84,7 @@ class TabCompletion(DoitCmdBase):
         pt_bin_name = sys.argv[0].split('/')[-1]
         tmpl_vars = {
             'pt_bin_name': pt_bin_name,
-            'pt_cmds': ' '.join(self.doit_app.sub_cmds),
+            'pt_cmds': ' '.join(sorted(self.doit_app.sub_cmds)),
             'pt_list_param': pt_list_param,
             }
 
@@ -101,7 +101,9 @@ class TabCompletion(DoitCmdBase):
 
         # case statement to complete sub-commands
         cmds_args = []
-        for cmd in self.doit_app.sub_cmds.values():
+        cmd_list = sorted(self.doit_app.sub_cmds.values(),
+                          key = lambda c: c.get_name())
+        for cmd in cmd_list:
             cmds_args.append(self._bash_cmd_args(cmd))
         comp_subcmds = ("\n    case ${words[1]} in\n" +
                         "".join(cmds_args) +
@@ -167,7 +169,9 @@ class TabCompletion(DoitCmdBase):
         # deal with doit commands
         cmds_desc = []
         cmds_args = []
-        for cmd in self.doit_app.sub_cmds.values():
+        cmd_list = sorted(self.doit_app.sub_cmds.values(),
+                          key = lambda c: c.get_name())
+        for cmd in cmd_list:
             cmds_desc.append("    '{0}: {1}'".format(cmd.name, cmd.doc_purpose))
             cmds_args.append(self._zsh_cmd_args(cmd))
 

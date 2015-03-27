@@ -1,5 +1,5 @@
 # bash completion for doit
-# auto-generate by `doit tabcomplention`
+# auto-generate by `doit tabcompletion`
 
 # to activate it you need to 'source' the generate script
 # $ source <generated-script>
@@ -14,7 +14,7 @@ _doit()
     # remove colon from word separator list because doit uses colon on task names
     _get_comp_words_by_ref -n : cur prev words cword
     # list of sub-commands
-    sub_cmds="dumpdb run help strace auto list ignore clean tabcompletion forget reset-dep"
+    sub_cmds="auto clean dumpdb forget help ignore info list reset-dep run strace tabcompletion"
 
 
     # options that take file/dir as values should complete file-system
@@ -77,31 +77,7 @@ _doit()
 
     case ${words[1]} in
 
-        dumpdb)
-            COMPREPLY=( $(compgen -f -- $cur) )
-            return 0
-            ;;
-        run)
-            COMPREPLY=( $(compgen -W "${tasks}" -- $cur) )
-            return 0
-            ;;
-        help)
-            COMPREPLY=( $(compgen -W "${tasks} ${sub_cmds}" -- $cur) )
-            return 0
-            ;;
-        strace)
-            COMPREPLY=( $(compgen -W "${tasks}" -- $cur) )
-            return 0
-            ;;
         auto)
-            COMPREPLY=( $(compgen -W "${tasks}" -- $cur) )
-            return 0
-            ;;
-        list)
-            COMPREPLY=( $(compgen -W "${tasks}" -- $cur) )
-            return 0
-            ;;
-        ignore)
             COMPREPLY=( $(compgen -W "${tasks}" -- $cur) )
             return 0
             ;;
@@ -109,7 +85,7 @@ _doit()
             COMPREPLY=( $(compgen -W "${tasks}" -- $cur) )
             return 0
             ;;
-        tabcompletion)
+        dumpdb)
             COMPREPLY=( $(compgen -f -- $cur) )
             return 0
             ;;
@@ -117,8 +93,36 @@ _doit()
             COMPREPLY=( $(compgen -W "${tasks}" -- $cur) )
             return 0
             ;;
+        help)
+            COMPREPLY=( $(compgen -W "${tasks} ${sub_cmds}" -- $cur) )
+            return 0
+            ;;
+        ignore)
+            COMPREPLY=( $(compgen -W "${tasks}" -- $cur) )
+            return 0
+            ;;
+        info)
+            COMPREPLY=( $(compgen -W "${tasks}" -- $cur) )
+            return 0
+            ;;
+        list)
+            COMPREPLY=( $(compgen -W "${tasks}" -- $cur) )
+            return 0
+            ;;
         reset-dep)
             COMPREPLY=( $(compgen -W "${tasks}" -- $cur) )
+            return 0
+            ;;
+        run)
+            COMPREPLY=( $(compgen -W "${tasks}" -- $cur) )
+            return 0
+            ;;
+        strace)
+            COMPREPLY=( $(compgen -W "${tasks}" -- $cur) )
+            return 0
+            ;;
+        tabcompletion)
+            COMPREPLY=( $(compgen -f -- $cur) )
             return 0
             ;;
     esac

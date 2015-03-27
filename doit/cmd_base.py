@@ -58,12 +58,16 @@ class Command(object):
     execute_tasks = False
 
     def __init__(self):
-        self.name = self.name or self.__class__.__name__.lower()
+        self.name = self.get_name()
         Command.CMD_LIST.append(self.name)
         self.options = self.set_options()
         # Use post-mortem PDB in case of error loading tasks.
         # Only available for `run` command.
         self.pdb = False
+
+    @classmethod
+    def get_name(cls):
+        return cls.name or cls.__name__.lower()
 
     def set_options(self):
         """@reutrn list of CmdOption
