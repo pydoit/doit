@@ -313,3 +313,15 @@ to a task that has already run.
 .. code-block:: console
 
     $ doit reset-dep
+
+.. warning::
+
+   `reset-dep` will **NOT** recalculate task `values` and `result`.
+   This might not be the correct behavior for your tasks!
+
+   It is safe to use `reset-dep` if your tasks rely only on files to control its
+   up-to-date status. So only use this command if you are sure it is OK for your
+   tasks.
+
+   If the DB already has any saved `values` or `result` they will be preserved
+   otherwise they will not be set at all.

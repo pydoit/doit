@@ -463,13 +463,18 @@ class DependencyBase(object):
 
     ####### task specific
 
-    def save_success(self, task):
-        """save info after a task is successfuly executed"""
+    def save_success(self, task, result_hash=None):
+        """save info after a task is successfuly executed
+
+        :param result_hash: (str) explicitly set result_hash
+        """
         # save task values
         self._set(task.name, "_values_:", task.values)
 
         # save task result md5
-        if task.result:
+        if result_hash is not None:
+            self._set(task.name, "result:", result_hash)
+        elif task.result:
             if isinstance(task.result, dict):
                 self._set(task.name, "result:", task.result)
             else:

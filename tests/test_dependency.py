@@ -164,6 +164,12 @@ class TestSaveSuccess(object):
         pdepfile.save_success(t1)
         assert get_md5("result") == pdepfile._get(t1.name, "result:")
 
+    def test_save_result_hash(self, pdepfile):
+        t1 = Task('t_name', None)
+        t1.result = "result"
+        pdepfile.save_success(t1, result_hash='abc')
+        assert 'abc' == pdepfile._get(t1.name, "result:")
+
     def test_save_resultNone(self, pdepfile):
         t1 = Task('t_name', None)
         pdepfile.save_success(t1)

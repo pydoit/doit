@@ -1,5 +1,5 @@
-import pytest
 from six import StringIO
+import pytest
 
 from doit.cmd_resetdep import ResetDep
 from doit.dependency import TimestampChecker, get_md5, get_file_md5
@@ -86,11 +86,13 @@ class TestCmdResetDep(object):
         my_task.values = {'x': 5, 'y': 10}
         depfile.save_success(my_task)
         depfile.checker = TimestampChecker()  # trigger task update
+
+        reseted = Task("t2", [""], file_dep=['tests/data/dependency1'])
         output = StringIO()
-        cmd_reset = CmdFactory(ResetDep, outstream=output, task_list=[my_task],
+        cmd_reset = CmdFactory(ResetDep, outstream=output, task_list=[reseted],
                                dep_manager=depfile)
         cmd_reset._execute()
         got = output.getvalue()
         assert "processed t2\n" == got
-        assert {'x': 5, 'y': 10} == depfile.get_values(my_task.name)
-        assert get_md5('result') == depfile.get_result(my_task.name)
+        assert {'x': 5, 'y': 10} == depfile.get_values(reseted.name)
+        assert get_md5('result') == depfile.get_result(reseted.name)

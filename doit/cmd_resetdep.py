@@ -31,6 +31,7 @@ to a task that has already run.
         # dict of all tasks
         tasks = dict([(t.name, t) for t in self.task_list])
 
+        # select tasks that command will be applied to
         if filter_tasks:
             # list only tasks passed on command line
             check_tasks_exist(tasks, filter_tasks)
@@ -45,7 +46,7 @@ to a task that has already run.
 
         write = self.outstream.write
         for task in task_list:
-            # Save this now because dep_manager.get_status will remove the task
+            # Get these now because dep_manager.get_status will remove the task
             # from the db if the checker changed.
             values = self.dep_manager.get_values(task.name)
             result = self.dep_manager.get_result(task.name)
@@ -58,9 +59,6 @@ to a task that has already run.
                 write("failed {} ({})\n".format(task.name, str(e)))
                 continue
 
-            task.values = values
-            # task.result = result
-
             # An 'up-to-date' status means that it is useless to recompute the
             # state: file deps and targets exists, the state has not changed,
             # there is nothing more to do.
@@ -68,9 +66,8 @@ to a task that has already run.
                 write("skip {}\n".format(task.name))
                 continue
 
-            self.dep_manager.save_success(task)
-            # Store the result directly, so that it is not hashed a second time
-            self.dep_manager._set(task.name, "result:", result)
+            task.values = values
+            self.dep_manager.save_success(task, result_hash=result)
             write("processed {}\n".format(task.name))
 
         self.dep_manager.close()
