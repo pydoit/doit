@@ -80,11 +80,11 @@ class CmdOption(object):
                 raise CmdParseError(msg % (opt_dict, field))
 
         self.name = opt_dict.pop('name')
+        self.type = opt_dict.pop('type', str)
         default = opt_dict.pop('default')
         if self.type is list:
             default = copy.copy(default)
         self.default = default
-        self.type = opt_dict.pop('type', str)
         self.short = opt_dict.pop('short', '')
         self.long = opt_dict.pop('long', '')
         self.inverse = opt_dict.pop('inverse', '')
