@@ -20,8 +20,8 @@ elif platform_system == "Linux":
 
 ##################################################
 
-if sys.version_info < (2, 7):
-    install_requires.append('ordereddict')
+if sys.version_info < (3, 0):
+    install_requires.append('configparser')
 
 
 

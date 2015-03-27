@@ -7,7 +7,7 @@ import traceback
 import importlib
 from collections import defaultdict
 import six
-from six.moves import configparser
+from configparser import ConfigParser
 
 from .version import VERSION
 from .exceptions import InvalidDodoFile, InvalidCommand, InvalidTask
@@ -75,7 +75,7 @@ class DoitMain(object):
         self.task_loader = task_loader if task_loader else self.TASK_LOADER()
         self.sub_cmds = {} # dict with available sub-commands
         self.plugins = PluginRegistry()
-        self.config = configparser.SafeConfigParser(allow_no_value=True)
+        self.config = ConfigParser(allow_no_value=True, delimiters=('=',))
         self.config.optionxform = str  # preserve case of option names
         self.load_config_ini(config_filenames)
 
@@ -90,7 +90,7 @@ class DoitMain(object):
 
         if self.config.has_section('command'):
             for name, _ in self.config.items('command'):
-                obj_name, mod_name = name.split('@')
+                mod_name, obj_name = name.split(':')
                 self.plugins.add('command', mod_name, obj_name)
 
 
