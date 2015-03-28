@@ -61,12 +61,14 @@ class Command(object):
         self.name = self.get_name()
         Command.CMD_LIST.append(self.name)
         self.options = self.set_options()
+        self.config_vals = {}
         # Use post-mortem PDB in case of error loading tasks.
         # Only available for `run` command.
         self.pdb = False
 
     @classmethod
     def get_name(cls):
+        """get command name as used from command line"""
         return cls.name or cls.__name__.lower()
 
     def set_options(self):
@@ -74,6 +76,18 @@ class Command(object):
         """
         opt_list = self.cmd_options
         return [CmdOption(opt) for opt in opt_list]
+
+
+    def configure(self, vals):
+        """update config_vals
+
+        :param vals: dict
+
+        Set extra configuration values, this vals can come from:
+         * directly passed when using the API - through DoitMain.run()
+         * from an INI configuration file
+        """
+        self.config_vals.update(vals)
 
 
     def execute(self, opt_values, pos_args): # pragma: no cover
@@ -90,20 +104,25 @@ class Command(object):
         @args: see method parse
         @returns: result of self.execute
         """
-        params, args = CmdParse(self.options).parse(in_args)
+        cmdparse = CmdParse(self.options)
+        cmdparse.overwrite_defaults(self.config_vals)
+        params, args = cmdparse.parse(in_args)
         self.pdb = params.get('pdb', False)
         return self.execute(params, args)
 
 
     def help(self):
         """return help text"""
+        cmdparse = CmdParse(self.options)
+        cmdparse.overwrite_defaults(self.config_vals)
+
         text = []
         text.append("Purpose: %s" % self.doc_purpose)
         text.append("Usage:   doit %s %s" % (self.name, self.doc_usage))
         text.append('')
 
         text.append("Options:")
-        for opt in self.options:
+        for opt in cmdparse.options:
             text.extend(opt.help_doc())
 
         if self.doc_description is not None:
@@ -122,7 +141,7 @@ opt_depfile = {
     'long': 'db-file',
     'type': str,
     'default': ".doit.db",
-    'help': "file used to save successful runs"
+    'help': "file used to save successful runs [default: %(default)s]"
 }
 
 # dependency file DB backend
@@ -254,6 +273,8 @@ class DoitCmdBase(Command):
         """this initializer is usually just used on tests"""
         self._loader = task_loader
         Command.__init__(self)
+        self.sel_tasks = None # selected tasks for command
+        self.dep_manager = None #
         self.outstream = sys.stdout
 
     def set_options(self):
@@ -267,14 +288,12 @@ class DoitCmdBase(Command):
         """to be subclassed - actual command implementation"""
         raise NotImplementedError
 
-    def execute(self, params, args):
-        """load dodo.py, set attributes and call self._execute"""
-        self.task_list, self.config = self._loader.load_tasks(self, params,
-                                                              args)
-        self.sel_tasks = args or self.config.get('default_tasks')
 
-        # check minversion
-        minversion = self.config.get('minversion')
+    @staticmethod
+    def check_minversion(minversion):
+        """check if this version of doit statify minimum required version
+        Minimum version specified by configuration on dodo.
+        """
         if minversion:
             if version_tuple(minversion) > version_tuple(version.VERSION):
                 msg = ('Please update doit. '
@@ -283,30 +302,51 @@ class DoitCmdBase(Command):
                 raise InvalidDodoFile(msg.format(required=minversion,
                                                  actual=version.VERSION))
 
-        # check_file_uptodate
-        check_file_uptodate = params['check_file_uptodate']
+    @staticmethod
+    def get_checker_cls(check_file_uptodate):
+        """return checker class to be used by dep_manager"""
         if isinstance(check_file_uptodate, six.string_types):
             if check_file_uptodate not in CHECKERS:
                 msg = ("No check_file_uptodate named '{}'."
                        " Type 'doit help run' to see a list "
                        "of available checkers.")
                 raise InvalidCommand(msg.format(check_file_uptodate))
-            checker_cls = CHECKERS[check_file_uptodate]
+            return CHECKERS[check_file_uptodate]
         else:
             # user defined class
-            checker_cls = check_file_uptodate
+            return check_file_uptodate
 
 
-        # merge config values into params
-        params.update_defaults(self.config)
-        self.dep_file = params['dep_file']
+    def execute(self, params, args):
+        """load dodo.py, set attributes and call self._execute
+
+        :param params: instance of cmdparse.DefaultUpdate
+        :param args: list of string arguments (containing task names)
+        """
+        self.task_list, dodo_config = self._loader.load_tasks(self, params,
+                                                              args)
+        # merge config values from dodo.py into params
+        params.update_defaults(dodo_config)
+
+        self.check_minversion(params.get('minversion'))
+
+        # set selected tasks for command
+        self.sel_tasks = args or params.get('default_tasks')
+
+        # create dep manager
         dep_class = backend_map.get(params['backend'])
+        checker_cls = self.get_checker_cls(params['check_file_uptodate'])
         # note the command have the responsability to call dep_manager.close()
         self.dep_manager = dep_class(params['dep_file'], checker_cls)
-        params['pos_args'] = args # hack
-        params['continue_'] = params.get('continue') # hack
 
-        # magic - create dict based on signature of _execute method
+        # hack to pass parameter into _execute() calls that are not part
+        # of command line options
+        params['pos_args'] = args
+        params['continue_'] = params.get('continue')
+
+        # magic - create dict based on signature of _execute() method.
+        # this done so that _execute() have a nice API with name parameters
+        # instead of just taking a dict.
         args_name = inspect.getargspec(self._execute)[0]
         exec_params = dict((n, params[n]) for n in args_name if n != 'self')
         return self._execute(**exec_params)

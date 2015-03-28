@@ -131,8 +131,12 @@ class DoitMain(object):
         return args_no_vars
 
 
-    def run(self, cmd_args):
+    def run(self, cmd_args, extra_config=None):
         """entry point for all commands
+
+        :param cmd_args: list of string arguments from command line
+        :param extra_config: dict of extra argument values (by argument name)
+               This is parameter is only used by explicit API call.
 
         return codes:
           0: tasks executed successfully
@@ -166,6 +170,8 @@ class DoitMain(object):
 
         # execute command
         try:
+            if extra_config:
+                command.configure(extra_config)
             return command.parse_execute(args)
 
         # dont show traceback for user errors.

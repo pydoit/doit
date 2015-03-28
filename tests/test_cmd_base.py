@@ -33,14 +33,14 @@ opt_rare = {'name': 'rare',
             'long': 'rare-bool',
             'type': bool,
             'default': False,
-            'help': 'help for opt2'}
+            'help': 'help for opt2 [default: %(default)s]'}
 
 opt_int = {'name': 'num',
            'short':'n',
            'long': 'number',
            'type': int,
            'default': 5,
-           'help': 'help for opt3'}
+           'help': 'help for opt3 [default: %(default)s]'}
 
 opt_no = {'name': 'no',
           'short':'',
@@ -70,7 +70,27 @@ class TestCommand(object):
     def cmd(self, request):
         return SampleCmd()
 
+    def test_configure(self, cmd):
+        assert cmd.config_vals == {}
+        cmd.configure({'foo':1, 'bar':'2'})
+        assert cmd.config_vals == {'foo':1, 'bar':'2'}
+
+    def test_call_value_cmd_line_arg(self, cmd):
+        params, args = cmd.parse_execute(['-n','7','ppp'])
+        assert ['ppp'] == args
+        assert 7 == params['num']
+
+    def test_call_value_option_default(self, cmd):
+        params, args = cmd.parse_execute([])
+        assert 5 == params['num']
+
+    def test_call_value_overwritten_default(self, cmd):
+        cmd.configure({'num': 20})
+        params, args = cmd.parse_execute([])
+        assert 20 == params['num']
+
     def test_help(self, cmd):
+        cmd.configure({'num': 20})
         text = cmd.help()
         assert 'PURPOSE' in text
         assert 'USAGE' in text
@@ -79,16 +99,20 @@ class TestCommand(object):
         assert '--rare-bool' in text
         assert 'help for opt1' in text
         assert opt_no['name'] in [o.name for o in cmd.options]
+
+        # option wihtout short and long are not displayed
         assert 'user cant modify me' not in text
 
+        # default value is displayed
+        assert "help for opt2 [default: False]" in text
 
-    def test_call(self, cmd):
-        params, args = cmd.parse_execute(['-n','7','ppp'])
-        assert ['ppp'] == args
-        assert 7 == params['num']
+        # overwritten default
+        assert "help for opt3 [default: 20]" in text
+
 
     def test_failCall(self, cmd):
         pytest.raises(CmdParseError, cmd.parse_execute, ['-x','35'])
+
 
 
 class TestModuleTaskLoader(object):

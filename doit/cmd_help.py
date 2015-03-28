@@ -139,7 +139,10 @@ class Help(DoitCmdBase):
             self.print_task_help()
         # help on command
         elif args[0] in cmds:
-            six.print_(cmds[args[0]].help())
+            cmd = cmds[args[0]]
+            # pass extra_config to cmd
+            cmd.configure(self.config_vals)
+            six.print_(cmd.help())
         else:
             # help of specific task
             try:
