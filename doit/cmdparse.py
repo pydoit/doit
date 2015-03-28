@@ -3,8 +3,10 @@
 Built on top of getopt. optparse can't handle sub-commands.
 """
 import getopt
-import six
 import copy
+
+import six
+
 
 class DefaultUpdate(dict):
     """A dictionary that has an "update_defaults" method where

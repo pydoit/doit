@@ -63,6 +63,7 @@ CamelCase
 CmdAction
 CmdAction's
 CmdActions
+CmdParse
 Config
 ConsoleReporter
 Ctrl
@@ -124,6 +125,7 @@ autoload
 b4
 backend
 backends
+backport
 bar'
 basename
 bioinformatic
@@ -142,6 +144,7 @@ compFile
 compinit
 compressed1
 config
+configparser
 cp
 cproject
 cron
@@ -323,3 +326,4 @@ x'
 xxx
 xyz
 zsh
+
