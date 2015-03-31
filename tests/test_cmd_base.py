@@ -209,7 +209,7 @@ class TestDoitCmdBase(object):
         mycmd = self.MyCmd(ModuleTaskLoader({}))
         params, args = CmdParse(mycmd.options).parse([])
         params['check_file_uptodate'] = 'i dont exist'
-        pytest.raises(InvalidCommand, mycmd.execute, params, args)
+        pytest.raises(TypeError, mycmd.execute, params, args)
 
 
     def testCustomChecker(self, depfile_name):
