@@ -232,7 +232,11 @@ class CmdParse(object):
         """
         params = DefaultUpdate()
         # add default values
+<<<<<<< HEAD
         for opt in six.itervalues(self._options):
+=======
+        for opt in self.options:
+>>>>>>> fix: copy.copy causes mischief when applied to things like sys.stdout or classes
             params.set_default(opt.name, opt.default)
 
         # parse options using getopt
