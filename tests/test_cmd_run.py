@@ -4,7 +4,6 @@ from six import StringIO
 import pytest
 from mock import Mock
 
-from doit.exceptions import InvalidCommand
 from doit.task import Task
 from doit import reporter, runner
 from doit.cmd_run import Run
