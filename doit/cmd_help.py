@@ -106,7 +106,7 @@ class Help(DoitCmdBase):
         print('')
         print("Commands")
         for cmd in sorted(six.itervalues(cmds), key=attrgetter('name')):
-            six.print_("  doit %s \t\t %s" % (cmd.name, cmd.doc_purpose))
+            six.print_("  doit {:16s}  {}".format(cmd.name, cmd.doc_purpose))
         print("")
         print("  doit help              show help / reference")
         print("  doit help task         show help on task dictionary fields")
@@ -139,7 +139,10 @@ class Help(DoitCmdBase):
             self.print_task_help()
         # help on command
         elif args[0] in cmds:
-            six.print_(cmds[args[0]].help())
+            cmd = cmds[args[0]]
+            # pass extra_config to cmd
+            cmd.configure(self.config_vals)
+            six.print_(cmd.help())
         else:
             # help of specific task
             try:

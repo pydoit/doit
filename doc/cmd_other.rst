@@ -290,3 +290,38 @@ So this is NOT 100% reliable, use with care!
 .. code-block:: console
 
     $ doit strace <task-name>
+
+
+
+reset-dep
+---------
+
+This command allows to recompute the informations on file dependencies
+(timestamp, md5sum, ... depending on the ``check_file_uptodate`` setting), and
+save this in the database, without executing the actions.
+
+The command run on all tasks by default, but it is possible to specify a list
+of tasks to work on.
+
+This is useful when the targets of your tasks already exist, and you want doit
+to consider your tasks as up-to-date. One use-case for this command is when you
+change the ``check_file_uptodate`` setting, which cause doit to consider all
+your tasks as not up-to-date. It is also useful if you start using doit while
+some of your data as already been computed, or when you add a file dependency
+to a task that has already run.
+
+.. code-block:: console
+
+    $ doit reset-dep
+
+.. warning::
+
+   `reset-dep` will **NOT** recalculate task `values` and `result`.
+   This might not be the correct behavior for your tasks!
+
+   It is safe to use `reset-dep` if your tasks rely only on files to control its
+   up-to-date status. So only use this command if you are sure it is OK for your
+   tasks.
+
+   If the DB already has any saved `values` or `result` they will be preserved
+   otherwise they will not be set at all.

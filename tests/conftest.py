@@ -145,7 +145,8 @@ def tasks_sample():
 
 
 def CmdFactory(cls, outstream=None, task_loader=None, dep_file=None,
-               backend=None, config=None, task_list=None, sel_tasks=None):
+               backend=None, config=None, task_list=None, sel_tasks=None,
+               dep_manager=None):
     """helper for test code, so test can call _execute() directly"""
     cmd = cls(task_loader) if task_loader else cls(TaskLoader())
     if outstream:
@@ -153,10 +154,12 @@ def CmdFactory(cls, outstream=None, task_loader=None, dep_file=None,
     if backend:
         dep_class = backend_map.get(backend)
         cmd.dep_manager = dep_class(dep_file, MD5Checker)
-    cmd.dep_file = dep_file   # (str) filename usually '.doit.db'
-    cmd.config = config or {} # config from dodo.py & cmdline
-    cmd.task_list = task_list # list of tasks
-    cmd.sel_tasks = sel_tasks # from command line or default_tasks
+    elif dep_manager:
+        cmd.dep_manager = dep_manager
+    cmd.dep_file = dep_file    # (str) filename usually '.doit.db'
+    cmd.config = config or {}  # config from dodo.py & cmdline
+    cmd.task_list = task_list  # list of tasks
+    cmd.sel_tasks = sel_tasks  # from command line or default_tasks
     return cmd
 
 

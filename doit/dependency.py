@@ -30,6 +30,11 @@ class DatabaseException(Exception):
     pass
 
 
+class DependencyException(Exception):
+    """Exception class for whatever backend exception"""
+    pass
+
+
 def get_md5(input_data):
     """return md5 from string or unicode"""
     if isinstance(input_data, six.text_type):
@@ -458,13 +463,18 @@ class DependencyBase(object):
 
     ####### task specific
 
-    def save_success(self, task):
-        """save info after a task is successfuly executed"""
+    def save_success(self, task, result_hash=None):
+        """save info after a task is successfuly executed
+
+        :param result_hash: (str) explicitly set result_hash
+        """
         # save task values
         self._set(task.name, "_values_:", task.values)
 
         # save task result md5
-        if task.result:
+        if result_hash is not None:
+            self._set(task.name, "result:", result_hash)
+        elif task.result:
             if isinstance(task.result, dict):
                 self._set(task.name, "result:", task.result)
             else:
@@ -479,7 +489,6 @@ class DependencyBase(object):
 
         # save list of file_deps
         self._set(task.name, 'deps:', tuple(task.file_dep))
-
 
     def get_values(self, task_name):
         """get all saved values from a task
@@ -502,6 +511,12 @@ class DependencyBase(object):
             raise Exception(msg % (task_id, key_name))
         return values[key_name]
 
+    def get_result(self, task_name):
+        """get the result saved from a task
+        @return dict or md5sum
+        """
+        return self._get(task_name, 'result:')
+
     def remove_success(self, task):
         """remove saved info from task"""
         self.remove(task.name)
@@ -517,6 +532,9 @@ class DependencyBase(object):
     # TODO add option to log this
     def get_status(self, task, tasks_dict):
         """Check if task is up to date. set task.dep_changed
+
+        If the checker class changed since the previous run, the task is
+        deleted, to be sure that its state is not re-used.
 
         @param task: (Task)
         @param tasks_dict: (dict: Task) passed to objects used on uptodate
@@ -608,8 +626,8 @@ class DependencyBase(object):
             try:
                 file_stat = os.stat(dep)
             except OSError:
-                raise Exception("Dependent file '{}' does not exist."
-                                .format(dep))
+                raise DependencyException("Dependent file '{}' does not exist."
+                                          .format(dep))
             if state is None or check_modified(dep, file_stat, state):
                 changed.append(dep)
         if len(changed) > 0:

@@ -3,6 +3,9 @@
 Built on top of getopt. optparse can't handle sub-commands.
 """
 import getopt
+import copy
+from collections import OrderedDict
+
 import six
 import copy
 
@@ -103,6 +106,14 @@ class CmdOption(object):
                 "'long':{1.long!r} }})")
         return tmpl.format(self.__class__.__name__, self)
 
+    def set_default(self, val):
+        """set default value"""
+        if self.type is list:
+            self.default = copy.copy(val)
+        else:
+            self.default = val
+
+
     @staticmethod
     def _print_2_columns(col1, col2):
         """print using a 2-columns format """
@@ -158,12 +169,17 @@ class CmdParse(object):
     _type = "Command"
 
     def __init__(self, options):
-        self.options = options[:]
+        self._options = OrderedDict((o.name, o) for o in options)
+
+    @property
+    def options(self):
+        """return list of options for backward compatibility"""
+        return list(self._options.values())
 
     def get_short(self):
         """return string with short options for getopt"""
         short_list = ""
-        for opt in self.options:
+        for opt in six.itervalues(self._options):
             if not opt.short:
                 continue
             short_list += opt.short
@@ -175,7 +191,7 @@ class CmdParse(object):
     def get_long(self):
         """return list with long options for getopt"""
         long_list = []
-        for opt in self.options:
+        for opt in six.itervalues(self._options):
             long_name = opt.long
             if not long_name:
                 continue
@@ -192,12 +208,21 @@ class CmdParse(object):
             - option dictionary from matching opt_str. or None
             - (bool) matched inverse
         """
-        for opt in self.options:
+        for opt in six.itervalues(self._options):
             if opt_str in ('-' + opt.short, '--' + opt.long):
                 return opt, False
             if opt_str == '--' + opt.inverse:
                 return opt, True
         return None, None
+
+    def overwrite_defaults(self, new_defaults):
+        """overwrite self.options default values
+
+        This values typically come from an INI file
+        """
+        for key, val in six.iteritems(new_defaults):
+            if key in self._options:
+                self._options[key].set_default(val)
 
     def parse(self, in_args):
         """parse arguments into options(params) and positional arguments
@@ -210,7 +235,7 @@ class CmdParse(object):
         """
         params = DefaultUpdate()
         # add default values
-        for opt in self.options:
+        for opt in six.itervalues(self._options):
             params.set_default(opt.name, opt.default)
 
         # parse options using getopt

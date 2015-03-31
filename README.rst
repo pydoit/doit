@@ -31,6 +31,7 @@ Project Details
  - Project management on github - https://github.com/pydoit/doit
  - Website & docs - http://pydoit.org
  - Discussion group - https://groups.google.com/forum/#!forum/python-doit
+ - News/twitter - https://twitter.com/py_doit
 
 license
 =======
@@ -63,6 +64,7 @@ dependencies
 - six
 - pyinotify (linux)
 - macfsevents (mac)
+- configparser (python2 only - backport of py3 configparser)
 
 Tools required for development:
 

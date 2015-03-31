@@ -79,6 +79,18 @@ class TestRun(object):
         cmd_main(['--z=5'])
         assert None == get_var('--z')
 
+    def test_extra_config(self, monkeypatch, depfile_name):
+        outfile_val = []
+        def monkey_run(self, outfile=''):
+            outfile_val.append(outfile)
+        monkeypatch.setattr(Run, "_execute", monkey_run)
+        extra_config = {
+            'outfile': 'foo.txt',
+            'dep_file': depfile_name,
+        }
+        doit_cmd.DoitMain().run([], extra_config)
+        assert outfile_val[0] == 'foo.txt'
+
 
 
 class TestErrors(object):
