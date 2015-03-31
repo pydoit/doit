@@ -68,7 +68,7 @@ class List(DoitCmdBase):
     STATUS_MAP = {'ignore': 'I', 'up-to-date': 'U', 'run': 'R'}
 
 
-    def _print_task(self, template, task, status, list_deps):
+    def _print_task(self, template, task, status, list_deps, tasks):
         """print a single task"""
         line_data = {'name': task.name, 'doc':task.doc}
         # FIXME group task status is never up-to-date
@@ -77,7 +77,7 @@ class List(DoitCmdBase):
             if self.dep_manager.status_is_ignore(task):
                 task_status = 'ignore'
             else:
-                task_status = self.dep_manager.get_status(task, None)
+                task_status = self.dep_manager.get_status(task, tasks)
             line_data['status'] = self.STATUS_MAP[task_status]
 
         self.outstream.write(template.format(**line_data))
@@ -146,5 +146,5 @@ class List(DoitCmdBase):
 
         # print list of tasks
         for task in sorted(print_list):
-            self._print_task(template, task, status, list_deps)
+            self._print_task(template, task, status, list_deps, tasks)
         return 0
