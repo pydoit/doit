@@ -85,7 +85,7 @@ opt_bool = {'name': 'flag',
             'inverse':'no-flag',
             'type': bool,
             'default': False,
-            'help': 'help for opt1'}
+            'help': 'help for opt1 [default: %(default)s]'}
 
 opt_rare = {'name': 'rare',
             'long': 'rare-bool',
