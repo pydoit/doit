@@ -158,8 +158,8 @@ class CmdOption(object):
         opt_str = self.help_param()
 
         if isinstance(self.type, dict):
-            default = iter( key for key in six.iterkeys(self.type)
-                            if self.type[key] == self.default ).next()
+            default = next(iter( key for key in six.iterkeys(self.type)
+                                 if self.type[key] == self.default ))
             template_dict = {'choices': self.type.keys(),
                              'default': default}
         else:
