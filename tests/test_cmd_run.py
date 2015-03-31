@@ -35,7 +35,8 @@ class TestCmdRun(object):
         output = StringIO()
         cmd_run = CmdFactory(Run, backend='dbm', dep_file=depfile_name,
                              task_list=tasks_sample())
-        result = cmd_run._execute(output, num_process=1, par_type='thread')
+        result = cmd_run._execute(output, num_process=1,
+                                  par_type=runner.MThreadRunner)
         assert 0 == result
         got = output.getvalue().split("\n")[:-1]
         assert [".  t1", ".  t2", ".  g1.a", ".  g1.b", ".  t3"] == got
@@ -44,7 +45,7 @@ class TestCmdRun(object):
         output = StringIO()
         cmd_run = CmdFactory(Run, backend='dbm', dep_file=depfile_name,
                              task_list=tasks_sample())
-        pytest.raises(InvalidCommand, cmd_run._execute,
+        pytest.raises(TypeError, cmd_run._execute,
                       output, num_process=1, par_type='not_exist')
 
 
@@ -105,7 +106,7 @@ class TestCmdRun(object):
         output = StringIO()
         cmd_run = CmdFactory(Run, backend='dbm', dep_file=depfile_name,
                              task_list=tasks_sample())
-        pytest.raises(InvalidCommand, cmd_run._execute,
+        pytest.raises(AttributeError, cmd_run._execute,
                       output, reporter="i dont exist")
 
     def testReporterInstance(self, depfile_name):
