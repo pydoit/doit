@@ -7,7 +7,7 @@ import copy
 from collections import OrderedDict
 
 import six
-import copy
+
 
 class DefaultUpdate(dict):
     """A dictionary that has an "update_defaults" method where
