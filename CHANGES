@@ -15,6 +15,7 @@ Changes
  - read configuration options from INI files
  - GH-#36 PythonAction recognizes returned TaskError or TaskFailed
  - GH-#37 CmdParse support for arguments of type list
+ - GH-#43 CmdParse support for choices-style arguments
  - fix issue when using unicode strings to specify `minversion` on python 2
  - fix GH-#27 auto command in conjunction with task arguments
 
