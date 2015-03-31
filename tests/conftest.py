@@ -12,7 +12,7 @@ import py
 import pytest
 
 from doit.dependency import Dependency, backend_map, MD5Checker
-from doit.task import Task
+from doit.task import Task, result_dep
 from doit.cmd_base import TaskLoader
 
 def get_abspath(relativePath):
@@ -138,9 +138,14 @@ def tasks_sample():
         # 4
         Task("g1.b", [""], doc="g1.b doc string", is_subtask=True),
         # 5
-        Task("t3", [""], doc="t3 doc string", task_dep=["t1"])
-        ]
+        Task("t3", [""], doc="t3 doc string", task_dep=["t1"]),
+        # 6
+        Task("t4", [""], doc="t4 doc string"),
+        # 7
+        Task("t5", [""], doc="t5 doc string", uptodate=[result_dep('t4')])
+    ]
     tasks_sample[2].task_dep = ['g1.a', 'g1.b']
+    tasks_sample[6].result = 'yes'
     return tasks_sample
 
 
