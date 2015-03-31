@@ -84,8 +84,8 @@ opt_reporter = {
     'name':'reporter',
     'short':'r',
     'long':'reporter',
-    'type':str, #TODO type choice (limit the accepted strings)
-    'default': 'default',
+    'type': REPORTERS, 
+    'default': REPORTERS['default'],
     'help': """Choose output reporter. Available:
 'default': report output on console
 'executed-only': no output for skipped (up-to-date) and group tasks
@@ -94,12 +94,17 @@ opt_reporter = {
 """
 }
 
+PAR_TYPES = {
+    "process": MRunner,
+    "thread": MThreadRunner
+}
+
 opt_parallel_type = {
     'name':'par_type',
     'short':'P',
     'long':'parallel-type',
-    'type':str,
-    'default': 'process',
+    'type': PAR_TYPES,
+    'default': PAR_TYPES['process'],
     'help': """Tasks can be executed in parallel in different ways:
 'process': uses python multiprocessing module
 'thread': uses threads
@@ -130,9 +135,9 @@ class Run(DoitCmdBase):
                    opt_reporter, opt_outfile, opt_num_process,
                    opt_parallel_type, opt_pdb, opt_single)
 
-    def _execute(self, outfile,
-                 verbosity=None, always=False, continue_=False,
-                 reporter='default', num_process=0, par_type='process',
+    def _execute(self, outfile, verbosity=None, always=False,
+                 continue_=False, reporter=REPORTERS['default'],
+                 num_process=0, par_type=PAR_TYPES['process'],
                  single=False):
         """
         @param reporter:
@@ -157,16 +162,7 @@ class Run(DoitCmdBase):
                     task.task_dep = []
 
         # reporter
-        if isinstance(reporter, six.string_types):
-            if reporter not in REPORTERS:
-                msg = ("No reporter named '{}'."
-                       " Type 'doit help run' to see a list "
-                       "of available reporters.")
-                raise InvalidCommand(msg.format(reporter))
-            reporter_cls = REPORTERS[reporter]
-        else:
-            # user defined class
-            reporter_cls = reporter
+        reporter_cls = reporter
 
         # verbosity
         if verbosity is None:
@@ -194,21 +190,15 @@ class Run(DoitCmdBase):
             run_args = [self.dep_manager, reporter_obj,
                         continue_, always, verbosity]
 
+            RunnerClass = par_type
             if num_process == 0:
                 RunnerClass = Runner
             else:
-                if par_type == 'process':
-                    RunnerClass = MRunner
-                    if not MRunner.available():
-                        RunnerClass = MThreadRunner
-                        sys.stderr.write(
-                            "WARNING: multiprocessing module not available, " +
-                            "running in parallel using threads.")
-                elif par_type == 'thread':
+                if par_type is MRunner and not MRunner.available():
                     RunnerClass = MThreadRunner
-                else:
-                    msg = "Invalid parallel type %s"
-                    raise InvalidCommand(msg % par_type)
+                    sys.stderr.write(
+                        "WARNING: multiprocessing module not available, " +
+                        "running in parallel using threads.")
                 run_args.append(num_process)
 
             runner = RunnerClass(*run_args)
