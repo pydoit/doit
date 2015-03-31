@@ -7,7 +7,7 @@ import copy
 from collections import OrderedDict
 
 import six
-import copy
+
 
 class DefaultUpdate(dict):
     """A dictionary that has an "update_defaults" method where
@@ -84,10 +84,7 @@ class CmdOption(object):
 
         self.name = opt_dict.pop('name')
         self.type = opt_dict.pop('type', str)
-        default = opt_dict.pop('default')
-        if self.type is list:
-            default = copy.copy(default)
-        self.default = default
+        self.set_default(opt_dict.pop('default'))
         self.short = opt_dict.pop('short', '')
         self.long = opt_dict.pop('long', '')
         self.inverse = opt_dict.pop('inverse', '')
