@@ -2,7 +2,6 @@ import sys
 import codecs
 import six
 
-from .exceptions import InvalidCommand
 from .task import Task
 from .control import TaskControl
 from .runner import Runner, MRunner, MThreadRunner
