@@ -7,7 +7,7 @@ import traceback
 import importlib
 from collections import defaultdict
 import six
-from six.moves.configparser import ConfigParser
+from configparser import ConfigParser
 
 from .version import VERSION
 from .exceptions import InvalidDodoFile, InvalidCommand, InvalidTask
@@ -40,12 +40,6 @@ def get_var(name, default=None):
 def set_var(name, value):
     _CMDLINE_VARS[name] = value
 
-
-
-def get_ConfigParser(*args, **kwargs):
-    if six.PY2:
-        kwargs.pop("delimiters")
-    return ConfigParser(*args, **kwargs)
 
 
 class PluginRegistry(object):
@@ -81,7 +75,7 @@ class DoitMain(object):
         self.task_loader = task_loader if task_loader else self.TASK_LOADER()
         self.sub_cmds = {} # dict with available sub-commands
         self.plugins = PluginRegistry()
-        self.config = get_ConfigParser(allow_no_value=True, delimiters=('=',))
+        self.config = ConfigParser(allow_no_value=True, delimiters=('=',))
         self.config.optionxform = str  # preserve case of option names
         self.load_config_ini(config_filenames)
 
@@ -95,13 +89,9 @@ class DoitMain(object):
         self.config.read(filenames)
 
         if self.config.has_section('command'):
-            if six.PY2:
-                for mod_name, obj_name in self.config.items('command'):
-                    self.plugins.add('command', mod_name, obj_name)
-            else:
-                for name, _ in self.config.items('command'):
-                    mod_name, obj_name = name.split(':')
-                    self.plugins.add('command', mod_name, obj_name)
+            for name, _ in self.config.items('command'):
+                mod_name, obj_name = name.split(':')
+                self.plugins.add('command', mod_name, obj_name)
 
 
     @staticmethod
