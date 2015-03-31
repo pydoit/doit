@@ -7,13 +7,19 @@ from .exceptions import InvalidCommand
 from .cmd_base import DoitCmdBase
 
 
+SHELL_CHOICES = {
+    "bash": "bash",
+    "zsh": "zsh",
+}
+
 opt_shell = {
     'name': 'shell',
     'short': 's',
     'long': 'shell',
-    'type': str,
-    'default': 'bash',
-    'help': 'Completion code for SHELL. default: "bash". options: [bash, zsh]',
+    'type': SHELL_CHOICES,
+    'default': SHELL_CHOICES['bash'],
+    'help': """Completion code for SHELL. 
+options [default: %(default)s]: %(chocies)s"""
     }
 
 opt_hardcode_tasks = {
@@ -46,13 +52,16 @@ class TabCompletion(DoitCmdBase):
     cmd_options = (opt_shell, opt_hardcode_tasks, )
 
     def execute(self, opt_values, pos_args):
-        if opt_values['shell'] == 'bash':
+        choice = opt_values['shell']
+        if choice == SHELL_CHOICES['bash']:
             self._generate_bash(opt_values, pos_args)
-        elif opt_values['shell'] == 'zsh':
+        elif choice == SHELL_CHOICES['zsh']:
             self._generate_zsh(opt_values, pos_args)
         else:
-            msg = 'Invalid option for --shell "{0}"'
-            raise InvalidCommand(msg.format(opt_values['shell']))
+            raise InvalidCommand(
+                "Unrecognized shell: {}. Choices are {}".format(
+                    choice, SHELL_CHOICES.keys())
+            )
 
     @classmethod
     def _bash_cmd_args(cls, cmd):
