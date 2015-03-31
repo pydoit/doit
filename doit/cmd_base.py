@@ -149,23 +149,21 @@ opt_backend = {
     'name': 'backend',
     'short':'',
     'long': 'backend',
-    'type': str,
-    'default': "dbm",
+    'type': backend_map,
+    'default': backend_map["dbm"],
     'help': ("Select dependency file backend. " +
-             "Available options dbm, json, sqlite3. [default: %(default)s]")
+             "Available options [default: %(default)s]: %(choices)s")
 }
 
 opt_check_file_uptodate = {
     'name': 'check_file_uptodate',
     'short': '',
     'long': 'check_file_uptodate',
-    'type': str,
-    'default': 'md5',
+    'type': CHECKERS,
+    'default': CHECKERS['md5'],
     'help': """\
 Choose how to check if files have been modified.
-Available options [default: %(default)s]:
-  'md5': use the md5sum
-  'timestamp': use the timestamp
+Available options [default: %(default)s]: %(choices)s
 """
 }
 
@@ -302,20 +300,6 @@ class DoitCmdBase(Command):
                 raise InvalidDodoFile(msg.format(required=minversion,
                                                  actual=version.VERSION))
 
-    @staticmethod
-    def get_checker_cls(check_file_uptodate):
-        """return checker class to be used by dep_manager"""
-        if isinstance(check_file_uptodate, six.string_types):
-            if check_file_uptodate not in CHECKERS:
-                msg = ("No check_file_uptodate named '{}'."
-                       " Type 'doit help run' to see a list "
-                       "of available checkers.")
-                raise InvalidCommand(msg.format(check_file_uptodate))
-            return CHECKERS[check_file_uptodate]
-        else:
-            # user defined class
-            return check_file_uptodate
-
 
     def execute(self, params, args):
         """load dodo.py, set attributes and call self._execute
@@ -334,8 +318,8 @@ class DoitCmdBase(Command):
         self.sel_tasks = args or params.get('default_tasks')
 
         # create dep manager
-        dep_class = backend_map.get(params['backend'])
-        checker_cls = self.get_checker_cls(params['check_file_uptodate'])
+        dep_class = params['backend']
+        checker_cls = params['check_file_uptodate']
         # note the command have the responsability to call dep_manager.close()
         self.dep_manager = dep_class(params['dep_file'], checker_cls)
 
