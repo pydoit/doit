@@ -170,6 +170,11 @@ class TestCommand(object):
         assert 5 == params['num']
         assert [] == params['list']
 
+    def test_overwrite_defaults(self, cmd):
+        cmd.overwrite_defaults({'num': 9, 'i_dont_exist': 1})
+        params, args = cmd.parse([])
+        assert 9 == params['num']
+
     def test_parseShortValues(self, cmd):
         params, args = cmd.parse(['-n','89','-f', '-l', 'foo', '-l', 'bar'])
         assert True == params['flag']
