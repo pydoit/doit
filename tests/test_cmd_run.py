@@ -10,6 +10,9 @@ from doit import reporter, runner
 from doit.cmd_run import Run
 from tests.conftest import tasks_sample, CmdFactory
 
+SAMPLE_TASKS_OUTPUT = [".  t1", ".  t2", ".  g1.a", ".  g1.b", ".  t3",
+                       ".  t4", ".  t5"]
+
 
 class TestCmdRun(object):
 
@@ -20,7 +23,7 @@ class TestCmdRun(object):
         result = cmd_run._execute(output)
         assert 0 == result
         got = output.getvalue().split("\n")[:-1]
-        assert [".  t1", ".  t2", ".  g1.a", ".  g1.b", ".  t3"] == got
+        assert SAMPLE_TASKS_OUTPUT == got
 
     def testProcessRunMP(self, dependency1, depfile_name):
         output = StringIO()
@@ -29,7 +32,7 @@ class TestCmdRun(object):
         result = cmd_run._execute(output, num_process=1)
         assert 0 == result
         got = output.getvalue().split("\n")[:-1]
-        assert [".  t1", ".  t2", ".  g1.a", ".  g1.b", ".  t3"] == got
+        assert SAMPLE_TASKS_OUTPUT == got
 
     def testProcessRunMThread(self, dependency1, depfile_name):
         output = StringIO()
@@ -38,7 +41,7 @@ class TestCmdRun(object):
         result = cmd_run._execute(output, num_process=1, par_type='thread')
         assert 0 == result
         got = output.getvalue().split("\n")[:-1]
-        assert [".  t1", ".  t2", ".  g1.a", ".  g1.b", ".  t3"] == got
+        assert SAMPLE_TASKS_OUTPUT == got
 
     def testInvalidParType(self, dependency1, depfile_name):
         output = StringIO()
@@ -59,7 +62,7 @@ class TestCmdRun(object):
         result = cmd_run._execute(output, num_process=1)
         assert 0 == result
         got = output.getvalue().split("\n")[:-1]
-        assert [".  t1", ".  t2", ".  g1.a", ".  g1.b", ".  t3"] == got
+        assert SAMPLE_TASKS_OUTPUT == got
         err = capsys.readouterr()[1]
         assert "WARNING:" in err
         assert "parallel using threads" in err
