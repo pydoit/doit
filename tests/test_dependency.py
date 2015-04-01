@@ -503,6 +503,17 @@ class TestGetStatus(object):
         pdepfile.save_success(t1)
         assert 'up-to-date' == pdepfile.get_status(t1, {})
 
+    def test_uptodate_call_all_even_if_some_False(self, pdepfile):
+        checks = []
+        def check():
+            checks.append(1)
+            return False
+        t1 = Task("t1", None, uptodate=[check, check])
+        #pdepfile.save_success(t1)
+        assert 'run' == pdepfile.get_status(t1, {})
+        assert 2 == len(checks)
+
+
     def test_UptodateFunction_extra_args_True(self, pdepfile):
         def check(task, values, control):
             assert task.name == 't1'

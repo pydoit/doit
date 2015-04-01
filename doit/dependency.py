@@ -548,7 +548,7 @@ class DependencyBase(object):
         task.dep_changed = []
 
         # check uptodate bool/callables
-        checked_uptodate = False
+        uptodate_result_list = []
         for utd, utd_args, utd_kwargs in task.uptodate:
             # if parameter is a callable
             if hasattr(utd, '__call__'):
@@ -587,13 +587,14 @@ class DependencyBase(object):
             # just ignored
             if uptodate_result is None:
                 continue
-            if uptodate_result:
-                checked_uptodate = True
-            else:
-                return 'run'
+            uptodate_result_list.append(uptodate_result)
+
+        # any uptodate check is false
+        if not all(uptodate_result_list):
+            return 'run'
 
         # no dependencies means it is never up to date.
-        if not (task.file_dep or checked_uptodate):
+        if not (task.file_dep or uptodate_result_list):
             return 'run'
 
         # if target file is not there, task is not up to date
