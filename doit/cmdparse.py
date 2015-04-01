@@ -160,12 +160,11 @@ class CmdOption(object):
         if isinstance(self.type, dict):
             default = next(iter( key for key in six.iterkeys(self.type)
                                  if self.type[key] == self.default ))
-            template_dict = {'choices': self.type.keys(),
-                             'default': default}
+            opt_help = self.help.format(default=default,
+                                        choices=list(self.type.keys()))
         else:
-            template_dict = {'default': self.default}
+            opt_help = self.help.format(default=self.default)
 
-        opt_help = self.help % template_dict
         text.append(self._print_2_columns(opt_str, opt_help))
         # print bool inverse option
         if self.inverse:

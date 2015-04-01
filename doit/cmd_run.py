@@ -41,7 +41,7 @@ opt_always = {
     'long': 'always-execute',
     'type': bool,
     'default': False,
-    'help': "always execute tasks even if up-to-date [default: %(default)s]",
+    'help': "always execute tasks even if up-to-date [default: {default}]",
 }
 
 # continue executing tasks even after a failure
@@ -53,7 +53,7 @@ opt_continue = {
     'type': bool,
     'default': False,
     'help': ("continue executing tasks even after a failure " +
-             "[default: %(default)s]"),
+             "[default: {default}]"),
 }
 
 
@@ -64,7 +64,7 @@ opt_single = {
     'type': bool,
     'default': False,
     'help': ("Execute only specified tasks ignoring their task_dep " +
-             "[default: %(default)s]"),
+             "[default: {default}]"),
 }
 
 
@@ -74,7 +74,7 @@ opt_num_process = {
     'long': 'process',
     'type': int,
     'default': 0,
-    'help': "number of subprocesses [default: %(default)s]"
+    'help': "number of subprocesses [default: {default}]"
 }
 
 
@@ -89,7 +89,7 @@ opt_reporter = {
 'default': report output on console
 'executed-only': no output for skipped (up-to-date) and group tasks
 'json': output result in json format
-[default: %(default)s]
+[default: {default}]
 """
 }
 
@@ -107,7 +107,7 @@ opt_parallel_type = {
     'help': """Tasks can be executed in parallel in different ways:
 'process': uses python multiprocessing module
 'thread': uses threads
-[default: %(default)s]
+[default: {default}]
 """
 }
 

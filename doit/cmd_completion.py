@@ -19,7 +19,7 @@ opt_shell = {
     'type': SHELL_CHOICES,
     'default': SHELL_CHOICES['bash'],
     'help': """Completion code for SHELL. 
-options [default: %(default)s]: %(chocies)s"""
+options [default: {default}]: {chocies}"""
     }
 
 opt_hardcode_tasks = {

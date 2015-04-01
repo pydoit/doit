@@ -85,7 +85,7 @@ opt_bool = {'name': 'flag',
             'inverse':'no-flag',
             'type': bool,
             'default': False,
-            'help': 'help for opt1 [default: %(default)s]'}
+            'help': 'help for opt1 [default: {default}]'}
 
 opt_rare = {'name': 'rare',
             'long': 'rare-bool',
@@ -119,7 +119,7 @@ opt_choices = {'name': 'choices',
                'long': 'choice',
                'type': {"yes": "aye", "no": lambda: "nay"},
                'default': "aye",
-               'help': 'User chooses [default %(default)s]: %(choices)s'}
+               'help': 'User chooses [default {default}]: {choices}'}
 
 
 

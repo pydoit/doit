@@ -141,7 +141,7 @@ opt_depfile = {
     'long': 'db-file',
     'type': str,
     'default': ".doit.db",
-    'help': "file used to save successful runs [default: %(default)s]"
+    'help': "file used to save successful runs [default: {default}]"
 }
 
 # dependency file DB backend
@@ -152,7 +152,7 @@ opt_backend = {
     'type': backend_map,
     'default': backend_map["dbm"],
     'help': ("Select dependency file backend. " +
-             "Available options [default: %(default)s]: %(choices)s")
+             "Available options [default: {default}]: {choices}")
 }
 
 opt_check_file_uptodate = {
@@ -163,7 +163,7 @@ opt_check_file_uptodate = {
     'default': CHECKERS['md5'],
     'help': """\
 Choose how to check if files have been modified.
-Available options [default: %(default)s]: %(choices)s
+Available options [default: {default}]: {choices}
 """
 }
 
@@ -177,7 +177,7 @@ opt_dodo = {
     'long': 'file',
     'type': str,
     'default': 'dodo.py',
-    'help':"load task from dodo FILE [default: %(default)s]"
+    'help':"load task from dodo FILE [default: {default}]"
 }
 
 # cwd
@@ -199,7 +199,7 @@ opt_seek_file = {
     'type': bool,
     'default': False,
     'help': ("seek dodo file on parent folders " +
-             "[default: %(default)s]")
+             "[default: {default}]")
 }
 
 

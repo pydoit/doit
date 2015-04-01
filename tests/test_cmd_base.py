@@ -33,14 +33,14 @@ opt_rare = {'name': 'rare',
             'long': 'rare-bool',
             'type': bool,
             'default': False,
-            'help': 'help for opt2 [default: %(default)s]'}
+            'help': 'help for opt2 [default: {default}]'}
 
 opt_int = {'name': 'num',
            'short':'n',
            'long': 'number',
            'type': int,
            'default': 5,
-           'help': 'help for opt3 [default: %(default)s]'}
+           'help': 'help for opt3 [default: {default}]'}
 
 opt_no = {'name': 'no',
           'short':'',
