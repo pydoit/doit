@@ -8,6 +8,7 @@ from doit.exceptions import InvalidCommand
 from doit.cmdparse import DefaultUpdate
 from doit.task import Task
 from doit.cmd_strace import Strace
+from doit.dependency import backend_map, CHECKERS
 from .conftest import CmdFactory
 
 @pytest.mark.skipif("os.system('strace -V') != 0")
@@ -20,8 +21,8 @@ class TestCmdStrace(object):
         cmd = CmdFactory(Strace, outstream=output)
         cmd._loader.load_tasks = mock.Mock(return_value=([task], {}))
         params = DefaultUpdate(dep_file=depfile_name, show_all=False,
-                               keep_trace=False, backend='dbm',
-                               check_file_uptodate='md5')
+                               keep_trace=False, backend=backend_map['dbm'],
+                               check_file_uptodate=CHECKERS['md5'])
         result = cmd.execute(params, ['tt'])
         assert 0 == result
         got = output.getvalue().split("\n")
@@ -36,8 +37,8 @@ class TestCmdStrace(object):
         cmd = CmdFactory(Strace, outstream=output)
         cmd._loader.load_tasks = mock.Mock(return_value=([task], {}))
         params = DefaultUpdate(dep_file=depfile_name, show_all=True,
-                               keep_trace=False, backend='dbm',
-                               check_file_uptodate='md5')
+                               keep_trace=False, backend=backend_map['dbm'],
+                               check_file_uptodate=CHECKERS['md5'])
         result = cmd.execute(params, ['tt'])
         assert 0 == result
         got = output.getvalue().split("\n")
@@ -50,8 +51,8 @@ class TestCmdStrace(object):
         cmd = CmdFactory(Strace, outstream=output)
         cmd._loader.load_tasks = mock.Mock(return_value=([task], {}))
         params = DefaultUpdate(dep_file=depfile_name, show_all=True,
-                               keep_trace=True, backend='dbm',
-                               check_file_uptodate='md5')
+                               keep_trace=True, backend=backend_map['dbm'],
+                               check_file_uptodate=CHECKERS['md5'])
         result = cmd.execute(params, ['tt'])
         assert 0 == result
         got = output.getvalue().split("\n")
@@ -67,8 +68,8 @@ class TestCmdStrace(object):
         cmd = CmdFactory(Strace, outstream=output)
         cmd._loader.load_tasks = mock.Mock(return_value=([task], {}))
         params = DefaultUpdate(dep_file=depfile_name, show_all=False,
-                               keep_trace=False, backend='dbm',
-                               check_file_uptodate='md5')
+                               keep_trace=False, backend=backend_map['dbm'],
+                               check_file_uptodate=CHECKERS['md5'])
         result = cmd.execute(params, ['tt'])
         assert 0 == result
         got = output.getvalue().split("\n")
@@ -84,8 +85,8 @@ class TestCmdStrace(object):
         cmd = CmdFactory(Strace, outstream=output)
         cmd._loader.load_tasks = mock.Mock(return_value=([task], {}))
         params = DefaultUpdate(dep_file=depfile_name, show_all=False,
-                               keep_trace=False, backend='dbm',
-                               check_file_uptodate='md5')
+                               keep_trace=False, backend=backend_map['dbm'],
+                               check_file_uptodate=CHECKERS['md5'])
         result = cmd.execute(params, ['tt'])
         assert 0 == result
 
