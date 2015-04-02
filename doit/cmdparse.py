@@ -8,6 +8,8 @@ from collections import OrderedDict
 
 import six
 
+from .exceptions import InvalidCommand
+
 
 class DefaultUpdate(dict):
     """A dictionary that has an "update_defaults" method where
@@ -90,9 +92,6 @@ class CmdOption(object):
         self.inverse = opt_dict.pop('inverse', '')
         self.help = opt_dict.pop('help', '')
 
-        # TODO support "choice"
-        # TODO add some hint for tab-completion scripts
-
         # options can not contain any unrecognized field
         if opt_dict:
             msg = "CmdOption dict contains invalid property '%s'"
@@ -109,6 +108,16 @@ class CmdOption(object):
             self.default = copy.copy(val)
         else:
             self.default = val
+
+    def validate_choice(self, given_value):
+        if given_value not in self.type:
+            msg = ("Error parsing parameter '{}'. "
+                   "Provided '{}' but available choices are {}")
+            raise InvalidCommand(
+                msg.format(self.name, given_value, self.type.keys())
+            )
+        else:
+            return self.type[given_value]
 
 
     @staticmethod
@@ -147,7 +156,15 @@ class CmdOption(object):
 
         text = []
         opt_str = self.help_param()
-        opt_help = self.help % {'default': self.default}
+
+        if isinstance(self.type, dict):
+            default = next(iter( key for key in six.iterkeys(self.type)
+                                 if self.type[key] == self.default ))
+            opt_help = self.help.format(default=default,
+                                        choices=list(self.type.keys()))
+        else:
+            opt_help = self.help.format(default=self.default)
+
         text.append(self._print_2_columns(opt_str, opt_help))
         # print bool inverse option
         if self.inverse:
@@ -250,6 +267,9 @@ class CmdParse(object):
                 params[this.name] = not inverse
             elif this.type is list:
                 params[this.name].append(val)
+            elif isinstance(this.type, dict):
+                val = this.validate_choice(val)
+                params[this.name] = val
             else:
                 try:
                     params[this.name] = this.type(val)

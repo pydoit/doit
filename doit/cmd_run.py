@@ -2,7 +2,6 @@ import sys
 import codecs
 import six
 
-from .exceptions import InvalidCommand
 from .task import Task
 from .control import TaskControl
 from .runner import Runner, MRunner, MThreadRunner
@@ -42,7 +41,7 @@ opt_always = {
     'long': 'always-execute',
     'type': bool,
     'default': False,
-    'help': "always execute tasks even if up-to-date [default: %(default)s]",
+    'help': "always execute tasks even if up-to-date [default: {default}]",
 }
 
 # continue executing tasks even after a failure
@@ -54,7 +53,7 @@ opt_continue = {
     'type': bool,
     'default': False,
     'help': ("continue executing tasks even after a failure " +
-             "[default: %(default)s]"),
+             "[default: {default}]"),
 }
 
 
@@ -65,7 +64,7 @@ opt_single = {
     'type': bool,
     'default': False,
     'help': ("Execute only specified tasks ignoring their task_dep " +
-             "[default: %(default)s]"),
+             "[default: {default}]"),
 }
 
 
@@ -75,7 +74,7 @@ opt_num_process = {
     'long': 'process',
     'type': int,
     'default': 0,
-    'help': "number of subprocesses [default: %(default)s]"
+    'help': "number of subprocesses [default: {default}]"
 }
 
 
@@ -84,26 +83,31 @@ opt_reporter = {
     'name':'reporter',
     'short':'r',
     'long':'reporter',
-    'type':str, #TODO type choice (limit the accepted strings)
-    'default': 'default',
+    'type': REPORTERS, 
+    'default': REPORTERS['default'],
     'help': """Choose output reporter. Available:
 'default': report output on console
 'executed-only': no output for skipped (up-to-date) and group tasks
 'json': output result in json format
-[default: %(default)s]
+[default: {default}]
 """
+}
+
+PAR_TYPES = {
+    "process": MRunner,
+    "thread": MThreadRunner
 }
 
 opt_parallel_type = {
     'name':'par_type',
     'short':'P',
     'long':'parallel-type',
-    'type':str,
-    'default': 'process',
+    'type': PAR_TYPES,
+    'default': PAR_TYPES['process'],
     'help': """Tasks can be executed in parallel in different ways:
 'process': uses python multiprocessing module
 'thread': uses threads
-[default: %(default)s]
+[default: {default}]
 """
 }
 
@@ -130,9 +134,9 @@ class Run(DoitCmdBase):
                    opt_reporter, opt_outfile, opt_num_process,
                    opt_parallel_type, opt_pdb, opt_single)
 
-    def _execute(self, outfile,
-                 verbosity=None, always=False, continue_=False,
-                 reporter='default', num_process=0, par_type='process',
+    def _execute(self, outfile, verbosity=None, always=False,
+                 continue_=False, reporter=REPORTERS['default'],
+                 num_process=0, par_type=PAR_TYPES['process'],
                  single=False):
         """
         @param reporter:
@@ -157,16 +161,7 @@ class Run(DoitCmdBase):
                     task.task_dep = []
 
         # reporter
-        if isinstance(reporter, six.string_types):
-            if reporter not in REPORTERS:
-                msg = ("No reporter named '{}'."
-                       " Type 'doit help run' to see a list "
-                       "of available reporters.")
-                raise InvalidCommand(msg.format(reporter))
-            reporter_cls = REPORTERS[reporter]
-        else:
-            # user defined class
-            reporter_cls = reporter
+        reporter_cls = reporter
 
         # verbosity
         if verbosity is None:
@@ -194,21 +189,15 @@ class Run(DoitCmdBase):
             run_args = [self.dep_manager, reporter_obj,
                         continue_, always, verbosity]
 
+            RunnerClass = par_type
             if num_process == 0:
                 RunnerClass = Runner
             else:
-                if par_type == 'process':
-                    RunnerClass = MRunner
-                    if not MRunner.available():
-                        RunnerClass = MThreadRunner
-                        sys.stderr.write(
-                            "WARNING: multiprocessing module not available, " +
-                            "running in parallel using threads.")
-                elif par_type == 'thread':
+                if par_type is MRunner and not MRunner.available():
                     RunnerClass = MThreadRunner
-                else:
-                    msg = "Invalid parallel type %s"
-                    raise InvalidCommand(msg % par_type)
+                    sys.stderr.write(
+                        "WARNING: multiprocessing module not available, " +
+                        "running in parallel using threads.")
                 run_args.append(num_process)
 
             runner = RunnerClass(*run_args)

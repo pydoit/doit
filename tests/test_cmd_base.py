@@ -33,14 +33,14 @@ opt_rare = {'name': 'rare',
             'long': 'rare-bool',
             'type': bool,
             'default': False,
-            'help': 'help for opt2 [default: %(default)s]'}
+            'help': 'help for opt2 [default: {default}]'}
 
 opt_int = {'name': 'num',
            'short':'n',
            'long': 'number',
            'type': int,
            'default': 5,
-           'help': 'help for opt3 [default: %(default)s]'}
+           'help': 'help for opt3 [default: {default}]'}
 
 opt_no = {'name': 'no',
           'short':'',
@@ -209,7 +209,7 @@ class TestDoitCmdBase(object):
         mycmd = self.MyCmd(ModuleTaskLoader({}))
         params, args = CmdParse(mycmd.options).parse([])
         params['check_file_uptodate'] = 'i dont exist'
-        pytest.raises(InvalidCommand, mycmd.execute, params, args)
+        pytest.raises(TypeError, mycmd.execute, params, args)
 
 
     def testCustomChecker(self, depfile_name):
