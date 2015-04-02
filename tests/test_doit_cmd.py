@@ -11,34 +11,6 @@ from doit import doit_cmd
 
 
 
-class TestPluginRegistry(object):
-    def test_get_empty_list_for_whatever_category(self):
-        plugins = doit_cmd.PluginRegistry()
-        assert [] == plugins['foo']
-        assert [] == plugins['whatever name']
-
-    def test_add_many(self):
-        plugins = doit_cmd.PluginRegistry()
-        plugins.add('category1', 'pytest', 'raises')
-        plugins.add('category1', 'mock', 'Mock')
-        plugins.add('category2', 'doit.cmd_run', 'Run')
-        assert 2 == len(plugins['category1'])
-        assert pytest.raises is plugins['category1'][0]
-        assert Mock is plugins['category1'][1]
-        assert 1 == len(plugins['category2'])
-        assert Run is plugins['category2'][0]
-
-
-class TestLoadINI(object):
-    def test_load_plugins_command(self):
-        config_filename = os.path.join(os.path.dirname(__file__), 'sample.cfg')
-        main = doit_cmd.DoitMain(config_filenames=config_filename)
-        assert 1 == len(main.plugins['command'])
-        assert main.plugins['command'][0].name == 'mycmd'
-        # test loaded plugin command is actually used
-        assert 'mycmd' in main.get_commands()
-
-
 def cmd_main(args):
     return doit_cmd.DoitMain().run(args)
 
@@ -79,6 +51,14 @@ class TestRun(object):
         cmd_main(['--z=5'])
         assert None == get_var('--z')
 
+    def test_task_loader_has_cmd_list(self, monkeypatch):
+        cmd_names = []
+        def save_cmd_names(self, params, args):
+            cmd_names.extend(self._loader.cmd_names)
+        monkeypatch.setattr(Run, "execute", save_cmd_names)
+        cmd_main([])
+        assert 'list' in cmd_names
+
     def test_extra_config(self, monkeypatch, depfile_name):
         outfile_val = []
         def monkey_run(self, outfile=''):
@@ -118,3 +98,18 @@ class TestErrors(object):
         # traceback from Exception (this case code from mock lib)
         assert "mock.py" in err
 
+
+class TestLoadINI(object):
+    def test_load_plugins_command(self):
+        config_filename = os.path.join(os.path.dirname(__file__), 'sample.cfg')
+        main = doit_cmd.DoitMain(config_filenames=config_filename)
+        assert 1 == len(main.config['command'])
+        # test loaded plugin command is actually used with plugin name
+        assert 'foo' in main.get_cmds()
+
+    def test_execute_command_plugin(self, capsys):
+        config_filename = os.path.join(os.path.dirname(__file__), 'sample.cfg')
+        main = doit_cmd.DoitMain(config_filenames=config_filename)
+        main.run(['foo'])
+        got = capsys.readouterr()[0]
+        assert got == 'this command does nothing!\n'

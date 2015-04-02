@@ -3,11 +3,12 @@ import codecs
 import six
 
 from .exceptions import InvalidCommand
+from .plugin import PluginDict
 from .task import Task
 from .control import TaskControl
 from .runner import Runner, MRunner, MThreadRunner
-from .reporter import REPORTERS
 from .cmd_base import DoitCmdBase
+from . import reporter
 
 
 # verbosity
@@ -87,9 +88,7 @@ opt_reporter = {
     'type':str, #TODO type choice (limit the accepted strings)
     'default': 'default',
     'help': """Choose output reporter. Available:
-'default': report output on console
-'executed-only': no output for skipped (up-to-date) and group tasks
-'json': output result in json format
+{choices}
 [default: %(default)s]
 """
 }
@@ -130,6 +129,42 @@ class Run(DoitCmdBase):
                    opt_reporter, opt_outfile, opt_num_process,
                    opt_parallel_type, opt_pdb, opt_single)
 
+
+    def __init__(self, **kwargs):
+        super(Run, self).__init__(**kwargs)
+        self.reporters = self.get_reporters() # PluginDict
+        # TODO create help strings only if executing help
+        self._set_reporter_help_options()
+
+
+    def _set_reporter_help_options(self):
+        # set for help reporter choices
+        opt_dict = {i['name']: i for i in self.cmd_options}
+        choices_help = []
+        if 'reporter' in opt_dict: # sub-classes might not have this option
+            for name, rep in self.reporters.to_dict().items():
+                choices_help.append('{}: {}'.format(name, rep.desc))
+            help_reporter = opt_dict['reporter']['help'].format(
+                choices = '\n'.join(sorted(choices_help)))
+            opt_dict['reporter']['help'] = help_reporter
+
+
+    def get_reporters(self):
+        """return PluginDict of all available reporters"""
+        # built-in reporters
+        reporters = PluginDict({
+            # FIXME rename default -> console
+            'default': reporter.ConsoleReporter,
+            'executed-only': reporter.ExecutedOnlyReporter,
+            'json': reporter.JsonReporter,
+            'zero': reporter.ZeroReporter,
+        })
+        # plugins
+        if 'reporter' in self.config:
+            reporters.add_plugins('reporter', self.config['reporter'])
+        return reporters
+
+
     def _execute(self, outfile,
                  verbosity=None, always=False, continue_=False,
                  reporter='default', num_process=0, par_type='process',
@@ -158,12 +193,12 @@ class Run(DoitCmdBase):
 
         # reporter
         if isinstance(reporter, six.string_types):
-            if reporter not in REPORTERS:
+            if reporter not in self.reporters:
+                reporters_list =  ', '.join(self.reporters.keys())
                 msg = ("No reporter named '{}'."
-                       " Type 'doit help run' to see a list "
-                       "of available reporters.")
-                raise InvalidCommand(msg.format(reporter))
-            reporter_cls = REPORTERS[reporter]
+                       " Available reporters: {}.")
+                raise InvalidCommand(msg.format(reporter, reporters_list))
+            reporter_cls = self.reporters.get_plugin(reporter)
         else:
             # user defined class
             reporter_cls = reporter

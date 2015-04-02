@@ -14,6 +14,9 @@ class ConsoleReporter(object):
     @ivar show_out (bool): include captured stdout on failure report
     @ivar show_err (bool): include captured stderr on failure report
     """
+    # short description, used by the help system
+    desc = 'console output'
+
     def __init__(self, outstream, options):
         # save non-succesful result information (include task errors)
         self.failures = []
@@ -99,6 +102,8 @@ class ExecutedOnlyReporter(ConsoleReporter):
 
     Produces zero output unless a task is executed
     """
+    desc = 'console: no output for skipped (up-to-date) and group tasks'
+
     def skip_uptodate(self, task):
         """skipped up-to-date task"""
         pass
@@ -112,6 +117,8 @@ class ExecutedOnlyReporter(ConsoleReporter):
 
 class ZeroReporter(ConsoleReporter):
     """Report only internal errors from doit"""
+    desc = 'report only inetrnal errors from doit'
+
     def _just_pass(self, *args):
         """over-write base to do nothing"""
         pass
@@ -181,6 +188,9 @@ class JsonReporter(object):
          - started (str)
          - elapsed (float)
     """
+
+    desc = 'output in JSON format'
+
     def __init__(self, outstream, options=None): #pylint: disable=W0613
         # options parameter is not used
         # json result is sent to stdout when doit finishes running
@@ -252,11 +262,3 @@ class JsonReporter(object):
         # indent not available on simplejson 1.3 (debian etch)
         # json.dump(json_data, sys.stdout, indent=4)
         json.dump(json_data, self.outstream)
-
-
-# name of reporters class available to be selected on cmd line
-REPORTERS = {'default': ConsoleReporter,
-             'executed-only': ExecutedOnlyReporter,
-             'json': JsonReporter,
-             'zero': ZeroReporter,
-             }

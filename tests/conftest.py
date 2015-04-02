@@ -13,7 +13,7 @@ import pytest
 
 from doit.dependency import Dependency, backend_map, MD5Checker
 from doit.task import Task
-from doit.cmd_base import TaskLoader
+
 
 def get_abspath(relativePath):
     """ return abs file path relative to this file"""
@@ -145,10 +145,11 @@ def tasks_sample():
 
 
 def CmdFactory(cls, outstream=None, task_loader=None, dep_file=None,
-               backend=None, config=None, task_list=None, sel_tasks=None,
-               dep_manager=None):
+               backend=None, task_list=None, sel_tasks=None,
+               dep_manager=None, config=None, cmds=None):
     """helper for test code, so test can call _execute() directly"""
-    cmd = cls(task_loader) if task_loader else cls(TaskLoader())
+    cmd = cls(task_loader=task_loader, config=config, cmds=cmds)
+
     if outstream:
         cmd.outstream = outstream
     if backend:
@@ -157,7 +158,6 @@ def CmdFactory(cls, outstream=None, task_loader=None, dep_file=None,
     elif dep_manager:
         cmd.dep_manager = dep_manager
     cmd.dep_file = dep_file    # (str) filename usually '.doit.db'
-    cmd.config = config or {}  # config from dodo.py & cmdline
     cmd.task_list = task_list  # list of tasks
     cmd.sel_tasks = sel_tasks  # from command line or default_tasks
     return cmd

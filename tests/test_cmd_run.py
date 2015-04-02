@@ -101,6 +101,13 @@ class TestCmdRun(object):
         got = output.getvalue().split("\n")[:-1]
         assert [] == got
 
+
+class MyReporter(reporter.ConsoleReporter):
+    def get_status(self, task):
+        self.outstream.write('MyReporter.start %s\n' % task.name)
+
+class TestCmdRunReporter(object):
+
     def testInvalidReporter(self, depfile_name):
         output = StringIO()
         cmd_run = CmdFactory(Run, backend='dbm', dep_file=depfile_name,
@@ -110,9 +117,6 @@ class TestCmdRun(object):
 
     def testReporterInstance(self, depfile_name):
         output = StringIO()
-        class MyReporter(reporter.ConsoleReporter):
-            def get_status(self, task):
-                self.outstream.write('MyReporter.start %s\n' % task.name)
         cmd_run = CmdFactory(Run, backend='dbm', dep_file=depfile_name,
                              task_list=[tasks_sample()[0]])
         cmd_run._execute(output, reporter=MyReporter(output, {}))
@@ -121,14 +125,25 @@ class TestCmdRun(object):
 
     def testCustomReporter(self, depfile_name):
         output = StringIO()
-        class MyReporter(reporter.ConsoleReporter):
-            def get_status(self, task):
-                self.outstream.write('MyReporter.start %s\n' % task.name)
         cmd_run = CmdFactory(Run, backend='dbm', dep_file=depfile_name,
                              task_list=[tasks_sample()[0]])
         cmd_run._execute(output, reporter=MyReporter)
         got = output.getvalue().split("\n")[:-1]
         assert 'MyReporter.start t1' == got[0]
+
+    def testPluginReporter(self, depfile_name):
+        output = StringIO()
+        cmd_run = CmdFactory(
+            Run, backend='dbm',
+            dep_file=depfile_name,
+            task_list=[tasks_sample()[0]],
+            config={'reporter':{'my': 'tests.test_cmd_run:MyReporter'}})
+        cmd_run._execute(output, reporter='my')
+        got = output.getvalue().split("\n")[:-1]
+        assert 'MyReporter.start t1' == got[0]
+
+
+class TestCmdRunOptions(object):
 
     def testSetVerbosity(self, depfile_name):
         output = StringIO()

@@ -1,4 +1,3 @@
-from operator import attrgetter
 import six
 
 from .exceptions import InvalidDodoFile
@@ -98,20 +97,31 @@ class Help(DoitCmdBase):
     doc_usage = "[TASK] [COMMAND]"
     doc_description = None
 
+    def __init__(self, cmds=None, **kwargs):
+        self.init_kwargs = kwargs
+        super(Help, self).__init__(cmds=cmds, **kwargs)
+        self.cmds = cmds.to_dict() # dict name - Command class
+
+
     @staticmethod
     def print_usage(cmds):
-        """print doit "usage" (basic help) instructions"""
+        """print doit "usage" (basic help) instructions
+
+        :var cmds: dict name -> Command class
+        """
         print("doit -- automation tool")
         print("http://pydoit.org")
         print('')
         print("Commands")
-        for cmd in sorted(six.itervalues(cmds), key=attrgetter('name')):
-            six.print_("  doit {:16s}  {}".format(cmd.name, cmd.doc_purpose))
+        for cmd in sorted(six.itervalues(cmds), key=lambda c:c.get_name()):
+            six.print_("  doit {:16s}  {}".format(
+                cmd.get_name(), cmd.doc_purpose))
         print("")
         print("  doit help              show help / reference")
         print("  doit help task         show help on task dictionary fields")
         print("  doit help <command>    show command usage")
         print("  doit help <task-name>  show task usage")
+
 
     @staticmethod
     def print_task_help():
@@ -132,22 +142,20 @@ class Help(DoitCmdBase):
 
     def execute(self, params, args):
         """execute cmd 'help' """
-        cmds = self.doit_app.sub_cmds
         if len(args) != 1:
-            self.print_usage(cmds)
+            self.print_usage(self.cmds)
         elif args[0] == 'task':
             self.print_task_help()
         # help on command
-        elif args[0] in cmds:
-            cmd = cmds[args[0]]
-            # pass extra_config to cmd
-            cmd.configure(self.config_vals)
+        elif args[0] in self.cmds:
+            cmd = self.cmds[args[0]](**self.init_kwargs)
             six.print_(cmd.help())
         else:
             # help of specific task
             try:
+                # call base class implemention to execute _execute()
                 if not DoitCmdBase.execute(self, params, args):
-                    self.print_usage(cmds)
+                    self.print_usage(self.cmds)
             except InvalidDodoFile:
-                self.print_usage(cmds)
+                self.print_usage(self.cmds)
         return 0

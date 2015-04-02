@@ -4,7 +4,7 @@ import six
 import pytest
 
 from doit import version
-from doit.cmdparse import CmdParseError, CmdOption, CmdParse
+from doit.cmdparse import CmdParseError, CmdParse
 from doit.exceptions import InvalidCommand, InvalidDodoFile
 from doit.dependency import FileChangedChecker
 from doit.task import Task
@@ -56,41 +56,37 @@ class SampleCmd(Command):
     doc_usage = 'USAGE'
     doc_description = 'DESCRIPTION'
 
+    cmd_options = [opt_bool, opt_rare, opt_int, opt_no]
+
     @staticmethod
     def execute(params, args):
         return params, args
 
-    def set_options(self):
-        options = [opt_bool, opt_rare, opt_int, opt_no]
-        return [CmdOption(o) for o in options]
 
 class TestCommand(object):
 
-    @pytest.fixture
-    def cmd(self, request):
-        return SampleCmd()
-
-    def test_configure(self, cmd):
-        assert cmd.config_vals == {}
-        cmd.configure({'foo':1, 'bar':'2'})
+    def test_configure(self):
+        cmd = SampleCmd(extra_opts={'foo':1, 'bar':'2'})
         assert cmd.config_vals == {'foo':1, 'bar':'2'}
 
-    def test_call_value_cmd_line_arg(self, cmd):
+    def test_call_value_cmd_line_arg(self):
+        cmd = SampleCmd()
         params, args = cmd.parse_execute(['-n','7','ppp'])
         assert ['ppp'] == args
         assert 7 == params['num']
 
-    def test_call_value_option_default(self, cmd):
+    def test_call_value_option_default(self):
+        cmd = SampleCmd()
         params, args = cmd.parse_execute([])
         assert 5 == params['num']
 
-    def test_call_value_overwritten_default(self, cmd):
-        cmd.configure({'num': 20})
+    def test_call_value_overwritten_default(self):
+        cmd = SampleCmd(extra_opts={'num': 20})
         params, args = cmd.parse_execute([])
         assert 20 == params['num']
 
-    def test_help(self, cmd):
-        cmd.configure({'num': 20})
+    def test_help(self):
+        cmd = SampleCmd(extra_opts={'num': 20})
         text = cmd.help()
         assert 'PURPOSE' in text
         assert 'USAGE' in text
@@ -98,7 +94,7 @@ class TestCommand(object):
         assert '-f' in text
         assert '--rare-bool' in text
         assert 'help for opt1' in text
-        assert opt_no['name'] in [o.name for o in cmd.options]
+        assert opt_no['name'] in [o.name for o in cmd.get_options()]
 
         # option wihtout short and long are not displayed
         assert 'user cant modify me' not in text
@@ -110,7 +106,8 @@ class TestCommand(object):
         assert "help for opt3 [default: 20]" in text
 
 
-    def test_failCall(self, cmd):
+    def test_failCall(self):
+        cmd = SampleCmd()
         pytest.raises(CmdParseError, cmd.parse_execute, ['-x','35'])
 
 
@@ -172,7 +169,8 @@ class TestDoitCmdBase(object):
 
         members = {'task_xxx1': lambda : {'actions':[]},}
         loader = ModuleTaskLoader(members)
-        mycmd = MyRawCmd(loader)
+        mycmd = MyRawCmd(task_loader=loader, cmds={'foo':None, 'bar':None})
+        assert mycmd._loader.cmd_names == ['bar', 'foo']
         assert 'min' == mycmd.parse_execute(['--mine', 'min'])
 
 
@@ -181,7 +179,7 @@ class TestDoitCmdBase(object):
         members = {'task_xxx1': lambda : {'actions':[]},}
         loader = ModuleTaskLoader(members)
 
-        mycmd = self.MyCmd(loader)
+        mycmd = self.MyCmd(task_loader=loader)
         assert 'min' == mycmd.parse_execute([
             '--db-file', depfile_name,
             '--mine', 'min'])
@@ -196,18 +194,18 @@ class TestDoitCmdBase(object):
 
         # version ok
         monkeypatch.setattr(version, 'VERSION', '7.5.8')
-        mycmd = self.MyCmd(loader)
+        mycmd = self.MyCmd(task_loader=loader)
         assert 'xxx' == mycmd.parse_execute(['--db-file', depfile_name])
 
         # version too old
         monkeypatch.setattr(version, 'VERSION', '5.2.1')
-        mycmd = self.MyCmd(loader)
+        mycmd = self.MyCmd(task_loader=loader)
         pytest.raises(InvalidDodoFile, mycmd.parse_execute, [])
 
 
     def testInvalidChecker(self):
-        mycmd = self.MyCmd(ModuleTaskLoader({}))
-        params, args = CmdParse(mycmd.options).parse([])
+        mycmd = self.MyCmd(task_loader=ModuleTaskLoader({}))
+        params, args = CmdParse(mycmd.get_options()).parse([])
         params['check_file_uptodate'] = 'i dont exist'
         pytest.raises(InvalidCommand, mycmd.execute, params, args)
 
@@ -216,8 +214,8 @@ class TestDoitCmdBase(object):
         class MyChecker(FileChangedChecker):
             pass
 
-        mycmd = self.MyCmd(ModuleTaskLoader({}))
-        params, args = CmdParse(mycmd.options).parse([])
+        mycmd = self.MyCmd(task_loader=ModuleTaskLoader({}))
+        params, args = CmdParse(mycmd.get_options()).parse([])
         params['check_file_uptodate'] = MyChecker
         params['dep_file'] = depfile_name
         mycmd.execute(params, args)

@@ -45,6 +45,12 @@ class TabCompletion(DoitCmdBase):
 
     cmd_options = (opt_shell, opt_hardcode_tasks, )
 
+    def __init__(self, cmds=None, **kwargs):
+        super(TabCompletion, self).__init__(cmds=cmds, **kwargs)
+        self.init_kwargs = kwargs
+        self.init_kwargs['cmds'] = cmds
+        self.cmds = cmds
+
     def execute(self, opt_values, pos_args):
         if opt_values['shell'] == 'bash':
             self._generate_bash(opt_values, pos_args)
@@ -71,7 +77,7 @@ class TabCompletion(DoitCmdBase):
 
     def _generate_bash(self, opt_values, pos_args):
         # some applications built with doit do not use dodo.py files
-        for opt in self.options:
+        for opt in self.get_options():
             if opt.name == 'dodoFile':
                 get_dodo_part = bash_get_dodo
                 pt_list_param = '--file="$dodof"'
@@ -84,13 +90,13 @@ class TabCompletion(DoitCmdBase):
         pt_bin_name = sys.argv[0].split('/')[-1]
         tmpl_vars = {
             'pt_bin_name': pt_bin_name,
-            'pt_cmds': ' '.join(sorted(self.doit_app.sub_cmds)),
+            'pt_cmds': ' '.join(sorted(self.cmds)),
             'pt_list_param': pt_list_param,
             }
 
         # if hardcode tasks
         if opt_values['hardcode_tasks']:
-            self.task_list, self.config = self._loader.load_tasks(
+            self.task_list, _ = self._loader.load_tasks(
                 self, opt_values, pos_args)
             tmpl_vars['pt_tasks'] = '"{0}"'.format(
                 ' '.join(t.name for t in self.task_list if not t.is_subtask))
@@ -101,9 +107,10 @@ class TabCompletion(DoitCmdBase):
 
         # case statement to complete sub-commands
         cmds_args = []
-        cmd_list = sorted(self.doit_app.sub_cmds.values(),
+        cmd_list = sorted(self.cmds.values(),
                           key = lambda c: c.get_name())
-        for cmd in cmd_list:
+        for cmd_class in cmd_list:
+            cmd = cmd_class(**self.init_kwargs)
             cmds_args.append(self._bash_cmd_args(cmd))
         comp_subcmds = ("\n    case ${words[1]} in\n" +
                         "".join(cmds_args) +
@@ -137,7 +144,7 @@ class TabCompletion(DoitCmdBase):
     def _zsh_arg_list(cls, cmd):
         """return list of arguments lines for zsh completion"""
         args = []
-        for opt in cmd.options:
+        for opt in cmd.get_options():
             args.append(cls._zsh_arg_line(opt))
         if 'TASK' in cmd.doc_usage:
             args.append("'*::task:(($tasks))'")
@@ -169,9 +176,10 @@ class TabCompletion(DoitCmdBase):
         # deal with doit commands
         cmds_desc = []
         cmds_args = []
-        cmd_list = sorted(self.doit_app.sub_cmds.values(),
+        cmd_list = sorted(self.cmds.values(),
                           key = lambda c: c.get_name())
-        for cmd in cmd_list:
+        for cmd_class in cmd_list:
+            cmd = cmd_class(**self.init_kwargs)
             cmds_desc.append("    '{0}: {1}'".format(cmd.name, cmd.doc_purpose))
             cmds_args.append(self._zsh_cmd_args(cmd))
 
@@ -182,7 +190,7 @@ class TabCompletion(DoitCmdBase):
         }
 
         if opt_values['hardcode_tasks']:
-            self.task_list, self.config = self._loader.load_tasks(
+            self.task_list, _ = self._loader.load_tasks(
                 self, opt_values, pos_args)
             lines = []
             for task in self.task_list:

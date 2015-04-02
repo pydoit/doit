@@ -39,7 +39,6 @@ class Command(object):
     :cvar cmd_options:
           (list of dict) see cmdparse.CmdOption for dict format
     """
-    CMD_LIST = [] # register with the name of all created commands
 
     # if not specified uses the class name
     name = None
@@ -57,37 +56,32 @@ class Command(object):
     # should be used.
     execute_tasks = False
 
-    def __init__(self):
+    def __init__(self, extra_opts=None, config=None, **kwargs):
+        """configure command
+
+        :param extra_opts: dict
+
+        Set extra configuration values, this vals can come from:
+         * directly passed when using the API - through DoitMain.run()
+         * from an INI configuration file
+        """
         self.name = self.get_name()
-        Command.CMD_LIST.append(self.name)
-        self.options = self.set_options()
-        self.config_vals = {}
+        self.config = config if config else {}
+        self.config_vals = extra_opts.copy() if extra_opts else {}
         # Use post-mortem PDB in case of error loading tasks.
         # Only available for `run` command.
         self.pdb = False
+
 
     @classmethod
     def get_name(cls):
         """get command name as used from command line"""
         return cls.name or cls.__name__.lower()
 
-    def set_options(self):
+    def get_options(self):
         """@reutrn list of CmdOption
         """
-        opt_list = self.cmd_options
-        return [CmdOption(opt) for opt in opt_list]
-
-
-    def configure(self, vals):
-        """update config_vals
-
-        :param vals: dict
-
-        Set extra configuration values, this vals can come from:
-         * directly passed when using the API - through DoitMain.run()
-         * from an INI configuration file
-        """
-        self.config_vals.update(vals)
+        return [CmdOption(opt) for opt in self.cmd_options]
 
 
     def execute(self, opt_values, pos_args): # pragma: no cover
@@ -104,7 +98,7 @@ class Command(object):
         @args: see method parse
         @returns: result of self.execute
         """
-        cmdparse = CmdParse(self.options)
+        cmdparse = CmdParse(self.get_options())
         cmdparse.overwrite_defaults(self.config_vals)
         params, args = cmdparse.parse(in_args)
         self.pdb = params.get('pdb', False)
@@ -113,7 +107,7 @@ class Command(object):
 
     def help(self):
         """return help text"""
-        cmdparse = CmdParse(self.options)
+        cmdparse = CmdParse(self.get_options())
         cmdparse.overwrite_defaults(self.config_vals)
 
         text = []
@@ -215,6 +209,10 @@ class TaskLoader(object):
     """
     cmd_options = ()
 
+    def __init__(self):
+        # list of command names, used to detect clash of task names and commands
+        self.cmd_names = []
+
     def load_tasks(self, cmd, opt_values, pos_args): # pragma: no cover
         """load tasks and DOIT_CONFIG
 
@@ -244,10 +242,11 @@ class ModuleTaskLoader(TaskLoader):
     cmd_options = ()
 
     def __init__(self, mod_dict):
+        super(ModuleTaskLoader, self).__init__()
         self.mod_dict = mod_dict
 
     def load_tasks(self, cmd, params, args):
-        return self._load_from(cmd, self.mod_dict, cmd.CMD_LIST)
+        return self._load_from(cmd, self.mod_dict, self.cmd_names)
 
 
 class DodoTaskLoader(TaskLoader):
@@ -257,7 +256,7 @@ class DodoTaskLoader(TaskLoader):
     def load_tasks(self, cmd, params, args):
         dodo_module = loader.get_module(params['dodoFile'], params['cwdPath'],
                                         params['seek_file'])
-        return self._load_from(cmd, dodo_module, cmd.CMD_LIST)
+        return self._load_from(cmd, dodo_module, self.cmd_names)
 
 
 
@@ -268,21 +267,24 @@ class DoitCmdBase(Command):
     _execute => method, argument names must be option names
     """
     base_options = (opt_depfile, opt_backend, opt_check_file_uptodate)
+    DEFAULT_LOADER = DodoTaskLoader
 
-    def __init__(self, task_loader):
-        """this initializer is usually just used on tests"""
-        self._loader = task_loader
-        Command.__init__(self)
+    def __init__(self, task_loader=None, cmds=None, **kwargs):
+        super(DoitCmdBase, self).__init__(**kwargs)
+        self._loader = task_loader if task_loader else self.DEFAULT_LOADER()
+        if cmds:
+            self._loader.cmd_names = list(sorted(cmds.keys()))
         self.sel_tasks = None # selected tasks for command
         self.dep_manager = None #
         self.outstream = sys.stdout
 
-    def set_options(self):
+    def get_options(self):
         """from base class - merge base_options, loader_options and cmd_options
         """
         opt_list = (self.base_options + self._loader.cmd_options +
                     self.cmd_options)
         return [CmdOption(opt) for opt in opt_list]
+
 
     def _execute(self): # pragma: no cover
         """to be subclassed - actual command implementation"""
@@ -291,7 +293,7 @@ class DoitCmdBase(Command):
 
     @staticmethod
     def check_minversion(minversion):
-        """check if this version of doit statify minimum required version
+        """check if this version of doit statisfy minimum required version
         Minimum version specified by configuration on dodo.
         """
         if minversion:

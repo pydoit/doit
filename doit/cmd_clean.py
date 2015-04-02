@@ -60,7 +60,8 @@ class Clean(DoitCmdBase):
                                              from cmd-line
         """
         tasks = dict([(t.name, t) for t in self.task_list])
-        default_tasks = self.config.get('default_tasks')
+        # behaviour of cleandep is different if selected_tasks comes from
+        # command line or DOIT_CONFIG.default_tasks
         selected_tasks = pos_args
         check_tasks_exist(tasks, selected_tasks)
 
@@ -70,10 +71,10 @@ class Clean(DoitCmdBase):
         elif selected_tasks:
             clean_list = selected_tasks
         else:
-            if default_tasks is None:
+            if self.sel_tasks is None:
                 clean_list = [t.name for t in self.task_list]
             else:
-                clean_list = default_tasks
+                clean_list = self.sel_tasks
             # if cleaning default tasks enable clean_dep automatically
             cleandep = True
 

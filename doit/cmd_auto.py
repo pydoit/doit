@@ -73,7 +73,7 @@ class Auto(DoitCmdBase):
 
         # execute tasks using Run Command
         arun = Run(task_loader=self._loader)
-        params.add_defaults(CmdParse(arun.options).parse([])[0])
+        params.add_defaults(CmdParse(arun.get_options()).parse([])[0])
         try:
             result = arun.execute(params, args)
         # ??? actually tested but coverage doesnt get it...

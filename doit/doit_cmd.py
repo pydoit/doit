@@ -2,17 +2,14 @@
 
 import os
 import sys
-import itertools
 import traceback
-import importlib
-from collections import defaultdict
 import six
 from configparser import ConfigParser
 
 from .version import VERSION
+from .plugin import PluginDict
 from .exceptions import InvalidDodoFile, InvalidCommand, InvalidTask
 from .cmdparse import CmdParseError
-from .cmd_base import DodoTaskLoader, DoitCmdBase
 from .cmd_help import Help
 from .cmd_run import Run
 from .cmd_clean import Clean
@@ -42,42 +39,14 @@ def set_var(name, value):
 
 
 
-class PluginRegistry(object):
-    """simple plugin system to load code dynamically
-
-    Plugins must be explicitly loaded (no scanning of files and folders is done
-    to find plugins).
-
-    There is no requirements of interface or checking of loaded plugins (that's
-    up to application code if desirable). The registry is responsible only for
-    loading a piece of code and keeping a reference to it.
-    """
-    def __init__(self):
-        self._plugins = defaultdict(list) # category: value
-
-    def __getitem__(self, key):
-        """get all plugins from a given category"""
-        return self._plugins[key]
-
-    def add(self, category, module_name, obj_name):
-        """get reference to obj from named module/obj"""
-        module = importlib.import_module(module_name)
-        self._plugins[category].append(getattr(module, obj_name))
-
-
-
 class DoitMain(object):
+    # core doit commands
     DOIT_CMDS = (Help, Run, List, Info, Clean, Forget, Ignore, Auto, DumpDB,
                  Strace, TabCompletion, ResetDep)
-    TASK_LOADER = DodoTaskLoader
 
     def __init__(self, task_loader=None, config_filenames='doit.cfg'):
-        self.task_loader = task_loader if task_loader else self.TASK_LOADER()
-        self.sub_cmds = {} # dict with available sub-commands
-        self.plugins = PluginRegistry()
-        self.config = ConfigParser(allow_no_value=True, delimiters=('=',))
-        self.config.optionxform = str  # preserve case of option names
-        self.load_config_ini(config_filenames)
+        self.config = self.load_config_ini(config_filenames)
+        self.task_loader = task_loader
 
 
     def load_config_ini(self, filenames):
@@ -86,12 +55,10 @@ class DoitMain(object):
         :param files: str or list of str.
                       Like ConfigParser.read() param filenames
         """
-        self.config.read(filenames)
-
-        if self.config.has_section('command'):
-            for name, _ in self.config.items('command'):
-                mod_name, obj_name = name.split(':')
-                self.plugins.add('command', mod_name, obj_name)
+        cfg_parser = ConfigParser(allow_no_value=True, delimiters=('=',))
+        cfg_parser.optionxform = str  # preserve case of option names
+        cfg_parser.read(filenames)
+        return cfg_parser
 
 
     @staticmethod
@@ -101,17 +68,16 @@ class DoitMain(object):
         six.print_("lib @", os.path.dirname(os.path.abspath(__file__)))
 
 
-    def get_commands(self):
-        """get all sub-commands"""
-        sub_cmds = {}
+    def get_cmds(self):
+        """get all sub-commands
+        :return dict: name - Command class
+        """
+        sub_cmds = PluginDict()
         # core doit commands
-        for cmd_cls in itertools.chain(self.DOIT_CMDS, self.plugins['command']):
-            if issubclass(cmd_cls, DoitCmdBase):
-                cmd = cmd_cls(task_loader=self.task_loader)
-                cmd.doit_app = self # hack used by Help/TabComplete command
-            else:
-                cmd = cmd_cls()
-            sub_cmds[cmd.name] = cmd
+        for cmd_cls in self.DOIT_CMDS:
+            sub_cmds[cmd_cls.get_name()] = cmd_cls
+        # plugin commands
+        sub_cmds.add_plugins('command', self.config['command'])
         return sub_cmds
 
 
@@ -147,7 +113,7 @@ class DoitMain(object):
              So be aware if you expect a different formatting (like JSON)
              from the Reporter.
         """
-        self.sub_cmds = self.get_commands()
+        sub_cmds = self.get_cmds()
 
         # special parameters that dont run anything
         if cmd_args:
@@ -155,23 +121,26 @@ class DoitMain(object):
                 self.print_version()
                 return 0
             if cmd_args[0] == "--help":
-                Help.print_usage(self.sub_cmds)
+                Help.print_usage(sub_cmds.to_dict())
                 return 0
 
         # get "global vars" from cmd-line
         args = self.process_args(cmd_args)
 
         # get specified sub-command or use default='run'
-        if len(args) == 0 or args[0] not in list(six.iterkeys(self.sub_cmds)):
+        if len(args) == 0 or args[0] not in list(six.iterkeys(sub_cmds)):
             cmd_name = 'run'
         else:
             cmd_name = args.pop(0)
-        command = self.sub_cmds[cmd_name]
 
         # execute command
+        command = sub_cmds.get_plugin(cmd_name)(
+            extra_opts=extra_config,
+            task_loader=self.task_loader,
+            cmds=sub_cmds,
+            config=self.config,)
+
         try:
-            if extra_config:
-                command.configure(extra_config)
             return command.parse_execute(args)
 
         # dont show traceback for user errors.

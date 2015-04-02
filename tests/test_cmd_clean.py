@@ -31,7 +31,7 @@ class TestCmdClean(object):
     def test_clean_default(self, tasks):
         output = StringIO()
         cmd_clean = CmdFactory(Clean, outstream=output, task_list=tasks,
-                               config={'default_tasks':['t1']})
+                               sel_tasks=['t1'])
         cmd_clean._execute(False, False, False)
         # default enable --clean-dep by default
         assert ['t2', 't1'] == self.cleaned
@@ -46,7 +46,7 @@ class TestCmdClean(object):
     def test_clean_selected(self, tasks):
         output = StringIO()
         cmd_clean = CmdFactory(Clean, outstream=output, task_list=tasks,
-                               config={'default_tasks':['t1']})
+                               sel_tasks=['t1'])
         cmd_clean._execute(False, False, False, ['t2'])
         assert ['t2'] == self.cleaned
 
@@ -78,6 +78,6 @@ class TestCmdClean(object):
     def test_clean_invalid_task(self, tasks):
         output = StringIO()
         cmd_clean = CmdFactory(Clean, outstream=output, task_list=tasks,
-                               config={'default_tasks':['t1']})
+                               sel_tasks=['t1'])
         pytest.raises(InvalidCommand, cmd_clean._execute,
                       False, False, False, ['xxxx'])
