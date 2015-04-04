@@ -100,6 +100,10 @@ class TestErrors(object):
 
 
 class TestLoadINI(object):
+    def test_no_config_file(self):
+        main = doit_cmd.DoitMain(config_filenames=())
+        main.run(['--version'])
+
     def test_load_plugins_command(self):
         config_filename = os.path.join(os.path.dirname(__file__), 'sample.cfg')
         main = doit_cmd.DoitMain(config_filenames=config_filename)

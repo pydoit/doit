@@ -77,7 +77,8 @@ class DoitMain(object):
         for cmd_cls in self.DOIT_CMDS:
             sub_cmds[cmd_cls.get_name()] = cmd_cls
         # plugin commands
-        sub_cmds.add_plugins('command', self.config['command'])
+        if 'command' in self.config:
+            sub_cmds.add_plugins('command', self.config['command'])
         return sub_cmds
 
 
