@@ -113,9 +113,10 @@ class Help(DoitCmdBase):
         print("http://pydoit.org")
         print('')
         print("Commands")
-        for cmd in sorted(six.itervalues(cmds), key=lambda c:c.get_name()):
+        for cmd_name in sorted(cmds.keys()):
+            cmd = cmds[cmd_name]
             six.print_("  doit {:16s}  {}".format(
-                cmd.get_name(), cmd.doc_purpose))
+                cmd_name, cmd.doc_purpose))
         print("")
         print("  doit help              show help / reference")
         print("  doit help task         show help on task dictionary fields")

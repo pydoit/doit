@@ -12,6 +12,13 @@ class TestHelp(object):
         out, err = capsys.readouterr()
         assert "doit list" in out
 
+    def test_help_plugin_name(self, capsys):
+        plugin = {'XXX': 'tests.sample_plugin:MyCmd'}
+        DoitMain(extra_config={'COMMAND':plugin}).run(["help"])
+        out, err = capsys.readouterr()
+        assert "doit XXX " in out
+        assert "test extending doit commands" in out, out
+
     def test_help_task_params(self, capsys):
         cmd_main(["help", "task"])
         out, err = capsys.readouterr()
