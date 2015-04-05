@@ -52,9 +52,18 @@ class TaskControl(object):
             self._def_order.append(task.name)
 
         # expand wild-card task-dependencies
+        unpack_all = False
         for task in six.itervalues(self.tasks):
-            for pattern in task.wild_dep:
-                task.task_dep.extend(self._get_wild_tasks(pattern))
+            if len(task.wild_dep) > 0:
+                unpack_all = True
+                break
+        if unpack_all:
+            # execute all delayed loaders to make sure all tasks are actually there
+            while self._unpack_delayed_task():
+                pass
+            for task in six.itervalues(self.tasks):
+                for pattern in task.wild_dep:
+                    task.task_dep.extend(self._get_wild_tasks(pattern))
 
         self._check_dep_names()
         self.set_implicit_deps(self.targets, task_list)
@@ -113,8 +122,43 @@ class TaskControl(object):
                 task.task_dep.append(targets[dep])
 
 
+    def _unpack_specific_delayed_task(self, name):
+        """Executes the delayed loader of the given task."""
+        this_task = self.tasks[name]
+        # Generate tasks
+        ref = this_task.loader.creator
+        new_tasks = generate_tasks(this_task.name, ref(), ref.__doc__)
+        TaskControl.set_implicit_deps(self.targets, new_tasks)
+        new_tasks_names = []
+        for nt in new_tasks:
+            if not nt.loader:
+                nt.loader = DelayedLoaded
+            self.tasks[nt.name] = nt
+            new_tasks_names.append(nt.name)
+            # Add dependencies
+            nt.task_dep.extend(this_task.task_dep)
+        this_task.loader = None
+        # Update _def_order: insert generated tasks at position of original task
+        idx = self._def_order.index(name)
+        self._def_order = self._def_order[:idx] + new_tasks_names + self._def_order[idx+1:]
+
+
+    def _unpack_delayed_task(self):
+        """Finds the first delayed task, loads it and returns True.
+        Returns False is none can be found."""
+        for t_name in self._def_order:
+            if self.tasks[t_name].loader:
+                self._unpack_specific_delayed_task(t_name)
+                return True
+        return False
+
+
     def _get_wild_tasks(self, pattern):
         """get list of tasks that match pattern"""
+        # We have to unpack *all* delayed tasks as every one of them could
+        # contain one of the matching tasks
+        while self._unpack_delayed_task():
+            pass
         wild_list = []
         for t_name in self._def_order:
             if fnmatch.fnmatch(t_name, pattern):
@@ -171,17 +215,23 @@ class TaskControl(object):
 
         filter_list = self._process_filter(task_selection)
         for filter_ in filter_list:
-            # by task name
-            if filter_ in self.tasks:
-                selected_task.append(filter_)
-            # by target
-            elif filter_ in self.targets:
-                selected_task.append(self.targets[filter_])
-            else:
-                msg = ('cmd `run` invalid parameter: "%s".' +
-                       'Must be a task, or a target.\n' +
-                       'Type "doit list" to see available tasks')
-                raise InvalidCommand(msg % filter_)
+            # We have to loop and load a delayed task in case we didn't
+            # found the task/target (yet).
+            while True:
+                # by task name
+                if filter_ in self.tasks:
+                    selected_task.append(filter_)
+                    break
+                # by target
+                elif filter_ in self.targets:
+                    selected_task.append(self.targets[filter_])
+                    break
+                else:
+                    if not self._unpack_delayed_task():
+                        msg = ('cmd `run` invalid parameter: "%s". ' +
+                               ' Must be a task, or a target.\n' +
+                               'Type "doit list" to see available tasks')
+                        raise InvalidCommand(msg % filter_)
         return selected_task
 
 
