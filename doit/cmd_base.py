@@ -56,10 +56,10 @@ class Command(object):
     # should be used.
     execute_tasks = False
 
-    def __init__(self, extra_opts=None, config=None, **kwargs):
+    def __init__(self, config=None, **kwargs):
         """configure command
 
-        :param extra_opts: dict
+        :param config: dict
 
         Set extra configuration values, this vals can come from:
          * directly passed when using the API - through DoitMain.run()
@@ -67,7 +67,11 @@ class Command(object):
         """
         self.name = self.get_name()
         self.config = config if config else {}
-        self.config_vals = extra_opts.copy() if extra_opts else {}
+        self.config_vals = {}
+        if 'GLOBAL' in self.config:
+            self.config_vals.update(self.config['GLOBAL'])
+        if self.name in self.config:
+            self.config_vals.update(self.config[self.name])
         # Use post-mortem PDB in case of error loading tasks.
         # Only available for `run` command.
         self.pdb = False

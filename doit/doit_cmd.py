@@ -4,6 +4,7 @@ import os
 import sys
 import traceback
 import six
+from collections import defaultdict
 from configparser import ConfigParser
 
 from .version import VERSION
@@ -44,12 +45,24 @@ class DoitMain(object):
     DOIT_CMDS = (Help, Run, List, Info, Clean, Forget, Ignore, Auto, DumpDB,
                  Strace, TabCompletion, ResetDep)
 
-    def __init__(self, task_loader=None, config_filenames='doit.cfg'):
-        self.config = self.load_config_ini(config_filenames)
+    def __init__(self, task_loader=None,
+                 config_filenames='doit.cfg',
+                 extra_config=None):
         self.task_loader = task_loader
 
+        # combine config option from INI files and API
+        self.config = defaultdict(dict)
+        if extra_config:
+            for section, items in extra_config.items():
+                self.config[section].update(items)
+        ini_config = self.load_config_ini(config_filenames)
+        for section in ini_config.sections():
+            self.config[section].update(ini_config[section].items())
 
-    def load_config_ini(self, filenames):
+
+
+    @staticmethod
+    def load_config_ini(filenames):
         """read config from INI files
 
         :param files: str or list of str.
@@ -77,8 +90,8 @@ class DoitMain(object):
         for cmd_cls in self.DOIT_CMDS:
             sub_cmds[cmd_cls.get_name()] = cmd_cls
         # plugin commands
-        if 'command' in self.config:
-            sub_cmds.add_plugins('command', self.config['command'])
+        if 'COMMAND' in self.config:
+            sub_cmds.add_plugins('COMMAND', self.config['COMMAND'])
         return sub_cmds
 
 
@@ -98,7 +111,7 @@ class DoitMain(object):
         return args_no_vars
 
 
-    def run(self, cmd_args, extra_config=None):
+    def run(self, cmd_args):
         """entry point for all commands
 
         :param cmd_args: list of string arguments from command line
@@ -114,6 +127,7 @@ class DoitMain(object):
              So be aware if you expect a different formatting (like JSON)
              from the Reporter.
         """
+        # get list of available commands
         sub_cmds = self.get_cmds()
 
         # special parameters that dont run anything
@@ -129,14 +143,13 @@ class DoitMain(object):
         args = self.process_args(cmd_args)
 
         # get specified sub-command or use default='run'
-        if len(args) == 0 or args[0] not in list(six.iterkeys(sub_cmds)):
+        if len(args) == 0 or args[0] not in sub_cmds:
             cmd_name = 'run'
         else:
             cmd_name = args.pop(0)
 
         # execute command
         command = sub_cmds.get_plugin(cmd_name)(
-            extra_opts=extra_config,
             task_loader=self.task_loader,
             cmds=sub_cmds,
             config=self.config,)

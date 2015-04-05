@@ -61,14 +61,14 @@ class TestRun(object):
 
     def test_extra_config(self, monkeypatch, depfile_name):
         outfile_val = []
-        def monkey_run(self, outfile=''):
-            outfile_val.append(outfile)
-        monkeypatch.setattr(Run, "_execute", monkey_run)
+        def monkey_run(self, opt_values, pos_args):
+            outfile_val.append(opt_values['outfile'])
+        monkeypatch.setattr(Run, "execute", monkey_run)
         extra_config = {
             'outfile': 'foo.txt',
             'dep_file': depfile_name,
         }
-        doit_cmd.DoitMain().run([], extra_config)
+        doit_cmd.DoitMain(extra_config={'GLOBAL': extra_config}).run([])
         assert outfile_val[0] == 'foo.txt'
 
 
@@ -99,17 +99,28 @@ class TestErrors(object):
         assert "mock.py" in err
 
 
-class TestLoadINI(object):
-    def test_no_config_file(self):
+class TestConfig(object):
+    def test_no_ini_config_file(self):
         main = doit_cmd.DoitMain(config_filenames=())
         main.run(['--version'])
 
     def test_load_plugins_command(self):
         config_filename = os.path.join(os.path.dirname(__file__), 'sample.cfg')
         main = doit_cmd.DoitMain(config_filenames=config_filename)
-        assert 1 == len(main.config['command'])
+        assert 1 == len(main.config['COMMAND'])
         # test loaded plugin command is actually used with plugin name
         assert 'foo' in main.get_cmds()
+
+    def test_merge_api_ini_config(self):
+        config_filename = os.path.join(os.path.dirname(__file__), 'sample.cfg')
+        api_config = {'GLOBAL': {'opty':'10', 'optz':'10'}}
+        main = doit_cmd.DoitMain(config_filenames=config_filename,
+                                 extra_config=api_config)
+        assert 1 == len(main.config['COMMAND'])
+        # test loaded plugin command is actually used with plugin name
+        assert 'foo' in main.get_cmds()
+        # INI has higher preference the api_config
+        assert main.config['GLOBAL'] == {'optx':'6', 'opty':'7', 'optz':'10'}
 
     def test_execute_command_plugin(self, capsys):
         config_filename = os.path.join(os.path.dirname(__file__), 'sample.cfg')

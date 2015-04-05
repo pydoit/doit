@@ -3,12 +3,18 @@ import importlib
 class PluginEntry(object):
     class Sentinel(object):
         pass
+
     NOT_LOADED = Sentinel()
+
     def __init__(self, category, name, location):
         self.obj = self.NOT_LOADED
         self.category = category
         self.name = name
         self.location = location
+
+    def __repr__(self):
+        return "PluginEntry('{}', '{}', '{}')".format(
+            self.category, self.name, self.location)
 
     def get(self):
         """return obj, get from cache or load"""

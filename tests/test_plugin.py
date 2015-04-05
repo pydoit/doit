@@ -4,6 +4,10 @@ from mock import Mock
 from doit.plugin import PluginEntry, PluginDict
 
 class TestPluginEntry(object):
+    def test_repr(self):
+        plugin = PluginEntry('category1', 'name1', 'mock:Mock')
+        assert "PluginEntry('category1', 'name1', 'mock:Mock')" == repr(plugin)
+
     def test_get(self):
         plugin = PluginEntry('category1', 'name1', 'mock:Mock')
         got = plugin.get()

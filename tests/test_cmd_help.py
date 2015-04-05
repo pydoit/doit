@@ -2,7 +2,9 @@ from doit.doit_cmd import DoitMain
 
 
 def cmd_main(args, extra_config=None):
-    return DoitMain().run(args, extra_config)
+    if extra_config:
+        extra_config = {'GLOBAL': extra_config}
+    return DoitMain(extra_config=extra_config).run(args)
 
 class TestHelp(object):
     def test_help_usage(self, capsys):

@@ -217,6 +217,7 @@ class CmdParse(object):
 
         This values typically come from an INI file
         """
+        # FIXME might need to convert new_defaults from string to option type
         for key, val in six.iteritems(new_defaults):
             if key in self._options:
                 self._options[key].set_default(val)

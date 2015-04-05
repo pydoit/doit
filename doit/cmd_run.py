@@ -160,8 +160,8 @@ class Run(DoitCmdBase):
             'zero': reporter.ZeroReporter,
         })
         # plugins
-        if 'reporter' in self.config:
-            reporters.add_plugins('reporter', self.config['reporter'])
+        if 'REPORTER' in self.config:
+            reporters.add_plugins('REPORTER', self.config['REPORTER'])
         return reporters
 
 

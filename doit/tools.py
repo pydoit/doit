@@ -289,9 +289,10 @@ def register_doit_as_IPython_magic():  # pragma: no cover
 
         """
         ip = get_ipython()
-        commander = DoitMain(ModuleTaskLoader(ip.user_module))
         # Override db-files location inside ipython-profile dir,
         # which is certainly writable.
         prof_dir = ip.profile_dir.location
         opt_vals = {'dep_file': os.path.join(prof_dir, 'db', '.doit.db')}
-        commander.run(line.split(), opt_vals)
+        commander = DoitMain(ModuleTaskLoader(ip.user_module),
+                             extra_config={'GLOBAL': opt_vals})
+        commander.run(line.split())

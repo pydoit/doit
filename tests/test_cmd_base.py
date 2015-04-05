@@ -66,8 +66,13 @@ class SampleCmd(Command):
 class TestCommand(object):
 
     def test_configure(self):
-        cmd = SampleCmd(extra_opts={'foo':1, 'bar':'2'})
-        assert cmd.config_vals == {'foo':1, 'bar':'2'}
+        config = {'GLOBAL':{'foo':1, 'bar':'2'},
+                  'whatever':{'xxx': 'yyy'},
+                  'samplecmd': {'foo':4},
+        }
+        cmd = SampleCmd(config=config)
+        assert cmd.config == config
+        assert cmd.config_vals == {'foo':4, 'bar':'2'}
 
     def test_call_value_cmd_line_arg(self):
         cmd = SampleCmd()
@@ -81,12 +86,12 @@ class TestCommand(object):
         assert 5 == params['num']
 
     def test_call_value_overwritten_default(self):
-        cmd = SampleCmd(extra_opts={'num': 20})
+        cmd = SampleCmd(config={'GLOBAL':{'num': 20}})
         params, args = cmd.parse_execute([])
         assert 20 == params['num']
 
     def test_help(self):
-        cmd = SampleCmd(extra_opts={'num': 20})
+        cmd = SampleCmd(config={'GLOBAL':{'num': 20}})
         text = cmd.help()
         assert 'PURPOSE' in text
         assert 'USAGE' in text

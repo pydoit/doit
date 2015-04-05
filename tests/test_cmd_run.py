@@ -137,7 +137,7 @@ class TestCmdRunReporter(object):
             Run, backend='dbm',
             dep_file=depfile_name,
             task_list=[tasks_sample()[0]],
-            config={'reporter':{'my': 'tests.test_cmd_run:MyReporter'}})
+            config={'REPORTER':{'my': 'tests.test_cmd_run:MyReporter'}})
         cmd_run._execute(output, reporter='my')
         got = output.getvalue().split("\n")[:-1]
         assert 'MyReporter.start t1' == got[0]
