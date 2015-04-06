@@ -86,7 +86,7 @@ opt_reporter = {
     'short':'r',
     'long':'reporter',
     'type':str, #TODO type choice (limit the accepted strings)
-    'default': 'default',
+    'default': 'console',
     'help': """Choose output reporter. Available:
 {choices}
 [default: %(default)s]
@@ -153,8 +153,7 @@ class Run(DoitCmdBase):
         """return PluginDict of all available reporters"""
         # built-in reporters
         reporters = PluginDict({
-            # FIXME rename default -> console
-            'default': reporter.ConsoleReporter,
+            'console': reporter.ConsoleReporter,
             'executed-only': reporter.ExecutedOnlyReporter,
             'json': reporter.JsonReporter,
             'zero': reporter.ZeroReporter,
@@ -167,7 +166,7 @@ class Run(DoitCmdBase):
 
     def _execute(self, outfile,
                  verbosity=None, always=False, continue_=False,
-                 reporter='default', num_process=0, par_type='process',
+                 reporter='console', num_process=0, par_type='process',
                  single=False):
         """
         @param reporter:

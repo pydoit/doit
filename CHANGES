@@ -7,6 +7,9 @@ Changes
 ======
 
  - BACKWARD INCOMPATIBLE: signature for custom DB backend changed
+ - BACKWARD INCOMPATIBLE: `DoitMain` API change
+ - BACKWARD INCOMPATIBLE: `Command` API change
+ - BACKWARD INCOMPATIBLE: `default` reporter renamed to `console`
  - GH-#25: Add a `reset-dep` command to recompute dependencies state
  - GH-#22: Allow to customize how file_dep are checked
  - GH-#31: Add IPython `%doit` magic-function loading tasks from its global
