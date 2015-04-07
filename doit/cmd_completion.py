@@ -11,9 +11,9 @@ opt_shell = {
     'name': 'shell',
     'short': 's',
     'long': 'shell',
-    'type': str,
+    'type': ('bash', 'zsh'),
     'default': 'bash',
-    'help': 'Completion code for SHELL. default: "bash". options: [bash, zsh]',
+    'help': 'Completion code for SHELL. [default: %(default)s] options: %(choices)s',
     }
 
 opt_hardcode_tasks = {
