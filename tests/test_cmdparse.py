@@ -61,6 +61,58 @@ class TestCmdOption(object):
         pytest.raises(CmdParseError, CmdOption, opt_dict)
 
 
+class TestCmdOption_str2val(object):
+    def test_str2boolean(self):
+        opt = CmdOption({'name':'op1', 'default':'', 'type':bool,
+                         'short':'b', 'long': 'bobo'})
+        assert True == opt.str2boolean('1')
+        assert True == opt.str2boolean('yes')
+        assert True == opt.str2boolean('Yes')
+        assert True == opt.str2boolean('YES')
+        assert True == opt.str2boolean('true')
+        assert True == opt.str2boolean('on')
+        assert False == opt.str2boolean('0')
+        assert False == opt.str2boolean('false')
+        assert False == opt.str2boolean('no')
+        assert False == opt.str2boolean('off')
+        assert False == opt.str2boolean('OFF')
+        pytest.raises(ValueError, opt.str2boolean, '2')
+        pytest.raises(ValueError, opt.str2boolean, None)
+        pytest.raises(ValueError, opt.str2boolean, 'other')
+
+
+    def test_non_string_values_are_not_converted(self):
+        opt = CmdOption({'name':'op1', 'default':'', 'type':bool})
+        assert False == opt.str2type(False)
+        assert True == opt.str2type(True)
+        assert None == opt.str2type(None)
+
+    def test_str(self):
+        opt = CmdOption({'name':'op1', 'default':'', 'type':str})
+        assert 'foo' == opt.str2type('foo')
+        assert 'bar' == opt.str2type('bar')
+
+    def test_bool(self):
+        opt = CmdOption({'name':'op1', 'default':'', 'type':bool})
+        assert False == opt.str2type('off')
+        assert True == opt.str2type('on')
+
+    def test_int(self):
+        opt = CmdOption({'name':'op1', 'default':'', 'type':int})
+        assert 2 == opt.str2type('2')
+        assert -3 == opt.str2type('-3')
+
+    def test_list(self):
+        opt = CmdOption({'name':'op1', 'default':'', 'type':list})
+        assert ['foo'] == opt.str2type('foo')
+        assert [] == opt.str2type('')
+        assert ['foo', 'bar'] == opt.str2type('foo , bar ')
+
+    def test_invalid_value(self):
+        opt = CmdOption({'name':'op1', 'default':'', 'type':int})
+        pytest.raises(CmdParseError, opt.str2type, 'not a number')
+
+
 class TestCmdOption_help_param(object):
     def test_bool_param(self):
         opt1 = CmdOption({'name':'op1', 'default':'', 'type':bool,
@@ -139,6 +191,10 @@ class TestCommand(object):
         return cmd
 
 
+    def test_option_list(self, cmd):
+        opt_names = [o.name for o in cmd.options]
+        assert ['flag', 'rare', 'num', 'no', 'list'] == opt_names
+
     def test_short(self, cmd):
         assert "fn:l:" == cmd.get_short(), cmd.get_short()
 
@@ -174,6 +230,13 @@ class TestCommand(object):
         cmd.overwrite_defaults({'num': 9, 'i_dont_exist': 1})
         params, args = cmd.parse([])
         assert 9 == params['num']
+
+    def test_overwrite_defaults_convert_type(self, cmd):
+        cmd.overwrite_defaults({'num': '9', 'list': 'foo, bar', 'flag':'on'})
+        params, args = cmd.parse([])
+        assert 9 == params['num']
+        assert ['foo', 'bar'] == params['list']
+        assert True == params['flag']
 
     def test_parseShortValues(self, cmd):
         params, args = cmd.parse(['-n','89','-f', '-l', 'foo', '-l', 'bar'])

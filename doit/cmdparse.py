@@ -104,11 +104,40 @@ class CmdOption(object):
         return tmpl.format(self.__class__.__name__, self)
 
     def set_default(self, val):
-        """set default value"""
+        """set default value, value is already the expected type"""
         if self.type is list:
             self.default = copy.copy(val)
         else:
             self.default = val
+
+
+    _boolean_states = {'1': True, 'yes': True, 'true': True, 'on': True,
+                       '0': False, 'no': False, 'false': False, 'off': False}
+    def str2boolean(self, str_val):
+        """convert string to boolean"""
+        try:
+            return self._boolean_states[str_val.lower()]
+        except:
+            raise ValueError('Not a boolean: {}'.format(str_val))
+
+    def str2type(self, str_val):
+        """convert string value to option type value"""
+        # no coversion if value is not a string
+        if not isinstance(str_val, six.string_types):
+            return str_val
+
+        try:
+            if self.type is bool:
+                return self.str2boolean(str_val)
+            elif self.type is list:
+                parts = [p.strip() for p in str_val.split(',')]
+                return [p for p in parts if p] # remove empty strings
+            else:
+                return self.type(str_val)
+        except ValueError as exception:
+            msg = "Error parsing parameter '{}' {}.\n{}\n"
+            raise CmdParseError(msg.format(self.name, self.type,
+                                           str(exception)))
 
 
     @staticmethod
@@ -202,7 +231,7 @@ class CmdParse(object):
 
     def get_option(self, opt_str):
         """return tuple
-            - option dictionary from matching opt_str. or None
+            - CmdOption from matching opt_str. or None
             - (bool) matched inverse
         """
         for opt in six.itervalues(self._options):
@@ -217,10 +246,10 @@ class CmdParse(object):
 
         This values typically come from an INI file
         """
-        # FIXME might need to convert new_defaults from string to option type
         for key, val in six.iteritems(new_defaults):
             if key in self._options:
-                self._options[key].set_default(val)
+                opt = self._options[key]
+                opt.set_default(opt.str2type(val))
 
     def parse(self, in_args):
         """parse arguments into options(params) and positional arguments
@@ -252,12 +281,7 @@ class CmdParse(object):
             elif this.type is list:
                 params[this.name].append(val)
             else:
-                try:
-                    params[this.name] = this.type(val)
-                except ValueError as exception:
-                    msg = "Error parsing parameter '%s' %s.\n%s\n"
-                    raise CmdParseError(msg % (this.name, this.type,
-                                               str(exception)))
+                params[this.name] = this.str2type(val)
 
         return params, args
 
