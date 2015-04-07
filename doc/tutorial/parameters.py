@@ -28,6 +28,19 @@ def task_py_params_list():
             'verbosity':2,
             }
 
+def task_py_params_choice():
+    def print_choice(choice):
+        print choice
+
+    return {'actions':[(print_choice,)],
+            'params':[{'name':'choice',
+                       'short':'c',
+                       'long': 'choice',
+                       'type': ('this', 'that'),
+                       'default': 'this',
+                       'help': 'Choose between this and that'}],
+            'verbosity':2,}
+
 def task_cmd_params():
     return {'actions':["echo mycmd %(flag)s xxx"],
             'params':[{'name':'flag',
