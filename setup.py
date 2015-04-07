@@ -26,8 +26,19 @@ if sys.version_info < (3, 0):
 
 
 long_description = """
+`doit` is a task management & automation tool
+
 `doit` comes from the idea of bringing the power of build-tools
-to execute any kind of **task**
+ to execute any kind of **task**
+
+`doit` is a modern open-source build-tool written in python
+designed to be simple to use and flexible to deal with complex work-flows.
+It is specially suitable for building and managing custom work-flows where
+there is no out-of-the-box solution available.
+
+`doit` has been successfully used on: systems test/integration automation,
+scientific computational pipelines, content generation,
+configuration management, etc.
 
 `website/docs <http://pydoit.org>`_
 """
@@ -61,6 +72,7 @@ setup(name = 'doit',
         'Topic :: Software Development :: Quality Assurance',
         'Topic :: Scientific/Engineering',
         ],
+      keywords = "build make task automation pipeline",
 
       packages = ['doit'],
       install_requires = install_requires,

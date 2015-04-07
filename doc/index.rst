@@ -7,19 +7,15 @@
     `doit` comes from the idea of bringing the power of build-tools
     to execute any kind of **task**
 
-`doit` is a modern-build tool designed to be both simple to use
-and capable of dealing with complex work-flows. It is comparable to
-`make <http://www.gnu.org/software/make/>`_,
-`rake <http://docs.seattlerb.org/rake/>`_,
-`SCons <http://scons.org/>`_ ...
+`doit` is a modern open-source build-tool written in python
+designed to be simple to use and flexible to deal with complex work-flows.
+It is specially suitable for building and managing custom work-flows where
+there is no out-of-the-box solution available.
 
-`doit` is a completely generic tool, it was NOT designed *only* for compilation
-of a specific language nor for only for compile/link style tasks.
-
-`doit` is suitable to be used in many different
-domains like: test automation, scientific pipelines, content generation,
-source-code compilation, configuration management, etc. Check some
-`success stories <stories.html>`_ ...
+`doit` has been successfully used on: systems test/integration automation,
+scientific computational pipelines, content generation,
+configuration management, etc.
+Check some `success stories <stories.html>`_ ...
 
 
 
