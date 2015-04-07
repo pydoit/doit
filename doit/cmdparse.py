@@ -4,15 +4,11 @@ Built on top of getopt. optparse can't handle sub-commands.
 """
 import getopt
 import copy
-import operator
 from collections import OrderedDict
 
 import six
 
-from .exceptions import InvalidCommand
 
-
-first = operator.itemgetter(0)
 
 class DefaultUpdate(dict):
     """A dictionary that has an "update_defaults" method where
@@ -76,6 +72,8 @@ class CmdOption(object):
        - long (string): argument long name
        - inverse (string): argument long name to be the inverse of the default
                            value (only used by boolean options)
+       - choices(list - 2-tuple str): sequence of 2-tuple of choice name,
+                                      choice description.
        - help (string): option description
     """
 
@@ -93,7 +91,10 @@ class CmdOption(object):
         self.short = opt_dict.pop('short', '')
         self.long = opt_dict.pop('long', '')
         self.inverse = opt_dict.pop('inverse', '')
+        self.choices = dict(opt_dict.pop('choices', []))
         self.help = opt_dict.pop('help', '')
+
+        # TODO add some hint for tab-completion scripts
 
         # options can not contain any unrecognized field
         if opt_dict:
@@ -113,21 +114,13 @@ class CmdOption(object):
             self.default = val
 
     def validate_choice(self, given_value):
-        if isinstance(self.type[0], str):
-            avail_choices = self.type
-        else:
-            avail_choices = map(first, self.type)
-        if given_value not in avail_choices:
+        """raise error is value is not a valid choice"""
+        if given_value not in self.choices:
             msg = ("Error parsing parameter '{}'. "
-                   "Provided '{}' but available choices are {}")
-            raise InvalidCommand(
-                msg.format(self.name, given_value, avail_choices)
-            )
-        else:
-            return given_value
-
- 
-
+                   "Provided '{}' but available choices are: {}.")
+            choices = ("'{}'".format(k) for k in self.choices.keys())
+            choices_str = ", ".join(choices)
+            raise CmdParseError(msg.format(self.name, given_value, choices_str))
 
 
     _boolean_states = {'1': True, 'yes': True, 'true': True, 'on': True,
@@ -141,22 +134,25 @@ class CmdOption(object):
 
     def str2type(self, str_val):
         """convert string value to option type value"""
-        # no coversion if value is not a string
-        if not isinstance(str_val, six.string_types):
-            return str_val
-
         try:
-            if self.type is bool:
-                return self.str2boolean(str_val)
+            # no coversion if value is not a string
+            if not isinstance(str_val, six.string_types):
+                val = str_val
+            elif self.type is bool:
+                val = self.str2boolean(str_val)
             elif self.type is list:
                 parts = [p.strip() for p in str_val.split(',')]
-                return [p for p in parts if p] # remove empty strings
+                val = [p for p in parts if p] # remove empty strings
             else:
-                return self.type(str_val)
+                val = self.type(str_val)
         except ValueError as exception:
             msg = "Error parsing parameter '{}' {}.\n{}\n"
             raise CmdParseError(msg.format(self.name, self.type,
                                            str(exception)))
+
+        if self.choices:
+            self.validate_choice(val)
+        return val
 
 
     @staticmethod
@@ -186,6 +182,19 @@ class CmdOption(object):
                 opts_str.append('--%s=ARG' % self.long)
         return ', '.join(opts_str)
 
+    def help_choices(self):
+        """return string with help for option choices"""
+        if not self.choices:
+            return ''
+
+        # if choice has a description display one choice per line...
+        if any(self.choices.values()):
+            items = ["\n{}: {}".format(k,v) for k,v in self.choices.items()]
+            return "\nchoices:" + "".join(items)
+        # ... otherwise display in a single line
+        else:
+            return "\nchoices: " + ", ".join(self.choices.keys())
+
 
     def help_doc(self):
         """return list of string of option's help doc"""
@@ -195,15 +204,11 @@ class CmdOption(object):
 
         text = []
         opt_str = self.help_param()
-        opt_help_dict = {'default': self.default}
-        if isinstance(self.type, tuple):
-            choices = [ "{}: {}".format(*item) if isinstance(item, tuple)
-                             else item
-                        for item in self.type ]
-            opt_help_dict['choices'] = "\n".join(choices)
+        # TODO It should always display option's default value
+        opt_help = self.help % {'default': self.default}
+        opt_choices = self.help_choices()
 
-        opt_help = self.help % opt_help_dict
-        text.append(self._print_2_columns(opt_str, opt_help))
+        text.append(self._print_2_columns(opt_str, opt_help + opt_choices))
         # print bool inverse option
         if self.inverse:
             opt_str = '--%s' % self.inverse
@@ -306,9 +311,6 @@ class CmdParse(object):
                 params[this.name] = not inverse
             elif this.type is list:
                 params[this.name].append(val)
-            elif isinstance(this.type, tuple):
-                val = this.validate_choice(val)
-                params[this.name] = val
             else:
                 params[this.name] = this.str2type(val)
 

@@ -36,7 +36,8 @@ def task_py_params_choice():
             'params':[{'name':'choice',
                        'short':'c',
                        'long': 'choice',
-                       'type': ('this', 'that'),
+                       'type': str,
+                       'choices': (('this', ''), ('that', '')),
                        'default': 'this',
                        'help': 'Choose between this and that'}],
             'verbosity':2,}

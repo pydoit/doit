@@ -1,10 +1,8 @@
-import re
 import pickle
 
 import pytest
 
 from doit.cmdparse import DefaultUpdate, CmdParseError, CmdOption, CmdParse
-from doit.exceptions import InvalidCommand
 
 
 
@@ -171,17 +169,20 @@ opt_append = { 'name': 'list',
 opt_choices_desc = {'name': 'choices',
                     'short':'c',
                     'long': 'choice',
-                    'type': (("yes", "signify affirmative"),
-                             ("no","signify negative")),
+                    'type': str,
+                    'choices': (("yes", "signify affirmative"),
+                                ("no","signify negative")),
                     'default': "yes",
-                    'help': 'User chooses [default %(default)s]: %(choices)s'}
+                    'help': 'User chooses [default %(default)s]'}
 
 opt_choices_nodesc = {'name': 'choicesnodesc',
                       'short':'C',
                       'long': 'achoice',
-                      'type': ("yes", "no"),
+                      'type': str,
+                      'choices': (("yes", ""),
+                                  ("no", "")),
                       'default': "no",
-                      'help': 'User chooses [default %(default)s]: %(choices)s'}
+                      'help': 'User chooses [default %(default)s]'}
 
 
 class TestCmdOption_help_doc(object):
@@ -199,12 +200,15 @@ class TestCmdOption_help_doc(object):
 
     def test_choices_desc_doc(self):
         the_opt = CmdOption(opt_choices_desc)
-        assert 'no: signify negative' in the_opt.help_doc()[0]
+        doc = the_opt.help_doc()[0]
+        assert 'choices:\n' in doc
+        assert 'yes: signify affirmative' in doc
+        assert 'no: signify negative' in doc
 
     def test_choices_nodesc_doc(self):
         the_opt = CmdOption(opt_choices_nodesc)
         doc = the_opt.help_doc()[0]
-        assert re.search(r'yes\s+no', doc) is not None
+        assert "choices: yes, no" in doc
 
 
 class TestCommand(object):
@@ -220,7 +224,8 @@ class TestCommand(object):
 
     def test_option_list(self, cmd):
         opt_names = [o.name for o in cmd.options]
-        assert ['flag', 'rare', 'num', 'no', 'list'] == opt_names
+        assert  ['flag', 'rare', 'num', 'no', 'list', 'choices',
+                 'choicesnodesc']== opt_names
 
     def test_short(self, cmd):
         assert "fn:l:c:C:" == cmd.get_short(), cmd.get_short()
@@ -305,4 +310,4 @@ class TestCommand(object):
         pytest.raises(CmdParseError, cmd.parse, ['--num','oi'])
 
     def test_parseWrongChoice(self, cmd):
-        pytest.raises(InvalidCommand, cmd.parse, ['--choice', 'maybe'])
+        pytest.raises(CmdParseError, cmd.parse, ['--choice', 'maybe'])

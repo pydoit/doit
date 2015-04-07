@@ -8,6 +8,7 @@
 'cc
 'changed'
 'check
+'choice'
 'clean'
 'command
 'command'
@@ -36,6 +37,7 @@
 'my
 'myscript'
 'name'
+'notavalidchoice'
 'params'
 'result
 'run
@@ -44,6 +46,8 @@
 'success
 'targets'
 'teardown'
+'that'
+'this'
 'timestamp'
 'title'
 'values'
@@ -234,6 +238,7 @@ mygroup
 mytask
 namespace
 nikola
+notavalidchoice
 o'
 once'
 online
@@ -326,4 +331,3 @@ x'
 xxx
 xyz
 zsh
-

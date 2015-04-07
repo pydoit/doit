@@ -70,6 +70,8 @@ params:
    - short [optional] (string - 1 letter) short option string
    - long [optional] (string) long option string
    - type [optional] (callable) the option will be converted to this type
+   - choices [optional] (list of 2-tuple str) limit option values,
+          second tuple element is a help description for value
    - help [optional] (string) description displayed by help command
    - inverse [optional] (string) for a bool parameter set value to False
 

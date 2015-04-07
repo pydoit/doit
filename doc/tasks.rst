@@ -471,9 +471,11 @@ set to ``list``.
     eggs
     bread
 
-Choices can be set by specifying an option with ``type`` set to a
-dictionary. The dictionary keys are the valid choices, and the values
-are what the choices return.
+Choices can be set by specifying an option with ``choices`` set to a
+sequence of a 2-element tuple.
+The first element is the choice value.
+The second element is the choice description,
+if not required, use an empty string.
 
 .. code-block:: console
 
@@ -486,7 +488,7 @@ Invalid choices are detected and passed back to the user.
 .. code-block:: console
 
     $ doit py_params_choice -c notavalidchoice
-    ERROR: Error parsing parameter 'choice'. Provided 'notavalidchoice' but available choices are ['this', 'that']
+    ERROR: Error parsing parameter 'choice'. Provided 'notavalidchoice' but available choices are: 'this', 'that'.
 
 
 For cmd-actions use python string substitution notation:
@@ -544,6 +546,14 @@ Here is the list of all attributes ``param`` accepts:
     :required:  optional
     :type:      `callable` (e.g. a `function`)
     :default:   `str`
+
+``choices``
+    List of accepted value choices for option.
+    First tuple element is the value name,
+    second tuple element is a help description for value.
+
+    :required: optional
+    :type: list of 2-tuple strings
 
 ``help``
     Help message associated to this parameter, shown when
