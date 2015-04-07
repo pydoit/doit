@@ -208,7 +208,7 @@ class TestCmdOption_help_doc(object):
     def test_choices_nodesc_doc(self):
         the_opt = CmdOption(opt_choices_nodesc)
         doc = the_opt.help_doc()[0]
-        assert "choices: yes, no" in doc
+        assert "choices: no, yes" in doc
 
 
 class TestCommand(object):

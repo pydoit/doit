@@ -189,11 +189,13 @@ class CmdOption(object):
 
         # if choice has a description display one choice per line...
         if any(self.choices.values()):
-            items = ["\n{}: {}".format(k,v) for k,v in self.choices.items()]
+            items = []
+            for choice in sorted(self.choices):
+                items.append("\n{}: {}".format(choice, self.choices[choice]))
             return "\nchoices:" + "".join(items)
         # ... otherwise display in a single line
         else:
-            return "\nchoices: " + ", ".join(self.choices.keys())
+            return "\nchoices: " + ", ".join(sorted(self.choices.keys()))
 
 
     def help_doc(self):
