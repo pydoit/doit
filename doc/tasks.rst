@@ -471,6 +471,24 @@ set to ``list``.
     eggs
     bread
 
+Choices can be set by specifying an option with ``type`` set to a
+dictionary. The dictionary keys are the valid choices, and the values
+are what the choices return.
+
+.. code-block:: console
+
+    $ doit py_params_choice -c that
+    .  py_params_choice
+    that
+
+Invalid choices are detected and passed back to the user.
+
+.. code-block:: console
+
+    $ doit py_params_choice -c notavalidchoice
+    ERROR: Error parsing parameter 'choice'. Provided 'notavalidchoice' but available choices are ['this', 'that']
+
+
 For cmd-actions use python string substitution notation:
 
 .. code-block:: console

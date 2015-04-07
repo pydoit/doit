@@ -1,8 +1,10 @@
+import re
 import pickle
 
 import pytest
 
 from doit.cmdparse import DefaultUpdate, CmdParseError, CmdOption, CmdParse
+from doit.exceptions import InvalidCommand
 
 
 
@@ -114,6 +116,21 @@ opt_append = { 'name': 'list',
              'default': [],
              'help': 'use many -l to make a list'}
 
+opt_choices_desc = {'name': 'choices',
+                    'short':'c',
+                    'long': 'choice',
+                    'type': (("yes", "signify affirmative"),
+                             ("no","signify negative")),
+                    'default': "yes",
+                    'help': 'User chooses [default %(default)s]: %(choices)s'}
+
+opt_choices_nodesc = {'name': 'choicesnodesc',
+                      'short':'C',
+                      'long': 'achoice',
+                      'type': ("yes", "no"),
+                      'default': "no",
+                      'help': 'User chooses [default %(default)s]: %(choices)s'}
+
 
 class TestCmdOption_help_doc(object):
     def test_param(self):
@@ -128,22 +145,33 @@ class TestCmdOption_help_doc(object):
         opt1 = CmdOption(opt_no)
         assert 0 == len(opt1.help_doc())
 
+    def test_choices_desc_doc(self):
+        the_opt = CmdOption(opt_choices_desc)
+        assert 'no: signify negative' in the_opt.help_doc()[0]
+
+    def test_choices_nodesc_doc(self):
+        the_opt = CmdOption(opt_choices_nodesc)
+        doc = the_opt.help_doc()[0]
+        assert re.search(r'yes\s+no', doc) is not None
+
 
 class TestCommand(object):
 
     @pytest.fixture
     def cmd(self, request):
-        opt_list = (opt_bool, opt_rare, opt_int, opt_no, opt_append)
+        opt_list = (opt_bool, opt_rare, opt_int, opt_no,
+                    opt_append, opt_choices_desc, opt_choices_nodesc)
         options = [CmdOption(o) for o in opt_list]
         cmd = CmdParse(options)
         return cmd
 
 
     def test_short(self, cmd):
-        assert "fn:l:" == cmd.get_short(), cmd.get_short()
+        assert "fn:l:c:C:" == cmd.get_short(), cmd.get_short()
 
     def test_long(self, cmd):
-        longs = ["flag", "no-flag", "rare-bool", "number=", "list="]
+        longs = ["flag", "no-flag", "rare-bool", "number=",
+                 "list=", "choice=", "achoice="]
         assert longs == cmd.get_long()
 
     def test_getOption(self, cmd):
@@ -163,12 +191,20 @@ class TestCommand(object):
         opt, is_inverse = cmd.get_option('--list')
         assert (opt_append['name'], False) == (opt.name, is_inverse)
 
+        opt, is_inverse = cmd.get_option('--choice')
+        assert (opt_choices_desc['name'], False) == (opt.name, is_inverse)
+
+        opt, is_inverse = cmd.get_option('--achoice')
+        assert (opt_choices_nodesc['name'], False) == (opt.name, is_inverse)
+
 
     def test_parseDefaults(self, cmd):
         params, args = cmd.parse([])
         assert False == params['flag']
         assert 5 == params['num']
         assert [] == params['list']
+        assert "yes" == params['choices']
+        assert "no" == params['choicesnodesc']
 
     def test_overwrite_defaults(self, cmd):
         cmd.overwrite_defaults({'num': 9, 'i_dont_exist': 1})
@@ -176,18 +212,24 @@ class TestCommand(object):
         assert 9 == params['num']
 
     def test_parseShortValues(self, cmd):
-        params, args = cmd.parse(['-n','89','-f', '-l', 'foo', '-l', 'bar'])
+        params, args = cmd.parse(['-n','89','-f', '-l', 'foo', '-l', 'bar',
+                                  '-c', 'no', '-C', 'yes'])
         assert True == params['flag']
         assert 89 == params['num']
         assert ['foo', 'bar'] == params['list']
+        assert "no" == params['choices']
+        assert "yes" == params['choicesnodesc']
 
     def test_parseLongValues(self, cmd):
         params, args = cmd.parse(['--rare-bool','--num','89', '--no-flag',
-                                  '--list', 'flip', '--list', 'flop'])
+                                  '--list', 'flip', '--list', 'flop',
+                                  '--choice', 'no', '--achoice', 'yes'])
         assert True == params['rare']
         assert False == params['flag']
         assert 89 == params['num']
         assert ['flip', 'flop'] == params['list']
+        assert "no" == params['choices']
+        assert "yes" == params['choicesnodesc']
 
     def test_parsePositionalArgs(self, cmd):
         params, args = cmd.parse(['-f','p1','p2', '--sub-arg'])
@@ -198,3 +240,6 @@ class TestCommand(object):
 
     def test_parseWrongType(self, cmd):
         pytest.raises(CmdParseError, cmd.parse, ['--num','oi'])
+
+    def test_parseWrongChoice(self, cmd):
+        pytest.raises(InvalidCommand, cmd.parse, ['--choice', 'maybe'])
