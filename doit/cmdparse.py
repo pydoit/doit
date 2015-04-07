@@ -4,10 +4,15 @@ Built on top of getopt. optparse can't handle sub-commands.
 """
 import getopt
 import copy
+import operator
 from collections import OrderedDict
 
 import six
 
+from .exceptions import InvalidCommand
+
+
+first = operator.itemgetter(0)
 
 class DefaultUpdate(dict):
     """A dictionary that has an "update_defaults" method where
@@ -90,9 +95,6 @@ class CmdOption(object):
         self.inverse = opt_dict.pop('inverse', '')
         self.help = opt_dict.pop('help', '')
 
-        # TODO support "choice"
-        # TODO add some hint for tab-completion scripts
-
         # options can not contain any unrecognized field
         if opt_dict:
             msg = "CmdOption dict contains invalid property '%s'"
@@ -109,6 +111,23 @@ class CmdOption(object):
             self.default = copy.copy(val)
         else:
             self.default = val
+
+    def validate_choice(self, given_value):
+        if isinstance(self.type[0], str):
+            avail_choices = self.type
+        else:
+            avail_choices = map(first, self.type)
+        if given_value not in avail_choices:
+            msg = ("Error parsing parameter '{}'. "
+                   "Provided '{}' but available choices are {}")
+            raise InvalidCommand(
+                msg.format(self.name, given_value, avail_choices)
+            )
+        else:
+            return given_value
+
+ 
+
 
 
     @staticmethod
@@ -147,7 +166,14 @@ class CmdOption(object):
 
         text = []
         opt_str = self.help_param()
-        opt_help = self.help % {'default': self.default}
+        opt_help_dict = {'default': self.default}
+        if isinstance(self.type, tuple):
+            choices = [ "{}: {}".format(*item) if isinstance(item, tuple)
+                             else item
+                        for item in self.type ]
+            opt_help_dict['choices'] = "\n".join(choices)
+
+        opt_help = self.help % opt_help_dict
         text.append(self._print_2_columns(opt_str, opt_help))
         # print bool inverse option
         if self.inverse:
@@ -251,6 +277,9 @@ class CmdParse(object):
                 params[this.name] = not inverse
             elif this.type is list:
                 params[this.name].append(val)
+            elif isinstance(this.type, tuple):
+                val = this.validate_choice(val)
+                params[this.name] = val
             else:
                 try:
                     params[this.name] = this.type(val)
