@@ -1,12 +1,24 @@
 import importlib
 
 class PluginEntry(object):
+    """A Plugin entry point
+
+    The entry-point is not loaded/imported on creation.
+    Use the method `get()` to import the module and get the attribute.
+    """
+
     class Sentinel(object):
         pass
 
+    # indicate the entry-point object is not loaded yet
     NOT_LOADED = Sentinel()
 
     def __init__(self, category, name, location):
+        """
+        :param category str: plugin category name
+        :param name str: plugin name (as used by doit)
+        :param location str: python object location as <module>:<attr>
+        """
         self.obj = self.NOT_LOADED
         self.category = category
         self.name = name
@@ -43,8 +55,22 @@ class PluginDict(dict):
 
     def add_plugins(self, cfg_parser, section):
         """read all items from a ConfigParser section containing plugins"""
-        for name, location in cfg_parser[section].items():
-            self[name] = PluginEntry(section, name, location)
+        # plugins from INI file
+        if section in cfg_parser:
+            for name, location in cfg_parser[section].items():
+                self[name] = PluginEntry(section, name, location)
+
+        # plugins from pkg_resources
+        try:
+            import pkg_resources
+            group = "doit.{}".format(section)
+            for point in pkg_resources.iter_entry_points(group=group):
+                name = point.name
+                location = "{}:{}".format(point.module_name, point.attrs[0])
+                self[name] = PluginEntry(section, name, location)
+        except ImportError: # pragma: no cover
+            pass  # ignore, if setuptools is not installed
+
 
     def get_plugin(self, key):
         """load and return a single plugin"""

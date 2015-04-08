@@ -28,6 +28,7 @@ class TestPluginEntry(object):
 
 
 class TestPluginDict(object):
+
     @pytest.fixture
     def plugins(self):
         plugins = PluginDict()
@@ -36,11 +37,26 @@ class TestPluginDict(object):
         plugins.add_plugins({'category1': config_dict}, 'category1')
         return plugins
 
-    def test_add_plugins(self, plugins):
+    def test_add_plugins_from_dict(self, plugins):
         assert len(plugins) == 2
         name1 = plugins['name1']
         assert isinstance(name1, PluginEntry)
         assert name1.category == 'category1'
+        assert name1.name == 'name1'
+        assert name1.location == 'pytest:raises'
+
+    def test_add_plugins_from_pkg_resources(self, monkeypatch):
+        # mock entry points
+        import pkg_resources
+        def fake_entries(group):
+            yield pkg_resources.EntryPoint('name1', 'pytest', ('raises',))
+        monkeypatch.setattr(pkg_resources, 'iter_entry_points', fake_entries)
+
+        plugins = PluginDict()
+        plugins.add_plugins({}, 'category2')
+        name1 = plugins['name1']
+        assert isinstance(name1, PluginEntry)
+        assert name1.category == 'category2'
         assert name1.name == 'name1'
         assert name1.location == 'pytest:raises'
 

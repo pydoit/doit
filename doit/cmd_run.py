@@ -146,10 +146,9 @@ class Run(DoitCmdBase):
         }
 
         # plugins
-        if 'REPORTER' in self.config:
-            plugins = PluginDict()
-            plugins.add_plugins(self.config, 'REPORTER')
-            reporters.update(plugins.to_dict())
+        plugins = PluginDict()
+        plugins.add_plugins(self.config, 'REPORTER')
+        reporters.update(plugins.to_dict())
 
         # set choices for reporter cmdoption
         # sub-classes might not have this option

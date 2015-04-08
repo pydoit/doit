@@ -334,10 +334,10 @@ class DoitCmdBase(Command):
 
     def get_backends(self):
         backend_map = {'dbm': DbmDB, 'json': JsonDB, 'sqlite3': SqliteDB}
-        if 'BACKEND' in self.config:
-            plugins = PluginDict()
-            plugins.add_plugins(self.config, 'BACKEND')
-            backend_map.update(plugins.to_dict())
+        # add plugins
+        plugins = PluginDict()
+        plugins.add_plugins(self.config, 'BACKEND')
+        backend_map.update(plugins.to_dict())
 
         # set choices, sub-classes might not have this option
         if 'backend' in self.cmdparser:
