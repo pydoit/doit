@@ -7,7 +7,7 @@ import six
 from . import version
 from .cmdparse import CmdOption, CmdParse
 from .exceptions import InvalidCommand, InvalidDodoFile
-from .dependency import backend_map, CHECKERS
+from .dependency import CHECKERS, DbmDB, JsonDB, SqliteDB, Dependency
 from . import loader
 
 
@@ -349,10 +349,11 @@ class DoitCmdBase(Command):
         self.sel_tasks = args or params.get('default_tasks')
 
         # create dep manager
+        backend_map = {'dbm': DbmDB, 'json': JsonDB, 'sqlite3': SqliteDB}
         dep_class = backend_map.get(params['backend'])
         checker_cls = self.get_checker_cls(params['check_file_uptodate'])
         # note the command have the responsability to call dep_manager.close()
-        self.dep_manager = dep_class(params['dep_file'], checker_cls)
+        self.dep_manager = Dependency(dep_class, params['dep_file'], checker_cls)
 
         # hack to pass parameter into _execute() calls that are not part
         # of command line options

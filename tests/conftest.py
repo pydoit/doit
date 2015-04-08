@@ -11,7 +11,7 @@ else:
 import py
 import pytest
 
-from doit.dependency import Dependency, backend_map, MD5Checker
+from doit.dependency import DbmDB, Dependency, MD5Checker
 from doit.task import Task
 
 
@@ -77,14 +77,14 @@ def depfile(request):
     if hasattr(request, 'param'):
         dep_class = request.param
     else:
-        dep_class = Dependency
+        dep_class = DbmDB
 
     # copied from tempdir plugin
     name = request._pyfuncitem.name
     name = py.std.re.sub("[\W]", "_", name)
     my_tmpdir = request.config._tmpdirhandler.mktemp(name, numbered=True)
-    dep_file = dep_class(os.path.join(my_tmpdir.strpath, "testdb"))
-    dep_file.whichdb = whichdb(dep_file.name)
+    dep_file = Dependency(dep_class, os.path.join(my_tmpdir.strpath, "testdb"))
+    dep_file.whichdb = whichdb(dep_file.name) if dep_class is DbmDB else 'XXX'
     dep_file.name_ext = db_ext.get(dep_file.whichdb, [''])
 
     def remove_depfile():
@@ -111,7 +111,7 @@ def depfile_name(request):
 
 @pytest.fixture
 def dep_manager(request, depfile_name):
-    return Dependency(depfile_name)
+    return Dependency(DbmDB, depfile_name)
 
 
 @pytest.fixture
@@ -153,8 +153,8 @@ def CmdFactory(cls, outstream=None, task_loader=None, dep_file=None,
     if outstream:
         cmd.outstream = outstream
     if backend:
-        dep_class = backend_map.get(backend)
-        cmd.dep_manager = dep_class(dep_file, MD5Checker)
+        assert backend == "dbm" # the only one used on tests
+        cmd.dep_manager = Dependency(DbmDB, dep_file, MD5Checker)
     elif dep_manager:
         cmd.dep_manager = dep_manager
     cmd.dep_file = dep_file    # (str) filename usually '.doit.db'

@@ -102,7 +102,7 @@ class ExecutedOnlyReporter(ConsoleReporter):
 
     Produces zero output unless a task is executed
     """
-    desc = 'console: no output for skipped (up-to-date) and group tasks'
+    desc = 'console, no output for skipped (up-to-date) and group tasks'
 
     def skip_uptodate(self, task):
         """skipped up-to-date task"""

@@ -8,8 +8,8 @@ import pytest
 
 from doit.task import Task
 from doit.dependency import get_md5, get_file_md5
-from doit.dependency import DbmDB, DatabaseException, UptodateCalculator
-from doit.dependency import JsonDependency, DbmDependency, SqliteDependency
+from doit.dependency import DbmDB, JsonDB, SqliteDB, Dependency
+from doit.dependency import DatabaseException, UptodateCalculator
 from doit.dependency import FileChangedChecker, MD5Checker, TimestampChecker
 from .conftest import get_abspath, depfile
 
@@ -53,7 +53,7 @@ def test_md5():
 @pytest.fixture
 def pdepfile(request):
     return depfile(request)
-pytest.fixture(params=[JsonDependency, DbmDependency, SqliteDependency])(pdepfile)
+pytest.fixture(params=[JsonDB, DbmDB, SqliteDB])(pdepfile)
 
 # FIXME there was major refactor breaking classes from dependency,
 # unit-tests could be more specific to base classes.
@@ -77,13 +77,13 @@ class TestDependencyDb(object):
         pdepfile.close()
 
         # open it again and check the value
-        d2 = pdepfile.__class__(pdepfile.name)
+        d2 = Dependency(pdepfile.db_class, pdepfile.name)
 
         value = d2._get("taskId_X","dependency_A")
         assert "da_md5" == value, value
 
     def test_corrupted_file(self, pdepfile):
-        if pdepfile.__class__==DbmDependency and pdepfile.whichdb is None: # pragma: no cover
+        if pdepfile.whichdb is None: # pragma: no cover
             pytest.skip('dumbdbm too dumb to detect db corruption')
 
         # create some corrupted files
@@ -92,11 +92,12 @@ class TestDependencyDb(object):
             fd = open(full_name, 'w')
             fd.write("""{"x": y}""")
             fd.close()
-        pytest.raises(DatabaseException, pdepfile.__class__, pdepfile.name)
+        pytest.raises(DatabaseException, Dependency,
+                      pdepfile.db_class, pdepfile.name)
 
     def test_corrupted_file_unrecognized_excep(self, monkeypatch, pdepfile):
-        if isinstance(pdepfile, JsonDependency):
-            pytest.skip('test doesnt apply to JsonDependency')
+        if pdepfile.db_class is not DbmDB:
+            pytest.skip('test doesnt apply to non DBM DB')
         if pdepfile.whichdb is None: # pragma: no cover
             pytest.skip('dumbdbm too dumb to detect db corruption')
 
@@ -107,7 +108,8 @@ class TestDependencyDb(object):
             fd.write("""{"x": y}""")
             fd.close()
         monkeypatch.setattr(DbmDB, 'DBM_CONTENT_ERROR_MSG', 'xxx')
-        pytest.raises(DatabaseException, pdepfile.__class__, pdepfile.name)
+        pytest.raises(DatabaseException, Dependency,
+                      pdepfile.db_class, pdepfile.name)
 
     # _get must return None if entry doesnt exist.
     def test_getNonExistent(self, pdepfile):
@@ -137,11 +139,11 @@ class TestDependencyDb(object):
         pdepfile._set("taskId_YYY", "dep_1", "x")
         pdepfile.close()
         # 2 - re-open and remove one task
-        reopened = pdepfile.__class__(pdepfile.name)
+        reopened = Dependency(pdepfile.db_class, pdepfile.name)
         reopened.remove("taskId_YYY")
         reopened.close()
         # 3 - re-open again and check task was really removed
-        reopened2 = pdepfile.__class__(pdepfile.name)
+        reopened2 = Dependency(pdepfile.db_class, pdepfile.name)
         assert reopened2._in("taskId_XXX")
         assert not reopened2._in("taskId_YYY")
 
@@ -163,6 +165,7 @@ class TestSaveSuccess(object):
         t1.result = "result"
         pdepfile.save_success(t1)
         assert get_md5("result") == pdepfile._get(t1.name, "result:")
+        assert get_md5("result") == pdepfile.get_result(t1.name)
 
     def test_save_result_hash(self, pdepfile):
         t1 = Task('t_name', None)

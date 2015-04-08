@@ -6,7 +6,7 @@ import pytest
 from mock import Mock
 
 from doit.exceptions import InvalidTask
-from doit.dependency import Dependency
+from doit.dependency import DbmDB, Dependency
 from doit.task import Task, DelayedLoader
 from doit.control import TaskDispatcher, ExecNode
 from doit import runner
@@ -394,11 +394,11 @@ class TestRunner_run_tasks(object):
         targets = [filePath]
 
         t1 = Task("t1", [my_print], dependencies, targets)
-        dep_manager = Dependency(depfile_name)
+        dep_manager = Dependency(DbmDB, depfile_name)
         my_runner = RunnerClass(dep_manager, reporter)
         my_runner.run_tasks(TaskDispatcher({'t1':t1}, [], ['t1']))
         assert runner.SUCCESS == my_runner.finish()
-        d = Dependency(depfile_name)
+        d = Dependency(DbmDB, depfile_name)
         assert d._get("t1", os.path.abspath(depPath))
 
 

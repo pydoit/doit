@@ -426,8 +426,8 @@ CHECKERS = {'md5': MD5Checker,
             'timestamp': TimestampChecker}
 
 
-class DependencyBase(object):
-    """Manage tasks dependencies (abstract class)
+class Dependency(object):
+    """Manage tasks dependencies
 
     Each dependency is saved in "db". the "db" can have json or dbm
     format where there is a dictionary for every task. each task has a
@@ -440,13 +440,11 @@ class DependencyBase(object):
     @ivar name: (string) filepath of the DB file
     @ivar _closed: (bool) DB was flushed to file
     """
-
-    DB_CLASS = None  # a class with DB interface (i.e. JsonDB, DbmDB, ...)
-
-    def __init__(self, backend_name, checker_cls=MD5Checker):
+    def __init__(self, db_class, backend_name, checker_cls=MD5Checker):
         self._closed = False
         self.checker = checker_cls()
-        self.backend = self.DB_CLASS(backend_name)
+        self.db_class = db_class
+        self.backend = db_class(backend_name)
         self._set = self.backend.set
         self._get = self.backend.get
         self.remove = self.backend.remove
@@ -638,28 +636,6 @@ class DependencyBase(object):
         return status
 
 
-####################
-
-class JsonDependency(DependencyBase):
-    """Task dependency manager with JSON backend"""
-    DB_CLASS = JsonDB
-
-
-class DbmDependency(DependencyBase):
-    """Task dependency manager with DBM backend"""
-    DB_CLASS = DbmDB
-
-
-class SqliteDependency(DependencyBase):
-    """Task dependency manager with sqlite backend"""
-    DB_CLASS = SqliteDB
-
-# map string used in cmdline option to class
-backend_map = {
-    'json': JsonDependency,
-    'dbm': DbmDependency,
-    'sqlite3': SqliteDependency,
-}
 
 #############
 
@@ -674,7 +650,3 @@ class UptodateCalculator(object):
         """@param"""
         self.get_val = dep_manager._get
         self.tasks_dict = tasks_dict
-
-
-# defaut dependency backend implementation
-Dependency = DbmDependency

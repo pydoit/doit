@@ -3,7 +3,7 @@ from six import StringIO
 import pytest
 
 from doit.exceptions import InvalidCommand
-from doit.dependency import Dependency
+from doit.dependency import DbmDB, Dependency
 from doit.cmd_forget import Forget
 from .conftest import tasks_sample, CmdFactory
 
@@ -17,12 +17,12 @@ class TestCmdForget(object):
     @staticmethod
     def _add_task_deps(tasks, testdb):
         """put some data on testdb"""
-        dep = Dependency(testdb)
+        dep = Dependency(DbmDB, testdb)
         for task in tasks:
             dep._set(task.name,"dep","1")
         dep.close()
 
-        dep2 = Dependency(testdb)
+        dep2 = Dependency(DbmDB, testdb)
         assert "1" == dep2._get("g1.a", "dep")
         dep2.close()
 
@@ -35,7 +35,7 @@ class TestCmdForget(object):
         cmd_forget._execute(False)
         got = output.getvalue().split("\n")[:-1]
         assert ["forgetting all tasks"] == got, repr(output.getvalue())
-        dep = Dependency(depfile_name)
+        dep = Dependency(DbmDB, depfile_name)
         for task in tasks:
             assert None == dep._get(task.name, "dep")
 
@@ -48,7 +48,7 @@ class TestCmdForget(object):
         cmd_forget._execute(False)
         got = output.getvalue().split("\n")[:-1]
         assert ["forgetting t2", "forgetting t1"] == got
-        dep = Dependency(depfile_name)
+        dep = Dependency(DbmDB, depfile_name)
         assert None == dep._get("t1", "dep")
         assert None == dep._get("t2", "dep")
         assert "1" == dep._get("g1.a", "dep")
@@ -63,7 +63,7 @@ class TestCmdForget(object):
         got = output.getvalue().split("\n")[:-1]
         assert "forgetting g1" == got[0]
 
-        dep = Dependency(depfile_name)
+        dep = Dependency(DbmDB, depfile_name)
         assert "1" == dep._get("t1", "dep")
         assert "1" == dep._get("t2", "dep")
         assert None == dep._get("g1", "dep")
@@ -78,7 +78,7 @@ class TestCmdForget(object):
             Forget, outstream=output, dep_file=depfile_name,
             backend='dbm', task_list=tasks, sel_tasks=["t3"])
         cmd_forget._execute(True)
-        dep = Dependency(depfile_name)
+        dep = Dependency(DbmDB, depfile_name)
         assert None == dep._get("t3", "dep")
         assert None == dep._get("t1", "dep")
 
@@ -90,7 +90,7 @@ class TestCmdForget(object):
             Forget, outstream=output, dep_file=depfile_name,
             backend='dbm', task_list=tasks, sel_tasks=["t3"])
         cmd_forget._execute(False)
-        dep = Dependency(depfile_name)
+        dep = Dependency(DbmDB, depfile_name)
         assert None == dep._get("t3", "dep")
         assert "1" == dep._get("t1", "dep")
 
