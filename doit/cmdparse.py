@@ -230,6 +230,12 @@ class CmdParse(object):
     def __init__(self, options):
         self._options = OrderedDict((o.name, o) for o in options)
 
+    def __contains__(self, key):
+        return key in self._options
+
+    def __getitem__(self, key):
+        return self._options[key]
+
     @property
     def options(self):
         """return list of options for backward compatibility"""

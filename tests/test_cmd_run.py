@@ -108,13 +108,6 @@ class MyReporter(reporter.ConsoleReporter):
 
 class TestCmdRunReporter(object):
 
-    def testInvalidReporter(self, depfile_name):
-        output = StringIO()
-        cmd_run = CmdFactory(Run, backend='dbm', dep_file=depfile_name,
-                             task_list=tasks_sample())
-        pytest.raises(InvalidCommand, cmd_run._execute,
-                      output, reporter="i dont exist")
-
     def testReporterInstance(self, depfile_name):
         output = StringIO()
         cmd_run = CmdFactory(Run, backend='dbm', dep_file=depfile_name,

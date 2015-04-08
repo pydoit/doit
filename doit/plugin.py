@@ -41,8 +41,9 @@ class PluginEntry(object):
 class PluginDict(dict):
     """A dict where item values *might* be a PluginEntry"""
 
-    def add_plugins(self, section, cfg_dict):
-        for name, location in cfg_dict.items():
+    def add_plugins(self, cfg_parser, section):
+        """read all items from a ConfigParser section containing plugins"""
+        for name, location in cfg_parser[section].items():
             self[name] = PluginEntry(section, name, location)
 
     def get_plugin(self, key):

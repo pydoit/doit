@@ -26,14 +26,14 @@ class TestPluginEntry(object):
         assert 'Plugin category1:name1 module `mock`' in str(exc_info.value)
         assert 'i_dont_exist' in str(exc_info.value)
 
+
 class TestPluginDict(object):
     @pytest.fixture
     def plugins(self):
         plugins = PluginDict()
-        plugins.add_plugins( 'category1', {
-            'name1': 'pytest:raises',
-            'name2': 'mock:Mock',
-            })
+        config_dict = {'name1': 'pytest:raises',
+                       'name2': 'mock:Mock'}
+        plugins.add_plugins({'category1': config_dict}, 'category1')
         return plugins
 
     def test_add_plugins(self, plugins):

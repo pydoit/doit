@@ -221,6 +221,14 @@ class TestCommand(object):
         cmd = CmdParse(options)
         return cmd
 
+    def test_contains(self, cmd):
+        assert 'flag' in cmd
+        assert 'num' in cmd
+        assert 'xxx' not in cmd
+
+    def test_getitem(self, cmd):
+        assert cmd['flag'].short == 'f'
+        assert cmd['num'].default == 5
 
     def test_option_list(self, cmd):
         opt_names = [o.name for o in cmd.options]

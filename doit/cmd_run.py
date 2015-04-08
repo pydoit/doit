@@ -87,10 +87,7 @@ opt_reporter = {
     'long':'reporter',
     'type':str, #TODO type choice (limit the accepted strings)
     'default': 'console',
-    'help': """Choose output reporter. Available:
-{choices}
-[default: %(default)s]
-"""
+    'help': """Choose output reporter.\n[default: %(default)s]"""
 }
 
 opt_parallel_type = {
@@ -132,35 +129,34 @@ class Run(DoitCmdBase):
 
     def __init__(self, **kwargs):
         super(Run, self).__init__(**kwargs)
-        self.reporters = self.get_reporters() # PluginDict
-        # TODO create help strings only if executing help
-        self._set_reporter_help_options()
-
-
-    def _set_reporter_help_options(self):
-        # set for help reporter choices
-        opt_dict = {i['name']: i for i in self.cmd_options}
-        choices_help = []
-        if 'reporter' in opt_dict: # sub-classes might not have this option
-            for name, rep in self.reporters.to_dict().items():
-                choices_help.append('{}: {}'.format(name, rep.desc))
-            help_reporter = opt_dict['reporter']['help'].format(
-                choices = '\n'.join(sorted(choices_help)))
-            opt_dict['reporter']['help'] = help_reporter
+        self.reporters = self.get_reporters() # dict
 
 
     def get_reporters(self):
-        """return PluginDict of all available reporters"""
+        """return dict of all available reporters
+
+        Also set CmdOption choices.
+        """
         # built-in reporters
-        reporters = PluginDict({
+        reporters = {
             'console': reporter.ConsoleReporter,
             'executed-only': reporter.ExecutedOnlyReporter,
             'json': reporter.JsonReporter,
             'zero': reporter.ZeroReporter,
-        })
+        }
+
         # plugins
         if 'REPORTER' in self.config:
-            reporters.add_plugins('REPORTER', self.config['REPORTER'])
+            plugins = PluginDict()
+            plugins.add_plugins(self.config, 'REPORTER')
+            reporters.update(plugins.to_dict())
+
+        # set choices for reporter cmdoption
+        # sub-classes might not have this option
+        if 'reporter' in self.cmdparser:
+            choices = {k: v.desc for k,v in reporters.items()}
+            self.cmdparser['reporter'].choices = choices
+
         return reporters
 
 
@@ -192,12 +188,7 @@ class Run(DoitCmdBase):
 
         # reporter
         if isinstance(reporter, six.string_types):
-            if reporter not in self.reporters:
-                reporters_list =  ', '.join(self.reporters.keys())
-                msg = ("No reporter named '{}'."
-                       " Available reporters: {}.")
-                raise InvalidCommand(msg.format(reporter, reporters_list))
-            reporter_cls = self.reporters.get_plugin(reporter)
+            reporter_cls = self.reporters[reporter]
         else:
             # user defined class
             reporter_cls = reporter

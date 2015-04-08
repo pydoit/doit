@@ -66,12 +66,17 @@ class Command(object):
          * from an INI configuration file
         """
         self.name = self.get_name()
+        # config includes all option values and plugins
         self.config = config if config else {}
+        self._cmdparser = None
+
+        # config_vals contains cmd option values
         self.config_vals = {}
         if 'GLOBAL' in self.config:
             self.config_vals.update(self.config['GLOBAL'])
         if self.name in self.config:
             self.config_vals.update(self.config[self.name])
+
         # Use post-mortem PDB in case of error loading tasks.
         # Only available for `run` command.
         self.pdb = False
@@ -81,6 +86,15 @@ class Command(object):
     def get_name(cls):
         """get command name as used from command line"""
         return cls.name or cls.__name__.lower()
+
+    @property
+    def cmdparser(self):
+        """get CmdParser instance for this command"""
+        if not self._cmdparser:
+            self._cmdparser = CmdParse(self.get_options())
+            self._cmdparser.overwrite_defaults(self.config_vals)
+        return self._cmdparser
+
 
     def get_options(self):
         """@reutrn list of CmdOption
@@ -102,25 +116,20 @@ class Command(object):
         @args: see method parse
         @returns: result of self.execute
         """
-        cmdparse = CmdParse(self.get_options())
-        cmdparse.overwrite_defaults(self.config_vals)
-        params, args = cmdparse.parse(in_args)
+        params, args = self.cmdparser.parse(in_args)
         self.pdb = params.get('pdb', False)
         return self.execute(params, args)
 
 
     def help(self):
         """return help text"""
-        cmdparse = CmdParse(self.get_options())
-        cmdparse.overwrite_defaults(self.config_vals)
-
         text = []
         text.append("Purpose: %s" % self.doc_purpose)
         text.append("Usage:   doit %s %s" % (self.name, self.doc_usage))
         text.append('')
 
         text.append("Options:")
-        for opt in cmdparse.options:
+        for opt in self.cmdparser.options:
             text.extend(opt.help_doc())
 
         if self.doc_description is not None:
