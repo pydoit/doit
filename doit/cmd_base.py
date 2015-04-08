@@ -8,6 +8,7 @@ from . import version
 from .cmdparse import CmdOption, CmdParse
 from .exceptions import InvalidCommand, InvalidDodoFile
 from .dependency import CHECKERS, DbmDB, JsonDB, SqliteDB, Dependency
+from .plugin import PluginDict
 from . import loader
 
 
@@ -158,8 +159,7 @@ opt_backend = {
     'long': 'backend',
     'type': str,
     'default': "dbm",
-    'help': ("Select dependency file backend. " +
-             "Available options dbm, json, sqlite3. [default: %(default)s]")
+    'help': ("Select dependency file backend. [default: %(default)s]")
 }
 
 opt_check_file_uptodate = {
@@ -285,6 +285,7 @@ class DoitCmdBase(Command):
     def __init__(self, task_loader=None, cmds=None, **kwargs):
         super(DoitCmdBase, self).__init__(**kwargs)
         self._loader = task_loader if task_loader else self.DEFAULT_LOADER()
+        self._backends = self.get_backends()
         if cmds:
             self._loader.cmd_names = list(sorted(cmds.keys()))
         self.sel_tasks = None # selected tasks for command
@@ -331,6 +332,19 @@ class DoitCmdBase(Command):
             # user defined class
             return check_file_uptodate
 
+    def get_backends(self):
+        backend_map = {'dbm': DbmDB, 'json': JsonDB, 'sqlite3': SqliteDB}
+        if 'BACKEND' in self.config:
+            plugins = PluginDict()
+            plugins.add_plugins(self.config, 'BACKEND')
+            backend_map.update(plugins.to_dict())
+
+        # set choices, sub-classes might not have this option
+        if 'backend' in self.cmdparser:
+            choices = {k: getattr(v, 'desc', '') for k,v in backend_map.items()}
+            self.cmdparser['backend'].choices = choices
+
+        return backend_map
 
     def execute(self, params, args):
         """load dodo.py, set attributes and call self._execute
@@ -349,11 +363,10 @@ class DoitCmdBase(Command):
         self.sel_tasks = args or params.get('default_tasks')
 
         # create dep manager
-        backend_map = {'dbm': DbmDB, 'json': JsonDB, 'sqlite3': SqliteDB}
-        dep_class = backend_map.get(params['backend'])
+        db_class = self._backends.get(params['backend'])
         checker_cls = self.get_checker_cls(params['check_file_uptodate'])
         # note the command have the responsability to call dep_manager.close()
-        self.dep_manager = Dependency(dep_class, params['dep_file'], checker_cls)
+        self.dep_manager = Dependency(db_class, params['dep_file'], checker_cls)
 
         # hack to pass parameter into _execute() calls that are not part
         # of command line options

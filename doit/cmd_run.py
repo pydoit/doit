@@ -85,7 +85,7 @@ opt_reporter = {
     'name':'reporter',
     'short':'r',
     'long':'reporter',
-    'type':str, #TODO type choice (limit the accepted strings)
+    'type':str,
     'default': 'console',
     'help': """Choose output reporter.\n[default: %(default)s]"""
 }

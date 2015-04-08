@@ -227,6 +227,14 @@ class TestDoitCmdBase(object):
         assert isinstance(mycmd.dep_manager.checker, MyChecker)
 
 
+    def testPluginBackend(self, depfile_name):
+        mycmd = self.MyCmd(task_loader=ModuleTaskLoader({}),
+                           config={'BACKEND': {'j2': 'doit.dependency:JsonDB'}})
+        params, args = CmdParse(mycmd.get_options()).parse(['--backend', 'j2'])
+        params['dep_file'] = depfile_name
+        mycmd.execute(params, args)
+        assert mycmd.dep_manager.db_class is mycmd._backends['j2']
+
 
 class TestCheckTasksExist(object):
     def test_None(self):
