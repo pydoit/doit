@@ -267,26 +267,3 @@ If a group-task is used, the values from all its sub-tasks are passed as a dict.
 .. note::
    ``getargs`` creates an implicit setup-task.
 
-
-
-keywords on actions
---------------------
-
-It is common situation to use task information such as *targets*,
-*dependencies*, or *changed* in its own actions.
-Note: Dependencies here refers only to *file-dependencies*.
-
-For *cmd-action* you can use the python notation for keyword substitution
-on strings. The string will contain all values separated by a space (" ").
-
-For *python-action* create a parameter in the function, `doit` will take care
-of passing the value when the function is called.
-The values are passed as list of strings.
-
-.. literalinclude:: tutorial/hello.py
-
-
-You can also pass the keyword *task* to have a reference to all task
-metadata.
-
-.. literalinclude:: tutorial/meta.py
