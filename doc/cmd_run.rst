@@ -99,36 +99,6 @@ returned value
         (in this case the reporter is not used)
 
 
-
-config
---------
-
-Command line parameters can be set straight on a `dodo` file. This example below sets the default tasks to be run, the ``continue`` option, and a different reporter.
-
-.. literalinclude:: tutorial/doit_config.py
-
-So if you just execute
-
-.. code-block:: console
-
-   $ doit
-
-it will have the same effect as executing
-
-.. code-block:: console
-
-   $ doit --continue --reporter json my_task_1 my_task_2
-
-You need to check `doit_cmd.py
-<https://github.com/pydoit/doit/blob/master/doit/doit_cmd.py>`_ to find out how
-parameter maps to config names.
-
-.. note::
-
-  The parameters ``--file`` and ``--dir`` can not be used on config because
-  they control how the dodo file itself is loaded.
-
-
 DB backend
 --------------
 
@@ -260,6 +230,7 @@ Apart from the default it also includes:
 
     $ doit --reporter json
 
+.. _custom_reporter:
 
 custom reporter
 -----------------
@@ -268,10 +239,12 @@ It is possible to define your own custom reporter. Check the code on
 `doit/reporter.py
 <https://github.com/pydoit/doit/blob/master/doit/reporter.py>`_ ... It is easy
 to get started by sub-classing the default reporter as shown below. The custom
-reporter must be configured using DOIT_CONFIG dict.
+reporter can be enabled directly on DOIT_CONFIG dict.
 
 .. literalinclude:: tutorial/custom_reporter.py
 
+It is also possible distribute/use a custom reporter
+as a :ref:`plugin <plugin_reporter>`.
 
 Note that the ``reporter`` have no control over the *real time* output
 from a task while it is being executed,

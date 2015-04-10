@@ -40,6 +40,7 @@ documentation
    dependencies
    cmd_run
    cmd_other
+   configuration
    task_args
    task_creation
    uptodate

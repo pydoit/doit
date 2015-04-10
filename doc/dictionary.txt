@@ -42,6 +42,7 @@
 'result
 'run
 'setup'
+'standard'
 'strict'
 'success
 'targets'
@@ -73,8 +74,11 @@ ConsoleReporter
 Ctrl
 Dembia
 DoIt
+DoitCmdBase
 DoitMain
+FPGA
 FileChangedChecker
+FooCmd
 GH
 Gliwinski
 Guo
@@ -94,10 +98,12 @@ MyChecker
 MyCustomTask2
 Naufel
 PDB
+PYTHONPATH
 Popen
 PyPi
 PythonAction
 PythonInteractiveAction
+Pythonic
 README
 RSS
 ReST
@@ -105,6 +111,7 @@ SCons
 Schettino
 Segata
 SetupSample
+SkOink
 Subclassing
 TODO
 TaskError
@@ -140,7 +147,9 @@ bool
 c'
 calc
 callables
+cfg
 chdir
+cid
 cmd
 cmp
 codebase
@@ -253,6 +262,7 @@ pdb
 perl
 picklable
 plugin
+plugins
 popen
 pos
 pos1
@@ -279,6 +289,7 @@ runtests
 s'
 s5defs
 schettino72
+scons
 selecttasks
 settrace
 setupX
@@ -331,10 +342,3 @@ x'
 xxx
 xyz
 zsh
-Pythonic
-scons
-'standard'
-FPGA
-SkOink
-cid
-plugins
