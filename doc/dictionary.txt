@@ -331,3 +331,10 @@ x'
 xxx
 xyz
 zsh
+Pythonic
+scons
+'standard'
+FPGA
+SkOink
+cid
+plugins

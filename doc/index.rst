@@ -35,23 +35,23 @@ and contains some extra meta-data.
       }
 
 
-.. topic:: actions
+**actions**:
 
-  - can be external programs (executed as shell commands) or
-    python functions.
-  - a single task may define more than one action.
+- can be external programs (executed as shell commands) or
+  python functions.
+- a single task may define more than one action.
 
 
-.. topic:: task meta-data
+**task meta-data**:
 
-  - task meta-data includes a description of input file for the *actions*
-    (**dependencies**), and result files **targets**
-  - there are many other meta-data fields to control how and when a task is
-    executed...
+- task meta-data includes a description of input file for the *actions*
+  (**dependencies**), and result files **targets**
+- there are many other meta-data fields to control how and when a task is
+  executed...
 
 *doit* uses the task's meta-data to:
 
-.. topic:: cache task results
+.. topic:: cache task results (aka *incremental-builds*)
 
    `doit` checks if the task is **up-to-date** and skips its execution if the
    task would produce the same result of a previous execution.
@@ -90,16 +90,17 @@ but often you want to create this metadata programmatically.
    `doit` uses plain python modules to create tasks (and its meta-data)
 
 
+.. topic:: customizable task definition
+
+   By default tasks are described by a python `dict`.
+   But it can be easily customized. (:ref:`more <create-doit-tasks>`)
+
+
 .. topic:: debugger
 
    Since plain python is used to define your tasks the python debugger (`pdb`)
    is available as in any other python application
 
-
-.. topic:: customizable task definition
-
-   By default tasks are described by a python `dict`.
-   But it can be easily customized. (:ref:`more <create-doit-tasks>`)
 
 Other features...
 
@@ -148,6 +149,8 @@ What people are saying about `doit`
 
   I love all the traditional unix power tools, like cron, make, perl, ..., I also like new comprehensive configuration management tools like CFEngine and Puppet.  But I find doit to be so versatile and so productive. - `Charlie Guo <https://groups.google.com/d/msg/python-doit/JXElpPfcmmM/znvBT0OFhMYJ>`_
 
+  I went back and forth on different Pythonic build tools for awhile. Scons is pretty great if you're doing 'standard' sorts of builds, but I found it a little heavy for my tastes and really hard to customize to my tool flow (in FPGA land, there are all kinds of nonstandard vendor tools that all need to play together). I've been using doit more and more over the past few months, and I'm continually impressed by the tool (aside from the goofy name). It works amazingly well for automating tricky/exotic build processes. Check it out! `SkOink <http://news.slashdot.org/comments.pl?sid=4319575&cid=45085519>`_
+
   I needed a sort of 'make' tool to glue things together and after trying out all kinds, doit ... has actually turned out to be beautiful. Its easy to add and manage tasks, even complex ones-- gluing things together with decorators and 'library' functions I've written to do certain similar things. - `Matthew <https://groups.google.com/d/msg/python-doit/eKI0uu02ZeY/cBU0RRsO0_cJ>`_
 
   Some time ago, I grew frustrated with Make and Ant and started porting my build files to every build tool I found (SCons, Waf, etc.). Each time, as soon as I stepped out of already available rules, I ran into some difficult to overcome stumbling blocks. Then I discovered this little gem of simplicity: doit. It's Python-based. It doesn't try to be smart, it does not try to be cool, it just works. If you are looking for a flexible little build tool for different languages and tasks, give it a chance. (...) - `lelele <http://www.hnsearch.com/search#request/all&q=python-doit.sourceforge.net&start=0>`_
@@ -166,11 +169,11 @@ Project Details
 
 * Project management (bug tracker, feature requests and source code ) on `github <https://github.com/pydoit/doit>`_.
 
+* `doit projects <https://github.com/pydoit>`_ contains a collection of plugins, non-trivial examples and re-usable task creators for `doit`.
+
 * Questions and feedback on `Google group <http://groups.google.co.in/group/python-doit>`_. Please do **not** send questions to my private email.
 
 * This web site is hosted on http://pages.github.com
-
-* `doit projects <https://github.com/pydoit>`_ contains a collection of non-trivial examples and re-usable task creators for `doit`.
 
 * Professional support and consulting services available from `doit`
   creator & maintainer (*schettino72* at gmail.com).

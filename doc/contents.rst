@@ -38,10 +38,11 @@ documentation
    install
    tasks
    dependencies
-   delayed
-   uptodate
    cmd_run
    cmd_other
+   task_args
+   task_creation
+   uptodate
    tools
    extending
    faq
