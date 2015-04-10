@@ -50,7 +50,8 @@ class TabCompletion(DoitCmdBase):
         super(TabCompletion, self).__init__(cmds=cmds, **kwargs)
         self.init_kwargs = kwargs
         self.init_kwargs['cmds'] = cmds
-        self.cmds = cmds
+        if cmds:
+            self.cmds = cmds.to_dict() # dict name - Command class
 
     def execute(self, opt_values, pos_args):
         if opt_values['shell'] == 'bash':
@@ -108,9 +109,8 @@ class TabCompletion(DoitCmdBase):
 
         # case statement to complete sub-commands
         cmds_args = []
-        cmd_list = sorted(self.cmds.values(),
-                          key = lambda c: c.get_name())
-        for cmd_class in cmd_list:
+        for name in sorted(self.cmds):
+            cmd_class = self.cmds[name]
             cmd = cmd_class(**self.init_kwargs)
             cmds_args.append(self._bash_cmd_args(cmd))
         comp_subcmds = ("\n    case ${words[1]} in\n" +
@@ -177,9 +177,8 @@ class TabCompletion(DoitCmdBase):
         # deal with doit commands
         cmds_desc = []
         cmds_args = []
-        cmd_list = sorted(self.cmds.values(),
-                          key = lambda c: c.get_name())
-        for cmd_class in cmd_list:
+        for name in sorted(self.cmds):
+            cmd_class = self.cmds[name]
             cmd = cmd_class(**self.init_kwargs)
             cmds_desc.append("    '{0}: {1}'".format(cmd.name, cmd.doc_purpose))
             cmds_args.append(self._zsh_cmd_args(cmd))
