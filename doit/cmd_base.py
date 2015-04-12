@@ -280,22 +280,20 @@ class DoitCmdBase(Command):
     _execute => method, argument names must be option names
     """
     base_options = (opt_depfile, opt_backend, opt_check_file_uptodate)
-    DEFAULT_LOADER = DodoTaskLoader
 
     def __init__(self, task_loader=None, cmds=None, **kwargs):
         super(DoitCmdBase, self).__init__(**kwargs)
-        self._loader = task_loader if task_loader else self.DEFAULT_LOADER()
-        self._backends = self.get_backends()
-        if cmds:
-            self._loader.cmd_names = list(sorted(cmds.keys()))
         self.sel_tasks = None # selected tasks for command
         self.dep_manager = None #
         self.outstream = sys.stdout
+        self.loader = self._get_loader(task_loader, cmds)
+        self._backends = self.get_backends()
+
 
     def get_options(self):
         """from base class - merge base_options, loader_options and cmd_options
         """
-        opt_list = (self.base_options + self._loader.cmd_options +
+        opt_list = (self.base_options + self.loader.cmd_options +
                     self.cmd_options)
         return [CmdOption(opt) for opt in opt_list]
 
@@ -332,7 +330,31 @@ class DoitCmdBase(Command):
             # user defined class
             return check_file_uptodate
 
+
+    def _get_loader(self, task_loader=None, cmds=None):
+        """return task loader
+        :param task_loader: a TaskLoader class
+        :param cmds: dict of available commands
+        """
+        loader = None
+        if task_loader:
+            loader = task_loader  # task_loader set from the API
+        elif 'loader' in self.config_vals:
+            # a plugin loader
+            loader_name = self.config_vals['loader']
+            plugins = PluginDict()
+            plugins.add_plugins(self.config, 'LOADER')
+            loader = plugins.get_plugin(loader_name)()
+        else:
+            loader = DodoTaskLoader() # default loader
+
+        if cmds:
+            loader.cmd_names = list(sorted(cmds.keys()))
+        return loader
+
+
     def get_backends(self):
+        """return PluginDict of DB backends, including core and plugins"""
         backend_map = {'dbm': DbmDB, 'json': JsonDB, 'sqlite3': SqliteDB}
         # add plugins
         plugins = PluginDict()
@@ -352,8 +374,8 @@ class DoitCmdBase(Command):
         :param params: instance of cmdparse.DefaultUpdate
         :param args: list of string arguments (containing task names)
         """
-        self.task_list, dodo_config = self._loader.load_tasks(self, params,
-                                                              args)
+        self.task_list, dodo_config = self.loader.load_tasks(
+            self, params, args)
         # merge config values from dodo.py into params
         params.update_defaults(dodo_config)
 

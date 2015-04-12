@@ -54,7 +54,7 @@ class TestRun(object):
     def test_task_loader_has_cmd_list(self, monkeypatch):
         cmd_names = []
         def save_cmd_names(self, params, args):
-            cmd_names.extend(self._loader.cmd_names)
+            cmd_names.extend(self.loader.cmd_names)
         monkeypatch.setattr(Run, "execute", save_cmd_names)
         cmd_main([])
         assert 'list' in cmd_names

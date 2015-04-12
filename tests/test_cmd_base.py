@@ -175,7 +175,7 @@ class TestDoitCmdBase(object):
         members = {'task_xxx1': lambda : {'actions':[]},}
         loader = ModuleTaskLoader(members)
         mycmd = MyRawCmd(task_loader=loader, cmds={'foo':None, 'bar':None})
-        assert mycmd._loader.cmd_names == ['bar', 'foo']
+        assert mycmd.loader.cmd_names == ['bar', 'foo']
         assert 'min' == mycmd.parse_execute(['--mine', 'min'])
 
 
@@ -234,6 +234,13 @@ class TestDoitCmdBase(object):
         params['dep_file'] = depfile_name
         mycmd.execute(params, args)
         assert mycmd.dep_manager.db_class is mycmd._backends['j2']
+
+
+    def testPluginLoader(self, depfile_name):
+        entry_point = {'mod': 'tests.sample_plugin:MyLoader'}
+        mycmd = self.MyCmd(config={'GLOBAL': {'loader': 'mod'},
+                                   'LOADER': entry_point})
+        assert mycmd.loader.__class__.__name__ == 'MyLoader'
 
 
 class TestCheckTasksExist(object):

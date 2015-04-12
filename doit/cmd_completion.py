@@ -98,7 +98,7 @@ class TabCompletion(DoitCmdBase):
 
         # if hardcode tasks
         if opt_values['hardcode_tasks']:
-            self.task_list, _ = self._loader.load_tasks(
+            self.task_list, _ = self.loader.load_tasks(
                 self, opt_values, pos_args)
             tmpl_vars['pt_tasks'] = '"{0}"'.format(
                 ' '.join(t.name for t in self.task_list if not t.is_subtask))
@@ -190,7 +190,7 @@ class TabCompletion(DoitCmdBase):
         }
 
         if opt_values['hardcode_tasks']:
-            self.task_list, _ = self._loader.load_tasks(
+            self.task_list, _ = self.loader.load_tasks(
                 self, opt_values, pos_args)
             lines = []
             for task in self.task_list:

@@ -14,8 +14,12 @@ Changes
  - GH-#22: Allow to customize how file_dep are checked
  - GH-#31: Add IPython `%doit` magic-function loading tasks from its global
    namespace
- - GH-#32 plugin system
  - read configuration options from INI files
+ - GH-#32 plugin system
+ - plugin support: COMMAND - add new commands
+ - plugin support: LOADER - add custom task loaders
+ - plugin support: REPORTER - add custom reporter for `run` command
+ - plugin support: BACKEND - add custom DB persistency backend
  - GH-#36 PythonAction recognizes returned TaskError or TaskFailed
  - GH-#37 CmdParse support for arguments of type list
  - GH-#47 CmdParse support for choices
