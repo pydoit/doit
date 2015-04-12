@@ -21,6 +21,8 @@ Apart from those, `doit` also provides a plugin system and
 expose it's internal API so you can create new applications on top of `doit`.
 
 
+.. _custom_loader:
+
 task loader customization
 ===========================
 
@@ -158,3 +160,22 @@ category REPORTER
 
 Register a custom reporter as introduced in the
 :ref:`custom reporter<custom_reporter>` section.
+
+
+category LOADER
+----------------
+
+Creates a custom task loader. Check :ref:`loader <custom_loader>` section
+for details on how to create a new command.
+
+Apart from getting the plugin you also need to indicate which loader will be
+used in the `GLOBAL` section of your config file.
+
+.. code-block:: INI
+
+  [GLOBAL]
+  loader = my_loader
+
+  [LOADER]
+  my_loader = my_plugins:MyLoader
+

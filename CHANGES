@@ -19,7 +19,7 @@ Changes
  - plugin support: COMMAND - add new commands
  - plugin support: LOADER - add custom task loaders
  - plugin support: REPORTER - add custom reporter for `run` command
- - plugin support: BACKEND - add custom DB persistency backend
+ - plugin support: BACKEND - add custom DB persistence backend
  - GH-#36 PythonAction recognizes returned TaskError or TaskFailed
  - GH-#37 CmdParse support for arguments of type list
  - GH-#47 CmdParse support for choices

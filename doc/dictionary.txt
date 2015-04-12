@@ -96,6 +96,7 @@ Metagenomics
 ModuleTaskLoader
 MyChecker
 MyCustomTask2
+MyLoader
 Naufel
 PDB
 PYTHONPATH
