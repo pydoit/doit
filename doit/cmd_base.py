@@ -225,6 +225,7 @@ class TaskLoader(object):
     def __init__(self):
         # list of command names, used to detect clash of task names and commands
         self.cmd_names = []
+        self.config = None # reference to config object taken from Command
 
     def load_tasks(self, cmd, opt_values, pos_args): # pragma: no cover
         """load tasks and DOIT_CONFIG
@@ -350,6 +351,7 @@ class DoitCmdBase(Command):
 
         if cmds:
             loader.cmd_names = list(sorted(cmds.keys()))
+        loader.config = self.config
         return loader
 
 

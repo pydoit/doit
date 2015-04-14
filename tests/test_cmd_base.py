@@ -178,6 +178,10 @@ class TestDoitCmdBase(object):
         assert mycmd.loader.cmd_names == ['bar', 'foo']
         assert 'min' == mycmd.parse_execute(['--mine', 'min'])
 
+    # loader gets a reference to config
+    def test_loader_config(self, depfile_name):
+        mycmd = self.MyCmd(config={'foo':{'bar':'x'}})
+        assert mycmd.loader.config['foo'] == {'bar':'x'}
 
     # command with _execute() method
     def test_execute(self, depfile_name):
