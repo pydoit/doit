@@ -19,6 +19,11 @@ def task(*fn, **kwargs):
 def simple():
     print("thats all folks")
 
+@task(output=['my_input.txt'])
+def pre(to_create):
+    with open(to_create[0], 'w') as fp:
+        fp.write('foo')
+
 @task(output=['out1.txt', 'out2.txt'])
 def create(to_be_created):
     print("I should create these files: %s" % " ".join(to_be_created))
