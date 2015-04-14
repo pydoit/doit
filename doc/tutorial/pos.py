@@ -1,3 +1,4 @@
+from __future__ import print_function
 def task_pos_args():
     def show_params(param1, pos):
         print('param1 is: {0}'.format(param1))

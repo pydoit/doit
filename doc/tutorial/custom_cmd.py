@@ -1,3 +1,4 @@
+from __future__ import print_function
 from doit.cmd_base import Command
 
 
@@ -8,4 +9,4 @@ class Init(Command):
 It will be displayed on `doit help init`"""
 
     def execute(self, opt_values, pos_args):
-        print "TODO: create some files for my project"
+        print("TODO: create some files for my project")

@@ -1,6 +1,7 @@
+from __future__ import print_function
 def who(task):
-    print 'my name is', task.name
-    print task.targets
+    print('my name is', task.name)
+    print(task.targets)
 
 def task_x():
     return {

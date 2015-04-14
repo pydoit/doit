@@ -1,7 +1,8 @@
+from __future__ import print_function
 def task_py_params():
     def show_params(param1, param2):
-        print param1
-        print 5 + param2
+        print(param1)
+        print(5 + param2)
     return {'actions':[(show_params,)],
             'params':[{'name':'param1',
                        'short':'p',
@@ -17,7 +18,7 @@ def task_py_params():
 def task_py_params_list():
     def print_a_list(list):
         for item in list:
-            print item
+            print(item)
     return {'actions':[(print_a_list,)],
             'params':[{'name':'list',
                        'short':'l',
@@ -30,7 +31,7 @@ def task_py_params_list():
 
 def task_py_params_choice():
     def print_choice(choice):
-        print choice
+        print(choice)
 
     return {'actions':[(print_choice,)],
             'params':[{'name':'choice',

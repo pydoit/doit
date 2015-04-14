@@ -17,7 +17,7 @@ def task_do():
         metadata['name'] = item.__name__
 
         # *I* dont like the names file_dep, targets. So I use 'input', 'output'
-        class Sentinel: pass
+        class Sentinel(object): pass
         input_ = metadata.pop('input', Sentinel)
         output_ = metadata.pop('output', Sentinel)
         args = []

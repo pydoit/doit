@@ -1,3 +1,4 @@
+from __future__ import print_function
 DOIT_CONFIG = {'verbosity': 2}
 
 MOD_IMPORTS = {'a': ['b','c'],
@@ -8,10 +9,10 @@ MOD_IMPORTS = {'a': ['b','c'],
 
 
 def print_deps(mod, dependencies):
-    print "%s -> %s" % (mod, dependencies)
+    print("%s -> %s" % (mod, dependencies))
 def task_mod_deps():
     """task that depends on all direct imports"""
-    for mod in MOD_IMPORTS.iterkeys():
+    for mod in MOD_IMPORTS.keys():
         yield {'name': mod,
                'actions': [(print_deps,(mod,))],
                'file_dep': [mod],
@@ -23,7 +24,7 @@ def get_dep(mod):
     return {'file_dep': MOD_IMPORTS[mod]}
 def task_get_dep():
     """get direct dependencies for each module"""
-    for mod in MOD_IMPORTS.iterkeys():
+    for mod in MOD_IMPORTS.keys():
         yield {'name': mod,
                'actions':[(get_dep,[mod])],
                'file_dep': [mod],

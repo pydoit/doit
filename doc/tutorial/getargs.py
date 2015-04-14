@@ -1,3 +1,4 @@
+from __future__ import print_function
 DOIT_CONFIG = {'default_tasks': ['use_cmd', 'use_python']}
 
 def task_compute():
@@ -21,5 +22,5 @@ def task_use_python():
           'verbosity': 2,
           }
 def show_getargs(x, y):
-   print "this is x:%s" % x
-   print "this is y:%s" % y
+   print("this is x:%s" % x)
+   print("this is y:%s" % y)

@@ -1,7 +1,8 @@
+from __future__ import print_function
 from doit.task import clean_targets
 
 def simple():
-    print "ok"
+    print("ok")
 
 def task_poo():
     return {
