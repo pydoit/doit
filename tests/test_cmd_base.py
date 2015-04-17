@@ -245,7 +245,9 @@ class TestDoitCmdBase(object):
         mycmd = self.MyCmd(config={'GLOBAL': {'loader': 'mod'},
                                    'LOADER': entry_point})
         assert mycmd.loader.__class__.__name__ == 'MyLoader'
-
+        task_list, dodo_config = mycmd.loader.load_tasks(mycmd, {}, [])
+        assert task_list[0].name == 'sample_task'
+        assert dodo_config == {'verbosity': 2}
 
 class TestCheckTasksExist(object):
     def test_None(self):
