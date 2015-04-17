@@ -101,6 +101,16 @@ class TestTaskControlCmdOptions(object):
         tc =  TaskControl(tasks)
         assert ['tX'] == tc._filter_tasks(["targetX"])
 
+    def test_filter_delayed_subtask(self):
+        t1 = Task("taskX", None)
+        t2 = Task("taskY", None, loader=DelayedLoader(lambda: None))
+        control = TaskControl([t1, t2])
+        control._filter_tasks(['taskY:foo'])
+        assert isinstance(t2.loader, DelayedLoader)
+        # sub-task will use same loader, and keep parent basename
+        assert control.tasks['taskY:foo'].loader.basename == 'taskY'
+        assert control.tasks['taskY:foo'].loader is t2.loader
+
     # filter a non-existent task raises an error
     def testFilterWrongName(self):
         tc =  TaskControl(TASKS_SAMPLE)
@@ -387,15 +397,64 @@ class TestTaskDispatcher_add_task(object):
         assert n3 == 'wait'
 
         # after t2 is done, generator is reseted
-        tasks['t2'].run_status = 'done'
         td._update_waiting(n2)
         n4 = next(gen)
         assert n4 == "reset generator"
 
         # recursive loader is preserved
         assert isinstance(td.tasks['foo'].loader, DelayedLoader)
-
         pytest.raises(AssertionError, next, gen)
+
+
+    def test_delayed_creation_sub_task(self):
+        # usually a repeated loader is replaced by the real task
+        # when it is first executed, the problem arises when the
+        # the expected task is not actually created
+        def creator():
+            yield Task('t1:foo', None)
+            yield Task('t1:bar', None)
+        delayed_loader = DelayedLoader(creator, executed='t2')
+        tasks = {
+            't1': Task('t1', None, loader=delayed_loader),
+            't2': Task('t2', None),}
+
+        # simulate a sub-task from delayed created added to task_list
+        tasks['t1:foo'] = Task('t1:foo', None, loader=delayed_loader)
+        tasks['t1:xxx'] = Task('t1:xxx', None, loader=delayed_loader)
+        delayed_loader.basename = 't1'
+
+        td = TaskDispatcher(tasks, [], None)
+        n1 = td._gen_node(None, 't1:foo')
+        gen = td._add_task(n1)
+
+        # first returned node is `t2` because it is an implicit task_dep
+        n1b = next(gen)
+        assert n1b.task.name == 't2'
+
+        # wait until t2 is finished
+        n1c = next(gen)
+        assert n1c == 'wait'
+
+        # after t2 is done, generator is reseted
+        n1b.run_status = 'successful'
+        td._update_waiting(n1b)
+        n1d = next(gen)
+        assert n1d == "reset generator"
+        assert 't1:foo' in td.tasks
+        assert 't1:bar' in td.tasks
+
+        # finish with t1:foo
+        gen2 = td._add_task(n1)
+        n1.reset_task(td.tasks[n1.task.name], gen2)
+        n2 = next(gen2)
+        assert n2.name == 't1:foo'
+        pytest.raises(StopIteration, next, gen2)
+
+        # try non-existent t1:xxx
+        n3 = td._gen_node(None, 't1:xxx')
+        gen3 = td._add_task(n3)
+        # ? should raise a runtime error?
+        pytest.raises(StopIteration, next, gen3)
 
 
 

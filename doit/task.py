@@ -26,13 +26,17 @@ def first_line(doc):
 class DelayedLoader(object):
     """contains info for delayed creation of tasks from a task-creator
 
-    @ivar creator: reference to task-creator function
-    @ivar task_dep: (str) name of task that should be executed before the
+    :ivar creator: reference to task-creator function
+    :ivar task_dep: (str) name of task that should be executed before the
                     the loader call the creator function
+    :ivar basename: (str) basename used when creating tasks
     """
     def __init__(self, creator, executed=None):
         self.creator = creator
         self.task_dep = executed
+        self.basename = None
+        self.created = False
+
 
 # used to indicate that a task had DelayedLoader but was already created
 DelayedLoaded = False

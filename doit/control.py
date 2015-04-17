@@ -178,10 +178,18 @@ class TaskControl(object):
             elif filter_ in self.targets:
                 selected_task.append(self.targets[filter_])
             else:
-                msg = ('cmd `run` invalid parameter: "%s".' +
-                       ' Must be a task, or a target.\n' +
-                       'Type "doit list" to see available tasks')
-                raise InvalidCommand(msg % filter_)
+                # if can not find name check if it is a sub-task of a delayed
+                basename = filter_.split(':', 1)[0]
+                if basename in self.tasks:
+                    loader = self.tasks[basename].loader
+                    loader.basename = basename
+                    self.tasks[filter_] = Task(filter_, None, loader=loader)
+                    selected_task.append(filter_)
+                else:
+                    msg = ('cmd `run` invalid parameter: "%s".' +
+                           ' Must be a task, or a target.\n' +
+                           'Type "doit list" to see available tasks')
+                    raise InvalidCommand(msg % filter_)
         return selected_task
 
 
@@ -397,13 +405,22 @@ class TaskDispatcher(object):
                 break
 
         if this_task.loader:
+            if this_task.loader.created:
+                # This loader was already executed but its task was
+                # not replaced.
+                # This happens when a sub-task is specified from the
+                # command line but actually not created.
+                # TODO: needs a new error class ?
+                return
             ref = this_task.loader.creator
-            new_tasks = generate_tasks(this_task.name, ref(), ref.__doc__)
+            basename = this_task.loader.basename or this_task.name
+            new_tasks = generate_tasks(basename, ref(), ref.__doc__)
             TaskControl.set_implicit_deps(self.targets, new_tasks)
             for nt in new_tasks:
                 if not nt.loader:
                     nt.loader = DelayedLoaded
                 self.tasks[nt.name] = nt
+            this_task.loader.created = True
             # this task was placeholder to execute the loader
             # now it needs to be re-processed with the real task
             yield "reset generator"
