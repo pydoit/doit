@@ -110,6 +110,14 @@ class DoitMain(object):
         return args_no_vars
 
 
+    def get_commands(self): # pragma: no cover
+        '''Notice for application subclassing DoitMain with old API'''
+        msg = ('ERROR: You are using doit version {}, it is too new! '
+               'This application requires version <= 0.27.\n')
+        sys.stderr.write(msg.format('.'.join(str(v) for v in VERSION)))
+        sys.exit(3)
+
+
     def run(self, cmd_args):
         """entry point for all commands
 
