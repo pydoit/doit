@@ -28,8 +28,8 @@ execute any kind of task
 Project Details
 ===============
 
- - Project management on github - https://github.com/pydoit/doit
  - Website & docs - http://pydoit.org
+ - Project management on github - https://github.com/pydoit/doit
  - Discussion group - https://groups.google.com/forum/#!forum/python-doit
  - News/twitter - https://twitter.com/py_doit
 
@@ -37,7 +37,7 @@ license
 =======
 
 The MIT License
-Copyright (c) 2008-2013 Eduardo Naufel Schettino
+Copyright (c) 2008-2015 Eduardo Naufel Schettino
 
 see LICENSE file
 
@@ -51,7 +51,7 @@ see AUTHORS file
 install
 =======
 
-*doit* is tested on python 2.7, 3.2, 3.3, 3.4.
+*doit* is tested on python 2.7, 3.3, 3.4.
 
 ::
 
