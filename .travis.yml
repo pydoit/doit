@@ -10,7 +10,7 @@ before_install:
   - sudo apt-get install strace
 
 install:
-  - "pip install . --use-mirrors"
+  - pip install .
   - pip install -r dev_requirements.txt python-coveralls
   # See https://github.com/travis-ci/travis-cookbooks/issues/155
   - sudo rm -rf /dev/shm && sudo ln -s /run/shm /dev/shm

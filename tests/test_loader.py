@@ -3,11 +3,11 @@ import inspect
 
 import pytest
 
-import doit
 from doit.exceptions import InvalidDodoFile, InvalidCommand
 from doit.task import InvalidTask, DelayedLoader, Task
 from doit.loader import flat_generator, get_module
 from doit.loader import load_tasks, load_doit_config, generate_tasks
+from doit.loader import create_after
 
 
 class TestFlatGenerator(object):
@@ -51,15 +51,6 @@ class TestGetModule(object):
         fileName = os.path.join("i_dont_exist.py")
         pytest.raises(InvalidDodoFile, get_module, fileName, seek_parent=True)
 
-    def testSetCwd(self, restore_cwd):
-        initial_wd = os.getcwd()
-        fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
-        cwd = os.path.join(os.path.dirname(__file__), "data")
-        assert cwd != initial_wd # make sure test is not too easy
-        get_module(fileName, cwd)
-        assert os.getcwd() == cwd, os.getcwd()
-        assert doit.get_initial_workdir() == initial_wd
-
     def testInvalidCwd(self, restore_cwd):
         fileName = os.path.join(os.path.dirname(__file__),"loader_sample.py")
         cwd = os.path.join(os.path.dirname(__file__), "dataX")
@@ -89,7 +80,7 @@ class TestLoadTasks(object):
         assert 'yyy2' == task_list[1].name
 
     def testCreateAfterDecorator(self):
-        @doit.create_after('yyy2')
+        @create_after('yyy2')
         def task_zzz3(): # pragma: no cover
             pass
 
@@ -98,7 +89,7 @@ class TestLoadTasks(object):
         assert task_zzz3.doit_create_after.task_dep == 'yyy2'
 
     def testInitialLoadDelayedTask(self, dodo):
-        @doit.create_after('yyy2')
+        @create_after('yyy2')
         def task_zzz3(): # pragma: no cover
             raise Exception('Cant be executed on load phase')
         dodo['task_zzz3'] = task_zzz3

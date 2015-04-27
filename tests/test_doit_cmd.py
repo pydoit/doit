@@ -3,7 +3,6 @@ import os
 import pytest
 from mock import Mock
 
-from doit import get_var
 from doit.exceptions import InvalidCommand
 from doit.cmd_run import Run
 from doit.cmd_list import List
@@ -42,14 +41,14 @@ class TestRun(object):
         mock_run = Mock()
         monkeypatch.setattr(Run, "execute", mock_run)
         cmd_main(['x=1', 'y=abc'])
-        assert '1' == get_var('x')
-        assert 'abc' == get_var('y')
+        assert '1' == doit_cmd.get_var('x')
+        assert 'abc' == doit_cmd.get_var('y')
 
     def test_cmdline_vars_not_opts(self, monkeypatch):
         mock_run = Mock()
         monkeypatch.setattr(Run, "execute", mock_run)
         cmd_main(['--z=5'])
-        assert None == get_var('--z')
+        assert None == doit_cmd.get_var('--z')
 
     def test_task_loader_has_cmd_list(self, monkeypatch):
         cmd_names = []
