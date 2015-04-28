@@ -98,10 +98,11 @@ def get_module(dodo_file, cwd=None, seek_parent=False):
 
 
 
-def create_after(executed=None):
+def create_after(executed=None, target_regex=None):
     """Annotate a task-creator function with delayed loader info"""
     def decorated(func):
-        func.doit_create_after = DelayedLoader(func, executed=executed)
+        func.doit_create_after = DelayedLoader(func, executed=executed,
+                                               target_regex=target_regex)
         return func
     return decorated
 

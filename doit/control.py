@@ -174,22 +174,41 @@ class TaskControl(object):
             # by task name
             if filter_ in self.tasks:
                 selected_task.append(filter_)
+                continue
+
             # by target
-            elif filter_ in self.targets:
+            if filter_ in self.targets:
                 selected_task.append(self.targets[filter_])
+                continue
+
+            # if can not find name check if it is a sub-task of a delayed
+            basename = filter_.split(':', 1)[0]
+            if basename in self.tasks:
+                loader = self.tasks[basename].loader
+                loader.basename = basename
+                self.tasks[filter_] = Task(filter_, None, loader=loader)
+                selected_task.append(filter_)
+                continue
+
+            # check if target matches any regex
+            import re
+            for task in self.tasks.values():
+                if task.loader and task.loader.target_regex:
+                    if re.match(task.loader.target_regex, filter_):
+                        loader = task.loader
+                        loader.basename = task.name
+                        name = '_regex_target_' + filter_
+                        self.tasks[name] = Task(name, None,
+                                                loader=loader,
+                                                file_dep=[filter_])
+                        selected_task.append(name)
+                        break
             else:
-                # if can not find name check if it is a sub-task of a delayed
-                basename = filter_.split(':', 1)[0]
-                if basename in self.tasks:
-                    loader = self.tasks[basename].loader
-                    loader.basename = basename
-                    self.tasks[filter_] = Task(filter_, None, loader=loader)
-                    selected_task.append(filter_)
-                else:
-                    msg = ('cmd `run` invalid parameter: "%s".' +
-                           ' Must be a task, or a target.\n' +
-                           'Type "doit list" to see available tasks')
-                    raise InvalidCommand(msg % filter_)
+                # not found
+                msg = ('cmd `run` invalid parameter: "%s".' +
+                       ' Must be a task, or a target.\n' +
+                       'Type "doit list" to see available tasks')
+                raise InvalidCommand(msg % filter_)
         return selected_task
 
 
@@ -416,6 +435,9 @@ class TaskDispatcher(object):
             basename = this_task.loader.basename or this_task.name
             new_tasks = generate_tasks(basename, ref(), ref.__doc__)
             TaskControl.set_implicit_deps(self.targets, new_tasks)
+            # check itself for implicit dep (used by regex_target)
+            TaskControl.add_implicit_task_dep(
+                self.targets, this_task, this_task.file_dep)
             for nt in new_tasks:
                 if not nt.loader:
                     nt.loader = DelayedLoaded
