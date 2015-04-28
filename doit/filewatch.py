@@ -44,11 +44,7 @@ class FileModifyWatcher(object):
             raise Exception(msg)
 
     def _handle(self, event):
-        """calls platform specific handler"""
-        if self.platform == 'Darwin': # pragma: no cover
-            filename = event.name
-        elif self.platform == 'Linux':
-            filename = event.pathname
+        filename = event.src_path
         if (filename in self.file_list or
             os.path.dirname(filename) in self.notify_dirs):
             self.handle_event(event)
@@ -108,9 +104,33 @@ class FileModifyWatcher(object):
         """Infinite loop watching for file modifications
         @loop_callback: used to stop loop on unittests
         """
+        from watchdog.observers import Observer
+        from watchdog.events import FileSystemEventHandler
+        import time
 
-        if self.platform == 'Darwin': # pragma: no cover
-            self._loop_darwin()
+        handler = self._handle
+        is_running = True
 
-        elif self.platform == 'Linux':
-            self._loop_linux(loop_callback)
+        class EventHandler(FileSystemEventHandler):
+            def on_modified(self, event):
+                nonlocal is_running
+                result = handler(event)
+
+                if result is None or not result:
+                    is_running = False
+
+        event_handler = EventHandler()
+        observer = Observer()
+
+        for watch_this in self.watch_dirs:
+            observer.schedule(event_handler, watch_this, recursive=False)
+        observer.start()
+
+        try:
+            while is_running:
+                time.sleep(1)
+        except (SystemExit, KeyboardInterrupt):
+            pass
+
+        observer.stop()
+        observer.join()

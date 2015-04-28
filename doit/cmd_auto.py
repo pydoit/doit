@@ -92,7 +92,7 @@ class Auto(DoitCmdBase):
             class DoitAutoRun(FileModifyWatcher):
                 def handle_event(self, event):
                     # print("FS EVENT -> {}".format(event))
-                    sys.exit(result)
+                    return False
             file_watcher = DoitAutoRun(watch_files)
             # kick start watching process
             file_watcher.loop()
