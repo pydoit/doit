@@ -109,15 +109,14 @@ class FileModifyWatcher(object):
         import time
 
         handler = self._handle
-        is_running = True
+        is_running = [True]
 
         class EventHandler(FileSystemEventHandler):
             def on_modified(self, event):
-                nonlocal is_running
                 result = handler(event)
 
                 if result is None or not result:
-                    is_running = False
+                    is_running[0] = False
 
         event_handler = EventHandler()
         observer = Observer()
@@ -127,7 +126,7 @@ class FileModifyWatcher(object):
         observer.start()
 
         try:
-            while is_running:
+            while is_running[0]:
                 time.sleep(1)
         except (SystemExit, KeyboardInterrupt):
             pass
