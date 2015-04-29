@@ -1,6 +1,7 @@
 import os
 import time
 import threading
+from multiprocessing import Process
 
 import pytest
 
@@ -52,43 +53,46 @@ class TestFileWatcher(object):
         should_stop = []
         started = []
         def handle_event(event):
-            events.append(event.pathname)
-            if event.pathname.endswith("stop"):
+            events.append(event.src_path)
+            if event.src_path.endswith("stop"):
                 should_stop.append(True)
+                return False
+            return True
         fw.handle_event = handle_event
 
-        def loop_callback(notifier):
-            started.append(True)
-            # force loop to stop
-            if should_stop:
-                raise KeyboardInterrupt
-        loop_thread = threading.Thread(target=fw.loop, args=(loop_callback,))
+        loop_thread = threading.Thread(target=fw.loop)
         loop_thread.daemon = True
         loop_thread.start()
 
-        # wait watcher to be ready
-        while not started: # pragma: no cover
-            time.sleep(0.01)
-            assert loop_thread.isAlive()
+        # Make sure loop has time to start
+        time.sleep(1)
 
         # write in watched file
         fd = open(files[0], 'w')
         fd.write("hi")
         fd.close()
+        time.sleep(1)
+        assert loop_thread.isAlive()
+
         # write in non-watched file
         fd = open(files[2], 'w')
         fd.write("hi")
         fd.close()
+        time.sleep(1)
+        assert loop_thread.isAlive()
+
         # write in another watched file
         fd = open(files[1], 'w')
         fd.write("hi")
         fd.close()
+        time.sleep(1)
+        assert loop_thread.isAlive()
 
         # tricky to stop watching
         fd = open(stop_file, 'w')
         fd.write("hi")
         fd.close()
-        time.sleep(0.1)
+        time.sleep(1)
         loop_thread.join(1)
 
         if loop_thread.isAlive(): # pragma: no cover

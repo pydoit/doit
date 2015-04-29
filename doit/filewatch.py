@@ -3,6 +3,9 @@ use by cmd_auto module
 """
 
 import os.path
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+import time
 
 def get_platform_system():
     """return platform.system
@@ -14,7 +17,7 @@ def get_platform_system():
 
 
 class FileModifyWatcher(object):
-    """Use inotify to watch file-system for file modifications
+    """Use watchdog to watch file-system for file modifications
 
     Usage:
     1) subclass the method handle_event, action to be performed
@@ -44,78 +47,30 @@ class FileModifyWatcher(object):
             raise Exception(msg)
 
     def _handle(self, event):
+        """Takes care of filtering out all modifications that are
+        not in the watch list. Keep the thread going (return True)
+        if modification was not one of the watched files, otherwise
+        let handle_event take care of it."""
         filename = event.src_path
         if (filename in self.file_list or
             os.path.dirname(filename) in self.notify_dirs):
-            self.handle_event(event)
+            return self.handle_event(event)
+        return True
 
     def handle_event(self, event):
-        """this should be sub-classed """
+        """this should be sub-classed. Return True if you want the
+        loop to keep going. Return False if you want it to stop."""
         raise NotImplementedError
 
-
-    def _loop_darwin(self): # pragma: no cover
-        """loop implementation for darwin platform"""
-        from fsevents import Observer #pylint: disable=F0401
-        from fsevents import Stream #pylint: disable=F0401
-        from fsevents import IN_MODIFY #pylint: disable=F0401
-
-        observer = Observer()
-        handler = self._handle
-        def fsevent_callback(event):
-            if event.mask == IN_MODIFY:
-                handler(event)
-
-        for watch_this in self.watch_dirs:
-            stream = Stream(fsevent_callback, watch_this, file_events=True)
-            observer.schedule(stream)
-
-        observer.daemon = True
-        observer.start()
-        try:
-            # hack to keep main thread running...
-            import time
-            while True:
-                time.sleep(99999)
-        except (SystemExit, KeyboardInterrupt):
-            pass
-
-
-    def _loop_linux(self, loop_callback):
-        """loop implementation for linux platform"""
-        import pyinotify
-        handler = self._handle
-        class EventHandler(pyinotify.ProcessEvent):
-            def process_default(self, event):
-                handler(event)
-
-        watch_manager = pyinotify.WatchManager()
-        event_handler = EventHandler()
-        notifier = pyinotify.Notifier(watch_manager, event_handler)
-
-        mask = pyinotify.IN_CLOSE_WRITE | pyinotify.IN_MOVED_TO
-        for watch_this in self.watch_dirs:
-            watch_manager.add_watch(watch_this, mask)
-
-        notifier.loop(loop_callback)
-
-
-    def loop(self, loop_callback=None):
-        """Infinite loop watching for file modifications
-        @loop_callback: used to stop loop on unittests
-        """
-        from watchdog.observers import Observer
-        from watchdog.events import FileSystemEventHandler
-        import time
-
+    def loop(self):
+        """Infinite loop watching for file modifications"""
         handler = self._handle
         is_running = [True]
 
         class EventHandler(FileSystemEventHandler):
             def on_modified(self, event):
                 result = handler(event)
-
-                if result is None or not result:
+                if not result:
                     is_running[0] = False
 
         event_handler = EventHandler()
