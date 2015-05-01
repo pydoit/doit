@@ -106,3 +106,41 @@ class TestFileWatcher(object):
 
         assert os.path.abspath(files[0]) == events[0]
         assert os.path.abspath(files[1]) == events[1]
+
+    def testExit(self, restore_cwd, tmpdir):
+        files = ['data/w1.txt', 'data/w2.txt', 'data/w3.txt']
+        tmpdir.mkdir('data')
+        for fname in files:
+            tmpdir.join(fname).open('a').close()
+        os.chdir(tmpdir.strpath)
+
+        fw = FileModifyWatcher((files[0], files[1]))
+        events = []
+        should_stop = []
+        def handle_event(event):
+            events.append(event.src_path)
+            if event.src_path.endswith("stop"):
+                should_stop.append(True)
+                return False
+            return True
+        fw.handle_event = handle_event
+
+        def stopper():
+            time.sleep(.1)
+            try:
+                # Python 2
+                import thread
+                thread.interrupt_main()
+            except ImportError:
+                # Python 3
+                import _thread
+                _thread.interrupt_main()
+
+        # Create a thread that will stop the main thread
+        loop_thread = threading.Thread(target=stopper)
+        loop_thread.daemon = True
+        loop_thread.start()
+
+        # This will block until a SystemExit or
+        # KeyboardInterrupt is raised
+        fw.loop()
