@@ -1,7 +1,6 @@
 import os
 import time
 import threading
-from multiprocessing import Process
 
 import pytest
 
@@ -51,7 +50,6 @@ class TestFileWatcher(object):
         fw = FileModifyWatcher((files[0], files[1], stop_file))
         events = []
         should_stop = []
-        started = []
         def handle_event(event):
             events.append(event.src_path)
             if event.src_path.endswith("stop"):

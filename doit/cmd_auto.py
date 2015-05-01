@@ -75,7 +75,7 @@ class Auto(DoitCmdBase):
         arun = Run(task_loader=self.loader)
         params.add_defaults(CmdParse(arun.get_options()).parse([])[0])
         try:
-            result = arun.execute(params, args)
+            arun.execute(params, args)
         # ??? actually tested but coverage doesnt get it...
         except InvalidCommand as err: # pragma: no cover
             sys.stderr.write("ERROR: %s\n" % str(err))
