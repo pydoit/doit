@@ -2,10 +2,13 @@
 use by cmd_auto module
 """
 
+import time
 import os.path
+import threading
+
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-import time
+
 
 from .compat import get_platform_system
 
@@ -59,13 +62,13 @@ class FileModifyWatcher(object):
     def loop(self):
         """Infinite loop watching for file modifications"""
         handler = self._handle
-        is_running = [True]
+        lock = threading.Lock()
 
         class EventHandler(FileSystemEventHandler):
             def on_modified(self, event):
                 result = handler(event)
                 if not result:
-                    is_running[0] = False
+                    lock.release()
 
         event_handler = EventHandler()
         observer = Observer()
@@ -75,8 +78,7 @@ class FileModifyWatcher(object):
         observer.start()
 
         try:
-            while is_running[0]:
-                time.sleep(1)
+            lock.acquire()
         except (SystemExit, KeyboardInterrupt):
             pass
 
