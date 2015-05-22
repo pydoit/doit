@@ -47,7 +47,11 @@ class Runner(object):
         self.final_result = SUCCESS # until something fails
         self._stop_running = False
 
-
+    def __getstate__(self):
+        pickle_dict = self.__dict__.copy()
+        pickle_dict['dep_manager'] = None
+        return pickle_dict 
+        
     def _handle_task_error(self, node, catched_excp):
         """handle all task failures/errors
 

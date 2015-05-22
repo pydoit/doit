@@ -24,7 +24,12 @@ class ConsoleReporter(object):
         self.show_out = options.get('show_out', True)
         self.show_err = options.get('show_err', True)
         self.outstream = outstream
-
+        
+    def __getstate__(self):
+        pickle_dict = self.__dict__.copy()
+        pickle_dict['outstream'] = None
+        return pickle_dict    
+        
     def write(self, text):
         self.outstream.write(text)
 
