@@ -1,6 +1,7 @@
 import os
 from multiprocessing import Queue
 import six
+import pickle
 
 import pytest
 from mock import Mock
@@ -677,6 +678,9 @@ class TestMRunner_start_process(object):
         assert isinstance(task_q.get(), runner.JobHold)
 
 
+def static_creator():
+    return {'basename': 't2', 'actions': [lambda: 5]}
+        
 class TestMRunner_parallel_run_tasks(object):
 
     @pytest.mark.skipif('not runner.MRunner.available()')
@@ -688,7 +692,16 @@ class TestMRunner_parallel_run_tasks(object):
         my_runner = runner.MRunner(dep_manager, reporter)
         dispatcher = TaskDispatcher({'t1':t1, 't2':t2}, [], ['t1', 't2'])
         pytest.raises(InvalidTask, my_runner.run_tasks, dispatcher)
-
+        
+    @pytest.mark.skipif('not runner.MRunner.available()')
+    def test_mrunner_picklabe(self, reporter, dep_manager):   
+        # Windows requires that the inputs to Process.__init__ are picklable. 
+        # This includes MRunner.
+        t1 = Task("t1", [(my_print, ["out a"] )] )
+        t2 = Task("t2", None, loader=DelayedLoader(static_creator, executed='t1'))
+        my_runner = runner.MRunner(dep_manager, reporter)
+        pickle.dumps(my_runner)
+        
     def test_task_not_picklabe_thread(self, reporter, dep_manager):
         def creator():
             return {'basename': 't2', 'actions': [lambda: True]}
