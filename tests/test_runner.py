@@ -696,11 +696,13 @@ class TestMRunner_parallel_run_tasks(object):
     @pytest.mark.skipif('not runner.MRunner.available()')
     def test_mrunner_picklabe(self, reporter, dep_manager):   
         # Windows requires that the inputs to Process.__init__ are picklable. 
-        # This includes MRunner.
+        # This includes MRunner, TaskDispatcher and ExecNode
         t1 = Task("t1", [(my_print, ["out a"] )] )
         t2 = Task("t2", None, loader=DelayedLoader(static_creator, executed='t1'))
         my_runner = runner.MRunner(dep_manager, reporter)
         pickle.dumps(my_runner)
+        pickle.dumps(TaskDispatcher({'t1':t1, 't2':t2}, [], ['t1', 't2']))
+        pickle.dumps(ExecNode(t1,None))
         
     def test_task_not_picklabe_thread(self, reporter, dep_manager):
         def creator():
