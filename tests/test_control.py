@@ -111,6 +111,43 @@ class TestTaskControlCmdOptions(object):
         assert control.tasks['taskY:foo'].loader.basename == 'taskY'
         assert control.tasks['taskY:foo'].loader is t2.loader
 
+    def test_filter_delayed_regex_single(self):
+        t1 = Task("taskX", None)
+        t2 = Task("taskY", None, loader=DelayedLoader(lambda: None, target_regex='a.*'))
+        t3 = Task("taskZ", None, loader=DelayedLoader(lambda: None, target_regex='b.*'))
+        t4 = Task("taskW", None, loader=DelayedLoader(lambda: None))
+        control = TaskControl([t1, t2, t3, t4], auto_delayed_regex=False)
+        l = control._filter_tasks(['abc'])
+        assert isinstance(t2.loader, DelayedLoader)
+        assert len(l) == 1
+        assert l[0] == '_regex_target_abc'
+        assert control.tasks[l[0]].file_dep == {'abc'}
+        assert control.tasks[l[0]].loader.basename == 'taskY'
+        assert control.tasks[l[0]].loader is t2.loader
+
+    def test_filter_delayed_regex_multiple(self):
+        t1 = Task("taskX", None)
+        t2 = Task("taskY", None, loader=DelayedLoader(lambda: None, target_regex='a.*'))
+        t3 = Task("taskZ", None, loader=DelayedLoader(lambda: None, target_regex='ab.'))
+        t4 = Task("taskW", None, loader=DelayedLoader(lambda: None))
+        control = TaskControl([t1, t2, t3, t4], auto_delayed_regex=False)
+        l = control._filter_tasks(['abc'])
+        assert len(l) == 1
+        assert l[0] == '_regex_target_abc'
+        assert control.tasks[l[0]].file_dep == {'abc'}
+        assert control.tasks[l[0]].task_dep == [t2.name, t3.name]
+
+    def test_filter_delayed_regex_auto(self):
+        t1 = Task("taskX", None)
+        t2 = Task("taskY", None, loader=DelayedLoader(lambda: None, target_regex='a.*'))
+        t3 = Task("taskZ", None, loader=DelayedLoader(lambda: None))
+        control = TaskControl([t1, t2, t3], auto_delayed_regex=True)
+        l = control._filter_tasks(['abc'])
+        assert len(l) == 1
+        assert l[0] == '_regex_target_abc'
+        assert control.tasks[l[0]].file_dep == {'abc'}
+        assert control.tasks[l[0]].task_dep == [t2.name, t3.name]
+
     # filter a non-existent task raises an error
     def testFilterWrongName(self):
         tc =  TaskControl(TASKS_SAMPLE)
