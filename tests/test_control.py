@@ -135,7 +135,7 @@ class TestTaskControlCmdOptions(object):
         assert len(l) == 1
         assert l[0] == '_regex_target_abc'
         assert control.tasks[l[0]].file_dep == {'abc'}
-        assert control.tasks[l[0]].task_dep == [t2.name, t3.name]
+        assert set(control.tasks[l[0]].task_dep) == {t2.name, t3.name}
 
     def test_filter_delayed_regex_auto(self):
         t1 = Task("taskX", None)
@@ -146,7 +146,7 @@ class TestTaskControlCmdOptions(object):
         assert len(l) == 1
         assert l[0] == '_regex_target_abc'
         assert control.tasks[l[0]].file_dep == {'abc'}
-        assert control.tasks[l[0]].task_dep == [t2.name, t3.name]
+        assert set(control.tasks[l[0]].task_dep) == {t2.name, t3.name}
 
     # filter a non-existent task raises an error
     def testFilterWrongName(self):
