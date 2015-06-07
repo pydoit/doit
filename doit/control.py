@@ -26,9 +26,10 @@ class TaskControl(object):
                           Value: task_name
     """
 
-    def __init__(self, task_list):
+    def __init__(self, task_list, auto_delayed_regex=False):
         self.tasks = {}
         self.targets = {}
+        self.auto_delayed_regex = auto_delayed_regex
 
         # name of task in order to be executed
         # this the order as in the dodo file. the real execution
@@ -194,8 +195,8 @@ class TaskControl(object):
             import re
             tasks = []
             for task in list(self.tasks.values()):
-                if task.loader and task.loader.target_regex:
-                    if re.match(task.loader.target_regex, filter_):
+                if task.loader and (task.loader.target_regex or self.auto_delayed_regex):
+                    if re.match(task.loader.target_regex if task.loader.target_regex else '.*', filter_):
                         tasks.append(task)
             if len(tasks) > 0:
                 if len(tasks) == 1:

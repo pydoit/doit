@@ -116,6 +116,18 @@ opt_pdb = {
     }
 
 
+# use ".*" as default regex for delayed tasks without explicitly specified regex
+opt_auto_delayed_regex = {
+    'name': 'auto_delayed_regex',
+    'short': '',
+    'long': 'auto-delayed-regex',
+    'type': bool,
+    'default': False,
+    'help':
+"""Uses the default regex ".*" for every delayed task loader for which no regex was explicitly defined"""
+}
+
+
 class Run(DoitCmdBase):
     doc_purpose = "run tasks"
     doc_usage = "[TASK/TARGET...]"
@@ -124,7 +136,8 @@ class Run(DoitCmdBase):
 
     cmd_options = (opt_always, opt_continue, opt_verbosity,
                    opt_reporter, opt_outfile, opt_num_process,
-                   opt_parallel_type, opt_pdb, opt_single)
+                   opt_parallel_type, opt_pdb, opt_single,
+                   opt_auto_delayed_regex)
 
 
     def __init__(self, **kwargs):
@@ -162,7 +175,7 @@ class Run(DoitCmdBase):
     def _execute(self, outfile,
                  verbosity=None, always=False, continue_=False,
                  reporter='console', num_process=0, par_type='process',
-                 single=False):
+                 single=False, auto_delayed_regex=False):
         """
         @param reporter:
                (str) one of provided reporters or ...
@@ -172,7 +185,7 @@ class Run(DoitCmdBase):
         """
         # get tasks to be executed
         # self.control is saved on instance to be used by 'auto' command
-        self.control = TaskControl(self.task_list)
+        self.control = TaskControl(self.task_list, auto_delayed_regex=auto_delayed_regex)
         self.control.process(self.sel_tasks)
 
         if single:
