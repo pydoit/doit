@@ -26,9 +26,10 @@ class TaskControl(object):
                           Value: task_name
     """
 
-    def __init__(self, task_list):
+    def __init__(self, task_list, auto_delayed_regex=False):
         self.tasks = {}
         self.targets = {}
+        self.auto_delayed_regex = auto_delayed_regex
 
         # name of task in order to be executed
         # this the order as in the dodo file. the real execution
@@ -192,17 +193,27 @@ class TaskControl(object):
 
             # check if target matches any regex
             import re
-            for task in self.tasks.values():
-                if task.loader and task.loader.target_regex:
-                    if re.match(task.loader.target_regex, filter_):
-                        loader = task.loader
-                        loader.basename = task.name
-                        name = '_regex_target_' + filter_
-                        self.tasks[name] = Task(name, None,
-                                                loader=loader,
-                                                file_dep=[filter_])
-                        selected_task.append(name)
-                        break
+            tasks = []
+            for task in list(self.tasks.values()):
+                if task.loader and (task.loader.target_regex or self.auto_delayed_regex):
+                    if re.match(task.loader.target_regex if task.loader.target_regex else '.*', filter_):
+                        tasks.append(task)
+            if len(tasks) > 0:
+                if len(tasks) == 1:
+                    task = tasks[0]
+                    loader = task.loader
+                    loader.basename = task.name
+                    name = '_regex_target_' + filter_
+                    self.tasks[name] = Task(name, None,
+                                            loader=loader,
+                                            file_dep=[filter_])
+                    selected_task.append(name)
+                else:
+                    name = '_regex_target_' + filter_
+                    self.tasks[name] = Task(name, None,
+                                            task_dep=[task.name for task in tasks],
+                                            file_dep=[filter_])
+                    selected_task.append(name)
             else:
                 # not found
                 msg = ('cmd `run` invalid parameter: "%s".' +
