@@ -26,9 +26,10 @@ class TaskControl(object):
                           Value: task_name
     """
 
-    def __init__(self, task_list):
+    def __init__(self, task_list, auto_delayed_regex=False):
         self.tasks = {}
         self.targets = {}
+        self.auto_delayed_regex = auto_delayed_regex
 
         # name of task in order to be executed
         # this the order as in the dodo file. the real execution
@@ -174,22 +175,51 @@ class TaskControl(object):
             # by task name
             if filter_ in self.tasks:
                 selected_task.append(filter_)
+                continue
+
             # by target
-            elif filter_ in self.targets:
+            if filter_ in self.targets:
                 selected_task.append(self.targets[filter_])
-            else:
-                # if can not find name check if it is a sub-task of a delayed
-                basename = filter_.split(':', 1)[0]
-                if basename in self.tasks:
-                    loader = self.tasks[basename].loader
-                    loader.basename = basename
-                    self.tasks[filter_] = Task(filter_, None, loader=loader)
-                    selected_task.append(filter_)
+                continue
+
+            # if can not find name check if it is a sub-task of a delayed
+            basename = filter_.split(':', 1)[0]
+            if basename in self.tasks:
+                loader = self.tasks[basename].loader
+                loader.basename = basename
+                self.tasks[filter_] = Task(filter_, None, loader=loader)
+                selected_task.append(filter_)
+                continue
+
+            # check if target matches any regex
+            import re
+            tasks = []
+            for task in list(self.tasks.values()):
+                if task.loader and (task.loader.target_regex or self.auto_delayed_regex):
+                    if re.match(task.loader.target_regex if task.loader.target_regex else '.*', filter_):
+                        tasks.append(task)
+            if len(tasks) > 0:
+                if len(tasks) == 1:
+                    task = tasks[0]
+                    loader = task.loader
+                    loader.basename = task.name
+                    name = '_regex_target_' + filter_
+                    self.tasks[name] = Task(name, None,
+                                            loader=loader,
+                                            file_dep=[filter_])
+                    selected_task.append(name)
                 else:
-                    msg = ('cmd `run` invalid parameter: "%s".' +
-                           ' Must be a task, or a target.\n' +
-                           'Type "doit list" to see available tasks')
-                    raise InvalidCommand(msg % filter_)
+                    name = '_regex_target_' + filter_
+                    self.tasks[name] = Task(name, None,
+                                            task_dep=[task.name for task in tasks],
+                                            file_dep=[filter_])
+                    selected_task.append(name)
+            else:
+                # not found
+                msg = ('cmd `run` invalid parameter: "%s".' +
+                       ' Must be a task, or a target.\n' +
+                       'Type "doit list" to see available tasks')
+                raise InvalidCommand(msg % filter_)
         return selected_task
 
 
@@ -416,6 +446,9 @@ class TaskDispatcher(object):
             basename = this_task.loader.basename or this_task.name
             new_tasks = generate_tasks(basename, ref(), ref.__doc__)
             TaskControl.set_implicit_deps(self.targets, new_tasks)
+            # check itself for implicit dep (used by regex_target)
+            TaskControl.add_implicit_task_dep(
+                self.targets, this_task, this_task.file_dep)
             for nt in new_tasks:
                 if not nt.loader:
                     nt.loader = DelayedLoaded

@@ -31,9 +31,10 @@ class DelayedLoader(object):
                     the loader call the creator function
     :ivar basename: (str) basename used when creating tasks
     """
-    def __init__(self, creator, executed=None):
+    def __init__(self, creator, executed=None, target_regex=None):
         self.creator = creator
         self.task_dep = executed
+        self.target_regex = target_regex
         self.basename = None
         self.created = False
 
