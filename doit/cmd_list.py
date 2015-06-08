@@ -1,3 +1,5 @@
+import six
+
 from .cmd_base import DoitCmdBase, check_tasks_exist, subtasks_iter
 
 opt_listall = {
@@ -143,6 +145,7 @@ class List(DoitCmdBase):
             if status:
                 template = '{status} ' + template
         template += '\n'
+        template = six.text_type(template) # PY2 compat to handle unicode values
 
         # print list of tasks
         for task in sorted(print_list):

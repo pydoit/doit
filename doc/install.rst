@@ -16,7 +16,7 @@ Installing
 
 * Get latest development version::
 
-  $ hg clone https://bitbucket.org/schettino72/doit
+  $ git clone https://github.com/pydoit/doit.git
 
 
 .. note::

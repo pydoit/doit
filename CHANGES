@@ -3,6 +3,13 @@
 Changes
 =======
 
+0.29.0
+======
+
+ - GH-#59: fix command `list` issue with unicode names
+
+
+
 0.28.0 (*2015-04-22*)
 =====================
 
