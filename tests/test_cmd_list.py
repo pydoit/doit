@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import six
 from six import StringIO
 
 import pytest
@@ -144,10 +145,10 @@ class TestCmdList(object):
 
 
     def test_unicode_name(self, depfile):
-        task_list = [Task(u"t做", [""], doc=u"t1 doc string 做"),]
+        task_list = [Task(six.u("t做"), [""], doc=six.u("t1 doc string 做")),]
         output = StringIO()
         cmd_list = CmdFactory(List, outstream=output, dep_file=depfile.name,
                               task_list=task_list)
         cmd_list._execute()
         got = [line.strip() for line in output.getvalue().split('\n') if line]
-        assert u't做' == got[0]
+        assert six.u('t做') == got[0]
