@@ -57,6 +57,11 @@ class TestConsoleReporter(object):
         assert "-- " in rep.outstream.getvalue()
         assert "t_name" in rep.outstream.getvalue()
 
+    def test_skipUptodate_hidden(self):
+        rep = reporter.ConsoleReporter(StringIO(), {})
+        rep.skip_uptodate(Task("_name", None))
+        assert "" == rep.outstream.getvalue()
+
     def test_skipIgnore(self):
         rep = reporter.ConsoleReporter(StringIO(), {})
         rep.skip_ignore(Task("t_name", None))

@@ -30,6 +30,8 @@ class DelayedLoader(object):
     :ivar task_dep: (str) name of task that should be executed before the
                     the loader call the creator function
     :ivar basename: (str) basename used when creating tasks
+                   This is used when doit creates new tasks to handle
+                   tasks and targets specified on command line
     """
     def __init__(self, creator, executed=None, target_regex=None):
         self.creator = creator

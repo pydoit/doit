@@ -7,7 +7,8 @@ Changes
 ======
 
  - GH-#59: fix command `list` issue with unicode names
-
+ - GH-#58: add `DelayedLoader` parameter `target_regex`
+ - GH-#58: cmd `Run` add option `auto-delayed-regex`
 
 
 0.28.0 (*2015-04-22*)

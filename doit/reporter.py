@@ -53,7 +53,7 @@ class ConsoleReporter(object):
 
     def skip_uptodate(self, task):
         """skipped up-to-date task"""
-        if task.actions and (task.name[0] != '_'):
+        if task.name[0] != '_':
             self.write("-- %s\n" % task.title())
 
     def skip_ignore(self, task):

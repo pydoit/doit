@@ -113,40 +113,54 @@ class TestTaskControlCmdOptions(object):
 
     def test_filter_delayed_regex_single(self):
         t1 = Task("taskX", None)
-        t2 = Task("taskY", None, loader=DelayedLoader(lambda: None, target_regex='a.*'))
-        t3 = Task("taskZ", None, loader=DelayedLoader(lambda: None, target_regex='b.*'))
-        t4 = Task("taskW", None, loader=DelayedLoader(lambda: None))
+        t2 = Task("taskY", None,
+                  loader=DelayedLoader(lambda: None, target_regex='a.*'))
+        t3 = Task("taskZ", None,
+                  loader=DelayedLoader(lambda: None, target_regex='b.*'))
+        t4 = Task("taskW", None,
+                  loader=DelayedLoader(lambda: None))
         control = TaskControl([t1, t2, t3, t4], auto_delayed_regex=False)
-        l = control._filter_tasks(['abc'])
+        selected = control._filter_tasks(['abc'])
         assert isinstance(t2.loader, DelayedLoader)
-        assert len(l) == 1
-        assert l[0] == '_regex_target_abc'
-        assert control.tasks[l[0]].file_dep == {'abc'}
-        assert control.tasks[l[0]].loader.basename == 'taskY'
-        assert control.tasks[l[0]].loader is t2.loader
+        assert len(selected) == 1
+        assert selected[0] == '_regex_target_abc:taskY'
+        sel_task = control.tasks['_regex_target_abc:taskY']
+        assert sel_task.file_dep == {'abc'}
+        assert sel_task.loader.basename == 'taskY'
+        assert sel_task.loader is t2.loader
 
     def test_filter_delayed_regex_multiple(self):
         t1 = Task("taskX", None)
-        t2 = Task("taskY", None, loader=DelayedLoader(lambda: None, target_regex='a.*'))
-        t3 = Task("taskZ", None, loader=DelayedLoader(lambda: None, target_regex='ab.'))
-        t4 = Task("taskW", None, loader=DelayedLoader(lambda: None))
+        t2 = Task("taskY", None,
+                  loader=DelayedLoader(lambda: None, target_regex='a.*'))
+        t3 = Task("taskZ", None,
+                  loader=DelayedLoader(lambda: None, target_regex='ab.'))
+        t4 = Task("taskW", None,
+                  loader=DelayedLoader(lambda: None))
         control = TaskControl([t1, t2, t3, t4], auto_delayed_regex=False)
-        l = control._filter_tasks(['abc'])
-        assert len(l) == 1
-        assert l[0] == '_regex_target_abc'
-        assert control.tasks[l[0]].file_dep == {'abc'}
-        assert set(control.tasks[l[0]].task_dep) == {t2.name, t3.name}
+        selected = control._filter_tasks(['abc'])
+        assert len(selected) == 2
+        assert selected == ['_regex_target_abc:taskY', '_regex_target_abc:taskZ']
+        assert control.tasks[selected[0]].file_dep == {'abc'}
+        assert control.tasks[selected[1]].file_dep == {'abc'}
+        assert control.tasks[selected[0]].loader.basename == t2.name
+        assert control.tasks[selected[1]].loader.basename == t3.name
 
     def test_filter_delayed_regex_auto(self):
         t1 = Task("taskX", None)
-        t2 = Task("taskY", None, loader=DelayedLoader(lambda: None, target_regex='a.*'))
-        t3 = Task("taskZ", None, loader=DelayedLoader(lambda: None))
+        t2 = Task("taskY", None,
+                  loader=DelayedLoader(lambda: None, target_regex='a.*'))
+        t3 = Task("taskZ", None,
+                  loader=DelayedLoader(lambda: None))
         control = TaskControl([t1, t2, t3], auto_delayed_regex=True)
-        l = control._filter_tasks(['abc'])
-        assert len(l) == 1
-        assert l[0] == '_regex_target_abc'
-        assert control.tasks[l[0]].file_dep == {'abc'}
-        assert set(control.tasks[l[0]].task_dep) == {t2.name, t3.name}
+        selected = control._filter_tasks(['abc'])
+        assert len(selected) == 2
+        assert selected == ['_regex_target_abc:taskY', '_regex_target_abc:taskZ']
+        assert control.tasks[selected[0]].file_dep == {'abc'}
+        assert control.tasks[selected[1]].file_dep == {'abc'}
+        assert control.tasks[selected[0]].loader.basename == t2.name
+        assert control.tasks[selected[1]].loader.basename == t3.name
+
 
     # filter a non-existent task raises an error
     def testFilterWrongName(self):
@@ -491,7 +505,7 @@ class TestTaskDispatcher_add_task(object):
         n3 = td._gen_node(None, 't1:xxx')
         gen3 = td._add_task(n3)
         # ? should raise a runtime error?
-        pytest.raises(StopIteration, next, gen3)
+        assert next(gen3) == 'reset generator'
 
 
 

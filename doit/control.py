@@ -1,6 +1,7 @@
 """Control tasks execution order"""
 import fnmatch
 from collections import deque
+import re
 import six
 
 from .exceptions import InvalidTask, InvalidCommand, InvalidDodoFile
@@ -192,29 +193,26 @@ class TaskControl(object):
                 continue
 
             # check if target matches any regex
-            import re
-            tasks = []
+            delayed_matched = []
             for task in list(self.tasks.values()):
-                if task.loader and (task.loader.target_regex or self.auto_delayed_regex):
-                    if re.match(task.loader.target_regex if task.loader.target_regex else '.*', filter_):
-                        tasks.append(task)
-            if len(tasks) > 0:
-                if len(tasks) == 1:
-                    task = tasks[0]
-                    loader = task.loader
-                    loader.basename = task.name
-                    name = '_regex_target_' + filter_
-                    self.tasks[name] = Task(name, None,
-                                            loader=loader,
-                                            file_dep=[filter_])
-                    selected_task.append(name)
-                else:
-                    name = '_regex_target_' + filter_
-                    self.tasks[name] = Task(name, None,
-                                            task_dep=[task.name for task in tasks],
-                                            file_dep=[filter_])
-                    selected_task.append(name)
-            else:
+                if (not task.loader) or task.name.startswith('_regex_target'):
+                    continue
+                if task.loader.target_regex:
+                    if re.match(task.loader.target_regex, filter_):
+                        delayed_matched.append(task)
+                elif self.auto_delayed_regex:
+                    delayed_matched.append(task)
+
+            for task in delayed_matched:
+                loader = task.loader
+                loader.basename = task.name
+                name = '_regex_target_{}:{}'.format(filter_, task.name)
+                self.tasks[name] = Task(name, None,
+                                        loader=loader,
+                                        file_dep=[filter_])
+                selected_task.append(name)
+
+            if not delayed_matched:
                 # not found
                 msg = ('cmd `run` invalid parameter: "%s".' +
                        ' Must be a task, or a target.\n' +
@@ -294,7 +292,6 @@ class ExecNode(object):
 
     def reset_task(self, task, generator):
         """reset task & generator after task is created by its own `loader`"""
-        task.loader = DelayedLoaded
         self.task = task
         self.task_dep = task.task_dep[:]
         self.calc_dep = task.calc_dep.copy()
@@ -434,26 +431,24 @@ class TaskDispatcher(object):
             else:
                 break
 
+        # generate tasks from a DelayedLoader
         if this_task.loader:
-            if this_task.loader.created:
-                # This loader was already executed but its task was
-                # not replaced.
-                # This happens when a sub-task is specified from the
-                # command line but actually not created.
-                # TODO: needs a new error class ?
-                return
             ref = this_task.loader.creator
-            basename = this_task.loader.basename or this_task.name
-            new_tasks = generate_tasks(basename, ref(), ref.__doc__)
-            TaskControl.set_implicit_deps(self.targets, new_tasks)
+            to_load = this_task.loader.basename or this_task.name
+            this_loader = self.tasks[to_load].loader
+            if this_loader and not this_loader.created:
+                new_tasks = generate_tasks(to_load, ref(), ref.__doc__)
+                TaskControl.set_implicit_deps(self.targets, new_tasks)
+                for nt in new_tasks:
+                    if not nt.loader:
+                        nt.loader = DelayedLoaded
+                    self.tasks[nt.name] = nt
             # check itself for implicit dep (used by regex_target)
             TaskControl.add_implicit_task_dep(
                 self.targets, this_task, this_task.file_dep)
-            for nt in new_tasks:
-                if not nt.loader:
-                    nt.loader = DelayedLoaded
-                self.tasks[nt.name] = nt
+
             this_task.loader.created = True
+            this_task.loader = DelayedLoaded
             # this task was placeholder to execute the loader
             # now it needs to be re-processed with the real task
             yield "reset generator"
