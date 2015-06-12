@@ -142,10 +142,12 @@ class TestTaskControlCmdOptions(object):
         assert len(selected) == 2
         assert (sorted(selected) ==
                 ['_regex_target_abc:taskY', '_regex_target_abc:taskZ'])
-        assert control.tasks[selected[0]].file_dep == {'abc'}
-        assert control.tasks[selected[1]].file_dep == {'abc'}
-        assert control.tasks[selected[0]].loader.basename == t2.name
-        assert control.tasks[selected[1]].loader.basename == t3.name
+        assert control.tasks['_regex_target_abc:taskY'].file_dep == {'abc'}
+        assert control.tasks['_regex_target_abc:taskZ'].file_dep == {'abc'}
+        assert (control.tasks['_regex_target_abc:taskY'].loader.basename ==
+                t2.name)
+        assert (control.tasks['_regex_target_abc:taskZ'].loader.basename ==
+                t3.name)
 
     def test_filter_delayed_regex_auto(self):
         t1 = Task("taskX", None)
@@ -158,10 +160,12 @@ class TestTaskControlCmdOptions(object):
         assert len(selected) == 2
         assert (sorted(selected) ==
                 ['_regex_target_abc:taskY', '_regex_target_abc:taskZ'])
-        assert control.tasks[selected[0]].file_dep == {'abc'}
-        assert control.tasks[selected[1]].file_dep == {'abc'}
-        assert control.tasks[selected[0]].loader.basename == t2.name
-        assert control.tasks[selected[1]].loader.basename == t3.name
+        assert control.tasks['_regex_target_abc:taskY'].file_dep == {'abc'}
+        assert control.tasks['_regex_target_abc:taskZ'].file_dep == {'abc'}
+        assert (control.tasks['_regex_target_abc:taskY'].loader.basename ==
+                t2.name)
+        assert (control.tasks['_regex_target_abc:taskZ'].loader.basename ==
+                t3.name)
 
 
     # filter a non-existent task raises an error
