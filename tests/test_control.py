@@ -508,6 +508,58 @@ class TestTaskDispatcher_add_task(object):
         assert next(gen3) == 'reset generator'
 
 
+    def test_delayed_creation_target_regex(self):
+        def creator():
+            yield Task('foo', None, targets=['tgt1'])
+        delayed_loader = DelayedLoader(creator,
+                                       executed='t2', target_regex='tgt1')
+        tasks = {
+            't1': Task('t1', None, loader=delayed_loader),
+            't2': Task('t2', None),
+        }
+
+        tc = TaskControl(list(tasks.values()))
+        selection = tc._filter_tasks(['tgt1'])
+        assert ['_regex_target_tgt1:t1'] == selection
+        td = TaskDispatcher(tc.tasks, tc.targets, selection)
+
+        n1 = td._gen_node(None, '_regex_target_tgt1:t1')
+        gen = td._add_task(n1)
+
+        # first returned node is `t2` because it is an implicit task_dep
+        n2 = next(gen)
+        assert n2.task.name == 't2'
+
+        # wait until t2 is finished
+        n3 = next(gen)
+        assert n3 == 'wait'
+
+        # after t2 is done, generator is reseted
+        n2.run_status = 'done'
+        td._update_waiting(n2)
+        n4 = next(gen)
+        assert n4 == "reset generator"
+
+        # manually reset generator
+        n1.reset_task(td.tasks[n1.task.name], td._add_task(n1))
+
+        # get the delayed created task
+        gen2 = n1.generator  # n1 generator was reset / replaced
+        # get t1 because of its target was a file_dep of _regex_target_tgt1
+        n5 = next(gen2)
+        assert n5.task.name == 'foo'
+
+        # get internal created task
+        n5.run_status = 'done'
+        td._update_waiting(n5)
+        n6 = next(gen2)
+        assert n6.name == '_regex_target_tgt1:t1'
+
+        # file_dep is removed because foo might not be task
+        # that creates this task (support for multi regex matches)
+        assert n6.file_dep == {}
+
+
 
 class TestTaskDispatcher_get_next_node(object):
     def test_none(self):

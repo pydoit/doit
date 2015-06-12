@@ -32,6 +32,9 @@ class DelayedLoader(object):
     :ivar basename: (str) basename used when creating tasks
                    This is used when doit creates new tasks to handle
                    tasks and targets specified on command line
+    :ivar target_regex: (str) regex for all targets that this loader tasks
+                        will create
+    :ivar created: (bool) wheather this creator was already executed or not
     """
     def __init__(self, creator, executed=None, target_regex=None):
         self.creator = creator

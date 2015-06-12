@@ -27,6 +27,9 @@ class TaskControl(object):
                           Value: task_name
     """
 
+    # prefix string used as name of intermediate tasks that match regex targets
+    REGEX_TARGET_PREFIX = '_regex_target'
+
     def __init__(self, task_list, auto_delayed_regex=False):
         self.tasks = {}
         self.targets = {}
@@ -195,7 +198,8 @@ class TaskControl(object):
             # check if target matches any regex
             delayed_matched = []
             for task in list(self.tasks.values()):
-                if (not task.loader) or task.name.startswith('_regex_target'):
+                if ((not task.loader) or
+                    task.name.startswith(TaskControl.REGEX_TARGET_PREFIX)):
                     continue
                 if task.loader.target_regex:
                     if re.match(task.loader.target_regex, filter_):
@@ -206,7 +210,8 @@ class TaskControl(object):
             for task in delayed_matched:
                 loader = task.loader
                 loader.basename = task.name
-                name = '_regex_target_{}:{}'.format(filter_, task.name)
+                name = '{}_{}:{}'.format(TaskControl.REGEX_TARGET_PREFIX,
+                                         filter_, task.name)
                 self.tasks[name] = Task(name, None,
                                         loader=loader,
                                         file_dep=[filter_])
@@ -446,7 +451,11 @@ class TaskDispatcher(object):
             # check itself for implicit dep (used by regex_target)
             TaskControl.add_implicit_task_dep(
                 self.targets, this_task, this_task.file_dep)
-
+            # remove file_dep since generated tasks are not required
+            # to really create the target (support multiple matches)
+            if this_task.name.startswith(TaskControl.REGEX_TARGET_PREFIX):
+               this_task.file_dep = {}
+            # mark this loader to not be executed again
             this_task.loader.created = True
             this_task.loader = DelayedLoaded
             # this task was placeholder to execute the loader
