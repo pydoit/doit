@@ -140,7 +140,8 @@ class TestTaskControlCmdOptions(object):
         control = TaskControl([t1, t2, t3, t4], auto_delayed_regex=False)
         selected = control._filter_tasks(['abc'])
         assert len(selected) == 2
-        assert selected == ['_regex_target_abc:taskY', '_regex_target_abc:taskZ']
+        assert (sorted(selected) ==
+                ['_regex_target_abc:taskY', '_regex_target_abc:taskZ'])
         assert control.tasks[selected[0]].file_dep == {'abc'}
         assert control.tasks[selected[1]].file_dep == {'abc'}
         assert control.tasks[selected[0]].loader.basename == t2.name
@@ -155,7 +156,8 @@ class TestTaskControlCmdOptions(object):
         control = TaskControl([t1, t2, t3], auto_delayed_regex=True)
         selected = control._filter_tasks(['abc'])
         assert len(selected) == 2
-        assert selected == ['_regex_target_abc:taskY', '_regex_target_abc:taskZ']
+        assert (sorted(selected) ==
+                ['_regex_target_abc:taskY', '_regex_target_abc:taskZ'])
         assert control.tasks[selected[0]].file_dep == {'abc'}
         assert control.tasks[selected[1]].file_dep == {'abc'}
         assert control.tasks[selected[0]].loader.basename == t2.name
