@@ -3,7 +3,7 @@ import glob
 from doit import create_after
 
 
-@create_after(executed='early')
+@create_after(executed='early', target_regex='.*\.out')
 def task_build():
     for inf in glob.glob('*.in'):
         yield {
