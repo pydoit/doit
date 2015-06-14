@@ -249,7 +249,9 @@ class Run(DoitCmdBase):
                 run_args.append(num_process)
 
             runner = RunnerClass(*run_args)
-            return runner.run_all(self.control.task_dispatcher())
+            result = runner.run_all(self.control.task_dispatcher())
+            self.control.post_run()
+            return result
         finally:
             if isinstance(outfile, str):
                 outstream.close()

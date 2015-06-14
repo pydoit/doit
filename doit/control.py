@@ -34,6 +34,7 @@ class TaskControl(object):
         self.tasks = {}
         self.targets = {}
         self.auto_delayed_regex = auto_delayed_regex
+        self.targets_to_search_for = []
 
         # name of task in order to be executed
         # this the order as in the dodo file. the real execution
@@ -223,7 +224,20 @@ class TaskControl(object):
                        ' Must be a task, or a target.\n' +
                        'Type "doit list" to see available tasks')
                 raise InvalidCommand(msg % filter_)
+            else:
+                self.targets_to_search_for.append(filter_)
         return selected_task
+
+
+    def post_run(self):
+        for target in self.targets_to_search_for:
+            if target not in self.targets:
+                # not compiled
+                msg = ('cmd `run` invalid parameter: "%s".' +
+                       ' Assumed this is a target built by a delayed-loaded'+
+                       ' task, but no task was generated to build it.\n' +
+                       'Type "doit list" to see available tasks')
+                raise InvalidCommand(msg % target)
 
 
     def process(self, task_selection):
