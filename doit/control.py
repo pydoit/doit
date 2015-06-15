@@ -34,7 +34,7 @@ class TaskControl(object):
         self.tasks = {}
         self.targets = {}
         self.auto_delayed_regex = auto_delayed_regex
-        self.targets_to_search_for = []
+        self.targets_to_search_for = {}
 
         # name of task in order to be executed
         # this the order as in the dodo file. the real execution
@@ -225,7 +225,7 @@ class TaskControl(object):
                        'Type "doit list" to see available tasks')
                 raise InvalidCommand(msg % filter_)
             else:
-                self.targets_to_search_for.append(filter_)
+                self.targets_to_search_for[filter_] = delayed_matched
         return selected_task
 
 
@@ -236,8 +236,9 @@ class TaskControl(object):
                 msg = ('cmd `run` invalid parameter: "%s".' +
                        ' Assumed this is a target built by a delayed-loaded'+
                        ' task, but no task was generated to build it.\n' +
+                       'Potential delayed-loaded tasks: %s\n' +
                        'Type "doit list" to see available tasks')
-                raise InvalidCommand(msg % target)
+                raise InvalidCommand(msg % (target, ', '.join([task.name for task in self.targets_to_search_for[target]])))
 
 
     def process(self, task_selection):
@@ -468,7 +469,7 @@ class TaskDispatcher(object):
             # remove file_dep since generated tasks are not required
             # to really create the target (support multiple matches)
             if this_task.name.startswith(TaskControl.REGEX_TARGET_PREFIX):
-               this_task.file_dep = {}
+                this_task.file_dep = {}
             # mark this loader to not be executed again
             this_task.loader.created = True
             this_task.loader = DelayedLoaded
