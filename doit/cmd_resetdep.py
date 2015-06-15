@@ -56,18 +56,18 @@ to a task that has already run.
             except DependencyException as e:
                 # Skip exception when a depencency file is missing, and force
                 # the state computation
-                write("failed {} ({})\n".format(task.name, str(e)))
+                write("failed {0} ({1})\n".format(task.name, str(e)))
                 continue
 
             # An 'up-to-date' status means that it is useless to recompute the
             # state: file deps and targets exists, the state has not changed,
             # there is nothing more to do.
             if run_status == 'up-to-date':
-                write("skip {}\n".format(task.name))
+                write("skip {0}\n".format(task.name))
                 continue
 
             task.values = values
             self.dep_manager.save_success(task, result_hash=result)
-            write("processed {}\n".format(task.name))
+            write("processed {0}\n".format(task.name))
 
         self.dep_manager.close()

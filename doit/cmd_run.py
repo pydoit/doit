@@ -153,7 +153,7 @@ class Run(DoitCmdBase):
         # set choices for reporter cmdoption
         # sub-classes might not have this option
         if 'reporter' in self.cmdparser:
-            choices = {k: v.desc for k,v in reporters.items()}
+            choices = dict((k, v.desc) for k,v in reporters.items())
             self.cmdparser['reporter'].choices = choices
 
         return reporters
