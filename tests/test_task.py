@@ -116,7 +116,7 @@ class TestTaskUpToDate(object):
 
     def test_callable_instance_method(self):
         class Base(object):
-            def check(): return True
+            def check(self): return True
         base = Base()
         t = task.Task("Task X", ["taskcmd"], uptodate=[base.check])
         assert t.uptodate[0] == (base.check, [], {})
