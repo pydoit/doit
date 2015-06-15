@@ -25,7 +25,7 @@ class PluginEntry(object):
         self.location = location
 
     def __repr__(self):
-        return "PluginEntry('{}', '{}', '{}')".format(
+        return "PluginEntry('{0}', '{1}', '{2}')".format(
             self.category, self.name, self.location)
 
     def get(self):
@@ -40,12 +40,12 @@ class PluginEntry(object):
         try:
             module = importlib.import_module(module_name)
         except ImportError:
-            raise Exception('Plugin {} module `{}` not found.'.format(
+            raise Exception('Plugin {0} module `{1}` not found.'.format(
                 self.category, module_name))
         try:
             obj = getattr(module, obj_name)
         except AttributeError:
-            raise Exception('Plugin {}:{} module `{}` has no {}.'.format(
+            raise Exception('Plugin {0}:{1} module `{2}` has no {3}.'.format(
                 self.category, self.name, module_name, obj_name))
         return obj
 
@@ -63,10 +63,10 @@ class PluginDict(dict):
         # plugins from pkg_resources
         try:
             import pkg_resources
-            group = "doit.{}".format(section)
+            group = "doit.{0}".format(section)
             for point in pkg_resources.iter_entry_points(group=group):
                 name = point.name
-                location = "{}:{}".format(point.module_name, point.attrs[0])
+                location = "{0}:{1}".format(point.module_name, point.attrs[0])
                 self[name] = PluginEntry(section, name, location)
         except ImportError: # pragma: no cover
             pass  # ignore, if setuptools is not installed
@@ -83,4 +83,4 @@ class PluginDict(dict):
 
     def to_dict(self):
         """return a standard dict with all plugins loaded"""
-        return {k: self.get_plugin(k) for k in self.keys()}
+        return dict((k, self.get_plugin(k)) for k in self.keys())

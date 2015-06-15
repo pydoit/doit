@@ -117,7 +117,7 @@ class Help(DoitCmdBase):
         print("Commands")
         for cmd_name in sorted(cmds.keys()):
             cmd = cmds[cmd_name]
-            six.print_("  doit {:16s}  {}".format(
+            six.print_("  doit {0:16s}  {1}".format(
                 cmd_name, cmd.doc_purpose))
         print("")
         print("  doit help              show help / reference")

@@ -118,7 +118,7 @@ class CmdOption(object):
         if given_value not in self.choices:
             msg = ("Error parsing parameter '{}'. "
                    "Provided '{}' but available choices are: {}.")
-            choices = ("'{}'".format(k) for k in self.choices.keys())
+            choices = ("'{0}'".format(k) for k in self.choices.keys())
             choices_str = ", ".join(choices)
             raise CmdParseError(msg.format(self.name, given_value, choices_str))
 

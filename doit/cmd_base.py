@@ -365,7 +365,7 @@ class DoitCmdBase(Command):
 
         # set choices, sub-classes might not have this option
         if 'backend' in self.cmdparser:
-            choices = {k: getattr(v, 'desc', '') for k,v in backend_map.items()}
+            choices = dict((k, getattr(v, 'desc', '')) for k,v in backend_map.items())
             self.cmdparser['backend'].choices = choices
 
         return backend_map
