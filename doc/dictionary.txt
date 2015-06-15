@@ -72,6 +72,7 @@ CmdParse
 Config
 ConsoleReporter
 Ctrl
+DelayedLoader
 Dembia
 DoIt
 DoitCmdBase
@@ -284,6 +285,7 @@ pytest
 python2
 python3
 quickstart
+regex
 repr
 rst2s5
 runtests
