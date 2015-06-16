@@ -39,9 +39,10 @@ class DelayedLoader(object):
     def __init__(self, creator, executed=None, target_regex=None):
         self.creator = creator
         self.task_dep = executed
-        self.target_regex = target_regex
         self.basename = None
         self.created = False
+        self.target_regex = target_regex
+        self.regex_groups = {}  # task_name:RegexGroup
 
 
 # used to indicate that a task had DelayedLoader but was already created
