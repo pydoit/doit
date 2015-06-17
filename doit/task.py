@@ -6,6 +6,7 @@ import os
 import sys
 import inspect
 import six
+from collections import OrderedDict
 
 from .cmdparse import CmdOption, TaskParse
 from .exceptions import CatchedException, InvalidTask
@@ -42,7 +43,7 @@ class DelayedLoader(object):
         self.basename = None
         self.created = False
         self.target_regex = target_regex
-        self.regex_groups = {}  # task_name:RegexGroup
+        self.regex_groups = OrderedDict()  # task_name:RegexGroup
 
 
 # used to indicate that a task had DelayedLoader but was already created

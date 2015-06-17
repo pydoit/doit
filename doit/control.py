@@ -1,6 +1,7 @@
 """Control tasks execution order"""
 import fnmatch
 from collections import deque
+from collections import OrderedDict
 import re
 import six
 
@@ -35,7 +36,7 @@ class TaskControl(object):
     """
 
     def __init__(self, task_list, auto_delayed_regex=False):
-        self.tasks = {}
+        self.tasks = OrderedDict()
         self.targets = {}
         self.auto_delayed_regex = auto_delayed_regex
 
@@ -210,7 +211,8 @@ class TaskControl(object):
                 elif self.auto_delayed_regex:
                     delayed_matched.append(task)
 
-            regex_group = RegexGroup(filter_, set(delayed_matched))
+            regex_group = RegexGroup(filter_,
+                                     set([t.name for t in delayed_matched]))
 
             for task in delayed_matched:
                 loader = task.loader
