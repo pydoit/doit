@@ -203,6 +203,26 @@ When a file is modified the tasks are re-executed.
    every time tasks need to be re-executed.
 
 
+callbacks
+^^^^^^^^^
+
+It is possible to specify shell commands to executed after every cycle
+of task execution.
+This can used to display desktop notifications, so you do not need to keep
+an eye in the terminal to notice when tasks succeed or failed.
+
+Example of sound and desktop notification on Ubuntu.
+Contents of a `doit.cfg` file:
+
+.. code-block:: INI
+
+  [auto]
+  success_callback = notify-send -u low -i /usr/share/icons/gnome/16x16/emotes/face-smile.png "doit:   success"; aplay -q /usr/share/sounds/purple/send.wav
+  failure_callback = notify-send -u normal -i /usr/share/icons/gnome/16x16/status/error.png "doit:  fail"; aplay -q /usr/share/sounds/purple/alert.wav
+
+
+
+
 ``watch`` parameter
 ^^^^^^^^^^^^^^^^^^^^^
 

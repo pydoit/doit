@@ -129,6 +129,7 @@ ZeroReporter
 a2
 abc
 api
+aplay
 app
 args
 atime
@@ -201,6 +202,7 @@ genstandalone
 getargs
 gif
 github
+gitter
 gmail
 google
 hardcode
@@ -213,6 +215,7 @@ hggit
 hgrc
 html
 hunspell
+img
 init
 inotify
 interactiveaction

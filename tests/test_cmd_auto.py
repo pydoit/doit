@@ -60,6 +60,32 @@ class TestAuto(object):
         assert cmd.parse_execute(['t2']) == 3
 
 
+    def test_run_callback(self, monkeypatch):
+        result = []
+        def mock_cmd(callback, shell=None):
+            result.append(callback)
+        monkeypatch.setattr(cmd_auto, 'call', mock_cmd)
+
+        # success
+        result = []
+        cmd_auto.Auto._run_callback(0, 'success', 'failure')
+        assert 'success' == result[0]
+
+        # failure
+        result = []
+        cmd_auto.Auto._run_callback(3, 'success', 'failure')
+        assert 'failure' == result[0]
+
+        # nothing executed
+        result = []
+        cmd_auto.Auto._run_callback(0, None , None)
+        assert 0 == len(result)
+        cmd_auto.Auto._run_callback(1, None , None)
+        assert 0 == len(result)
+
+
+
+
     def test_run_wait(self, dependency1, target1, depfile_name):
         def ok():
             with open(target1, 'w') as fp:
