@@ -10,6 +10,9 @@ from .task import Task, DelayedLoaded
 from .loader import generate_tasks
 
 
+REGEX_TARGET_PREFIX = '_regex_target'
+
+
 class RegexGroup(object):
     def __init__(self, target, tasks):
         self.target = target
@@ -217,7 +220,7 @@ class TaskControl(object):
             for task in delayed_matched:
                 loader = task.loader
                 loader.basename = task.name
-                name = '{}_{}:{}'.format('_regex_target', filter_, task.name)
+                name = '{}_{}:{}'.format(REGEX_TARGET_PREFIX, filter_, task.name)
                 loader.regex_groups[name] = regex_group
                 self.tasks[name] = Task(name, None,
                                         loader=loader,
@@ -474,6 +477,17 @@ class TaskDispatcher(object):
                 this_task.file_dep = {}
                 if regex_group.target in self.targets:
                     regex_group.found = True
+                else:
+                    # extract task name
+                    name = this_task.name[this_task.name.find(':', len(REGEX_TARGET_PREFIX)) + 1:]
+                    regex_group.tasks.remove(name)
+                    if len(regex_group.tasks) == 0:
+                        # In case no task is left, we cannot find a task generating this target. Print an error message!
+                        filter_ = this_task.name[len(REGEX_TARGET_PREFIX) + 1:this_task.name.find(':', len(REGEX_TARGET_PREFIX))]
+                        msg = ('cmd `run` invalid parameter: "%s".' +
+                               ' Must be a task, or a target.\n' +
+                               'Type "doit list" to see available tasks')
+                        raise InvalidCommand(msg % filter_)
 
             # this task was placeholder to execute the loader
             # now it needs to be re-processed with the real task
