@@ -628,6 +628,23 @@ class TestTaskDispatcher_add_task(object):
         pytest.raises(StopIteration, next, gen2)
 
 
+    def test_regex_not_found(self):
+        def creator1():
+            yield Task('foo1', None, targets=['tgt1'])
+        delayed_loader1 = DelayedLoader(creator1, target_regex='tgt.*')
+
+        t1 = Task('t1', None, loader=delayed_loader1)
+
+        tc = TaskControl([t1])
+        selection = tc._filter_tasks(['tgt666'])
+        assert ['_regex_target_tgt666:t1'] == selection
+        td = TaskDispatcher(tc.tasks, tc.targets, selection)
+
+        n1 = td._gen_node(None, '_regex_target_tgt666:t1')
+        gen = td._add_task(n1)
+        # target not found after generating all tasks from regex group
+        pytest.raises(InvalidCommand, next, gen)
+
 
 
 

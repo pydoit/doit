@@ -10,9 +10,6 @@ from .task import Task, DelayedLoaded
 from .loader import generate_tasks
 
 
-REGEX_TARGET_PREFIX = '_regex_target'
-
-
 class RegexGroup(object):
     '''Helper to keep track of all delayed-tasks which regexp target
     matches the target specified from command line.
@@ -228,7 +225,7 @@ class TaskControl(object):
             for task in delayed_matched:
                 loader = task.loader
                 loader.basename = task.name
-                name = '{}_{}:{}'.format(REGEX_TARGET_PREFIX, filter_, task.name)
+                name = '{}_{}:{}'.format('_regex_target', filter_, task.name)
                 loader.regex_groups[name] = regex_group
                 self.tasks[name] = Task(name, None,
                                         loader=loader,
@@ -477,10 +474,6 @@ class TaskDispatcher(object):
             TaskControl.add_implicit_task_dep(
                 self.targets, this_task, this_task.file_dep)
 
-            # mark this loader to not be executed again
-            this_task.loader.created = True
-            this_task.loader = DelayedLoaded
-
             # remove file_dep since generated tasks are not required
             # to really create the target (support multiple matches)
             if regex_group:
@@ -488,16 +481,18 @@ class TaskDispatcher(object):
                 if regex_group.target in self.targets:
                     regex_group.found = True
                 else:
-                    # extract task name
-                    name = this_task.name[this_task.name.find(':', len(REGEX_TARGET_PREFIX)) + 1:]
-                    regex_group.tasks.remove(name)
+                    regex_group.tasks.remove(this_task.loader.basename)
                     if len(regex_group.tasks) == 0:
-                        # In case no task is left, we cannot find a task generating this target. Print an error message!
-                        filter_ = this_task.name[len(REGEX_TARGET_PREFIX) + 1:this_task.name.find(':', len(REGEX_TARGET_PREFIX))]
-                        msg = ('cmd `run` invalid parameter: "%s".' +
+                        # In case no task is left, we cannot find a task
+                        # generating this target. Print an error message!
+                        msg = ('cmd `run` invalid parameter: "{}".' +
                                ' Must be a task, or a target.\n' +
                                'Type "doit list" to see available tasks')
-                        raise InvalidCommand(msg % filter_)
+                        raise InvalidCommand(msg.format(regex_group.target))
+
+            # mark this loader to not be executed again
+            this_task.loader.created = True
+            this_task.loader = DelayedLoaded
 
             # this task was placeholder to execute the loader
             # now it needs to be re-processed with the real task
