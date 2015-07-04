@@ -129,7 +129,22 @@ class TestTaskControlCmdOptions(object):
         assert sel_task.loader.basename == 'taskY'
         assert sel_task.loader is t2.loader
 
-    def test_filter_delayed_regex_multiple(self):
+    def test_filter_delayed_multi_select(self):
+        t1 = Task("taskX", None)
+        t2 = Task("taskY", None,
+                  loader=DelayedLoader(lambda: None, target_regex='a.*'))
+        t3 = Task("taskZ", None,
+                  loader=DelayedLoader(lambda: None, target_regex='b.*'))
+        t4 = Task("taskW", None,
+                  loader=DelayedLoader(lambda: None))
+        control = TaskControl([t1, t2, t3, t4], auto_delayed_regex=False)
+        selected = control._filter_tasks(['abc', 'att'])
+        assert isinstance(t2.loader, DelayedLoader)
+        assert len(selected) == 2
+        assert selected[0] == '_regex_target_abc:taskY'
+        assert selected[1] == '_regex_target_att:taskY'
+
+    def test_filter_delayed_regex_multiple_match(self):
         t1 = Task("taskX", None)
         t2 = Task("taskY", None,
                   loader=DelayedLoader(lambda: None, target_regex='a.*'))
@@ -564,6 +579,55 @@ class TestTaskDispatcher_add_task(object):
         # file_dep is removed because foo might not be task
         # that creates this task (support for multi regex matches)
         assert n6.file_dep == {}
+
+
+    def test_regex_group_already_created(self):
+        # this is required to avoid loading more tasks than required, GH-#60
+        def creator1():
+            yield Task('foo1', None, targets=['tgt1'])
+        delayed_loader1 = DelayedLoader(creator1, target_regex='tgt.*')
+
+        def creator2():  # pragma: no cover
+            yield Task('foo2', None, targets=['tgt2'])
+        delayed_loader2 = DelayedLoader(creator2, target_regex='tgt.*')
+
+        t1 = Task('t1', None, loader=delayed_loader1)
+        t2 = Task('t2', None, loader=delayed_loader2)
+
+        tc = TaskControl([t1, t2])
+        selection = tc._filter_tasks(['tgt1'])
+        assert ['_regex_target_tgt1:t1', '_regex_target_tgt1:t2'] == selection
+        td = TaskDispatcher(tc.tasks, tc.targets, selection)
+
+        n1 = td._gen_node(None, '_regex_target_tgt1:t1')
+        gen = td._add_task(n1)
+
+        # delayed loader executed, so generator is reset
+        n1b = next(gen)
+        assert n1b == "reset generator"
+
+        # manually reset generator
+        n1.reset_task(td.tasks[n1.task.name], td._add_task(n1))
+
+        # get the delayed created task
+        gen1b = n1.generator  # n1 generator was reset / replaced
+        # get t1 because of its target was a file_dep of _regex_target_tgt1
+        n1c = next(gen1b)
+        assert n1c.task.name == 'foo1'
+
+        # get internal created task
+        n1c.run_status = 'done'
+        td._update_waiting(n1c)
+        n1d = next(gen1b)
+        assert n1d.name == '_regex_target_tgt1:t1'
+
+        ## go for second selected task
+        n2 = td._gen_node(None, '_regex_target_tgt1:t2')
+        gen2 = td._add_task(n2)
+        # loader is not executed because target t1 was already found
+        pytest.raises(StopIteration, next, gen2)
+
+
 
 
 

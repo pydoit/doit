@@ -11,9 +11,15 @@ from .loader import generate_tasks
 
 
 class RegexGroup(object):
+    '''Helper to keep track of all delayed-tasks which regexp target
+    matches the target specified from command line.
+    '''
     def __init__(self, target, tasks):
+        # target name specified in command line
         self.target = target
+        # set of delayed-tasks names (string)
         self.tasks = tasks
+        # keep track if the target was already found
         self.found = False
 
 
@@ -201,19 +207,21 @@ class TaskControl(object):
                 continue
 
             # check if target matches any regex
-            delayed_matched = []
+            delayed_matched = []  # list of Task
             for task in list(self.tasks.values()):
-                if (not task.loader or task.loader.regex_groups):
+                if not task.loader:
+                    continue
+                if task.name.startswith('_regex_target'):
                     continue
                 if task.loader.target_regex:
                     if re.match(task.loader.target_regex, filter_):
                         delayed_matched.append(task)
                 elif self.auto_delayed_regex:
                     delayed_matched.append(task)
+            delayed_matched_names = [t.name for t in delayed_matched]
+            regex_group = RegexGroup(filter_, set(delayed_matched_names))
 
-            regex_group = RegexGroup(filter_,
-                                     set([t.name for t in delayed_matched]))
-
+            # create extra tasks to load delayed tasks matched by regex
             for task in delayed_matched:
                 loader = task.loader
                 loader.basename = task.name
@@ -418,6 +426,8 @@ class TaskDispatcher(object):
         """
         this_task = node.task
 
+        # skip this task if task belongs to a regex_group that already
+        # executed the task used to build the given target
         if this_task.loader:
             regex_group = this_task.loader.regex_groups.get(this_task.name, None)
             if regex_group and regex_group.found:
