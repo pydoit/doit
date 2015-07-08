@@ -129,15 +129,15 @@ class TabCompletion(DoitCmdBase):
         # '(-c|--continue)'{-c,--continue}'[continue executing tasks...]' \
         # '--db-file[file used to save successful runs]' \
         if opt.short and opt.long:
-            tmpl = ("'(-{0.short}|--{0.long})'{{-{0.short},--{0.long}}}'"
-                    "[{help}]' \\")
+            tmpl = ('"(-{0.short}|--{0.long})"{{-{0.short},--{0.long}}}"'
+                    '[{help}]" \\')
         elif not opt.short and opt.long:
-            tmpl = "'--{0.long}[{help}]' \\"
+            tmpl = '"--{0.long}[{help}]" \\'
         elif opt.short and not opt.long:
-            tmpl = "'-{0.short}[{help}]' \\"
+            tmpl = '"-{0.short}[{help}]" \\'
         else: # without short or long options cant be really used
             return ''
-        ohelp = opt.help.replace(']', r'\]')
+        ohelp = opt.help.replace(']', r'\]').replace('"', r'\"')
         return tmpl.format(opt, help=ohelp).replace('\n', ' ')
 
 
