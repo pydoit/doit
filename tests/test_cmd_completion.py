@@ -79,16 +79,23 @@ class TestCmdCompletionZsh(object):
 
         opt2 = CmdOption({'name':'o2', 'default':'', 'help':'my desc',
                           'short':'s'})
-        assert "'-s[my desc]' \\" == TabCompletion._zsh_arg_line(opt2)
+        assert '"-s[my desc]" \\' == TabCompletion._zsh_arg_line(opt2)
 
         opt3 = CmdOption({'name':'o3', 'default':'', 'help':'my desc',
                           'long':'lll'})
-        assert "'--lll[my desc]' \\" == TabCompletion._zsh_arg_line(opt3)
+        assert '"--lll[my desc]" \\' == TabCompletion._zsh_arg_line(opt3)
 
         opt4 = CmdOption({'name':'o4', 'default':'', 'help':'my desc [b]a',
                           'short':'s', 'long':'lll'})
-        assert ("'(-s|--lll)'{-s,--lll}'[my desc [b\]a]' \\" ==
+        assert ('"(-s|--lll)"{-s,--lll}"[my desc [b\]a]" \\' ==
                 TabCompletion._zsh_arg_line(opt4))
+
+        # escaping `"` test
+        opt5 = CmdOption({'name':'o5', 'default':'',
+                          'help':'''my "des'c [b]a''',
+                          'short':'s', 'long':'lll'})
+        assert ('''"(-s|--lll)"{-s,--lll}"[my \\"des'c [b\]a]" \\''' ==
+                TabCompletion._zsh_arg_line(opt5))
 
 
     def test_cmd_arg_list(self):
