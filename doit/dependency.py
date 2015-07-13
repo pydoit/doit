@@ -30,11 +30,6 @@ class DatabaseException(Exception):
     pass
 
 
-class DependencyException(Exception):
-    """Exception class for whatever backend exception"""
-    pass
-
-
 def get_md5(input_data):
     """return md5 from string or unicode"""
     if isinstance(input_data, six.text_type):
@@ -426,6 +421,34 @@ CHECKERS = {'md5': MD5Checker,
             'timestamp': TimestampChecker}
 
 
+class DependencyStatus(object):
+    """Result object for Dependency.get_status.
+
+    @ivar status: (str) one of "run", "up-to-date" or "error"
+    """
+
+    def __init__(self, get_log):
+        self.status = None
+        if get_log:
+            self.uptodate_false = []
+            self.has_no_dependencies = False
+            self.missing_target = []
+            self.file_dep_checker_changed = None
+            self.added_file_dep = []
+            self.removed_file_dep = []
+            self.missing_file_dep = []
+            self.changed_file_dep = []
+
+    def _decide(self, status):
+        """Sets state of status object if it wasn't set before."""
+        if self.status is None:
+            self.status = status
+
+    def get_error_message(self):
+        if self.status == "error":
+            return "Dependent file '{}' does not exist.".format(self._error_reason)
+
+
 class Dependency(object):
     """Manage tasks dependencies
 
@@ -527,8 +550,7 @@ class Dependency(object):
         """check if task is marked to be ignored"""
         return self._get(task.name, "ignore:")
 
-    # TODO add option to log this
-    def get_status(self, task, tasks_dict):
+    def get_status(self, task, tasks_dict, get_log=False):
         """Check if task is up to date. set task.dep_changed
 
         If the checker class changed since the previous run, the task is
@@ -536,13 +558,17 @@ class Dependency(object):
 
         @param task: (Task)
         @param tasks_dict: (dict: Task) passed to objects used on uptodate
-        @return: (str) one of up-to-date, run
+        @param get_log: (bool) if True, adds all reasons to the return
+                               object why this file will be rebuild.
+        @return: (DependencyStatus) a status object with possible status
+                                    values up-to-date, run or error
 
         task.dep_changed (list-strings): file-dependencies that are not
         up-to-date if task not up-to-date because of a target, returned value
         will contain all file-dependencies reagrdless they are up-to-date
         or not.
         """
+        result = DependencyStatus(get_log)
         task.dep_changed = []
 
         # check uptodate bool/callables
@@ -586,33 +612,55 @@ class Dependency(object):
             if uptodate_result is None:
                 continue
             uptodate_result_list.append(uptodate_result)
+            if get_log and not uptodate_result:
+                result.uptodate_false.append((utd, utd_args, utd_kwargs))
 
         # any uptodate check is false
         if not all(uptodate_result_list):
-            return 'run'
+            result._decide('run')
+            if not get_log:
+                return result
 
         # no dependencies means it is never up to date.
         if not (task.file_dep or uptodate_result_list):
-            return 'run'
+            if get_log:
+                result.has_no_dependencies = True
+            result._decide('run')
+            if not get_log:
+                return result
 
         # if target file is not there, task is not up to date
         for targ in task.targets:
             if not os.path.exists(targ):
                 task.dep_changed = list(task.file_dep)
-                return 'run'
+                if get_log:
+                    result.missing_target.append(targ)
+                result._decide('run')
+                if not get_log:
+                    return result
 
         # check for modified file_dep checker
         previous = self._get(task.name, 'checker:')
         if previous and previous != self.checker.__class__.__name__:
+            if get_log:
+                result.file_dep_checker_changed = (previous, self.checker.__class__.__name__)
             task.dep_changed = list(task.file_dep)
             # remove all saved values otherwise they might be re-used by
             # some optmization on MD5Checker.get_state()
             self.remove(task.name)
-            return 'run'
+            result._decide('run')
+            if not get_log:
+                return result
 
         # check for modified file_dep
         previous = self._get(task.name, 'deps:')
-        if previous and set(previous) != task.file_dep:
+        previous_set = set(previous) if previous else None
+        if previous_set and previous_set != task.file_dep:
+            if get_log:
+                added_files = sorted(list(task.file_dep - previous_set))
+                removed_files = sorted(list(previous_set - task.file_dep))
+                result.added_file_dep = added_files
+                result.removed_file_dep = removed_files
             status = 'run'
         else:
             status = 'up-to-date'  # initial assumption
@@ -625,15 +673,23 @@ class Dependency(object):
             try:
                 file_stat = os.stat(dep)
             except OSError:
-                raise DependencyException("Dependent file '{}' does not exist."
-                                          .format(dep))
-            if state is None or check_modified(dep, file_stat, state):
-                changed.append(dep)
+                result._decide('error')
+                result._error_reason = dep
+                if get_log:
+                    result.missing_file_dep.append(dep)
+                else:
+                    return result
+            else:
+                if state is None or check_modified(dep, file_stat, state):
+                    changed.append(dep)
         if len(changed) > 0:
+            if get_log:
+                result.changed_file_dep.extend(changed)
             status = 'run'
+        result._decide(status)
 
         task.dep_changed = changed  # FIXME create a separate function for this
-        return status
+        return result
 
 
 

@@ -121,13 +121,12 @@ class Runner(object):
                 return False
 
             # check if task is up-to-date
-            try:
-                node.run_status = self.dep_manager.get_status(task, tasks_dict)
-            except Exception as exception:
-                msg = "ERROR: Task '%s' checking dependencies" % task.name
-                dep_error = DependencyError(msg, exception)
-                self._handle_task_error(node, dep_error)
+            res = self.dep_manager.get_status(task, tasks_dict)
+            if res.status == 'error':
+                msg = "ERROR: Task '{}' checking dependencies: {}".format(task.name, res.get_error_message())
+                self._handle_task_error(node, DependencyError(msg))
                 return False
+            node.run_status = res.status
 
             if not self.always_execute:
                 # if task is up-to-date skip it

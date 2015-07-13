@@ -1,6 +1,5 @@
 from .cmd_base import DoitCmdBase, check_tasks_exist
 from .cmd_base import subtasks_iter
-from .dependency import DependencyException
 
 
 class ResetDep(DoitCmdBase):
@@ -51,18 +50,17 @@ to a task that has already run.
             values = self.dep_manager.get_values(task.name)
             result = self.dep_manager.get_result(task.name)
 
-            try:
-                run_status = self.dep_manager.get_status(task, tasks)
-            except DependencyException as e:
+            res = self.dep_manager.get_status(task, tasks)
+            if res.status == 'error':
                 # Skip exception when a depencency file is missing, and force
                 # the state computation
-                write("failed {} ({})\n".format(task.name, str(e)))
+                write("failed {} ({})\n".format(task.name, res.get_error_message()))
                 continue
 
             # An 'up-to-date' status means that it is useless to recompute the
             # state: file deps and targets exists, the state has not changed,
             # there is nothing more to do.
-            if run_status == 'up-to-date':
+            if res.status == 'up-to-date':
                 write("skip {}\n".format(task.name))
                 continue
 

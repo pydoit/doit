@@ -269,7 +269,7 @@ class ExecNode(object):
     """Each task will have an instace of this
     This used to keep track of waiting events and the generator for dep nodes
 
-    @ivar run_status (str): contains the result of Dependency.get_status
+    @ivar run_status (str): contains the result of Dependency.get_status().status
             modified by runner, value can be:
            - None: not processed yet
            - run: task is selected to be executed (it might be running or
