@@ -528,7 +528,7 @@ class Dependency(object):
         return self._get(task.name, "ignore:")
 
     # TODO add option to log this
-    def get_status(self, task, tasks_dict):
+    def get_status(self, task, tasks_dict, rebuild_log=None):
         """Check if task is up to date. set task.dep_changed
 
         If the checker class changed since the previous run, the task is
@@ -536,6 +536,8 @@ class Dependency(object):
 
         @param task: (Task)
         @param tasks_dict: (dict: Task) passed to objects used on uptodate
+        @param rebuild_log: (list: str) if not None, will be filled with
+                                        reason(s) why this file will be rebuild
         @return: (str) one of up-to-date, run
 
         task.dep_changed (list-strings): file-dependencies that are not
@@ -586,6 +588,8 @@ class Dependency(object):
             if uptodate_result is None:
                 continue
             uptodate_result_list.append(uptodate_result)
+            if rebuild_log is not None and not uptodate_result:
+                rebuild_log.append('Uptodate object "{0}" (args={1}, kwargs={2}) evaluates to False'.format(utd, utd_args, utd_kwargs))
 
         # any uptodate check is false
         if not all(uptodate_result_list):
@@ -593,17 +597,23 @@ class Dependency(object):
 
         # no dependencies means it is never up to date.
         if not (task.file_dep or uptodate_result_list):
+            if rebuild_log is not None:
+                rebuild_log.append('Task has no dependencies.')
             return 'run'
 
         # if target file is not there, task is not up to date
         for targ in task.targets:
             if not os.path.exists(targ):
                 task.dep_changed = list(task.file_dep)
+                if rebuild_log is not None:
+                    rebuild_log.append('Target file "{}" does not exist.'.format(targ))
                 return 'run'
 
         # check for modified file_dep checker
         previous = self._get(task.name, 'checker:')
         if previous and previous != self.checker.__class__.__name__:
+            if rebuild_log is not None:
+                rebuild_log.append('File_dep checker changed from {0} to {1}.'.format(previous, self.checker.__class__.__name__))
             task.dep_changed = list(task.file_dep)
             # remove all saved values otherwise they might be re-used by
             # some optmization on MD5Checker.get_state()
@@ -612,7 +622,12 @@ class Dependency(object):
 
         # check for modified file_dep
         previous = self._get(task.name, 'deps:')
-        if previous and set(previous) != task.file_dep:
+        previous_set = set(previous) if previous else None
+        if previous_set and previous_set != task.file_dep:
+            if rebuild_log is not None:
+                added_files = sorted(list(task.file_dep - previous_set))
+                removed_files = sorted(list(previous_set - task.file_dep))
+                rebuild_log.append('File_dep changed: {0} were added, {1} were removed.'.format(added_files, removed_files))
             status = 'run'
         else:
             status = 'up-to-date'  # initial assumption
@@ -625,11 +640,16 @@ class Dependency(object):
             try:
                 file_stat = os.stat(dep)
             except OSError:
+                if rebuild_log is not None:
+                    rebuild_log.append('Dependent file "{}" does not exist.'.format(dep))
                 raise DependencyException("Dependent file '{}' does not exist."
                                           .format(dep))
             if state is None or check_modified(dep, file_stat, state):
                 changed.append(dep)
         if len(changed) > 0:
+            if rebuild_log is not None:
+                for entry in changed:
+                    rebuild_log.append('File dependency "{}" changed.'.format(entry))
             status = 'run'
 
         task.dep_changed = changed  # FIXME create a separate function for this

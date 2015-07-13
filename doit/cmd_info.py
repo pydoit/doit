@@ -8,6 +8,7 @@ import six
 
 from .cmd_base import DoitCmdBase
 from .exceptions import InvalidCommand
+from .dependency import DependencyException
 
 
 
@@ -57,3 +58,18 @@ class Info(DoitCmdBase):
             if value:
                 self.outstream.write('\n{0}:'.format(attr))
                 printer.pprint(getattr(task, attr))
+
+        rebuild_log = []
+        try:
+            status = self.dep_manager.get_status(task, tasks, rebuild_log=rebuild_log)
+        except DependencyException:
+            # A raised DependencyException means that a file dependency is missing.
+            # Since rebuild_log contains the necessary information, we treat this
+            # the same as a return value of 'run'.
+            status = 'run'
+        if status == 'up-to-date':
+            self.outstream.write('\nIs up to date.\n')
+        else:  # status == 'run'
+            self.outstream.write('\nIs not up to date:\n')
+            for entry in rebuild_log:
+                self.outstream.write('  * {0}\n'.format(entry))
