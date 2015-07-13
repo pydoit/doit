@@ -59,6 +59,9 @@ class Info(DoitCmdBase):
                 self.outstream.write('\n{0}:'.format(attr))
                 printer.pprint(getattr(task, attr))
 
+        if self.dep_manager is None:
+            # Avoid failure in tests which don't initialize dep_manager.
+            return
         rebuild_log = []
         try:
             status = self.dep_manager.get_status(task, tasks, rebuild_log=rebuild_log)
