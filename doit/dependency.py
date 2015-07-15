@@ -430,16 +430,10 @@ class DependencyStatus(object):
     """Result object for Dependency.get_status.
 
     @ivar status: (str) one of "run", "up-to-date" or "error"
-    @ivar rebuild_log: (list-strings) a list of reasons why the
-                                      file will be rebuild (empty 
-                                      if status is 'up-to-date'),
-                                      or None if get_status()
-                                      was not called with
-                                      get_log=True."""
+    """
 
     def __init__(self):
         self.status = None
-        self.rebuild_log = None
 
     def _decide(self, status):
         """Sets state of status object if it wasn't set before."""
@@ -573,7 +567,14 @@ class Dependency(object):
         """
         result = DependencyStatus()
         if get_log:
-            result.rebuild_log = []
+            result.uptodate_false = []
+            result.has_no_dependencies = False
+            result.missing_target = []
+            result.file_dep_checker_changed = None
+            result.added_file_dep = []
+            result.removed_file_dep = []
+            result.missing_file_dep = []
+            result.changed_file_dep = []
 
         task.dep_changed = []
 
@@ -619,7 +620,7 @@ class Dependency(object):
                 continue
             uptodate_result_list.append(uptodate_result)
             if get_log and not uptodate_result:
-                result.rebuild_log.append('Uptodate object "{0}" (args={1}, kwargs={2}) evaluates to False'.format(utd, utd_args, utd_kwargs))
+                result.uptodate_false.append((utd, utd_args, utd_kwargs))
 
         # any uptodate check is false
         if not all(uptodate_result_list):
@@ -630,7 +631,7 @@ class Dependency(object):
         # no dependencies means it is never up to date.
         if not (task.file_dep or uptodate_result_list):
             if get_log:
-                result.rebuild_log.append('Task has no dependencies.')
+                result.has_no_dependencies = True
             result._decide('run')
             if not get_log:
                 return result
@@ -640,7 +641,7 @@ class Dependency(object):
             if not os.path.exists(targ):
                 task.dep_changed = list(task.file_dep)
                 if get_log:
-                    result.rebuild_log.append('Target file "{}" does not exist.'.format(targ))
+                    result.missing_target.append(targ)
                 result._decide('run')
                 if not get_log:
                     return result
@@ -649,7 +650,7 @@ class Dependency(object):
         previous = self._get(task.name, 'checker:')
         if previous and previous != self.checker.__class__.__name__:
             if get_log:
-                result.rebuild_log.append('File_dep checker changed from {0} to {1}.'.format(previous, self.checker.__class__.__name__))
+                result.file_dep_checker_changed = (previous, self.checker.__class__.__name__)
             task.dep_changed = list(task.file_dep)
             # remove all saved values otherwise they might be re-used by
             # some optmization on MD5Checker.get_state()
@@ -665,7 +666,8 @@ class Dependency(object):
             if get_log:
                 added_files = sorted(list(task.file_dep - previous_set))
                 removed_files = sorted(list(previous_set - task.file_dep))
-                result.rebuild_log.append('File_dep changed: {0} were added, {1} were removed.'.format(added_files, removed_files))
+                result.added_file_dep = added_files
+                result.removed_file_dep = removed_files
             status = 'run'
         else:
             status = 'up-to-date'  # initial assumption
@@ -678,22 +680,22 @@ class Dependency(object):
             try:
                 file_stat = os.stat(dep)
             except OSError:
-                if get_log:
-                    result.rebuild_log.append('Dependent file "{}" does not exist.'.format(dep))
                 result._decide('error')
                 result._error_reason = dep
-                if not get_log:
+                if get_log:
+                    result.missing_file_dep.append(dep)
+                else:
                     return result
-            if state is None or check_modified(dep, file_stat, state):
-                changed.append(dep)
+            else:
+                if state is None or check_modified(dep, file_stat, state):
+                    changed.append(dep)
         if len(changed) > 0:
             if get_log:
-                for entry in changed:
-                    result.rebuild_log.append('File dependency "{}" changed.'.format(entry))
+                result.changed_file_dep.extend(changed)
             status = 'run'
+        result._decide(status)
 
         task.dep_changed = changed  # FIXME create a separate function for this
-        result._decide(status)
         return result
 
 
