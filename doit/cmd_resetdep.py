@@ -52,7 +52,9 @@ to a task that has already run.
             result = self.dep_manager.get_result(task.name)
 
             try:
-                run_status = self.dep_manager.get_status(task, tasks)
+                res = self.dep_manager.get_status(task, tasks)
+                res.raise_exception()
+                run_status = res.status
             except DependencyException as e:
                 # Skip exception when a depencency file is missing, and force
                 # the state computation

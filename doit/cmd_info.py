@@ -8,7 +8,6 @@ import six
 
 from .cmd_base import DoitCmdBase
 from .exceptions import InvalidCommand
-from .dependency import DependencyException
 
 
 
@@ -24,6 +23,16 @@ def my_safe_repr(obj, context, maxlevels, level):
     return pprint._safe_repr(obj, context, maxlevels, level)
 
 
+opt_show_build_reason = {
+    'name': 'show_build_reason',
+    'short': 'R',
+    'long': 'show-build-reason',
+    'type': bool,
+    'default': False,
+    'help': """Shows reasons why this target will be rebuild. [default: %(default)s]"""
+}
+
+
 class Info(DoitCmdBase):
     """command doit info"""
 
@@ -31,7 +40,9 @@ class Info(DoitCmdBase):
     doc_usage = "TASK"
     doc_description = None
 
-    def _execute(self, pos_args):
+    cmd_options = (opt_show_build_reason, )
+
+    def _execute(self, pos_args, show_build_reason=False):
         if len(pos_args) != 1:
             msg = ('doit info failed, must select *one* task.'
                    '\nCheck `doit help info`.')
@@ -59,20 +70,14 @@ class Info(DoitCmdBase):
                 self.outstream.write('\n{0}:'.format(attr))
                 printer.pprint(getattr(task, attr))
 
-        if self.dep_manager is None:
-            # Avoid failure in tests which don't initialize dep_manager.
-            return
-        rebuild_log = []
-        try:
-            status = self.dep_manager.get_status(task, tasks, rebuild_log=rebuild_log)
-        except DependencyException:
-            # A raised DependencyException means that a file dependency is missing.
-            # Since rebuild_log contains the necessary information, we treat this
-            # the same as a return value of 'run'.
-            status = 'run'
-        if status == 'up-to-date':
-            self.outstream.write('\nIs up to date.\n')
-        else:  # status == 'run'
-            self.outstream.write('\nIs not up to date:\n')
-            for entry in rebuild_log:
-                self.outstream.write('  * {0}\n'.format(entry))
+        if show_build_reason:
+            if self.dep_manager is None:
+                # Avoid failure in tests which don't initialize dep_manager.
+                return
+            status = self.dep_manager.get_status(task, tasks, get_log=True)
+            if status.status == 'up-to-date':
+                self.outstream.write('\nIs up to date.\n')
+            else:  # status.status == 'run' or status.status == 'error'
+                self.outstream.write('\nIs not up to date:\n')
+                for entry in status.rebuild_log:
+                    self.outstream.write('  * {0}\n'.format(entry))

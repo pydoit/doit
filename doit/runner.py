@@ -122,7 +122,9 @@ class Runner(object):
 
             # check if task is up-to-date
             try:
-                node.run_status = self.dep_manager.get_status(task, tasks_dict)
+                res = self.dep_manager.get_status(task, tasks_dict)
+                res.raise_exception()
+                node.run_status = res.status
             except Exception as exception:
                 msg = "ERROR: Task '%s' checking dependencies" % task.name
                 dep_error = DependencyError(msg, exception)
