@@ -432,8 +432,17 @@ class DependencyStatus(object):
     @ivar status: (str) one of "run", "up-to-date" or "error"
     """
 
-    def __init__(self):
+    def __init__(self, get_log):
         self.status = None
+        if get_log:
+            self.uptodate_false = []
+            self.has_no_dependencies = False
+            self.missing_target = []
+            self.file_dep_checker_changed = None
+            self.added_file_dep = []
+            self.removed_file_dep = []
+            self.missing_file_dep = []
+            self.changed_file_dep = []
 
     def _decide(self, status):
         """Sets state of status object if it wasn't set before."""
@@ -565,17 +574,7 @@ class Dependency(object):
         will contain all file-dependencies reagrdless they are up-to-date
         or not.
         """
-        result = DependencyStatus()
-        if get_log:
-            result.uptodate_false = []
-            result.has_no_dependencies = False
-            result.missing_target = []
-            result.file_dep_checker_changed = None
-            result.added_file_dep = []
-            result.removed_file_dep = []
-            result.missing_file_dep = []
-            result.changed_file_dep = []
-
+        result = DependencyStatus(get_log)
         task.dep_changed = []
 
         # check uptodate bool/callables
