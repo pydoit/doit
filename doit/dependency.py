@@ -30,11 +30,6 @@ class DatabaseException(Exception):
     pass
 
 
-class DependencyException(Exception):
-    """Exception class for whatever backend exception"""
-    pass
-
-
 def get_md5(input_data):
     """return md5 from string or unicode"""
     if isinstance(input_data, six.text_type):
@@ -449,10 +444,9 @@ class DependencyStatus(object):
         if self.status is None:
             self.status = status
 
-    def raise_exception(self):
-        """Raises a DependencyException if the state is 'error'."""
+    def get_error_message(self):
         if self.status == "error":
-            raise DependencyException("Dependent file '{}' does not exist.".format(self._error_reason))
+            return "Dependent file '{}' does not exist.".format(self._error_reason)
 
 
 class Dependency(object):

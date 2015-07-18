@@ -19,6 +19,19 @@ class TestCmdInfo(object):
         assert """name:'t1'""" in output.getvalue()
         assert """'tests/data/dependency1'""" in output.getvalue()
 
+    def test_info_status(self, depfile):
+        output = StringIO()
+        task = Task("t1", [], file_dep=['tests/data/dependency1'])
+        cmd = CmdFactory(Info, outstream=output,
+                         task_list=[task], dep_manager=depfile)
+        cmd._execute(['t1'], show_execute_status=True)
+        assert """name:'t1'""" in output.getvalue()
+        assert """'tests/data/dependency1'""" in output.getvalue()
+        assert """Is not up to date:""" in output.getvalue()
+        assert ("""The following file dependencies have changed:""" in output.getvalue()
+             or """The following file dependencies are missing:""" in output.getvalue())
+        assert """- tests/data/dependency1""" in output.getvalue()
+
     def test_info_unicode(self, depfile):
         output = StringIO()
         task = Task("t1", [], file_dep=[six.u('tests/data/dependency1')])
