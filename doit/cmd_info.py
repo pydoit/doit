@@ -23,13 +23,13 @@ def my_safe_repr(obj, context, maxlevels, level):
     return pprint._safe_repr(obj, context, maxlevels, level)
 
 
-opt_show_build_reason = {
-    'name': 'show_build_reason',
-    'short': 'R',
-    'long': 'show-build-reason',
+opt_show_execute_status = {
+    'name': 'show_execute_status',
+    'short': 's',
+    'long': 'status',
     'type': bool,
     'default': False,
-    'help': """Shows reasons why this target will be rebuild. [default: %(default)s]"""
+    'help': """Shows reasons why this task would be executed. [default: %(default)s]"""
 }
 
 
@@ -40,9 +40,9 @@ class Info(DoitCmdBase):
     doc_usage = "TASK"
     doc_description = None
 
-    cmd_options = (opt_show_build_reason, )
+    cmd_options = (opt_show_execute_status, )
 
-    def _execute(self, pos_args, show_build_reason=False):
+    def _execute(self, pos_args, show_execute_status=False):
         if len(pos_args) != 1:
             msg = ('doit info failed, must select *one* task.'
                    '\nCheck `doit help info`.')
@@ -70,10 +70,7 @@ class Info(DoitCmdBase):
                 self.outstream.write('\n{0}:'.format(attr))
                 printer.pprint(getattr(task, attr))
 
-        if show_build_reason:
-            if self.dep_manager is None:
-                # Avoid failure in tests which don't initialize dep_manager.
-                return
+        if show_execute_status:
             status = self.dep_manager.get_status(task, tasks, get_log=True)
             if status.status == 'up-to-date':
                 self.outstream.write('\nIs up to date.\n')
