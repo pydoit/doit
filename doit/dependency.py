@@ -439,11 +439,6 @@ class DependencyStatus(object):
             self.missing_file_dep = []
             self.changed_file_dep = []
 
-    def _decide(self, status):
-        """Sets state of status object if it wasn't set before."""
-        if self.status is None:
-            self.status = status
-
     def get_error_message(self):
         if self.status == "error":
             return "Dependent file '{}' does not exist.".format(self._error_reason)
@@ -615,9 +610,15 @@ class Dependency(object):
             if get_log and not uptodate_result:
                 result.uptodate_false.append((utd, utd_args, utd_kwargs))
 
+        def decide(status, error_reason=None):
+            if result.status is None:
+                result.status = status
+                if error_reason is not None:
+                    result._error_reason = error_reason
+
         # any uptodate check is false
         if not all(uptodate_result_list):
-            result._decide('run')
+            decide('run')
             if not get_log:
                 return result
 
@@ -625,7 +626,7 @@ class Dependency(object):
         if not (task.file_dep or uptodate_result_list):
             if get_log:
                 result.has_no_dependencies = True
-            result._decide('run')
+            decide('run')
             if not get_log:
                 return result
 
@@ -635,7 +636,7 @@ class Dependency(object):
                 task.dep_changed = list(task.file_dep)
                 if get_log:
                     result.missing_target.append(targ)
-                result._decide('run')
+                decide('run')
                 if not get_log:
                     return result
 
@@ -648,7 +649,7 @@ class Dependency(object):
             # remove all saved values otherwise they might be re-used by
             # some optmization on MD5Checker.get_state()
             self.remove(task.name)
-            result._decide('run')
+            decide('run')
             if not get_log:
                 return result
 
@@ -673,8 +674,7 @@ class Dependency(object):
             try:
                 file_stat = os.stat(dep)
             except OSError:
-                result._decide('error')
-                result._error_reason = dep
+                decide('error', dep)
                 if get_log:
                     result.missing_file_dep.append(dep)
                 else:
@@ -686,7 +686,7 @@ class Dependency(object):
             if get_log:
                 result.changed_file_dep.extend(changed)
             status = 'run'
-        result._decide(status)
+        decide(status)
 
         task.dep_changed = changed  # FIXME create a separate function for this
         return result
