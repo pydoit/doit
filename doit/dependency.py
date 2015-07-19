@@ -429,6 +429,7 @@ class DependencyStatus(object):
 
     def __init__(self, get_log):
         self.status = None
+        self.error_reason = None
         if get_log:
             self.uptodate_false = []
             self.has_no_dependencies = False
@@ -441,7 +442,7 @@ class DependencyStatus(object):
 
     def get_error_message(self):
         if self.status == "error":
-            return "Dependent file '{}' does not exist.".format(self._error_reason)
+            return self.error_reason
 
 
 class Dependency(object):
@@ -614,7 +615,8 @@ class Dependency(object):
             if result.status is None:
                 result.status = status
                 if error_reason is not None:
-                    result._error_reason = error_reason
+                    assert status == 'error'
+                    result.error_reason = error_reason
 
         # any uptodate check is false
         if not all(uptodate_result_list):
@@ -674,7 +676,7 @@ class Dependency(object):
             try:
                 file_stat = os.stat(dep)
             except OSError:
-                decide('error', dep)
+                decide('error', "Dependent file '{}' does not exist.".format(dep))
                 if get_log:
                     result.missing_file_dep.append(dep)
                 else:
