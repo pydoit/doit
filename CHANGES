@@ -6,9 +6,11 @@ Changes
 0.29.0
 ======
 
- - GH-#59: fix command `list` issue with unicode names
+ - fix GH-#59: command `list` issue with unicode names
+ - fix GH-#72: cmd `completion` escaping of apostrophes in zsh
  - GH-#58: add `DelayedLoader` parameter `target_regex`
- - GH-#58: cmd `Run` add option `auto-delayed-regex`
+ - GH-#58: cmd `Run` add option `--auto-delayed-regex`
+ - GH-#24: cmd `info` add option `--status` show reason a task is not up-to-date
 
 
 0.28.0 (*2015-04-22*)

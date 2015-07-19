@@ -11,6 +11,7 @@ from doit.dependency import get_md5, get_file_md5
 from doit.dependency import DbmDB, JsonDB, SqliteDB, Dependency
 from doit.dependency import DatabaseException, UptodateCalculator
 from doit.dependency import FileChangedChecker, MD5Checker, TimestampChecker
+from doit.dependency import DependencyStatus
 from .conftest import get_abspath, depfile
 
 #path to test folder
@@ -335,6 +336,43 @@ class TestTimestampChecker(object):
         assert checker.check_modified(dependency1, file_stat, state+1)
 
 
+class TestDependencyStatus(object):
+    def test_add_reason(self):
+        result = DependencyStatus(True)
+        assert 'up-to-date' == result.status
+        assert not result.add_reason('changed_file_dep', 'f1')
+        assert 'run' == result.status
+        assert not result.add_reason('changed_file_dep', 'f2')
+        assert ['f1', 'f2'] == result.reasons['changed_file_dep']
+
+    def test_add_reason_error(self):
+        result = DependencyStatus(True)
+        assert 'up-to-date' == result.status
+        assert not result.add_reason('missing_file_dep', 'f1', 'error')
+        assert 'error' == result.status
+        assert ['f1'] == result.reasons['missing_file_dep']
+
+    def test_set_reason(self):
+        result = DependencyStatus(True)
+        assert 'up-to-date' == result.status
+        assert not result.set_reason('has_no_dependencies', True)
+        assert 'run' == result.status
+        assert True == result.reasons['has_no_dependencies']
+
+    def test_no_log(self):
+        result = DependencyStatus(False)
+        assert 'up-to-date' == result.status
+        assert result.set_reason('has_no_dependencies', True)
+        assert 'run' == result.status
+
+    def test_get_error_message(self):
+        result = DependencyStatus(False)
+        assert None == result.get_error_message()
+        result.error_reason = 'foo xxx'
+        assert 'foo xxx' == result.get_error_message()
+
+
+
 class TestGetStatus(object):
 
     def test_ignore(self, pdepfile):
@@ -403,6 +441,34 @@ class TestGetStatus(object):
         # execute again
         assert 'run' == pdepfile.get_status(t1, {}).status
         assert [] == t1.dep_changed
+
+
+    def test_fileDependencies_changed_get_log(self, pdepfile):
+        filePath = get_abspath("data/dependency1")
+        ff = open(filePath,"w")
+        ff.write("part1")
+        ff.close()
+
+        filePath2 = get_abspath("data/dependency2")
+        ff = open(filePath,"w")
+        ff.write("part1")
+        ff.close()
+
+        t1 = Task("t1", None, [filePath])
+
+        # first time execute
+        result = pdepfile.get_status(t1, {}, get_log=True)
+        assert 'run' == result.status
+        assert [filePath] == t1.dep_changed
+        pdepfile.save_success(t1)
+
+        # second time
+        t1b = Task("t1", None, [filePath2])
+        result = pdepfile.get_status(t1b, {}, get_log=True)
+        assert 'run' == result.status
+        assert [filePath2] == t1b.dep_changed
+        assert [filePath] == result.reasons['removed_file_dep']
+        assert [filePath2] == result.reasons['added_file_dep']
 
 
     def test_file_dependency_not_exist(self, pdepfile):

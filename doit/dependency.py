@@ -4,6 +4,7 @@ import os
 import hashlib
 import subprocess
 import inspect
+from collections import defaultdict
 import six
 if six.PY3: # pragma: no cover
     from dbm import dumb
@@ -428,25 +429,34 @@ class DependencyStatus(object):
     """
 
     def __init__(self, get_log):
-        self.status = None
-        if get_log:
-            self.uptodate_false = []
-            self.has_no_dependencies = False
-            self.missing_target = []
-            self.file_dep_checker_changed = None
-            self.added_file_dep = []
-            self.removed_file_dep = []
-            self.missing_file_dep = []
-            self.changed_file_dep = []
+        self.get_log = get_log
+        self.status = 'up-to-date'
+        # save reason task is not up-to-date
+        self.reasons = defaultdict(list)
+        self.error_reason = None
 
-    def _decide(self, status):
-        """Sets state of status object if it wasn't set before."""
-        if self.status is None:
-            self.status = status
+    def add_reason(self, reason, arg, status='run'):
+        """sets state and append reason for not being up-to-date
+        :return boolean: processing should be interrupted
+        """
+        self.status = status
+        if self.get_log:
+            self.reasons[reason].append(arg)
+        return not self.get_log
+
+    def set_reason(self, reason, arg):
+        """sets state and reason for not being up-to-date
+        :return boolean: processing should be interrupted
+        """
+        self.status = 'run'
+        if self.get_log:
+            self.reasons[reason] = arg
+        return not self.get_log
 
     def get_error_message(self):
-        if self.status == "error":
-            return "Dependent file '{}' does not exist.".format(self._error_reason)
+        '''return str with error message'''
+        return self.error_reason
+
 
 
 class Dependency(object):
@@ -612,44 +622,35 @@ class Dependency(object):
             if uptodate_result is None:
                 continue
             uptodate_result_list.append(uptodate_result)
-            if get_log and not uptodate_result:
-                result.uptodate_false.append((utd, utd_args, utd_kwargs))
+            if not uptodate_result:
+                result.add_reason('uptodate_false', (utd, utd_args, utd_kwargs))
 
         # any uptodate check is false
-        if not all(uptodate_result_list):
-            result._decide('run')
-            if not get_log:
-                return result
+        if not get_log and result.status == 'run':
+            return result
 
         # no dependencies means it is never up to date.
         if not (task.file_dep or uptodate_result_list):
-            if get_log:
-                result.has_no_dependencies = True
-            result._decide('run')
-            if not get_log:
+            if result.set_reason('has_no_dependencies', True):
                 return result
+
 
         # if target file is not there, task is not up to date
         for targ in task.targets:
             if not os.path.exists(targ):
                 task.dep_changed = list(task.file_dep)
-                if get_log:
-                    result.missing_target.append(targ)
-                result._decide('run')
-                if not get_log:
+                if result.add_reason('missing_target', targ):
                     return result
 
         # check for modified file_dep checker
         previous = self._get(task.name, 'checker:')
-        if previous and previous != self.checker.__class__.__name__:
-            if get_log:
-                result.file_dep_checker_changed = (previous, self.checker.__class__.__name__)
+        checker_name = self.checker.__class__.__name__
+        if previous and previous != checker_name:
             task.dep_changed = list(task.file_dep)
             # remove all saved values otherwise they might be re-used by
             # some optmization on MD5Checker.get_state()
             self.remove(task.name)
-            result._decide('run')
-            if not get_log:
+            if result.set_reason('checker_changed', (previous, checker_name)):
                 return result
 
         # check for modified file_dep
@@ -659,11 +660,9 @@ class Dependency(object):
             if get_log:
                 added_files = sorted(list(task.file_dep - previous_set))
                 removed_files = sorted(list(previous_set - task.file_dep))
-                result.added_file_dep = added_files
-                result.removed_file_dep = removed_files
-            status = 'run'
-        else:
-            status = 'up-to-date'  # initial assumption
+                result.set_reason('added_file_dep', added_files)
+                result.set_reason('removed_file_dep', removed_files)
+            result.status = 'run'
 
         # list of file_dep that changed
         check_modified = self.checker.check_modified
@@ -673,22 +672,18 @@ class Dependency(object):
             try:
                 file_stat = os.stat(dep)
             except OSError:
-                result._decide('error')
-                result._error_reason = dep
-                if get_log:
-                    result.missing_file_dep.append(dep)
-                else:
+                error_msg = "Dependent file '{}' does not exist.".format(dep)
+                result.error_reason = error_msg.format(dep)
+                if result.add_reason('missing_file_dep', dep, 'error'):
                     return result
             else:
                 if state is None or check_modified(dep, file_stat, state):
                     changed.append(dep)
-        if len(changed) > 0:
-            if get_log:
-                result.changed_file_dep.extend(changed)
-            status = 'run'
-        result._decide(status)
+        task.dep_changed = changed
 
-        task.dep_changed = changed  # FIXME create a separate function for this
+        if len(changed) > 0:
+            result.set_reason('changed_file_dep', changed)
+
         return result
 
 

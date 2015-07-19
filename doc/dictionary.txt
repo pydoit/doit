@@ -226,6 +226,7 @@ js
 jsFile
 json
 json'
+kbd
 kwargs
 lelele
 letsdoit

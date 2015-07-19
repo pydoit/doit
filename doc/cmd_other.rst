@@ -76,6 +76,18 @@ the task meta-data.
     targets:['edit']
 
 
+Use the option `--status`, to check the reason a task is not up-to-date.
+
+.. code-block:: console
+
+   $ doit info link
+
+   Task is not up-to-date:
+    * The following file dependencies have changed:
+       - main.o
+       - kbd.o
+       - command.o
+
 
 forget
 -------
