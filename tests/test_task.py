@@ -504,11 +504,11 @@ class TestResultDep(object):
         # first t2 result
         tasks['t2'].result = 'yes'
         dep_manager.save_success(tasks['t2'])
-        assert 'run' == dep_manager.get_status(tasks['t1'], tasks)  # first time
+        assert 'run' == dep_manager.get_status(tasks['t1'], tasks).status  # first time
 
         tasks['t1'].save_extra_values()
         dep_manager.save_success(tasks['t1'])
-        assert 'up-to-date' == dep_manager.get_status(tasks['t1'], tasks)
+        assert 'up-to-date' == dep_manager.get_status(tasks['t1'], tasks).status
 
         # t2 result changed
         tasks['t2'].result = '222'
@@ -516,11 +516,11 @@ class TestResultDep(object):
 
         tasks['t1'].save_extra_values()
         dep_manager.save_success(tasks['t1'])
-        assert 'run' == dep_manager.get_status(tasks['t1'], tasks)
+        assert 'run' == dep_manager.get_status(tasks['t1'], tasks).status
 
         tasks['t1'].save_extra_values()
         dep_manager.save_success(tasks['t1'])
-        assert 'up-to-date' == dep_manager.get_status(tasks['t1'], tasks)
+        assert 'up-to-date' == dep_manager.get_status(tasks['t1'], tasks).status
 
 
     def test_group(self, depfile):
@@ -540,11 +540,11 @@ class TestResultDep(object):
         dep_manager.save_success(tasks['t2:a'])
         tasks['t2:b'].result = 'yes2'
         dep_manager.save_success(tasks['t2:b'])
-        assert 'run' == dep_manager.get_status(tasks['t1'], tasks)  # first time
+        assert 'run' == dep_manager.get_status(tasks['t1'], tasks).status  # first time
 
         tasks['t1'].save_extra_values()
         dep_manager.save_success(tasks['t1'])
-        assert 'up-to-date' == dep_manager.get_status(tasks['t1'], tasks)
+        assert 'up-to-date' == dep_manager.get_status(tasks['t1'], tasks).status
 
         # t2 result changed
         tasks['t2:a'].result = '222'
@@ -552,8 +552,8 @@ class TestResultDep(object):
 
         tasks['t1'].save_extra_values()
         dep_manager.save_success(tasks['t1'])
-        assert 'run' == dep_manager.get_status(tasks['t1'], tasks)
+        assert 'run' == dep_manager.get_status(tasks['t1'], tasks).status
 
         tasks['t1'].save_extra_values()
         dep_manager.save_success(tasks['t1'])
-        assert 'up-to-date' == dep_manager.get_status(tasks['t1'], tasks)
+        assert 'up-to-date' == dep_manager.get_status(tasks['t1'], tasks).status

@@ -79,7 +79,7 @@ class List(DoitCmdBase):
             if self.dep_manager.status_is_ignore(task):
                 task_status = 'ignore'
             else:
-                task_status = self.dep_manager.get_status(task, tasks)
+                task_status = self.dep_manager.get_status(task, tasks).status
             line_data['status'] = self.STATUS_MAP[task_status]
 
         self.outstream.write(template.format(**line_data))

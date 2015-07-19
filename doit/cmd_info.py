@@ -23,6 +23,16 @@ def my_safe_repr(obj, context, maxlevels, level):
     return pprint._safe_repr(obj, context, maxlevels, level)
 
 
+opt_show_execute_status = {
+    'name': 'show_execute_status',
+    'short': 's',
+    'long': 'status',
+    'type': bool,
+    'default': False,
+    'help': """Shows reasons why this task would be executed. [default: %(default)s]"""
+}
+
+
 class Info(DoitCmdBase):
     """command doit info"""
 
@@ -30,7 +40,9 @@ class Info(DoitCmdBase):
     doc_usage = "TASK"
     doc_description = None
 
-    def _execute(self, pos_args):
+    cmd_options = (opt_show_execute_status, )
+
+    def _execute(self, pos_args, show_execute_status=False):
         if len(pos_args) != 1:
             msg = ('doit info failed, must select *one* task.'
                    '\nCheck `doit help info`.')
@@ -57,3 +69,38 @@ class Info(DoitCmdBase):
             if value:
                 self.outstream.write('\n{0}:'.format(attr))
                 printer.pprint(getattr(task, attr))
+
+        if show_execute_status:
+            status = self.dep_manager.get_status(task, tasks, get_log=True)
+            if status.status == 'up-to-date':
+                self.outstream.write('\nIs up to date.\n')
+            else:  # status.status == 'run' or status.status == 'error'
+                self.outstream.write('\nIs not up to date:\n')
+                if status.uptodate_false:
+                    self.outstream.write(' * The following uptodate objects evaluate to false:\n')
+                    for utd, utd_args, utd_kwargs in status.uptodate_false:
+                        self.outstream.write('    - {} (args={}, kwargs={})\n'.format(utd, utd_args, utd_kwargs))
+                if status.has_no_dependencies:
+                    self.outstream.write(' * The task has no dependencies.\n')
+                if status.missing_target:
+                    self.outstream.write(' * The following targets do not exist:\n')
+                    for target in status.missing_target:
+                        self.outstream.write('    - {}\n'.format(target))
+                if status.file_dep_checker_changed:
+                    self.outstream.write(' * The file_dep checker changed from {0} to {1}.'.format(*status.file_dep_checker_changed))
+                if status.added_file_dep:
+                    self.outstream.write(' * The following file dependencies were added:\n')
+                    for dep in status.added_file_dep:
+                        self.outstream.write('    - {}\n'.format(dep))
+                if status.removed_file_dep:
+                    self.outstream.write(' * The following file dependencies were removed:\n')
+                    for dep in status.removed_file_dep:
+                        self.outstream.write('    - {}\n'.format(dep))
+                if status.missing_file_dep:
+                    self.outstream.write(' * The following file dependencies are missing:\n')
+                    for dep in status.missing_file_dep:
+                        self.outstream.write('    - {}\n'.format(dep))
+                if status.changed_file_dep:
+                    self.outstream.write(' * The following file dependencies have changed:\n')
+                    for dep in status.changed_file_dep:
+                        self.outstream.write('    - {}\n'.format(dep))
