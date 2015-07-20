@@ -71,7 +71,6 @@ class TestCmdInfo(object):
         }
 
         got = Info.get_reasons(reasons).splitlines()
-        print(repr(got))
         assert len(got) == 7
         assert got[0] == ' * The task has no dependencies.'
         assert got[1] == ' * The following uptodate objects evaluate to false:'
