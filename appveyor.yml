@@ -1,0 +1,26 @@
+build: false
+branches:
+  only:
+    - master
+    - test
+environment:
+  matrix:
+    - PYTHON: "C:/Python27"
+    - PYTHON: "C:/Python33"
+    - PYTHON: "C:/Python34"
+init:
+  - "ECHO %PYTHON%"
+  - ps: "ls C:/Python*"
+install:
+  #- ps: (new-object net.webclient).DownloadFile('https://raw.github.com/pypa/pip/master/contrib/get-pip.py', 'C:/get-pip.py')
+  #- "%PYTHON%/python.exe C:/get-pip.py"
+  #- "%PYTHON%/Scripts/pip.exe install --upgrade setuptools"
+  - "%PYTHON%/Scripts/pip.exe install ."
+  - "%PYTHON%/Scripts/pip.exe install -r dev_requirements.txt"
+
+test_script:
+  - "set path=%PYTHON%/Scripts;%path%"
+  - "%PYTHON%/python.exe --version"
+  - "%PYTHON%/Scripts/pip.exe --version"
+  - "doit pyflakes"
+  - "py.test"
