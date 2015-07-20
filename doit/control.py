@@ -310,6 +310,11 @@ class ExecNode(object):
         # generator from TaskDispatcher._add_task
         self.generator = None
 
+    def __getstate__(self):
+        pickle_dict = self.__dict__.copy()
+        pickle_dict['generator'] = None
+        return pickle_dict
+        
     def reset_task(self, task, generator):
         """reset task & generator after task is created by its own `loader`"""
         self.task = task
@@ -361,6 +366,10 @@ class TaskDispatcher(object):
 
         self.generator = self._dispatcher_generator(selected_tasks)
 
+    def __getstate__(self):
+        pickle_dict = self.__dict__.copy()
+        pickle_dict['generator'] = None
+        return pickle_dict
 
     def _gen_node(self, parent, task_name):
         """return ExecNode for task_name if not created yet"""
