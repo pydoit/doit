@@ -4,11 +4,9 @@ Installing
 
 
 
-* Using `pip <http://pip.openplans.org/>`_ or
-  `easy_install <http://peak.telecommunity.com/DevCenter/EasyInstall>`_::
+* Using `pip <http://pip.pypa.io/>`_::
 
   $ pip install doit
-  $ easy_install doit
 
 * `Download <http://pypi.python.org/pypi/doit>`_ the source and::
 
