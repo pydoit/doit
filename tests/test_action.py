@@ -231,7 +231,7 @@ class TestCmd_print_process_output(object):
         capture = StringIO()
         my_action._print_process_output(Mock(), not_unicode, capture, realtime)
         # get the replacement char
-        expected = '�' if six.PY3 else unicode('�', 'utf-8')
+        expected = '�' if six.PY3 else '�'.decode('utf-8')
         assert expected == capture.getvalue()
 
     def test_non_unicode_string_ok(self):
@@ -242,7 +242,7 @@ class TestCmd_print_process_output(object):
         capture = StringIO()
         my_action._print_process_output(Mock(), not_unicode, capture, realtime)
         # get the correct char from latin-1 encoding
-        expected = '©' if six.PY3 else unicode('©', 'utf-8')
+        expected = '©' if six.PY3 else '©'.decode('utf-8')
         assert expected == capture.getvalue()
 
 

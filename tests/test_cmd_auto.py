@@ -1,4 +1,6 @@
 import time
+import sys
+import pytest
 from multiprocessing import Process
 
 from doit.cmdparse import DefaultUpdate
@@ -6,6 +8,8 @@ from doit.task import Task
 from doit.cmd_base import TaskLoader
 from doit import cmd_auto
 from .conftest import CmdFactory
+
+pytestmark = pytest.mark.skipif(sys.platform == 'win32', reason='auto is linux/osx only')
 
 
 class TestFindFileDeps(object):
