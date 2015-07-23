@@ -3,6 +3,7 @@
 import os
 import sys
 import tempfile
+import textwrap
 import locale
 locale # quiet pyflakes
 
@@ -646,6 +647,38 @@ class TestPythonActionPrepareKwargsMeta(object):
         my_action = action.PythonAction(py_callable, task=task)
         my_action.execute()
         assert ['123'] == got, repr(got)
+
+    @pytest.mark.skipif('six.PY2')
+    def test_kwonlyargs_minimal(self, task_depchanged):
+        got = []
+        scope = {'got': got}
+        exec(textwrap.dedent('''
+            def py_callable(*args, kwonly=None):
+                got.append(args)
+                got.append(kwonly)
+        '''), scope)
+        my_action = action.PythonAction(scope['py_callable'],
+                                        (1, 2, 3), {'kwonly': 4},
+                                        task=task_depchanged)
+        my_action.execute()
+        assert [(1, 2, 3), 4] == got, repr(got)
+
+    @pytest.mark.skipif('six.PY2')
+    def test_kwonlyargs_full(self, task_depchanged):
+        got = []
+        scope = {'got': got}
+        exec(textwrap.dedent('''
+            def py_callable(pos, *args, kwonly=None, **kwargs):
+                got.append(pos)
+                got.append(args)
+                got.append(kwonly)
+                got.append(kwargs['foo'])
+        '''), scope)
+        my_action = action.PythonAction(scope['py_callable'],
+                                        [1,2,3], {'kwonly': 4, 'foo': 5},
+                                        task=task_depchanged)
+        my_action.execute()
+        assert [1, (2, 3), 4, 5] == got, repr(got)
 
 ##############
 
