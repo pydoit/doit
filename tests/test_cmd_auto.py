@@ -1,15 +1,20 @@
 import time
-import sys
-import pytest
 from multiprocessing import Process
+
+import pytest
 
 from doit.cmdparse import DefaultUpdate
 from doit.task import Task
 from doit.cmd_base import TaskLoader
+from doit import filewatch
 from doit import cmd_auto
 from .conftest import CmdFactory
 
-pytestmark = pytest.mark.skipif(sys.platform == 'win32', reason='auto is linux/osx only')
+
+# skip all tests in this module if platform not supported
+platform = filewatch.get_platform_system()
+pytestmark = pytest.mark.skipif(
+    'platform not in filewatch.FileModifyWatcher.supported_platforms')
 
 
 class TestFindFileDeps(object):
