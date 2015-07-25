@@ -4,10 +4,10 @@ README
 
 .. display some badges
 
-.. image:: https://pypip.in/v/doit/badge.png
+.. image:: https://img.shields.io/pypi/v/doit.svg
         :target: https://pypi.python.org/pypi/doit
 
-.. image:: https://pypip.in/d/doit/badge.png
+.. image:: https://img.shields.io/pypi/dm/doit.svg
         :target: https://pypi.python.org/pypi/doit
 
 .. disable this until i figure out how to debug unstable tests
@@ -16,6 +16,10 @@ README
 
 .. image:: https://coveralls.io/repos/pydoit/doit/badge.png?branch=master
   :target: https://coveralls.io/r/pydoit/doit?branch=master
+
+Join our online chat at 
+.. image:: https://badges.gitter.im/doit.svg
+  :target: https://gitter.im/pydoit
 
 
 doit - automation tool
