@@ -1,4 +1,5 @@
 import os
+import pickle
 from multiprocessing import Queue
 import six
 
@@ -7,6 +8,7 @@ from mock import Mock
 
 from doit.exceptions import InvalidTask
 from doit.dependency import DbmDB, Dependency
+from doit.reporter import ConsoleReporter
 from doit.task import Task, DelayedLoader
 from doit.control import TaskDispatcher, ExecNode
 from doit import runner
@@ -534,10 +536,21 @@ class TestMReporter(object):
 
 
 class TestJobTask(object):
-    def test_not_picklable(self):
+    def test_not_picklable_raises_InvalidTask(self):
         def non_top_function(): pass
         t1 = Task('t1', [non_top_function])
         pytest.raises(InvalidTask, runner.JobTask, t1)
+
+
+# multiprocessing on Windows requires the whole object to be pickable
+def test_MRunner_pickable(dep_manager):
+    t1 = Task('t1', [])
+    import sys
+    reporter = ConsoleReporter(sys.stdout, {})
+    run = runner.MRunner(dep_manager, reporter)
+    run._run_tasks_init(TaskDispatcher({'t1':t1}, [], ['t1']))
+    # assert nothing is raised
+    pickle.dumps(run)
 
 
 @pytest.mark.skipif('not runner.MRunner.available()')
@@ -715,7 +728,7 @@ class TestMRunner_execute_task(object):
         task_q.put(runner.JobHold()) # to test
         task_q.put(None) # to terminate function
         result_q = Queue()
-        run.execute_task_subprocess(task_q, result_q)
+        run.execute_task_subprocess(task_q, result_q, reporter.__class__)
         run.finish()
         # nothing was done
         assert result_q.empty()
@@ -728,7 +741,7 @@ class TestMRunner_execute_task(object):
         task_q.put(runner.JobTask(t1)) # to test
         task_q.put(None) # to terminate function
         result_q = Queue()
-        run.execute_task_subprocess(task_q, result_q)
+        run.execute_task_subprocess(task_q, result_q, reporter.__class__)
         run.finish()
         # check result
         assert result_q.get() == {'name': 't1', 'reporter': 'execute_task'}
