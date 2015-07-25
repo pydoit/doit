@@ -17,9 +17,11 @@ README
 .. image:: https://coveralls.io/repos/pydoit/doit/badge.png?branch=master
   :target: https://coveralls.io/r/pydoit/doit?branch=master
 
-Join our online chat at 
-.. image:: https://badges.gitter.im/doit.svg
+Join our online chat at |gitter_img|
+
+.. |gitter_img| image:: https://badges.gitter.im/doit.svg
   :target: https://gitter.im/pydoit
+
 
 
 doit - automation tool
