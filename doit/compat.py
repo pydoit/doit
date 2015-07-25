@@ -13,3 +13,12 @@ else:
     def is_bound_method(obj):
         return (inspect.ismethod(obj) and
                 (getattr(obj, '__self__', None) is not None))
+
+
+def get_platform_system():
+    """return platform.system
+    platform module has many regexp, so importing it is slow...
+    import only if required
+    """
+    import platform
+    return platform.system()

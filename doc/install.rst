@@ -21,9 +21,3 @@ Installing
   * `doit` depends on the packages
     `pyinotify <http://trac.dbzteam.org/pyinotify>`_ (for linux),
     `macfsevents <http://pypi.python.org/pypi/MacFSEvents>`_ (mac).
-
-.. warning::
-
-   for Windows users:
-
-   * New releases are not tested on Windows.

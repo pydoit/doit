@@ -210,6 +210,13 @@ You can also execute in parallel using threads by specifying the option
    The actions of a single task are always run sequentially;
    only tasks and sub-tasks are affected by the parallel execution option.
 
+.. warning::
+
+   On Windows, due to some limitations on how `multiprocess` works,
+   there are stricter requirements for task properties being picklable than
+   other platforms.
+
+
 .. _reporter:
 
 reporter

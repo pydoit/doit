@@ -3,10 +3,12 @@
 import sys
 from multiprocessing import Process, Queue as MQueue
 from threading import Thread
-import six
-from six.moves import queue, xrange
 import pickle
 
+import six
+from six.moves import queue, xrange
+
+from .compat import get_platform_system
 from .exceptions import InvalidTask, CatchedException
 from .exceptions import TaskFailed, SetupError, DependencyError, UnmetDependency
 from .task import DelayedLoaded
@@ -285,13 +287,13 @@ class MReporter(object):
                        'reporter': <reporter-method-name>}
     on runner's 'result_q'
     """
-    def __init__(self, runner, original_reporter):
+    def __init__(self, runner, reporter_cls):
         self.runner = runner
-        self.original_reporter = original_reporter
+        self.reporter_cls = reporter_cls
 
     def __getattr__(self, method_name):
         """substitute any reporter method with a dispatching method"""
-        if not hasattr(self.original_reporter, method_name):
+        if not hasattr(self.reporter_cls, method_name):
             raise AttributeError(method_name)
         def rep_method(task):
             self.runner.result_q.put({'name':task.name,
@@ -311,6 +313,11 @@ class MRunner(Runner):
     @staticmethod
     def available():
         """check if multiprocessing module is available"""
+        # diable because of multiprocessing bug on py27/ windows
+        #  http://bugs.python.org/issue10845
+        if six.PY2 and get_platform_system() == 'Windows': #  pragma: no cover
+            return False
+
         # see: https://bitbucket.org/schettino72/doit/issue/17
         #      http://bugs.python.org/issue3770
         # not available on BSD systens
@@ -333,6 +340,17 @@ class MRunner(Runner):
         self.task_dispatcher = None # TaskDispatcher retrieve tasks
         self.tasks = None    # dict of task instances by name
         self.result_q = None
+
+
+    def __getstate__(self):
+        # multiprocessing on Windows will try to pickle self.
+        # These attributes are actually not used by spawend process so
+        # safe to be removed.
+        pickle_dict = self.__dict__.copy()
+        pickle_dict['reporter'] = None
+        pickle_dict['task_dispatcher'] = None
+        pickle_dict['dep_manager'] = None
+        return pickle_dict
 
     def get_next_job(self, completed):
         """get next task to be dispatched to sub-process
@@ -387,7 +405,7 @@ class MRunner(Runner):
             job_q.put(next_job)
             process = self.Child(
                 target=self.execute_task_subprocess,
-                args=(job_q, result_q))
+                args=(job_q, result_q, self.reporter.__class__))
             process.start()
             proc_list.append(process)
         return proc_list
@@ -463,7 +481,7 @@ class MRunner(Runner):
             getattr(self.reporter, result['reporter'])(task)
 
 
-    def execute_task_subprocess(self, job_q, result_q):
+    def execute_task_subprocess(self, job_q, result_q, reporter_class):
         """executed on child processes
         @param job_q: task queue,
             * None elements indicate process can terminate
@@ -472,7 +490,7 @@ class MRunner(Runner):
         """
         self.result_q = result_q
         if self.Child == Process:
-            self.reporter = MReporter(self, self.reporter)
+            self.reporter = MReporter(self, reporter_class)
         try:
             while True:
                 job = job_q.get()
