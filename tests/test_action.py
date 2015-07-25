@@ -99,14 +99,14 @@ class TestCmdActionParams(object):
         command = 'python -c "import os; print(os.getcwd())"'
         my_action = action.CmdAction(command, cwd=path.strpath)
         my_action.execute()
-        assert path + "\n" == my_action.out, repr(my_action.out)
+        assert path + os.linesep == my_action.out, repr(my_action.out)
 
     def test_noPathSet(self, tmpdir):
         path = tmpdir.mkdir("foo")
         command = 'python -c "import os; print(os.getcwd())"'
         my_action = action.CmdAction(command)
         my_action.execute()
-        assert path.strpath + "\n" != my_action.out, repr(my_action.out)
+        assert path.strpath + os.linesep != my_action.out, repr(my_action.out)
 
 
 class TestCmdVerbosity(object):
