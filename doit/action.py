@@ -46,10 +46,12 @@ class BaseAction(object):
             except TypeError: # a callable object, not a function
                 argspec = inspect.getargspec(func.__call__)
             func_has_kwargs = argspec.keywords is not None
-        else:
+        else: # pragma: no cover
             try:
                 argspec = inspect.getfullargspec(func)
             except TypeError: # a callable object, not a function
+                # since py3.4 this is not required anymore because
+                # getfullargspec deals with any callable
                 argspec = inspect.getfullargspec(func.__call__)
             func_has_kwargs = argspec.varkw is not None
 
@@ -166,7 +168,7 @@ class CmdAction(BaseAction):
                 break
             capture.write(line)
             if realtime:
-                if sys.version > '3': # pragma: no cover
+                if six.PY3: # pragma: no cover
                     realtime.write(line)
                 else:
                     realtime.write(line.encode(encoding))

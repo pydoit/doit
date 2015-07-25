@@ -649,7 +649,7 @@ class TestPythonActionPrepareKwargsMeta(object):
         assert ['123'] == got, repr(got)
 
     @pytest.mark.skipif('six.PY2')
-    def test_kwonlyargs_minimal(self, task_depchanged):
+    def test_kwonlyargs_minimal(self, task_depchanged):  # pragma: no cover
         got = []
         scope = {'got': got}
         exec(textwrap.dedent('''
@@ -664,7 +664,7 @@ class TestPythonActionPrepareKwargsMeta(object):
         assert [(1, 2, 3), 4] == got, repr(got)
 
     @pytest.mark.skipif('six.PY2')
-    def test_kwonlyargs_full(self, task_depchanged):
+    def test_kwonlyargs_full(self, task_depchanged):  # pragma: no cover
         got = []
         scope = {'got': got}
         exec(textwrap.dedent('''
