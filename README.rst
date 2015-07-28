@@ -146,6 +146,15 @@ The spell checker currently uses `hunspell`, to install it on debian based
 systems install the hunspell package: `apt-get install hunspell`.
 
 
+profiling
+---------
+
+::
+
+  python -m cProfile -o output.pstats `which doit` list
+
+  gprof2dot -f pstats output.pstats | dot -Tpng -o output.png
+
 contributing
 ==============
 

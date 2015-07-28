@@ -69,6 +69,8 @@ class Runner(object):
 
     def _get_task_args(self, task, tasks_dict):
         """get values from other tasks"""
+        task.init_options()
+
         def get_value(task_id, key_name):
             """get single value or dict from task's saved values"""
             if key_name is None:
