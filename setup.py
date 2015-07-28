@@ -78,7 +78,7 @@ setup(name = 'doit',
       long_description = long_description,
       entry_points = {
           'console_scripts': [
-              'doit = doit.__main__:main'
+              'doit = doit.main:main'
           ]
       },
       )
