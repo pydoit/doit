@@ -311,9 +311,9 @@ class MRunner(Runner):
     @staticmethod
     def available():
         """check if multiprocessing module is available"""
-        # diable because of multiprocessing bug on py27/ widnows
+        # diable because of multiprocessing bug on py27/ windows
         #  http://bugs.python.org/issue10845
-        if six.PY2 and get_platform_system() == 'Widnows':
+        if six.PY2 and get_platform_system() == 'Windows':
             return False
 
         # see: https://bitbucket.org/schettino72/doit/issue/17
