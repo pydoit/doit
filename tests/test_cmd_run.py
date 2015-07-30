@@ -10,7 +10,6 @@ from doit import reporter, runner
 from doit.cmd_run import Run
 from tests.conftest import tasks_sample, CmdFactory
 
-
 class TestCmdRun(object):
 
     def testProcessRun(self, dependency1, depfile_name):
@@ -22,6 +21,7 @@ class TestCmdRun(object):
         got = output.getvalue().split("\n")[:-1]
         assert [".  t1", ".  t2", ".  g1.a", ".  g1.b", ".  t3"] == got
 
+    @pytest.mark.skipif('not runner.MRunner.available()')
     def testProcessRunMP(self, dependency1, depfile_name):
         output = StringIO()
         cmd_run = CmdFactory(Run, backend='dbm', dep_file=depfile_name,

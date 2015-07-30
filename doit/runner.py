@@ -8,6 +8,7 @@ import pickle
 import six
 from six.moves import queue, xrange
 
+from .compat import get_platform_system
 from .exceptions import InvalidTask, CatchedException
 from .exceptions import TaskFailed, SetupError, DependencyError, UnmetDependency
 from .task import DelayedLoaded
@@ -310,6 +311,11 @@ class MRunner(Runner):
     @staticmethod
     def available():
         """check if multiprocessing module is available"""
+        # diable because of multiprocessing bug on py27/ widnows
+        #  http://bugs.python.org/issue10845
+        if six.PY2 and get_platform_system() == 'Widnows':
+            return False
+
         # see: https://bitbucket.org/schettino72/doit/issue/17
         #      http://bugs.python.org/issue3770
         # not available on BSD systens

@@ -4,13 +4,7 @@ use by cmd_auto module
 
 import os.path
 
-def get_platform_system():
-    """return platform.system
-    platform module has many regexp, so importing it is slow...
-    import only if required
-    """
-    import platform
-    return platform.system()
+from .compat import get_platform_system
 
 
 class FileModifyWatcher(object):
