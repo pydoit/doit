@@ -306,8 +306,21 @@ def RunnerClass(request):
     return request.param
 
 
+# function used on actions, define here to make sure they are pickable
 def ok(): return "ok"
 def ok2(): return "different"
+def my_action():
+    import sys
+    sys.stdout.write('out here')
+    sys.stderr.write('err here')
+    return {'bb': 5}
+def use_args(arg1):
+    six.print_(arg1)
+def make_args():
+    return {'myarg':1}
+def action_add_filedep(task, extra_dep):
+    task.file_dep.add(extra_dep)
+
 
 class TestRunner_run_tasks(object):
 
@@ -336,11 +349,6 @@ class TestRunner_run_tasks(object):
 
     # test result, value, out, err are saved into task
     def test_result(self, reporter, RunnerClass, dep_manager):
-        def my_action():
-            import sys
-            sys.stdout.write('out here')
-            sys.stderr.write('err here')
-            return {'bb': 5}
         task = Task("taskY", [my_action] )
         my_runner = RunnerClass(dep_manager, reporter)
         assert None == task.result
@@ -383,13 +391,13 @@ class TestRunner_run_tasks(object):
 
     # when successful dependencies are updated
     def test_updateDependencies(self, reporter, RunnerClass, depfile_name):
-        depPath = os.path.join(os.path.dirname(__file__),"data/dependency1")
+        depPath = os.path.join(os.path.dirname(__file__), "data", "dependency1")
         ff = open(depPath,"a")
         ff.write("xxx")
         ff.close()
         dependencies = [depPath]
 
-        filePath = os.path.join(os.path.dirname(__file__),"data/target")
+        filePath = os.path.join(os.path.dirname(__file__), "data", "target")
         ff = open(filePath,"a")
         ff.write("xxx")
         ff.close()
@@ -474,9 +482,6 @@ class TestRunner_run_tasks(object):
 
 
     def test_getargs(self, reporter, RunnerClass, dep_manager):
-        def use_args(arg1):
-            six.print_(arg1)
-        def make_args(): return {'myarg':1}
         t1 = Task("t1", [(use_args,)], getargs=dict(arg1=('t2','myarg')) )
         t2 = Task("t2", [(make_args,)])
         my_runner = RunnerClass(dep_manager, reporter)
@@ -493,9 +498,9 @@ class TestRunner_run_tasks(object):
 
     def testActionModifiesFiledep(self, reporter, RunnerClass, dep_manager):
         extra_dep = os.path.join(os.path.dirname(__file__), 'sample_md5.txt')
-        def action_add_filedep(task):
-            task.file_dep.add(extra_dep)
-        t1 = Task("t1", [(my_print, ["out a"] ), action_add_filedep] )
+        t1 = Task("t1", [(my_print, ["out a"] ),
+                         (action_add_filedep, (), {'extra_dep': extra_dep})
+                     ] )
         my_runner = RunnerClass(dep_manager, reporter)
         my_runner.run_tasks(TaskDispatcher({'t1':t1}, [], ['t1']))
         assert runner.SUCCESS == my_runner.finish()
