@@ -5,7 +5,7 @@ It gets confused with module named __main__.py, so use this module instead
 of `__main__.py` as an entry point.
 '''
 
-import sys # pragma: no cover
+import sys
 
 def main(): # pragma: no cover
     from doit.doit_cmd import DoitMain
