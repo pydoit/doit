@@ -18,7 +18,7 @@ README
   :target: https://coveralls.io/r/pydoit/doit?branch=master
 
 
-.. https://badges.gitter.im/Join%20Chat.svg
+.. image:: https://badges.gitter.im/Join%20Chat.svg
   :alt: Join the chat at https://gitter.im/pydoit/doit
   :target: https://gitter.im/pydoit/doit?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
 
