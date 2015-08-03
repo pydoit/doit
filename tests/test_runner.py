@@ -695,23 +695,24 @@ class TestMRunner_start_process(object):
         assert isinstance(task_q.get(), runner.JobHold)
 
 
+def non_pickable_creator():
+    return {'basename': 't2', 'actions': [lambda: True]}
+
 class TestMRunner_parallel_run_tasks(object):
 
     @pytest.mark.skipif('not runner.MRunner.available()')
     def test_task_not_picklabe_multiprocess(self, reporter, dep_manager):
-        def creator():
-            return {'basename': 't2', 'actions': [lambda: 5]}
         t1 = Task("t1", [(my_print, ["out a"] )] )
-        t2 = Task("t2", None, loader=DelayedLoader(creator, executed='t1'))
+        t2 = Task("t2", None, loader=DelayedLoader(
+            non_pickable_creator, executed='t1'))
         my_runner = runner.MRunner(dep_manager, reporter)
         dispatcher = TaskDispatcher({'t1':t1, 't2':t2}, [], ['t1', 't2'])
         pytest.raises(InvalidTask, my_runner.run_tasks, dispatcher)
 
     def test_task_not_picklabe_thread(self, reporter, dep_manager):
-        def creator():
-            return {'basename': 't2', 'actions': [lambda: True]}
         t1 = Task("t1", [(my_print, ["out a"] )] )
-        t2 = Task("t2", None, loader=DelayedLoader(creator, executed='t1'))
+        t2 = Task("t2", None, loader=DelayedLoader(
+            non_pickable_creator, executed='t1'))
         my_runner = runner.MThreadRunner(dep_manager, reporter)
         dispatcher = TaskDispatcher({'t1':t1, 't2':t2}, [], ['t1', 't2'])
         # threaded code have no problems with closures

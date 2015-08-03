@@ -7,6 +7,7 @@ import sys
 import inspect
 import six
 from collections import OrderedDict
+from functools import partial
 
 from .cmdparse import CmdOption, TaskParse
 from .exceptions import CatchedException, InvalidTask
@@ -516,6 +517,10 @@ def clean_targets(task, dryrun):
                 os.rmdir(dir_)
 
 
+def _return_param(val):
+    '''just return passed parameter - make a callable from any value'''
+    return val
+
 # uptodate
 class result_dep(UptodateCalculator):
     """check if result of the given task was modified
@@ -551,7 +556,8 @@ class result_dep(UptodateCalculator):
             dep_result = self._result_single()
         else:
             dep_result = self._result_group(dep_task)
-        task.value_savers.append(lambda: {self.result_name: dep_result})
+        func = partial(_return_param, {self.result_name: dep_result})
+        task.value_savers.append(func)
 
         last_success = values.get(self.result_name)
         if last_success is None:
