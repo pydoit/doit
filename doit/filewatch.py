@@ -3,6 +3,9 @@ use by cmd_auto module
 """
 
 import os.path
+import time
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
 
 from .compat import get_platform_system
 
@@ -16,7 +19,7 @@ class FileModifyWatcher(object):
     3) call the loop method
     """
     supported_platforms = ('Darwin', 'Linux')
-
+    
     def __init__(self, path_list):
         """@param file_list (list-str): files to be watched"""
         self.file_list = set()
@@ -36,13 +39,20 @@ class FileModifyWatcher(object):
             msg += ("'auto' command is supported only on %s" %
                     (self.supported_platforms,))
             raise Exception(msg)
+        self.observer = Observer()
+        self.observer.start()
+        while not self.observer.is_alive():
+            time.sleep(0.1)
 
+
+    def __del__(self):
+        self.observer.stop()
+        self.observer.join()
+        
     def _handle(self, event):
         """calls platform specific handler"""
-        if self.platform == 'Darwin': # pragma: no cover
-            filename = event.name
-        elif self.platform == 'Linux':
-            filename = event.pathname
+        filename = event.src_path
+
         if (filename in self.file_list or
             os.path.dirname(filename) in self.notify_dirs):
             self.handle_event(event)
@@ -51,60 +61,27 @@ class FileModifyWatcher(object):
         """this should be sub-classed """
         raise NotImplementedError
 
-
-    def _loop_darwin(self): # pragma: no cover
-        """loop implementation for darwin platform"""
-        from fsevents import Observer #pylint: disable=F0401
-        from fsevents import Stream #pylint: disable=F0401
-        from fsevents import IN_MODIFY #pylint: disable=F0401
-
-        observer = Observer()
+    def _loop(self):
         handler = self._handle
-        def fsevent_callback(event):
-            if event.mask == IN_MODIFY:
-                handler(event)
+        observer = self.observer
+        
+        class EventHandler(FileSystemEventHandler):
+            def on_modified(self, event):
+                try:
+                    handler(event)
+                except KeyboardInterrupt:
+                    pass
 
-        for watch_this in self.watch_dirs:
-            stream = Stream(fsevent_callback, watch_this, file_events=True)
-            observer.schedule(stream)
-
-        observer.daemon = True
-        observer.start()
-        try:
-            # hack to keep main thread running...
-            import time
-            while True:
-                time.sleep(99999)
-        except (SystemExit, KeyboardInterrupt):
-            pass
-
-
-    def _loop_linux(self, loop_callback):
-        """loop implementation for linux platform"""
-        import pyinotify
-        handler = self._handle
-        class EventHandler(pyinotify.ProcessEvent):
-            def process_default(self, event):
-                handler(event)
-
-        watch_manager = pyinotify.WatchManager()
         event_handler = EventHandler()
-        notifier = pyinotify.Notifier(watch_manager, event_handler)
 
-        mask = pyinotify.IN_CLOSE_WRITE | pyinotify.IN_MOVED_TO
         for watch_this in self.watch_dirs:
-            watch_manager.add_watch(watch_this, mask)
-
-        notifier.loop(loop_callback)
-
-
-    def loop(self, loop_callback=None):
+            observer.schedule(event_handler, watch_this, recursive=False)
+        
+    def loop(self):
         """Infinite loop watching for file modifications
-        @loop_callback: used to stop loop on unittests
+
         """
 
-        if self.platform == 'Darwin': # pragma: no cover
-            self._loop_darwin()
+        self._loop()
 
-        elif self.platform == 'Linux':
-            self._loop_linux(loop_callback)
+
