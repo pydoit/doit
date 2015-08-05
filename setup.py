@@ -11,12 +11,10 @@ install_requires = ['six']
 ########### platform specific stuff #############
 import platform
 platform_system = platform.system()
-
+supported_platforms = ["Darwin", "Linux"]
 # auto command dependencies to watch file-system
-if platform_system == "Darwin":
-    install_requires.append('macfsevents')
-elif platform_system == "Linux":
-    install_requires.append('pyinotify')
+if platform_system in supported_platforms:
+    install_requires.append('watchdog')
 
 ##################################################
 
