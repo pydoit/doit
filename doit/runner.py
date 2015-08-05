@@ -8,7 +8,7 @@ import pickle
 import six
 from six.moves import queue, xrange
 
-from .compat import get_platform_system
+#from .compat import get_platform_system
 from .exceptions import InvalidTask, CatchedException
 from .exceptions import TaskFailed, SetupError, DependencyError, UnmetDependency
 from .task import DelayedLoaded
@@ -29,6 +29,8 @@ class Runner(object):
             process_task_result()
       finish()
 
+      
+      
     """
     def __init__(self, dep_manager, reporter, continue_=False,
                  always_execute=False, verbosity=0):
@@ -48,8 +50,7 @@ class Runner(object):
         self.teardown_list = [] # list of tasks to be teardown
         self.final_result = SUCCESS # until something fails
         self._stop_running = False
-
-
+        
     def _handle_task_error(self, node, catched_excp):
         """handle all task failures/errors
 
@@ -395,6 +396,25 @@ class MRunner(Runner):
         @param result_q: (multiprocessing.Queue) collect task results
         @return list of Process
         """
+        # #### DEBUG PICKLE ERRORS
+        # # Python3 uses C implementation of pickle
+        # if six.PY2:
+            # Pickler = pickle.Pickler
+        # else:  # pragma no cover
+            # Pickler = pickle._Pickler
+
+        # class MyPickler (Pickler):
+            # def save(self, obj):
+                # print('pickling object {} of type {}'.format(obj, type(obj)))
+                # try:
+                    # Pickler.save(self, obj)
+                # except:
+                    # print('error. skipping...')
+        # from six import BytesIO
+        # pickler = MyPickler(BytesIO())
+        # pickler.dump(self)
+        # ### END DEBUG
+        
         proc_list = []
         for _ in xrange(self.num_process):
             next_job = self.get_next_job(None)
