@@ -313,8 +313,8 @@ class MRunner(Runner):
         """check if multiprocessing module is available"""
         # diable because of multiprocessing bug on py27/ windows
         #  http://bugs.python.org/issue10845
-        if six.PY2 and get_platform_system() == 'Windows':
-            return False
+        #if six.PY2 and get_platform_system() == 'Windows':
+        #    return True
 
         # see: https://bitbucket.org/schettino72/doit/issue/17
         #      http://bugs.python.org/issue3770
