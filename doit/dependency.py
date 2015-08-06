@@ -693,12 +693,6 @@ class Dependency(object):
 class UptodateCalculator(object):
     """Base class for 'uptodate' that need access to all tasks
     """
-    
-    def __getstate__(self):
-        pickle_dict = self.__dict__.copy()
-        pickle_dict['get_val'] = None
-        return pickle_dict
-    
     def __init__(self):
         self.get_val = None # Dependency._get
         self.tasks_dict = None # dict with all tasks
