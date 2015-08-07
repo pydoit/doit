@@ -67,6 +67,13 @@ Classes and built-in functions are not allowed.
 as positional and keywords arguments for the callable.
 see `Keyword Arguments <http://docs.python.org/tutorial/controlflow.html#keyword-arguments>`_.
 
+For ``args`` may be accepted tuple or list object.
+
+.. literalinclude:: tutorial/task_args.py
+
+For ``kwargs`` only `dict` object may be accepted.
+
+.. literalinclude:: tutorial/task_kwargs.py
 
 The result of the task is given by the returned value of the
 ``action`` function.
@@ -165,25 +172,6 @@ custom actions
 
 It is possible to create other type of actions,
 check :ref:`tools.LongRunning<tools.LongRunning>` as an example.
-
-
-
-action arguments
------------------
-
-You always can pass some arguments into your action in case it's a `python-action`.
-As shown above, it's expected if action is python callable or tuple of `(callable, *args, **kwargs)` kind.
-In both cases only `callable` is required, ``args`` and ``kwargs`` may be skipped or empty.
-
-For ``args`` may be accepted tuple or list object.
-
-.. literalinclude:: tutorial/task_args.py
-
-For ``kwargs`` only `dict` object may be accepted.
-
-.. literalinclude:: tutorial/task_kwargs.py
-
-Also you may be interested in :ref:`params<task_args.arguments>` and :ref:`getargs<dependencies.getargs>` for passing arguments into actions.
 
 
 
