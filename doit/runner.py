@@ -8,7 +8,6 @@ import pickle
 import six
 from six.moves import queue, xrange
 
-from .compat import get_platform_system
 from .exceptions import InvalidTask, CatchedException
 from .exceptions import TaskFailed, SetupError, DependencyError, UnmetDependency
 from .task import DelayedLoaded
@@ -313,11 +312,7 @@ class MRunner(Runner):
     @staticmethod
     def available():
         """check if multiprocessing module is available"""
-        # diable because of multiprocessing bug on py27/ windows
-        #  http://bugs.python.org/issue10845
-        if six.PY2 and get_platform_system() == 'Windows': #  pragma: no cover
-            return False
-
+        
         # see: https://bitbucket.org/schettino72/doit/issue/17
         #      http://bugs.python.org/issue3770
         # not available on BSD systens
@@ -397,6 +392,25 @@ class MRunner(Runner):
         @param result_q: (multiprocessing.Queue) collect task results
         @return list of Process
         """
+        # #### DEBUG PICKLE ERRORS
+        # # Python3 uses C implementation of pickle
+        # if six.PY2:
+            # Pickler = pickle.Pickler
+        # else:  # pragma no cover
+            # Pickler = pickle._Pickler
+
+        # class MyPickler (Pickler):
+            # def save(self, obj):
+                # print('pickling object {} of type {}'.format(obj, type(obj)))
+                # try:
+                    # Pickler.save(self, obj)
+                # except:
+                    # print('error. skipping...')
+        # from six import BytesIO
+        # pickler = MyPickler(BytesIO())
+        # pickler.dump(self)
+        # ### END DEBUG
+        
         proc_list = []
         for _ in xrange(self.num_process):
             next_job = self.get_next_job(None)

@@ -15,6 +15,11 @@ install:
   #- ps: (new-object net.webclient).DownloadFile('https://raw.github.com/pypa/pip/master/contrib/get-pip.py', 'C:/get-pip.py')
   #- "%PYTHON%/python.exe C:/get-pip.py"
   #- "%PYTHON%/Scripts/pip.exe install --upgrade setuptools"
+  # Explicitly install pytest from NOT the wheel distribution to ensure it
+  # works with Python 2.7.
+  # See: https://github.com/pytest-dev/pytest/issues/749
+  #      https://bitbucket.org/pytest-dev/pytest/issues/749/
+  - "%PYTHON%/Scripts/pip.exe install pytest --no-use-wheel"
   - "%PYTHON%/Scripts/pip.exe install ."
   - "%PYTHON%/Scripts/pip.exe install -r dev_requirements.txt"
 
