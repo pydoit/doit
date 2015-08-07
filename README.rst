@@ -100,6 +100,19 @@ from `dev_requirements.txt`::
   (dev)doit$ pip install --editable .
   (dev)doit$ pip install --requirement dev_requirements.txt
 
+.. note::
+
+    Windows developers: Due to a  bug in `wheel` distributions
+    `pytest` must not be installed from a `wheel`.
+
+    e.g.::
+
+      pip install pytest --no-use-wheel
+
+    See for more information:
+
+      - https://github.com/pytest-dev/pytest/issues/749
+      - https://bitbucket.org/pytest-dev/pytest/issues/749/
 
 
 tests
