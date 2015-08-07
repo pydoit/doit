@@ -146,9 +146,8 @@ class Task(object):
         self.check_attr(name, 'watch', watch, self.valid_attr['watch'])
 
         self.name = name
-        self.taskcmd = TaskParse([CmdOption(opt) for opt in params])
         self.params = params # save just for use on command `info`
-        self.options = self._init_options()
+        self.options = None
         self.pos_arg = pos_arg
         self.pos_arg_val = None # to be set when parsing command line
         self.setup_tasks = list(setup)
@@ -290,12 +289,16 @@ class Task(object):
             self._expand_map[dep](self, dep_values)
 
 
-    def _init_options(self):
-        """put default values on options. this will be overwritten, if params
-        options were passed on the command line.
+    def init_options(self):
+        """Put default values on options.
+
+        This will only be used, if params options were not passed
+        on the command line.
         """
-        # ignore positional parameters
-        return self.taskcmd.parse('')[0]
+        if self.options is None:
+            taskcmd = TaskParse([CmdOption(opt) for opt in self.params])
+            # ignore positional parameters
+            self.options = taskcmd.parse('')[0]
 
 
     def _init_getargs(self):
@@ -380,6 +383,7 @@ class Task(object):
         """Executes the task.
         @return failure: see CmdAction.execute
         """
+        self.init_options()
         task_stdout, task_stderr = self._get_out_err(out, err, verbosity)
         for action in self.actions:
             action_return = action.execute(task_stdout, task_stderr)
@@ -406,6 +410,7 @@ class Task(object):
         @ivar dryrun (bool): if True clean tasks are not executed
                              (just print out what would be executed)
         """
+        self.init_options()
         # if clean is True remove all targets
         if self._remove_targets is True:
             clean_targets(self, dryrun)

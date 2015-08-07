@@ -119,6 +119,7 @@ TODO
 TaskError
 TaskFailed
 TaskLoader
+Tpng
 Trento
 UptodateCalculator
 Uz
@@ -148,6 +149,7 @@ bitbucket
 blog
 bool
 c'
+cProfile
 calc
 callables
 cfg
@@ -205,6 +207,7 @@ github
 gitter
 gmail
 google
+gprof2dot
 hardcode
 hashbang
 hashlib
@@ -269,12 +272,14 @@ perl
 picklable
 plugin
 plugins
+png
 popen
 pos
 pos1
 pre
 prev
 programmatically
+pstats
 py
 py'
 py3
@@ -338,6 +343,7 @@ unix
 uptodate
 uptodate'
 utf8
+utm
 virtualenv
 wget
 wildcard

@@ -80,6 +80,7 @@ class TestTaskInit(object):
         p1 = {'name':'p1', 'default':'p1-default'}
         p2 = {'name':'p2', 'default':'', 'short':'m'}
         t = task.Task("MyName", None, params=[p1, p2], pos_arg='pos')
+        t.execute()
         assert 'p1-default' == t.options['p1']
         assert '' == t.options['p2']
         assert 'pos' == t.pos_arg
@@ -301,6 +302,7 @@ class TestTaskTeardown(object):
         def put(x):
             got.append(x)
         t = task.Task('t1', [], teardown=[(put, [1]), (put, [2])])
+        t.execute()
         assert None == t.execute_teardown()
         assert [1,2] == got
 
@@ -308,6 +310,7 @@ class TestTaskTeardown(object):
         def my_raise():
             raise Exception('hoho')
         t = task.Task('t1', [], teardown=[(my_raise,)])
+        t.execute()
         got = t.execute_teardown()
         assert isinstance(got, CatchedException)
 
