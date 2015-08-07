@@ -1,6 +1,7 @@
 import six
 
 from .exceptions import InvalidDodoFile
+from .cmdparse import TaskParse, CmdOption
 from .cmd_base import DoitCmdBase
 
 
@@ -139,7 +140,8 @@ class Help(DoitCmdBase):
         if not task:
             return False
         six.print_("%s  %s" % (task.name, task.doc))
-        for opt in task.taskcmd.options:
+        taskcmd = TaskParse([CmdOption(opt) for opt in task.params])
+        for opt in taskcmd.options:
             six.print_("\n".join(opt.help_doc()))
         return True
 

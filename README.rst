@@ -17,11 +17,10 @@ README
 .. image:: https://coveralls.io/repos/pydoit/doit/badge.png?branch=master
   :target: https://coveralls.io/r/pydoit/doit?branch=master
 
-Join our online chat at |gitter_img|
 
-.. |gitter_img| image:: https://badges.gitter.im/doit.svg
-  :target: https://gitter.im/pydoit
-
+.. image:: https://badges.gitter.im/Join%20Chat.svg
+  :alt: Join the chat at https://gitter.im/pydoit/doit
+  :target: https://gitter.im/pydoit/doit?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
 
 
 doit - automation tool
@@ -101,7 +100,13 @@ from `dev_requirements.txt`::
   (dev)doit$ pip install --editable .
   (dev)doit$ pip install --requirement dev_requirements.txt
 
-
+Note: A bug in the pytest wheel distribution means that multiprocess tests do
+not work in Python 2.7 on Windows. Pytest must be installed from the archive. 
+e.g.
+  pip install pytest --no-use-wheel
+See for more information: 
+https://github.com/pytest-dev/pytest/issues/749
+https://bitbucket.org/pytest-dev/pytest/issues/749/
 
 tests
 =======
@@ -145,6 +150,15 @@ these words must be added into the file `doc/dictionary.txt`.
 The spell checker currently uses `hunspell`, to install it on debian based
 systems install the hunspell package: `apt-get install hunspell`.
 
+
+profiling
+---------
+
+::
+
+  python -m cProfile -o output.pstats `which doit` list
+
+  gprof2dot -f pstats output.pstats | dot -Tpng -o output.png
 
 contributing
 ==============
