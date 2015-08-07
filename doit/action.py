@@ -109,7 +109,8 @@ class CmdAction(BaseAction):
     @ivar save_out: (str) name used to save output in `values`
     @ivar shell: use shell to execute command
                  see subprocess.Popen `shell` attribute
-    @ivar encoding (str): encoding of the process output
+    @ivar encoding (str): encoding of the process output.
+                 if set to None, stdout/stderr will not be captured
     @ivar decode_error (str): value for decode() `errors` param
                               while decoding process output
     @ivar pkwargs: Popen arguments except 'stdout' and 'stderr'
@@ -195,25 +196,30 @@ class CmdAction(BaseAction):
             return TaskError("CmdAction Error creating command string", exc)
 
         # spawn task process
-        process = subprocess.Popen(
-            action, shell=self.shell,
+        kwargs = dict(shell=self.shell,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             **self.pkwargs)
+        if self.encoding is None:
+            del kwargs['stdout'], kwargs['stderr']
+        process = subprocess.Popen(action, **kwargs)
 
-        output = StringIO()
-        errput = StringIO()
-        t_out = Thread(target=self._print_process_output,
-                       args=(process, process.stdout, output, out))
-        t_err = Thread(target=self._print_process_output,
-                       args=(process, process.stderr, errput, err))
-        t_out.start()
-        t_err.start()
-        t_out.join()
-        t_err.join()
+        if self.encoding is not None:
+            output = StringIO()
+            errput = StringIO()
+            t_out = Thread(target=self._print_process_output,
+                           args=(process, process.stdout, output, out))
+            t_err = Thread(target=self._print_process_output,
+                           args=(process, process.stderr, errput, err))
+            t_out.start()
+            t_err.start()
+            t_out.join()
+            t_err.join()
 
-        self.out = output.getvalue()
-        self.err = errput.getvalue()
-        self.result = self.out + self.err
+            self.out = output.getvalue()
+            self.err = errput.getvalue()
+            self.result = self.out + self.err
+        else:
+            self.result = ""
 
         # make sure process really terminated
         process.wait()
@@ -231,7 +237,7 @@ class CmdAction(BaseAction):
                               (action, process.returncode))
 
         # save stdout in values
-        if self.save_out:
+        if self.save_out and self.encoding is not None:
             self.values[self.save_out] = self.out
 
 
@@ -263,9 +269,6 @@ class CmdAction(BaseAction):
 
     def __repr__(self):
         return "<CmdAction: '%s'>" % str(self._action)
-
-
-
 
 class Writer(object):
     """write to many streams"""
