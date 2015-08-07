@@ -409,7 +409,7 @@ class MRunner(Runner):
         # pickler = MyPickler(BytesIO())
         # pickler.dump(self)
         # ### END DEBUG
-        
+
         proc_list = []
         for _ in xrange(self.num_process):
             next_job = self.get_next_job(None)
@@ -504,7 +504,6 @@ class MRunner(Runner):
         self.result_q = result_q
         if self.Child == Process:
             self.reporter = MReporter(self, reporter_class)
-
         try:
             while True:
                 job = job_q.get()
