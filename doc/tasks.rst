@@ -67,14 +67,6 @@ Classes and built-in functions are not allowed.
 as positional and keywords arguments for the callable.
 see `Keyword Arguments <http://docs.python.org/tutorial/controlflow.html#keyword-arguments>`_.
 
-For ``args`` may be accepted tuple or list object.
-
-.. literalinclude:: tutorial/task_args.py
-
-For ``kwargs`` only `dict` object may be accepted.
-
-.. literalinclude:: tutorial/task_kwargs.py
-
 The result of the task is given by the returned value of the
 ``action`` function.
 
@@ -110,6 +102,11 @@ file is loaded.
   not execute tasks!
   From now on when the  documentation says that a *task* is executed,
   read "the task's actions are executed".
+
+
+`action` parameters can be passed as ``kwargs``.
+
+.. literalinclude:: tutorial/task_kwargs.py
 
 
 cmd-action
