@@ -42,6 +42,7 @@ def set_var(name, value):
 
 class DoitMain(object):
     # core doit commands
+    BIN_NAME = sys.argv[0].split('/')[-1]
     DOIT_CMDS = (Help, Run, List, Info, Clean, Forget, Ignore, Auto, DumpDB,
                  Strace, TabCompletion, ResetDep)
 
@@ -151,8 +152,10 @@ class DoitMain(object):
 
         # get specified sub-command or use default='run'
         if len(args) == 0 or args[0] not in sub_cmds:
+            specified_run = False
             cmd_name = 'run'
         else:
+            specified_run = True
             cmd_name = args.pop(0)
 
         # execute command
@@ -167,6 +170,9 @@ class DoitMain(object):
         # dont show traceback for user errors.
         except (CmdParseError, InvalidDodoFile,
                 InvalidCommand, InvalidTask) as err:
+            if isinstance(err, InvalidCommand):
+                err.cmd_used = cmd_name if specified_run else None
+                err.bin_name = self.BIN_NAME
             sys.stderr.write("ERROR: %s\n" % str(err))
             return 3
 

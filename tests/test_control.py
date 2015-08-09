@@ -188,6 +188,12 @@ class TestTaskControlCmdOptions(object):
         tc =  TaskControl(TASKS_SAMPLE)
         pytest.raises(InvalidCommand, tc._filter_tasks, ['no'])
 
+    def testFilterWrongSubtaskName(self):
+        t1 = Task("taskX", None)
+        t2 = Task("taskY", None)
+        tc =  TaskControl([t1, t2])
+        pytest.raises(InvalidCommand, tc._filter_tasks, ['taskX:no'])
+
     def testFilterEmptyList(self):
         filter_ = []
         tc = TaskControl(TASKS_SAMPLE)

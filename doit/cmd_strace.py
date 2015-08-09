@@ -35,7 +35,7 @@ The output is a list of files prefixed with 'R' for open in read mode
 or 'W' for open in write mode.
 The files are listed in chronological order.
 
-This is a debugging feature wiht many lilmitations.
+This is a debugging feature with many limitations.
   * can strace only one task at a time
   * can only strace CmdAction
   * the process being traced itself might have some kind of cache,

@@ -1,6 +1,31 @@
 from doit import exceptions
 
 
+class TestInvalidCommand(object):
+    def test_just_string(self):
+        exception = exceptions.InvalidCommand('whatever string')
+        assert 'whatever string' == str(exception)
+
+    def test_task_not_found(self):
+        exception = exceptions.InvalidCommand(not_found='my_task')
+        exception.cmd_used = 'build'
+        assert 'command `build` invalid parameter: "my_task".' in str(exception)
+
+    def test_param_not_found(self):
+        exception = exceptions.InvalidCommand(not_found='my_task')
+        exception.cmd_used = None
+        want = 'Invalid parameter: "my_task". Must be a command,'
+        assert want in str(exception)
+        assert 'Type "doit help" to see' in str(exception)
+
+    def test_custom_binary_name(self):
+        exception = exceptions.InvalidCommand(not_found='my_task')
+        exception.cmd_used = None
+        exception.bin_name = 'my_tool'
+        assert 'Type "my_tool help" to see ' in str(exception)
+
+
+
 class TestCatchedException(object):
     def test_name(self):
         class XYZ(exceptions.CatchedException):

@@ -185,7 +185,8 @@ class Run(DoitCmdBase):
         """
         # get tasks to be executed
         # self.control is saved on instance to be used by 'auto' command
-        self.control = TaskControl(self.task_list, auto_delayed_regex=auto_delayed_regex)
+        self.control = TaskControl(self.task_list,
+                                   auto_delayed_regex=auto_delayed_regex)
         self.control.process(self.sel_tasks)
 
         if single:

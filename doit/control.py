@@ -203,6 +203,8 @@ class TaskControl(object):
             basename = filter_.split(':', 1)[0]
             if basename in self.tasks:
                 loader = self.tasks[basename].loader
+                if not loader:
+                    raise InvalidCommand(not_found=filter_)
                 loader.basename = basename
                 self.tasks[filter_] = Task(filter_, None, loader=loader)
                 selected_task.append(filter_)
@@ -236,10 +238,7 @@ class TaskControl(object):
 
             if not delayed_matched:
                 # not found
-                msg = ('cmd `run` invalid parameter: "%s".' +
-                       ' Must be a task, or a target.\n' +
-                       'Type "doit list" to see available tasks')
-                raise InvalidCommand(msg % filter_)
+                raise InvalidCommand(not_found=filter_)
         return selected_task
 
 
@@ -487,10 +486,7 @@ class TaskDispatcher(object):
                     if len(regex_group.tasks) == 0:
                         # In case no task is left, we cannot find a task
                         # generating this target. Print an error message!
-                        msg = ('cmd `run` invalid parameter: "{}".' +
-                               ' Must be a task, or a target.\n' +
-                               'Type "doit list" to see available tasks')
-                        raise InvalidCommand(msg.format(regex_group.target))
+                        raise InvalidCommand(not_found=regex_group.target)
 
             # mark this loader to not be executed again
             this_task.loader.created = True
