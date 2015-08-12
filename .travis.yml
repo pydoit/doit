@@ -3,7 +3,9 @@ python:
     - "2.7"
     - "3.3"
     - "3.4"
-#    - 'pypy'  # dbm test fails, remove for now...
+#    - "3.5.0b3" # requires py.test 2.7.3 unreleased at this time
+    - "pypy"
+    - "pypy3"
 
 sudo: false
 
@@ -24,7 +26,7 @@ branches:
 
 script:
    - doit pyflakes
-   - py.test
+   - py.test --ignore-flaky
    - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then doit coverage; fi
 after_success:
   - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then coveralls; fi

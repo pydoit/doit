@@ -2,7 +2,8 @@
 # $ pip install --requirement dev_requirements.txt
 
 pyflakes
-pytest
+pytest>=2.7.0
+pytest-ignore-flaky
 mock
 coverage
 doit-py>=0.3.0

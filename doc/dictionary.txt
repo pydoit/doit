@@ -103,6 +103,7 @@ PDB
 PYTHONPATH
 Popen
 PyPi
+PyPy
 PythonAction
 PythonInteractiveAction
 Pythonic

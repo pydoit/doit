@@ -10,8 +10,7 @@ README
 .. image:: https://img.shields.io/pypi/dm/doit.svg
         :target: https://pypi.python.org/pypi/doit
 
-.. disable this until i figure out how to debug unstable tests
-  .. image:: https://travis-ci.org/pydoit/doit.png?branch=master
+.. image:: https://travis-ci.org/pydoit/doit.png?branch=master
     :target: https://travis-ci.org/pydoit/doit
 
 .. image:: https://coveralls.io/repos/pydoit/doit/badge.png?branch=master

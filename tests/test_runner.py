@@ -1,6 +1,7 @@
 import os
 import pickle
 from multiprocessing import Queue
+import platform
 import six
 
 import pytest
@@ -13,6 +14,8 @@ from doit.task import Task, DelayedLoader
 from doit.control import TaskDispatcher, ExecNode
 from doit import runner
 
+
+PLAT_IMPL = platform.python_implementation()
 
 # sample actions
 def my_print(*args):
@@ -542,6 +545,7 @@ class TestMReporter(object):
 
 
 class TestJobTask(object):
+    @pytest.mark.xfail('PLAT_IMPL == "PyPy"')
     def test_not_picklable_raises_InvalidTask(self):
         def non_top_function(): pass
         t1 = Task('t1', [non_top_function])
@@ -702,6 +706,7 @@ def non_pickable_creator():
 class TestMRunner_parallel_run_tasks(object):
 
     @pytest.mark.skipif('not runner.MRunner.available()')
+    @pytest.mark.xfail('PLAT_IMPL == "PyPy"')
     def test_task_not_picklabe_multiprocess(self, reporter, dep_manager):
         t1 = Task("t1", [(my_print, ["out a"] )] )
         t2 = Task("t2", None, loader=DelayedLoader(
