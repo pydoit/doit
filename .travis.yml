@@ -5,14 +5,16 @@ python:
     - "3.4"
 #    - 'pypy'  # dbm test fails, remove for now...
 
-before_install:
-  - sudo apt-get install strace
+sudo: false
+
+addons:
+  apt:
+    packages:
+      - strace
 
 install:
   - pip install .
   - pip install -r dev_requirements.txt python-coveralls
-  # See https://github.com/travis-ci/travis-cookbooks/issues/155
-  - sudo rm -rf /dev/shm && sudo ln -s /run/shm /dev/shm
 
 branches:
   only:
