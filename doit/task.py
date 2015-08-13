@@ -319,7 +319,7 @@ class Task(object):
             if parts[0] not in self.setup_tasks:
                 check_result.add(parts[0])
 
-        return [result_dep(t) for t in check_result]
+        return [result_dep(t, setup_dep=True) for t in check_result]
 
 
     @staticmethod
@@ -541,14 +541,22 @@ def _return_param(val):
 class result_dep(UptodateCalculator):
     """check if result of the given task was modified
     """
-    def __init__(self, dep_task_name):
+    def __init__(self, dep_task_name, setup_dep=False):
+        '''
+        :param setup_dep: controls if dependent task is task_dep or setup
+        '''
         self.dep_name = dep_task_name
+        self.setup_dep = setup_dep
         self.result_name = '_result:%s' % self.dep_name
 
     def configure_task(self, task):
         """to be called by doit when create the task"""
         # result_dep creates an implicit task_dep
-        task.task_dep.append(self.dep_name)
+        if self.setup_dep:
+            task.setup_tasks.append(self.dep_name)
+        else:
+            task.task_dep.append(self.dep_name)
+
 
     def _result_single(self):
         """get result from a single task"""

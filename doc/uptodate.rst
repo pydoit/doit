@@ -233,13 +233,13 @@ Example: result_dep implementation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The ``result_dep`` is more complicated due to two factors. It needs to modify
-the task's ``setup_tasks``.
+the task's ``task_dep``.
 And it needs to check the task's saved values and metadata
 from a task different from where it is being applied.
 
-A ``result_dep`` implies that its dependency is also a ``setup``.
+A ``result_dep`` implies that its dependency is also a ``task_dep``.
 We have seen that the callable takes a `task` parameter that we used
-to modify the task object. The problem is that modifying ``setup_tasks``
+to modify the task object. The problem is that modifying ``task_dep``
 when the callable gets called would be "too late" according to the
 way `doit` works. When an object is passed ``uptodate`` and this
 object's class has a method named ``configure_task`` it will be called
@@ -251,4 +251,4 @@ all task objects where the ``key`` is the task name (this is used to get all
 sub-tasks from a task-group). And also a method called ``get_val`` to access
 the saved values and results from any task.
 
-See the `result_dep` `source <https://github.com/pydoit/doit/blob/master/doit/task.py#L485>`_.
+See the `result_dep` `source <https://github.com/pydoit/doit/blob/master/doit/task.py>`_.
