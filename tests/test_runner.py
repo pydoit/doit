@@ -113,10 +113,13 @@ class TestRunner_SelectTask(object):
         assert not reporter.log
 
     def test_alwaysExecute(self, reporter, dep_manager):
-        t1 = Task("taskX", [(my_print, ["out a"] )])
+        t1 = Task("taskX", [(my_print, ["out a"] )], uptodate=[True])
         my_runner = runner.Runner(dep_manager, reporter, always_execute=True)
         my_runner.dep_manager.save_success(t1)
-        assert True == my_runner.select_task(ExecNode(t1, None), {})
+        n1 = ExecNode(t1, None)
+        assert True == my_runner.select_task(n1, {})
+        # run_status is set to run even if task is up-to-date
+        assert n1.run_status == 'run'
         assert ('start', t1) == reporter.log.pop(0)
         assert not reporter.log
 

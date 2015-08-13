@@ -128,17 +128,22 @@ class Runner(object):
             # check if task is up-to-date
             res = self.dep_manager.get_status(task, tasks_dict)
             if res.status == 'error':
-                msg = "ERROR: Task '{}' checking dependencies: {}".format(task.name, res.get_error_message())
+                msg = "ERROR: Task '{}' checking dependencies: {}".format(
+                    task.name, res.get_error_message())
                 self._handle_task_error(node, DependencyError(msg))
                 return False
-            node.run_status = res.status
 
-            if not self.always_execute:
-                # if task is up-to-date skip it
-                if node.run_status == 'up-to-date':
-                    self.reporter.skip_uptodate(task)
-                    task.values = self.dep_manager.get_values(task.name)
-                    return False
+            # set node.run_status
+            if self.always_execute:
+                node.run_status = 'run'
+            else:
+                node.run_status = res.status
+
+            # if task is up-to-date skip it
+            if node.run_status == 'up-to-date':
+                self.reporter.skip_uptodate(task)
+                task.values = self.dep_manager.get_values(task.name)
+                return False
 
             if task.setup_tasks:
                 # dont execute now, execute setup first...
