@@ -545,10 +545,26 @@ class TestMReporter(object):
 
 
 class TestJobTask(object):
-    @pytest.mark.xfail('PLAT_IMPL == "PyPy"')
-    def test_not_picklable_raises_InvalidTask(self):
-        def non_top_function(): pass
+    def test_closure_is_picklable(self):
+        # can pickle because we use cloudpickle
+        def non_top_function(): return 4
         t1 = Task('t1', [non_top_function])
+        t1p = runner.JobTask(t1).task_pickle
+        t2 = pickle.loads(t1p)
+        assert 4 == t2.actions[0].py_callable()
+
+    @pytest.mark.xfail('PLAT_IMPL == "PyPy"')  # pypy can handle it :)
+    def test_not_picklable_raises_InvalidTask(self):
+        # create a large enough recursive obj so pickle fails
+        d1 = {}
+        last = d1
+        for x in range(400):
+            dn = {'p': last}
+            last = dn
+        d1['p'] = last
+
+        def non_top_function(): pass
+        t1 = Task('t1', [non_top_function, (d1,)])
         pytest.raises(InvalidTask, runner.JobTask, t1)
 
 
@@ -706,14 +722,14 @@ def non_pickable_creator():
 class TestMRunner_parallel_run_tasks(object):
 
     @pytest.mark.skipif('not runner.MRunner.available()')
-    @pytest.mark.xfail('PLAT_IMPL == "PyPy"')
-    def test_task_not_picklabe_multiprocess(self, reporter, dep_manager):
+    def test_task_cloudpicklabe_multiprocess(self, reporter, dep_manager):
         t1 = Task("t1", [(my_print, ["out a"] )] )
         t2 = Task("t2", None, loader=DelayedLoader(
             non_pickable_creator, executed='t1'))
         my_runner = runner.MRunner(dep_manager, reporter)
         dispatcher = TaskDispatcher({'t1':t1, 't2':t2}, [], ['t1', 't2'])
-        pytest.raises(InvalidTask, my_runner.run_tasks, dispatcher)
+        my_runner.run_tasks(dispatcher)
+        assert runner.SUCCESS == my_runner.finish()
 
     def test_task_not_picklabe_thread(self, reporter, dep_manager):
         t1 = Task("t1", [(my_print, ["out a"] )] )
@@ -723,6 +739,7 @@ class TestMRunner_parallel_run_tasks(object):
         dispatcher = TaskDispatcher({'t1':t1, 't2':t2}, [], ['t1', 't2'])
         # threaded code have no problems with closures
         my_runner.run_tasks(dispatcher)
+        assert runner.SUCCESS == my_runner.finish()
         assert ('start', t1) == reporter.log.pop(0), reporter.log
         assert ('execute', t1) == reporter.log.pop(0)
         assert ('success', t1) == reporter.log.pop(0)

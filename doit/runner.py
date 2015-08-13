@@ -7,10 +7,12 @@ import pickle
 
 import six
 from six.moves import queue, xrange
+import cloudpickle
 
 from .exceptions import InvalidTask, CatchedException
 from .exceptions import TaskFailed, SetupError, DependencyError, UnmetDependency
 from .task import DelayedLoaded
+
 
 # execution result.
 SUCCESS = 0
@@ -258,7 +260,7 @@ class JobTask(object):
     def __init__(self, task):
         self.name = task.name
         try:
-            self.task_pickle = pickle.dumps(task)
+            self.task_pickle = cloudpickle.dumps(task)
         except pickle.PicklingError as excp:
             msg = """Error on Task: `{}`.
 Task created at execution time that has an attribute than can not be pickled,
@@ -477,7 +479,7 @@ class MRunner(Runner):
                     job_q.put(next_job)
                 # check for cyclic dependencies
                 assert len(proc_list) > self.free_proc
-        except Exception:
+        except (SystemExit, KeyboardInterrupt, Exception):
             if self.Child == Process:
                 for proc in proc_list:
                     proc.terminate()

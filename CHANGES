@@ -11,6 +11,7 @@ Changes
  - fix GH-#74: Task action's handle python3 callables with keyword only args
  - fix GH-#50: Executing tasks in parallel (multi-process) fails on Windows
  - fix GH-#71 #92: Better error messages for invalid command line tasks/commands
+ - GH-#67: multiprocess runner handles closures in tasks (using cloudpickle)
  - GH-#58: add `DelayedLoader` parameter `target_regex`
  - GH-#58: cmd `Run` add option `--auto-delayed-regex`
  - GH-#24: cmd `info` add option `--status` show reason a task is not up-to-date

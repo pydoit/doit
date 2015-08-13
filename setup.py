@@ -5,7 +5,7 @@ import sys
 from setuptools import setup
 
 
-install_requires = ['six']
+install_requires = ['six', 'cloudpickle']
 
 
 ########### platform specific stuff #############

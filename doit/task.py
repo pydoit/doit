@@ -449,8 +449,11 @@ class Task(object):
         """remove attributes that never used on process that only execute tasks
         """
         to_pickle = self.__dict__.copy()
-        to_pickle['uptodate'] = None  # never executed in sub-process
-        to_pickle['_action_instances'] = None  # can be re-recreated on demand
+        # never executed in sub-process
+        to_pickle['uptodate'] = None
+        to_pickle['value_savers'] = None
+        # can be re-recreated on demand
+        to_pickle['_action_instances'] = None
         return to_pickle
 
     # when using multiprocessing Tasks are pickled.
