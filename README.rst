@@ -13,6 +13,9 @@ README
 .. image:: https://travis-ci.org/pydoit/doit.png?branch=master
     :target: https://travis-ci.org/pydoit/doit
 
+.. image:: https://ci.appveyor.com/api/projects/status/f7f97iywo8y7fe4d/branch/master?svg=true
+    :target: https://ci.appveyor.com/project/schettino72/doit/branch/master
+
 .. image:: https://coveralls.io/repos/pydoit/doit/badge.png?branch=master
   :target: https://coveralls.io/r/pydoit/doit?branch=master
 

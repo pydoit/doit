@@ -445,6 +445,14 @@ class Task(object):
         return "<Task: %s>"% self.name
 
 
+    def __getstate__(self):
+        """remove attributes that never used on process that only execute tasks
+        """
+        to_pickle = self.__dict__.copy()
+        to_pickle['uptodate'] = None  # never executed in sub-process
+        to_pickle['_action_instances'] = None  # can be re-recreated on demand
+        return to_pickle
+
     # when using multiprocessing Tasks are pickled.
     def pickle_safe_dict(self):
         """remove attributes that might contain unpickleble content
