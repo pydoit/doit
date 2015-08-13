@@ -153,10 +153,6 @@ class TestRunner_SelectTask(object):
         tasks_dict = {'t1': t1, 't2':t2}
         my_runner = runner.Runner(dep_manager, reporter)
 
-        # t2 gives chance for setup tasks to be executed
-        assert False == my_runner.select_task(n2, tasks_dict)
-        assert ('start', t2) == reporter.log.pop(0)
-
         # execute task t1 to calculate value
         assert True == my_runner.select_task(n1, tasks_dict)
         assert ('start', t1) == reporter.log.pop(0)
@@ -167,6 +163,7 @@ class TestRunner_SelectTask(object):
 
         # t2.options are set on select_task
         assert True == my_runner.select_task(n2, tasks_dict)
+        assert ('start', t2) == reporter.log.pop(0)
         assert not reporter.log
         assert {'my_x': 1} == t2.options
 
@@ -180,10 +177,6 @@ class TestRunner_SelectTask(object):
         tasks_dict = {'t1': t1, 't2':t2}
         my_runner = runner.Runner(dep_manager, reporter)
 
-        # t2 gives chance for setup tasks to be executed
-        assert False == my_runner.select_task(n2, tasks_dict)
-        assert ('start', t2) == reporter.log.pop(0)
-
         # execute task t1 to calculate value
         assert True == my_runner.select_task(n1, tasks_dict)
         assert ('start', t1) == reporter.log.pop(0)
@@ -194,6 +187,7 @@ class TestRunner_SelectTask(object):
 
         # select_task t2 fails
         assert False == my_runner.select_task(n2, tasks_dict)
+        assert ('start', t2) == reporter.log.pop(0)
         assert ('fail', t2) == reporter.log.pop(0)
         assert not reporter.log
 
@@ -494,10 +488,10 @@ class TestRunner_run_tasks(object):
         my_runner = RunnerClass(dep_manager, reporter)
         my_runner.run_tasks(TaskDispatcher({'t1':t1, 't2':t2}, [], ['t1', 't2']))
         assert runner.SUCCESS == my_runner.finish()
-        assert ('start', t1) == reporter.log.pop(0)
         assert ('start', t2) == reporter.log.pop(0)
         assert ('execute', t2) == reporter.log.pop(0)
         assert ('success', t2) == reporter.log.pop(0)
+        assert ('start', t1) == reporter.log.pop(0)
         assert ('execute', t1) == reporter.log.pop(0)
         assert ('success', t1) == reporter.log.pop(0)
         assert 0 == len(reporter.log)

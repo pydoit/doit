@@ -517,7 +517,7 @@ class TestResultDep(object):
                  't2': task.Task("t2", None),
                  }
         # _config_task was executed and t2 added as task_dep
-        assert ['t2'] == tasks['t1'].setup_tasks
+        assert ['t2'] == tasks['t1'].task_dep
 
         # first t2 result
         tasks['t2'].result = 'yes'
@@ -551,7 +551,7 @@ class TestResultDep(object):
                  't2:b': task.Task("t2:b", None),
                  }
         # _config_task was executed and t2 added as task_dep
-        assert ['t2'] == tasks['t1'].setup_tasks
+        assert ['t2'] == tasks['t1'].task_dep
 
         # first t2 result
         tasks['t2:a'].result = 'yes1'

@@ -548,7 +548,7 @@ class result_dep(UptodateCalculator):
     def configure_task(self, task):
         """to be called by doit when create the task"""
         # result_dep creates an implicit task_dep
-        task.setup_tasks.append(self.dep_name)
+        task.task_dep.append(self.dep_name)
 
     def _result_single(self):
         """get result from a single task"""

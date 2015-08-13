@@ -6,6 +6,7 @@ Changes
 0.29.0
 ======
 
+ - BACKWARD INCOMPATIBLE: revert - `result_dep` to create an implicit `task_dep`
  - fix GH-#59: command `list` issue with unicode names
  - fix GH-#72: cmd `completion` escaping of apostrophes in zsh
  - fix GH-#74: Task action's handle python3 callables with keyword only args
