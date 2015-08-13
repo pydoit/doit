@@ -156,6 +156,7 @@ callables
 cfg
 chdir
 cid
+cloudpickle
 cmd
 cmp
 codebase

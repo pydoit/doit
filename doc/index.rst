@@ -172,7 +172,7 @@ Project Details
 
 * Project management (bug tracker, feature requests and source code ) on `github <https://github.com/pydoit/doit>`_.
 
-* `doit projects <https://github.com/pydoit>`_ contains a collection of plugins, non-trivial examples and re-usable task creators for `doit`.
+* `doit projects <https://github.com/pydoit/doit/wiki/powered-by-doit>`_ contains a collection of third-party projects, plugins, extensions, non-trivial examples and re-usable task creators for `doit`.
 
 * Questions and feedback on `Google group <http://groups.google.co.in/group/python-doit>`_. Please do **not** send questions to my private email.
 

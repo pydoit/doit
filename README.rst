@@ -39,6 +39,7 @@ Project Details
  - Project management on github - https://github.com/pydoit/doit
  - Discussion group - https://groups.google.com/forum/#!forum/python-doit
  - News/twitter - https://twitter.com/py_doit
+ - Plugins, extensions and projects based on doit - https://github.com/pydoit/doit/wiki/powered-by-doit
 
 license
 =======
