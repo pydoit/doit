@@ -109,7 +109,8 @@ different backends:
 
  - `json`: Plain text using a json structure, it is slow but good for debugging.
 
- - `sqlite3`: (experimental) very slow implementation, support concurrent access.
+ - `sqlite3`: Support concurrent access
+   (DB is updated only once when process is terminated for better performance).
 
 
 From the command line you can select the backend using the ``--backend`` option.

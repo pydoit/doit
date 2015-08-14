@@ -260,6 +260,8 @@ class SqliteDB(object):
     def __init__(self, name):
         self.name = name
         self._conn = self._sqlite3(self.name)
+        self._cache = {}
+        self._dirty = set()
 
     @staticmethod
     def _sqlite3(name):
@@ -304,8 +306,11 @@ class SqliteDB(object):
 
         @return: (string) or (None) if entry not found
         """
-        data = self._get_task_data(task_id)
-        return data.get(dependency, None)
+        if task_id in self._cache:
+            return self._cache[task_id].get(dependency, None)
+        else:
+            data = self._cache[task_id] = self._get_task_data(task_id)
+            return data.get(dependency, None)
 
     def _get_task_data(self, task_id):
         data = self._conn.execute('select task_data from doit where task_id=?',
@@ -314,12 +319,15 @@ class SqliteDB(object):
 
     def set(self, task_id, dependency, value):
         """Store value in the DB."""
-        task_data = self._get_task_data(task_id)
-        task_data[dependency] = value
-        self._conn.execute('insert or replace into doit values (?,?)',
-                           (task_id, task_data))
+        if task_id not in self._cache:
+            self._cache[task_id] = {}
+        self._cache[task_id][dependency] = value
+        self._dirty.add(task_id)
+
 
     def in_(self, task_id):
+        if task_id in self._cache:
+            return True
         if self._conn.execute('select task_id from doit where task_id=?',
                               (task_id,)).fetchone():
             return True
@@ -327,16 +335,26 @@ class SqliteDB(object):
 
     def dump(self):
         """save/close sqlite3 DB file"""
+        for task_id in self._dirty:
+            self._conn.execute('insert or replace into doit values (?,?)',
+                               (task_id, json.dumps(self._cache[task_id])))
         self._conn.commit()
         self._conn.close()
+        self._dirty = set()
 
     def remove(self, task_id):
         """remove saved dependecies from DB for taskId"""
+        if task_id in self._cache:
+            del self._cache[task_id]
+        if task_id in self._dirty:
+            self._dirty.remove(task_id)
         self._conn.execute('delete from doit where task_id=?', (task_id,))
 
     def remove_all(self):
         """remove saved dependecies from DB for all task"""
         self._conn.execute('delete from doit')
+        self._cache = {}
+        self._dirty = set()
 
 
 class FileChangedChecker(object):

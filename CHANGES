@@ -20,6 +20,7 @@ Changes
  - GH-#24: cmd `info` add option `--status` show reason a task is not up-to-date
  - GH-#66: cmd `auto` support custom ( user specified ) commands to be executed
    after each task execution
+ - GH-#61: speed up sqlite3 backend (use internal memory cache)
 
 
 0.28.0 (*2015-04-22*)
