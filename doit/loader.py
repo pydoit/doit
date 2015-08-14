@@ -98,11 +98,16 @@ def get_module(dodo_file, cwd=None, seek_parent=False):
 
 
 
-def create_after(executed=None, target_regex=None):
+def create_after(executed=None, target_regex=None, creates=None):
     """Annotate a task-creator function with delayed loader info"""
     def decorated(func):
-        func.doit_create_after = DelayedLoader(func, executed=executed,
-                                               target_regex=target_regex)
+
+        func.doit_create_after = DelayedLoader(
+            func,
+            executed=executed,
+            target_regex=target_regex,
+            creates=creates
+        )
         return func
     return decorated
 
@@ -129,14 +134,26 @@ def load_tasks(namespace, command_names=(), allow_delayed=False):
     # from different modules
     funcs.sort(key=lambda obj: obj[2])
 
-    task_list = []
-    for name, ref, _ in funcs:
-        delayed = (allow_delayed and getattr(ref, 'doit_create_after', None))
 
-        if delayed:
-            task_list.append(Task(name, None, loader=delayed))
-        else:
-            task_list.extend(generate_tasks(name, ref(), ref.__doc__))
+    task_list = []
+    def _process_gen():
+        task_list.extend(generate_tasks(name, ref(), ref.__doc__))
+    def _add_delayed(tname):
+        task_list.append(Task(tname, None, loader=delayed))
+
+    for name, ref, _ in funcs:
+        delayed = getattr(ref, 'doit_create_after', None)
+
+        if not delayed:  # not a delayed task, just run creator
+            _process_gen()
+        elif delayed.creates:  # delayed with explicit task basename
+            for tname in delayed.creates:
+                _add_delayed(tname)
+        elif allow_delayed:  # delayed no explicit name, cmd run
+            _add_delayed(name)
+        else:  # delayed no explicit name, cmd list (run creator)
+            _process_gen()
+
     return task_list
 
 

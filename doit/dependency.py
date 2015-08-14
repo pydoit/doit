@@ -279,7 +279,7 @@ class SqliteDB(object):
         conn = sqlite3.connect(
             name,
             detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES,
-            isolation_level=None)
+            isolation_level='DEFERRED')
         conn.row_factory = dict_factory
         sqlscript = """
             create table if not exists doit (

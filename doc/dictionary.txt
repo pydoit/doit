@@ -73,6 +73,7 @@ Config
 ConsoleReporter
 Ctrl
 DelayedLoader
+DelayedTask
 Dembia
 DoIt
 DoitCmdBase
@@ -144,6 +145,7 @@ backends
 backport
 bar'
 basename
+basenames
 bioinformatic
 biomechanics
 bitbucket
@@ -357,3 +359,4 @@ x'
 xxx
 xyz
 zsh
+

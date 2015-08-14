@@ -100,6 +100,35 @@ class TestLoadTasks(object):
         assert z_task.loader.task_dep == 'yyy2'
         assert z_task.loader.creator == task_zzz3
 
+    def testInitialLoadDelayedTask_no_delayed(self, dodo):
+        @create_after('yyy2')
+        def task_zzz3():
+            yield {'basename': 'foo', 'actions': None}
+            yield {'basename': 'bar', 'actions': None}
+        dodo['task_zzz3'] = task_zzz3
+
+        # load tasks as done by the `list` command
+        task_list = load_tasks(dodo, allow_delayed=False)
+        tasks = {t.name:t for t in task_list}
+        assert 'zzz3' not in tasks
+        assert tasks['foo'].loader is None
+        assert tasks['bar'].loader is None
+
+    def testInitialLoadDelayedTask_creates(self, dodo):
+        @create_after('yyy2', creates=['foo', 'bar'])
+        def task_zzz3(): # pragma: no cover
+            raise Exception('Cant be executed on load phase')
+        dodo['task_zzz3'] = task_zzz3
+
+        # placeholder task is created with `loader` attribute
+        task_list = load_tasks(dodo, allow_delayed=True)
+        tasks = {t.name:t for t in task_list}
+        assert 'zzz3' not in tasks
+        f_task = tasks['foo']
+        assert f_task.loader.task_dep == 'yyy2'
+        assert f_task.loader.creator == task_zzz3
+        assert tasks['bar'].loader is tasks['foo'].loader
+
     def testNameInBlacklist(self):
         dodo_module = {'task_cmd_name': lambda:None}
         pytest.raises(InvalidDodoFile, load_tasks, dodo_module, ['cmd_name'])

@@ -38,12 +38,13 @@ class DelayedLoader(object):
                         will create
     :ivar created: (bool) wheather this creator was already executed or not
     """
-    def __init__(self, creator, executed=None, target_regex=None):
+    def __init__(self, creator, executed=None, target_regex=None, creates=None):
         self.creator = creator
         self.task_dep = executed
         self.basename = None
         self.created = False
         self.target_regex = target_regex
+        self.creates = creates[:] if creates else []
         self.regex_groups = OrderedDict()  # task_name:RegexGroup
 
 

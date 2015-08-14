@@ -86,15 +86,19 @@ execution of the specified task in the `executed` param.
    Alternatively, one can use the command line option `--auto-delayed-regex`
    to `doit run`; see :ref:`here <auto-delayed-regex>` for more information.
 
-.. warning::
 
-   There is a limitation in the use of the delayed task creation with
-   multiprocessing. Multiprocessing relies on a task being pickled and
-   sent to sub-process, so your task can not contain closures because
-   closures are not picklable. See `What can be pickled <https://docs.python.org/3/library/pickle.html#pickle-picklable>`_
+Parameter: `creates`
+++++++++++++++++++++
 
-   `doit` manages to avoid this limitation for tasks that are created before
-   the *task-execution* begins but for delayed tasks it is not possible.
+In case the task created by a `DelayedTask` has a different *basename* than
+then creator function, or creates several tasks with different *basenames*,
+you should pass the parameter `creates`.
+
+Since `doit` will only execute the body of the task-creator function on demand,
+the tasks names must be explicitly specified... Example:
+
+.. literalinclude:: tutorial/delayed_creates.py
+
 
 
 .. _create-doit-tasks:
