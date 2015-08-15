@@ -3,8 +3,9 @@
 Changes
 =======
 
-0.29.0
-======
+
+0.29.0 (*2015-08-16*)
+=====================
 
  - BACKWARD INCOMPATIBLE: revert - `result_dep` to create an implicit `task_dep`
  - fix GH-#59: command `list` issue with unicode names
