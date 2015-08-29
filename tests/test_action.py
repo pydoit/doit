@@ -181,6 +181,17 @@ class TestCmdExpandAction(object):
         got = my_action.out.strip()
         assert "hi there" == got
 
+    def test_task_pos_arg_None(self):
+        # pos_arg_val is None when the task is not specified from
+        # command line but executed because it is a task_dep
+        cmd = "python %s/myecho.py" % TEST_PATH
+        cmd += " %(pos)s"
+        task = FakeTask([],[],[],{}, 'pos', None)
+        my_action = action.CmdAction(cmd, task)
+        assert my_action.execute() is None
+        got = my_action.out.strip()
+        assert "" == got
+
     def test_callable_return_command_str(self):
         def get_cmd(opt1, opt2):
             cmd = "python %s/myecho.py" % TEST_PATH

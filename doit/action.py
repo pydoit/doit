@@ -255,7 +255,11 @@ class CmdAction(BaseAction):
         subs_dict.update(self.task.options)
         # convert postional parameters from list space-separated string
         if self.task.pos_arg:
-            subs_dict[self.task.pos_arg] = ' '.join(self.task.pos_arg_val)
+            if self.task.pos_arg_val:
+                pos_val = ' '.join(self.task.pos_arg_val)
+            else:
+                pos_val = ''
+            subs_dict[self.task.pos_arg] = pos_val
         return self.action % subs_dict
 
     def __str__(self):
