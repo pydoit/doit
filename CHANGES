@@ -8,6 +8,8 @@ Changes
 
  - fix GH-#100: make cmd `completion` output deterministic
  - fix GH-#99: positional argument on tasks not specified from cmd-line
+ - fix GH-#97: `list` command does not display task-doc for `DelayedTask`
+                when `creates` is specified
 
 
 0.29.0 (*2015-08-16*)

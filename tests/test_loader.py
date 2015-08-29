@@ -117,6 +117,7 @@ class TestLoadTasks(object):
     def testInitialLoadDelayedTask_creates(self, dodo):
         @create_after('yyy2', creates=['foo', 'bar'])
         def task_zzz3(): # pragma: no cover
+            '''my task doc'''
             raise Exception('Cant be executed on load phase')
         dodo['task_zzz3'] = task_zzz3
 
@@ -128,6 +129,7 @@ class TestLoadTasks(object):
         assert f_task.loader.task_dep == 'yyy2'
         assert f_task.loader.creator == task_zzz3
         assert tasks['bar'].loader is tasks['foo'].loader
+        assert tasks['foo'].doc == 'my task doc'
 
     def testNameInBlacklist(self):
         dodo_module = {'task_cmd_name': lambda:None}
