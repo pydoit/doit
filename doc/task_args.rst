@@ -99,8 +99,7 @@ Here is the list of all attributes ``param`` accepts:
     :type:      `str`
 
 ``long``
-    Long parameter form, used for e.g. ``--parameter value``
-    when it differs from its `name`.
+    Long parameter form, used for e.g. ``--parameter value``.
 
     :required:  optional
     :type:      `str`
