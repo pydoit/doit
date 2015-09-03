@@ -2,7 +2,6 @@
 use by cmd_auto module
 """
 
-import time
 import os.path
 import threading
 
@@ -21,6 +20,7 @@ class FileModifyWatcher(object):
     2) create an object passing a list of files to be watched
     3) call the loop method
     """
+    # FIXME all are supported
     supported_platforms = ('Darwin', 'Linux')
 
     def __init__(self, path_list):
@@ -59,10 +59,11 @@ class FileModifyWatcher(object):
         loop to keep going. Return False if you want it to stop."""
         raise NotImplementedError
 
-    def loop(self):
+    def loop(self, lock_start=None):
         """Infinite loop watching for file modifications"""
         handler = self._handle
         lock = threading.Lock()
+        lock.acquire()
 
         class EventHandler(FileSystemEventHandler):
             def on_modified(self, event):
@@ -76,6 +77,8 @@ class FileModifyWatcher(object):
         for watch_this in self.watch_dirs:
             observer.schedule(event_handler, watch_this, recursive=False)
         observer.start()
+        if lock_start:
+            lock_start.release()
 
         try:
             lock.acquire()

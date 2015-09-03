@@ -103,7 +103,7 @@ class Auto(DoitCmdBase):
         arun = Run(task_loader=self.loader)
         params.add_defaults(CmdParse(arun.get_options()).parse([])[0])
         try:
-            arun.execute(params, args)
+            result = arun.execute(params, args)
         # ??? actually tested but coverage doesnt get it...
         except InvalidCommand as err: # pragma: no cover
             sys.stderr.write("ERROR: %s\n" % str(err))
@@ -124,8 +124,8 @@ class Auto(DoitCmdBase):
             # set event handler. just terminate process.
             class DoitAutoRun(FileModifyWatcher):
                 def handle_event(self, event):
-                    # print("FS EVENT -> {}".format(event))
-                    return False
+                    #print("FS EVENT -> {}".format(event))
+                    return False  # stops watching for changes
             file_watcher = DoitAutoRun(watch_files)
             # kick start watching process
             file_watcher.loop()
@@ -142,4 +142,5 @@ class Auto(DoitCmdBase):
                 if proc.exitcode == 3:
                     return 3
             except KeyboardInterrupt:
+                proc.terminate()
                 return 0
