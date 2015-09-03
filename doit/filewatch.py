@@ -9,8 +9,6 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 
-from .compat import get_platform_system
-
 
 class FileModifyWatcher(object):
     """Use watchdog to watch file-system for file modifications
@@ -20,8 +18,6 @@ class FileModifyWatcher(object):
     2) create an object passing a list of files to be watched
     3) call the loop method
     """
-    # FIXME all are supported
-    supported_platforms = ('Darwin', 'Linux')
 
     def __init__(self, path_list):
         """@param file_list (list-str): files to be watched"""
@@ -36,12 +32,7 @@ class FileModifyWatcher(object):
             else:
                 self.notify_dirs.add(path)
                 self.watch_dirs.add(path)
-        self.platform = get_platform_system()
-        if self.platform not in self.supported_platforms:
-            msg = "Unsupported platform '%s'\n" % self.platform
-            msg += ("'auto' command is supported only on %s" %
-                    (self.supported_platforms,))
-            raise Exception(msg)
+
 
     def _handle(self, event):
         """Takes care of filtering out all modifications that are

@@ -6,16 +6,10 @@ import multiprocessing
 import six
 import pytest
 
-from doit.filewatch import FileModifyWatcher, get_platform_system
+from doit.filewatch import FileModifyWatcher
 
 
-def testUnsuportedPlatform(monkeypatch):
-    monkeypatch.setattr(FileModifyWatcher, 'supported_platforms', ())
-    pytest.raises(Exception, FileModifyWatcher, [])
 
-
-platform = get_platform_system()
-@pytest.mark.skipif('platform not in FileModifyWatcher.supported_platforms')
 class TestFileWatcher(object):
     def testInit(self, restore_cwd, tmpdir):
         dir1 = 'data3'
