@@ -1,5 +1,8 @@
+import sys
 import time
 from multiprocessing import Process
+
+import pytest
 
 from doit.cmdparse import DefaultUpdate
 from doit.task import Task
@@ -56,6 +59,8 @@ class TestAuto(object):
         assert cmd.parse_execute(['t2']) == 3
 
 
+    # FIXME hangs on Windows
+    @pytest.mark.skipif(str(sys.platform.startswith("win")))
     def test_non_existent_filedep(self, depfile_name):
         t1 = Task("t1", [""], file_dep=['I_dont_exist.txt'])
         task_loader = FakeLoader([t1], depfile_name)

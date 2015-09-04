@@ -1,4 +1,5 @@
 import os
+import sys
 import threading
 import signal
 import multiprocessing
@@ -37,6 +38,8 @@ class TestFileWatcher(object):
         fw = FileModifyWatcher([])
         pytest.raises(NotImplementedError, fw.handle_event, None)
 
+
+    @pytest.mark.skipif(str(sys.platform.startswith("darwin")))
     def testLoop(self, restore_cwd, tmpdir):
         files = ['data/w1.txt', 'data/w2.txt', 'data/w3.txt']
         stop_file = 'data/stop'
@@ -94,7 +97,7 @@ class TestFileWatcher(object):
 
 
     # this test hangs on python2. I dont know why.
-    @pytest.mark.skipif(str(six.PY2))
+    @pytest.mark.skipif(str(six.PY2 and sys.platform.startswith("linux")))
     def testExit(self, restore_cwd, tmpdir):
         # create data files
         stop_file = 'data/stop'
