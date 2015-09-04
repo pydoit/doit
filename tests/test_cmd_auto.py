@@ -29,16 +29,18 @@ class TestFindFileDeps(object):
 
 class TestDepChanged(object):
     def test_changed(self, dependency1):
-        # WINDOWS DEBUG
+        # add 0.05 to time because Windows resolution is too low
+        # and start time is supposed to be greater than dependency1 created
         started = time.time() + 0.05
-        print(started)
-        import os
-        print(os.stat(dependency1).st_mtime)
-        # WINDOWS DEBUG
         assert not cmd_auto.Auto._dep_changed([dependency1], started, [])
         assert cmd_auto.Auto._dep_changed([dependency1], started-100, [])
         assert not cmd_auto.Auto._dep_changed([dependency1], started-100,
                                               [dependency1])
+
+
+def action_ok(target1):
+    with open(target1, 'w') as fp:
+        fp.write('ok')
 
 
 class FakeLoader(TaskLoader):
@@ -94,12 +96,8 @@ class TestAuto(object):
 
 
 
-
     def test_run_wait(self, dependency1, target1, depfile_name):
-        def ok():
-            with open(target1, 'w') as fp:
-                fp.write('ok')
-        t1 = Task("t1", [ok], file_dep=[dependency1])
+        t1 = Task("t1", [(action_ok, [target1])], file_dep=[dependency1])
         cmd = CmdFactory(cmd_auto.Auto,
                          task_loader=FakeLoader([t1], depfile_name))
 

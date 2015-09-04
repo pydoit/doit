@@ -92,6 +92,8 @@ class TestFileWatcher(object):
         fd.close()
         loop_thread.join()
 
+        print(files)
+        print(events)
         assert os.path.abspath(files[0]) == events[0]
         assert os.path.abspath(files[1]) == events[1]
 
