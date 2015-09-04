@@ -5,17 +5,8 @@ from doit.cmd_dumpdb import DumpDB
 class TestCmdDumpDB(object):
 
     def testDefault(self, capsys, depfile):
-        # DEBUG
-        import six
-        if six.PY3: # pragma: no cover
-            from dbm import whichdb
-        else:
-            from whichdb import whichdb
-        raise Exception('{} --  {}'.format(depfile.whichdb,
-                                           whichdb(depfile.name)))
-        # DEBUG
-
-        if depfile.whichdb in ('dbm', 'dbm.ndbm'): # pragma: no cover
+        if depfile.whichdb in ('dbm', 'dbm.ndbm', None): # pragma: no cover
+            # on darwin (MAC) whichdb returns None.
             pytest.skip('%s not supported for this operation' % depfile.whichdb)
         # cmd_main(["help", "task"])
         depfile._set('tid', 'my_dep', 'xxx')
