@@ -1,37 +1,69 @@
-language: python
-python:
-    - "2.7"
-    - "3.3"
-    - "3.4"
-#    - "3.5.0b3" # requires py.test 2.7.3 unreleased at this time
-    - "pypy"
-    - "pypy3"
-
 sudo: false
 
-addons:
-  apt:
-    packages:
-      - strace
-
-install:
-  - pip install .
-  - pip install -r dev_requirements.txt python-coveralls
+language: python
 
 branches:
   only:
     - master
     - test
 
+matrix:
+  include:
+    - python: 2.7
+      addons:
+        apt:
+          packages:
+            - strace
+    - python: 3.3
+      addons:
+        apt:
+          packages:
+            - strace
+    - python: 3.4
+      addons:
+        apt:
+          packages:
+            - strace
+    - python: pypy
+      addons:
+        apt:
+          packages:
+            - strace
+    - python: pypy3
+      addons:
+        apt:
+          packages:
+            - strace
+    - language: generic
+      os: osx
+      env: PYTHON_VERSION=py27
+    - language: generic
+      os: osx
+      env: PYTHON_VERSION=py33
+    - language: generic
+      os: osx
+      env: PYTHON_VERSION=py34
+    - language: generic
+      os: osx
+      env: PYTHON_VERSION=pypy
+    - language: generic
+      os: osx
+      env: PYTHON_VERSION=pypy3
+
+  allow_failures:
+    - env: PYTHON_VERSION=pypy3
+
+install:
+  - ./.travis/install.sh
 
 script:
-   - doit pyflakes
-   - py.test --ignore-flaky
-   - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then doit coverage; fi
+  - ./.travis/run.sh
+
 after_success:
   - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then coveralls; fi
 
 notifications:
-    email:
-        on_success: change
-        on_failure: change
+  email:
+    on_success: change
+    on_failure: change
+
