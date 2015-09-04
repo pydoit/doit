@@ -6,14 +6,15 @@ class TestCmdDumpDB(object):
 
     def testDefault(self, capsys, depfile):
         # DEBUG
-        print(depfile.whichdb)
         import six
         if six.PY3: # pragma: no cover
             from dbm import whichdb
         else:
             from whichdb import whichdb
-        print(whichdb(depfile.name))
+        raise Exception('{} --  {}'.format(depfile.whichdb,
+                                           whichdb(depfile.name)))
         # DEBUG
+
         if depfile.whichdb in ('dbm', 'dbm.ndbm'): # pragma: no cover
             pytest.skip('%s not supported for this operation' % depfile.whichdb)
         # cmd_main(["help", "task"])
