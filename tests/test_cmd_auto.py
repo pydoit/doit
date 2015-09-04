@@ -26,7 +26,12 @@ class TestFindFileDeps(object):
 
 class TestDepChanged(object):
     def test_changed(self, dependency1):
+        # WINDOWS DEBUG
         started = time.time()
+        print(started)
+        import os
+        print(os.stat(dependency1).st_mtime)
+        # WINDOWS DEBUG
         assert not cmd_auto.Auto._dep_changed([dependency1], started, [])
         assert cmd_auto.Auto._dep_changed([dependency1], started-100, [])
         assert not cmd_auto.Auto._dep_changed([dependency1], started-100,
