@@ -98,6 +98,7 @@ class TestFileWatcher(object):
 
     # this test hangs on python2. I dont know why.
     @pytest.mark.skipif(str(six.PY2 and sys.platform.startswith("linux")))
+    @pytest.mark.skipif(str(sys.platform.startswith("darwin")))
     def testExit(self, restore_cwd, tmpdir):
         # create data files
         stop_file = 'data/stop'

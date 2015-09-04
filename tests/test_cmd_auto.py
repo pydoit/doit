@@ -30,7 +30,7 @@ class TestFindFileDeps(object):
 class TestDepChanged(object):
     def test_changed(self, dependency1):
         # WINDOWS DEBUG
-        started = time.time()
+        started = time.time() + 0.05
         print(started)
         import os
         print(os.stat(dependency1).st_mtime)
