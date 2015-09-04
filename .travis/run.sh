@@ -10,7 +10,13 @@ fi
 
 python --version
 doit pyflakes
-py.test --ignore-flaky
+
+if [[ $TRAVIS_OS_NAME == 'osx' ]]; then
+    py.test --ignore-flaky -s -v
+else
+    py.test --ignore-flaky
+fi
+
 
 if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then
     doit coverage
