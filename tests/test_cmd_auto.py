@@ -51,6 +51,14 @@ class TestAuto(object):
         assert cmd.parse_execute(['t2']) == 3
 
 
+    def test_non_existent_filedep(self, depfile_name):
+        t1 = Task("t1", [""], file_dep=['I_dont_exist.txt'])
+        task_loader = FakeLoader([t1], depfile_name)
+        cmd = CmdFactory(cmd_auto.Auto, task_loader=task_loader)
+        # terminates with error number
+        assert cmd.parse_execute([]) == 3
+
+
     def test_run_callback(self, monkeypatch):
         result = []
         def mock_cmd(callback, shell=None):
