@@ -6,7 +6,7 @@ import os.path
 import threading
 
 from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
+from watchdog.events import FileSystemEventHandler, EVENT_TYPE_MOVED
 
 
 
@@ -34,16 +34,23 @@ class FileModifyWatcher(object):
                 self.watch_dirs.add(path)
 
 
-    def _handle(self, event):
-        """Takes care of filtering out all modifications that are
-        not in the watch list. Keep the thread going (return True)
-        if modification was not one of the watched files, otherwise
-        let handle_event take care of it."""
-        filename = event.src_path
-        if (filename in self.file_list or
-            os.path.dirname(filename) in self.notify_dirs):
-            return self.handle_event(event)
-        return True
+    def _filter(self, event):
+        """Check if event should really trigger the handler
+
+        :return bool: should trigger handler
+        """
+        # get path based on event type
+        if event.event_type == EVENT_TYPE_MOVED:
+            filename = event.dest_path
+        else:
+            filename = event.src_path
+        # check path is being watched
+        if filename in self.file_list:
+            return True
+        if os.path.dirname(filename) in self.notify_dirs:
+            return True
+        return False
+
 
     def handle_event(self, event):
         """this should be sub-classed. Return True if you want the
@@ -52,15 +59,17 @@ class FileModifyWatcher(object):
 
     def loop(self, lock_start=None):
         """Infinite loop watching for file modifications"""
-        handler = self._handle
+        handler = self.handle_event
+        event_filter = self._filter
         lock = threading.Lock()
         lock.acquire()
 
         class EventHandler(FileSystemEventHandler):
-            def on_modified(self, event):
-                result = handler(event)
-                if not result:
-                    lock.release()
+            def on_any_event(self, event):
+                if event_filter(event):
+                    result = handler(event)
+                    if not result:
+                        lock.release()
 
         event_handler = EventHandler()
         observer = Observer()

@@ -3,9 +3,11 @@ import sys
 import threading
 import signal
 import multiprocessing
+import shutil
 
 import six
 import pytest
+from watchdog.events import FileSystemMovedEvent
 
 from doit.filewatch import FileModifyWatcher
 
@@ -37,6 +39,25 @@ class TestFileWatcher(object):
     def testHandleEventNotSubclassed(self):
         fw = FileModifyWatcher([])
         pytest.raises(NotImplementedError, fw.handle_event, None)
+
+
+    def test_filter_file_move(self, restore_cwd, tmpdir):
+        files = ('data/w1.txt', 'data/w2.txt')
+        tmpdir.mkdir('data')
+        for fname in files:
+            tmpdir.join(fname).open('a').close()
+        os.chdir(tmpdir.strpath)
+
+        fw = FileModifyWatcher((files[0],))
+        # fake events
+        # move watched file doesnt doesnt trigger anything
+        event = FileSystemMovedEvent(os.path.abspath(files[0]),
+                                     os.path.abspath(files[1]))
+        assert not fw._filter(event)
+        # move TO watched file triggers
+        event2 = FileSystemMovedEvent(os.path.abspath(files[1]),
+                                     os.path.abspath(files[0]))
+        assert fw._filter(event2)
 
 
     @pytest.mark.skipif(str(sys.platform.startswith("darwin")))
