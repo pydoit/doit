@@ -1,3 +1,4 @@
+import sys
 import time
 from multiprocessing import Process
 
@@ -6,15 +7,8 @@ import pytest
 from doit.cmdparse import DefaultUpdate
 from doit.task import Task
 from doit.cmd_base import TaskLoader
-from doit import filewatch
 from doit import cmd_auto
 from .conftest import CmdFactory
-
-
-# skip all tests in this module if platform not supported
-platform = filewatch.get_platform_system()
-pytestmark = pytest.mark.skipif(
-    'platform not in filewatch.FileModifyWatcher.supported_platforms')
 
 
 class TestFindFileDeps(object):
@@ -35,11 +29,18 @@ class TestFindFileDeps(object):
 
 class TestDepChanged(object):
     def test_changed(self, dependency1):
-        started = time.time()
+        # add 0.05 to time because Windows resolution is too low
+        # and start time is supposed to be greater than dependency1 created
+        started = time.time() + 0.05
         assert not cmd_auto.Auto._dep_changed([dependency1], started, [])
         assert cmd_auto.Auto._dep_changed([dependency1], started-100, [])
         assert not cmd_auto.Auto._dep_changed([dependency1], started-100,
                                               [dependency1])
+
+
+def action_ok(target1):
+    with open(target1, 'w') as fp:
+        fp.write('ok')
 
 
 class FakeLoader(TaskLoader):
@@ -58,6 +59,16 @@ class TestAuto(object):
         cmd = CmdFactory(cmd_auto.Auto, task_loader=task_loader)
         # terminates with error number
         assert cmd.parse_execute(['t2']) == 3
+
+
+    # FIXME hangs on Windows
+    @pytest.mark.skipif(str(sys.platform.startswith("win")))
+    def test_non_existent_filedep(self, depfile_name):
+        t1 = Task("t1", [""], file_dep=['I_dont_exist.txt'])
+        task_loader = FakeLoader([t1], depfile_name)
+        cmd = CmdFactory(cmd_auto.Auto, task_loader=task_loader)
+        # terminates with error number
+        assert cmd.parse_execute([]) == 3
 
 
     def test_run_callback(self, monkeypatch):
@@ -85,12 +96,8 @@ class TestAuto(object):
 
 
 
-
     def test_run_wait(self, dependency1, target1, depfile_name):
-        def ok():
-            with open(target1, 'w') as fp:
-                fp.write('ok')
-        t1 = Task("t1", [ok], file_dep=[dependency1])
+        t1 = Task("t1", [(action_ok, [target1])], file_dep=[dependency1])
         cmd = CmdFactory(cmd_auto.Auto,
                          task_loader=FakeLoader([t1], depfile_name))
 

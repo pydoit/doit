@@ -118,14 +118,22 @@ class Auto(DoitCmdBase):
         watch_files = self._find_file_deps(arun.control.tasks,
                                            arun.control.selected_tasks)
 
-        # Check for timestamp changes since run started,
-        # if change, restart straight away
-        if not self._dep_changed(watch_files, started, arun.control.targets):
+        # Check for timestamp changes since run started
+        try:
+            has_changes = self._dep_changed(watch_files, started,
+                                            arun.control.targets)
+        # exception like file_dep doesnt exist
+        except OSError as err:
+            sys.stderr.write("ERROR: {}\n".format(err))
+            sys.exit(3)
+
+        # if change, restart straight away, otherwise what for changes
+        if not has_changes:
             # set event handler. just terminate process.
             class DoitAutoRun(FileModifyWatcher):
                 def handle_event(self, event):
                     # print("FS EVENT -> {}".format(event))
-                    sys.exit(result)
+                    return False  # stops watching for changes
             file_watcher = DoitAutoRun(watch_files)
             # kick start watching process
             file_watcher.loop()
@@ -142,4 +150,5 @@ class Auto(DoitCmdBase):
                 if proc.exitcode == 3:
                     return 3
             except KeyboardInterrupt:
+                proc.terminate()
                 return 0
