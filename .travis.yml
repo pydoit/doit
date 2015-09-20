@@ -3,7 +3,7 @@ python:
     - "2.7"
     - "3.3"
     - "3.4"
-#    - "3.5.0b3" # requires py.test 2.7.3 unreleased at this time
+    - "3.5"
     - "pypy"
     - "pypy3"
 
