@@ -1,6 +1,6 @@
 import os
 import time
-import multiprocessing
+
 import six
 if six.PY3: # pragma: no cover
     from dbm import whichdb
@@ -161,33 +161,3 @@ def CmdFactory(cls, outstream=None, task_loader=None, dep_file=None,
     cmd.task_list = task_list  # list of tasks
     cmd.sel_tasks = sel_tasks  # from command line or default_tasks
     return cmd
-
-
-# mokey patch multiprocessing to enable  code coverage
-# NOTE: doesnt work with pytest-xdist (actually execnet)
-def coverage_multiprocessing_process(): # pragma: no cover
-    try:
-        import coverage as _coverage
-        _coverage
-    except:
-        return
-
-    from coverage.collector import Collector
-    from coverage.control import coverage
-    # detect if coverage was running in forked process
-    if Collector._collectors:
-        original = multiprocessing.Process._bootstrap
-        class Process_WithCoverage(multiprocessing.Process):
-            def _bootstrap(self):
-                cov = coverage(data_suffix=True)
-                cov.start()
-                try:
-                    return original(self)
-                finally:
-                    cov.stop()
-                    cov.save()
-        return Process_WithCoverage
-
-ProcessCoverage = coverage_multiprocessing_process()
-if ProcessCoverage:
-    multiprocessing.Process = ProcessCoverage
