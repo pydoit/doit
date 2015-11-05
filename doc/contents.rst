@@ -20,7 +20,7 @@ articles & tutorials
 
 For a short introduction check the articles below:
 
- * Software Carpentry: `Automating an analysis pipeline using doit <http://www.software-carpentry.org/v5/intermediate/doit/>`_.
+ * Software Carpentry: `Automating an analysis pipeline using doit <http://swcarpentry.github.io/bc/intermediate/doit/>`_.
 
  * Create a command line program using `doit` as a lib:
    `Power up your tools <http://blog.schettino72.net/posts/power-up-your-tools.html>`_

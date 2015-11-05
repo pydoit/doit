@@ -29,7 +29,7 @@ long_description = """
 `doit` is a task management & automation tool
 
 `doit` comes from the idea of bringing the power of build-tools
- to execute any kind of **task**
+to execute any kind of **task**
 
 `doit` is a modern open-source build-tool written in python
 designed to be simple to use and flexible to deal with complex work-flows.
