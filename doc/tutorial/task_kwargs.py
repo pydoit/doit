@@ -10,5 +10,6 @@ def task_call_func():
         'actions': [(func_with_args, [], {
             'arg_second': 'This is a second argument.',
             'arg_first': 'This is a first argument.'})
-        ]
+        ],
+        'verbosity': 2,
     }

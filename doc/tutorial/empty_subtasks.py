@@ -13,5 +13,6 @@ def task_xxx():
         yield {
             'basename': 'do_x',
             'name': item,
-            'actions': ['echo %s' % item]
+            'actions': ['echo %s' % item],
+            'verbosity': 2,
             }

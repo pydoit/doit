@@ -266,7 +266,7 @@ avoiding empty sub-tasks
 If you are not sure sub-tasks will be created for a given ``basename``
 but you want to make sure that a task exist,
 you can yield a sub-task with ``name`` equal to ``None``.
-This can also used to set the task ``doc`` and ``watch`` attribute.
+This can also be used to set the task ``doc`` and ``watch`` attributes.
 
 .. literalinclude:: tutorial/empty_subtasks.py
 
@@ -391,6 +391,12 @@ executed in the correct order.
   .  create
   .  modify
 
+
+.. note::
+
+  `doit` compares the path (string) of the file of `file_dep` and `targets`.
+  So although `my_file` and `./my_file` are actually the same file, `doit`
+  will think they are different files.
 
 
 .. _task-selection:
