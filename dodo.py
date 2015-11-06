@@ -74,7 +74,7 @@ def task_epydoc():
 def task_docs():
     doc_files = glob.glob('doc/*.rst') + ['README.rst', 'CONTRIBUTING.md']
     yield docs.spell(doc_files, 'doc/dictionary.txt')
-    sphinx_opts = "-A include_analytics=1 -A include_gittip=1"
+    sphinx_opts = "-A include_analytics=1 -A include_donate=1"
     yield docs.sphinx(DOC_ROOT, DOC_BUILD_PATH, sphinx_opts=sphinx_opts,
                       task_dep=['spell'])
 
