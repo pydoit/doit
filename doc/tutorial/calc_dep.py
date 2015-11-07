@@ -1,4 +1,3 @@
-from __future__ import print_function
 DOIT_CONFIG = {'verbosity': 2}
 
 MOD_IMPORTS = {'a': ['b','c'],

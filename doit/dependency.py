@@ -5,21 +5,15 @@ import hashlib
 import subprocess
 import inspect
 from collections import defaultdict
-import six
-if six.PY3: # pragma: no cover
-    from dbm import dumb
-    import dbm as ddbm
-else:
-    import dumbdbm as dumb
-    import anydbm as ddbm
+from dbm import dumb
+import dbm as ddbm
 
 # uncomment imports below to run tests on all dbm backends...
-#import dbhash as ddbm # (removed from python3)
 #import dumbdbm as ddbm
 #import dbm as ddbm
 #import gdbm as ddbm
 
-# note: to check which DBM backend is being used:
+# note: to check which DBM backend is being used (in py2):
 #       >>> anydbm._defaultmod
 
 import json
@@ -33,10 +27,7 @@ class DatabaseException(Exception):
 
 def get_md5(input_data):
     """return md5 from string or unicode"""
-    if isinstance(input_data, six.text_type):
-        byte_data = input_data.encode("utf-8")
-    else:
-        byte_data = input_data
+    byte_data = input_data.encode("utf-8")
     return hashlib.md5(byte_data).hexdigest()
 
 
@@ -126,18 +117,6 @@ class JsonDB(object):
 
 
 
-def encode_task_id(func):
-    """in python 2 dbm module does not automatically convert unicode to bytes"""
-    if not six.PY3:
-        def wrap(self, key, *args):
-            if isinstance(key, six.text_type):
-                key = key.encode('utf-8')
-            return func(self, key, *args)
-        return wrap
-    else:  # pragma: no cover
-        return func
-
-
 class DbmDB(object):
     """Backend using a DBM file with individual values encoded in JSON
 
@@ -185,7 +164,6 @@ class DbmDB(object):
         self._dbm.close()
 
 
-    @encode_task_id
     def set(self, task_id, dependency, value):
         """Store value in the DB."""
         if task_id not in self._db:
@@ -199,12 +177,11 @@ class DbmDB(object):
         should be just::
           return key in self._dbm
 
-         python3: when for get/set key is convert to bytes but not for 'in'
+         for get()/set() key is convert to bytes but not for 'in'
         """
         return key.encode('utf-8') in self._dbm
 
 
-    @encode_task_id
     def get(self, task_id, dependency):
         """Get value stored in the DB.
 
@@ -222,13 +199,11 @@ class DbmDB(object):
             return self._db[task_id].get(dependency, None)
 
 
-    @encode_task_id
     def in_(self, task_id):
         """@return bool if task_id is in DB"""
         return self._in_dbm(task_id) or task_id in self.dirty
 
 
-    @encode_task_id
     def remove(self, task_id):
         """remove saved dependecies from DB for taskId"""
         if task_id in self._db:
@@ -626,7 +601,7 @@ class Dependency(object):
                 args = magic_args + utd_args
                 # 3) call it and get result
                 uptodate_result = utd(*args, **utd_kwargs)
-            elif isinstance(utd, six.string_types):
+            elif isinstance(utd, str):
                 # TODO py3.3 has subprocess.DEVNULL
                 with open(os.devnull, 'wb') as null:
                     uptodate_result = subprocess.call(

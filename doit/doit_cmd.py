@@ -3,7 +3,6 @@
 import os
 import sys
 import traceback
-import six
 from collections import defaultdict
 from configparser import ConfigParser
 
@@ -78,8 +77,8 @@ class DoitMain(object):
     @staticmethod
     def print_version():
         """print doit version (includes path location)"""
-        six.print_(".".join([str(i) for i in VERSION]))
-        six.print_("lib @", os.path.dirname(os.path.abspath(__file__)))
+        print(".".join([str(i) for i in VERSION]))
+        print("lib @", os.path.dirname(os.path.abspath(__file__)))
 
 
     def get_cmds(self):

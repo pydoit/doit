@@ -2,7 +2,6 @@ import os
 import pickle
 from multiprocessing import Queue
 import platform
-import six
 
 import pytest
 from mock import Mock
@@ -322,7 +321,7 @@ def my_action():
     sys.stderr.write('err here')
     return {'bb': 5}
 def use_args(arg1):
-    six.print_(arg1)
+    print(arg1)
 def make_args():
     return {'myarg':1}
 def action_add_filedep(task, extra_dep):

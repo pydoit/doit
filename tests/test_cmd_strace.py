@@ -1,5 +1,5 @@
 import os.path
-from six import StringIO
+from io import StringIO
 
 import mock
 import pytest

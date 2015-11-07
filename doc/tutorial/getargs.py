@@ -1,4 +1,3 @@
-from __future__ import print_function
 DOIT_CONFIG = {'default_tasks': ['use_cmd', 'use_python']}
 
 def task_compute():

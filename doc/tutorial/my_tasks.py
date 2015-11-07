@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 def task(*fn, **kwargs):
     # decorator without parameters
     if fn:

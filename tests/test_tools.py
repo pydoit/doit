@@ -1,9 +1,6 @@
-# coding=UTF-8
-
 import os
 import datetime
 import operator
-import six
 
 import pytest
 
@@ -72,7 +69,7 @@ class TestConfigChanged(object):
         assert False == ub(t1, t1.values)
 
     def test_unicode(self):
-        ua = tools.config_changed({'x':six.u("中文")})
+        ua = tools.config_changed({'x': "中文"})
         ub = tools.config_changed('b')
         t1 = task.Task("TaskX", None, uptodate=[ua])
         assert False == ua(t1, t1.values)
@@ -192,7 +189,7 @@ class TestCheckTimestampUnchanged(object):
         assert True == check(t, t.values)
 
         # stored timestamp less than current, up to date
-        future_time = list(six.itervalues(t.values))[0] + 100
+        future_time = list(t.values.values())[0] + 100
         monkeypatch.setattr(check, '_get_time', lambda: future_time)
         assert False == check(t, t.values)
 

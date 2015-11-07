@@ -1,10 +1,8 @@
 language: python
 python:
-    - "2.7"
     - "3.3"
     - "3.4"
     - "3.5"
-    - "pypy"
     - "pypy3"
 
 sudo: false
@@ -27,9 +25,9 @@ branches:
 script:
    - doit pyflakes
    - py.test --ignore-flaky
-   - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then doit coverage; fi
+   - if [[ $TRAVIS_PYTHON_VERSION == '3.5' ]]; then doit coverage; fi
 after_success:
-  - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then coveralls; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.5' ]]; then coveralls; fi
 
 notifications:
     email:

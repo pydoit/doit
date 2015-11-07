@@ -3,7 +3,6 @@ import fnmatch
 from collections import deque
 from collections import OrderedDict
 import re
-import six
 
 from .exceptions import InvalidTask, InvalidCommand, InvalidDodoFile
 from .cmdparse import TaskParse, CmdOption
@@ -69,7 +68,7 @@ class TaskControl(object):
             self._def_order.append(task.name)
 
         # expand wild-card task-dependencies
-        for task in six.itervalues(self.tasks):
+        for task in self.tasks.values():
             for pattern in task.wild_dep:
                 task.task_dep.extend(self._get_wild_tasks(pattern))
 
@@ -80,7 +79,7 @@ class TaskControl(object):
     def _check_dep_names(self):
         """check if user input task_dep or setup_task that doesnt exist"""
         # check task-dependencies exist.
-        for task in six.itervalues(self.tasks):
+        for task in self.tasks.values():
             for dep in task.task_dep:
                 if dep not in self.tasks:
                     msg = "%s. Task dependency '%s' does not exist."

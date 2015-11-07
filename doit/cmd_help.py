@@ -1,5 +1,3 @@
-import six
-
 from .exceptions import InvalidDodoFile
 from .cmdparse import TaskParse, CmdOption
 from .cmd_base import DoitCmdBase
@@ -118,7 +116,7 @@ class Help(DoitCmdBase):
         print("Commands")
         for cmd_name in sorted(cmds.keys()):
             cmd = cmds[cmd_name]
-            six.print_("  doit {:16s}  {}".format(
+            print("  doit {:16s}  {}".format(
                 cmd_name, cmd.doc_purpose))
         print("")
         print("  doit help              show help / reference")
@@ -139,10 +137,10 @@ class Help(DoitCmdBase):
         task = tasks.get(task_name, None)
         if not task:
             return False
-        six.print_("%s  %s" % (task.name, task.doc))
+        print("%s  %s" % (task.name, task.doc))
         taskcmd = TaskParse([CmdOption(opt) for opt in task.params])
         for opt in taskcmd.options:
-            six.print_("\n".join(opt.help_doc()))
+            print("\n".join(opt.help_doc()))
         return True
 
     def execute(self, params, args):
@@ -154,7 +152,7 @@ class Help(DoitCmdBase):
         # help on command
         elif args[0] in self.cmds:
             cmd = self.cmds[args[0]](**self.init_kwargs)
-            six.print_(cmd.help())
+            print(cmd.help())
         else:
             # help of specific task
             try:

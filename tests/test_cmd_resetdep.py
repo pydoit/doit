@@ -1,4 +1,5 @@
-from six import StringIO
+from io import StringIO
+
 import pytest
 
 from doit.cmd_resetdep import ResetDep

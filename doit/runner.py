@@ -4,9 +4,8 @@ import sys
 from multiprocessing import Process, Queue as MQueue
 from threading import Thread
 import pickle
+import queue
 
-import six
-from six.moves import queue, xrange
 import cloudpickle
 
 from .exceptions import InvalidTask, CatchedException
@@ -81,7 +80,7 @@ class Runner(object):
             return self.dep_manager.get_value(task_id, key_name)
 
         # selected just need to get values from other tasks
-        for arg, value in six.iteritems(task.getargs):
+        for arg, value in task.getargs.items():
             task_id, key_name = value
 
             if tasks_dict[task_id].has_subtask:
@@ -399,26 +398,20 @@ class MRunner(Runner):
         @return list of Process
         """
         # #### DEBUG PICKLE ERRORS
-        # # Python3 uses C implementation of pickle
-        # if six.PY2:
-            # Pickler = pickle.Pickler
-        # else:  # pragma no cover
-            # Pickler = pickle._Pickler
-
-        # class MyPickler (Pickler):
+        # class MyPickler (pickle._Pickler):
             # def save(self, obj):
                 # print('pickling object {} of type {}'.format(obj, type(obj)))
                 # try:
                     # Pickler.save(self, obj)
                 # except:
                     # print('error. skipping...')
-        # from six import BytesIO
+        # from io import BytesIO
         # pickler = MyPickler(BytesIO())
         # pickler.dump(self)
         # ### END DEBUG
 
         proc_list = []
-        for _ in xrange(self.num_process):
+        for _ in range(self.num_process):
             next_job = self.get_next_job(None)
             if next_job is None:
                 break # do not start more processes than tasks

@@ -1,8 +1,6 @@
-# coding=UTF-8
-
 import sys
 import json
-from six import StringIO
+from io import StringIO
 
 from doit import reporter
 from doit.task import Task

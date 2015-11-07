@@ -1,26 +1,10 @@
 """command doit info - display info on task metadata"""
 
-from __future__ import print_function
-
 import pprint
-
-import six
 
 from .cmd_base import DoitCmdBase
 from .exceptions import InvalidCommand
 
-
-
-def my_safe_repr(obj, context, maxlevels, level):
-    """pretty print supressing unicode prefix
-
-    http://stackoverflow.com/questions/16888409/
-           suppress-unicode-prefix-on-strings-when-using-pprint
-    """
-    typ = type(obj)
-    if six.PY2 and typ is six.text_type:
-        obj = str(obj)
-    return pprint._safe_repr(obj, context, maxlevels, level)
 
 
 opt_show_execute_status = {
@@ -54,7 +38,6 @@ class Info(DoitCmdBase):
         tasks = dict([(t.name, t) for t in self.task_list])
 
         printer = pprint.PrettyPrinter(indent=4, stream=self.outstream)
-        printer.format = my_safe_repr
 
         task = tasks[task_name]
         task_attrs = (

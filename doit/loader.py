@@ -4,10 +4,8 @@ import os
 import sys
 import inspect
 import importlib
-import six
 from collections import OrderedDict
 
-from .compat import is_bound_method
 from .exceptions import InvalidTask, InvalidCommand, InvalidDodoFile
 from .task import DelayedLoader, Task, dict_to_task
 
@@ -170,7 +168,7 @@ def _get_task_creators(namespace, command_names):
     funcs = []
     prefix_len = len(TASK_STRING)
     # get all functions that are task-creators
-    for name, ref in six.iteritems(namespace):
+    for name, ref in namespace.items():
 
         # function is a task creator because of its name
         if ((inspect.isfunction(ref) or inspect.ismethod(ref)) and
@@ -185,12 +183,13 @@ def _get_task_creators(namespace, command_names):
             # if it is bounded to an object.
             # This avoids calling it for the class definition.
             argspec = inspect.getargspec(ref)
-            if len(argspec.args) != (1 if is_bound_method(ref) else 0):
+            if len(argspec.args) != (1 if inspect.ismethod(ref) else 0):
                 continue
             task_name = name
 
         # ignore functions that are not a task creator
-        elif True: # coverage can't get "else: continue"
+        else:  # pragma: no cover
+            # coverage can't get "else: continue"
             continue
 
         # tasks can't have the same name of a commands
@@ -319,7 +318,7 @@ def generate_tasks(func_name, gen_result, gen_doc=None):
                 _generate_task_from_yield(tasks, func_name, task_dict, x_doc)
 
         if tasks:
-            return list(six.itervalues(tasks))
+            return list(tasks.values())
         else:
             # special case task_generator did not generate any task
             # create an empty group task

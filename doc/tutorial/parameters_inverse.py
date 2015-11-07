@@ -1,4 +1,3 @@
-from __future__ import print_function
 def task_with_flag():
     def _task(flag):
         print("Flag {0}".format("On" if flag else "Off"))

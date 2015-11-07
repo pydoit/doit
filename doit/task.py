@@ -5,7 +5,6 @@ import types
 import os
 import sys
 import inspect
-import six
 from collections import OrderedDict
 from functools import partial
 
@@ -90,7 +89,7 @@ class Task(object):
     """
 
     DEFAULT_VERBOSITY = 1
-    string_types = (str, ) if six.PY3 else (str, unicode)
+    string_types = (str, )
     # list of valid types/values for each task attribute.
     valid_attr = {'basename': (string_types, ()),
                   'name': (string_types, ()),
@@ -235,7 +234,7 @@ class Task(object):
                 args = list(item[1]) if len(item) > 1 else []
                 kwargs = item[2] if len(item) > 2 else {}
                 uptodate.append((call, args, kwargs))
-            elif isinstance(item, six.string_types):
+            elif isinstance(item, str):
                 uptodate.append((item, [], {}))
             else:
                 msg = ("%s. task invalid 'uptodate' item '%r'. " +
@@ -248,7 +247,7 @@ class Task(object):
     def _expand_file_dep(self, file_dep):
         """put input into file_dep"""
         for dep in file_dep:
-            if not isinstance(dep, six.string_types):
+            if not isinstance(dep, str):
                 raise InvalidTask("%s. file_dep must be a str got '%r' (%s)" %
                                   (self.name, dep, type(dep)))
             self.file_dep.add(dep)
@@ -284,7 +283,7 @@ class Task(object):
     }
     def update_deps(self, deps):
         """expand all kinds of dep input"""
-        for dep, dep_values in six.iteritems(deps):
+        for dep, dep_values in deps.items():
             if dep not in self._expand_map:
                 continue
             self._expand_map[dep](self, dep_values)
@@ -306,11 +305,11 @@ class Task(object):
         """task getargs attribute define implicit task dependencies"""
         check_result = set()
 
-        for arg_name, desc in six.iteritems(self.getargs):
+        for arg_name, desc in self.getargs.items():
 
             # tuple (task_id, key_name)
             parts = desc
-            if isinstance(parts, six.string_types) or len(parts) != 2:
+            if isinstance(parts, str) or len(parts) != 2:
                 msg = ("Taskid '%s' - Invalid format for getargs of '%s'.\n" %
                        (self.name, arg_name) +
                        "Should be tuple with 2 elements " +
@@ -500,8 +499,8 @@ def dict_to_task(task_dict):
                           (task_dict['name'], task_dict))
 
     # user friendly. dont go ahead with invalid input.
-    task_attrs = list(six.iterkeys(task_dict))
-    valid_attrs = set(six.iterkeys(Task.valid_attr))
+    task_attrs = list(task_dict.keys())
+    valid_attrs = set(Task.valid_attr.keys())
     for key in task_attrs:
         if key not in valid_attrs:
             raise InvalidTask("Task %s contains invalid field: '%s'"%
@@ -518,7 +517,7 @@ def clean_targets(task, dryrun):
 
     # remove all files
     for file_ in files:
-        six.print_("%s - removing file '%s'" % (task.name, file_))
+        print("%s - removing file '%s'" % (task.name, file_))
         if not dryrun:
             os.remove(file_)
 
@@ -526,10 +525,10 @@ def clean_targets(task, dryrun):
     for dir_ in dirs:
         if os.listdir(dir_):
             msg = "%s - cannot remove (it is not empty) '%s'"
-            six.print_(msg % (task.name, dir_))
+            print(msg % (task.name, dir_))
         else:
             msg = "%s - removing dir '%s'"
-            six.print_(msg % (task.name, dir_))
+            print(msg % (task.name, dir_))
             if not dryrun:
                 os.rmdir(dir_)
 

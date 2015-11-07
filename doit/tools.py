@@ -6,7 +6,6 @@ import datetime
 import hashlib
 import operator
 import subprocess
-import six
 
 from . import exceptions
 from .action import CmdAction, PythonAction
@@ -24,7 +23,7 @@ def create_folder(dir_path):
 def title_with_actions(task):
     """return task name task actions"""
     if task.actions:
-        title = "\n\t".join([six.text_type(action) for action in task.actions])
+        title = "\n\t".join([str(action) for action in task.actions])
     # A task that contains no actions at all
     # is used as group task
     else:
@@ -55,16 +54,13 @@ class config_changed(object):
         self.config_digest = None
 
     def _calc_digest(self):
-        if isinstance(self.config, six.string_types):
+        if isinstance(self.config, str):
             return self.config
         elif isinstance(self.config, dict):
             data = ''
             for key in sorted(self.config):
                 data += key + repr(self.config[key])
-            if isinstance(data, six.text_type): # pragma: no cover # python3
-                byte_data = data.encode("utf-8")
-            else:
-                byte_data = data
+            byte_data = data.encode("utf-8")
             return hashlib.md5(byte_data).hexdigest()
         else:
             raise Exception(('Invalid type of config_changed parameter got %s' +
@@ -223,7 +219,7 @@ class PythonInteractiveAction(PythonAction):
             returned_value = self.py_callable(*self.args, **kwargs)
         except Exception as exception:
             return exceptions.TaskError("PythonAction Error", exception)
-        if isinstance(returned_value, six.string_types):
+        if isinstance(returned_value, str):
             self.result = returned_value
         elif isinstance(returned_value, dict):
             self.values = returned_value

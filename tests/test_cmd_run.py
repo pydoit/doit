@@ -1,5 +1,5 @@
 import os
-from six import StringIO
+from io import StringIO
 
 import pytest
 from mock import Mock

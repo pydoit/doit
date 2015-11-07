@@ -5,7 +5,7 @@ import sys
 from setuptools import setup
 
 
-install_requires = ['six', 'cloudpickle']
+install_requires = ['cloudpickle']
 
 
 ########### platform specific stuff #############
@@ -19,10 +19,6 @@ elif platform_system == "Linux":
     install_requires.append('pyinotify')
 
 ##################################################
-
-if sys.version_info < (3, 0):
-    install_requires.append('configparser')
-
 
 
 long_description = """
@@ -57,8 +53,6 @@ setup(name = 'doit',
         'Natural Language :: English',
         'Operating System :: OS Independent',
         'Operating System :: POSIX',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',

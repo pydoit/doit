@@ -1,5 +1,3 @@
-# coding=UTF-8
-
 import os
 import sys
 import tempfile
@@ -7,8 +5,7 @@ import textwrap
 import locale
 locale # quiet pyflakes
 
-import six
-from six import StringIO, BytesIO
+from io import StringIO, BytesIO
 import pytest
 from mock import Mock
 
@@ -68,9 +65,9 @@ class TestCmdAction(object):
         assert "Cmd: %s" % PROGRAM == str(my_action)
 
     def test_unicode(self):
-        action_str = six.text_type(PROGRAM) + six.u("中文")
+        action_str = PROGRAM + "中文"
         my_action = action.CmdAction(action_str)
-        assert "Cmd: %s" % action_str == six.text_type(my_action)
+        assert "Cmd: %s" % action_str == str(my_action)
 
     def test_repr(self):
         my_action = action.CmdAction(PROGRAM)
@@ -229,7 +226,7 @@ class TestCmdExpandAction(object):
 class TestCmd_print_process_output(object):
     def test_non_unicode_string_error_strict(self):
         my_action = action.CmdAction("", decode_error='strict')
-        not_unicode = BytesIO(six.b('\xa9'))
+        not_unicode = BytesIO('\xa9'.encode("latin-1"))
         realtime = Mock()
         realtime.encoding = 'utf-8'
         pytest.raises(UnicodeDecodeError, my_action._print_process_output,
@@ -237,43 +234,43 @@ class TestCmd_print_process_output(object):
 
     def test_non_unicode_string_error_replace(self):
         my_action = action.CmdAction("") # default is decode_error = 'replace'
-        not_unicode = BytesIO(six.b('\xa9'))
+        not_unicode = BytesIO('\xa9'.encode("latin-1"))
         realtime = Mock()
         realtime.encoding = 'utf-8'
         capture = StringIO()
         my_action._print_process_output(Mock(), not_unicode, capture, realtime)
         # get the replacement char
-        expected = '�' if six.PY3 else '�'.decode('utf-8')
+        expected = '�'
         assert expected == capture.getvalue()
 
     def test_non_unicode_string_ok(self):
         my_action = action.CmdAction("", encoding='iso-8859-1')
-        not_unicode = BytesIO(six.b('\xa9'))
+        not_unicode = BytesIO('\xa9'.encode("latin-1"))
         realtime = Mock()
         realtime.encoding = 'utf-8'
         capture = StringIO()
         my_action._print_process_output(Mock(), not_unicode, capture, realtime)
         # get the correct char from latin-1 encoding
-        expected = '©' if six.PY3 else '©'.decode('utf-8')
+        expected = '©'
         assert expected == capture.getvalue()
 
 
     # dont test unicode if system locale doesnt support unicode
     # see https://bitbucket.org/schettino72/doit/pull-request/11
-    @pytest.mark.skipif('six.PY3 and locale.getlocale()[1] is None')
+    @pytest.mark.skipif('locale.getlocale()[1] is None')
     def test_unicode_string(self, tmpfile):
         my_action = action.CmdAction("")
         unicode_in = tempfile.TemporaryFile('w+b')
-        unicode_in.write(six.u(" 中文").encode('utf-8'))
+        unicode_in.write(" 中文".encode('utf-8'))
         unicode_in.seek(0)
         my_action._print_process_output(Mock(), unicode_in, Mock(), tmpfile)
 
-    @pytest.mark.skipif('six.PY3 and locale.getlocale()[1] is None')
+    @pytest.mark.skipif('locale.getlocale()[1] is None')
     def test_unicode_string2(self, tmpfile):
         # this \uXXXX has a different behavior!
         my_action = action.CmdAction("")
         unicode_in = tempfile.TemporaryFile('w+b')
-        unicode_in.write(six.u(" 中文 \u2018").encode('utf-8'))
+        unicode_in.write(" 中文 \u2018".encode('utf-8'))
         unicode_in.seek(0)
         my_action._print_process_output(Mock(), unicode_in, Mock(), tmpfile)
 
@@ -285,7 +282,7 @@ class TestCmdSaveOuput(object):
         PROGRAM = "python %s/sample_process.py" % TEST_PATH
         my_action = action.CmdAction(PROGRAM + " x1 x2", save_out='out')
         my_action.execute()
-        assert {'out': six.u('x1')} == my_action.values
+        assert {'out': 'x1'} == my_action.values
 
 
 
@@ -659,8 +656,8 @@ class TestPythonActionPrepareKwargsMeta(object):
         my_action.execute()
         assert ['123'] == got, repr(got)
 
-    @pytest.mark.skipif('six.PY2')
-    def test_kwonlyargs_minimal(self, task_depchanged):  # pragma: no cover
+
+    def test_kwonlyargs_minimal(self, task_depchanged):
         got = []
         scope = {'got': got}
         exec(textwrap.dedent('''
@@ -674,8 +671,8 @@ class TestPythonActionPrepareKwargsMeta(object):
         my_action.execute()
         assert [(1, 2, 3), 4] == got, repr(got)
 
-    @pytest.mark.skipif('six.PY2')
-    def test_kwonlyargs_full(self, task_depchanged):  # pragma: no cover
+
+    def test_kwonlyargs_full(self, task_depchanged):
         got = []
         scope = {'got': got}
         exec(textwrap.dedent('''

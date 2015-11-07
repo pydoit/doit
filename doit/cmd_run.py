@@ -1,6 +1,5 @@
 import sys
 import codecs
-import six
 
 from .exceptions import InvalidCommand
 from .plugin import PluginDict
@@ -200,7 +199,7 @@ class Run(DoitCmdBase):
                     task.task_dep = []
 
         # reporter
-        if isinstance(reporter, six.string_types):
+        if isinstance(reporter, str):
             reporter_cls = self.reporters[reporter]
         else:
             # user defined class
@@ -214,7 +213,7 @@ class Run(DoitCmdBase):
         show_out = use_verbosity < 2  # show on error report
 
         # outstream
-        if isinstance(outfile, six.string_types):
+        if isinstance(outfile, str):
             outstream = codecs.open(outfile, 'w', encoding='utf-8')
         else:  # outfile is a file-like object (like StringIO or sys.stdout)
             outstream = outfile

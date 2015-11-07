@@ -1,6 +1,5 @@
 import os
 
-import six
 import pytest
 
 from doit import version
@@ -16,7 +15,6 @@ from doit.cmd_base import check_tasks_exist, tasks_and_deps_iter, subtasks_iter
 def test_version_tuple():
     assert [1,2,3] == version_tuple([1,2,3])
     assert [1,2,3] == version_tuple('1.2.3')
-    assert [1,2,3] == version_tuple(six.u('1.2.3'))
     assert [0,2,0] == version_tuple('0.2.0')
     assert [0,2,-1] == version_tuple('0.2.dev1')
 

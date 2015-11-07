@@ -4,8 +4,7 @@ import sys
 import time
 import datetime
 import json
-import six
-from six import StringIO
+from io import StringIO
 
 
 class ConsoleReporter(object):
@@ -256,7 +255,7 @@ class JsonReporter(object):
             log_err += "\n".join(self.errors)
 
         task_result_list = [
-            tr.to_dict() for tr in six.itervalues(self.t_results)]
+            tr.to_dict() for tr in self.t_results.values()]
         json_data = {'tasks': task_result_list,
                      'out': log_out,
                      'err': log_err}

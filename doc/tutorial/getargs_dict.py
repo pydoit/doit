@@ -1,4 +1,3 @@
-from __future__ import print_function
 def task_compute():
    def comp():
        return {'x':5,'y':10, 'z': 20}

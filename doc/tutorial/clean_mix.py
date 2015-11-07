@@ -1,4 +1,3 @@
-from __future__ import print_function
 from doit.task import clean_targets
 
 def simple():

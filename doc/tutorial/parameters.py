@@ -1,4 +1,3 @@
-from __future__ import print_function
 def task_py_params():
     def show_params(param1, param2):
         print(param1)

@@ -2,8 +2,7 @@
 """
 
 import subprocess, sys
-import six
-from six import StringIO
+from io import StringIO
 import inspect
 from threading import Thread
 
@@ -40,20 +39,13 @@ class BaseAction(object):
         if not task:
             return kwargs
 
-        if six.PY2:
-            try:
-                argspec = inspect.getargspec(func)
-            except TypeError: # a callable object, not a function
-                argspec = inspect.getargspec(func.__call__)
-            func_has_kwargs = argspec.keywords is not None
-        else: # pragma: no cover
-            try:
-                argspec = inspect.getfullargspec(func)
-            except TypeError: # a callable object, not a function
-                # since py3.4 this is not required anymore because
-                # getfullargspec deals with any callable
-                argspec = inspect.getfullargspec(func.__call__)
-            func_has_kwargs = argspec.varkw is not None
+        try:
+            argspec = inspect.getfullargspec(func)
+        except TypeError: # a callable object, not a function
+            # since py3.4 this is not required anymore because
+            # getfullargspec deals with any callable
+            argspec = inspect.getfullargspec(func.__call__)
+        func_has_kwargs = argspec.varkw is not None
 
         # use task meta information as extra_args
         meta_args = {
@@ -70,7 +62,7 @@ class BaseAction(object):
             extra_args[task.pos_arg] = task.pos_arg_val
         kwargs = kwargs.copy()
 
-        for key in six.iterkeys(extra_args):
+        for key in extra_args.keys():
             # check key is a positional parameter
             if key in argspec.args:
                 arg_pos = argspec.args.index(key)
@@ -136,7 +128,7 @@ class CmdAction(BaseAction):
 
     @property
     def action(self):
-        if isinstance(self._action, (six.string_types, list)):
+        if isinstance(self._action, (str, list)):
             return self._action
         else:
             # action can be a callable that returns a string command
@@ -149,12 +141,6 @@ class CmdAction(BaseAction):
         """read 'input_' (bytes) untill process is terminated
         write 'input_' content to 'capture' (string) and 'realtime' stream
         """
-        if realtime:
-            if hasattr(realtime, 'encoding'):
-                encoding = realtime.encoding or 'utf-8'
-            else: # pragma: no cover
-                encoding = 'utf-8'
-
         while True:
             # line buffered
             try:
@@ -168,10 +154,7 @@ class CmdAction(BaseAction):
                 break
             capture.write(line)
             if realtime:
-                if six.PY3: # pragma: no cover
-                    realtime.write(line)
-                else:
-                    realtime.write(line.encode(encoding))
+                realtime.write(line)
 
 
     def execute(self, out=None, err=None):
@@ -400,7 +383,7 @@ class PythonAction(BaseAction):
                               (self.py_callable, returned_value))
         elif returned_value is True or returned_value is None:
             pass
-        elif isinstance(returned_value, six.string_types):
+        elif isinstance(returned_value, str):
             self.result = returned_value
         elif isinstance(returned_value, dict):
             self.values = returned_value
@@ -435,7 +418,7 @@ def create_action(action, task_ref):
         action.task = task_ref
         return action
 
-    if isinstance(action, six.string_types):
+    if isinstance(action, str):
         return CmdAction(action, task_ref, shell=True)
 
     if isinstance(action, list):

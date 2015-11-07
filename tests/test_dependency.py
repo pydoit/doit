@@ -2,7 +2,6 @@
 
 import os
 import time
-import six
 
 import pytest
 
@@ -20,7 +19,7 @@ PROGRAM = "python %s/sample_process.py" % TEST_PATH
 
 
 def test_unicode_md5():
-    data = six.u("我")
+    data = "我"
     # no exception is raised
     assert get_md5(data)
 
@@ -67,8 +66,8 @@ class TestDependencyDb(object):
         assert "da_md5" == value, value
 
     def test_get_set_unicode_name(self, pdepfile):
-        pdepfile._set(six.u("taskId_我"),"dependency_A","da_md5")
-        value = pdepfile._get(six.u("taskId_我"),"dependency_A")
+        pdepfile._set("taskId_我", "dependency_A", "da_md5")
+        value = pdepfile._get("taskId_我", "dependency_A")
         assert "da_md5" == value, value
 
     #

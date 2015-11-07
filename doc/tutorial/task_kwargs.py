@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 def func_with_args(arg_first, arg_second):
     print(arg_first)
     print(arg_second)

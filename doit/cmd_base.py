@@ -2,8 +2,6 @@ import inspect
 import sys
 from collections import deque
 
-import six
-
 from . import version
 from .cmdparse import CmdOption, CmdParse
 from .exceptions import InvalidCommand, InvalidDodoFile
@@ -17,7 +15,7 @@ def version_tuple(ver_in):
     Any part that is not a number (dev0, a2, b4) will be converted to -1
     """
     result = []
-    if isinstance(ver_in, six.string_types):
+    if isinstance(ver_in, str):
         parts = ver_in.split('.')
     else:
         parts = ver_in
@@ -320,7 +318,7 @@ class DoitCmdBase(Command):
     @staticmethod
     def get_checker_cls(check_file_uptodate):
         """return checker class to be used by dep_manager"""
-        if isinstance(check_file_uptodate, six.string_types):
+        if isinstance(check_file_uptodate, str):
             if check_file_uptodate not in CHECKERS:
                 msg = ("No check_file_uptodate named '{}'."
                        " Type 'doit help run' to see a list "

@@ -1,4 +1,3 @@
-from __future__ import print_function
 ### task setup env. good for functional tests!
 DOIT_CONFIG = {'verbosity': 2,
                'default_tasks': ['withenvX', 'withenvY']}

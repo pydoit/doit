@@ -1,12 +1,6 @@
 import os
 import time
-
-import six
-if six.PY3: # pragma: no cover
-    from dbm import whichdb
-else:
-    from whichdb import whichdb
-
+from dbm import whichdb
 
 import py
 import pytest

@@ -59,7 +59,9 @@ see AUTHORS file
 install
 =======
 
-*doit* is tested on python 2.7, 3.3, 3.4.
+*doit* is tested on python 3.3, 3.4, 3.5.
+
+The last version supporting python 2 is version 0.29.
 
 ::
 
@@ -69,10 +71,9 @@ install
 dependencies
 =============
 
-- six
+- cloudpickle
 - pyinotify (linux)
 - macfsevents (mac)
-- configparser (python2 only - backport of py3 configparser)
 
 Tools required for development:
 

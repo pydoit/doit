@@ -1,4 +1,3 @@
-from __future__ import print_function
 from doit.cmd_base import Command
 
 
