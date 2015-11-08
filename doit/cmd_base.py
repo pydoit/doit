@@ -398,9 +398,10 @@ class DoitCmdBase(Command):
         # magic - create dict based on signature of _execute() method.
         # this done so that _execute() have a nice API with name parameters
         # instead of just taking a dict.
-        args_name = inspect.getargspec(self._execute)[0]
-        exec_params = dict((n, params[n]) for n in args_name if n != 'self')
+        args_name = list(inspect.signature(self._execute).parameters.keys())
+        exec_params = dict((n, params[n]) for n in args_name)
         return self._execute(**exec_params)
+
 
 
 # helper functions to find list of tasks

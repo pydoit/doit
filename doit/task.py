@@ -422,8 +422,8 @@ class Task(object):
 
                 # add extra arguments used by clean actions
                 if isinstance(action, PythonAction):
-                    action_args = inspect.getargspec(action.py_callable).args
-                    if 'dryrun' in action_args:
+                    action_sig = inspect.signature(action.py_callable)
+                    if 'dryrun' in action_sig.parameters:
                         action.kwargs['dryrun'] = dryrun
 
                 if not dryrun:

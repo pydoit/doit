@@ -585,13 +585,7 @@ class Dependency(object):
                     utd.setup(self, tasks_dict)
                 # 2) add magic positional args for `task` and `values`
                 # if present.
-                # get args removing self if present
-                if inspect.isfunction(utd):
-                    spec_args = inspect.getargspec(utd).args
-                elif inspect.ismethod(utd):
-                    spec_args = inspect.getargspec(utd).args[1:]
-                else:
-                    spec_args = inspect.getargspec(utd.__call__).args[1:]
+                spec_args = list(inspect.signature(utd).parameters.keys())
                 magic_args = []
                 for i, name in enumerate(spec_args):
                     if i == 0 and name == 'task':

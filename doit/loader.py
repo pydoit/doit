@@ -182,8 +182,7 @@ def _get_task_creators(namespace, command_names):
             # If create_doit_tasks is a method, it should be called only
             # if it is bounded to an object.
             # This avoids calling it for the class definition.
-            argspec = inspect.getargspec(ref)
-            if len(argspec.args) != (1 if inspect.ismethod(ref) else 0):
+            if inspect.signature(ref).parameters:
                 continue
             task_name = name
 

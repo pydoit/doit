@@ -39,13 +39,9 @@ class BaseAction(object):
         if not task:
             return kwargs
 
-        try:
-            argspec = inspect.getfullargspec(func)
-        except TypeError: # a callable object, not a function
-            # since py3.4 this is not required anymore because
-            # getfullargspec deals with any callable
-            argspec = inspect.getfullargspec(func.__call__)
-        func_has_kwargs = argspec.varkw is not None
+        func_sig = inspect.signature(func)
+        sig_params = func_sig.parameters.values()
+        func_has_kwargs = any(p.kind==p.VAR_KEYWORD for p in sig_params)
 
         # use task meta information as extra_args
         meta_args = {
@@ -61,24 +57,23 @@ class BaseAction(object):
         if task.pos_arg is not None:
             extra_args[task.pos_arg] = task.pos_arg_val
         kwargs = kwargs.copy()
+        bound_args = func_sig.bind_partial(*args)
 
         for key in extra_args.keys():
             # check key is a positional parameter
-            if key in argspec.args:
-                arg_pos = argspec.args.index(key)
+            if key in func_sig.parameters:
+                sig_param = func_sig.parameters[key]
 
                 # it is forbidden to use default values for this arguments
                 # because the user might be unware of this magic.
-                if (key in meta_args and argspec.defaults and
-                    len(argspec.defaults) > (len(argspec.args) - (arg_pos+1))):
+                if (key in meta_args and sig_param.default!=sig_param.empty):
                     msg = ("Task %s, action %s(): The argument '%s' is not "
                            "allowed  to have a default value (reserved by doit)"
                            % (task.name, func.__name__, key))
                     raise InvalidTask(msg)
 
-                # if not over-written by value passed in *args use extra_arg
-                overwritten = arg_pos < len(args)
-                if not overwritten:
+                # if value not taken from position parameter
+                if key not in bound_args.arguments:
                     kwargs[key] = extra_args[key]
 
             # if function has **kwargs include extra_arg on it
