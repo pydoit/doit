@@ -1,6 +1,7 @@
 import os, shutil
 import tempfile
 from io import StringIO
+from pathlib import Path, PurePath
 
 import pytest
 
@@ -150,9 +151,14 @@ class TestTaskExpandFileDep(object):
         my_task = task.Task("Task X", ["taskcmd"], file_dep=["123","456"])
         assert set(["123","456"]) == my_task.file_dep
 
-    def test_file_dep_must_be_string(self):
+    def test_file_dep_path(self):
+        my_task = task.Task("Task X", ["taskcmd"],
+                            file_dep=["123", Path("456"), PurePath("789")])
+        assert {"123", "456", "789"} == my_task.file_dep
+
+    def test_file_dep_str(self):
         pytest.raises(task.InvalidTask, task.Task, "Task X", ["taskcmd"],
-                       file_dep=[['aaaa']])
+                      file_dep=[['aaaa']])
 
     def test_file_dep_unicode(self):
         unicode_name = "中文"

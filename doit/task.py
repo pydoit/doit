@@ -7,6 +7,7 @@ import sys
 import inspect
 from collections import OrderedDict
 from functools import partial
+from pathlib import PurePath
 
 from .cmdparse import CmdOption, TaskParse
 from .exceptions import CatchedException, InvalidTask
@@ -247,10 +248,14 @@ class Task(object):
     def _expand_file_dep(self, file_dep):
         """put input into file_dep"""
         for dep in file_dep:
-            if not isinstance(dep, str):
-                raise InvalidTask("%s. file_dep must be a str got '%r' (%s)" %
-                                  (self.name, dep, type(dep)))
-            self.file_dep.add(dep)
+            if isinstance(dep, str):
+                self.file_dep.add(dep)
+            elif isinstance(dep, PurePath):
+                self.file_dep.add(str(dep))
+            else:
+                msg = ("%s. file_dep must be a str or Path from pathlib. " +
+                       "Got '%r' (%s)")
+                raise InvalidTask(msg % (self.name, dep, type(dep)))
 
 
     def _expand_task_dep(self, task_dep):
