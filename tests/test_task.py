@@ -1,6 +1,7 @@
 import os, shutil
 import tempfile
 from io import StringIO
+from pathlib import Path, PurePath
 
 import pytest
 
@@ -150,9 +151,14 @@ class TestTaskExpandFileDep(object):
         my_task = task.Task("Task X", ["taskcmd"], file_dep=["123","456"])
         assert set(["123","456"]) == my_task.file_dep
 
-    def test_file_dep_must_be_string(self):
+    def test_file_dep_path(self):
+        my_task = task.Task("Task X", ["taskcmd"],
+                            file_dep=["123", Path("456"), PurePath("789")])
+        assert {"123", "456", "789"} == my_task.file_dep
+
+    def test_file_dep_str(self):
         pytest.raises(task.InvalidTask, task.Task, "Task X", ["taskcmd"],
-                       file_dep=[['aaaa']])
+                      file_dep=[['aaaa']])
 
     def test_file_dep_unicode(self):
         unicode_name = "中文"
@@ -185,6 +191,16 @@ class TestTaskDeps(object):
         assert set(['calcX', 'calcY']) == my_task.calc_dep
         assert [(None, None, None), (True, None, None)] == my_task.uptodate
 
+
+class TestTaskTargets(object):
+    def test_targets_can_be_path(self):
+        my_task = task.Task("Task X", ["taskcmd"],
+                            targets=["123", Path("456"), PurePath("789")])
+        assert ["123", "456", "789"] == my_task.targets
+
+    def test_targets_should_be_string_or_path(self):
+        assert pytest.raises(task.InvalidTask, task.Task, "Task X", ["taskcmd"],
+                             targets=["123", Path("456"), 789])
 
 
 class TestTask_Loader(object):
