@@ -4,6 +4,7 @@ import tempfile
 import textwrap
 import locale
 locale # quiet pyflakes
+from pathlib import PurePath, Path
 
 from io import StringIO, BytesIO
 import pytest
@@ -221,6 +222,12 @@ class TestCmdExpandAction(object):
         task = FakeTask([],[],[], {})
         my_action = action.CmdAction(cmd, task)
         assert cmd == my_action.expand_action()
+
+    def test_list_can_contain_path(self):
+        cmd = ["python", PurePath(TEST_PATH), Path("myecho.py")]
+        task = FakeTask([], [], [], {})
+        my_action = action.CmdAction(cmd, task)
+        assert ["python", TEST_PATH, "myecho.py"] == my_action.expand_action()
 
 
 class TestCmd_print_process_output(object):

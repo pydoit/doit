@@ -214,15 +214,17 @@ class CmdAction(BaseAction):
 
 
     def expand_action(self):
-        """expand action string using task meta informations
-        @returns (string) - expanded string after substitution
+        """Expand action using task meta informations if action is a string.
+        Convert `Path` elements to `str` if action is a list.
+        @returns: string -> expanded string if action is a string
+                  list - string -> expanded list of command elements
         """
         if not self.task:
             return self.action
 
         # cant expand keywords if action is a list of strings
         if isinstance(self.action, list):
-            return self.action
+            return [str(x) for x in self.action]
 
         subs_dict = {'targets' : " ".join(self.task.targets),
                      'dependencies': " ".join(self.task.file_dep)}
