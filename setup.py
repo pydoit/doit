@@ -21,6 +21,15 @@ elif platform_system == "Linux":
 ##################################################
 
 
+######### python version specific stuff ##########
+
+# pathlib is the part of the Python standard library since 3.4 version.
+if sys.version_info < (3, 4):
+    install_requires.append('pathlib2')
+
+##################################################
+
+
 long_description = """
 `doit` is a task management & automation tool
 
