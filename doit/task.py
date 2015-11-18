@@ -176,7 +176,7 @@ class Task(object):
         self.value_savers = []
         self.uptodate = self._init_uptodate(uptodate)
 
-        self.targets = targets
+        self.targets = [str(target) for target in targets]
         self.is_subtask = is_subtask
         self.has_subtask = has_subtask
         self.result = None

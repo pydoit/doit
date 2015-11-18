@@ -192,6 +192,13 @@ class TestTaskDeps(object):
         assert [(None, None, None), (True, None, None)] == my_task.uptodate
 
 
+class TestTaskPathlibSupport(object):
+
+    def test_targets_can_be_path(self):
+        my_task = task.Task("Task X", ["taskcmd"],
+                            targets=["123", Path("456"), PurePath("789")])
+        assert ["123", "456", "789"] == my_task.targets
+
 
 class TestTask_Loader(object):
     def test_delayed_after_execution(self):
