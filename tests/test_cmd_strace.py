@@ -10,7 +10,8 @@ from doit.task import Task
 from doit.cmd_strace import Strace
 from .conftest import CmdFactory
 
-@pytest.mark.skipif("os.system('strace -V') != 0")
+@pytest.mark.skipif(
+    "os.system('strace -V') != 0 or sys.platform in ['win32', 'cygwin']")
 class TestCmdStrace(object):
 
     def test_dep(self, dependency1, depfile_name):
