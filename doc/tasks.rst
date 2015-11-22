@@ -332,7 +332,7 @@ You don't need to compile anything but you probably want to apply a lint-like
 tool (i.e. `pyflakes <http://pypi.python.org/pypi/pyflakes>`_) to your
 source code files. You can define the source code as a dependency to the task.
 
-Every depenendency in file_dep list should be a string or an instance of any
+Every dependency in file_dep list should be a string or an instance of any
 Path class from `pathlib <https://docs.python.org/3/library/pathlib.html>`_.
 
 
