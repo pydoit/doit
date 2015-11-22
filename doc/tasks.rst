@@ -133,7 +133,9 @@ python code from the `dodo` file. Let's take a look at another example:
   so in this example the line `msg = 3 * "hi! "` will always be executed.
 
 
-If `action` is a list of strings, by default it will be executed **without the shell** (Popen argument shell=False).
+If `action` is a list of strings and instances of any Path class from
+`pathlib <https://docs.python.org/3/library/pathlib.html>`_, by default it will
+be executed **without the shell** (Popen argument shell=False).
 
 .. literalinclude:: tutorial/cmd_actions_list.py
 
@@ -330,6 +332,9 @@ You don't need to compile anything but you probably want to apply a lint-like
 tool (i.e. `pyflakes <http://pypi.python.org/pypi/pyflakes>`_) to your
 source code files. You can define the source code as a dependency to the task.
 
+Every dependency in file_dep list should be a string or an instance of any
+Path class from `pathlib <https://docs.python.org/3/library/pathlib.html>`_.
+
 
 .. literalinclude:: tutorial/checker.py
 
@@ -351,7 +356,9 @@ targets
 
 Targets can be any file path (a file or folder). If a target doesn't exist
 the task will be executed. There is no limitation on the number of targets
-a task may define. Two different tasks can not have the same target.
+a task may define. Two different tasks can not have the same target. Target
+can be specified as a string or as an instance of any Path class from
+`pathlib <https://docs.python.org/3/library/pathlib.html>`_.
 
 Lets take the compilation example again.
 

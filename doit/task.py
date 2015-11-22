@@ -7,6 +7,7 @@ import sys
 import inspect
 from collections import OrderedDict
 from functools import partial
+from pathlib import PurePath
 
 from .cmdparse import CmdOption, TaskParse
 from .exceptions import CatchedException, InvalidTask
@@ -175,7 +176,7 @@ class Task(object):
         self.value_savers = []
         self.uptodate = self._init_uptodate(uptodate)
 
-        self.targets = targets
+        self.targets = self._init_targets(targets)
         self.is_subtask = is_subtask
         self.has_subtask = has_subtask
         self.result = None
@@ -216,6 +217,21 @@ class Task(object):
             self._expand_calc_dep(calc_dep)
 
 
+    def _init_targets(self, items):
+        """convert valid targets to `str`"""
+        targets = []
+        for target in items:
+            if isinstance(target, str):
+                targets.append(target)
+            elif isinstance(target, PurePath):
+                targets.append(str(target))
+            else:
+                msg = ("%s. target must be a str or Path from pathlib. " +
+                       "Got '%r' (%s)")
+                raise InvalidTask(msg % (self.name, target, type(target)))
+        return targets
+
+
     def _init_uptodate(self, items):
         """wrap uptodate callables"""
         uptodate = []
@@ -247,10 +263,14 @@ class Task(object):
     def _expand_file_dep(self, file_dep):
         """put input into file_dep"""
         for dep in file_dep:
-            if not isinstance(dep, str):
-                raise InvalidTask("%s. file_dep must be a str got '%r' (%s)" %
-                                  (self.name, dep, type(dep)))
-            self.file_dep.add(dep)
+            if isinstance(dep, str):
+                self.file_dep.add(dep)
+            elif isinstance(dep, PurePath):
+                self.file_dep.add(str(dep))
+            else:
+                msg = ("%s. file_dep must be a str or Path from pathlib. " +
+                       "Got '%r' (%s)")
+                raise InvalidTask(msg % (self.name, dep, type(dep)))
 
 
     def _expand_task_dep(self, task_dep):
