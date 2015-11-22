@@ -176,7 +176,7 @@ class Task(object):
         self.value_savers = []
         self.uptodate = self._init_uptodate(uptodate)
 
-        self.targets = [str(target) for target in targets]
+        self.targets = self._init_targets(targets)
         self.is_subtask = is_subtask
         self.has_subtask = has_subtask
         self.result = None
@@ -215,6 +215,21 @@ class Task(object):
         self.calc_dep = set()
         if calc_dep:
             self._expand_calc_dep(calc_dep)
+
+
+    def _init_targets(self, items):
+        """convert valid targets to `str`"""
+        targets = []
+        for target in items:
+            if isinstance(target, str):
+                targets.append(target)
+            elif isinstance(target, PurePath):
+                targets.append(str(target))
+            else:
+                msg = ("%s. target must be a str or Path from pathlib. " +
+                       "Got '%r' (%s)")
+                raise InvalidTask(msg % (self.name, target, type(target)))
+        return targets
 
 
     def _init_uptodate(self, items):

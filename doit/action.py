@@ -4,6 +4,7 @@
 import subprocess, sys
 from io import StringIO
 import inspect
+from pathlib import PurePath
 from threading import Thread
 
 from .exceptions import InvalidTask, TaskFailed, TaskError
@@ -224,7 +225,18 @@ class CmdAction(BaseAction):
 
         # cant expand keywords if action is a list of strings
         if isinstance(self.action, list):
-            return [str(x) for x in self.action]
+            action = []
+            for element in self.action:
+                if isinstance(element, str):
+                    action.append(element)
+                elif isinstance(element, PurePath):
+                    action.append(str(element))
+                else:
+                    msg = ("%s. CmdAction element must be a str " +
+                           "or Path from pathlib. Got '%r' (%s)")
+                    raise InvalidTask(
+                        msg % (self.task.name, element, type(element)))
+            return action
 
         subs_dict = {'targets' : " ".join(self.task.targets),
                      'dependencies': " ".join(self.task.file_dep)}

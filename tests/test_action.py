@@ -229,6 +229,12 @@ class TestCmdExpandAction(object):
         my_action = action.CmdAction(cmd, task)
         assert ["python", TEST_PATH, "myecho.py"] == my_action.expand_action()
 
+    def test_list_should_contain_strings_or_paths(self):
+        cmd = ["python", PurePath(TEST_PATH), 42, Path("myecho.py")]
+        task = FakeTask([], [], [], {})
+        my_action = action.CmdAction(cmd, task)
+        assert pytest.raises(action.InvalidTask, my_action.expand_action)
+
 
 class TestCmd_print_process_output(object):
     def test_non_unicode_string_error_strict(self):

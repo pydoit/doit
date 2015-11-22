@@ -192,12 +192,15 @@ class TestTaskDeps(object):
         assert [(None, None, None), (True, None, None)] == my_task.uptodate
 
 
-class TestTaskPathlibSupport(object):
-
+class TestTaskTargets(object):
     def test_targets_can_be_path(self):
         my_task = task.Task("Task X", ["taskcmd"],
                             targets=["123", Path("456"), PurePath("789")])
         assert ["123", "456", "789"] == my_task.targets
+
+    def test_targets_should_be_string_or_path(self):
+        assert pytest.raises(task.InvalidTask, task.Task, "Task X", ["taskcmd"],
+                             targets=["123", Path("456"), 789])
 
 
 class TestTask_Loader(object):
