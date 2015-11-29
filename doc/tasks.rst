@@ -536,3 +536,16 @@ You can control the verbosity by:
     hello
 
 * from command line, see :ref:`verbosity option<verbosity_option>`.
+
+
+pathlib
+--------
+
+`doit` supports `pathlib <https://docs.python.org/3/library/pathlib.html>`_:
+file_dep, targets and CmdAction specified as a list can take as elements not
+only strings but also instances of any Path class from pathlib.
+
+Lets take the compilation example and modify it to work with any number
+of header and source files in current directory using pathlib.
+
+.. literalinclude:: tutorial/compile_pathlib.py
