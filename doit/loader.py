@@ -27,7 +27,7 @@ def flat_generator(gen, gen_doc=''):
         if inspect.isgenerator(item):
             item_doc = item.gi_code.co_consts[0]
             for value, value_doc in flat_generator(item, item_doc):
-                yield value, value_doc
+                yield value, value_doc or gen_doc
         else:
             yield item, gen_doc
 
