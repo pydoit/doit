@@ -61,16 +61,6 @@ def task_coverage():
 DOC_ROOT = 'doc/'
 DOC_BUILD_PATH = DOC_ROOT + '_build/html/'
 
-def task_epydoc():
-    """# generate API docs"""
-    target_path = DOC_BUILD_PATH + 'api/'
-    return {'actions':[(create_folder, [target_path]),
-                       ("epydoc --config %sepydoc.config " % DOC_ROOT +
-                        "-o %(targets)s")],
-            'file_dep': CODE_FILES,
-            'targets': [target_path]}
-
-
 def task_docs():
     doc_files = glob.glob('doc/*.rst') + ['README.rst', 'CONTRIBUTING.md']
     yield docs.spell(doc_files, 'doc/dictionary.txt')
@@ -105,7 +95,7 @@ def task_tutorial_check():
 def task_website():
     """dodo file create website html files"""
     return {'actions': None,
-            'task_dep': ['epydoc', 'sphinx', 'tutorial_check'],
+            'task_dep': ['sphinx', 'tutorial_check'],
             }
 
 def task_website_update():
