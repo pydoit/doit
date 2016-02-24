@@ -10,8 +10,6 @@ from doitpy import docs
 from doitpy.package import Package
 
 
-from doit.tools import create_folder
-
 DOIT_CONFIG = {
     'minversion': '0.24.0',
     'default_tasks': ['pyflakes', 'ut'],
