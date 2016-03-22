@@ -11,7 +11,9 @@ Changes
  - fix GH-#99: positional argument on tasks not specified from cmd-line
  - fix GH-#97: `list` command does not display task-doc for `DelayedTask`
                 when `creates` is specified
+ - fix GH-#131: race condition in doit.tools.create_folder
  - GH-#114: `file_dep`, `targets` and `CmdAction` support pathlib.
+
 
 
 0.29.0 (*2015-08-16*)
