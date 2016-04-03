@@ -701,6 +701,21 @@ class TestPythonActionPrepareKwargsMeta(object):
         my_action.execute()
         assert [1, (2, 3), 4, 5] == got, repr(got)
 
+    def test_action_modifies_task_attributes(self, task_depchanged):
+        def py_callable(targets, dependencies, changed, task):
+            targets.append('new_target')
+            dependencies.append('new_dependency')
+            changed.append('new_changed')
+        my_action = action.PythonAction(py_callable, task=task_depchanged)
+        my_action.execute()
+
+        assert task_depchanged.file_dep == ['dependencies', 'new_dependency']
+
+        assert task_depchanged.targets == ['targets', 'new_target']
+
+        assert task_depchanged.dep_changed == ['changed', 'new_changed']
+
+
 ##############
 
 
