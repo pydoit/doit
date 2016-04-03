@@ -202,8 +202,9 @@ metadata.
   Note that the *task* argument is a `Task` object instance, not
   the metadata *dict*.
 
-  It is possible not only to retrieve task's attributes but also to modify
-  them while the action is running!
+
+It is possible not only to retrieve task's attributes but also to modify
+them while the action is running!
 
 
 task name
