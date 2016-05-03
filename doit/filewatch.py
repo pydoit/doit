@@ -69,14 +69,7 @@ class FileModifyWatcher(object):
             observer.schedule(stream)
 
         observer.daemon = True
-        observer.start()
-        try:
-            # hack to keep main thread running...
-            import time
-            while True:
-                time.sleep(99999)
-        except (SystemExit, KeyboardInterrupt):
-            pass
+        observer.run()
 
 
     def _loop_linux(self, loop_callback):
