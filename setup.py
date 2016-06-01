@@ -8,6 +8,14 @@ from setuptools import setup
 install_requires = ['cloudpickle']
 
 
+########### last version to support python2 is 0.29 ####
+if sys.version_info[0] < 3:
+    sys.exit('This version of doit is only supported by Python 3.\n' +
+             'Please use doit==0.29.0 with Python 2.')
+
+########################################################
+
+
 ########### platform specific stuff #############
 import platform
 platform_system = platform.system()
