@@ -160,6 +160,12 @@ You can specify a different *cwd* with the *-d*/*--dir* option.
 
     $ doit --dir path/to/another/cwd
 
+.. note::
+
+   It is possible to get a reference to the original initial
+   current working directory (location where the command line
+   was executed) using :ref:`initial_workdir`.
+
 
 continue
 ---------
@@ -325,14 +331,15 @@ If the option ``--pdb`` is used, a post-mortem debugger will be launched in case
 of a unhandled exception while loading tasks.
 
 
+.. _initial_workdir:
 
-get_initial_workdir
+get_initial_workdir()
 ---------------------
 
 When `doit` executes by default it will use the location of `dodo.py`
 as the current working directory (unless --dir is specified).
-The value of `doit.get_initial_workdir` will contain the path from where
-`doit` was invoked from.
+The value of `doit.get_initial_workdir()` will contain the path
+from where `doit` was invoked from.
 
 This can be used for example set which tasks will be executed:
 

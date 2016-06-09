@@ -12,6 +12,7 @@ Changes
  - fix GH-#97: `list` command does not display task-doc for `DelayedTask`
                 when `creates` is specified
  - fix GH-#131: race condition in doit.tools.create_folder
+ - fix `auto` command on OS-X systems
  - GH-#114: `file_dep`, `targets` and `CmdAction` support pathlib.
 
 
