@@ -1,6 +1,7 @@
 """Implements actions used by doit tasks
 """
 
+import os
 import subprocess, sys
 from io import StringIO
 import inspect
@@ -104,8 +105,14 @@ class CmdAction(BaseAction):
     """
 
     def __init__(self, action, task=None, save_out=None, shell=True,
-                 encoding='utf-8', decode_error='replace',
+                 encoding='utf-8', decode_error='replace', buffering=0,
                  **pkwargs): #pylint: disable=W0231
+        '''
+        :ivar buffering: (int) stdout/stderr buffering.
+               Not to be confused with subprocess buffering
+               -   0 -> line buffering
+               -   positive int -> number of bytes
+        '''
         for forbidden in ('stdout', 'stderr'):
             if forbidden in pkwargs:
                 msg = "CmdAction can't take param named '{0}'."
@@ -121,6 +128,7 @@ class CmdAction(BaseAction):
         self.encoding = encoding
         self.decode_error = decode_error
         self.pkwargs = pkwargs
+        self.buffering = buffering
 
     @property
     def action(self):
@@ -134,15 +142,20 @@ class CmdAction(BaseAction):
 
 
     def _print_process_output(self, process, input_, capture, realtime):
-        """read 'input_' (bytes) untill process is terminated
-        write 'input_' content to 'capture' (string) and 'realtime' stream
+        """Reads 'input_' untill process is terminated.
+        Writes 'input_' content to 'capture' (string)
+        and 'realtime' stream
         """
-        while True:
+        if self.buffering:
+            read = lambda: input_.read(self.buffering)
+        else:
             # line buffered
+            read = lambda: input_.readline()
+        while True:
             try:
-                line = input_.readline().decode(self.encoding,
-                                                self.decode_error)
+                line = read().decode(self.encoding, self.decode_error)
             except:
+                # happens when fails to decoded input
                 process.terminate()
                 input_.read()
                 raise
@@ -151,6 +164,7 @@ class CmdAction(BaseAction):
             capture.write(line)
             if realtime:
                 realtime.write(line)
+                realtime.flush() # required if on byte buffering mode
 
 
     def execute(self, out=None, err=None):
@@ -171,12 +185,22 @@ class CmdAction(BaseAction):
         try:
             action = self.expand_action()
         except Exception as exc:
-            return TaskError("CmdAction Error creating command string", exc)
+            return TaskError(
+                "CmdAction Error creating command string", exc)
+
+        # set environ to change output buffering
+        env = None
+        if self.buffering:
+            env = os.environ.copy()
+            env['PYTHONUNBUFFERED'] = '1'
 
         # spawn task process
         process = subprocess.Popen(
-            action, shell=self.shell,
+            action,
+            shell=self.shell,
+            #bufsize=2, # ??? no effect use PYTHONUNBUFFERED instead
             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            env=env,
             **self.pkwargs)
 
         output = StringIO()

@@ -148,6 +148,30 @@ Option to change the default global task :ref:`verbosity<verbosity>` value.
     $ doit --verbosity 2
 
 
+output buffering
+----------------
+
+The output (`stdout` and `stderr`) is by default line-buffered
+for `CmdAction`. You can change that by specifying the `buffering`
+parameter when creating a `CmdAction`. The value zero (the default)
+means line-buffered, positive integers are the number of bytes to
+be read per call.
+
+Note this controls the buffering from the `doit` process and the
+terminal, not to be confused with subprocess.Popen `buffered`.
+
+
+.. code-block:: python
+
+   from doit.action import CmdAction
+
+   def task_progress():
+      return {
+        'actions': [CmdAction("progress_bar", buffering=1)],
+   }
+
+
+
 
 dir (cwd)
 -----------

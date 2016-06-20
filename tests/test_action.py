@@ -5,8 +5,10 @@ import textwrap
 import locale
 locale # quiet pyflakes
 from pathlib import PurePath, Path
-
 from io import StringIO, BytesIO
+from threading import Thread
+import time
+
 import pytest
 from mock import Mock
 
@@ -236,13 +238,14 @@ class TestCmdExpandAction(object):
         assert pytest.raises(action.InvalidTask, my_action.expand_action)
 
 
-class TestCmd_print_process_output(object):
+class TestCmd_print_process_output_line(object):
     def test_non_unicode_string_error_strict(self):
         my_action = action.CmdAction("", decode_error='strict')
         not_unicode = BytesIO('\xa9'.encode("latin-1"))
         realtime = Mock()
         realtime.encoding = 'utf-8'
-        pytest.raises(UnicodeDecodeError, my_action._print_process_output,
+        pytest.raises(UnicodeDecodeError,
+                      my_action._print_process_output,
                       Mock(), not_unicode, Mock(), realtime)
 
     def test_non_unicode_string_error_replace(self):
@@ -251,7 +254,8 @@ class TestCmd_print_process_output(object):
         realtime = Mock()
         realtime.encoding = 'utf-8'
         capture = StringIO()
-        my_action._print_process_output(Mock(), not_unicode, capture, realtime)
+        my_action._print_process_output(
+            Mock(), not_unicode, capture, realtime)
         # get the replacement char
         expected = '�'
         assert expected == capture.getvalue()
@@ -262,7 +266,8 @@ class TestCmd_print_process_output(object):
         realtime = Mock()
         realtime.encoding = 'utf-8'
         capture = StringIO()
-        my_action._print_process_output(Mock(), not_unicode, capture, realtime)
+        my_action._print_process_output(
+            Mock(), not_unicode, capture, realtime)
         # get the correct char from latin-1 encoding
         expected = '©'
         assert expected == capture.getvalue()
@@ -276,7 +281,8 @@ class TestCmd_print_process_output(object):
         unicode_in = tempfile.TemporaryFile('w+b')
         unicode_in.write(" 中文".encode('utf-8'))
         unicode_in.seek(0)
-        my_action._print_process_output(Mock(), unicode_in, Mock(), tmpfile)
+        my_action._print_process_output(
+            Mock(), unicode_in, Mock(), tmpfile)
 
     @pytest.mark.skipif('locale.getlocale()[1] is None')
     def test_unicode_string2(self, tmpfile):
@@ -285,7 +291,59 @@ class TestCmd_print_process_output(object):
         unicode_in = tempfile.TemporaryFile('w+b')
         unicode_in.write(" 中文 \u2018".encode('utf-8'))
         unicode_in.seek(0)
-        my_action._print_process_output(Mock(), unicode_in, Mock(), tmpfile)
+        my_action._print_process_output(
+            Mock(), unicode_in, Mock(), tmpfile)
+
+    def test_line_buffered_output(self):
+        my_action = action.CmdAction("")
+        out, inp = os.pipe()
+        out, inp = os.fdopen(out, 'rb'), os.fdopen(inp, 'wb')
+        inp.write('abcd\nline2'.encode('utf-8'))
+        inp.flush()
+        capture = StringIO()
+
+        thread = Thread(target=my_action._print_process_output,
+                        args=(Mock(), out, capture, None))
+        thread.start()
+        time.sleep(0.1)
+        try:
+            got = capture.getvalue()
+            # 'line2' is not captured because of line buffering
+            assert 'abcd\n' == got
+            print('asserted')
+        finally:
+            inp.close()
+
+    def test_unbuffered_output(self):
+        my_action = action.CmdAction("", buffering=1)
+        out, inp = os.pipe()
+        out, inp = os.fdopen(out, 'rb'), os.fdopen(inp, 'wb')
+        inp.write('abcd\nline2'.encode('utf-8'))
+        inp.flush()
+        capture = StringIO()
+
+        thread = Thread(target=my_action._print_process_output,
+                        args=(Mock(), out, capture, None))
+        thread.start()
+        time.sleep(0.1)
+        try:
+            got = capture.getvalue()
+            assert 'abcd\nline2' == got
+        finally:
+            inp.close()
+
+
+    def test_unbuffered_env(self, monkeypatch):
+        my_action = action.CmdAction("", buffering=1)
+        proc_mock = Mock()
+        proc_mock.configure_mock(returncode=0)
+        popen_mock = Mock(return_value=proc_mock)
+        from doit.action import subprocess
+        monkeypatch.setattr(subprocess, 'Popen', popen_mock)
+        my_action._print_process_output = Mock()
+        my_action.execute()
+        env = popen_mock.call_args[-1]['env']
+        assert env and env.get('PYTHONUNBUFFERED', False) == '1'
 
 
 

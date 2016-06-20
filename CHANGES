@@ -7,6 +7,7 @@ Changes
 =====================
 
  - BACKWARD INCOMPATIBLE: #112 drop python2 compatibility
+ - GH-#94: option to read output from CmdAction line or byte buffered
  - fix GH-#100: make cmd `completion` output deterministic
  - fix GH-#99: positional argument on tasks not specified from cmd-line
  - fix GH-#97: `list` command does not display task-doc for `DelayedTask`
