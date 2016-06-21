@@ -146,6 +146,9 @@ class Task(object):
         self.check_attr(name, 'title', title, self.valid_attr['title'])
         self.check_attr(name, 'watch', watch, self.valid_attr['watch'])
 
+        if '=' in name:
+            msg = "Task '{}': name must not use the char '=' (equal sign)."
+            raise InvalidTask(msg.format(name))
         self.name = name
         self.params = params # save just for use on command `info`
         self.options = None

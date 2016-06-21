@@ -88,6 +88,10 @@ class TestTaskInit(object):
         t = task.Task("task5", ['action'], setup=["task2"])
         assert ["task2"] == t.setup_tasks
 
+    def test_forbid_equal_sign_on_name(self):
+        pytest.raises(task.InvalidTask,
+                      task.Task, "a=1", ["taskcmd"])
+
 
 class TestTaskValueSavers(object):
     def test_execute_value_savers(self):
