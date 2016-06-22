@@ -1,3 +1,4 @@
+
 ========
 Tasks
 ========
@@ -346,10 +347,23 @@ Path class from `pathlib <https://docs.python.org/3/library/pathlib.html>`_.
    $ doit
    -- checker
 
+
+`doit` checks if `file_dep` was modified or not
+(by comparing the file content's MD5). If there are no changes the action
+is not executed again as it would produce the same result.
+
 Note the ``--`` again to indicate the execution was skipped.
 
 Traditional build-tools can only handle files as "dependencies".
 `doit` has several ways to check for dependencies, those will be introduced later.
+
+
+.. note::
+
+   `doit` saves the MD5 of a `file_dep` after the actions are executed.
+   Be careful about editing a `file_dep` while a task is running because
+   `doit` might saves the MD5 of a version of the file that is different
+   than it actually used to execute the task.
 
 
 targets
