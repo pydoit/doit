@@ -6,7 +6,7 @@ from doit.exceptions import InvalidCommand
 from doit.task import Task
 from doit.tools import result_dep
 from doit.cmd_list import List
-from tests.conftest import tasks_sample, CmdFactory
+from tests.conftest import tasks_sample, tasks_bad_sample, CmdFactory
 
 
 class TestCmdList(object):
@@ -98,6 +98,20 @@ class TestCmdList(object):
         assert 'R g1' in got
         assert 'I t1' in got
         assert 'U t2' in got
+
+
+    def testErrorStatus(self, dependency1, depfile):
+        """Check that problematic tasks show an 'E' as status."""
+        task_list = tasks_bad_sample()
+
+        output = StringIO()
+        cmd_list = CmdFactory(List, outstream=output, dep_file=depfile.name,
+                        backend='dbm', task_list=task_list)
+        cmd_list._execute(status=True)
+        for line in output.getvalue().split('\n'):
+            if line:
+                assert line.strip().startswith('E ')
+
 
     def testStatus_result_dep_bug_gh44(self, dependency1, depfile):
         # make sure task dict is passed when checking up-to-date
