@@ -14,20 +14,28 @@ def get_abspath(relativePath):
     return os.path.join(os.path.dirname(__file__), relativePath)
 
 # fixture to create a sample file to be used as file_dep
-@pytest.fixture
-def dependency1(request):
-    path = get_abspath("data/dependency1")
-    if os.path.exists(path): os.remove(path)
-    ff = open(path, "w")
-    ff.write("whatever" + str(time.asctime()))
-    ff.close()
+def dependency_factory(relative_path):
 
-    def remove_dependency():
-        if os.path.exists(path):
-            os.remove(path)
-    request.addfinalizer(remove_dependency)
+    @pytest.fixture
+    def dependency(request):
+        path = get_abspath(relative_path)
+        if os.path.exists(path): os.remove(path)
+        ff = open(path, "w")
+        ff.write("whatever" + str(time.asctime()))
+        ff.close()
 
-    return path
+        def remove_dependency():
+            if os.path.exists(path):
+                os.remove(path)
+        request.addfinalizer(remove_dependency)
+
+        return path
+
+    return dependency
+
+
+dependency1 = dependency_factory("data/dependency1")
+dependency2 = dependency_factory("data/dependency2")
 
 # fixture to create a sample file to be used as file_dep
 @pytest.fixture

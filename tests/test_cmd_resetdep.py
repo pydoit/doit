@@ -81,6 +81,30 @@ class TestCmdResetDep(object):
         assert ("failed t2 (Dependent file 'tests/data/missing' does not "
                 "exist.)\n") == got
 
+    def test_missing_dep_and_target(self, depfile, dependency1, dependency2):
+
+        task_a = Task("task_a", [""],
+                      file_dep=['tests/data/dependency1'],
+                      targets=['tests/data/dependency2'])
+        task_b = Task("task_b", [""],
+                      file_dep=['tests/data/dependency2'],
+                      targets=['tests/data/dependency3'])
+        task_c = Task("task_c", [""],
+                      file_dep=['tests/data/dependency3'],
+                      targets=['tests/data/dependency4'])
+
+        output = StringIO()
+        tasks = [task_a, task_b, task_c]
+        cmd_reset = CmdFactory(ResetDep, outstream=output, task_list=tasks,
+                               dep_manager=depfile)
+        cmd_reset._execute()
+
+        got = output.getvalue()
+        assert ("processed task_a\n"
+                "processed task_b\n"
+                "failed task_c (Dependent file 'tests/data/dependency3'"
+                " does not exist.)\n") == got
+
     def test_values_and_results(self, depfile, dependency1):
         my_task = Task("t2", [""], file_dep=['tests/data/dependency1'])
         my_task.result = "result"
