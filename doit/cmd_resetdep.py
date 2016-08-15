@@ -65,7 +65,13 @@ to a task that has already run.
                 continue
 
             task.values = values
-            self.dep_manager.save_success(task, result_hash=result)
+
+            try:
+                self.dep_manager.save_success(task, result_hash=result)
+            except OSError as e:
+                write("failed {} ({})\n".format(task.name, e))
+                continue
+
             write("processed {}\n".format(task.name))
 
         self.dep_manager.close()
