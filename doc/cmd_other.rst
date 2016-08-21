@@ -34,13 +34,14 @@ list
 ------
 
 *list* is used to show all tasks available in a *dodo* file.
+Tasks are listed in alphabetical order, not by order of execution.
 
 .. code-block:: console
 
    $ doit list
-   link : create binary program
    compile : compile C files
    install : install executable (TODO)
+   link : create binary program
 
 
 By default task name and description are listed. The task description is taken
