@@ -100,7 +100,9 @@ class TestCmdResetDep(object):
         cmd_reset._execute()
 
         got = output.getvalue()
-        assert ("processed task_a\nprocessed task_b\n"
+        assert ("processed task_a\n"
+                "failed task_b (Dependent file 'tests/data/dependency2'"
+                " does not exist.)\n"
                 "failed task_c (Dependent file 'tests/data/dependency3'"
                 " does not exist.)\n") == got
 
