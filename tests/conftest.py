@@ -31,6 +31,22 @@ def dependency1(request):
 
 # fixture to create a sample file to be used as file_dep
 @pytest.fixture
+def dependency2(request):
+    path = get_abspath("data/dependency2")
+    if os.path.exists(path): os.remove(path)
+    ff = open(path, "w")
+    ff.write("whatever" + str(time.asctime()))
+    ff.close()
+
+    def remove_dependency():
+        if os.path.exists(path):
+            os.remove(path)
+    request.addfinalizer(remove_dependency)
+
+    return path
+
+# fixture to create a sample file to be used as file_dep
+@pytest.fixture
 def target1(request):
     path = get_abspath("data/target1")
     if os.path.exists(path): # pragma: no cover

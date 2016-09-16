@@ -81,7 +81,7 @@ class TestCmdResetDep(object):
         assert ("failed t2 (Dependent file 'tests/data/missing' does not "
                 "exist.)\n") == got
 
-    def test_missing_dep_and_target(self, depfile, dependency1):
+    def test_missing_dep_and_target(self, depfile, dependency1, dependency2):
 
         task_a = Task("task_a", [""],
                       file_dep=['tests/data/dependency1'],
@@ -101,8 +101,7 @@ class TestCmdResetDep(object):
 
         got = output.getvalue()
         assert ("processed task_a\n"
-                "failed task_b (Dependent file 'tests/data/dependency2'"
-                " does not exist.)\n"
+                "processed task_b\n"
                 "failed task_c (Dependent file 'tests/data/dependency3'"
                 " does not exist.)\n") == got
 
