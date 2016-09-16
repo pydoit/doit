@@ -99,14 +99,10 @@ class TestCmdResetDep(object):
                                dep_manager=depfile)
         cmd_reset._execute()
 
-        got = [line.strip().split()[:2] for line in output.getvalue().split('\n') if line]
-        got_status = [g[0] for g in got]
-        got_task_names = [g[1] for g in got]
-        expected_task_names = [t.name for t in tasks]
-
-        assert 'processed' in got_status
-        assert 'failed' in got_status
-        assert sorted(got_task_names) == sorted(expected_task_names)
+        got = output.getvalue()
+        assert ("processed task_a\nprocessed task_b\n"
+                "failed task_c (Dependent file 'tests/data/dependency3'"
+                " does not exist.)\n") == got
 
     def test_values_and_results(self, depfile, dependency1):
         my_task = Task("t2", [""], file_dep=['tests/data/dependency1'])
