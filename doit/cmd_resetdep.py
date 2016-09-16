@@ -56,12 +56,12 @@ to a task that has already run.
                 if not os.path.exists(dependency):
                     missing_deps.append(dependency)
 
-            res = self.dep_manager.get_status(task, tasks)
-
             if len(missing_deps) > 0:
                 write("failed {} (Dependent file '{}' does not "
                 "exist.)\n".format(task.name, "', '".join(missing_deps)))
                 continue
+
+            res = self.dep_manager.get_status(task, tasks)
 
             # An 'up-to-date' status means that it is useless to recompute the
             # state: file deps and targets exists, the state has not changed,
