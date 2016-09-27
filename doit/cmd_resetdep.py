@@ -51,10 +51,8 @@ to a task that has already run.
             values = self.dep_manager.get_values(task.name)
             result = self.dep_manager.get_result(task.name)
 
-            missing_deps = []
-            for dependency in task.file_dep:
-                if not os.path.exists(dependency):
-                    missing_deps.append(dependency)
+            missing_deps = [dep for dep in task.file_dep
+                            if not os.path.exists(dep)]
 
             if len(missing_deps) > 0:
                 write("failed {} (Dependent file '{}' does not "
@@ -71,9 +69,7 @@ to a task that has already run.
                 continue
 
             task.values = values
-
             self.dep_manager.save_success(task, result_hash=result)
-
             write("processed {}\n".format(task.name))
 
         self.dep_manager.close()
