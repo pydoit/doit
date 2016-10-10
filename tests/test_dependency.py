@@ -1,5 +1,7 @@
 import os
 import time
+import sys
+import tempfile
 
 import pytest
 
@@ -28,6 +30,15 @@ def test_md5():
     expected = "45d1503cb985898ab5bd8e58973007dd"
     assert expected == get_file_md5(filePath)
 
+
+def test_sqlite_import():
+    """
+    Checks that SQLite module is not imported until the SQLite class is instantiated
+    """
+    with tempfile.NamedTemporaryFile() as temp:
+        assert 'sqlite3' not in sys.modules
+        SqliteDB(temp.name)
+        assert 'sqlite3' in sys.modules
 
 ####
 # dependencies are files only (not other tasks).
