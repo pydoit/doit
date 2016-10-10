@@ -2,6 +2,7 @@ import os
 import time
 import sys
 import tempfile
+import uuid
 
 import pytest
 
@@ -35,10 +36,13 @@ def test_sqlite_import():
     """
     Checks that SQLite module is not imported until the SQLite class is instantiated
     """
-    with tempfile.NamedTemporaryFile() as temp:
-        assert 'sqlite3' not in sys.modules
-        SqliteDB(temp.name)
-        assert 'sqlite3' in sys.modules
+    filename = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()))
+
+    assert 'sqlite3' not in sys.modules
+    SqliteDB(filename)
+    assert 'sqlite3' in sys.modules
+
+    os.remove(filename)
 
 ####
 # dependencies are files only (not other tasks).
