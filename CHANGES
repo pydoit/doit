@@ -3,7 +3,8 @@
 Changes
 =======
 
-0.30.0 (*unreleased*)
+
+0.30.0 (*2016-11-22*)
 =====================
 
  - BACKWARD INCOMPATIBLE: #112 drop python2 compatibility

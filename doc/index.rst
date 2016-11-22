@@ -188,14 +188,12 @@ Status
 
 This blog `post <http://schettino72.wordpress.com/2008/04/14/doit-a-build-tool-tale/>`_ explains how everything started in 2008.
 
-`doit` is under active development. Version 0.29 released on 2015-08.
+`doit` is under active development. Version 0.30 released on 2016-11.
 
 `doit` core features are quite stable. If there is no recent development,
 it does NOT mean `doit` is not being maintained...
-The project has 100% unit-test code coverage
-and kept with *zero* bugs in the tracker.
+The project has 100% unit-test code coverage.
 
 Development is done based on real world use cases.
 It is well designed and has a small code base,
 so adding new features is not hard. Patches are welcome.
-
