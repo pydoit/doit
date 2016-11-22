@@ -261,7 +261,7 @@ zsh completion scripts should be placed in a folder in the "autoload" path.
 .. code-block:: sh
 
     # add folder with completion scripts
-    fpath=(~/.zsh/completion $fpath)
+    fpath=(~/.zsh/tabcompletion $fpath)
 
     # Use modern completion system
     autoload -Uz compinit
