@@ -35,7 +35,7 @@ configuration management, etc.
 
 setup(name = 'doit',
       description = 'doit - Automation Tool',
-      version = '0.30.1',
+      version = '0.30.2',
       license = 'MIT',
       author = 'Eduardo Naufel Schettino',
       author_email = 'schettino72@gmail.com',
@@ -66,7 +66,7 @@ setup(name = 'doit',
       packages = ['doit'],
       install_requires = install_requires,
       extras_require={
-          ':python_version <= "3.3"': ['pathlib2'],
+          ':python_version <= "3.3"': ['pathlib'],
           ':sys.platform == "darwin"': ['macfsevents'],
           ':sys.platform == "linux"': ['pyinotify'],
       },
