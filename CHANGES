@@ -3,6 +3,11 @@
 Changes
 =======
 
+0.30.1
+=====================
+
+ - Fix GH-#159 KeyError on doit list --status when missing file dependency
+ - add python3.6 support
 
 0.30.0 (*2016-11-22*)
 =====================

@@ -90,6 +90,7 @@ IPython's
 InteractiveAction
 InvalidCommand
 JSON
+KeyError
 KeyboardInterrupt
 L485
 LongRunning
