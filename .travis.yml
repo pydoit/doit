@@ -12,6 +12,9 @@ addons:
     packages:
       - strace
 
+before_install:
+  - pip install -U pip setuptools
+
 install:
   - pip install .
   - pip install -r dev_requirements.txt python-coveralls
