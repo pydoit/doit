@@ -65,7 +65,7 @@ class List(DoitCmdBase):
                    opt_list_private, opt_list_dependencies, opt_template)
 
 
-    STATUS_MAP = {'ignore': 'I', 'up-to-date': 'U', 'run': 'R'}
+    STATUS_MAP = {'ignore': 'I', 'up-to-date': 'U', 'run': 'R', 'error': 'E'}
 
 
     def _print_task(self, template, task, status, list_deps, tasks):

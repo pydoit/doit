@@ -146,6 +146,14 @@ def tasks_sample():
     return tasks_sample
 
 
+def tasks_bad_sample():
+    """Create list of tasks that cause errors."""
+    bad_sample = [
+        Task("e1", [""], doc='e4 bad file dep', file_dep=['xxxx'])
+    ]
+    return bad_sample
+
+
 def CmdFactory(cls, outstream=None, task_loader=None, dep_file=None,
                backend=None, task_list=None, sel_tasks=None,
                dep_manager=None, config=None, cmds=None):
