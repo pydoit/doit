@@ -1,4 +1,4 @@
-"""extra goodies to be used in dodo files"""
+﻿"""extra goodies to be used in dodo files"""
 
 import os
 import time as time_module
@@ -69,7 +69,7 @@ class config_changed(object):
         task.value_savers.append(lambda: {'_config_changed':self.config_digest})
 
     def __call__(self, task, values):
-        """return True if confing values are UNCHANGED"""
+        """return True if config values are UNCHANGED"""
         self.config_digest = self._calc_digest()
         last_success = values.get('_config_changed')
         if last_success is None:
@@ -210,7 +210,7 @@ class PythonInteractiveAction(PythonAction):
     """Action to handle Interactive python:
 
        * the output is never captured
-       * it is successful unless a exeception is raised
+       * it is successful unless a exception is raised
     """
     def execute(self, out=None, err=None):
         kwargs = self._prepare_kwargs()

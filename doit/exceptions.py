@@ -1,4 +1,4 @@
-"""Handle exceptions generated from 'user' code"""
+﻿"""Handle exceptions generated from 'user' code"""
 
 import sys
 import traceback
@@ -43,7 +43,7 @@ class InvalidTask(Exception):
 
 
 class CatchedException(object):
-    """This used to save info from catched exceptions
+    """This used to save info from caught exceptions
     The traceback from the original exception is saved
     """
     def __init__(self, msg, exception=None):

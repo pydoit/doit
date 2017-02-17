@@ -1,4 +1,4 @@
-from .cmd_base import DoitCmdBase
+﻿from .cmd_base import DoitCmdBase
 from .cmd_base import check_tasks_exist, tasks_and_deps_iter, subtasks_iter
 
 
@@ -60,7 +60,7 @@ class Clean(DoitCmdBase):
                                              from cmd-line
         """
         tasks = dict([(t.name, t) for t in self.task_list])
-        # behaviour of cleandep is different if selected_tasks comes from
+        # behavior of cleandep is different if selected_tasks comes from
         # command line or DOIT_CONFIG.default_tasks
         selected_tasks = pos_args
         check_tasks_exist(tasks, selected_tasks)
@@ -80,7 +80,7 @@ class Clean(DoitCmdBase):
 
         # include dependencies in list
         if cleandep:
-            # including repeated entries will garantee that deps are listed
+            # including repeated entries will guarantee that deps are listed
             # first when the list is reversed
             to_clean = list(tasks_and_deps_iter(tasks, clean_list, True))
         # include only subtasks in list

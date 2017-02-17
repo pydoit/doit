@@ -1,4 +1,4 @@
-from .exceptions import InvalidDodoFile
+﻿from .exceptions import InvalidDodoFile
 from .cmdparse import TaskParse, CmdOption
 from .cmd_base import DoitCmdBase
 
@@ -156,7 +156,7 @@ class Help(DoitCmdBase):
         else:
             # help of specific task
             try:
-                # call base class implemention to execute _execute()
+                # call base class implementation to execute _execute()
                 if not DoitCmdBase.execute(self, params, args):
                     self.print_usage(self.cmds)
             except InvalidDodoFile:

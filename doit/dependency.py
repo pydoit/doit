@@ -1,4 +1,4 @@
-"""Manage (save/check) task dependency-on-files data."""
+﻿"""Manage (save/check) task dependency-on-files data."""
 
 import os
 import hashlib
@@ -106,12 +106,12 @@ class JsonDB(object):
 
 
     def remove(self, task_id):
-        """remove saved dependecies from DB for taskId"""
+        """remove saved dependencies from DB for taskId"""
         if task_id in self._db:
             del self._db[task_id]
 
     def remove_all(self):
-        """remove saved dependecies from DB for all tasks"""
+        """remove saved dependencies from DB for all tasks"""
         self._db = {}
 
 
@@ -204,7 +204,7 @@ class DbmDB(object):
 
 
     def remove(self, task_id):
-        """remove saved dependecies from DB for taskId"""
+        """remove saved dependencies from DB for taskId"""
         if task_id in self._db:
             del self._db[task_id]
         if self._in_dbm(task_id):
@@ -214,7 +214,7 @@ class DbmDB(object):
 
 
     def remove_all(self):
-        """remove saved dependecies from DB for all tasks"""
+        """remove saved dependencies from DB for all tasks"""
         self._db = {}
         # dumb dbm always opens file in update mode
         if isinstance(self._dbm, dumb._Database): # pragma: no cover
@@ -320,7 +320,7 @@ class SqliteDB(object):
         self._dirty = set()
 
     def remove(self, task_id):
-        """remove saved dependecies from DB for taskId"""
+        """remove saved dependencies from DB for taskId"""
         if task_id in self._cache:
             del self._cache[task_id]
         if task_id in self._dirty:
@@ -328,7 +328,7 @@ class SqliteDB(object):
         self._conn.execute('delete from doit where task_id=?', (task_id,))
 
     def remove_all(self):
-        """remove saved dependecies from DB for all task"""
+        """remove saved dependencies from DB for all task"""
         self._conn.execute('delete from doit')
         self._cache = {}
         self._dirty = set()
@@ -349,7 +349,7 @@ class FileChangedChecker(object):
         raise NotImplementedError()
 
     def get_state(self, dep, current_state):
-        """Compute the state of a task after it has been successfuly executed.
+        """Compute the state of a task after it has been successfully executed.
 
         @param dep (str): path of the dependency file.
         @param current_state (tuple): the current state, saved from a previous
@@ -490,7 +490,7 @@ class Dependency(object):
     ####### task specific
 
     def save_success(self, task, result_hash=None):
-        """save info after a task is successfuly executed
+        """save info after a task is successfully executed
 
         :param result_hash: (str) explicitly set result_hash
         """
@@ -570,7 +570,7 @@ class Dependency(object):
 
         task.dep_changed (list-strings): file-dependencies that are not
         up-to-date if task not up-to-date because of a target, returned value
-        will contain all file-dependencies reagrdless they are up-to-date
+        will contain all file-dependencies regardless they are up-to-date
         or not.
         """
         result = DependencyStatus(get_log)
@@ -637,7 +637,7 @@ class Dependency(object):
         if previous and previous != checker_name:
             task.dep_changed = list(task.file_dep)
             # remove all saved values otherwise they might be re-used by
-            # some optmization on MD5Checker.get_state()
+            # some optimization on MD5Checker.get_state()
             self.remove(task.name)
             if result.set_reason('checker_changed', (previous, checker_name)):
                 return result

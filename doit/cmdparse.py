@@ -1,4 +1,4 @@
-"""Parse command line options and execute it.
+﻿"""Parse command line options and execute it.
 
 Built on top of getopt. optparse can't handle sub-commands.
 """
@@ -14,7 +14,7 @@ class DefaultUpdate(dict):
 
     This is used when you have a dict that has multiple source of values
     (i.e. hardcoded, config file, command line). And values are updated
-    beggining from the source with higher priority.
+    beginning from the source with higher priority.
 
     A default value is added with the method set_default or add_defaults.
     """
@@ -133,7 +133,7 @@ class CmdOption(object):
     def str2type(self, str_val):
         """convert string value to option type value"""
         try:
-            # no coversion if value is not a string
+            # no conversion if value is not a string
             if not isinstance(str_val, str):
                 val = str_val
             elif self.type is bool:

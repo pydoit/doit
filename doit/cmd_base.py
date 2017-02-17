@@ -1,4 +1,4 @@
-import inspect
+﻿import inspect
 import sys
 from collections import deque
 
@@ -45,12 +45,12 @@ class Command(object):
     # doc attributes, should be sub-classed
     doc_purpose = ''
     doc_usage = ''
-    doc_description = None # None value will completely ommit line from doc
+    doc_description = None # None value will completely omit line from doc
 
     # sequence of dicts
     cmd_options = tuple()
 
-    # `execute_tasks` indicates wheather this command execute task's actions.
+    # `execute_tasks` indicates whether this command execute task's actions.
     # This is used by the loader to indicate when delayed task creation
     # should be used.
     execute_tasks = False
@@ -104,7 +104,7 @@ class Command(object):
     def execute(self, opt_values, pos_args): # pragma: no cover
         """execute command
         :param opt_values: (dict) with cmd_options values
-        :param pos_args: (list) of cmd-line positinal arguments
+        :param pos_args: (list) of cmd-line positional arguments
         """
         raise NotImplementedError()
 
@@ -304,7 +304,7 @@ class DoitCmdBase(Command):
 
     @staticmethod
     def check_minversion(minversion):
-        """check if this version of doit statisfy minimum required version
+        """check if this version of doit satisfy minimum required version
         Minimum version specified by configuration on dodo.
         """
         if minversion:
@@ -387,7 +387,7 @@ class DoitCmdBase(Command):
         # create dep manager
         db_class = self._backends.get(params['backend'])
         checker_cls = self.get_checker_cls(params['check_file_uptodate'])
-        # note the command have the responsability to call dep_manager.close()
+        # note the command have the responsibility to call dep_manager.close()
         self.dep_manager = Dependency(db_class, params['dep_file'], checker_cls)
 
         # hack to pass parameter into _execute() calls that are not part

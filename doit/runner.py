@@ -1,4 +1,4 @@
-"""Task runner"""
+﻿"""Task runner"""
 
 import sys
 from multiprocessing import Process, Queue as MQueue
@@ -101,7 +101,7 @@ class Runner(object):
 
         Tasks should be executed if they are not up-to-date.
 
-        Tasks that cointains setup-tasks must be selected twice,
+        Tasks that contains setup-tasks must be selected twice,
         so it gives chance for dependency tasks to be executed after
         checking it is not up-to-date.
         """

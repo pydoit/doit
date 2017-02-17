@@ -1,4 +1,4 @@
-import sys
+﻿import sys
 import os
 import re
 
@@ -112,7 +112,7 @@ def find_deps(outstream, strace_out, show_all):
     # ignore rest of line
     # .*\(                 # ignore text until '('
     # "(?P<file>[^"]*)"    # get "file" name inside "
-    # , (\[.*\])*          # ignore elments if inside [] - used by execve
+    # , (\[.*\])*          # ignore elements if inside [] - used by execve
     # (?P<mode>[^)]*)\)    # get mode opening file
     #  = ].*               # check syscall was successful""",
     regex = re.compile(r'.*\("(?P<file>[^"]*)",' +
