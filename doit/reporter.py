@@ -1,4 +1,4 @@
-"""Reports doit execution status/results"""
+﻿"""Reports doit execution status/results"""
 
 import sys
 import time
@@ -17,7 +17,7 @@ class ConsoleReporter(object):
     desc = 'console output'
 
     def __init__(self, outstream, options):
-        # save non-succesful result information (include task errors)
+        # save non-successful result information (include task errors)
         self.failures = []
         self.runtime_errors = []
         self.show_out = options.get('show_out', True)
@@ -28,7 +28,7 @@ class ConsoleReporter(object):
         self.outstream.write(text)
 
     def initialize(self, tasks):
-        """called just after tasks have benn loaded before execution starts"""
+        """called just after tasks have been loaded before execution starts"""
         pass
 
     def get_status(self, task):
@@ -36,18 +36,18 @@ class ConsoleReporter(object):
         pass
 
     def execute_task(self, task):
-        """called when excution starts"""
+        """called when execution starts"""
         # ignore tasks that do not define actions
         # ignore private/hidden tasks (tasks that start with an underscore)
         if task.actions and (task.name[0] != '_'):
             self.write('.  %s\n' % task.title())
 
     def add_failure(self, task, exception):
-        """called when excution finishes with a failure"""
+        """called when execution finishes with a failure"""
         self.failures.append({'task': task, 'exception':exception})
 
     def add_success(self, task):
-        """called when excution finishes successfuly"""
+        """called when execution finishes successfully"""
         pass
 
     def skip_uptodate(self, task):
@@ -73,7 +73,7 @@ class ConsoleReporter(object):
         pass
 
     def complete_run(self):
-        """called when finshed running all tasks"""
+        """called when finished running all tasks"""
         # if test fails print output from failed task
         for result in self.failures:
             self.write("#"*40 + "\n")
@@ -117,7 +117,7 @@ class ExecutedOnlyReporter(ConsoleReporter):
 
 class ZeroReporter(ConsoleReporter):
     """Report only internal errors from doit"""
-    desc = 'report only inetrnal errors from doit'
+    desc = 'report only internal errors from doit'
 
     def _just_pass(self, *args):
         """over-write base to do nothing"""
@@ -211,15 +211,15 @@ class JsonReporter(object):
         self.t_results[task.name] = TaskResult(task)
 
     def execute_task(self, task):
-        """called when excution starts"""
+        """called when execution starts"""
         self.t_results[task.name].start()
 
     def add_failure(self, task, exception):
-        """called when excution finishes with a failure"""
+        """called when execution finishes with a failure"""
         self.t_results[task.name].set_result('fail', exception.get_msg())
 
     def add_success(self, task):
-        """called when excution finishes successfuly"""
+        """called when execution finishes successfully"""
         self.t_results[task.name].set_result('success')
 
     def skip_uptodate(self, task):
@@ -243,7 +243,7 @@ class JsonReporter(object):
         pass
 
     def complete_run(self):
-        """called when finshed running all tasks"""
+        """called when finished running all tasks"""
         # restore stdout
         log_out = sys.stdout.getvalue()
         sys.stdout = self._old_out

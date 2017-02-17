@@ -1,4 +1,4 @@
-"""Loads dodo file (a python module) and convert them to 'tasks' """
+﻿"""Loads dodo file (a python module) and convert them to 'tasks' """
 
 import os
 import sys
@@ -21,7 +21,7 @@ TASK_STRING = "task_"
 
 def flat_generator(gen, gen_doc=''):
     """return only values from generators
-    if any generator yields another generator it is recursivelly called
+    if any generator yields another generator it is recursively called
     """
     for item in gen:
         if inspect.isgenerator(item):
@@ -216,7 +216,7 @@ def load_doit_config(dodo_module):
 
 
 def _generate_task_from_return(func_name, task_dict, gen_doc):
-    """generate a single task from a dict return'ed by a task generator"""
+    """generate a single task from a dict returned by a task generator"""
     if 'name' in task_dict:
         raise InvalidTask("Task '%s'. Only subtasks use field name." %
                           func_name)
@@ -232,7 +232,7 @@ def _generate_task_from_return(func_name, task_dict, gen_doc):
 
 
 def _generate_task_from_yield(tasks, func_name, task_dict, gen_doc):
-    """generate a single task from a dict yield'ed by task generator
+    """generate a single task from a dict yielded by task generator
 
     @param tasks: dictionary with created tasks
     @return None: the created task is added to 'tasks' dict

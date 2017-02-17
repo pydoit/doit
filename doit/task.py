@@ -1,4 +1,4 @@
-
+﻿
 """Tasks are the main abstractions managed by doit"""
 
 import types
@@ -36,7 +36,7 @@ class DelayedLoader(object):
                    tasks and targets specified on command line
     :ivar target_regex: (str) regex for all targets that this loader tasks
                         will create
-    :ivar created: (bool) wheather this creator was already executed or not
+    :ivar created: (bool) whether this creator was already executed or not
     """
     def __init__(self, creator, executed=None, target_regex=None, creates=None):
         self.creator = creator
@@ -366,7 +366,7 @@ class Task(object):
         if value in valid[1]:
             return
 
-        # input value didnt match any valid type/value, raise execption
+        # input value didnt match any valid type/value, raise exception
         msg = "Task '%s' attribute '%s' must be " % (task, attr)
         accept = ", ".join([getattr(v, '__name__', str(v)) for v in
                             (valid[0] + valid[1])])

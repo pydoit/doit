@@ -1,4 +1,4 @@
-"""Implements actions used by doit tasks
+﻿"""Implements actions used by doit tasks
 """
 
 import os
@@ -12,7 +12,7 @@ from .exceptions import InvalidTask, TaskFailed, TaskError
 
 
 def normalize_callable(ref):
-    """return a list with (callabe, *args, **kwargs)
+    """return a list with (callable, *args, **kwargs)
     ref can be a simple callable or a tuple
     """
     if isinstance(ref, tuple):
@@ -67,7 +67,7 @@ class BaseAction(object):
                 sig_param = func_sig.parameters[key]
 
                 # it is forbidden to use default values for this arguments
-                # because the user might be unware of this magic.
+                # because the user might be unaware of this magic.
                 if (key in meta_args and sig_param.default!=sig_param.empty):
                     msg = ("Task %s, action %s(): The argument '%s' is not "
                            "allowed  to have a default value (reserved by doit)"
@@ -142,7 +142,7 @@ class CmdAction(BaseAction):
 
 
     def _print_process_output(self, process, input_, capture, realtime):
-        """Reads 'input_' untill process is terminated.
+        """Reads 'input_' until process is terminated.
         Writes 'input_' content to 'capture' (string)
         and 'realtime' stream
         """
@@ -269,7 +269,7 @@ class CmdAction(BaseAction):
             subs_dict['changed'] = " ".join(self.task.dep_changed)
         # task option parameters
         subs_dict.update(self.task.options)
-        # convert postional parameters from list space-separated string
+        # convert positional parameters from list space-separated string
         if self.task.pos_arg:
             if self.task.pos_arg_val:
                 pos_val = ' '.join(self.task.pos_arg_val)

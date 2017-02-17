@@ -1,4 +1,4 @@
-"""Control tasks execution order"""
+﻿"""Control tasks execution order"""
 import fnmatch
 from collections import deque
 from collections import OrderedDict
@@ -48,7 +48,7 @@ class TaskControl(object):
 
         # name of task in order to be executed
         # this the order as in the dodo file. the real execution
-        # order might be different if the dependecies require so.
+        # order might be different if the dependencies require so.
         self._def_order = []
         # list of tasks selected to be executed
         self.selected_tasks = None
@@ -266,7 +266,7 @@ class TaskControl(object):
 
 
 class ExecNode(object):
-    """Each task will have an instace of this
+    """Each task will have an instance of this.
     This used to keep track of waiting events and the generator for dep nodes
 
     @ivar run_status (str): contains the result of Dependency.get_status().status
@@ -420,7 +420,7 @@ class TaskDispatcher(object):
              - None values are of no interest and are filtered out
                by the decorator no_none
 
-        note that after a 'wait' is sent it is the reponsability of the
+        note that after a 'wait' is sent it is the responsibility of the
         caller to ensure the current ExecNode cleared all its waiting
         before calling `next()` again on this generator
         """
