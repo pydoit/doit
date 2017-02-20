@@ -7,9 +7,6 @@ README
 .. image:: https://img.shields.io/pypi/v/doit.svg
         :target: https://pypi.python.org/pypi/doit
 
-.. image:: https://img.shields.io/pypi/dm/doit.svg
-        :target: https://pypi.python.org/pypi/doit
-
 .. image:: https://travis-ci.org/pydoit/doit.png?branch=master
     :target: https://travis-ci.org/pydoit/doit
 

@@ -15,6 +15,27 @@ if sys.version_info[0] < 3:
 
 ########################################################
 
+########### platform specific stuff #############
+import platform
+platform_system = platform.system()
+
+# auto command dependencies to watch file-system
+if platform_system == "Darwin":
+    install_requires.append('macfsevents')
+elif platform_system == "Linux":
+    install_requires.append('pyinotify')
+
+##################################################
+
+
+######### python version specific stuff ##########
+
+# pathlib is the part of the Python standard library since 3.4 version.
+if sys.version_info < (3, 4):
+    install_requires.append('pathlib')
+
+##################################################
+
 long_description = """
 `doit` is a task management & automation tool
 
@@ -35,7 +56,7 @@ configuration management, etc.
 
 setup(name = 'doit',
       description = 'doit - Automation Tool',
-      version = '0.30.2',
+      version = '0.30.3',
       license = 'MIT',
       author = 'Eduardo Naufel Schettino',
       author_email = 'schettino72@gmail.com',
@@ -65,11 +86,14 @@ setup(name = 'doit',
 
       packages = ['doit'],
       install_requires = install_requires,
-      extras_require={
-          ':python_version <= "3.3"': ['pathlib'],
-          ':sys.platform == "darwin"': ['macfsevents'],
-          ':sys.platform == "linux"': ['pyinotify'],
-      },
+      # extra_requires with environment markers can be used only
+      # newer versions of setuptools that most users do not have
+      # installed. So wait for a while before use them (2017-02)
+      # extras_require={
+      #     ':python_version <= "3.3"': ['pathlib'],
+      #     ':sys.platform == "darwin"': ['macfsevents'],
+      #     ':sys.platform == "linux"': ['pyinotify'],
+      # },
       long_description = long_description,
       entry_points = {
           'console_scripts': [
