@@ -189,9 +189,14 @@ class CmdAction(BaseAction):
                 "CmdAction Error creating command string", exc)
 
         # set environ to change output buffering
+        subprocess_pkwargs = self.pkwargs.copy()
         env = None
+        if 'env' in subprocess_pkwargs:
+            env = subprocess_pkwargs['env']
+            del subprocess_pkwargs['env']
         if self.buffering:
-            env = os.environ.copy()
+            if not env:
+                env = os.environ.copy()
             env['PYTHONUNBUFFERED'] = '1'
 
         # spawn task process
@@ -201,7 +206,7 @@ class CmdAction(BaseAction):
             #bufsize=2, # ??? no effect use PYTHONUNBUFFERED instead
             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             env=env,
-            **self.pkwargs)
+            **subprocess_pkwargs)
 
         output = StringIO()
         errput = StringIO()
