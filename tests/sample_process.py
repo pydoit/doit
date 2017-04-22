@@ -1,11 +1,17 @@
 #! /usr/bin/env python
 
 # tests on CmdTask will use this script as an external process.
-# 3 or more arguments. process return error exit (166)
-# arguments "please fail". process return fail exit (11)
-# first argument is sent to stdout
-# second argument is sent to stderr
+# - If you call this script with 3 or more arguments, the process returns
+#   exit code (166).
+# - If you call this script with arguments "please fail", it returns exit
+#   code (11).
+# - If you call this script with arguments "check env", it verifies the
+#   existence of an environment variable called "GELKIPWDUZLOVSXE", with
+#   value "1". If the variable is not found, the process returns exit code (99).
+# - Otherwise, any first argument gets written to STDOUT. Any second argument
+#   gets written to STDERR.
 
+import os
 import sys
 
 if __name__ == "__main__":
@@ -17,6 +23,12 @@ if __name__ == "__main__":
         sys.stdout.write("out ouch")
         sys.stderr.write("err output on failure")
         sys.exit(11)
+    # check env
+    if len(sys.argv) == 3 and sys.argv[1]=='check' and sys.argv[2]=='env':
+        if os.environ.get('GELKIPWDUZLOVSXE') == '1':
+            sys.exit(0)
+        else:
+            sys.exit(99)
     # ok
     if len(sys.argv) > 1:
         sys.stdout.write(sys.argv[1])
