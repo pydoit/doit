@@ -59,7 +59,9 @@ class TestCmdAction(object):
         assert isinstance(got, TaskError)
 
     def test_env(self):
-        my_action = action.CmdAction("%s check env" % PROGRAM, env={'GELKIPWDUZLOVSXE': '1'})
+        env = os.environ.copy()
+        env['GELKIPWDUZLOVSXE'] = '1'
+        my_action = action.CmdAction("%s check env" % PROGRAM, env=env)
         got = my_action.execute()
         assert got is None
 
