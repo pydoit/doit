@@ -500,6 +500,27 @@ private/hidden tasks
 
 If task name starts with an underscore '_', it will not be included in the output.
 
+.. literalinclude:: tutorial/private_task.py
+
+.. code_block:: console
+
+    $ doit
+    .  hello
+    $ doit dumpdb
+    DBM type is 'dbm.gnu'
+    b'_private_get_username' -> {   '_values_:': {},
+        'checker:': 'MD5Checker',
+        'deps:': [],
+        'result:': '72c5fe66e904745607b30bff453bb75c'}
+    b'hello' -> {   '_values_:': {},
+        'checker:': 'MD5Checker',
+        'deps:': [],
+        'result:': 'b1946ac92492d2347c6235b4d2611184'}
+    b'_other_get_username' -> {   '_values_:': {},
+        'checker:': 'MD5Checker',
+        'deps:': [],
+        'result:': '46d3971fa3086160444faada1539e93b'}
+
 
 title
 -------
