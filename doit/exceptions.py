@@ -1,4 +1,4 @@
-"""Handle exceptions generated from 'user' code"""
+﻿"""Handle exceptions generated from 'user' code"""
 
 import sys
 import traceback

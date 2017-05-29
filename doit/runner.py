@@ -1,4 +1,4 @@
-"""Task runner"""
+﻿"""Task runner"""
 
 import sys
 from multiprocessing import Process, Queue as MQueue

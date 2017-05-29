@@ -1,4 +1,4 @@
-"""extra goodies to be used in dodo files"""
+﻿"""extra goodies to be used in dodo files"""
 
 import os
 import time as time_module

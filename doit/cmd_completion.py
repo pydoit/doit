@@ -1,4 +1,4 @@
-"""generate shell script with tab completion code for doit commands/tasks"""
+﻿"""generate shell script with tab completion code for doit commands/tasks"""
 
 import sys
 from string import Template

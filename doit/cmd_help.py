@@ -1,4 +1,4 @@
-from .exceptions import InvalidDodoFile
+﻿from .exceptions import InvalidDodoFile
 from .cmdparse import TaskParse, CmdOption
 from .cmd_base import DoitCmdBase
 

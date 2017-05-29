@@ -1,4 +1,4 @@
-"""Reports doit execution status/results"""
+﻿"""Reports doit execution status/results"""
 
 import sys
 import time
