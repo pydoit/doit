@@ -42,7 +42,7 @@ license
 =======
 
 The MIT License
-Copyright (c) 2008-2015 Eduardo Naufel Schettino
+Copyright (c) 2008-2017 Eduardo Naufel Schettino
 
 see LICENSE file
 
@@ -56,7 +56,7 @@ see AUTHORS file
 install
 =======
 
-*doit* is tested on python 3.3, 3.4, 3.5.
+*doit* is tested on python 3.3 to 3.6.
 
 The last version supporting python 2 is version 0.29.
 
