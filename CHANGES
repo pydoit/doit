@@ -7,7 +7,7 @@ Changes
 0.31. (*unrelease*)
 =====================
 
-
+ - Fix GH-#171 Passing environment variables to CmdAction
 
 0.30.3 (*2017-02-20*)
 =====================
