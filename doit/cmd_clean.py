@@ -1,4 +1,4 @@
-﻿from .cmd_base import DoitCmdBase
+from .cmd_base import DoitCmdBase
 from .cmd_base import check_tasks_exist, tasks_and_deps_iter, subtasks_iter
 
 

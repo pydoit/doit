@@ -1,4 +1,4 @@
-﻿"""Control tasks execution order"""
+"""Control tasks execution order"""
 import fnmatch
 from collections import deque
 from collections import OrderedDict

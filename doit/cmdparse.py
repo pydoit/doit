@@ -1,4 +1,4 @@
-﻿"""Parse command line options and execute it.
+"""Parse command line options and execute it.
 
 Built on top of getopt. optparse can't handle sub-commands.
 """

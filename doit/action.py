@@ -1,4 +1,4 @@
-﻿"""Implements actions used by doit tasks
+"""Implements actions used by doit tasks
 """
 
 import os

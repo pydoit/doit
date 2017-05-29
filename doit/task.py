@@ -1,4 +1,4 @@
-﻿
+
 """Tasks are the main abstractions managed by doit"""
 
 import types

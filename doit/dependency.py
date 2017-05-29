@@ -1,4 +1,4 @@
-﻿"""Manage (save/check) task dependency-on-files data."""
+"""Manage (save/check) task dependency-on-files data."""
 
 import os
 import hashlib

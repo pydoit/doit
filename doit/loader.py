@@ -1,4 +1,4 @@
-﻿"""Loads dodo file (a python module) and convert them to 'tasks' """
+"""Loads dodo file (a python module) and convert them to 'tasks' """
 
 import os
 import sys
