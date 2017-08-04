@@ -88,7 +88,12 @@ class Command(object):
 
     @property
     def cmdparser(self):
-        """get CmdParser instance for this command"""
+        """get CmdParser instance for this command
+
+        initialize option values:
+          - Default are taken from harded option definition
+          - Defaults are overwritten from user's cfg (INI) file
+        """
         if not self._cmdparser:
             self._cmdparser = CmdParse(self.get_options())
             self._cmdparser.overwrite_defaults(self.config_vals)
@@ -205,6 +210,7 @@ opt_seek_file = {
     'long': 'seek-file',
     'type': bool,
     'default': False,
+    'env_var': 'DOIT_SEEK_FILE',
     'help': ("seek dodo file on parent folders " +
              "[default: %(default)s]")
 }
@@ -266,8 +272,10 @@ class DodoTaskLoader(TaskLoader):
     cmd_options = (opt_dodo, opt_cwd, opt_seek_file)
 
     def load_tasks(self, cmd, params, args):
-        dodo_module = loader.get_module(params['dodoFile'], params['cwdPath'],
-                                        params['seek_file'])
+        dodo_module = loader.get_module(
+            params['dodoFile'],
+            params['cwdPath'],
+            params['seek_file'])
         return self._load_from(cmd, dodo_module, self.cmd_names)
 
 

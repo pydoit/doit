@@ -2,6 +2,7 @@
 
 Built on top of getopt. optparse can't handle sub-commands.
 """
+import os
 import getopt
 import copy
 from collections import OrderedDict
@@ -91,6 +92,7 @@ class CmdOption(object):
         self.inverse = opt_dict.pop('inverse', '')
         self.choices = dict(opt_dict.pop('choices', []))
         self.help = opt_dict.pop('help', '')
+        self.env_var = opt_dict.pop('env_var', None)
 
         # TODO add some hint for tab-completion scripts
 
@@ -207,8 +209,10 @@ class CmdOption(object):
         # TODO It should always display option's default value
         opt_help = self.help % {'default': self.default}
         opt_choices = self.help_choices()
+        opt_env = ' (environ: {})'.format(self.env_var) if self.env_var else ''
 
-        text.append(self._print_2_columns(opt_str, opt_help + opt_choices))
+        desc = opt_help + opt_choices + opt_env
+        text.append(self._print_2_columns(opt_str, desc))
         # print bool inverse option
         if self.inverse:
             opt_str = '--%s' % self.inverse
@@ -288,6 +292,7 @@ class CmdParse(object):
                 opt = self._options[key]
                 opt.set_default(opt.str2type(val))
 
+
     def parse(self, in_args):
         """parse arguments into options(params) and positional arguments
 
@@ -302,7 +307,14 @@ class CmdParse(object):
         for opt in self._options.values():
             params.set_default(opt.name, opt.default)
 
-        # parse options using getopt
+        # get values from shell ENV
+        for opt in self._options.values():
+            if opt.env_var:
+                val = os.getenv(opt.env_var)
+                if val is not None:
+                    params[opt.name] = opt.str2type(val)
+
+        # parse cmdline options using getopt
         try:
             opts, args = getopt.getopt(in_args, self.get_short(),
                                        self.get_long())

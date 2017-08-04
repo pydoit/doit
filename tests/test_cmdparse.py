@@ -1,3 +1,4 @@
+import os
 import pickle
 
 import pytest
@@ -319,3 +320,47 @@ class TestCommand(object):
 
     def test_parseWrongChoice(self, cmd):
         pytest.raises(CmdParseError, cmd.parse, ['--choice', 'maybe'])
+
+    def test_env_val(self):
+        opt_foo = {
+            'name': 'foo',
+            'long': 'foo',
+            'type': str,
+            'env_var': 'FOO',
+            'default': 'zero'
+        }
+        cmd = CmdParse([CmdOption(opt_foo)])
+
+        # get default
+        params, args = cmd.parse([])
+        assert params['foo'] == 'zero'
+
+        # get from env
+        os.environ['FOO'] = 'bar'
+        params2, args2 = cmd.parse([])
+        assert params2['foo'] == 'bar'
+
+        # command line has precedence
+        params2, args2 = cmd.parse(['--foo', 'XXX'])
+        assert params2['foo'] == 'XXX'
+
+
+    def test_env_val_bool(self):
+        opt_foo = {
+            'name': 'foo',
+            'long': 'foo',
+            'type': bool,
+            'env_var': 'FOO',
+            'default': False,
+        }
+        cmd = CmdParse([CmdOption(opt_foo)])
+
+        # get from env
+        os.environ['FOO'] = '1'
+        params, args = cmd.parse([])
+        assert params['foo'] == True
+
+        # get from env
+        os.environ['FOO'] = '0'
+        params, args = cmd.parse([])
+        assert params['foo'] == False
