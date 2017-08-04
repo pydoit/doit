@@ -33,7 +33,7 @@ def flat_generator(gen, gen_doc=''):
 
 
 
-def get_module(dodo_file, cwd=None, seek_parent=False):
+def get_module(dodo_file, cwd=None, seek_parent_cmdline=None):
     """
     Find python module defining tasks, it is called "dodo" file.
 
@@ -44,6 +44,15 @@ def get_module(dodo_file, cwd=None, seek_parent=False):
     """
     global initial_workdir
     initial_workdir = os.getcwd()
+
+    seek_parent_env = os.environ.get('DOIT_SEEK_FILE')
+    if seek_parent_cmdline is not None:
+        seek_parent = seek_parent_cmdline
+    elif seek_parent_env is not None:
+        seek_parent = seek_parent_env in ('yes', 'YES', 'True', 'true', 'seek', 'y', 'Y', '1')
+    else:
+        seek_parent = False
+
     def exist_or_raise(path):
         """raise exception if file on given path doesnt exist"""
         if not os.path.exists(path):

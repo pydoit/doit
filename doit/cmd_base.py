@@ -204,9 +204,9 @@ opt_seek_file = {
     'short': 'k',
     'long': 'seek-file',
     'type': bool,
-    'default': False,
+    'default': None,
     'help': ("seek dodo file on parent folders " +
-             "[default: %(default)s]")
+             "[default: False]")
 }
 
 
