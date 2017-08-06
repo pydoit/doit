@@ -11,11 +11,11 @@ Installing
 Latest version of `doit` supports only python 3.
 If you are using python 2::
 
-  $ pip install doit==0.29.0
+  $ pip install "doit<0.30"
 
 * `Download <http://pypi.python.org/pypi/doit>`_ the source and::
 
-  $ python setup.py install
+  $ pip install -e .
 
 * Get latest development version::
 
