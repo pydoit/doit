@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 
 # tests on CmdTask will use this script as an external process.
 # - If you call this script with 3 or more arguments, the process returns
