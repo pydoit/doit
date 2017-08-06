@@ -1,6 +1,5 @@
 language: python
 python:
-    - "3.3"
     - "3.4"
     - "3.5"
     - "3.6"
@@ -29,9 +28,9 @@ branches:
 script:
    - doit pyflakes
    - py.test --ignore-flaky
-   - if [[ $TRAVIS_PYTHON_VERSION == '3.5' ]]; then doit coverage; fi
+   - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then doit coverage; fi
 after_success:
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.5' ]]; then coveralls; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then coveralls; fi
 
 notifications:
     email:

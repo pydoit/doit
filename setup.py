@@ -28,13 +28,6 @@ elif platform_system == "Linux":
 ##################################################
 
 
-######### python version specific stuff ##########
-
-# pathlib is the part of the Python standard library since 3.4 version.
-if sys.version_info < (3, 4):
-    install_requires.append('pathlib')
-
-##################################################
 
 long_description = """
 `doit` is a task management & automation tool
@@ -69,7 +62,6 @@ setup(name = 'doit',
         'Operating System :: OS Independent',
         'Operating System :: POSIX',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
@@ -90,7 +82,6 @@ setup(name = 'doit',
       # newer versions of setuptools that most users do not have
       # installed. So wait for a while before use them (2017-02)
       # extras_require={
-      #     ':python_version <= "3.3"': ['pathlib'],
       #     ':sys.platform == "darwin"': ['macfsevents'],
       #     ':sys.platform == "linux"': ['pyinotify'],
       # },

@@ -8,6 +8,7 @@ Changes
 =====================
 
  - Fix GH-#171 Passing environment variables to CmdAction
+ - Drop Python 3.3 support
  - cmdparse now support getting values from OS enviroment variables
  - option `seek_file` control by ENV var `DOIT_SEEK_FILE`
 

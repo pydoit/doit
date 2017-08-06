@@ -56,7 +56,7 @@ see AUTHORS file
 install
 =======
 
-*doit* is tested on python 3.3 to 3.6.
+*doit* is tested on python 3.4 to 3.6.
 
 The last version supporting python 2 is version 0.29.
 

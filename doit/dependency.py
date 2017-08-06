@@ -598,10 +598,10 @@ class Dependency(object):
                 # 3) call it and get result
                 uptodate_result = utd(*args, **utd_kwargs)
             elif isinstance(utd, str):
-                # TODO py3.3 has subprocess.DEVNULL
-                with open(os.devnull, 'wb') as null:
-                    uptodate_result = subprocess.call(
-                        utd, shell=True, stderr=null, stdout=null) == 0
+                uptodate_result = subprocess.call(
+                    utd, shell=True,
+                    stderr=subprocess.DEVNULL,
+                    stdout=subprocess.DEVNULL) == 0
             # parameter is a value
             else:
                 uptodate_result = utd

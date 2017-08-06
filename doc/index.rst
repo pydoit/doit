@@ -163,7 +163,7 @@ Project Details
 
 * This is an open-source project
   (`MIT license <http://opensource.org/licenses/mit-license.php>`_)
-  written in python. Runs on Python 3.3 through 3.6 (including PyPy support). For python 2 support please use *doit* version 0.29.
+  written in python. Runs on Python 3.4 through 3.6 (including PyPy support). For python 2 support please use *doit* version 0.29.
 
 * Download from `PyPi <http://pypi.python.org/pypi/doit>`_
 
