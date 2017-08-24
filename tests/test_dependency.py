@@ -3,6 +3,7 @@ import time
 import sys
 import tempfile
 import uuid
+from sys import executable
 
 import pytest
 
@@ -16,7 +17,7 @@ from .conftest import get_abspath, depfile
 
 #path to test folder
 TEST_PATH = os.path.dirname(__file__)
-PROGRAM = "python %s/sample_process.py" % TEST_PATH
+PROGRAM = "%s %s/sample_process.py" % (executable, TEST_PATH)
 
 
 def test_unicode_md5():

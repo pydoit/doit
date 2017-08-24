@@ -2,6 +2,7 @@ import os, shutil
 import tempfile
 from io import StringIO
 from pathlib import Path, PurePath
+from sys import executable
 
 import pytest
 
@@ -12,7 +13,7 @@ from doit import task
 
 #path to test folder
 TEST_PATH = os.path.dirname(__file__)
-PROGRAM = "python %s/sample_process.py" % TEST_PATH
+PROGRAM = "%s %s/sample_process.py" % (executable, TEST_PATH)
 
 
 
