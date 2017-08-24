@@ -1,6 +1,7 @@
 import os
 import datetime
 import operator
+from sys import executable
 
 import pytest
 
@@ -216,7 +217,7 @@ class TestCheckTimestampUnchanged(object):
 class TestLongRunning(object):
     def test_success(self):
         TEST_PATH = os.path.dirname(__file__)
-        PROGRAM = "python %s/sample_process.py" % TEST_PATH
+        PROGRAM = "%s %s/sample_process.py" % (executable, TEST_PATH)
         my_action = tools.LongRunning(PROGRAM + " please fail")
         got = my_action.execute()
         assert got is None
@@ -235,14 +236,14 @@ class TestLongRunning(object):
 class TestInteractive(object):
     def test_fail(self):
         TEST_PATH = os.path.dirname(__file__)
-        PROGRAM = "python %s/sample_process.py" % TEST_PATH
+        PROGRAM = "%s %s/sample_process.py" % (executable, TEST_PATH)
         my_action = tools.Interactive(PROGRAM + " please fail")
         got = my_action.execute()
         assert isinstance(got, exceptions.TaskFailed)
 
     def test_success(self):
         TEST_PATH = os.path.dirname(__file__)
-        PROGRAM = "python %s/sample_process.py" % TEST_PATH
+        PROGRAM = "%s %s/sample_process.py" % (executable, TEST_PATH)
         my_action = tools.Interactive(PROGRAM + " ok")
         got = my_action.execute()
         assert got is None

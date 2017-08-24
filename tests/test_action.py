@@ -8,6 +8,7 @@ from pathlib import PurePath, Path
 from io import StringIO, BytesIO
 from threading import Thread
 import time
+from sys import executable
 
 import pytest
 from mock import Mock
@@ -18,7 +19,7 @@ from doit.exceptions import TaskError, TaskFailed
 
 #path to test folder
 TEST_PATH = os.path.dirname(__file__)
-PROGRAM = "python %s/sample_process.py" % TEST_PATH
+PROGRAM = "%s %s/sample_process.py" % (executable, TEST_PATH)
 
 
 @pytest.fixture
@@ -103,14 +104,14 @@ class TestCmdActionParams(object):
 
     def test_changePath(self, tmpdir):
         path = tmpdir.mkdir("foo")
-        command = 'python -c "import os; print(os.getcwd())"'
+        command = '%s -c "import os; print(os.getcwd())"' % executable
         my_action = action.CmdAction(command, cwd=path.strpath)
         my_action.execute()
         assert path + os.linesep == my_action.out, repr(my_action.out)
 
     def test_noPathSet(self, tmpdir):
         path = tmpdir.mkdir("foo")
-        command = 'python -c "import os; print(os.getcwd())"'
+        command = '%s -c "import os; print(os.getcwd())"' % executable
         my_action = action.CmdAction(command)
         my_action.execute()
         assert path.strpath + os.linesep != my_action.out, repr(my_action.out)
@@ -157,7 +158,7 @@ class TestCmdVerbosity(object):
 class TestCmdExpandAction(object):
 
     def test_task_meta_reference(self):
-        cmd = "python %s/myecho.py" % TEST_PATH
+        cmd = "%s %s/myecho.py" % (executable, TEST_PATH)
         cmd += " %(dependencies)s - %(changed)s - %(targets)s"
         dependencies = ["data/dependency1", "data/dependency2", ":dep_on_task"]
         targets = ["data/target", "data/targetXXX"]
@@ -171,7 +172,7 @@ class TestCmdExpandAction(object):
         assert targets == got[2].split(), got[2]
 
     def test_task_options(self):
-        cmd = "python %s/myecho.py" % TEST_PATH
+        cmd = "%s %s/myecho.py" % (executable, TEST_PATH)
         cmd += " %(opt1)s - %(opt2)s"
         task = FakeTask([],[],[],{'opt1':'3', 'opt2':'abc def'})
         my_action = action.CmdAction(cmd, task)
@@ -180,7 +181,7 @@ class TestCmdExpandAction(object):
         assert "3 - abc def" == got
 
     def test_task_pos_arg(self):
-        cmd = "python %s/myecho.py" % TEST_PATH
+        cmd = "%s %s/myecho.py" % (executable, TEST_PATH)
         cmd += " %(pos)s"
         task = FakeTask([],[],[],{}, 'pos', ['hi', 'there'])
         my_action = action.CmdAction(cmd, task)
@@ -191,7 +192,7 @@ class TestCmdExpandAction(object):
     def test_task_pos_arg_None(self):
         # pos_arg_val is None when the task is not specified from
         # command line but executed because it is a task_dep
-        cmd = "python %s/myecho.py" % TEST_PATH
+        cmd = "%s %s/myecho.py" % (executable, TEST_PATH)
         cmd += " %(pos)s"
         task = FakeTask([],[],[],{}, 'pos', None)
         my_action = action.CmdAction(cmd, task)
@@ -201,7 +202,7 @@ class TestCmdExpandAction(object):
 
     def test_callable_return_command_str(self):
         def get_cmd(opt1, opt2):
-            cmd = "python %s/myecho.py" % TEST_PATH
+            cmd = "%s %s/myecho.py" % (executable, TEST_PATH)
             return cmd + " %s - %s" % (opt1, opt2)
         task = FakeTask([],[],[],{'opt1':'3', 'opt2':'abc def'})
         my_action = action.CmdAction(get_cmd, task)
@@ -211,7 +212,7 @@ class TestCmdExpandAction(object):
 
     def test_callable_tuple_return_command_str(self):
         def get_cmd(opt1, opt2):
-            cmd = "python %s/myecho.py" % TEST_PATH
+            cmd = "%s %s/myecho.py" % (executable, TEST_PATH)
             return cmd + " %s - %s" % (opt1, opt2)
         task = FakeTask([],[],[],{'opt1':'3'})
         my_action = action.CmdAction((get_cmd, [], {'opt2':'abc def'}), task)
@@ -227,19 +228,19 @@ class TestCmdExpandAction(object):
         assert isinstance(got, TaskError)
 
     def test_string_list_cant_be_expanded(self):
-        cmd = ["python",  "%s/myecho.py" % TEST_PATH]
+        cmd = [executable,  "%s/myecho.py" % TEST_PATH]
         task = FakeTask([],[],[], {})
         my_action = action.CmdAction(cmd, task)
         assert cmd == my_action.expand_action()
 
     def test_list_can_contain_path(self):
-        cmd = ["python", PurePath(TEST_PATH), Path("myecho.py")]
+        cmd = [executable, PurePath(TEST_PATH), Path("myecho.py")]
         task = FakeTask([], [], [], {})
         my_action = action.CmdAction(cmd, task)
-        assert ["python", TEST_PATH, "myecho.py"] == my_action.expand_action()
+        assert [executable, TEST_PATH, "myecho.py"] == my_action.expand_action()
 
     def test_list_should_contain_strings_or_paths(self):
-        cmd = ["python", PurePath(TEST_PATH), 42, Path("myecho.py")]
+        cmd = [executable, PurePath(TEST_PATH), 42, Path("myecho.py")]
         task = FakeTask([], [], [], {})
         my_action = action.CmdAction(cmd, task)
         assert pytest.raises(action.InvalidTask, my_action.expand_action)
@@ -357,7 +358,7 @@ class TestCmd_print_process_output_line(object):
 class TestCmdSaveOuput(object):
     def test_success(self):
         TEST_PATH = os.path.dirname(__file__)
-        PROGRAM = "python %s/sample_process.py" % TEST_PATH
+        PROGRAM = "%s %s/sample_process.py" % (executable, TEST_PATH)
         my_action = action.CmdAction(PROGRAM + " x1 x2", save_out='out')
         my_action.execute()
         assert {'out': 'x1'} == my_action.values
