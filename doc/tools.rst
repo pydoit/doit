@@ -78,8 +78,7 @@ First you need to register the new magic function into ipython shell.
 
 .. code-block:: pycon
 
-    >>> from doit.tools import register_doit_as_IPython_magic
-    >>> register_doit_as_IPython_magic()
+    >>> %load_ext doit.tools
 
 
 .. Tip::
@@ -89,8 +88,8 @@ First you need to register the new magic function into ipython shell.
     (i.e. :file:`~/.ipython/profile_default/startup/doit_magic.ipy`)
     with the following content::
 
-        from doit.tools import register_doit_as_IPython_magic
-        register_doit_as_IPython_magic()
+        from doit.tools import load_ipython_extension
+        load_ipython_extension()
 
 Then you can define your `task_creator` functions and invoke them with `%doit`
 magic-function, instead of invoking the cmd-line script with a :file:`dodo.py`
