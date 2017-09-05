@@ -294,3 +294,6 @@ def load_ipython_extension(ip=None):  # pragma: no cover
         commander = DoitMain(ModuleTaskLoader(ip.user_module),
                              extra_config={'GLOBAL': opt_vals})
         commander.run(line.split())
+
+# the name register_doit_as_IPython_magic is deprecated on **
+register_doit_as_IPython_magic = load_ipython_extension
