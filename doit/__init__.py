@@ -32,6 +32,7 @@ from doit import loader
 from doit.loader import create_after
 from doit.doit_cmd import get_var
 from doit.api import run
+from doit.tools import load_ipython_extension
 
 __all__ = ['get_var', 'run', 'create_after']
 
