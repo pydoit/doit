@@ -66,7 +66,7 @@ The callable must be a function, method or callable object.
 Classes and built-in functions are not allowed.
 ``args`` is a sequence and ``kwargs`` is a dictionary that will be used
 as positional and keywords arguments for the callable.
-see `Keyword Arguments <http://docs.python.org/tutorial/controlflow.html#keyword-arguments>`_.
+See `Keyword Arguments <http://docs.python.org/tutorial/controlflow.html#keyword-arguments>`_.
 
 The result of the task is given by the returned value of the
 ``action`` function.
@@ -119,12 +119,16 @@ CmdAction's are executed in a subprocess (using python
 If `action` is a string, the command will be executed through the shell.
 (Popen argument shell=True).
 
-Note that the string must be escaped according to
-`python string formatting <http://docs.python.org/library/stdtypes.html#string-formatting-operations>`_.
+Before the string is actually executed, it is always formatted using the
+python old-string-formatting_. (using the `%` operator) as described in
+:ref:`keywords_on_cmd-action_string`.
+
+If using `%` in your action string, make sure it does not break this formatting.
 
 It is easy to include dynamic (on-the-fly) behavior to your tasks with
 python code from the `dodo` file. Let's take a look at another example:
 
+.. _old-string-formatting: http://docs.python.org/3/library/stdtypes.html#old-string-formatting
 
 .. literalinclude:: tutorial/cmd_actions.py
 
@@ -176,18 +180,41 @@ check :ref:`tools.LongRunning<tools.LongRunning>` as an example.
 
 
 keywords on actions
---------------------
+-------------------
 
-It is common situation to use task information such as *targets*,
-*dependencies*, or *changed* in its own actions.
-Note: Dependencies here refers only to *file-dependencies*.
+File dependency information such as *targets*, *dependencies* or *changed*
+are automatically provided as (optional) *cmd-action* string keywords and
+*python-action* function keyword arguments.
 
-For *cmd-action* you can use the python notation for keyword substitution
-on strings. The string will contain all values separated by a space (" ").
+Chapter :ref:`getargs` describes, how a task can calculate and store values and
+how other tasks can refer to them and use as *cmd-action* string keyword or
+*python-action* function keyword argument.
+
+.. _keywords_on_cmd-action_string:
+
+keywords on cmd-action string
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. note:: *cmd-action* may have form of a string (as `"echo hello world"`) 
+    or list of arguments (as `["echo", "hello", "world"]`). Implicit keywords
+    substitution applies only to to string form and does not affect the list
+    form.
+
+For *cmd-action* you can take advantage of implicit keyword substitution on
+*cmd-action* strings and use python old-string-formatting_ for it. The keyword
+value is a string containing all respective file names separated by a space ("
+").
+
+.. literalinclude:: tutorial/report_deps.py
+
+keywords on *python-action*
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 For *python-action* create a parameter in the function, `doit` will take care
 of passing the value when the function is called.
 The values are passed as list of strings.
+
+
 
 .. literalinclude:: tutorial/hello.py
 
