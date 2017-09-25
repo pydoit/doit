@@ -46,12 +46,12 @@ In this case the `dodo` file has only one task, `hello`.
 Actions
 --------
 
-Every *task* must define **actions**.
+Every *task* must define `actions`.
 It can optionally define other attributes like `targets`, `file_dep`,
 `verbosity`, `doc` ...
 
-Actions define what the task actually does.
-*Actions* is always a list that can have any number of elements.
+`actions` define what the task actually does.
+`actions` is always a list that can have any number of elements.
 The actions of a task are always run sequentially.
 There are 2 basic kinds of `actions`: *cmd-action* and *python-action*.
 The action "result" is used to determine if task execution was successful or not.
@@ -119,16 +119,9 @@ CmdAction's are executed in a subprocess (using python
 If `action` is a string, the command will be executed through the shell.
 (Popen argument shell=True).
 
-Before the string is actually executed, it is always formatted using the
-python old-string-formatting_. (using the `%` operator) as described in
-:ref:`keywords_on_cmd-action_string`.
-
-If using `%` in your action string, make sure it does not break this formatting.
-
 It is easy to include dynamic (on-the-fly) behavior to your tasks with
 python code from the `dodo` file. Let's take a look at another example:
 
-.. _old-string-formatting: http://docs.python.org/3/library/stdtypes.html#old-string-formatting
 
 .. literalinclude:: tutorial/cmd_actions.py
 
@@ -177,62 +170,6 @@ custom actions
 It is possible to create other type of actions,
 check :ref:`tools.LongRunning<tools.LongRunning>` as an example.
 
-
-
-keywords on actions
--------------------
-
-File dependency information such as *targets*, *dependencies* or *changed*
-are automatically provided as (optional) *cmd-action* string keywords and
-*python-action* function keyword arguments.
-
-Chapter :ref:`getargs` describes, how a task can calculate and store values and
-how other tasks can refer to them and use as *cmd-action* string keyword or
-*python-action* function keyword argument.
-
-.. _keywords_on_cmd-action_string:
-
-keywords on cmd-action string
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. note:: *cmd-action* may have form of a string (as `"echo hello world"`) 
-    or list of arguments (as `["echo", "hello", "world"]`). Implicit keywords
-    substitution applies only to to string form and does not affect the list
-    form.
-
-For *cmd-action* you can take advantage of implicit keyword substitution on
-*cmd-action* strings and use python old-string-formatting_ for it. The keyword
-value is a string containing all respective file names separated by a space ("
-").
-
-.. literalinclude:: tutorial/report_deps.py
-
-keywords on *python-action*
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-For *python-action* create a parameter in the function, `doit` will take care
-of passing the value when the function is called.
-The values are passed as list of strings.
-
-
-
-.. literalinclude:: tutorial/hello.py
-
-
-You can also pass the keyword *task* to have a reference to all task
-metadata.
-
-.. literalinclude:: tutorial/meta.py
-
-
-.. note::
-
-  Note that the *task* argument is a `Task` object instance, not
-  the metadata *dict*.
-
-
-It is possible not only to retrieve task's attributes but also to modify
-them while the action is running!
 
 
 task name
@@ -347,6 +284,7 @@ The execution of the task's actions is skipped.
 Note the ``--`` (2 dashes, one space) on the command output on the second
 time it is executed. It means, this task was up-to-date and not executed.
 
+
 .. _file-dep:
 
 file_dep (file dependency)
@@ -423,6 +361,84 @@ Lets take the compilation example again.
     $ echo xxx > main.o
     $ doit
     -- compile
+
+
+
+parameters on actions
+---------------------
+
+Actions may take optional parameters provided as function keywords arguments for *python-action*. Or values for *printf-style* formatting on *cmd-action*.
+
+There are three sources of parameter values:
+
+ - specified on action's `kwargs` definition
+ - keywords with task metadata such as `dependencies`, `changed`, `targets` and `task`
+ - values computed in other tasks. :ref:`getargs` describes, how a task can calculate and store values and how other tasks can refer to them.
+
+
+keywords with task metadata
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+These values are automatically calculated by `doit`:
+
+ - `dependencies`: list of `file_dep`
+ - `changed`: list of `file_dep` that changed since last
+   successful execution
+ - `targets`: list of `targets`
+ - `task`: only available to *python-action*.
+   Note: the value is a `Task` object instance, not the metadata *dict*.
+
+
+keywords on cmd-action string
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For *cmd-action* you can take advantage of implicit keyword
+substitution on *cmd-action* strings and use
+python old-string-formatting_ for it.
+
+The keyword value is a string containing all respective
+file names separated by a space (" ").
+
+.. _old-string-formatting: http://docs.python.org/3/library/stdtypes.html#old-string-formatting
+
+
+.. literalinclude:: tutorial/report_deps.py
+
+
+Before the string is actually executed, it is always formatted using the
+python old-string-formatting_ using the `%` operator.
+If using `%` in your action string, make sure it does not break
+this formatting.
+
+.. note:: *cmd-action* may have the form of a string (as `"echo hello world"`)
+    or list of arguments (as `["echo", "hello", "world"]`).
+    Implicit keywords substitution applies only to the string form
+    and does not affect the list form.
+
+
+
+keywords on *python-action*
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For *python-action* add a keyword parameter in the function,
+`doit` will take care of passing the value when the function is called.
+`dependencies`, `changed`, `targets` are passed as list of strings.
+
+
+.. literalinclude:: tutorial/hello.py
+
+
+You can also pass the keyword `task` to have a reference to all task
+metadata.
+
+.. literalinclude:: tutorial/meta.py
+
+
+.. note::
+
+  It is possible not only to retrieve task's attributes but also to
+  modify them while the action is running!
+
 
 
 execution order

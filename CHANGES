@@ -4,18 +4,19 @@ Changes
 =======
 
 
-0.31. (*unrelease*)
+0.31.0 (*unreleased*)
 =====================
 
  - Fix GH-#171 Passing environment variables to CmdAction
  - Drop Python 3.3 support
- - cmdparse now support getting values from OS enviroment variables
+ - CmdParse now support getting values from OS environment variables
  - option `seek_file` control by ENV var `DOIT_SEEK_FILE`
+
 
 0.30.3 (*2017-02-20*)
 =====================
 
- - Revert usage of setuptools enviroment markers (feature too new)
+ - Revert usage of setuptools environment markers (feature too new)
 
 
 0.30.2 (*2017-02-16*)

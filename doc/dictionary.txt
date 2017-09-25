@@ -283,6 +283,7 @@ pos
 pos1
 pre
 prev
+printf
 programmatically
 pstats
 py
