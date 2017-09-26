@@ -21,6 +21,11 @@ README
   :alt: Join the chat at https://gitter.im/pydoit/doit
   :target: https://gitter.im/pydoit/doit?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
 
+.. image:: https://opencollective.com/doit/backers/badge.svg
+  :target: :ref:backers
+
+.. image:: https://opencollective.com/doit/sponsors/badge.svg
+  :target: :ref:sponsors
 
 doit - automation tool
 ======================
@@ -160,4 +165,52 @@ contributing
 
 On github create pull requests using a named feature branch.
 
+.. _backers
 
+backers
+-------
+
+
+[Become a backer]((https://opencollective.com/doit#backer)) and show your support to our open source project.
+
+.. image:: https://opencollective.com/webhook/backers.svg?width=890
+  :target: https://opencollective.com/webhook#backers
+
+
+
+.. _sponsors
+
+sponsors
+--------
+
+Support this project by becoming a sponsor. Your logo will show up here with a link to your website. `Link Become a Sponsor <https://opencollective.com/doit#sponsor>`_
+
+.. image:: https://opencollective.com/doit/sponsor/0/avatar
+  :target: https://opencollective.com/doit/sponsor/0/website
+
+.. image:: https://opencollective.com/doit/sponsor/1/avatar
+  :target: https://opencollective.com/doit/sponsor/1/website
+
+.. image:: https://opencollective.com/doit/sponsor/2/avatar
+  :target: https://opencollective.com/doit/sponsor/2/website
+
+.. image:: https://opencollective.com/doit/sponsor/3/avatar
+  :target: https://opencollective.com/doit/sponsor/3/website
+
+.. image:: https://opencollective.com/doit/sponsor/4/avatar
+  :target: https://opencollective.com/doit/sponsor/4/website
+
+.. image:: https://opencollective.com/doit/sponsor/5/avatar
+  :target: https://opencollective.com/doit/sponsor/5/website
+
+.. image:: https://opencollective.com/doit/sponsor/6/avatar
+  :target: https://opencollective.com/doit/sponsor/6/website
+
+.. image:: https://opencollective.com/doit/sponsor/7/avatar
+  :target: https://opencollective.com/doit/sponsor/7/website
+
+.. image:: https://opencollective.com/doit/sponsor/8/avatar
+  :target: https://opencollective.com/doit/sponsor/8/website
+
+.. image:: https://opencollective.com/doit/sponsor/9/avatar
+  :target: https://opencollective.com/doit/sponsor/9/website
