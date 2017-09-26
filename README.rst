@@ -27,6 +27,7 @@ README
 .. image:: https://opencollective.com/doit/sponsors/badge.svg
   :target: :ref:sponsors
 
+
 doit - automation tool
 ======================
 
@@ -165,6 +166,9 @@ contributing
 
 On github create pull requests using a named feature branch.
 
+
+
+
 .. _backers
 
 backers
@@ -173,8 +177,8 @@ backers
 
 [Become a backer]((https://opencollective.com/doit#backer)) and show your support to our open source project.
 
-.. image:: https://opencollective.com/webhook/backers.svg?width=890
-  :target: https://opencollective.com/webhook#backers
+.. image:: https://opencollective.com/doit/backers.svg?width=890
+  :target: https://opencollective.com/doit#backers
 
 
 
