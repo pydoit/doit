@@ -22,10 +22,10 @@ README
   :target: https://gitter.im/pydoit/doit?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
 
 .. image:: https://opencollective.com/doit/backers/badge.svg
-  :target: :ref:backers
+  :target: `backers`_
 
 .. image:: https://opencollective.com/doit/sponsors/badge.svg
-  :target: :ref:sponsors
+  :target: `sponsors`_
 
 
 doit - automation tool
@@ -175,7 +175,7 @@ backers
 -------
 
 
-[Become a backer]((https://opencollective.com/doit#backer)) and show your support to our open source project.
+`Become a backer <https://opencollective.com/doit#backer>`_ and show your support to our open source project.
 
 .. image:: https://opencollective.com/doit/backers.svg?width=890
   :target: https://opencollective.com/doit#backers
@@ -187,7 +187,8 @@ backers
 sponsors
 --------
 
-Support this project by becoming a sponsor. Your logo will show up here with a link to your website. `Link Become a Sponsor <https://opencollective.com/doit#sponsor>`_
+Support this project by `becoming a sponsor <https://opencollective.com/doit#sponsor>`_.
+Your logo will show up here with a link to your website.
 
 .. image:: https://opencollective.com/doit/sponsor/0/avatar
   :target: https://opencollective.com/doit/sponsor/0/website
