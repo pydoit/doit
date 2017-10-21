@@ -55,15 +55,17 @@ class Command(object):
     # should be used.
     execute_tasks = False
 
-    def __init__(self, config=None, **kwargs):
+    def __init__(self, config=None, bin_name='doit', **kwargs):
         """configure command
 
+        :param bin_name: str - name of command line program
         :param config: dict
 
         Set extra configuration values, this vals can come from:
          * directly passed when using the API - through DoitMain.run()
          * from an INI configuration file
         """
+        self.bin_name = bin_name
         self.name = self.get_name()
         # config includes all option values and plugins
         self.config = config if config else {}
@@ -128,8 +130,9 @@ class Command(object):
     def help(self):
         """return help text"""
         text = []
-        text.append("Purpose: %s" % self.doc_purpose)
-        text.append("Usage:   doit %s %s" % (self.name, self.doc_usage))
+        text.append("Purpose: {}".format(self.doc_purpose))
+        text.append("Usage:   {} {} {}".format(
+            self.bin_name, self.name, self.doc_usage))
         text.append('')
 
         text.append("Options:")
@@ -323,15 +326,15 @@ class DoitCmdBase(Command):
                 raise InvalidDodoFile(msg.format(required=minversion,
                                                  actual=version.VERSION))
 
-    @staticmethod
-    def get_checker_cls(check_file_uptodate):
+    def get_checker_cls(self, check_file_uptodate):
         """return checker class to be used by dep_manager"""
         if isinstance(check_file_uptodate, str):
             if check_file_uptodate not in CHECKERS:
                 msg = ("No check_file_uptodate named '{}'."
-                       " Type 'doit help run' to see a list "
-                       "of available checkers.")
-                raise InvalidCommand(msg.format(check_file_uptodate))
+                       " Type '{} help run' to see a list "
+                       "of available checkers.").format(
+                           check_file_uptodate, self.bin_name)
+                raise InvalidCommand(msg)
             return CHECKERS[check_file_uptodate]
         else:
             # user defined class

@@ -105,8 +105,7 @@ class Help(DoitCmdBase):
         self.cmds = cmds.to_dict() # dict name - Command class
 
 
-    @staticmethod
-    def print_usage(cmds):
+    def print_usage(self, cmds):
         """print doit "usage" (basic help) instructions
 
         :var cmds: dict name -> Command class
@@ -117,13 +116,16 @@ class Help(DoitCmdBase):
         print("Commands")
         for cmd_name in sorted(cmds.keys()):
             cmd = cmds[cmd_name]
-            print("  doit {:16s}  {}".format(
-                cmd_name, cmd.doc_purpose))
+            print("  {} {:16s}  {}".format(
+                self.bin_name, cmd_name, cmd.doc_purpose))
         print("")
-        print("  doit help              show help / reference")
-        print("  doit help task         show help on task dictionary fields")
-        print("  doit help <command>    show command usage")
-        print("  doit help <task-name>  show task usage")
+        cmd_help = "  {} help".format(self.bin_name)
+        for line in [
+                "{}              show help / reference",
+                "{} task         show help on task dictionary fields",
+                "{} <command>    show command usage",
+                "{} <task-name>  show task usage",]:
+            print(line.format(cmd_help))
 
 
     @staticmethod
@@ -157,7 +159,7 @@ class Help(DoitCmdBase):
         else:
             # help of specific task
             try:
-                # call base class implementation to execute _execute()
+                # call base class implementation to run self._execute()
                 if not DoitCmdBase.execute(self, params, args):
                     self.print_usage(self.cmds)
             except InvalidDodoFile:

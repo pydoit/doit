@@ -1,10 +1,13 @@
 from doit.doit_cmd import DoitMain
 
 
-def cmd_main(args, extra_config=None):
+def cmd_main(args, extra_config=None, bin_name='doit'):
     if extra_config:
         extra_config = {'GLOBAL': extra_config}
-    return DoitMain(extra_config=extra_config).run(args)
+    main = DoitMain(extra_config=extra_config)
+    main.BIN_NAME = bin_name
+    return main.run(args)
+
 
 class TestHelp(object):
     def test_help_usage(self, capsys):
@@ -13,9 +16,17 @@ class TestHelp(object):
         out, err = capsys.readouterr()
         assert "doit list" in out
 
+    def test_help_usage_custom_name(self, capsys):
+        returned = cmd_main(["help"], bin_name='mytool')
+        assert returned == 0
+        out, err = capsys.readouterr()
+        assert "mytool list" in out
+
     def test_help_plugin_name(self, capsys):
         plugin = {'XXX': 'tests.sample_plugin:MyCmd'}
-        returned = DoitMain(extra_config={'COMMAND':plugin}).run(["help"])
+        main = DoitMain(extra_config={'COMMAND':plugin})
+        main.BIN_NAME = 'doit'
+        returned = main.run(["help"])
         assert returned == 0
         out, err = capsys.readouterr()
         assert "doit XXX " in out

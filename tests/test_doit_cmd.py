@@ -11,7 +11,9 @@ from doit import doit_cmd
 
 
 def cmd_main(args):
-    return doit_cmd.DoitMain().run(args)
+    main = doit_cmd.DoitMain()
+    main.BIN_NAME = 'doit'
+    return main.run(args)
 
 
 class TestRun(object):

@@ -143,7 +143,10 @@ class DoitMain(object):
                 self.print_version()
                 return 0
             if cmd_args[0] == "--help":
-                Help.print_usage(sub_cmds.to_dict())
+                help = Help(config=self.config,
+                            bin_name=self.BIN_NAME,
+                            cmds=sub_cmds)
+                help.print_usage(sub_cmds.to_dict())
                 return 0
 
         # get "global vars" from cmd-line
@@ -159,9 +162,11 @@ class DoitMain(object):
 
         # execute command
         command = sub_cmds.get_plugin(cmd_name)(
+            config=self.config,
+            bin_name=self.BIN_NAME,
             task_loader=self.task_loader,
             cmds=sub_cmds,
-            config=self.config,)
+            )
 
         try:
             return command.parse_execute(args)

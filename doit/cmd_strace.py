@@ -55,8 +55,8 @@ So this is NOT 100% reliable, use with care!
         if os.path.exists(self.TRACE_OUT): # pragma: no cover
             os.unlink(self.TRACE_OUT)
         if len(args) != 1:
-            msg = ('doit strace failed, must select *one* task to strace.'
-                   '\nCheck `doit help strace`.')
+            msg = ('strace failed, must select *one* task to strace.'
+                   '\nCheck `{} help strace`.'.format(self.bin_name))
             raise InvalidCommand(msg)
         result = Run.execute(self, params, args)
         if (not params['keep_trace']) and os.path.exists(self.TRACE_OUT):

@@ -29,8 +29,8 @@ class Info(DoitCmdBase):
 
     def _execute(self, pos_args, show_execute_status=False):
         if len(pos_args) != 1:
-            msg = ('doit info failed, must select *one* task.'
-                   '\nCheck `doit help info`.')
+            msg = ('`info` failed, must select *one* task.'
+                   '\nCheck `{} help info`.'.format(self.bin_name))
             raise InvalidCommand(msg)
 
         task_name = pos_args[0]
