@@ -237,7 +237,7 @@ def set_trace(): # pragma: no cover
 
 
 
-def register_doit_as_IPython_magic():  # pragma: no cover
+def load_ipython_extension(ip=None):  # pragma: no cover
     """
     Defines a ``%doit`` magic function[1] that discovers and execute tasks
     from IPython's interactive variables (global namespace).
@@ -250,16 +250,20 @@ def register_doit_as_IPython_magic():  # pragma: no cover
         (``~/.ipython/profile_default/startup/doit_magic.ipy``) with the
         following content:
 
-            from doit.tools import register_doit_as_IPython_magic
-            register_doit_as_IPython_magic()
+            %load_ext doit.tools
+            %reload_ext doit.tools
+            %doit list
 
     [1] http://ipython.org/ipython-doc/dev/interactive/tutorial.html#magic-functions
     """
-    from IPython.core.magic import register_line_magic
     from IPython.core.getipython import get_ipython
+    from IPython.core.magic import register_line_magic
 
     from doit.cmd_base import ModuleTaskLoader
     from doit.doit_cmd import DoitMain
+
+    # Only (re)load_ext provides the ip context.
+    ip = ip or get_ipython()
 
     @register_line_magic
     def doit(line):
@@ -283,7 +287,6 @@ def register_doit_as_IPython_magic():  # pragma: no cover
             hi IPython
 
         """
-        ip = get_ipython()
         # Override db-files location inside ipython-profile dir,
         # which is certainly writable.
         prof_dir = ip.profile_dir.location
@@ -291,3 +294,6 @@ def register_doit_as_IPython_magic():  # pragma: no cover
         commander = DoitMain(ModuleTaskLoader(ip.user_module),
                              extra_config={'GLOBAL': opt_vals})
         commander.run(line.split())
+
+# the name register_doit_as_IPython_magic is deprecated on **
+register_doit_as_IPython_magic = load_ipython_extension
