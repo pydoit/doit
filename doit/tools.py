@@ -250,8 +250,8 @@ def load_ipython_extension(ip=None):  # pragma: no cover
         (``~/.ipython/profile_default/startup/doit_magic.ipy``) with the
         following content:
 
-            %load_ext doit.tools
-            %reload_ext doit.tools
+            %load_ext doit
+            %reload_ext doit
             %doit list
 
     [1] http://ipython.org/ipython-doc/dev/interactive/tutorial.html#magic-functions
@@ -293,7 +293,8 @@ def load_ipython_extension(ip=None):  # pragma: no cover
         opt_vals = {'dep_file': os.path.join(prof_dir, 'db', '.doit.db')}
         commander = DoitMain(ModuleTaskLoader(ip.user_module),
                              extra_config={'GLOBAL': opt_vals})
+        commander.BIN_NAME = 'doit'
         commander.run(line.split())
 
-# the name register_doit_as_IPython_magic is deprecated on **
+# also expose another way of registering ipython extension
 register_doit_as_IPython_magic = load_ipython_extension
