@@ -28,9 +28,11 @@ def test_unicode_md5():
 
 def test_md5():
     filePath = os.path.join(os.path.dirname(__file__), "sample_md5.txt")
-    # result got using command line md5sum
-    expected = "45d1503cb985898ab5bd8e58973007dd"
-    assert expected == get_file_md5(filePath)
+    # result got using command line md5sum, with different line-endings to deal with different GIT
+    # configurations:
+    expected_lf = "45d1503cb985898ab5bd8e58973007dd"
+    expected_crlf = "cf7b48b2fec3b581b135f7c9a1f7ae04"
+    assert get_file_md5(filePath) in {expected_lf, expected_crlf}
 
 
 def test_sqlite_import():
