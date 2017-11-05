@@ -1,4 +1,5 @@
 from io import StringIO
+import mock
 import pytest
 
 from doit.exceptions import InvalidCommand
@@ -45,16 +46,21 @@ class TestCmdClean(object):
 
     def test_clean_selected(self, tasks):
         output = StringIO()
+        mock_dep_manager = mock.MagicMock()
         cmd_clean = CmdFactory(Clean, outstream=output, task_list=tasks,
-                               sel_tasks=['t1'])
+                               sel_tasks=['t1'], dep_manager=mock_dep_manager)
         cmd_clean._execute(False, False, False, False, ['t2'])
         assert ['t2'] == self.cleaned
+        mock_dep_manager.remove.assert_not_called()
 
     def test_clean_taskdep(self, tasks):
         output = StringIO()
-        cmd_clean = CmdFactory(Clean, outstream=output, task_list=tasks)
+        mock_dep_manager = mock.MagicMock()
+        cmd_clean = CmdFactory(Clean, outstream=output, task_list=tasks,
+                               dep_manager=mock_dep_manager)
         cmd_clean._execute(False, True, False, False, ['t1'])
         assert ['t2', 't1'] == self.cleaned
+        mock_dep_manager.remove.assert_not_called()
 
     def test_clean_taskdep_recursive(self, tasks):
         output = StringIO()
@@ -81,3 +87,23 @@ class TestCmdClean(object):
                                sel_tasks=['t1'])
         pytest.raises(InvalidCommand, cmd_clean._execute,
                       False, False, False, False, ['xxxx'])
+
+    def test_clean_hard_selected(self, tasks):
+        output = StringIO()
+        mock_dep_manager = mock.MagicMock()
+        cmd_clean = CmdFactory(Clean, outstream=output, task_list=tasks,
+                               sel_tasks=['t1'], dep_manager=mock_dep_manager)
+        cmd_clean._execute(False, False, False, True, ['t2'])
+        assert ['t2'] == self.cleaned
+        mock_dep_manager.assert_has_calls([mock.call.remove(mock.ANY), mock.call.close()])  # order
+        assert mock_dep_manager.remove.call_args_list == [mock.call('t2')]  # exactly t2, not more
+
+    def test_clean_hard_taskdep(self, tasks):
+        output = StringIO()
+        mock_dep_manager = mock.MagicMock()
+        cmd_clean = CmdFactory(Clean, outstream=output, task_list=tasks,
+                               dep_manager=mock_dep_manager)
+        cmd_clean._execute(False, True, False, True, ['t1'])
+        assert ['t2', 't1'] == self.cleaned
+        mock_dep_manager.assert_has_calls([mock.call.remove(mock.ANY), mock.call.close()])  # order
+        assert mock_dep_manager.remove.call_args_list == [mock.call('t2'), mock.call('t1')]
