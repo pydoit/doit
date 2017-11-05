@@ -46,14 +46,19 @@ class Clean(DoitCmdBase):
     cmd_options = (opt_clean_cleandep, opt_clean_cleanall, opt_clean_dryrun, opt_clean_hard)
 
 
-    def clean_tasks(self, tasks, dryrun):
+    def clean_tasks(self, tasks, dryrun, hard):
         """ensure task clean-action is executed only once"""
         cleaned = set()
+        forget_tasks = hard and not dryrun
         for task in tasks:
             if task.name not in cleaned:
                 cleaned.add(task.name)
                 task.clean(self.outstream, dryrun)
+                if forget_tasks:
+                    self.dep_manager.remove(task.name)
 
+        if forget_tasks:
+            self.dep_manager.close()
 
     def _execute(self, dryrun, cleandep, cleanall, hard, pos_args=None):
         """Clean tasks
@@ -98,4 +103,4 @@ class Clean(DoitCmdBase):
                 to_clean.append(task)
                 to_clean.extend(subtasks_iter(tasks, task))
         to_clean.reverse()
-        self.clean_tasks(to_clean, dryrun)
+        self.clean_tasks(to_clean, dryrun, hard)
