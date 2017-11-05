@@ -148,8 +148,14 @@ If you are executing the default tasks this flag is automatically set.
 
 If you want check which tasks the clean operation would affect you can use the option *-n*/*--dry-run*.
 
-If you like to also make doit forget previous execution of cleaned tasks, use option *--hard*.
+If you like to also make doit forget previous execution of cleaned tasks, use option *--hard*. This
+can be made the default behavior by adding the corresponding ``clean_hard`` configuration switch:
 
+.. code-block:: python
+
+    DOIT_CONFIG = {
+        'clean_hard': True,
+    }
 
 
 ignore

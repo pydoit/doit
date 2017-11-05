@@ -60,13 +60,15 @@ class Clean(DoitCmdBase):
         if forget_tasks:
             self.dep_manager.close()
 
-    def _execute(self, dryrun, cleandep, cleanall, hard, pos_args=None):
+    def _execute(self, dryrun, cleandep, cleanall, hard, pos_args=None, clean_hard=False):
         """Clean tasks
         @param task_list (list - L{Task}): list of all tasks from dodo file
         @ivar dryrun (bool): if True clean tasks are not executed
                             (just print out what would be executed)
         @param cleandep (bool): execute clean from task_dep
         @param cleanall (bool): clean all tasks
+        @param hard (bool): forget cleaned tasks (command line option)
+        @param clean_hard (bool): forget cleaned tasks (doit config parameter)
         @var default_tasks (list - string): list of default tasks
         @var selected_tasks (list - string): list of tasks selected
                                              from cmd-line
@@ -103,4 +105,4 @@ class Clean(DoitCmdBase):
                 to_clean.append(task)
                 to_clean.extend(subtasks_iter(tasks, task))
         to_clean.reverse()
-        self.clean_tasks(to_clean, dryrun, hard)
+        self.clean_tasks(to_clean, dryrun, hard or clean_hard)
