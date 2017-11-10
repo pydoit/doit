@@ -25,21 +25,23 @@ class TestCmdClean(object):
 
     def test_clean_all(self, tasks):
         output = StringIO()
-        cmd_clean = CmdFactory(Clean, outstream=output, task_list=tasks)
+        cmd_clean = CmdFactory(Clean, outstream=output, task_list=tasks,
+                               dep_manager=mock.MagicMock())
         cmd_clean._execute(False, False, True, False)
         assert ['t1','t2', 't3:a', 't3', 't4'] == self.cleaned
 
     def test_clean_default(self, tasks):
         output = StringIO()
         cmd_clean = CmdFactory(Clean, outstream=output, task_list=tasks,
-                               sel_tasks=['t1'])
+                               sel_tasks=['t1'], dep_manager=mock.MagicMock())
         cmd_clean._execute(False, False, False, False)
         # default enable --clean-dep by default
         assert ['t2', 't1'] == self.cleaned
 
     def test_clean_default_all(self, tasks):
         output = StringIO()
-        cmd_clean = CmdFactory(Clean, outstream=output, task_list=tasks)
+        cmd_clean = CmdFactory(Clean, outstream=output, task_list=tasks,
+                               dep_manager=mock.MagicMock())
         cmd_clean._execute(False, False, False, False)
         # default enable --clean-dep by default
         assert set(['t1','t2', 't3:a', 't3', 't4']) == set(self.cleaned)
@@ -64,20 +66,23 @@ class TestCmdClean(object):
 
     def test_clean_taskdep_recursive(self, tasks):
         output = StringIO()
-        cmd_clean = CmdFactory(Clean, outstream=output, task_list=tasks)
+        cmd_clean = CmdFactory(Clean, outstream=output, task_list=tasks,
+                               dep_manager=mock.MagicMock())
         cmd_clean._execute(False, True, False, False, ['t4'])
         assert ['t2', 't1', 't4'] == self.cleaned
 
     def test_clean_subtasks(self, tasks):
         output = StringIO()
-        cmd_clean = CmdFactory(Clean, outstream=output, task_list=tasks)
+        cmd_clean = CmdFactory(Clean, outstream=output, task_list=tasks,
+                               dep_manager=mock.MagicMock())
         cmd_clean._execute(False, False, False, False, ['t3'])
         assert ['t3:a', 't3'] == self.cleaned
 
     def test_clean_taskdep_once(self, tasks):
         # do not execute clean operation more than once
         output = StringIO()
-        cmd_clean = CmdFactory(Clean, outstream=output, task_list=tasks)
+        cmd_clean = CmdFactory(Clean, outstream=output, task_list=tasks,
+                               dep_manager=mock.MagicMock())
         cmd_clean._execute(False, True, False, False, ['t1', 't2'])
         assert ['t2', 't1'] == self.cleaned
 

@@ -57,8 +57,7 @@ class Clean(DoitCmdBase):
                 if forget_tasks:
                     self.dep_manager.remove(task.name)
 
-        if forget_tasks:
-            self.dep_manager.close()
+        self.dep_manager.close()
 
     def _execute(self, dryrun, cleandep, cleanall, hard, pos_args=None, clean_hard=False):
         """Clean tasks
