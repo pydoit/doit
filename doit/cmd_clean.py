@@ -31,7 +31,7 @@ opt_clean_cleanall = {
 
 opt_clean_forget = {
     'name': 'cleanforget',
-    'long': 'clean-forget',
+    'long': 'forget',
     'type': bool,
     'default': False,
     'help': 'also forget tasks after cleaning',
