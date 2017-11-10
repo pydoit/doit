@@ -93,7 +93,7 @@ class TestCmdClean(object):
         pytest.raises(InvalidCommand, cmd_clean._execute,
                       False, False, False, False, ['xxxx'])
 
-    def test_clean_hard_selected(self, tasks):
+    def test_clean_forget_selected(self, tasks):
         output = StringIO()
         mock_dep_manager = mock.MagicMock()
         cmd_clean = CmdFactory(Clean, outstream=output, task_list=tasks,
@@ -103,7 +103,7 @@ class TestCmdClean(object):
         mock_dep_manager.assert_has_calls([mock.call.remove(mock.ANY), mock.call.close()])  # order
         assert mock_dep_manager.remove.call_args_list == [mock.call('t2')]  # exactly t2, not more
 
-    def test_clean_hard_taskdep(self, tasks):
+    def test_clean_forget_taskdep(self, tasks):
         output = StringIO()
         mock_dep_manager = mock.MagicMock()
         cmd_clean = CmdFactory(Clean, outstream=output, task_list=tasks,
