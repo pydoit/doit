@@ -29,9 +29,9 @@ opt_clean_cleanall = {
     'help': 'clean all task',
     }
 
-opt_clean_hard = {
-    'name': 'hard',
-    'long': 'hard',
+opt_clean_forget = {
+    'name': 'cleanforget',
+    'long': 'clean-forget',
     'type': bool,
     'default': False,
     'help': 'also forget tasks after cleaning',
@@ -43,13 +43,13 @@ class Clean(DoitCmdBase):
     doc_description = ("If no task is specified clean default tasks and "
                        "set --clean-dep automatically.")
 
-    cmd_options = (opt_clean_cleandep, opt_clean_cleanall, opt_clean_dryrun, opt_clean_hard)
+    cmd_options = (opt_clean_cleandep, opt_clean_cleanall, opt_clean_dryrun, opt_clean_forget)
 
 
-    def clean_tasks(self, tasks, dryrun, hard):
+    def clean_tasks(self, tasks, dryrun, cleanforget):
         """ensure task clean-action is executed only once"""
         cleaned = set()
-        forget_tasks = hard and not dryrun
+        forget_tasks = cleanforget and not dryrun
         for task in tasks:
             if task.name not in cleaned:
                 cleaned.add(task.name)
@@ -59,15 +59,14 @@ class Clean(DoitCmdBase):
 
         self.dep_manager.close()
 
-    def _execute(self, dryrun, cleandep, cleanall, hard, pos_args=None, clean_hard=False):
+    def _execute(self, dryrun, cleandep, cleanall, cleanforget, pos_args=None):
         """Clean tasks
         @param task_list (list - L{Task}): list of all tasks from dodo file
         @ivar dryrun (bool): if True clean tasks are not executed
                             (just print out what would be executed)
         @param cleandep (bool): execute clean from task_dep
         @param cleanall (bool): clean all tasks
-        @param hard (bool): forget cleaned tasks (command line option)
-        @param clean_hard (bool): forget cleaned tasks (doit config parameter)
+        @param cleanforget (bool): forget cleaned tasks
         @var default_tasks (list - string): list of default tasks
         @var selected_tasks (list - string): list of tasks selected
                                              from cmd-line
@@ -104,4 +103,4 @@ class Clean(DoitCmdBase):
                 to_clean.append(task)
                 to_clean.extend(subtasks_iter(tasks, task))
         to_clean.reverse()
-        self.clean_tasks(to_clean, dryrun, hard or clean_hard)
+        self.clean_tasks(to_clean, dryrun, cleanforget)
