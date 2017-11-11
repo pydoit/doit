@@ -10,6 +10,7 @@
 'check
 'choice'
 'clean'
+'cleanforget'
 'command
 'command'
 'dep
@@ -159,6 +160,7 @@ callables
 cfg
 chdir
 cid
+cleanforget
 cloudpickle
 cmd
 cmp

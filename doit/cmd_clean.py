@@ -43,7 +43,8 @@ class Clean(DoitCmdBase):
     doc_description = ("If no task is specified clean default tasks and "
                        "set --clean-dep automatically.")
 
-    cmd_options = (opt_clean_cleandep, opt_clean_cleanall, opt_clean_dryrun, opt_clean_forget)
+    cmd_options = (opt_clean_cleandep, opt_clean_cleanall,
+                   opt_clean_dryrun, opt_clean_forget)
 
 
     def clean_tasks(self, tasks, dryrun, cleanforget):
@@ -59,7 +60,8 @@ class Clean(DoitCmdBase):
 
         self.dep_manager.close()
 
-    def _execute(self, dryrun, cleandep, cleanall, cleanforget, pos_args=None):
+    def _execute(self, dryrun, cleandep, cleanall, cleanforget,
+                 pos_args=None):
         """Clean tasks
         @param task_list (list - L{Task}): list of all tasks from dodo file
         @ivar dryrun (bool): if True clean tasks are not executed

@@ -32,8 +32,9 @@ class TestCmdClean(object):
 
     def test_clean_default(self, tasks):
         output = StringIO()
-        cmd_clean = CmdFactory(Clean, outstream=output, task_list=tasks,
-                               sel_tasks=['t1'], dep_manager=mock.MagicMock())
+        cmd_clean = CmdFactory(
+            Clean, outstream=output, task_list=tasks,
+            sel_tasks=['t1'], dep_manager=mock.MagicMock())
         cmd_clean._execute(False, False, False, False)
         # default enable --clean-dep by default
         assert ['t2', 't1'] == self.cleaned
@@ -49,8 +50,9 @@ class TestCmdClean(object):
     def test_clean_selected(self, tasks):
         output = StringIO()
         mock_dep_manager = mock.MagicMock()
-        cmd_clean = CmdFactory(Clean, outstream=output, task_list=tasks,
-                               sel_tasks=['t1'], dep_manager=mock_dep_manager)
+        cmd_clean = CmdFactory(
+            Clean, outstream=output, task_list=tasks,
+            sel_tasks=['t1'], dep_manager=mock_dep_manager)
         cmd_clean._execute(False, False, False, False, ['t2'])
         assert ['t2'] == self.cleaned
         mock_dep_manager.remove.assert_not_called()
@@ -96,12 +98,17 @@ class TestCmdClean(object):
     def test_clean_forget_selected(self, tasks):
         output = StringIO()
         mock_dep_manager = mock.MagicMock()
-        cmd_clean = CmdFactory(Clean, outstream=output, task_list=tasks,
-                               sel_tasks=['t1'], dep_manager=mock_dep_manager)
+        cmd_clean = CmdFactory(
+            Clean, outstream=output, task_list=tasks,
+            sel_tasks=['t1'], dep_manager=mock_dep_manager)
         cmd_clean._execute(False, False, False, True, ['t2'])
         assert ['t2'] == self.cleaned
-        mock_dep_manager.assert_has_calls([mock.call.remove(mock.ANY), mock.call.close()])  # order
-        assert mock_dep_manager.remove.call_args_list == [mock.call('t2')]  # exactly t2, not more
+        # order
+        mock_dep_manager.assert_has_calls(
+            [mock.call.remove(mock.ANY), mock.call.close()])
+        # exactly t2, not more
+        assert (mock_dep_manager.remove.call_args_list ==
+                [mock.call('t2')])
 
     def test_clean_forget_taskdep(self, tasks):
         output = StringIO()
@@ -110,5 +117,8 @@ class TestCmdClean(object):
                                dep_manager=mock_dep_manager)
         cmd_clean._execute(False, True, False, True, ['t1'])
         assert ['t2', 't1'] == self.cleaned
-        mock_dep_manager.assert_has_calls([mock.call.remove(mock.ANY), mock.call.close()])  # order
-        assert mock_dep_manager.remove.call_args_list == [mock.call('t2'), mock.call('t1')]
+        # order
+        mock_dep_manager.assert_has_calls(
+            [mock.call.remove(mock.ANY), mock.call.close()])
+        assert (mock_dep_manager.remove.call_args_list ==
+                [mock.call('t2'), mock.call('t1')])
