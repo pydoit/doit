@@ -29,6 +29,13 @@ opt_clean_cleanall = {
     'help': 'clean all task',
     }
 
+opt_clean_forget = {
+    'name': 'cleanforget',
+    'long': 'forget',
+    'type': bool,
+    'default': False,
+    'help': 'also forget tasks after cleaning',
+    }
 
 class Clean(DoitCmdBase):
     doc_purpose = "clean action / remove targets"
@@ -36,25 +43,30 @@ class Clean(DoitCmdBase):
     doc_description = ("If no task is specified clean default tasks and "
                        "set --clean-dep automatically.")
 
-    cmd_options = (opt_clean_cleandep, opt_clean_cleanall, opt_clean_dryrun)
+    cmd_options = (opt_clean_cleandep, opt_clean_cleanall, opt_clean_dryrun, opt_clean_forget)
 
 
-    def clean_tasks(self, tasks, dryrun):
+    def clean_tasks(self, tasks, dryrun, cleanforget):
         """ensure task clean-action is executed only once"""
         cleaned = set()
+        forget_tasks = cleanforget and not dryrun
         for task in tasks:
             if task.name not in cleaned:
                 cleaned.add(task.name)
                 task.clean(self.outstream, dryrun)
+                if forget_tasks:
+                    self.dep_manager.remove(task.name)
 
+        self.dep_manager.close()
 
-    def _execute(self, dryrun, cleandep, cleanall, pos_args=None):
+    def _execute(self, dryrun, cleandep, cleanall, cleanforget, pos_args=None):
         """Clean tasks
         @param task_list (list - L{Task}): list of all tasks from dodo file
         @ivar dryrun (bool): if True clean tasks are not executed
                             (just print out what would be executed)
         @param cleandep (bool): execute clean from task_dep
         @param cleanall (bool): clean all tasks
+        @param cleanforget (bool): forget cleaned tasks
         @var default_tasks (list - string): list of default tasks
         @var selected_tasks (list - string): list of tasks selected
                                              from cmd-line
@@ -91,4 +103,4 @@ class Clean(DoitCmdBase):
                 to_clean.append(task)
                 to_clean.extend(subtasks_iter(tasks, task))
         to_clean.reverse()
-        self.clean_tasks(to_clean, dryrun)
+        self.clean_tasks(to_clean, dryrun, cleanforget)

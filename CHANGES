@@ -13,6 +13,7 @@ Changes
  - CmdParse now support getting values from OS environment variables
  - option `seek_file` control by ENV var `DOIT_SEEK_FILE`
  - GH-#192 ipython extension uses `load_ipython_extension`
+ - GH-#218 clean with option `--forget` can be used to also forget about cleaned tasks
 
 
 0.30.3 (*2017-02-20*)
