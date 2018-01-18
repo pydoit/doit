@@ -179,10 +179,15 @@ class Runner(object):
         task = node.task
         # save execution successful
         if catched_excp is None:
-            node.run_status = "successful"
             task.save_extra_values()
-            self.dep_manager.save_success(task)
-            self.reporter.add_success(task)
+            error_msg = self.dep_manager.save_success(task)
+            if error_msg:
+                msg = "ERROR: Task '{}' checking dependences while saving success: {}".format(
+                    task.name, error_msg)
+                self._handle_task_error(node, DependencyError(msg))
+            else:
+                self.reporter.add_success(task)
+                node.run_status = "successful"
         # task error
         else:
             self._handle_task_error(node, catched_excp)
