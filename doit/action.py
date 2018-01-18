@@ -444,7 +444,7 @@ class PythonAction(BaseAction):
         return "<PythonAction: '%s'>"% (repr(self.py_callable))
 
 
-def create_action(action, task_ref):
+def create_action(action, task_ref, keyword='*'):
     """
     Create action using proper constructor based on the parameter type
 
@@ -464,13 +464,13 @@ def create_action(action, task_ref):
 
     if isinstance(action, tuple):
         if len(action) > 3:
-            msg = "Task '%s': invalid 'actions' tuple length. got:%r %s"
-            raise InvalidTask(msg % (task_ref.name, action, type(action)))
+            msg = "Task '%s': invalid '%s' tuple length. got:%r %s"
+            raise InvalidTask(msg % (task_ref.name, keyword, action, type(action)))
         py_callable, args, kwargs = (list(action) + [None]*(3-len(action)))
         return PythonAction(py_callable, args, kwargs, task_ref)
 
     if hasattr(action, '__call__'):
         return PythonAction(action, task=task_ref)
 
-    msg = "Task '%s': invalid 'actions' type. got:%r %s"
-    raise InvalidTask(msg % (task_ref.name, action, type(action)))
+    msg = "Task '%s': invalid '%s' type. got:%r %s"
+    raise InvalidTask(msg % (task_ref.name, keyword, action, type(action)))

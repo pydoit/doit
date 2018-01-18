@@ -193,9 +193,9 @@ class Task(object):
             self.clean_actions = ()
         else:
             self._remove_targets = False
-            self.clean_actions = [create_action(a, self) for a in clean]
+            self.clean_actions = [create_action(a, self, 'clean') for a in clean]
 
-        self.teardown = [create_action(a, self) for a in teardown]
+        self.teardown = [create_action(a, self, 'teardown') for a in teardown]
         self.doc = self._init_doc(doc)
         self.watch = watch
 
@@ -379,7 +379,7 @@ class Task(object):
         """lazy creation of action instances"""
         if self._action_instances is None:
             self._action_instances = [
-                create_action(a, self) for a in self._actions]
+                create_action(a, self, 'actions') for a in self._actions]
         return self._action_instances
 
 
