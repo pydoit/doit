@@ -596,6 +596,32 @@ You can control the verbosity by:
 * from command line, see :ref:`verbosity option<verbosity_option>`.
 
 
+delayed execution
+-----------------
+
+For :ref:`parallel execution <parallel-execution>` it can be useful to delay
+the start of the first task executed in a process. This can be achieved with
+the ``delay`` option:
+
+.. literalinclude:: tutorial/subtasks-delay.py
+
+.. code-block:: console
+
+    $ doit run -v 2 -n 2
+    task file0.txt started (H:M:S+57)
+    .  create_file:file0.txt
+    .  create_file:file1.txt
+    .  create_file:file2.txt
+    task file1.txt started (H:M:S+59)
+    task file2.txt started (H:M:S+59)
+    .  create_file:file3.txt
+    .  create_file:file4.txt
+    task file3.txt started (H:M:S+59)
+    task file4.txt started (H:M:S+59)
+    .  create_file:file5.txt
+    task file5.txt started (H:M:S+59)
+
+
 pathlib
 --------
 
