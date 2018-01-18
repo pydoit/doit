@@ -43,7 +43,7 @@ class TestCmdInfo(object):
         cmd = CmdFactory(Info, outstream=output,
                          dep_file=depfile.name, task_list=[task],
                          backend='dbm')
-        return_val = cmd._execute(['t1'], show_execute_status=True)
+        return_val = cmd._execute(['t1'])
         assert """t1""" in output.getvalue()
         assert return_val == 1  # indicates task is not up-to-date
         assert "run" in output.getvalue()
@@ -56,10 +56,16 @@ class TestCmdInfo(object):
                          dep_file=depfile.name, task_list=[task],
                          backend='dbm')
         cmd.dep_manager.save_success(task)
-        return_val = cmd._execute(['t1'], show_execute_status=True)
+        return_val = cmd._execute(['t1'])
         assert """t1""" in output.getvalue()
         assert return_val == 0  # indicates task is not up-to-date
         assert "up-to-date" in output.getvalue()
+
+        output.seek(0)
+        return_val = cmd._execute(['t1'], hide_execute_status=True)
+        assert """t1""" in output.getvalue()
+        assert return_val == 0  # indicates task is not up-to-date
+        assert "up-to-date" not in output.getvalue()
 
     def test_get_reasons_str(self):
         reasons = {

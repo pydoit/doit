@@ -6,14 +6,13 @@ from .cmd_base import DoitCmdBase
 from .exceptions import InvalidCommand
 
 
-
-opt_show_execute_status = {
-    'name': 'show_execute_status',
-    'short': 's',
-    'long': 'status',
+opt_hide_execute_status = {
+    'name': 'hide_execute_status',
+    # 'short': 's',
+    'long': 'no-status',
     'type': bool,
-    'default': True,
-    'help': """Shows reasons why this task would be executed.
+    'default': False,
+    'help': """Hides reasons why this task would be executed.
  [default: %(default)s]"""
 }
 
@@ -25,9 +24,9 @@ class Info(DoitCmdBase):
     doc_usage = "TASK"
     doc_description = None
 
-    cmd_options = (opt_show_execute_status, )
+    cmd_options = (opt_hide_execute_status, )
 
-    def _execute(self, pos_args, show_execute_status=True):
+    def _execute(self, pos_args, hide_execute_status=False):
         if len(pos_args) != 1:
             msg = ('`info` failed, must select *one* task.'
                    '\nCheck `{} help info`.'.format(self.bin_name))
@@ -53,7 +52,7 @@ class Info(DoitCmdBase):
 
         # print reason task is not up-to-date
         retcode = 0
-        if show_execute_status and self.dep_manager is not None:
+        if not hide_execute_status and self.dep_manager is not None:
             status = self.dep_manager.get_status(task, tasks, get_log=True)
             self.outstream.write('\n{:11s}: {}\n'
                                  .format('status', status.status))
