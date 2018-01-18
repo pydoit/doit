@@ -2,6 +2,7 @@ import os
 import pickle
 from multiprocessing import Queue
 import platform
+from time import time
 
 import pytest
 from mock import Mock
@@ -681,6 +682,23 @@ class TestMRunner_start_process(object):
         assert t1.name == task_q.get().name
         assert t2.name == task_q.get().name
 
+    def test_delayed_processes(self, reporter, monkeypatch, dep_manager):
+        mock_process = Mock()
+        monkeypatch.setattr(runner.MRunner, 'Child', mock_process)
+        t1 = Task('t1', [])
+        t2 = Task('t2', [], delay=1)
+        td = TaskDispatcher({'t1':t1, 't2':t2}, [], ['t1', 't2'])
+        run = runner.MRunner(dep_manager, reporter, num_process=2)
+        run._run_tasks_init(td)
+        result_q = Queue()
+        task_q = Queue()
+
+        t0 = time()
+        proc_list = run._run_start_processes(task_q, result_q)
+        run.finish()
+        tottime = time() - t0
+        assert tottime > 1
+        assert 2 == len(proc_list)
 
     # 2 process, 1 task
     def test_less_processes(self, reporter, monkeypatch, dep_manager):

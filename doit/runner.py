@@ -5,6 +5,7 @@ from multiprocessing import Process, Queue as MQueue
 from threading import Thread
 import pickle
 import queue
+import time
 
 import cloudpickle
 
@@ -411,8 +412,15 @@ class MRunner(Runner):
         # ### END DEBUG
 
         proc_list = []
-        for _ in range(self.num_process):
+        for i in range(self.num_process):
             next_job = self.get_next_job(None)
+            try:
+                delay = next_job.task_dict.get('delay') or 0
+            except AttributeError:
+                pass
+            else:
+                if i > 0 and delay:
+                    time.sleep(delay)
             if next_job is None:
                 break # do not start more processes than tasks
             job_q.put(next_job)
