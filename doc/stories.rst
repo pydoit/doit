@@ -103,6 +103,26 @@ for many other tasks, of course, but this is our research field:)!
 
 
 
+Build System
+------------
+
+
+Game Development
+^^^^^^^^^^^^^^^^
+
+by `@FrankStain <https://github.com/pydoit/doit/issues/207#issuecomment-333367177>`_ (2017-10-01)
+
+I'm professional game developer. Also, i support my own huge game framework written on C++. :)
+
+So, the large scalable build systems are the game building automation tools. It consists of game binary image builders for different platforms, including cross-compilation of source code and source code generation from some DSL schemes. Also it consists of resource generators, where a lot of resource types (dozens of types: textures, 3d objects and scene graphs, sounds, database and state machine raw data) have to pass through dozens of compilation steps. After all, such build system consists of dynamic testing tool, which makes some tests on build target before make it published for Draft usage, QA or Retail customers. And, yep, publishing/QA deployment also implemented as part of build system.
+
+Just imagine you need to read PNG into pixelmap, compress it into ETC2, ATCI, S3-TC5/BC3 and PVR-TC4, after what each of compressed texture should be placed into different resource pack, obfuscated and encrypted. And all is done by different tasks, because i can read textures even from database, zip-file or other pack and may not wish to compress it into some formats.
+Each sound should be loaded from PCM, converted into MP3 or OGG and linked with each sound mixer where it used, after what it also have to be placed at proper resource pack, obfuscated and encrypted.
+3d location compilation process is about two hundreds tasks on just objects, not files. It's most complex resource pipeline in build system.
+
+doit is well designed tool for such purposes, i think.
+
+
 Content Generation
 ------------------
 
