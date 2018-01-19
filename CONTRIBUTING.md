@@ -13,8 +13,10 @@ the used command line to reproduce the problem.
 ## questions
 
 Please ask question in the discussion
-[forum](http://groups.google.co.in/group/python-doit).
-Do not use the github issue tracker!
+[forum](http://groups.google.co.in/group/python-doit)
+or on StackOverflow using tag `doit`.
+
+Do not use the github issue tracker to ask questions!
 
 `doit` has extensive online documentation please read the docs!
 

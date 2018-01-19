@@ -161,19 +161,21 @@ What people are saying about `doit`
 Project Details
 ===============
 
-* This is an open-source project
+* **LICENSE** This is an open-source project
   (`MIT license <http://opensource.org/licenses/mit-license.php>`_)
   written in python. Runs on Python 3.4 through 3.6 (including PyPy support). For python 2 support please use *doit* version 0.29.
 
-* Download from `PyPi <http://pypi.python.org/pypi/doit>`_
+* **DOWNLOAD** from `PyPi <http://pypi.python.org/pypi/doit>`_
 
-* Please check the community `guidelines <https://github.com/pydoit/doit/blob/master/CONTRIBUTING.md>`_ before asking questions and reporting issues.
+* **CONTRIBUTE** Please check the community `guidelines <https://github.com/pydoit/doit/blob/master/CONTRIBUTING.md>`_ before asking questions and reporting issues.
 
-* Project management (bug tracker, feature requests and source code ) on `github <https://github.com/pydoit/doit>`_.
+* **DEVELOP** Project management (bug tracker, feature requests and source code ) on `github <https://github.com/pydoit/doit>`_.
+
+* **QUESTIONS** on StackOverflow, use tag `doit`.
+
+* **FORUM** (questions/feedback/discussion) on `Google group <http://groups.google.co.in/group/python-doit>`_. Please do **not** send questions to my private email.
 
 * `doit projects <https://github.com/pydoit/doit/wiki/powered-by-doit>`_ contains a collection of third-party projects, plugins, extensions, non-trivial examples and re-usable task creators for `doit`.
-
-* Questions and feedback on `Google group <http://groups.google.co.in/group/python-doit>`_. Please do **not** send questions to my private email.
 
 * This web site is hosted on http://pages.github.com
 
