@@ -106,7 +106,7 @@ class Task(object):
                   'doc': (string_types, (None,)),
                   'params': ((list, tuple,), ()),
                   'pos_arg': (string_types, (None,)),
-                  'verbosity': ((), (None, 0, 1, 2,)),
+                  'verbosity': ((), (None, 0, 1, 2, 3,)),
                   'getargs': ((dict,), ()),
                   'title': ((types.FunctionType,), (None,)),
                   'watch': ((list, tuple), ()),
@@ -398,7 +398,8 @@ class Task(object):
 
         out_err = [(None, None), # 0
                    (None, err),  # 1
-                   (out, err)]   # 2
+                   (out, err),   # 2
+                   (out, err)]   # 3
         return out_err[use_verbosity]
 
 
