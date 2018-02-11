@@ -237,8 +237,9 @@ Contents of a `doit.cfg` file:
 ^^^^^^^^^^^^^^^^^^^^^
 
 Apart from ``file_dep`` you can use the parameter ``watch`` to pass extra
-paths to be watched for (including folders). The ``watch`` parameter can also
-be specified for a group of "sub-tasks".
+paths to be watched for (including folders).
+If paths are folders their subfolders will not be watched unless these subfolders are also part of the given extra paths.
+The ``watch`` parameter can also be specified for a group of "sub-tasks".
 
 .. literalinclude:: tutorial/empty_subtasks.py
 
