@@ -60,6 +60,7 @@
 0'
 2to3
 3d
+4s
 API
 ATCI
 BC3
@@ -139,6 +140,7 @@ TaskFailed
 TaskLoader
 Tpng
 Trento
+USD
 UptodateCalculator
 Uz
 VCS
@@ -292,6 +294,7 @@ pathlib
 pdb
 perl
 picklable
+pixelmap
 plugin
 plugins
 png
@@ -301,6 +304,7 @@ pos1
 pre
 prev
 printf
+procida
 programmatically
 pstats
 py
@@ -317,12 +321,15 @@ pytest
 python2
 python3
 quickstart
+refactor
 regex
 repr
 rst2s5
 runtests
 s'
 s5defs
+schettino
+schettino72
 schettino72
 scons
 selecttasks
@@ -335,6 +342,7 @@ sourcecode
 sourceforge
 sqlite3
 startswith
+stateful
 stderr
 stdlib
 stdout
@@ -344,6 +352,7 @@ sudo
 t1
 t2
 t3
+t4vKPhjcMZg
 tabcompletion
 task1
 task2
@@ -355,6 +364,7 @@ time'
 timedelta
 timestamp
 titlewithactions
+to's
 toc
 toctree
 tsetup
@@ -378,4 +388,3 @@ x'
 xxx
 xyz
 zsh
-pixelmap
