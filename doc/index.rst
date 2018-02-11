@@ -143,17 +143,17 @@ Check the `documentation <contents.html>`_ for more features...
 What people are saying about `doit`
 =====================================
 
-  Congratulations! Your tool follows the KISS principle very closely. I always wondered why build tools had to be that complicated. - `Elena <http://schettino72.wordpress.com/2008/04/14/doit-a-build-tool-tale/#comment-514>`_
+  Congratulations! **Your tool follows the KISS principle very closely**. I always wondered why build tools had to be that complicated. - `Elena <http://schettino72.wordpress.com/2008/04/14/doit-a-build-tool-tale/#comment-514>`_
 
-  Let me start by saying I'm really lovin doit, at first the interface seemed verbose but quickly changed my mind when I started using it and realized the flexibility.  Many thanks for the great software! - `Michael Gliwinski <https://groups.google.com/d/msg/python-doit/7cD2RiBhB9c/FzrAWkVhEgUJ>`_
+  Let me start by saying I'm really lovin doit, at first the interface seemed verbose but quickly changed my mind when **I started using it and realized the flexibility**.  Many thanks for the great software! - `Michael Gliwinski <https://groups.google.com/d/msg/python-doit/7cD2RiBhB9c/FzrAWkVhEgUJ>`_
 
-  I love all the traditional unix power tools, like cron, make, perl, ..., I also like new comprehensive configuration management tools like CFEngine and Puppet.  But I find doit to be so versatile and so productive. - `Charlie Guo <https://groups.google.com/d/msg/python-doit/JXElpPfcmmM/znvBT0OFhMYJ>`_
+  I love all the traditional unix power tools, like cron, make, perl, ..., I also like new comprehensive configuration management tools like CFEngine and Puppet.  But **I find doit to be so versatile and so productive**. - `Charlie Guo <https://groups.google.com/d/msg/python-doit/JXElpPfcmmM/znvBT0OFhMYJ>`_
 
-  I went back and forth on different Pythonic build tools for awhile. Scons is pretty great if you're doing 'standard' sorts of builds, but I found it a little heavy for my tastes and really hard to customize to my tool flow (in FPGA land, there are all kinds of nonstandard vendor tools that all need to play together). I've been using doit more and more over the past few months, and I'm continually impressed by the tool (aside from the goofy name). It works amazingly well for automating tricky/exotic build processes. Check it out! `SkOink <http://news.slashdot.org/comments.pl?sid=4319575&cid=45085519>`_
+  I went back and forth on different Pythonic build tools for awhile. Scons is pretty great if you're doing 'standard' sorts of builds, but I found it a little heavy for my tastes and really hard to customize to my tool flow (in FPGA land, there are all kinds of nonstandard vendor tools that all need to play together). I've been using doit more and more over the past few months, and I'm continually impressed by the tool (aside from the goofy name). **It works amazingly well for automating tricky/exotic build processes**. Check it out! `SkOink <http://news.slashdot.org/comments.pl?sid=4319575&cid=45085519>`_
 
-  I needed a sort of 'make' tool to glue things together and after trying out all kinds, doit ... has actually turned out to be beautiful. Its easy to add and manage tasks, even complex ones-- gluing things together with decorators and 'library' functions I've written to do certain similar things. - `Matthew <https://groups.google.com/d/msg/python-doit/eKI0uu02ZeY/cBU0RRsO0_cJ>`_
+  I needed a sort of 'make' tool to glue things together and after trying out all kinds, **doit ... has actually turned out to be beautiful**. Its easy to add and manage tasks, even complex ones-- gluing things together with decorators and 'library' functions I've written to do certain similar things. - `Matthew <https://groups.google.com/d/msg/python-doit/eKI0uu02ZeY/cBU0RRsO0_cJ>`_
 
-  Some time ago, I grew frustrated with Make and Ant and started porting my build files to every build tool I found (SCons, Waf, etc.). Each time, as soon as I stepped out of already available rules, I ran into some difficult to overcome stumbling blocks. Then I discovered this little gem of simplicity: doit. It's Python-based. It doesn't try to be smart, it does not try to be cool, it just works. If you are looking for a flexible little build tool for different languages and tasks, give it a chance. (...) - `lelele <http://www.hnsearch.com/search#request/all&q=python-doit.sourceforge.net&start=0>`_
+  Some time ago, I grew frustrated with Make and Ant and started porting my build files to every build tool I found (SCons, Waf, etc.). Each time, as soon as I stepped out of already available rules, I ran into some difficult to overcome stumbling blocks. **Then I discovered this little gem of simplicity: doit**. It's Python-based. It doesn't try to be smart, it does not try to be cool, it just works. If you are looking for a flexible little build tool for different languages and tasks, give it a chance. (...) - `lelele <http://www.hnsearch.com/search#request/all&q=python-doit.sourceforge.net&start=0>`_
 
 
 `Success Stories... <stories.html>`_
@@ -171,7 +171,7 @@ Project Details
 
 * **DEVELOP** Project management (bug tracker, feature requests and source code ) on `github <https://github.com/pydoit/doit>`_.
 
-* **QUESTIONS** on StackOverflow, use tag `doit`.
+* **QUESTIONS** on `StackOverflow <https://stackoverflow.com/questions/tagged/doit>`_, use tag `doit`.
 
 * **FORUM** (questions/feedback/discussion) on `Google group <http://groups.google.co.in/group/python-doit>`_. Please do **not** send questions to my private email.
 
@@ -197,4 +197,4 @@ The project has 100% unit-test code coverage.
 
 Development is done based on real world use cases.
 It is well designed and has a small code base,
-so adding new features is not hard. Patches are welcome.
+so adding new features is not hard. Contributions are welcome.
