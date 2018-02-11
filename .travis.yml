@@ -5,7 +5,9 @@ python:
     - "3.6"
     # - "pypy3" pypy3 implements py3.2 not supported anymore
 
-sudo: false
+# when setting sudo to true, issues with strace are fixed
+# see: https://github.com/travis-ci/travis-ci/issues/9033
+sudo: true
 
 addons:
   apt:
