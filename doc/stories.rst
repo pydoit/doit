@@ -145,3 +145,14 @@ doit (for files and configuration), we are able to rebuild only what is needed.
 
 Nikola is an `open-source <https://github.com/getnikola/nikola>`_ project with
 many users and contributors.
+
+
+Document Production
+^^^^^^^^^^^^^^^^^^^
+
+`Carve Systems <https://carvesystems.com>`_ uses doit as the core automation tool
+for all of our document production. This customized tool based on Pandoc, Latex, and
+coordinated by doit is used by everyone in our company to prepare our primary
+customer facing deliverable. Previously we used makefiles to coordinate builds. Doit
+let us create a system that can be more easily maintained, tested, and extended using
+plugins.
