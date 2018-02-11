@@ -115,6 +115,7 @@ PCM
 PDB
 PVR
 PYTHONPATH
+Pandoc
 Popen
 PyPi
 PyPy

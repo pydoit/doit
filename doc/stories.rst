@@ -120,7 +120,7 @@ Just imagine you need to read PNG into pixelmap, compress it into ETC2, ATCI, S3
 Each sound should be loaded from PCM, converted into MP3 or OGG and linked with each sound mixer where it used, after what it also have to be placed at proper resource pack, obfuscated and encrypted.
 3d location compilation process is about two hundreds tasks on just objects, not files. It's most complex resource pipeline in build system.
 
-doit is well designed tool for such purposes, i think.
+`doit` is well designed tool for such purposes, i think.
 
 
 Content Generation
@@ -132,16 +132,16 @@ Nikola
 
 by `the Nikola team <https://getnikola.com/>`_
 
-`Nikola <https://getnikola.com/>`_ is a Static Site and Blog Generator.  doit
+`Nikola <https://getnikola.com/>`_ is a Static Site and Blog Generator.  `doit`
 is used to process all the tasks required for building the website (HTML files,
-indexes, RSS, copying files…).  Use of doit makes Nikola unique: unlike other
+indexes, RSS, copying files…).  Use of `doit` makes Nikola unique: unlike other
 static site generators, Nikola regenerates only the files that were changed
 since last build (and not all files in the site!).  ``nikola build``, the
 centerpiece of Nikola, is basically the usual ``doit run`` command.
 
-doit is what makes Nikola extremely fast, even for large sites.  Only a handful
+`doit` is what makes Nikola extremely fast, even for large sites.  Only a handful
 of files actually *change* on a rebuild.  Using the dependency architecture of
-doit (for files and configuration), we are able to rebuild only what is needed.
+`doit` (for files and configuration), we are able to rebuild only what is needed.
 
 Nikola is an `open-source <https://github.com/getnikola/nikola>`_ project with
 many users and contributors.
@@ -150,9 +150,9 @@ many users and contributors.
 Document Production
 ^^^^^^^^^^^^^^^^^^^
 
-`Carve Systems <https://carvesystems.com>`_ uses doit as the core automation tool
+`Carve Systems <https://carvesystems.com>`_ uses `doit` as the core automation tool
 for all of our document production. This customized tool based on Pandoc, Latex, and
-coordinated by doit is used by everyone in our company to prepare our primary
-customer facing deliverable. Previously we used makefiles to coordinate builds. Doit
+coordinated by `doit` is used by everyone in our company to prepare our primary
+customer facing deliverable. Previously we used makefiles to coordinate builds. `doit`
 let us create a system that can be more easily maintained, tested, and extended using
 plugins.
