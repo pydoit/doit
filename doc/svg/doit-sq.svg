@@ -13,11 +13,11 @@
    height="800"
    id="svg6253"
    sodipodi:version="0.32"
-   inkscape:version="0.91 r13725"
+   inkscape:version="0.92.2 (5c3e80d, 2017-08-06)"
    version="1.0"
    sodipodi:docname="doit-sq.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
-   inkscape:export-filename="/home/eduardo/Desktop/doit-brand-background"
+   inkscape:export-filename="/home/eduardo/Desktop/doit-brand-background.png"
    inkscape:export-xdpi="21.6"
    inkscape:export-ydpi="21.6">
   <defs
@@ -42,10 +42,10 @@
      gridtolerance="10000"
      guidetolerance="10"
      objecttolerance="10"
-     inkscape:pageopacity="0.0"
+     inkscape:pageopacity="0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.42956736"
-     inkscape:cx="100.51961"
+     inkscape:cx="-59.809535"
      inkscape:cy="593.1052"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
@@ -59,33 +59,38 @@
      inkscape:guide-bbox="true"
      inkscape:object-paths="false"
      inkscape:window-width="1366"
-     inkscape:window-height="693"
+     inkscape:window-height="680"
      inkscape:window-x="0"
      inkscape:window-y="27"
-     inkscape:window-maximized="1">
+     inkscape:window-maximized="1"
+     inkscape:pagecheckerboard="true">
     <sodipodi:guide
        orientation="vertical"
        position="150"
-       id="guide7244" />
+       id="guide7244"
+       inkscape:locked="false" />
     <sodipodi:guide
        orientation="vertical"
        position="230"
-       id="guide7246" />
+       id="guide7246"
+       inkscape:locked="false" />
     <sodipodi:guide
        orientation="vertical"
        position="315"
-       id="guide7248" />
+       id="guide7248"
+       inkscape:locked="false" />
     <sodipodi:guide
        orientation="vertical"
        position="-94.280904"
-       id="guide7250" />
+       id="guide7250"
+       inkscape:locked="false" />
     <inkscape:grid
        id="GridFromPre046Settings"
        type="xygrid"
-       originx="0px"
-       originy="0px"
-       spacingx="10px"
-       spacingy="10px"
+       originx="0"
+       originy="0"
+       spacingx="10"
+       spacingy="10"
        color="#3f3fff"
        empcolor="#3f3fff"
        opacity="0.15"
@@ -100,7 +105,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
