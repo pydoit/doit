@@ -16,7 +16,8 @@ Changes
  - GH-#218 clean with option `--forget` can be used to also forget about cleaned tasks
  - Fix strace command (seems strace output was modified)
  - Fix GH-#224: use `mock` from stdlib
-
+ - GH-#227: enhacements to `info` command
+ 
 
 0.30.3 (*2017-02-20*)
 =====================

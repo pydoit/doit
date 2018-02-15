@@ -10,23 +10,18 @@ from .conftest import CmdFactory
 
 class TestCmdInfo(object):
 
-    def test_info(self, depfile):
+    def test_info_basic_attrs(self, depfile):
         output = StringIO()
-        task = Task("t1", [], file_dep=['tests/data/dependency1'])
+        task = Task("t1", [], file_dep=['tests/data/dependency1'],
+                    doc="task doc", getargs={'a': ('x', 'y')}, verbosity=2)
         cmd = CmdFactory(Info, outstream=output,
                          dep_file=depfile.name, task_list=[task])
-        cmd._execute(['t1'])
-        assert """t1""" in output.getvalue()
-        assert """tests/data/dependency1""" in output.getvalue()
-
-    def test_info_unicode(self, depfile):
-        output = StringIO()
-        task = Task("t1", [], file_dep=['tests/data/dependency1'])
-        cmd = CmdFactory(Info, outstream=output,
-                         dep_file=depfile.name, task_list=[task])
-        cmd._execute(['t1'])
-        assert """t1""" in output.getvalue()
-        assert """tests/data/dependency1""" in output.getvalue()
+        cmd._execute(['t1'], hide_status=True)
+        assert "t1" in output.getvalue()
+        assert "task doc" in output.getvalue()
+        assert "- tests/data/dependency1" in output.getvalue()
+        assert "verbosity  : 2" in output.getvalue()
+        assert "getargs    : {'a': ('x', 'y')}" in output.getvalue()
 
     def test_invalid_command_args(self, depfile):
         output = StringIO()
@@ -44,10 +39,23 @@ class TestCmdInfo(object):
                          dep_file=depfile.name, task_list=[task],
                          backend='dbm')
         return_val = cmd._execute(['t1'])
-        assert """t1""" in output.getvalue()
+        assert "t1" in output.getvalue()
         assert return_val == 1  # indicates task is not up-to-date
-        assert "run" in output.getvalue()
-        assert """ - tests/data/dependency1""" in output.getvalue()
+        assert "status" in output.getvalue()
+        assert ": run" in output.getvalue()
+        assert " - tests/data/dependency1" in output.getvalue()
+
+    def test_hide_execute_status(self, depfile, dependency1):
+        output = StringIO()
+        task = Task("t1", [], file_dep=['tests/data/dependency1'])
+        cmd = CmdFactory(Info, outstream=output,
+                         dep_file=depfile.name, task_list=[task],
+                         backend='dbm')
+        return_val = cmd._execute(['t1'], hide_status=True)
+        assert "t1" in output.getvalue()
+        assert return_val == 0  # always zero if not showing status
+        assert "status" not in output.getvalue()
+        assert ": run" not in output.getvalue()
 
     def test_execute_status_uptodate(self, depfile, dependency1):
         output = StringIO()
@@ -57,15 +65,10 @@ class TestCmdInfo(object):
                          backend='dbm')
         cmd.dep_manager.save_success(task)
         return_val = cmd._execute(['t1'])
-        assert """t1""" in output.getvalue()
+        assert "t1" in output.getvalue()
         assert return_val == 0  # indicates task is not up-to-date
-        assert "up-to-date" in output.getvalue()
+        assert ": up-to-date" in output.getvalue()
 
-        output.seek(0)
-        return_val = cmd._execute(['t1'], hide_execute_status=True)
-        assert """t1""" in output.getvalue()
-        assert return_val == 0  # indicates task is not up-to-date
-        assert "up-to-date" not in output.getvalue()
 
     def test_get_reasons_str(self):
         reasons = {

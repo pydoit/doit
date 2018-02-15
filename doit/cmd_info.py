@@ -6,9 +6,8 @@ from .cmd_base import DoitCmdBase
 from .exceptions import InvalidCommand
 
 
-opt_hide_execute_status = {
-    'name': 'hide_execute_status',
-    # 'short': 's',
+opt_hide_status = {
+    'name': 'hide_status',
     'long': 'no-status',
     'type': bool,
     'default': False,
@@ -24,9 +23,9 @@ class Info(DoitCmdBase):
     doc_usage = "TASK"
     doc_description = None
 
-    cmd_options = (opt_hide_execute_status, )
+    cmd_options = (opt_hide_status, )
 
-    def _execute(self, pos_args, hide_execute_status=False):
+    def _execute(self, pos_args, hide_status=False):
         if len(pos_args) != 1:
             msg = ('`info` failed, must select *one* task.'
                    '\nCheck `{} help info`.'.format(self.bin_name))
@@ -40,10 +39,17 @@ class Info(DoitCmdBase):
 
         task = tasks[task_name]
         task_attrs = (
-            'file_dep', 'task_dep', 'setup_tasks', 'calc_dep', 'targets',
+            ('file_dep', 'list'),
+            ('task_dep', 'list'),
+            ('setup_tasks', 'list'),
+            ('calc_dep', 'list'),
+            ('targets', 'list'),
             # these fields usually contains reference to python functions
             # 'actions', 'clean', 'uptodate', 'teardown', 'title'
-            'getargs', 'params', 'verbosity', 'watch'
+            ('getargs', 'dict'),
+            ('params', 'list'),
+            ('verbosity', 'scalar'),
+            ('watch', 'list'),
         )
 
         self.outstream.write('\n{}\n'.format(task.name))
@@ -52,7 +58,7 @@ class Info(DoitCmdBase):
 
         # print reason task is not up-to-date
         retcode = 0
-        if not hide_execute_status and self.dep_manager is not None:
+        if not hide_status:
             status = self.dep_manager.get_status(task, tasks, get_log=True)
             self.outstream.write('\n{:11s}: {}\n'
                                  .format('status', status.status))
@@ -62,15 +68,16 @@ class Info(DoitCmdBase):
                 self.outstream.write('\n')
                 retcode = 1
 
-        for attr in task_attrs:
+        for (attr, attr_type) in task_attrs:
             value = getattr(task, attr)
-            # by default only print fields that have non-empty value
+            # only print fields that have non-empty value
             if value:
-                self.outstream.write('\n{:11s}:\n'.format(attr))
-                try:
+                self.outstream.write('\n{:11s}: '.format(attr))
+                if attr_type == 'list':
+                    self.outstream.write('\n')
                     for val in value:
                         self.outstream.write(' - {}\n'.format(val))
-                except:
+                else:
                     printer.pprint(getattr(task, attr))
 
         return retcode
