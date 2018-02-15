@@ -111,11 +111,12 @@ def find_deps(outstream, strace_out, show_all):
     # get "mode" file was open, until ')' is closed
     # ignore rest of line
     # .*\(                 # ignore text until '('
-    # "(?P<file>[^"]*)"    # get "file" name inside "
+    # [^"]*"               # ignore text until '"'
+    # (?P<file>[^"]*)"     # get "file" name inside "
     # , (\[.*\])*          # ignore elements if inside [] - used by execve
     # (?P<mode>[^)]*)\)    # get mode opening file
     #  = ].*               # check syscall was successful""",
-    regex = re.compile(r'.*\("(?P<file>[^"]*)",' +
+    regex = re.compile(r'.*\([^"]*"(?P<file>[^"]*)",' +
                        r' (\[.*\])*(?P<mode>[^)]*)\) = [^-].*')
 
     read = set()
@@ -145,4 +146,3 @@ def find_deps(outstream, strace_out, show_all):
                 if name not in read:
                     read.add(name)
                     outstream.write("R %s\n" % name)
-
