@@ -1,5 +1,6 @@
 from io import StringIO
-import mock
+from unittest import mock
+
 import pytest
 
 from doit.exceptions import InvalidCommand

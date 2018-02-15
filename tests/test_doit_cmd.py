@@ -1,7 +1,7 @@
 import os
+from unittest.mock import Mock
 
 import pytest
-from mock import Mock
 
 from doit.exceptions import InvalidCommand
 from doit.cmd_run import Run

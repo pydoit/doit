@@ -9,9 +9,9 @@ from io import StringIO, BytesIO
 from threading import Thread
 import time
 from sys import executable
+from unittest.mock import Mock
 
 import pytest
-from mock import Mock
 
 from doit import action
 from doit.exceptions import TaskError, TaskFailed

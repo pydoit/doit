@@ -4,6 +4,5 @@
 pyflakes
 pytest>=2.8.0
 pytest-ignore-flaky
-mock
 coverage>=4.0
 doit-py>=0.4.0

@@ -1,7 +1,9 @@
+from unittest.mock import Mock
+
 import pytest
-from mock import Mock
 
 from doit.plugin import PluginEntry, PluginDict
+
 
 class TestPluginEntry(object):
     def test_repr(self):
@@ -9,7 +11,7 @@ class TestPluginEntry(object):
         assert "PluginEntry('category1', 'name1', 'mock:Mock')" == repr(plugin)
 
     def test_get(self):
-        plugin = PluginEntry('category1', 'name1', 'mock:Mock')
+        plugin = PluginEntry('category1', 'name1', 'unittest.mock:Mock')
         got = plugin.get()
         assert got is Mock
 
@@ -20,10 +22,12 @@ class TestPluginEntry(object):
         assert 'Plugin category1 module `i_dont`' in str(exc_info.value)
 
     def test_load_error_obj_not_found(self):
-        plugin = PluginEntry('category1', 'name1', 'mock:i_dont_exist')
+        plugin = PluginEntry('category1', 'name1',
+                             'unittest.mock:i_dont_exist')
         with pytest.raises(Exception) as exc_info:
             plugin.load()
-        assert 'Plugin category1:name1 module `mock`' in str(exc_info.value)
+        assert ('Plugin category1:name1 module `unittest.mock`' in
+                str(exc_info.value))
         assert 'i_dont_exist' in str(exc_info.value)
 
 
@@ -33,7 +37,7 @@ class TestPluginDict(object):
     def plugins(self):
         plugins = PluginDict()
         config_dict = {'name1': 'pytest:raises',
-                       'name2': 'mock:Mock'}
+                       'name2': 'unittest.mock:Mock'}
         plugins.add_plugins({'category1': config_dict}, 'category1')
         return plugins
 

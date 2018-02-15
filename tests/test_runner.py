@@ -2,9 +2,9 @@ import os
 import pickle
 from multiprocessing import Queue
 import platform
+from unittest.mock import Mock
 
 import pytest
-from mock import Mock
 
 from doit.exceptions import InvalidTask
 from doit.dependency import DbmDB, Dependency

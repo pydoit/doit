@@ -1,8 +1,8 @@
 import os
 from io import StringIO
+from unittest.mock import Mock
 
 import pytest
-from mock import Mock
 
 from doit.exceptions import InvalidCommand
 from doit.task import Task

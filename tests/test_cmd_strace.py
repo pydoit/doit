@@ -1,7 +1,7 @@
 import os.path
 from io import StringIO
+from unittest import mock
 
-import mock
 import pytest
 
 from doit.exceptions import InvalidCommand
