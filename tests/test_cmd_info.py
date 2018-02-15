@@ -7,6 +7,7 @@ from doit.task import Task
 from doit.cmd_info import Info
 from .conftest import CmdFactory
 
+
 class TestCmdInfo(object):
 
     def test_info(self, depfile):
@@ -15,8 +16,17 @@ class TestCmdInfo(object):
         cmd = CmdFactory(Info, outstream=output,
                          dep_file=depfile.name, task_list=[task])
         cmd._execute(['t1'])
-        assert """name:'t1'""" in output.getvalue()
-        assert """'tests/data/dependency1'""" in output.getvalue()
+        assert """t1""" in output.getvalue()
+        assert """tests/data/dependency1""" in output.getvalue()
+
+    def test_info_unicode(self, depfile):
+        output = StringIO()
+        task = Task("t1", [], file_dep=['tests/data/dependency1'])
+        cmd = CmdFactory(Info, outstream=output,
+                         dep_file=depfile.name, task_list=[task])
+        cmd._execute(['t1'])
+        assert """t1""" in output.getvalue()
+        assert """tests/data/dependency1""" in output.getvalue()
 
     def test_invalid_command_args(self, depfile):
         output = StringIO()
@@ -33,10 +43,10 @@ class TestCmdInfo(object):
         cmd = CmdFactory(Info, outstream=output,
                          dep_file=depfile.name, task_list=[task],
                          backend='dbm')
-        return_val = cmd._execute(['t1'], show_execute_status=True)
-        assert """name:'t1'""" in output.getvalue()
+        return_val = cmd._execute(['t1'])
+        assert """t1""" in output.getvalue()
         assert return_val == 1  # indicates task is not up-to-date
-        assert "Task is not up-to-date" in output.getvalue()
+        assert "run" in output.getvalue()
         assert """ - tests/data/dependency1""" in output.getvalue()
 
     def test_execute_status_uptodate(self, depfile, dependency1):
@@ -46,11 +56,16 @@ class TestCmdInfo(object):
                          dep_file=depfile.name, task_list=[task],
                          backend='dbm')
         cmd.dep_manager.save_success(task)
-        return_val = cmd._execute(['t1'], show_execute_status=True)
-        assert """name:'t1'""" in output.getvalue()
+        return_val = cmd._execute(['t1'])
+        assert """t1""" in output.getvalue()
         assert return_val == 0  # indicates task is not up-to-date
-        assert "Task is up-to-date" in output.getvalue()
+        assert "up-to-date" in output.getvalue()
 
+        output.seek(0)
+        return_val = cmd._execute(['t1'], hide_execute_status=True)
+        assert """t1""" in output.getvalue()
+        assert return_val == 0  # indicates task is not up-to-date
+        assert "up-to-date" not in output.getvalue()
 
     def test_get_reasons_str(self):
         reasons = {
@@ -69,4 +84,3 @@ class TestCmdInfo(object):
         assert got[4] == ' * The following targets do not exist:'
         assert got[5] == '    - f1'
         assert got[6] == '    - f2'
-
