@@ -179,13 +179,20 @@ class Runner(object):
         task = node.task
         # save execution successful
         if catched_excp is None:
-            node.run_status = "successful"
             task.save_extra_values()
-            self.dep_manager.save_success(task)
-            self.reporter.add_success(task)
+            try:
+                self.dep_manager.save_success(task)
+            except FileNotFoundError as exception:
+                msg = ("ERROR: Task '{}' saving success: " \
+                       "Dependent file '{}' does not exist".format(
+                           task.name, exception.filename))
+                catched_excp = DependencyError(msg)
+            else:
+                node.run_status = "successful"
+                self.reporter.add_success(task)
+                return
         # task error
-        else:
-            self._handle_task_error(node, catched_excp)
+        self._handle_task_error(node, catched_excp)
 
 
     def run_tasks(self, task_dispatcher):

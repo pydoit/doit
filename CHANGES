@@ -18,6 +18,8 @@ Changes
  - Fix GH-#224: use `mock` from stdlib
  - GH-#227: enhancements to `info` command
  - Fix GH-#197: improve error message for invalid `clean` and `teardown` task params
+ - Fix GH-#211: do not display traceback for error when missing `file_dep`
+
 
 0.30.3 (*2017-02-20*)
 =====================

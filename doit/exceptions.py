@@ -95,7 +95,5 @@ class SetupError(CatchedException):
 
 
 class DependencyError(CatchedException):
-    """Error while trying to check if task is up-to-date"""
+    """Error while trying to check if task is up-to-date or saving task status"""
     pass
-
-

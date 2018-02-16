@@ -30,7 +30,9 @@ def simple_result():
 
 class FakeReporter(object):
     """Just log everything in internal attribute - used on tests"""
-    def __init__(self, outstream=None, options=None):
+    def __init__(self, with_exceptions=False, outstream=None, options=None):
+        # include Exception object of log failures
+        self.with_exceptions = with_exceptions
         self.log = []
 
     def get_status(self, task):
@@ -40,7 +42,10 @@ class FakeReporter(object):
         self.log.append(('execute', task))
 
     def add_failure(self, task, exception):
-        self.log.append(('fail', task))
+        if self.with_exceptions:
+            self.log.append(('fail', task, exception))
+        else:
+            self.log.append(('fail', task))
 
     def add_success(self, task):
         self.log.append(('success', task))
@@ -393,6 +398,23 @@ class TestRunner_run_tasks(object):
         assert ('fail', t1) == reporter.log.pop(0)
         # second task is not executed
         assert 0 == len(reporter.log)
+
+    def test_dependency_error_after_execution(self, dep_manager):
+        t1 = Task("t1", [(my_print, ["out a"] )],
+                  file_dep=["i_dont_exist"], targets=['not_there'])
+        reporter = FakeReporter(with_exceptions=True)
+        my_runner = runner.Runner(dep_manager, reporter)
+        # Missing file_dep is not caught because check is short-circuited by
+        # missing target.
+        my_runner.run_tasks(TaskDispatcher({'t1':t1}, [], ['t1']))
+        assert runner.ERROR == my_runner.finish()
+        print(reporter.log)
+        assert ('start', t1) == reporter.log.pop(0)
+        assert ('execute', t1) == reporter.log.pop(0)
+        fail_log = reporter.log.pop(0)
+        assert ('fail', t1) == fail_log[:2]
+        assert "Dependent file 'i_dont_exist' does not exist" in str(fail_log[2])
+        assert not reporter.log
 
 
     # when successful dependencies are updated
