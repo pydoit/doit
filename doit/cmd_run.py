@@ -20,6 +20,7 @@ opt_verbosity = {
     'help': """0 capture (do not print) stdout/stderr from task.
 1 capture stdout only.
 2 do not capture anything (print everything immediately).
+3 print everything immediately and print errors at end.
 [default: 1]"""
 }
 
@@ -211,6 +212,7 @@ class Run(DoitCmdBase):
         else:
             use_verbosity = verbosity
         show_out = use_verbosity < 2  # show on error report
+        show_err = use_verbosity == 0 or use_verbosity == 3
 
         # outstream
         if isinstance(outfile, str):
@@ -221,10 +223,9 @@ class Run(DoitCmdBase):
 
         # run
         try:
-            # FIXME stderr will be shown twice in case of task error/failure
             if isinstance(reporter_cls, type):
                 reporter_obj = reporter_cls(outstream, {'show_out': show_out,
-                                                        'show_err': True})
+                                                        'show_err': show_err})
             else:  # also accepts reporter instances
                 reporter_obj = reporter_cls
 
