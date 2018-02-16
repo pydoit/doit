@@ -509,12 +509,16 @@ class Dependency(object):
         # file-dep
         self._set(task.name, 'checker:', self.checker.__class__.__name__)
         for dep in task.file_dep:
-            state = self.checker.get_state(dep, self._get(task.name, dep))
+            try:
+                state = self.checker.get_state(dep, self._get(task.name, dep))
+            except OSError:
+                return "Dependent file '{}' does not exist.".format(dep)
             if state is not None:
                 self._set(task.name, dep, state)
 
         # save list of file_deps
         self._set(task.name, 'deps:', tuple(task.file_dep))
+        return None
 
     def get_values(self, task_name):
         """get all saved values from a task
@@ -662,7 +666,7 @@ class Dependency(object):
                 file_stat = os.stat(dep)
             except OSError:
                 error_msg = "Dependent file '{}' does not exist.".format(dep)
-                result.error_reason = error_msg.format(dep)
+                result.error_reason = error_msg
                 if result.add_reason('missing_file_dep', dep, 'error'):
                     return result
             else:
