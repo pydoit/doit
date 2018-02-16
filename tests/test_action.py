@@ -792,39 +792,49 @@ class TestCreateAction(object):
 
     def testBaseAction(self):
         class Sample(action.BaseAction): pass
-        my_action = action.create_action(Sample(), self.mytask)
+        my_action = action.create_action(Sample(), self.mytask, 'actions')
         assert isinstance(my_action, Sample)
         assert self.mytask == my_action.task
 
     def testStringAction(self):
-        my_action = action.create_action("xpto 14 7", self.mytask)
+        my_action = action.create_action("xpto 14 7", self.mytask, 'actions')
         assert isinstance(my_action, action.CmdAction)
         assert my_action.shell == True
 
     def testListStringAction(self):
-        my_action = action.create_action(["xpto", 14, 7], self.mytask)
+        my_action = action.create_action(["xpto", 14, 7], self.mytask, 'actions')
         assert isinstance(my_action, action.CmdAction)
         assert my_action.shell == False
 
     def testMethodAction(self):
         def dumb(): return
-        my_action = action.create_action(dumb, self.mytask)
+        my_action = action.create_action(dumb, self.mytask, 'actions')
         assert isinstance(my_action, action.PythonAction)
 
     def testTupleAction(self):
         def dumb(): return
-        my_action = action.create_action((dumb,[1,2],{'a':5}), self.mytask)
+        my_action = action.create_action((dumb,[1,2],{'a':5}), self.mytask,
+                                         'actions')
         assert isinstance(my_action, action.PythonAction)
 
     def testTupleActionMoreThanThreeElements(self):
         def dumb(): return
-        pytest.raises(action.InvalidTask, action.create_action,
-                       (dumb,[1,2],{'a':5},'oo'), self.mytask)
+        expected = "Task 'stub': invalid 'actions' tuple length"
+        with pytest.raises(action.InvalidTask, match=expected):
+            action.create_action((dumb,[1,2],{'a':5},'oo'), self.mytask,
+                                 'actions')
 
     def testInvalidActionNone(self):
-        pytest.raises(action.InvalidTask, action.create_action,
-                       None, self.mytask)
+        expected = "Task 'stub': invalid 'actions' type. got: None"
+        with pytest.raises(action.InvalidTask, match=expected):
+            action.create_action(None, self.mytask, 'actions')
 
     def testInvalidActionObject(self):
-        pytest.raises(action.InvalidTask, action.create_action,
-                       self, self.mytask)
+        expected = "Task 'stub': invalid 'actions' type. got: <"
+        with pytest.raises(action.InvalidTask, match=expected):
+            action.create_action(self, self.mytask, 'actions')
+
+    def test_invalid_action_task_param_name(self):
+        expected = "Task 'stub': invalid 'clean' type. got: True"
+        with pytest.raises(action.InvalidTask, match=expected):
+            action.create_action(True, self.mytask, 'clean')
