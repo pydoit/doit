@@ -3,7 +3,7 @@ import codecs
 
 from .exceptions import InvalidCommand
 from .plugin import PluginDict
-from .task import Stream, Task
+from .task import Stream
 from .control import TaskControl
 from .runner import Runner, MRunner, MThreadRunner
 from .cmd_base import DoitCmdBase
@@ -126,6 +126,20 @@ opt_auto_delayed_regex = {
 """Uses the default regex ".*" for every delayed task loader for which no regex was explicitly defined"""
 }
 
+opt_report_failure_verbosity = {
+    'name': 'failure_verbosity',
+    'short': '',
+    'long': 'failure-verbosity',
+    'type': int,
+    'default': 0,
+    'help': """Control re-display stdout/stderr for failed tasks on report summary.
+0 do not show re-display
+1 re-display stderr only
+2 re-display both stderr/stdout
+[default: 0]
+"""
+}
+
 
 class Run(DoitCmdBase):
     doc_purpose = "run tasks"
@@ -136,7 +150,7 @@ class Run(DoitCmdBase):
     cmd_options = (opt_always, opt_continue, opt_verbosity,
                    opt_reporter, opt_outfile, opt_num_process,
                    opt_parallel_type, opt_pdb, opt_single,
-                   opt_auto_delayed_regex)
+                   opt_auto_delayed_regex, opt_report_failure_verbosity)
 
 
     def __init__(self, **kwargs):
@@ -174,7 +188,8 @@ class Run(DoitCmdBase):
     def _execute(self, outfile,
                  verbosity=None, always=False, continue_=False,
                  reporter='console', num_process=0, par_type='process',
-                 single=False, auto_delayed_regex=False, force_verbosity=False):
+                 single=False, auto_delayed_regex=False, force_verbosity=False,
+                 failure_verbosity=0):
         """
         @param reporter:
                (str) one of provided reporters or ...
@@ -205,13 +220,6 @@ class Run(DoitCmdBase):
             # user defined class
             reporter_cls = reporter
 
-        # verbosity
-        if verbosity is None:
-            use_verbosity = Task.DEFAULT_VERBOSITY
-        else:
-            use_verbosity = verbosity
-        show_out = use_verbosity < 2  # show on error report
-
         # outstream
         if isinstance(outfile, str):
             outstream = codecs.open(outfile, 'w', encoding='utf-8')
@@ -221,10 +229,9 @@ class Run(DoitCmdBase):
 
         # run
         try:
-            # FIXME stderr will be shown twice in case of task error/failure
             if isinstance(reporter_cls, type):
-                reporter_obj = reporter_cls(outstream, {'show_out': show_out,
-                                                        'show_err': True})
+                reporter_obj = reporter_cls(
+                    outstream, {'failure_verbosity': failure_verbosity})
             else:  # also accepts reporter instances
                 reporter_obj = reporter_cls
 

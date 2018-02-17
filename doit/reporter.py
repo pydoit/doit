@@ -10,8 +10,8 @@ from io import StringIO
 class ConsoleReporter(object):
     """Default reporter. print results on console/terminal (stdout/stderr)
 
-    @ivar show_out (bool): include captured stdout on failure report
-    @ivar show_err (bool): include captured stderr on failure report
+    @ivar failure_verbosity: (int) include captured stdout/stderr on failure
+                             report even if already shown.
     """
     # short description, used by the help system
     desc = 'console output'
@@ -20,8 +20,7 @@ class ConsoleReporter(object):
         # save non-successful result information (include task errors)
         self.failures = []
         self.runtime_errors = []
-        self.show_out = options.get('show_out', True)
-        self.show_err = options.get('show_err', True)
+        self.failure_verbosity = options.get('failure_verbosity', 0)
         self.outstream = outstream
 
     def write(self, text):
@@ -44,7 +43,9 @@ class ConsoleReporter(object):
 
     def add_failure(self, task, exception):
         """called when execution finishes with a failure"""
-        self.failures.append({'task': task, 'exception':exception})
+        result = {'task': task, 'exception':exception}
+        self.failures.append(result)
+        self._write_failure(result)
 
     def add_success(self, task):
         """called when execution finishes successfully"""
@@ -72,23 +73,31 @@ class ConsoleReporter(object):
         """called when starts the execution of teardown action"""
         pass
 
+
+    def _write_failure(self, result, write_exception=True):
+        msg = '%s - taskid:%s\n' % (result['exception'].get_name(),
+                                    result['task'].name)
+        self.write(msg)
+        if write_exception:
+            self.write(result['exception'].get_msg())
+            self.write("\n")
+
     def complete_run(self):
         """called when finished running all tasks"""
         # if test fails print output from failed task
         for result in self.failures:
-            self.write("#"*40 + "\n")
-            msg = '%s - taskid:%s\n' % (result['exception'].get_name(),
-                                        result['task'].name)
-            self.write(msg)
-            self.write(result['exception'].get_msg())
-            self.write("\n")
             task = result['task']
-            if self.show_out:
-                out = "".join([a.out for a in task.actions if a.out])
-                self.write("%s\n" % out)
-            if self.show_err:
+            show_err = task.verbosity < 1 or self.failure_verbosity > 0
+            show_out = task.verbosity < 2 or self.failure_verbosity == 2
+            if show_err:
+                self.write("#"*40 + "\n")
+                self._write_failure(result,
+                                    write_exception=self.failure_verbosity)
                 err = "".join([a.err for a in task.actions if a.err])
-                self.write("%s\n" % err)
+                self.write("<stderr>:\n{}\n".format(err))
+            if show_out:
+                out = "".join([a.out for a in task.actions if a.out])
+                self.write("<stdout>:\n{}\n".format(out))
 
         if self.runtime_errors:
             self.write("#"*40 + "\n")

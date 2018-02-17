@@ -20,6 +20,8 @@ Changes
  - Fix GH-#197: improve error message for invalid `clean` and `teardown` task params
  - Fix GH-#211: do not display traceback for error when missing `file_dep`
  - Task `verbosity` has precedence over `verbosity` from config
+ - Fix GH-#140: add `failure-verbosity`. ConsoleReporter, by default,
+   do not print stderr twice.
 
 
 0.30.3 (*2017-02-20*)

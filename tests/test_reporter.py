@@ -92,7 +92,7 @@ class TestConsoleReporter(object):
             raise Exception("original 中文 exception message here")
         except Exception as e:
             catched = CatchedException("catched exception there", e)
-        rep.add_failure(Task("t_name", None), catched)
+        rep.add_failure(Task("t_name", None, verbosity=1), catched)
         rep.complete_run()
         got = rep.outstream.getvalue()
         # description
@@ -116,6 +116,65 @@ class TestConsoleReporter(object):
         got = rep.outstream.getvalue()
         assert msg in got
         assert "Execution aborted" in got
+
+
+    def test_complete_run_verbosity0(self):
+        rep = reporter.ConsoleReporter(StringIO(), {})
+        catched = CatchedException("catched exception there",
+                                   Exception("foo"))
+
+        rep.add_failure(Task("t_name", None, verbosity=0), catched)
+
+        # assign new StringIO so output is only from complete_run()
+        rep.outstream = StringIO()
+        rep.complete_run()
+        got = rep.outstream.getvalue()
+        assert "<stdout>" in got
+        assert "<stderr>" in got
+
+    def test_complete_run_verbosity1(self):
+        rep = reporter.ConsoleReporter(StringIO(), {})
+        catched = CatchedException("catched exception there",
+                                   Exception("foo"))
+
+        rep.add_failure(Task("t_name", None, verbosity=1), catched)
+
+        # assign new StringIO so output is only from complete_run()
+        rep.outstream = StringIO()
+        rep.complete_run()
+        got = rep.outstream.getvalue()
+        assert "<stdout>" in got
+        assert "<stderr>" not in got
+
+    def test_complete_run_verbosity2(self):
+        rep = reporter.ConsoleReporter(StringIO(), {})
+        catched = CatchedException("catched exception there",
+                                   Exception("foo"))
+
+        rep.add_failure(Task("t_name", None, verbosity=2), catched)
+
+        # assign new StringIO so output is only from complete_run()
+        rep.outstream = StringIO()
+        rep.complete_run()
+        got = rep.outstream.getvalue()
+        assert "<stdout>" not in got
+        assert "<stderr>" not in got
+
+
+    def test_complete_run_verbosity2_redisplay(self):
+        rep = reporter.ConsoleReporter(StringIO(), {'failure_verbosity': 2})
+        catched = CatchedException("catched exception there",
+                                   Exception("foo"))
+
+        rep.add_failure(Task("t_name", None, verbosity=2), catched)
+
+        # assign new StringIO so output is only from complete_run()
+        rep.outstream = StringIO()
+        rep.complete_run()
+        got = rep.outstream.getvalue()
+        assert "<stdout>" in got
+        assert "<stderr>" in got
+
 
 
 class TestExecutedOnlyReporter(object):

@@ -71,24 +71,26 @@ class Stream():
             self.verbosity = Task.DEFAULT_VERBOSITY
             self.force_global = False
 
+    def effective_verbosity(self, task_verbosity):
+        """return effective verbosity used on task"""
+        if self.force_global:
+            return self.verbosity
+        elif task_verbosity is not None:
+            return task_verbosity
+        else:
+            return self.verbosity
 
-    def _get_out_err(self, task_verbosity):
+    @staticmethod
+    def _get_out_err(verbosity):
         """return tuple (out, err) streams to be used
 
         Replace stream with None if stream should be captured
 
-        :param task_vebosity: (int)
+        :param verbosity: (int)
         """
-        if self.force_global:
-            value = self.verbosity
-        elif task_verbosity is not None:
-            value = task_verbosity
-        else:
-            value = self.verbosity
-
-        if value == 0:
+        if verbosity == 0:
             return (None, None)
-        elif value == 1:
+        elif verbosity == 1:
             return (None, sys.stderr)
         else:
             return (sys.stdout, sys.stderr)
@@ -437,6 +439,8 @@ class Task(object):
         @return failure: see CmdAction.execute
         """
         self.init_options()
+        # overwrite with effective verbosity
+        self.verbosity = stream.effective_verbosity(self.verbosity)
         task_stdout, task_stderr = stream._get_out_err(self.verbosity)
         for action in self.actions:
             action_return = action.execute(task_stdout, task_stderr)

@@ -148,6 +148,17 @@ Option to change the default global task :ref:`verbosity<verbosity>` value.
     $ doit --verbosity 2
 
 
+failure-verbosity
+-----------------
+
+Option to control if stdout/stderr should be re-displayed in the end of
+of report. This is useful when used in conjunction with `--continue` option.
+
+.. code-block:: console
+
+    $ doit --failure-verbosity 1
+
+
 output buffering
 ----------------
 

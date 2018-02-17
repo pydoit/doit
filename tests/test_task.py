@@ -2,7 +2,6 @@ import os, shutil
 import tempfile
 from io import StringIO
 from pathlib import Path, PurePath
-import sys
 from sys import executable
 
 import pytest
@@ -25,26 +24,26 @@ class TestStream():
     def test_from_task(self):
         # use value from task, not global from Stream
         v0 = Stream(0)
-        assert v0._get_out_err(1) == (None, sys.stderr)
-        assert v0._get_out_err(2) == (sys.stdout, sys.stderr)
+        assert v0.effective_verbosity(1) == 1
+        assert v0.effective_verbosity(2) == 2
         v2 = Stream(2)
-        assert v2._get_out_err(0) == (None, None)
-        assert v2._get_out_err(1) == (None, sys.stderr)
+        assert v2.effective_verbosity(0) == 0
+        assert v2.effective_verbosity(1) == 1
 
     def test_force_global(self):
         # use value from task, not global from Stream
         v0 = Stream(0, force_global=True)
-        assert v0._get_out_err(2) == (None, None)
+        assert v0.effective_verbosity(2) == 0
         v2 = Stream(2, force_global=True)
-        assert v2._get_out_err(0) == (sys.stdout, sys.stderr)
+        assert v2.effective_verbosity(0) == 2
 
     def test_task_verbosity_not_specified(self):
         # default
         v0 = Stream(None)
-        assert v0._get_out_err(None) == (None, sys.stderr)
+        assert v0.effective_verbosity(None) == 1
 
         v2 = Stream(2)
-        assert v2._get_out_err(None) == (sys.stdout, sys.stderr)
+        assert v2.effective_verbosity(None) == 2
 
 
 
