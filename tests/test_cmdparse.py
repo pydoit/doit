@@ -17,10 +17,17 @@ class TestDefaultUpdate(object):
         assert 0 == du['a']
         assert 0 == du['b']
 
+        # set b with non-default value
         du['b'] = 1
+        # only a is update
         du.update_defaults({'a':2, 'b':2})
         assert 2 == du['a']
         assert 1 == du['b']
+
+        # default for `a` can be updated again
+        du.update_defaults({'a':3})
+        assert 3 == du['a']
+
 
     def test_add_defaults(self):
         du = DefaultUpdate()

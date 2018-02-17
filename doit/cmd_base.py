@@ -405,6 +405,8 @@ class DoitCmdBase(Command):
         # of command line options
         params['pos_args'] = args
         params['continue_'] = params.get('continue')
+        # hack: determine if value came from command line or config
+        params['force_verbosity'] = 'verbosity' in params._non_default_keys
 
         # magic - create dict based on signature of _execute() method.
         # this done so that _execute() have a nice API with name parameters

@@ -174,7 +174,7 @@ class Run(DoitCmdBase):
     def _execute(self, outfile,
                  verbosity=None, always=False, continue_=False,
                  reporter='console', num_process=0, par_type='process',
-                 single=False, auto_delayed_regex=False):
+                 single=False, auto_delayed_regex=False, force_verbosity=False):
         """
         @param reporter:
                (str) one of provided reporters or ...
@@ -228,8 +228,7 @@ class Run(DoitCmdBase):
             else:  # also accepts reporter instances
                 reporter_obj = reporter_cls
 
-            # FIXME: should detect if value came from command line or config
-            stream = Stream(verbosity, True)
+            stream = Stream(verbosity, force_verbosity)
             run_args = [self.dep_manager, reporter_obj,
                         continue_, always, stream]
 

@@ -41,7 +41,7 @@ class DefaultUpdate(dict):
         for key, value in update_dict.items():
             if key in self._non_default_keys:
                 continue
-            self[key] = value
+            self.set_default(key, value)
 
     def __setitem__(self, key, value):
         """overwrite to keep track of _non_default_keys"""

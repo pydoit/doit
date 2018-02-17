@@ -238,7 +238,7 @@ class TestDoitCmdBase(object):
         assert mycmd.dep_manager.db_class is mycmd._backends['j2']
 
 
-    def testPluginLoader(self, depfile_name):
+    def testPluginLoader(self):
         entry_point = {'mod': 'tests.sample_plugin:MyLoader'}
         mycmd = self.MyCmd(config={'GLOBAL': {'loader': 'mod'},
                                    'LOADER': entry_point})
@@ -246,6 +246,34 @@ class TestDoitCmdBase(object):
         task_list, dodo_config = mycmd.loader.load_tasks(mycmd, {}, [])
         assert task_list[0].name == 'sample_task'
         assert dodo_config == {'verbosity': 2}
+
+
+    def test_force_verbosity(self, depfile_name):
+        members = {
+            'DOIT_CONFIG': {'verbosity': 0},
+            'task_xxx1': lambda : {'actions':[]},
+        }
+        loader = ModuleTaskLoader(members)
+
+        class SampleCmd(DoitCmdBase):
+            opt_verbosity = {
+                'name':'verbosity',
+                'short':'v',
+                'long':'verbosity',
+                'type':int,
+                'default': None,
+                'help': "verbosity foo"
+            }
+            cmd_options = (opt_verbosity, )
+
+            def _execute(self, verbosity, force_verbosity):
+                return verbosity, force_verbosity
+
+        cmd = SampleCmd(task_loader=loader)
+        assert (2, True) == cmd.parse_execute(['--db-file', depfile_name, '-v2'])
+        assert (0, False) == cmd.parse_execute(['--db-file', depfile_name])
+
+
 
 class TestCheckTasksExist(object):
     def test_None(self):
