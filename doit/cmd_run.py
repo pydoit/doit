@@ -3,7 +3,7 @@ import codecs
 
 from .exceptions import InvalidCommand
 from .plugin import PluginDict
-from .task import Task
+from .task import Stream, Task
 from .control import TaskControl
 from .runner import Runner, MRunner, MThreadRunner
 from .cmd_base import DoitCmdBase
@@ -228,8 +228,10 @@ class Run(DoitCmdBase):
             else:  # also accepts reporter instances
                 reporter_obj = reporter_cls
 
+            # FIXME: should detect if value came from command line or config
+            stream = Stream(verbosity, True)
             run_args = [self.dep_manager, reporter_obj,
-                        continue_, always, verbosity]
+                        continue_, always, stream]
 
             if num_process == 0:
                 RunnerClass = Runner

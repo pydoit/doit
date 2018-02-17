@@ -257,7 +257,7 @@ class TestTask_Teardown(object):
         t1 = Task('t1', [], teardown=[(touch,)])
         my_runner = runner.Runner(dep_manager, reporter)
         my_runner.teardown_list = [t1]
-        t1.execute()
+        t1.execute(my_runner.stream)
         my_runner.teardown()
         assert 1 == len(touched)
         assert ('teardown', t1) == reporter.log.pop(0)
@@ -269,8 +269,8 @@ class TestTask_Teardown(object):
         t2 = Task('t2', [], teardown=[do_nothing])
         my_runner = runner.Runner(dep_manager, reporter)
         my_runner.teardown_list = [t1, t2]
-        t1.execute()
-        t2.execute()
+        t1.execute(my_runner.stream)
+        t2.execute(my_runner.stream)
         my_runner.teardown()
         assert ('teardown', t2) == reporter.log.pop(0)
         assert ('teardown', t1) == reporter.log.pop(0)
@@ -283,8 +283,8 @@ class TestTask_Teardown(object):
         t2 = Task('t2', [], teardown=[(raise_something,['t2 blow'])])
         my_runner = runner.Runner(dep_manager, reporter)
         my_runner.teardown_list = [t1, t2]
-        t1.execute()
-        t2.execute()
+        t1.execute(my_runner.stream)
+        t2.execute(my_runner.stream)
         my_runner.teardown()
         assert ('teardown', t2) == reporter.log.pop(0)
         assert ('cleanup_error',) == reporter.log.pop(0)

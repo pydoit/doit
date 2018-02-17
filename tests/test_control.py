@@ -3,7 +3,7 @@ from collections import deque
 import pytest
 
 from doit.exceptions import InvalidDodoFile, InvalidCommand
-from doit.task import InvalidTask, Task, DelayedLoader
+from doit.task import Stream, InvalidTask, Task, DelayedLoader
 from doit.control import TaskControl, TaskDispatcher, ExecNode
 from doit.control import no_none
 
@@ -409,7 +409,7 @@ class TestTaskDispatcher_add_task(object):
         assert tasks['t2'] == n2.task
         assert 'wait' == n1.step()
         # execute t2 to process calc_dep
-        tasks['t2'].execute()
+        tasks['t2'].execute(Stream(0))
         td.nodes['t2'].run_status = 'done'
         td._update_waiting(n2)
         n3 = n1.step()

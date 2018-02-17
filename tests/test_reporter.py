@@ -3,7 +3,7 @@ import json
 from io import StringIO
 
 from doit import reporter
-from doit.task import Task
+from doit.task import Stream, Task
 from doit.exceptions import CatchedException
 
 
@@ -153,7 +153,7 @@ class TestTaskResult(object):
         t1 = Task("t1", [(sample,)])
         result = reporter.TaskResult(t1)
         result.start()
-        t1.execute()
+        t1.execute(Stream(0))
         result.set_result('success')
         got = result.to_dict()
         assert t1.name == got['name'], got

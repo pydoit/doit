@@ -1,6 +1,5 @@
 """Task runner"""
 
-import sys
 from multiprocessing import Process, Queue as MQueue
 from threading import Thread
 import pickle
@@ -10,7 +9,7 @@ import cloudpickle
 
 from .exceptions import InvalidTask, CatchedException
 from .exceptions import TaskFailed, SetupError, DependencyError, UnmetDependency
-from .task import DelayedLoaded
+from .task import Stream, DelayedLoaded
 
 
 # execution result.
@@ -18,7 +17,7 @@ SUCCESS = 0
 FAILURE = 1
 ERROR = 2
 
-class Runner(object):
+class Runner():
     """Task runner
 
     run_all()
@@ -31,19 +30,19 @@ class Runner(object):
 
     """
     def __init__(self, dep_manager, reporter, continue_=False,
-                 always_execute=False, verbosity=0):
+                 always_execute=False, stream=None):
         """
         @param dep_manager: DependencyBase
         @param reporter: reporter object to be used
         @param continue_: (bool) execute all tasks even after a task failure
         @param always_execute: (bool) execute even if up-to-date or ignored
-        @param verbosity: (int) 0,1,2 see Task.execute
+        @param stream: (task.Stream) global verbosity
         """
         self.dep_manager = dep_manager
         self.reporter = reporter
         self.continue_ = continue_
         self.always_execute = always_execute
-        self.verbosity = verbosity
+        self.stream = stream if stream else Stream(0)
 
         self.teardown_list = [] # list of tasks to be teardown
         self.final_result = SUCCESS # until something fails
@@ -171,7 +170,7 @@ class Runner(object):
 
         # finally execute it!
         self.reporter.execute_task(task)
-        return task.execute(sys.stdout, sys.stderr, self.verbosity)
+        return task.execute(self.stream)
 
 
     def process_task_result(self, node, catched_excp):
@@ -224,8 +223,7 @@ class Runner(object):
         """run teardown from all tasks"""
         for task in reversed(self.teardown_list):
             self.reporter.teardown_task(task)
-            catched = task.execute_teardown(sys.stdout, sys.stderr,
-                                            self.verbosity)
+            catched = task.execute_teardown(self.stream)
             if catched:
                 msg = "ERROR: task '%s' teardown action" % task.name
                 error = SetupError(msg, catched)
@@ -338,9 +336,9 @@ class MRunner(Runner):
 
     def __init__(self, dep_manager, reporter,
                  continue_=False, always_execute=False,
-                 verbosity=0, num_process=1):
+                 stream=None, num_process=1):
         Runner.__init__(self, dep_manager, reporter, continue_=continue_,
-                        always_execute=always_execute, verbosity=verbosity)
+                        always_execute=always_execute, stream=stream)
         self.num_process = num_process
 
         self.free_proc = 0   # number of free process

@@ -52,6 +52,49 @@ class DelayedLoader(object):
 DelayedLoaded = False
 
 
+class Stream():
+    """Control task output stream verbosity
+
+    :ivar verbosity: 0,1,2 see Task.execute
+
+    Priority is given by:
+    1) command line -> force_global=True
+    2) task value
+    3) other config (INI, DOIT_CONFIG)
+    """
+
+    def __init__(self, verbosity, force_global=False):
+        self.force_global = force_global
+        if verbosity is not None:
+            self.verbosity = verbosity
+        else:
+            self.verbosity = Task.DEFAULT_VERBOSITY
+            self.force_global = False
+
+
+    def _get_out_err(self, task_verbosity):
+        """return tuple (out, err) streams to be used
+
+        Replace stream with None if stream should be captured
+
+        :param task_vebosity: (int)
+        """
+        if self.force_global:
+            value = self.verbosity
+        elif task_verbosity is not None:
+            value = task_verbosity
+        else:
+            value = self.verbosity
+
+        if value == 0:
+            return (None, None)
+        elif value == 1:
+            return (None, sys.stderr)
+        else:
+            return (sys.stdout, sys.stderr)
+
+
+
 class Task(object):
     """Task
 
@@ -389,25 +432,12 @@ class Task(object):
             self.values.update(value_saver())
 
 
-    def _get_out_err(self, out, err, verbosity):
-        """select verbosity to be used"""
-        priority = (verbosity, # use command line option
-                    self.verbosity, # or task default from dodo file
-                    self.DEFAULT_VERBOSITY) # or global default
-        use_verbosity = [v for v in  priority if v is not None][0]
-
-        out_err = [(None, None), # 0
-                   (None, err),  # 1
-                   (out, err)]   # 2
-        return out_err[use_verbosity]
-
-
-    def execute(self, out=None, err=None, verbosity=None):
+    def execute(self, stream):
         """Executes the task.
         @return failure: see CmdAction.execute
         """
         self.init_options()
-        task_stdout, task_stderr = self._get_out_err(out, err, verbosity)
+        task_stdout, task_stderr = stream._get_out_err(self.verbosity)
         for action in self.actions:
             action_return = action.execute(task_stdout, task_stderr)
             if isinstance(action_return, CatchedException):
@@ -416,11 +446,11 @@ class Task(object):
             self.values.update(action.values)
 
 
-    def execute_teardown(self, out=None, err=None, verbosity=None):
+    def execute_teardown(self, stream):
         """Executes task's teardown
         @return failure: see CmdAction.execute
         """
-        task_stdout, task_stderr = self._get_out_err(out, err, verbosity)
+        task_stdout, task_stderr = stream._get_out_err(self.verbosity)
         for action in self.teardown:
             action_return = action.execute(task_stdout, task_stderr)
             if isinstance(action_return, CatchedException):

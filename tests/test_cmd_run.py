@@ -5,7 +5,6 @@ from unittest.mock import Mock
 import pytest
 
 from doit.exceptions import InvalidCommand
-from doit.task import Task
 from doit import reporter, runner
 from doit.cmd_run import Run
 from tests.conftest import tasks_sample, CmdFactory
@@ -137,18 +136,6 @@ class TestCmdRunReporter(object):
 
 
 class TestCmdRunOptions(object):
-
-    def testSetVerbosity(self, depfile_name):
-        output = StringIO()
-        t = Task('x', None)
-        used_verbosity = []
-        def my_execute(out, err, verbosity):
-            used_verbosity.append(verbosity)
-        t.execute = my_execute
-        cmd_run = CmdFactory(Run, backend='dbm', dep_file=depfile_name,
-                             task_list=[t])
-        cmd_run._execute(output, verbosity=2)
-        assert 2 == used_verbosity[0], used_verbosity
 
     def test_outfile(self, depfile_name):
         cmd_run = CmdFactory(Run, backend='dbm', dep_file=depfile_name,

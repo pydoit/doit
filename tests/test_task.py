@@ -2,6 +2,7 @@ import os, shutil
 import tempfile
 from io import StringIO
 from pathlib import Path, PurePath
+import sys
 from sys import executable
 
 import pytest
@@ -10,11 +11,40 @@ from doit.exceptions import TaskError
 from doit.exceptions import CatchedException
 from doit import action
 from doit import task
+from doit.task import Stream
 
 #path to test folder
 TEST_PATH = os.path.dirname(__file__)
 PROGRAM = "%s %s/sample_process.py" % (executable, TEST_PATH)
 
+
+
+
+class TestStream():
+
+    def test_from_task(self):
+        # use value from task, not global from Stream
+        v0 = Stream(0)
+        assert v0._get_out_err(1) == (None, sys.stderr)
+        assert v0._get_out_err(2) == (sys.stdout, sys.stderr)
+        v2 = Stream(2)
+        assert v2._get_out_err(0) == (None, None)
+        assert v2._get_out_err(1) == (None, sys.stderr)
+
+    def test_force_global(self):
+        # use value from task, not global from Stream
+        v0 = Stream(0, force_global=True)
+        assert v0._get_out_err(2) == (None, None)
+        v2 = Stream(2, force_global=True)
+        assert v2._get_out_err(0) == (sys.stdout, sys.stderr)
+
+    def test_task_verbosity_not_specified(self):
+        # default
+        v0 = Stream(None)
+        assert v0._get_out_err(None) == (None, sys.stderr)
+
+        v2 = Stream(2)
+        assert v2._get_out_err(None) == (sys.stdout, sys.stderr)
 
 
 
@@ -79,7 +109,7 @@ class TestTaskInit(object):
         p1 = {'name':'p1', 'default':'p1-default'}
         p2 = {'name':'p2', 'default':'', 'short':'m'}
         t = task.Task("MyName", None, params=[p1, p2], pos_arg='pos')
-        t.execute()
+        t.execute(Stream(0))
         assert 'p1-default' == t.options['p1']
         assert '' == t.options['p2']
         assert 'pos' == t.pos_arg
@@ -258,14 +288,14 @@ class TestTaskRepr(object):
 class TestTaskActions(object):
     def test_success(self):
         t = task.Task("taskX", [PROGRAM])
-        t.execute()
+        t.execute(Stream(0))
 
 
     def test_result(self):
         # task.result is the value of last action
         t = task.Task('t1', ["%s hi_list hi1" % PROGRAM,
                              "%s hi_list hi2" % PROGRAM])
-        t.execute()
+        t.execute(Stream(0))
         assert "hi_listhi2" == t.result
 
     def test_values(self):
@@ -273,31 +303,31 @@ class TestTaskActions(object):
         # task.result is the value of last action
         t = task.Task('t1', [(return_dict, [{'x':5}]),
                              (return_dict, [{'y':10}]),])
-        t.execute()
+        t.execute(Stream(0))
         assert {'x':5, 'y':10} == t.values
 
     def test_failure(self):
         t = task.Task("taskX", ["%s 1 2 3" % PROGRAM])
-        got = t.execute()
+        got = t.execute(Stream(0))
         assert isinstance(got, TaskError)
 
     # make sure all cmds are being executed.
     def test_many(self):
         t = task.Task("taskX",["%s hi_stdout hi2" % PROGRAM,
                                "%s hi_list hi6" % PROGRAM])
-        t.execute()
+        t.execute(Stream(0))
         got = "".join([a.out for a in t.actions])
         assert "hi_stdouthi_list" == got, repr(got)
 
 
     def test_fail_first(self):
         t = task.Task("taskX", ["%s 1 2 3" % PROGRAM, PROGRAM])
-        got = t.execute()
+        got = t.execute(Stream(0))
         assert isinstance(got, TaskError)
 
     def test_fail_second(self):
         t = task.Task("taskX", ["%s 1 2" % PROGRAM, "%s 1 2 3" % PROGRAM])
-        got = t.execute()
+        got = t.execute(Stream(0))
         assert isinstance(got, TaskError)
 
 
@@ -308,7 +338,7 @@ class TestTaskActions(object):
         t = task.Task("taskX",["%s hi_stdout hi2" % PROGRAM,
                                (my_print,['_PY_']),
                                "%s hi_list hi6" % PROGRAM])
-        t.execute()
+        t.execute(Stream(0))
         got = "".join([a.out for a in t.actions])
         assert "hi_stdout_PY_hi_list" == got, repr(got)
 
@@ -319,16 +349,16 @@ class TestTaskTeardown(object):
         def put(x):
             got.append(x)
         t = task.Task('t1', [], teardown=[(put, [1]), (put, [2])])
-        t.execute()
-        assert None == t.execute_teardown()
+        t.execute(Stream(0))
+        assert None == t.execute_teardown(Stream(0))
         assert [1,2] == got
 
     def test_fail(self):
         def my_raise():
             raise Exception('hoho')
         t = task.Task('t1', [], teardown=[(my_raise,)])
-        t.execute()
-        got = t.execute_teardown()
+        t.execute(Stream(0))
+        got = t.execute_teardown(Stream(0))
         assert isinstance(got, CatchedException)
 
 
