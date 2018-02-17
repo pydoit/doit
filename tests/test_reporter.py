@@ -11,7 +11,7 @@ class TestConsoleReporter(object):
 
     def test_initialize(self):
         rep = reporter.ConsoleReporter(StringIO(), {})
-        rep.initialize([Task("t_name", None)])
+        rep.initialize([Task("t_name", None)], ["t_name"])
         # no output on initialize
         assert "" in rep.outstream.getvalue()
 

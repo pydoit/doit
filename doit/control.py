@@ -353,6 +353,7 @@ class TaskDispatcher(object):
     def __init__(self, tasks, targets, selected_tasks):
         self.tasks = tasks
         self.targets = targets
+        self.selected_tasks = selected_tasks
 
         self.nodes = {} # key task-name, value: ExecNode
         # queues

@@ -247,7 +247,8 @@ class Runner():
         """
         try:
             if hasattr(self.reporter, 'initialize'):
-                self.reporter.initialize(task_dispatcher.tasks)
+                self.reporter.initialize(task_dispatcher.tasks,
+                                         task_dispatcher.selected_tasks)
             self.run_tasks(task_dispatcher)
         except InvalidTask as exception:
             self.reporter.runtime_error(str(exception))

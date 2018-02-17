@@ -26,9 +26,10 @@ class ConsoleReporter(object):
     def write(self, text):
         self.outstream.write(text)
 
-    def initialize(self, tasks):
+    def initialize(self, tasks, selected_tasks):
         """called just after tasks have been loaded before execution starts"""
         pass
+
 
     def get_status(self, task):
         """called when task is selected (check if up-to-date)"""
