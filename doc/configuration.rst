@@ -2,6 +2,24 @@ Configuration
 =============
 
 
+
+config param names
+------------------
+
+Note that the configuration option's name is not always the same as the
+*long* argument name used in the command line.
+
+I.e. To specify dodo file other than `dodo.py` from the command line
+you specify the option as ``-f`` or ``--file``, but from a config file
+it is called ``dodoFile``.
+
+The name can be seem from ``doit help`` output::
+
+   -f ARG, --file=ARG        load task from dodo FILE [default: dodo.py]  (config: dodoFile)
+
+
+
+
 doit.cfg
 --------
 
@@ -41,12 +59,6 @@ the command name::
  [list]
  status = True
  subtasks = True
-
-.. note::
-
-  The key name is the internal option name, it might not be the same as
-  the string using in the command line. i.e. `subtasks` above refers to
-  `--all`.
 
 
 plugins sections

@@ -147,11 +147,12 @@ opt_bool = {'name': 'flag',
             'default': False,
             'help': 'help for opt1'}
 
-opt_rare = {'name': 'rare',
+opt_rare = {'name': 'rare_bool',
             'long': 'rare-bool',
+            'env_var': 'RARE',
             'type': bool,
             'default': False,
-            'help': 'help for opt2'}
+            'help': 'help for opt2',}
 
 opt_int = {'name': 'num',
            'short':'n',
@@ -218,6 +219,13 @@ class TestCmdOption_help_doc(object):
         doc = the_opt.help_doc()[0]
         assert "choices: no, yes" in doc
 
+    def test_name_config_env(self):
+        opt1 = CmdOption(opt_rare)
+        got = opt1.help_doc()
+        assert 'config: rare_bool' in got[0]
+        assert 'environ: RARE' in got[0]
+
+
 
 class TestCommand(object):
 
@@ -240,7 +248,7 @@ class TestCommand(object):
 
     def test_option_list(self, cmd):
         opt_names = [o.name for o in cmd.options]
-        assert  ['flag', 'rare', 'num', 'no', 'list', 'choices',
+        assert  ['flag', 'rare_bool', 'num', 'no', 'list', 'choices',
                  'choicesnodesc']== opt_names
 
     def test_short(self, cmd):
@@ -308,7 +316,7 @@ class TestCommand(object):
         params, args = cmd.parse(['--rare-bool','--num','89', '--no-flag',
                                   '--list', 'flip', '--list', 'flop',
                                   '--choice', 'no', '--achoice', 'yes'])
-        assert True == params['rare']
+        assert True == params['rare_bool']
         assert False == params['flag']
         assert 89 == params['num']
         assert ['flip', 'flop'] == params['list']

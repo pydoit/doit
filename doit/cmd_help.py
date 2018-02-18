@@ -100,8 +100,12 @@ class Help(DoitCmdBase):
     doc_description = None
 
     def __init__(self, cmds=None, **kwargs):
+        """
+        :param cmds: PluginDict
+        """
         self.init_kwargs = kwargs
         super(Help, self).__init__(cmds=cmds, **kwargs)
+        self._cmds = cmds
         self.cmds = cmds.to_dict() # dict name - Command class
 
 
@@ -154,7 +158,7 @@ class Help(DoitCmdBase):
             self.print_task_help()
         # help on command
         elif args[0] in self.cmds:
-            cmd = self.cmds[args[0]](**self.init_kwargs)
+            cmd = self.cmds[args[0]](cmds=self._cmds, **self.init_kwargs)
             print(cmd.help())
         else:
             # help of specific task

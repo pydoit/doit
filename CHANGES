@@ -8,23 +8,23 @@ Changes
 =====================
 
  - Drop Python 3.3 support
- - Fix GH-#171 Passing environment variables to CmdAction
- - Fix GH-#184 parametrize script name
+ - Fix #171 Passing environment variables to CmdAction
+ - Fix #184 parametrize script name
  - CmdParse now support getting values from OS environment variables
  - option `seek_file` control by ENV var `DOIT_SEEK_FILE`
- - GH-#192 ipython extension uses `load_ipython_extension`
- - GH-#218 clean with option `--forget` can be used to also forget about cleaned tasks
+ - #192 ipython extension uses `load_ipython_extension`
+ - #218 clean with option `--forget` can be used to also forget about cleaned tasks
  - Fix strace command (seems strace output was modified)
- - Fix GH-#224: use `mock` from stdlib
- - GH-#227: enhancements to `info` command
- - Fix GH-#197: improve error message for invalid `clean` and `teardown` task params
- - Fix GH-#211: do not display traceback for error when missing `file_dep`
+ - Fix #224: use `mock` from stdlib
+ - #227: enhancements to `info` command
+ - Fix #197: improve error message for invalid `clean` and `teardown` task params
+ - Fix #211: do not display traceback for error when missing `file_dep`
  - Task `verbosity` has precedence over `verbosity` from config
- - Fix GH-#140: add `failure-verbosity`. ConsoleReporter, by default,
+ - Fix #140: add `failure-verbosity`. ConsoleReporter, by default,
    do not print stderr twice.
- - Fix GH-#155: pass `selected_tasks` to `Reporter.initialize()`
- - Fix GH-#211: do not leak meta arguments to actions `kwargs`
- 
+ - Fix #155: pass `selected_tasks` to `Reporter.initialize()`
+ - Fix #211: do not leak meta arguments to actions `kwargs`
+ - Fix #202: help command display option's name used on config
 
 
 0.30.3 (*2017-02-20*)

@@ -209,9 +209,10 @@ class CmdOption(object):
         # TODO It should always display option's default value
         opt_help = self.help % {'default': self.default}
         opt_choices = self.help_choices()
-        opt_env = ' (environ: {})'.format(self.env_var) if self.env_var else ''
+        opt_config = 'config: {}'.format(self.name)
+        opt_env = ', environ: {}'.format(self.env_var) if self.env_var else ''
 
-        desc = opt_help + opt_choices + opt_env
+        desc = '{} {} ({}{})'.format(opt_help, opt_choices, opt_config, opt_env)
         text.append(self._print_2_columns(opt_str, desc))
         # print bool inverse option
         if self.inverse:
