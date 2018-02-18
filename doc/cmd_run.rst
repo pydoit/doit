@@ -118,6 +118,12 @@ From the command line you can select the backend using the ``--backend`` option.
 It is quite easy to add a new backend for any key-value store.
 
 
+.. warning:
+
+   `dbm` modules do not support concurrent access through different processes.
+   `dbm.dumb` will even cause file corruption!
+
+
 DB-file
 ----------
 
