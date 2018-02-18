@@ -23,6 +23,8 @@ Changes
  - Fix GH-#140: add `failure-verbosity`. ConsoleReporter, by default,
    do not print stderr twice.
  - Fix GH-#155: pass `selected_tasks` to `Reporter.initialize()`
+ - Fix GH-#211: do not leak meta arguments to actions `kwargs`
+ 
 
 
 0.30.3 (*2017-02-20*)

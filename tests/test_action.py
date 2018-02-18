@@ -616,20 +616,22 @@ class TestPythonActionPrepareKwargsMeta(object):
         return FakeTask(['dependencies'],['changed'],['targets'],{})
 
     def test_no_extra_args(self, task_depchanged):
+        # no error trying to inject values
         def py_callable():
             return True
         my_action = action.PythonAction(py_callable, task=task_depchanged)
         my_action.execute()
 
-    def test_keyword_extra_args(self, task_depchanged):
+    def test_keyword_extra_args(self):
+        my_task = FakeTask(['dependencies'], None, None, {'foo': 'bar'})
         got = []
         def py_callable(arg=None, **kwargs):
-            got.append(kwargs['targets'])
-            got.append(kwargs['dependencies'])
-            got.append(kwargs['changed'])
-        my_action = action.PythonAction(py_callable, task=task_depchanged)
+            got.append(kwargs)
+        my_action = action.PythonAction(py_callable, (), {'b': 4}, task=my_task)
         my_action.execute()
-        assert got == [['targets'], ['dependencies'], ['changed']], got
+        # meta args do not leak into kwargs
+        assert got == [{'foo': 'bar', 'b': 4}]
+
 
     def test_named_extra_args(self, task_depchanged):
         got = []

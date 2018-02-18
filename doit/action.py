@@ -53,22 +53,19 @@ class BaseAction(object):
             'changed': task.dep_changed,
             }
 
-        extra_args = dict(meta_args)
-        # tasks parameter options
-        extra_args.update(task.options)
-        if task.pos_arg is not None:
-            extra_args[task.pos_arg] = task.pos_arg_val
+        # start with dict passed together on action definition
         kwargs = kwargs.copy()
         bound_args = func_sig.bind_partial(*args)
 
-        for key in extra_args.keys():
+        # add meta_args
+        for key in meta_args.keys():
             # check key is a positional parameter
             if key in func_sig.parameters:
                 sig_param = func_sig.parameters[key]
 
                 # it is forbidden to use default values for this arguments
                 # because the user might be unaware of this magic.
-                if (key in meta_args and sig_param.default!=sig_param.empty):
+                if (sig_param.default!=sig_param.empty):
                     msg = ("Task %s, action %s(): The argument '%s' is not "
                            "allowed  to have a default value (reserved by doit)"
                            % (task.name, func.__name__, key))
@@ -76,11 +73,24 @@ class BaseAction(object):
 
                 # if value not taken from position parameter
                 if key not in bound_args.arguments:
-                    kwargs[key] = extra_args[key]
+                    kwargs[key] = meta_args[key]
+
+
+        # add tasks parameter options
+        opt_args = dict(task.options)
+        if task.pos_arg is not None:
+            opt_args[task.pos_arg] = task.pos_arg_val
+
+        for key in opt_args.keys():
+            # check key is a positional parameter
+            if key in func_sig.parameters:
+                # if value not taken from position parameter
+                if key not in bound_args.arguments:
+                    kwargs[key] = opt_args[key]
 
             # if function has **kwargs include extra_arg on it
             elif func_has_kwargs and key not in kwargs:
-                kwargs[key] = extra_args[key]
+                kwargs[key] = opt_args[key]
         return kwargs
 
 
