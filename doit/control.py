@@ -110,8 +110,9 @@ class TaskControl(object):
 
         # 2) now go through all dependencies and check if they are target from
         # another task.
-        # FIXME - when used with delayed tasks needs to check if
-        #         any new target matches any old file_dep.
+        # Note: When used with delayed tasks.
+        #       It does NOT check if a delayed-task's target is a file_dep
+        #       from another previously created task.
         for task in task_list:
             TaskControl.add_implicit_task_dep(targets, task, task.file_dep)
 

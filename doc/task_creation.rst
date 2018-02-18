@@ -92,6 +92,15 @@ the tasks names must be explicitly specified... Example:
 .. literalinclude:: tutorial/delayed_creates.py
 
 
+.. warning::
+
+   `doit` normally automatically sets `task_dep` between tasks by checking
+   the relation of `file_dep` and `targets`.
+   Due to performance reasons, these `task_dep` relations are NOT computed
+   for delayed-task's `targets`.
+   This problem can avoided by ordering the creation of delayed-tasks with
+   the expected order of execution.
+
 
 .. _create-doit-tasks:
 
