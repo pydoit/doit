@@ -294,6 +294,7 @@ class TestTaskActions(object):
         # task.result is the value of last action
         t = task.Task('t1', ["%s hi_list hi1" % PROGRAM,
                              "%s hi_list hi2" % PROGRAM])
+        t.dep_changed = []
         t.execute(Stream(0))
         assert "hi_listhi2" == t.result
 
@@ -314,6 +315,7 @@ class TestTaskActions(object):
     def test_many(self):
         t = task.Task("taskX",["%s hi_stdout hi2" % PROGRAM,
                                "%s hi_list hi6" % PROGRAM])
+        t.dep_changed = []
         t.execute(Stream(0))
         got = "".join([a.out for a in t.actions])
         assert "hi_stdouthi_list" == got, repr(got)
@@ -337,6 +339,7 @@ class TestTaskActions(object):
         t = task.Task("taskX",["%s hi_stdout hi2" % PROGRAM,
                                (my_print,['_PY_']),
                                "%s hi_list hi6" % PROGRAM])
+        t.dep_changed = []
         t.execute(Stream(0))
         got = "".join([a.out for a in t.actions])
         assert "hi_stdout_PY_hi_list" == got, repr(got)

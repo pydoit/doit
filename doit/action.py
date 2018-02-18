@@ -277,11 +277,12 @@ class CmdAction(BaseAction):
                         msg % (self.task.name, element, type(element)))
             return action
 
-        subs_dict = {'targets' : " ".join(self.task.targets),
-                     'dependencies': " ".join(self.task.file_dep)}
-        # just included changed if it is set
-        if self.task.dep_changed is not None:
-            subs_dict['changed'] = " ".join(self.task.dep_changed)
+        assert self.task.dep_changed is not None, "Need to call get_status()"
+        subs_dict = {
+            'targets' : " ".join(self.task.targets),
+            'dependencies': " ".join(self.task.file_dep),
+            'changed': " ".join(self.task.dep_changed),
+        }
         # task option parameters
         subs_dict.update(self.task.options)
         # convert positional parameters from list space-separated string
