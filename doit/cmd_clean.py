@@ -2,7 +2,7 @@ from collections import OrderedDict
 
 from .control import TaskControl
 from .cmd_base import DoitCmdBase
-from .cmd_base import check_tasks_exist, tasks_and_deps_iter, subtasks_iter
+from .cmd_base import check_tasks_exist
 
 
 opt_clean_dryrun = {
@@ -96,7 +96,7 @@ class Clean(DoitCmdBase):
             # execution order even if there are no restrictions about order.
             clean_list.reverse()
 
-        tree = Tree()
+        tree = CleanDepTree()
         # include dependencies in list
         if cleandep:
             for name in clean_list:
@@ -105,22 +105,22 @@ class Clean(DoitCmdBase):
         else:
             tree.build_nodes(tasks, clean_list)
 
-        #print(tree.nodes)
         to_clean = [tasks[x] for x in tree.flat()]
         self.clean_tasks(to_clean, dryrun, cleanforget)
 
 
-class Tree:
+class CleanDepTree:
     """Create node structure where each node is a task and its children
-        are tasks that has the node as a task_dep/setup_task.
-        This creates an upside-down tree where leaf nodes should be
-        the first ones to be "cleaned".
+    are tasks that has the node as a task_dep/setup_task.
+    This creates an upside-down tree where leaf nodes should be
+    the first ones to be "cleaned".
     """
     def __init__(self):
         self.nodes = OrderedDict()
         self._processed = set() # task names that were already built
 
     def build_nodes_with_deps(self, tasks, task_name):
+        """build node including task_dep's"""
         if task_name in self._processed:
             return
         else:
@@ -136,17 +136,19 @@ class Tree:
             self.build_nodes_with_deps(tasks, dep_name)
 
     def build_nodes(self, tasks, clean_list):
+        """build nodes with sub-tasks but no other task_dep"""
         for name in clean_list:
             # add node itself if not in list of nodes
             self.nodes.setdefault(name, [])
             task = tasks[name]
             # reversing not required
             for dep_name in reversed(task.task_dep):
-                if tasks[dep_name].is_subtask:
+                if tasks[dep_name].subtask_of == name:
                     rev_dep = self.nodes.setdefault(dep_name, [])
                     rev_dep.append(name)
 
     def flat(self):
+        """return list of tasks in the order they should be `clean` """
         to_clean = []
         while self.nodes:
             head, children = self.nodes.popitem(0)
@@ -154,10 +156,8 @@ class Tree:
         return to_clean
 
     def _get_leafs(self, name, children):
-        #print('get', name)
         for child_name in children:
             if child_name in self.nodes:
                 grand = self.nodes.pop(child_name)
                 yield from self._get_leafs(child_name, grand)
-        #print('yield', name)
         yield name

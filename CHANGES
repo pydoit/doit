@@ -26,6 +26,8 @@ Changes
  - Fix #221: do not leak meta arguments to actions `kwargs`
  - Fix #202: help command display option's name used on config
  - Fix #209: fix `clean` ordering, and following implicit task_deps
+ - Fix: list of sub-tasks do not include non-related `task_dep`
+ - Internal: Removed `Task.is_subtask` use `Task.subtask_of` instead
 
 
 0.30.3 (*2017-02-20*)

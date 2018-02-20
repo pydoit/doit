@@ -118,7 +118,7 @@ class Task(object):
                            task values. Always executed on main process.
                            To be used by `uptodate` implementations.
     @ivar setup_tasks (list - string): references to task-names
-    @ivar is_subtask: (bool) indicate this task is a subtask
+    @ivar subtask_of: (string) indicate this task is a subtask of task name
     @ivar has_subtask: (bool) indicate this task has subtasks
     @ivar result: (str) last action "result". used to check task-result-dep
     @ivar values: (dict) values saved by task that might be used by other tasks
@@ -161,7 +161,7 @@ class Task(object):
     def __init__(self, name, actions, file_dep=(), targets=(),
                  task_dep=(), uptodate=(),
                  calc_dep=(), setup=(), clean=(), teardown=(),
-                 is_subtask=False, has_subtask=False,
+                 subtask_of=None, has_subtask=False,
                  doc=None, params=(), pos_arg=None,
                  verbosity=None, title=None, getargs=None,
                  watch=(), loader=None):
@@ -225,7 +225,7 @@ class Task(object):
         self.uptodate = self._init_uptodate(uptodate)
 
         self.targets = self._init_targets(targets)
-        self.is_subtask = is_subtask
+        self.subtask_of = subtask_of
         self.has_subtask = has_subtask
         self.result = None
         self.values = {}

@@ -17,7 +17,7 @@ class TestCmdList(object):
         cmd_list = CmdFactory(List, outstream=output, task_list=tasks)
         cmd_list._execute()
         got = [line.strip() for line in output.getvalue().split('\n') if line]
-        expected = [t.name for t in tasks if not t.is_subtask]
+        expected = [t.name for t in tasks if not t.subtask_of]
         assert sorted(expected) == got
 
     def testDoc(self):
@@ -28,7 +28,7 @@ class TestCmdList(object):
         got = [line for line in output.getvalue().split('\n') if line]
         expected = []
         for t in sorted(tasks):
-            if not t.is_subtask:
+            if not t.subtask_of:
                 expected.append([t.name, t.doc])
         assert len(expected) == len(got)
         for exp1, got1 in zip(expected, got):

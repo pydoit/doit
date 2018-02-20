@@ -244,10 +244,10 @@ class TestGenerateTasksGenerator(object):
         tasks = generate_tasks("xpto", f_xpto())
         assert isinstance(tasks[0], Task)
         assert 4 == len(tasks)
-        assert not tasks[0].is_subtask
+        assert tasks[0].subtask_of is None
         assert "xpto:0" == tasks[0].task_dep[0]
         assert "xpto:0" == tasks[1].name
-        assert tasks[1].is_subtask
+        assert tasks[1].subtask_of == 'xpto'
 
     def testMultiLevelGenerator(self):
         def f_xpto(base_name):
@@ -261,9 +261,9 @@ class TestGenerateTasksGenerator(object):
         tasks = generate_tasks("xpto", f_first_level())
         assert isinstance(tasks[0], Task)
         assert 7 == len(tasks)
-        assert not tasks[0].is_subtask
+        assert tasks[0].subtask_of is None
         assert f_xpto.__doc__ == tasks[0].doc
-        assert tasks[1].is_subtask
+        assert tasks[1].subtask_of == 'xpto'
         assert "xpto:0-0" == tasks[1].name
         assert "xpto:1-2" == tasks[-1].name
 
@@ -307,8 +307,8 @@ class TestGenerateTasksGenerator(object):
         assert isinstance(tasks[0], Task)
         assert 3 == len(tasks)
         assert "0" == tasks[0].name
-        assert not tasks[0].is_subtask
-        assert not tasks[1].is_subtask
+        assert tasks[0].subtask_of is None
+        assert tasks[1].subtask_of is None
 
     def testGeneratorBasenameName(self):
         def f_xpto():
@@ -319,8 +319,8 @@ class TestGenerateTasksGenerator(object):
         assert 4 == len(tasks)
         assert "xpto" == tasks[0].name
         assert "xpto:0" == tasks[1].name
-        assert not tasks[0].is_subtask
-        assert tasks[1].is_subtask
+        assert tasks[0].subtask_of is None
+        assert tasks[1].subtask_of == 'xpto'
 
     def testGeneratorBasenameCanNotRepeat(self):
         def f_xpto():
@@ -356,7 +356,7 @@ class TestGenerateTasksGenerator(object):
         tasks = generate_tasks("xpto", f_xpto())
         assert 1 == len(tasks)
         assert "xpto" == tasks[0].name
-        assert not tasks[0].is_subtask
+        assert tasks[0].subtask_of is None
 
 
     def testGeneratorBaseOnly(self):

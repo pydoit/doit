@@ -107,7 +107,7 @@ class List(DoitCmdBase):
         """list of tasks"""
         print_list = []
         for task in self.task_list:
-            if (not include_subtasks) and task.is_subtask:
+            if (not include_subtasks) and task.subtask_of:
                 continue
             print_list.append(task)
         return print_list

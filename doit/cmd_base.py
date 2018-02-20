@@ -430,9 +430,10 @@ def check_tasks_exist(tasks, name_list):
             raise InvalidCommand(msg % task_name)
 
 
-# this is used by commands that do not execute tasks (list, clean, forget...)
+# this is used by commands that do not execute tasks (forget, auto...)
 def tasks_and_deps_iter(tasks, sel_tasks, yield_duplicates=False):
     """iterator of select_tasks and its dependencies
+
     @param tasks (dict - Task)
     @param sel_tasks(list - str)
     """
@@ -458,5 +459,5 @@ def subtasks_iter(tasks, task):
     """
     for name in task.task_dep:
         dep = tasks[name]
-        if dep.is_subtask:
+        if dep.subtask_of == task.name:
             yield dep

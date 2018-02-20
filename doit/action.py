@@ -286,7 +286,7 @@ class CmdAction(BaseAction):
         # Some commands (like `clean` also uses expand_args but do not
         # uses get_status, so `changed` is not available.
         if self.task.dep_changed is not None:
-            subs_dict['changed'] = " ".join(self.task.dep_changed),
+            subs_dict['changed'] = " ".join(self.task.dep_changed)
 
         # task option parameters
         subs_dict.update(self.task.options)

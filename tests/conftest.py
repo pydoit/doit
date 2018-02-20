@@ -136,9 +136,9 @@ def tasks_sample():
         # 2
         Task("g1", None, doc="g1 doc string", has_subtask=True),
         # 3
-        Task("g1.a", [""], doc="g1.a doc string", is_subtask=True),
+        Task("g1.a", [""], doc="g1.a doc string", subtask_of='g1'),
         # 4
-        Task("g1.b", [""], doc="g1.b doc string", is_subtask=True),
+        Task("g1.b", [""], doc="g1.b doc string", subtask_of='g1'),
         # 5
         Task("t3", [""], doc="t3 doc string", task_dep=["t1"])
         ]

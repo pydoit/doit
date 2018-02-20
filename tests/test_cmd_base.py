@@ -326,9 +326,10 @@ class TestSubtaskIter(object):
     def test_sub_iter(self):
         tasks = {
             't1': Task("t1", [""] ),
-            't2': Task("t2", [""], task_dep=['t1', 't2:a', 't2:b']),
-            't2:a': Task("t2:a", [""], is_subtask=True),
-            't2:b': Task("t2:b", [""], is_subtask=True),
+            't1:x': Task("t1:x", [""], subtask_of='t1'),
+            't2': Task("t2", [""], task_dep=['t1', 't1:x', 't2:a', 't2:b']),
+            't2:a': Task("t2:a", [""], subtask_of='t2'),
+            't2:b': Task("t2:b", [""], subtask_of='t2'),
             }
         def names(task_name):
             return [t.name for t in subtasks_iter(tasks, tasks[task_name])]

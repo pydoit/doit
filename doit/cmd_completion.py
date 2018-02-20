@@ -100,7 +100,7 @@ class TabCompletion(DoitCmdBase):
         if opt_values['hardcode_tasks']:
             self.task_list, _ = self.loader.load_tasks(
                 self, opt_values, pos_args)
-            task_names = (t.name for t in self.task_list if not t.is_subtask)
+            task_names = (t.name for t in self.task_list if not t.subtask_of)
             tmpl_vars['pt_tasks'] = '"{0}"'.format(' '.join(sorted(task_names)))
         else:
             tmpl_list_cmd = "$({0} list {1} --quiet 2>/dev/null)"
@@ -194,7 +194,7 @@ class TabCompletion(DoitCmdBase):
                 self, opt_values, pos_args)
             lines = []
             for task in self.task_list:
-                if not task.is_subtask:
+                if not task.subtask_of:
                     lines.append("'{0}: {1}'".format(task.name, task.doc))
             template_vars['pt_tasks'] = '(\n{0}\n)'.format(
                 '\n'.join(sorted(lines)))

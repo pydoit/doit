@@ -220,7 +220,7 @@ class TestRunner_SelectTask(object):
     def test_getargs_group(self, reporter, dep_manager):
         def ok(): return {'x':1}
         t1 = Task('t1', None, task_dep=['t1:a'], has_subtask=True)
-        t1a = Task('t1:a', [(ok,)], is_subtask=True)
+        t1a = Task('t1:a', [(ok,)], subtask_of='t1')
         t2 = Task('t2', None, getargs={'my_x':('t1', None)})
         tasks_dict = {'t1': t1, 't1a':t1a, 't2':t2}
         my_runner = runner.Runner(dep_manager, reporter)
@@ -236,7 +236,7 @@ class TestRunner_SelectTask(object):
     def test_getargs_group_value(self, reporter, dep_manager):
         def ok(): return {'x':1}
         t1 = Task('t1', None, task_dep=['t1:a'], has_subtask=True)
-        t1a = Task('t1:a', [(ok,)], is_subtask=True)
+        t1a = Task('t1:a', [(ok,)], subtask_of='t1')
         t2 = Task('t2', None, getargs={'my_x':('t1', 'x')})
         tasks_dict = {'t1': t1, 't1a':t1a, 't2':t2}
         my_runner = runner.Runner(dep_manager, reporter)

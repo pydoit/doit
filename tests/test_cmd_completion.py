@@ -18,7 +18,7 @@ class FakeLoader(TaskLoader):
         task_list = [
             Task("t1", None, ),
             Task("t2", None, task_dep=['t2:a'], has_subtask=True, ),
-            Task("t2:a", None, is_subtask=True),
+            Task("t2:a", None, subtask_of='t2'),
             ]
         return task_list, {}
 

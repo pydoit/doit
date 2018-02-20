@@ -262,7 +262,7 @@ def _generate_task_from_yield(tasks, func_name, task_dict, gen_doc):
             raise InvalidTask(msg_dup % (func_name, full_name))
         task_dict['name'] = full_name
         sub_task = dict_to_task(task_dict)
-        sub_task.is_subtask = True
+        sub_task.subtask_of = basename
 
         # get/create task group
         group_task = tasks.get(basename)

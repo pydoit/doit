@@ -21,7 +21,7 @@ class TestCmdClean(object):
             Task("t2", None, clean=[(myclean,('t2',))]),
             Task("t3", None, task_dep=['t3:a'], has_subtask=True,
                  clean=[(myclean,('t3',))]),
-            Task("t3:a", None, clean=[(myclean,('t3:a',))], is_subtask=True),
+            Task("t3:a", None, clean=[(myclean,('t3:a',))], subtask_of='t3'),
             Task("t4", None, file_dep=['t1.out'], clean=[(myclean,('t4',))] ),
             ]
 
