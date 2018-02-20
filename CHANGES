@@ -7,7 +7,7 @@ Changes
 0.31.0 (*unreleased*)
 =====================
 
- - Drop Python 3.3 support
+ - BACKWARD INCOMPATIBLE: Drop Python 3.3 support
  - Fix #171 Passing environment variables to CmdAction
  - Fix #184 parametrize script name
  - CmdParse now support getting values from OS environment variables
@@ -23,7 +23,7 @@ Changes
  - Fix #140: add `failure-verbosity`. ConsoleReporter, by default,
    do not print stderr twice.
  - Fix #155: pass `selected_tasks` to `Reporter.initialize()`
- - Fix #211: do not leak meta arguments to actions `kwargs`
+ - Fix #221: do not leak meta arguments to actions `kwargs`
  - Fix #202: help command display option's name used on config
 
 
