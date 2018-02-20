@@ -25,6 +25,7 @@ Changes
  - Fix #155: pass `selected_tasks` to `Reporter.initialize()`
  - Fix #221: do not leak meta arguments to actions `kwargs`
  - Fix #202: help command display option's name used on config
+ - Fix #209: fix `clean` ordering, and following implicit task_deps
 
 
 0.30.3 (*2017-02-20*)

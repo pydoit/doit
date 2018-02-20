@@ -1,3 +1,6 @@
+from collections import OrderedDict
+
+from .control import TaskControl
 from .cmd_base import DoitCmdBase
 from .cmd_base import check_tasks_exist, tasks_and_deps_iter, subtasks_iter
 
@@ -73,36 +76,88 @@ class Clean(DoitCmdBase):
         @var selected_tasks (list - string): list of tasks selected
                                              from cmd-line
         """
-        tasks = dict([(t.name, t) for t in self.task_list])
+        tasks = TaskControl(self.task_list).tasks
         # behavior of cleandep is different if selected_tasks comes from
         # command line or DOIT_CONFIG.default_tasks
         selected_tasks = pos_args
         check_tasks_exist(tasks, selected_tasks)
 
         # get base list of tasks to be cleaned
-        if cleanall:
-            clean_list = [t.name for t in self.task_list]
-        elif selected_tasks:
+        if selected_tasks and not cleanall: # from command line
             clean_list = selected_tasks
         else:
-            if self.sel_tasks is None:
-                clean_list = [t.name for t in self.task_list]
-            else:
-                clean_list = self.sel_tasks
-            # if cleaning default tasks enable clean_dep automatically
+            # if not cleaning specific task enable clean_dep automatically
             cleandep = True
+            if self.sel_tasks is not None:
+                clean_list = self.sel_tasks # default tasks from config
+            else:
+                clean_list = [t.name for t in self.task_list]
+            # note: reversing is not required, but helps reversing
+            # execution order even if there are no restrictions about order.
+            clean_list.reverse()
 
+        tree = Tree()
         # include dependencies in list
         if cleandep:
-            # including repeated entries will guarantee that deps are listed
-            # first when the list is reversed
-            to_clean = list(tasks_and_deps_iter(tasks, clean_list, True))
+            for name in clean_list:
+                tree.build_nodes_with_deps(tasks, name)
         # include only subtasks in list
         else:
-            to_clean = []
-            for name in reversed(clean_list):
-                task = tasks[name]
-                to_clean.append(task)
-                to_clean.extend(subtasks_iter(tasks, task))
-        to_clean.reverse()
+            tree.build_nodes(tasks, clean_list)
+
+        #print(tree.nodes)
+        to_clean = [tasks[x] for x in tree.flat()]
         self.clean_tasks(to_clean, dryrun, cleanforget)
+
+
+class Tree:
+    """Create node structure where each node is a task and its children
+        are tasks that has the node as a task_dep/setup_task.
+        This creates an upside-down tree where leaf nodes should be
+        the first ones to be "cleaned".
+    """
+    def __init__(self):
+        self.nodes = OrderedDict()
+        self._processed = set() # task names that were already built
+
+    def build_nodes_with_deps(self, tasks, task_name):
+        if task_name in self._processed:
+            return
+        else:
+            self._processed.add(task_name)
+
+        # add node itself if not in list of nodes
+        self.nodes.setdefault(task_name, [])
+        task = tasks[task_name]
+        # reversing not required
+        for dep_name in reversed(task.setup_tasks + task.task_dep):
+            rev_dep = self.nodes.setdefault(dep_name, [])
+            rev_dep.append(task_name)
+            self.build_nodes_with_deps(tasks, dep_name)
+
+    def build_nodes(self, tasks, clean_list):
+        for name in clean_list:
+            # add node itself if not in list of nodes
+            self.nodes.setdefault(name, [])
+            task = tasks[name]
+            # reversing not required
+            for dep_name in reversed(task.task_dep):
+                if tasks[dep_name].is_subtask:
+                    rev_dep = self.nodes.setdefault(dep_name, [])
+                    rev_dep.append(name)
+
+    def flat(self):
+        to_clean = []
+        while self.nodes:
+            head, children = self.nodes.popitem(0)
+            to_clean.extend([x for x in self._get_leafs(head, children)])
+        return to_clean
+
+    def _get_leafs(self, name, children):
+        #print('get', name)
+        for child_name in children:
+            if child_name in self.nodes:
+                grand = self.nodes.pop(child_name)
+                yield from self._get_leafs(child_name, grand)
+        #print('yield', name)
+        yield name
