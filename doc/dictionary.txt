@@ -211,7 +211,6 @@ dumpdb
 efg
 encodable
 env
-epydoc
 eq
 faq
 file'

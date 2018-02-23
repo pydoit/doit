@@ -82,9 +82,7 @@ Tools required for development:
 
 - git * VCS
 - py.test * unit-tests
-- mock * unit-tests
 - coverage * code coverage
-- epydoc * API doc generator
 - sphinx * doc tool
 - pyflakes * syntax checker
 - doit-py * helper to run dev tasks
@@ -135,7 +133,6 @@ To create it (after installing *doit*)::
 
  $ doit website
 
-The website will also includes epydoc generated API documentation.
 
 
 spell checking
