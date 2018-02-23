@@ -12,7 +12,7 @@ Let's use a more complex example to demonstrate the command line features.
 The example below is used to manage a very simple C project.
 
 
-.. literalinclude:: tutorial/cproject.py
+.. literalinclude:: samples/cproject.py
 
 
 
@@ -126,7 +126,7 @@ string with a shell command or a tuple with a python callable.
 If you want to clean the targets and add some custom clean actions,
 you can include the `doit.task.clean_targets` instead of passing `True`:
 
-.. literalinclude:: tutorial/clean_mix.py
+.. literalinclude:: samples/clean_mix.py
 
 
 You can specify which task to *clean*. If no task is specified the clean operation of default tasks are executed.
@@ -166,7 +166,7 @@ It is possible to set a task to be ignored/skipped (that is, not executed). This
 is useful, for example, when you are performing checks in several files and you
 want to skip the check in some of them temporarily.
 
-.. literalinclude:: tutorial/subtasks.py
+.. literalinclude:: samples/subtasks.py
 
 
 .. code-block:: console
@@ -242,7 +242,7 @@ If paths are folders their sub-folders will not be watched unless these
 sub-folders are also part of the given extra paths.
 The ``watch`` parameter can also be specified for a group of "sub-tasks".
 
-.. literalinclude:: tutorial/empty_subtasks.py
+.. literalinclude:: samples/empty_subtasks.py
 
 
 .. _tabcompletion:

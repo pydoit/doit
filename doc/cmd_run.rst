@@ -69,7 +69,7 @@ It is possible to make a ``dodo`` file become an executable on its own
 by calling the ``doit.run()``, you need to pass the ``globals``:
 
 
-.. literalinclude:: tutorial/executable.py
+.. literalinclude:: samples/executable.py
 
 .. note::
 
@@ -296,7 +296,7 @@ It is possible to define your own custom reporter. Check the code on
 to get started by sub-classing the default reporter as shown below. The custom
 reporter can be enabled directly on DOIT_CONFIG dict.
 
-.. literalinclude:: tutorial/custom_reporter.py
+.. literalinclude:: samples/custom_reporter.py
 
 It is also possible distribute/use a custom reporter
 as a :ref:`plugin <plugin_reporter>`.
@@ -384,7 +384,7 @@ from where `doit` was invoked from.
 
 This can be used for example set which tasks will be executed:
 
-.. literalinclude:: tutorial/initial_workdir.py
+.. literalinclude:: samples/initial_workdir.py
 
 
 minversion

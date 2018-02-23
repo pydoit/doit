@@ -28,7 +28,7 @@ A python module/file that defines *tasks* for `doit` is called **dodo** file
 
 Take a look at this example (file dodo.py):
 
-.. literalinclude:: tutorial/hello.py
+.. literalinclude:: samples/hello.py
 
 When `doit` is executed without any parameters it will look for tasks in a
 file named `dodo.py` in the current folder and execute its tasks.
@@ -89,7 +89,7 @@ If the action returns a type other than the types already discussed, the action
 will be considered a failure, although this behavior might change in future
 versions.
 
-.. literalinclude:: tutorial/tutorial_02.py
+.. literalinclude:: samples/tutorial_02.py
 
 The function `task_hello` is a *task-creator*, not the task itself.
 The body of the task-creator function is always executed when the dodo
@@ -107,7 +107,7 @@ file is loaded.
 
 `action` parameters can be passed as ``kwargs``.
 
-.. literalinclude:: tutorial/task_kwargs.py
+.. literalinclude:: samples/task_kwargs.py
 
 
 cmd-action
@@ -123,7 +123,7 @@ It is easy to include dynamic (on-the-fly) behavior to your tasks with
 python code from the `dodo` file. Let's take a look at another example:
 
 
-.. literalinclude:: tutorial/cmd_actions.py
+.. literalinclude:: samples/cmd_actions.py
 
 .. note::
 
@@ -135,13 +135,13 @@ If `action` is a list of strings and instances of any Path class from
 `pathlib <https://docs.python.org/3/library/pathlib.html>`_, by default it will
 be executed **without the shell** (Popen argument shell=False).
 
-.. literalinclude:: tutorial/cmd_actions_list.py
+.. literalinclude:: samples/cmd_actions_list.py
 
 
 For complex commands it is also possible to pass a callable that returns
 the command string. In this case you must explicit import CmdAction.
 
-.. literalinclude:: tutorial/cmd_from_callable.py
+.. literalinclude:: samples/cmd_from_callable.py
 
 
 You might also explicitly import ``CmdAction`` in case you want to pass extra
@@ -181,7 +181,7 @@ For example a `def task_hello` would create a task named ``hello``.
 
 It is possible to explicitly set a task name with the parameter ``basename``.
 
-.. literalinclude:: tutorial/task_name.py
+.. literalinclude:: samples/task_name.py
 
 
 .. code-block:: console
@@ -197,7 +197,7 @@ Using ``yield`` it can generate several tasks at once.
 It is also possible to ``yield`` a generator that generate tasks.
 This is useful to write some generic/reusable task-creators.
 
-.. literalinclude:: tutorial/task_reusable.py
+.. literalinclude:: samples/task_reusable.py
 
 .. code-block:: console
 
@@ -216,7 +216,7 @@ The task function can return a python-generator that yields dictionaries.
 Since each sub-task must be uniquely identified it requires an
 additional field ``name``.
 
-.. literalinclude:: tutorial/subtasks.py
+.. literalinclude:: samples/subtasks.py
 
 
 .. code-block:: console
@@ -236,7 +236,7 @@ but you want to make sure that a task exist,
 you can yield a sub-task with ``name`` equal to ``None``.
 This can also be used to set the task ``doc`` and ``watch`` attributes.
 
-.. literalinclude:: tutorial/empty_subtasks.py
+.. literalinclude:: samples/empty_subtasks.py
 
 .. code-block:: console
 
@@ -264,7 +264,7 @@ Target
 i.e. In a compilation task the source file is a *file_dep*,
 the object file is a *target*.
 
-.. literalinclude:: tutorial/compile.py
+.. literalinclude:: samples/compile.py
 
 
 `doit` automatically keeps track of file dependencies. It saves the
@@ -303,7 +303,7 @@ Every dependency in file_dep list should be a string or an instance of any
 Path class from `pathlib <https://docs.python.org/3/library/pathlib.html>`_.
 
 
-.. literalinclude:: tutorial/checker.py
+.. literalinclude:: samples/checker.py
 
 .. code-block:: console
 
@@ -342,7 +342,7 @@ can be specified as a string or as an instance of any Path class from
 
 Lets take the compilation example again.
 
-.. literalinclude:: tutorial/compile.py
+.. literalinclude:: samples/compile.py
 
 * If there are no changes in the dependency the task execution is skipped.
 * But if the target is removed the task is executed again.
@@ -402,7 +402,7 @@ file names separated by a space (" ").
 .. _old-string-formatting: http://docs.python.org/3/library/stdtypes.html#old-string-formatting
 
 
-.. literalinclude:: tutorial/report_deps.py
+.. literalinclude:: samples/report_deps.py
 
 
 Before the string is actually executed, it is always formatted using the
@@ -425,13 +425,13 @@ For *python-action* add a keyword parameter in the function,
 `dependencies`, `changed`, `targets` are passed as list of strings.
 
 
-.. literalinclude:: tutorial/hello.py
+.. literalinclude:: samples/hello.py
 
 
 You can also pass the keyword `task` to have a reference to all task
 metadata.
 
-.. literalinclude:: tutorial/meta.py
+.. literalinclude:: samples/meta.py
 
 
 .. note::
@@ -448,7 +448,7 @@ If your tasks interact in a way where the target (output) of one task is a
 file_dep (input) of another task, `doit` will make sure your tasks are
 executed in the correct order.
 
-.. literalinclude:: tutorial/taskorder.py
+.. literalinclude:: samples/taskorder.py
 
 .. code-block:: console
 
@@ -474,7 +474,7 @@ By default all tasks are executed in the same order as they were defined (the or
 
 Another example
 
-.. literalinclude:: tutorial/selecttasks.py
+.. literalinclude:: samples/selecttasks.py
 
 DOIT_CONFIG -> default_tasks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -516,7 +516,7 @@ sub-task selection
 
 You can select sub-tasks from the command line specifying its full name.
 
-.. literalinclude:: tutorial/subtasks.py
+.. literalinclude:: samples/subtasks.py
 
 
 .. code-block:: console
@@ -550,7 +550,7 @@ title
 By default when you run `doit` only the task name is printed out on the output.
 You can customize the output passing a "title" function to the task:
 
-.. literalinclude:: tutorial/title.py
+.. literalinclude:: samples/title.py
 
 .. code-block:: console
 
@@ -585,7 +585,7 @@ You can control the verbosity by:
 
 * task attribute verbosity
 
-.. literalinclude:: tutorial/verbosity.py
+.. literalinclude:: samples/verbosity.py
 
 .. code-block:: console
 
@@ -606,4 +606,4 @@ only strings but also instances of any Path class from pathlib.
 Lets take the compilation example and modify it to work with any number
 of header and source files in current directory using pathlib.
 
-.. literalinclude:: tutorial/compile_pathlib.py
+.. literalinclude:: samples/compile_pathlib.py

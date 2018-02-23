@@ -14,7 +14,7 @@ create_folder (action)
 
 Creates a folder if it does not exist yet. Uses `os.makedirs() <http://docs.python.org/2/library/os#os.makedirs>_`.
 
-.. literalinclude:: tutorial/folder.py
+.. literalinclude:: samples/folder.py
 
 
 title_with_actions (title)
@@ -22,7 +22,7 @@ title_with_actions (title)
 
 Return task name task actions from a task. This function can be used as 'title' attribute of a task dictionary to provide more detailed information of the action being executed.
 
-.. literalinclude:: tutorial/titlewithactions.py
+.. literalinclude:: samples/titlewithactions.py
 
 
 .. _tools.LongRunning:
@@ -35,7 +35,7 @@ LongRunning (action)
 
 This is useful for executing long running process like a web-server.
 
-.. literalinclude:: tutorial/longrunning.py
+.. literalinclude:: samples/longrunning.py
 
 
 Interactive (action)
@@ -60,7 +60,7 @@ use the python debugger with ``pdb.set_trace``, it does not work properly.
 To make sure you get a proper PDB shell you should use doit.tools.set_trace
 instead of ``pdb.set_trace``.
 
-.. literalinclude:: tutorial/settrace.py
+.. literalinclude:: samples/settrace.py
 
 
 .. _tools.IPython:

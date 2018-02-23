@@ -76,7 +76,7 @@ Just put the option in the `DOIT_CONFIG` dict.
 This example below sets the default tasks to be run, the ``continue`` option,
 and a different reporter.
 
-.. literalinclude:: tutorial/doit_config.py
+.. literalinclude:: samples/doit_config.py
 
 So if you just execute
 

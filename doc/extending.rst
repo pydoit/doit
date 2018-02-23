@@ -46,7 +46,7 @@ Example: pre-defined task
 In the full example below a application is created where the only
 task available is defined using a dict (so no `dodo.py` will be used).
 
-.. literalinclude:: tutorial/custom_loader.py
+.. literalinclude:: samples/custom_loader.py
 
 
 .. _ModuleTaskLoader:
@@ -58,7 +58,7 @@ The `ModuleTaskLoader` can be used to load tasks from a specified module,
 where this module specifies tasks in the same way as in `dodo.py`.
 `ModuleTaskLoader` is included in `doit` source.
 
-.. literalinclude:: tutorial/module_loader.py
+.. literalinclude:: samples/module_loader.py
 
 `ModuleTaskLoader` can take also take a `dict` where its items are functions
 or methods of an object.
@@ -98,7 +98,7 @@ Example: scaffolding
 A common example is applications that provide some kind of scaffolding when
 creating new projects.
 
-.. literalinclude:: tutorial/custom_cmd.py
+.. literalinclude:: samples/custom_cmd.py
 
 
 

@@ -68,8 +68,8 @@ def task_docs():
     yield docs.sphinx(DOC_ROOT, DOC_BUILD_PATH, sphinx_opts=sphinx_opts,
                       task_dep=['spell'])
 
-def task_tutorial_check():
-    """check tutorial sample are at least runnuable without error"""
+def task_samples_check():
+    """check samples are at least runnuable without error"""
     black_list = [
         'longrunning.py',  # long running doesn't terminate on its own
         'settrace.py',
@@ -79,10 +79,10 @@ def task_tutorial_check():
         'calc_dep.py',  # uses files not created by the script
         'doit_config.py',  # no tasks defined
     ]
-    exclude = set('doc/tutorial/{}'.format(m) for m in black_list)
-    arguments = {'doc/tutorial/pos.py': 'pos_args -p 4 foo bar'}
+    exclude = set('doc/samples/{}'.format(m) for m in black_list)
+    arguments = {'doc/samples/pos.py': 'pos_args -p 4 foo bar'}
 
-    for sample in glob.glob("doc/tutorial/*.py"):
+    for sample in glob.glob("doc/samples/*.py"):
         if sample in exclude:
             continue
         args = arguments.get(sample, '')
@@ -95,7 +95,7 @@ def task_tutorial_check():
 def task_website():
     """dodo file create website html files"""
     return {'actions': None,
-            'task_dep': ['sphinx', 'tutorial_check'],
+            'task_dep': ['sphinx', 'samples_check'],
             }
 
 def task_website_update():

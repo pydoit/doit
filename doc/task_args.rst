@@ -19,7 +19,7 @@ conventions). It may also specify additional attributes, such as
 
 See the example:
 
-.. literalinclude:: tutorial/parameters.py
+.. literalinclude:: samples/parameters.py
 
 
 For python-actions the python function must define arguments with the same name as a task parameter.
@@ -143,7 +143,7 @@ Here is the list of all attributes ``param`` accepts:
 
     Example, given following code:
 
-    .. literalinclude:: tutorial/parameters_inverse.py
+    .. literalinclude:: samples/parameters_inverse.py
 
     calls to task `with_flag` show flag on or off:
 
@@ -164,7 +164,7 @@ Tasks might also get positional arguments from the command line
 as standard unix commands do,
 with positional arguments *after* optional arguments.
 
-.. literalinclude:: tutorial/pos.py
+.. literalinclude:: samples/pos.py
 
 .. code-block:: console
 
@@ -196,7 +196,7 @@ command line variables (*doit.get_var*)
 
 It is possible to pass variable values to be used in dodo.py from the command line.
 
-.. literalinclude:: tutorial/get_var.py
+.. literalinclude:: samples/get_var.py
 
 .. code-block:: console
 

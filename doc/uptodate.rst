@@ -20,7 +20,7 @@ create an intermediate file with the results of the process.
 i.e. Suppose you want to send an email every time you run *doit* on a mercurial
 repository that contains a new revision number.
 
-.. literalinclude:: tutorial/taskresult.py
+.. literalinclude:: samples/taskresult.py
 
 
 Note the `result_dep` with the name of the task ('version'). `doit` will keep
@@ -51,7 +51,7 @@ Suppose you need to download something from internet.
 There is no dependency, but you do not want to download it many times.
 
 
-.. literalinclude:: tutorial/download.py
+.. literalinclude:: samples/download.py
 
 Note that even with *run_once* the file will be downloaded again in case the target is removed.
 
@@ -77,7 +77,7 @@ timeout()
 i.e. You want to re-execute a task only if the time elapsed since the last
 time it was executed is bigger than 5 minutes.
 
-.. literalinclude:: tutorial/timeout.py
+.. literalinclude:: samples/timeout.py
 
 
 ``timeout`` is function that takes an ``int`` (seconds) or ``timedelta`` as a
@@ -95,7 +95,7 @@ changed. Config values can be a string or dict.
 For dict's the values are converted to string (actually it uses python's `repr()`)
 and only a digest/checksum of the dictionaries keys and values are saved.
 
-.. literalinclude:: tutorial/config_params.py
+.. literalinclude:: samples/config_params.py
 
 
 .. _check_timestamp_unchanged:
@@ -128,7 +128,7 @@ If the specified file does not exist, an exception will be raised.
 If a file is a target of another task you should probably add
 ``task_dep`` on that task to ensure the file is created before it is checked.
 
-.. literalinclude:: tutorial/check_timestamp_unchanged.py
+.. literalinclude:: samples/check_timestamp_unchanged.py
 
 
 .. _uptodate_api:
@@ -143,7 +143,7 @@ you can skip this.
 Let's start with trivial example. `uptodate` is a function that returns
 a boolean value.
 
-.. literalinclude:: tutorial/uptodate_callable.py
+.. literalinclude:: samples/uptodate_callable.py
 
 You could also execute this function in the task-creator and pass the value
 to to `uptodate`. The advantage of just passing the callable is that this
@@ -179,7 +179,7 @@ The `uptodate` callable can take two positional parameters ``task`` and ``values
 
 Let's take a look in the ``run_once`` implementation.
 
-.. literalinclude:: tutorial/run_once.py
+.. literalinclude:: samples/run_once.py
 
 The function ``save_executed`` returns a dict. In this case it is not checking
 for any value because it just checks it the task was ever executed.

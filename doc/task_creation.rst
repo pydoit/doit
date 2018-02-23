@@ -11,7 +11,7 @@ It will look for functions staring with ``task_`` and objects with
 So it is also possible to load task definitions from other
 modules just by importing them into your *dodo* file.
 
-.. literalinclude:: tutorial/import_tasks.py
+.. literalinclude:: samples/import_tasks.py
 
 .. code-block:: console
 
@@ -60,7 +60,7 @@ When *task-creator* function is decorated with `doit.create_after`,
 its evaluation to create the tasks will be delayed to happen after the
 execution of the specified task in the `executed` param.
 
-.. literalinclude:: tutorial/delayed.py
+.. literalinclude:: samples/delayed.py
 
 
 .. _specify-target-regex:
@@ -89,7 +89,7 @@ you should pass the parameter `creates`.
 Since `doit` will only execute the body of the task-creator function on demand,
 the tasks names must be explicitly specified... Example:
 
-.. literalinclude:: tutorial/delayed_creates.py
+.. literalinclude:: samples/delayed_creates.py
 
 
 .. warning::
@@ -112,7 +112,7 @@ The *doit* loader will also execute the ``create_doit_tasks``
 callable from any object that contains this attribute.
 
 
-.. literalinclude:: tutorial/custom_task_def.py
+.. literalinclude:: samples/custom_task_def.py
 
 The `project letsdoit <https://bitbucket.org/takluyver/letsdoit>`_
 has some real-world implementations.

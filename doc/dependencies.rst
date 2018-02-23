@@ -90,7 +90,7 @@ you must explicitly add a dependency: you could add a ``uptodate`` with ``True``
 value or use :ref:`run_once() <run_once>` to force at least one
 execution managed by `doit`. Example:
 
-.. literalinclude:: tutorial/touch.py
+.. literalinclude:: samples/touch.py
 
 
 
@@ -127,7 +127,7 @@ task name (whatever comes after ``task_`` on the function name) in the
 This example we make sure we include a file with the latest revision number of
 the mercurial repository on the tar file.
 
-.. literalinclude:: tutorial/tar.py
+.. literalinclude:: samples/tar.py
 
 .. code-block:: console
 
@@ -143,7 +143,7 @@ groups
 You can define a group of tasks by adding tasks as dependencies and setting
 its `actions` to ``None``.
 
-.. literalinclude:: tutorial/group.py
+.. literalinclude:: samples/group.py
 
 Note that tasks are never executed twice in the same "run".
 
@@ -165,7 +165,7 @@ from a module. The dependencies itself are calculated on task ``get_dep``
 (note: get_dep has a fake implementation where the results are taken from a dict).
 
 
-.. literalinclude:: tutorial/calc_dep.py
+.. literalinclude:: samples/calc_dep.py
 
 
 
@@ -194,7 +194,7 @@ They are executed in reverse order their tasks were executed.
 
 Example:
 
-.. literalinclude:: tutorial/tsetup.py
+.. literalinclude:: samples/tsetup.py
 
 
 .. code-block:: console
@@ -227,7 +227,7 @@ A cmd-action can also save it's output.
 But for this you will need to explicitly import `CmdAction` and set its `save_out`
 parameter with the *name* used to save the output in *values*
 
-.. literalinclude:: tutorial/save_out.py
+.. literalinclude:: samples/save_out.py
 
 
 These values can be used on uptodate_ and getargs_.
@@ -251,18 +251,18 @@ from `getargs`.
 `getargs` is a dictionary where the key is the argument name used on actions,
 and the value is a tuple with 2 strings: task name, "value name".
 
-.. literalinclude:: tutorial/getargs.py
+.. literalinclude:: samples/getargs.py
 
 
 The values are being passed on to a python-action you can pass the whole dict
 by specifying the value name as ``None``.
 
-.. literalinclude:: tutorial/getargs_dict.py
+.. literalinclude:: samples/getargs_dict.py
 
 
 If a group-task is used, the values from all its sub-tasks are passed as a dict.
 
-.. literalinclude:: tutorial/getargs_group.py
+.. literalinclude:: samples/getargs_group.py
 
 
 .. note::

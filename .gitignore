@@ -9,9 +9,9 @@ revision.txt
 
 tests/data/*
 doc/_build
-doc/tutorial/*.o
-doc/tutorial/*.in
-doc/tutorial/*.out
-doc/tutorial/file*
+doc/samples/*.o
+doc/samples/*.in
+doc/samples/*.out
+doc/samples/file*
 
 

@@ -44,8 +44,8 @@ and contains some extra meta-data.
 
 **task meta-data**:
 
-- task meta-data includes a description of input file for the *actions*
-  (**dependencies**), and result files **targets**
+- task meta-data includes a description of input file (**dependencies**)
+  for the *actions* and result files (**targets**)
 - there are many other meta-data fields to control how and when a task is
   executed...
 
@@ -189,7 +189,7 @@ Status
 
 This blog `post <http://schettino72.wordpress.com/2008/04/14/doit-a-build-tool-tale/>`_ explains how everything started in 2008.
 
-`doit` is under active development. Version 0.30 released on 2016-11.
+`doit` is under active development. Version 0.31 released on 2018-02.
 
 `doit` core features are quite stable. If there is no recent development,
 it does NOT mean `doit` is not being maintained...
