@@ -4,7 +4,7 @@ Changes
 =======
 
 
-0.31.0 (*unreleased*)
+0.31.0 (*2018-02-25*)
 =====================
 
  - BACKWARD INCOMPATIBLE: Drop Python 3.3 support

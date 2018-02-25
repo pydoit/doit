@@ -48,7 +48,7 @@ license
 =======
 
 The MIT License
-Copyright (c) 2008-2017 Eduardo Naufel Schettino
+Copyright (c) 2008-2018 Eduardo Naufel Schettino
 
 see LICENSE file
 
