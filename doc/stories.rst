@@ -165,14 +165,17 @@ plugins.
 DevOps
 ------
 
-https://data.ub.uio.no
-^^^^^^^^^^^^^^^^^^^^^^
 
-by `Dan Michael O. Heggø <https://github.com/danmichaelo>`_ (2018-02-26)
+University of Oslo Library, Norway
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-I'm using `doit` for the publishing workflow at the vocabulary server https://data.ub.uio.no/ .
-The server fetches data from various remote sources, and when there's new changes in one of them, the data is fetched,
-converted to various formats, published and pushed to Fuseki and ElasticSearch.
+by_ `Dan Michael O. Heggø <https://github.com/danmichaelo>`_ (2018-02-26)
+
+.. _by: #https-data-ub-uio-no
+
+We're using `doit` for the publishing workflow at our vocabulary server https://data.ub.uio.no/ .
+The server checks multiple remote sources for changes, and when there’s new changes somewhere, the data is fetched,
+converted to different formats, published and pushed to Fuseki and Elasticsearch.
 
 One part I love about `doit` is that you can control what is considered a change.
 For remote files, I've created a task that checks if some header, like ETag or Last-Modified, has changed.

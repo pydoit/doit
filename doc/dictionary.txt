@@ -88,7 +88,7 @@ DoitCmdBase
 DoitMain
 ETC2
 ETag
-ElasticSearch
+Elasticsearch
 FPGA
 FileChangedChecker
 FooCmd
@@ -247,6 +247,7 @@ hg
 hggit
 hgrc
 html
+https
 hunspell
 img
 init
@@ -377,6 +378,8 @@ toctree
 tsetup
 txt
 txt'
+ub
+uio
 unhandled
 unicode
 unix
