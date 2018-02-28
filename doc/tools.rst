@@ -38,6 +38,19 @@ This is useful for executing long running process like a web-server.
 .. literalinclude:: samples/longrunning.py
 
 
+.. _tools.Background:
+
+Background (action)
+-----------------------------
+
+.. autoclass:: doit.tools.Background
+
+
+This is useful for executing a process in the background.
+
+.. literalinclude:: samples/background.py
+
+
 Interactive (action)
 ----------------------------------
 

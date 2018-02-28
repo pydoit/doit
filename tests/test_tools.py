@@ -233,6 +233,14 @@ class TestLongRunning(object):
         got = my_action.execute()
         assert got is None
 
+class TestBackground(object):
+    def test_success(self):
+        TEST_PATH = os.path.dirname(__file__)
+        PROGRAM = "%s %s/sample_process.py" % (executable, TEST_PATH)
+        my_action = tools.Background(PROGRAM + " please fail")
+        got = my_action.execute()
+        assert got is None
+
 class TestInteractive(object):
     def test_fail(self):
         TEST_PATH = os.path.dirname(__file__)
