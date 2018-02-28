@@ -196,7 +196,7 @@ class Background(CmdAction):
     """
     def execute(self, out=None, err=None):
         action = self.expand_action()
-        process = subprocess.Popen(action, shell=self.shell, **self.pkwargs)
+        subprocess.Popen(action, shell=self.shell, **self.pkwargs)
 
 # the name InteractiveAction is deprecated on 0.25
 InteractiveAction = LongRunning
