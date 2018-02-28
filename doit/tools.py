@@ -185,6 +185,19 @@ class LongRunning(CmdAction):
             # normal way to stop interactive process
             pass
 
+class Background(CmdAction):
+    """Action to handle a background shell process,
+    as you would do with Unix's & after a command.
+    Properties:
+
+        * it is non-blocking (not waiting for process to finish)
+        * the output is never captured
+        * it is always successful (return code is not used)
+    """
+    def execute(self, out=None, err=None):
+        action = self.expand_action()
+        process = subprocess.Popen(action, shell=self.shell, **self.pkwargs)
+
 # the name InteractiveAction is deprecated on 0.25
 InteractiveAction = LongRunning
 
