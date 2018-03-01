@@ -32,6 +32,8 @@ def reset_vars():
     _CMDLINE_VARS = {}
 
 def get_var(name, default=None):
+    if _CMDLINE_VARS is None:
+        return None
     return _CMDLINE_VARS.get(name, default)
 
 def set_var(name, value):
