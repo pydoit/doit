@@ -45,6 +45,17 @@ class TestRun(object):
         cmd_main(['x=1', 'y=abc'])
         assert '1' == doit_cmd.get_var('x')
         assert 'abc' == doit_cmd.get_var('y')
+        assert None is doit_cmd.get_var('z')
+
+    def test_cmdline_novars(self, monkeypatch):
+        mock_run = Mock()
+        monkeypatch.setattr(Run, "execute", mock_run)
+        cmd_main(['x=1'])
+
+        # Simulate the variable below not being initialized by a subprocess on
+        # Windows. See https://github.com/pydoit/doit/issues/164.
+        doit_cmd._CMDLINE_VARS = None
+        assert None is doit_cmd.get_var('x')
 
     def test_cmdline_vars_not_opts(self, monkeypatch):
         mock_run = Mock()
