@@ -243,6 +243,8 @@ class Task(object):
         self.teardown = [create_action(a, self, 'teardown') for a in teardown]
         self.doc = self._init_doc(doc)
         self.watch = watch
+        # just indicate if actions were executed at all
+        self.executed = False
 
 
     def _init_deps(self, file_dep, task_dep, calc_dep):
@@ -433,14 +435,15 @@ class Task(object):
         for value_saver in self.value_savers:
             self.values.update(value_saver())
 
+    def overwrite_verbosity(self, stream):
+        self.verbosity = stream.effective_verbosity(self.verbosity)
 
     def execute(self, stream):
         """Executes the task.
         @return failure: see CmdAction.execute
         """
+        self.executed = True
         self.init_options()
-        # overwrite with effective verbosity
-        self.verbosity = stream.effective_verbosity(self.verbosity)
         task_stdout, task_stderr = stream._get_out_err(self.verbosity)
         for action in self.actions:
             action_return = action.execute(task_stdout, task_stderr)

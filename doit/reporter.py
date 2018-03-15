@@ -88,17 +88,21 @@ class ConsoleReporter(object):
         # if test fails print output from failed task
         for result in self.failures:
             task = result['task']
+            # makes no sense to print output if task was not executed
+            if not task.executed:
+                continue
             show_err = task.verbosity < 1 or self.failure_verbosity > 0
             show_out = task.verbosity < 2 or self.failure_verbosity == 2
-            if show_err:
+            if show_err or show_out:
                 self.write("#"*40 + "\n")
+            if show_err:
                 self._write_failure(result,
                                     write_exception=self.failure_verbosity)
                 err = "".join([a.err for a in task.actions if a.err])
-                self.write("<stderr>:\n{}\n".format(err))
+                self.write("{} <stderr>:\n{}\n".format(task.name, err))
             if show_out:
                 out = "".join([a.out for a in task.actions if a.out])
-                self.write("<stdout>:\n{}\n".format(out))
+                self.write("{} <stdout>:\n{}\n".format(task.name, out))
 
         if self.runtime_errors:
             self.write("#"*40 + "\n")

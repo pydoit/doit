@@ -111,6 +111,10 @@ class Runner():
 
             self.reporter.get_status(task)
 
+            # overwrite with effective verbosity
+            task.overwrite_verbosity(self.stream)
+            task.verbosity = self.stream.effective_verbosity(task.verbosity)
+
             # check if task should be ignored (user controlled)
             if node.ignored_deps or self.dep_manager.status_is_ignore(task):
                 node.run_status = 'ignore'

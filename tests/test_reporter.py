@@ -123,7 +123,9 @@ class TestConsoleReporter(object):
         catched = CatchedException("catched exception there",
                                    Exception("foo"))
 
-        rep.add_failure(Task("t_name", None, verbosity=0), catched)
+        task = Task("t_name", None, verbosity=0)
+        task.executed = True
+        rep.add_failure(task, catched)
 
         # assign new StringIO so output is only from complete_run()
         rep.outstream = StringIO()
@@ -132,12 +134,30 @@ class TestConsoleReporter(object):
         assert "<stdout>" in got
         assert "<stderr>" in got
 
+    def test_complete_run_verbosity0_not_executed(self):
+        rep = reporter.ConsoleReporter(StringIO(), {})
+        catched = CatchedException("catched exception there",
+                                   Exception("foo"))
+
+        task = Task("t_name", None, verbosity=0)
+        task.executed = False
+        rep.add_failure(task, catched)
+
+        # assign new StringIO so output is only from complete_run()
+        rep.outstream = StringIO()
+        rep.complete_run()
+        got = rep.outstream.getvalue()
+        assert "<stdout>" not in got
+        assert "<stderr>" not in got
+
     def test_complete_run_verbosity1(self):
         rep = reporter.ConsoleReporter(StringIO(), {})
         catched = CatchedException("catched exception there",
                                    Exception("foo"))
 
-        rep.add_failure(Task("t_name", None, verbosity=1), catched)
+        task = Task("t_name", None, verbosity=1)
+        task.executed = True
+        rep.add_failure(task, catched)
 
         # assign new StringIO so output is only from complete_run()
         rep.outstream = StringIO()
@@ -166,7 +186,9 @@ class TestConsoleReporter(object):
         catched = CatchedException("catched exception there",
                                    Exception("foo"))
 
-        rep.add_failure(Task("t_name", None, verbosity=2), catched)
+        task = Task("t_name", None, verbosity=2)
+        task.executed = True
+        rep.add_failure(task, catched)
 
         # assign new StringIO so output is only from complete_run()
         rep.outstream = StringIO()
