@@ -5,7 +5,7 @@ from collections import deque
 from . import version
 from .cmdparse import CmdOption, CmdParse
 from .exceptions import InvalidCommand, InvalidDodoFile
-from .dependency import CHECKERS, DbmDB, JsonDB, SqliteDB, Dependency
+from .dependency import CHECKERS, DbmDB, JsonDB, SqliteDB, Dependency, RedisDB
 from .plugin import PluginDict
 from . import loader
 
@@ -366,7 +366,8 @@ class DoitCmdBase(Command):
 
     def get_backends(self):
         """return PluginDict of DB backends, including core and plugins"""
-        backend_map = {'dbm': DbmDB, 'json': JsonDB, 'sqlite3': SqliteDB}
+        backend_map = {'dbm': DbmDB, 'json': JsonDB, 'sqlite3': SqliteDB,
+                       'redis': RedisDB}
         # add plugins
         plugins = PluginDict()
         plugins.add_plugins(self.config, 'BACKEND')

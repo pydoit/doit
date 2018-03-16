@@ -5,7 +5,7 @@ from dbm import whichdb
 import py
 import pytest
 
-from doit.dependency import DbmDB, Dependency, MD5Checker
+from doit.dependency import DbmDB, Dependency, MD5Checker, RedisDB
 from doit.task import Task
 
 
@@ -86,13 +86,21 @@ def depfile(request):
     name = py.std.re.sub("[\W]", "_", name)
     my_tmpdir = request.config._tmpdirhandler.mktemp(name, numbered=True)
     dep_file = Dependency(dep_class, os.path.join(my_tmpdir.strpath, "testdb"))
-    dep_file.whichdb = whichdb(dep_file.name) if dep_class is DbmDB else 'XXX'
+    if dep_class is DbmDB:
+        dep_file.whichdb = whichdb(dep_file.name)
+    elif dep_class is RedisDB:
+        dep_file.whichdb = 'redis'
+    else:
+        dep_file.whichdb = 'XXX'
     dep_file.name_ext = db_ext.get(dep_file.whichdb, [''])
 
     def remove_depfile():
         if not dep_file._closed:
             dep_file.close()
-        remove_db(dep_file.name)
+        if dep_class is RedisDB:
+            dep_file.backend.remove_all()
+        else:
+            remove_db(dep_file.name)
     request.addfinalizer(remove_depfile)
 
     return dep_file

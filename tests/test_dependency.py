@@ -9,7 +9,7 @@ import pytest
 
 from doit.task import Task
 from doit.dependency import get_md5, get_file_md5
-from doit.dependency import DbmDB, JsonDB, SqliteDB, Dependency
+from doit.dependency import DbmDB, JsonDB, SqliteDB, Dependency, RedisDB
 from doit.dependency import DatabaseException, UptodateCalculator
 from doit.dependency import FileChangedChecker, MD5Checker, TimestampChecker
 from doit.dependency import DependencyStatus
@@ -69,7 +69,14 @@ def test_sqlite_import():
 @pytest.fixture
 def pdepfile(request):
     return depfile(request)
-pytest.fixture(params=[JsonDB, DbmDB, SqliteDB])(pdepfile)
+
+try:
+    import redis
+    db = redis.StrictRedis()
+    db.client_getname()
+    pytest.fixture(params=[JsonDB, DbmDB, SqliteDB, RedisDB])(pdepfile)
+except:
+    pytest.fixture(params=[JsonDB, DbmDB, SqliteDB])(pdepfile)
 
 # FIXME there was major refactor breaking classes from dependency,
 # unit-tests could be more specific to base classes.
@@ -101,6 +108,8 @@ class TestDependencyDb(object):
     def test_corrupted_file(self, pdepfile):
         if pdepfile.whichdb is None: # pragma: no cover
             pytest.skip('dumbdbm too dumb to detect db corruption')
+        if pdepfile.whichdb is 'redis': # pragma: no cover
+            pytest.skip('redis too dumb to detect db corruption')
 
         # create some corrupted files
         for name_ext in pdepfile.name_ext:
