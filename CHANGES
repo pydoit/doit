@@ -7,8 +7,8 @@ Changes
 0.31.1 (*unreleased*)
 =====================
 
- - Fix reporter bug when using `--continue` option
-
+ - Fix #249 reporter bug when using `--continue` option
+ - Fix #248 test failures of debian when using GDBM
 
 0.31.0 (*2018-02-25*)
 =====================

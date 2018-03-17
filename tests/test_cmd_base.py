@@ -10,6 +10,7 @@ from doit.task import Task
 from doit.cmd_base import version_tuple, Command, DoitCmdBase
 from doit.cmd_base import ModuleTaskLoader, DodoTaskLoader
 from doit.cmd_base import check_tasks_exist, tasks_and_deps_iter, subtasks_iter
+from .conftest import CmdFactory
 
 
 def test_version_tuple():
@@ -248,7 +249,7 @@ class TestDoitCmdBase(object):
         assert dodo_config == {'verbosity': 2}
 
 
-    def test_force_verbosity(self, depfile_name):
+    def test_force_verbosity(self, dep_manager):
         members = {
             'DOIT_CONFIG': {'verbosity': 0},
             'task_xxx1': lambda : {'actions':[]},
@@ -269,9 +270,10 @@ class TestDoitCmdBase(object):
             def _execute(self, verbosity, force_verbosity):
                 return verbosity, force_verbosity
 
-        cmd = SampleCmd(task_loader=loader)
-        assert (2, True) == cmd.parse_execute(['--db-file', depfile_name, '-v2'])
-        assert (0, False) == cmd.parse_execute(['--db-file', depfile_name])
+        cmd = CmdFactory(SampleCmd, task_loader=loader, dep_manager=dep_manager)
+        assert (2, True) == cmd.parse_execute(
+            ['--db-file', dep_manager.name, '-v2'])
+        assert (0, False) == cmd.parse_execute(['--db-file', dep_manager.name])
 
 
 

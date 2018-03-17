@@ -399,7 +399,11 @@ class DoitCmdBase(Command):
         db_class = self._backends.get(params['backend'])
         checker_cls = self.get_checker_cls(params['check_file_uptodate'])
         # note the command have the responsibility to call dep_manager.close()
-        self.dep_manager = Dependency(db_class, params['dep_file'], checker_cls)
+
+        if self.dep_manager is None:
+            # dep_manager might have been already set (used on unit-test)
+            self.dep_manager = Dependency(
+                db_class, params['dep_file'], checker_cls)
 
         # hack to pass parameter into _execute() calls that are not part
         # of command line options

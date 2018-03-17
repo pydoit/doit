@@ -559,9 +559,7 @@ class TestDictToTask(object):
 
 
 class TestResultDep(object):
-    def test_single(self, depfile):
-        dep_manager = depfile
-
+    def test_single(self, dep_manager):
         tasks = {'t1': task.Task("t1", None, uptodate=[task.result_dep('t2')]),
                  't2': task.Task("t2", None),
                  }
@@ -590,9 +588,7 @@ class TestResultDep(object):
         assert 'up-to-date' == dep_manager.get_status(tasks['t1'], tasks).status
 
 
-    def test_group(self, depfile):
-        dep_manager = depfile
-
+    def test_group(self, dep_manager):
         tasks = {'t1': task.Task("t1", None, uptodate=[task.result_dep('t2')]),
                  't2': task.Task("t2", None, task_dep=['t2:a', 't2:b'],
                                  has_subtask=True),

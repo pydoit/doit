@@ -75,7 +75,7 @@ db_ext = {'dbhash': [''],
           }
 
 @pytest.fixture
-def depfile(request):
+def dep_manager(request):
     if hasattr(request, 'param'):
         dep_class = request.param
     else:
@@ -110,10 +110,6 @@ def depfile_name(request):
     request.addfinalizer(remove_depfile)
 
     return depfile_name
-
-@pytest.fixture
-def dep_manager(request, depfile_name):
-    return Dependency(DbmDB, depfile_name)
 
 
 @pytest.fixture

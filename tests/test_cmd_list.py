@@ -84,14 +84,14 @@ class TestCmdList(object):
         expected = ['g1', 'g1.a', 'g1.b']
         assert expected == got
 
-    def testStatus(self, dependency1, depfile):
+    def testStatus(self, dependency1, dep_manager):
         task_list = tasks_sample()
-        depfile.ignore(task_list[0]) # t1
-        depfile.save_success(task_list[1]) # t2
-        depfile.close()
+        dep_manager.ignore(task_list[0]) # t1
+        dep_manager.save_success(task_list[1]) # t2
+        dep_manager.close()
 
         output = StringIO()
-        cmd_list = CmdFactory(List, outstream=output, dep_file=depfile.name,
+        cmd_list = CmdFactory(List, outstream=output, dep_file=dep_manager.name,
                         backend='dbm', task_list=task_list)
         cmd_list._execute(status=True)
         got = [line.strip() for line in output.getvalue().split('\n') if line]
@@ -100,29 +100,29 @@ class TestCmdList(object):
         assert 'U t2' in got
 
 
-    def testErrorStatus(self, dependency1, depfile):
+    def testErrorStatus(self, dependency1, dep_manager):
         """Check that problematic tasks show an 'E' as status."""
         task_list = tasks_bad_sample()
 
         output = StringIO()
-        cmd_list = CmdFactory(List, outstream=output, dep_file=depfile.name,
-                        backend='dbm', task_list=task_list)
+        cmd_list = CmdFactory(List, outstream=output, dep_manager=dep_manager,
+                              task_list=task_list)
         cmd_list._execute(status=True)
         for line in output.getvalue().split('\n'):
             if line:
                 assert line.strip().startswith('E ')
 
 
-    def testStatus_result_dep_bug_gh44(self, dependency1, depfile):
+    def testStatus_result_dep_bug_gh44(self, dependency1, dep_manager):
         # make sure task dict is passed when checking up-to-date
         task_list = [Task("t1", [""], doc="t1 doc string"),
                      Task("t2", [""], uptodate=[result_dep('t1')]),]
 
-        depfile.save_success(task_list[0]) # t1
-        depfile.close()
+        dep_manager.save_success(task_list[0]) # t1
+        dep_manager.close()
 
         output = StringIO()
-        cmd_list = CmdFactory(List, outstream=output, dep_file=depfile.name,
+        cmd_list = CmdFactory(List, outstream=output, dep_file=dep_manager.name,
                               backend='dbm', task_list=task_list)
         cmd_list._execute(status=True)
         got = [line.strip() for line in output.getvalue().split('\n') if line]
@@ -155,10 +155,10 @@ class TestCmdList(object):
         pytest.raises(InvalidCommand, cmd_list._execute, pos_args=['xxx'])
 
 
-    def test_unicode_name(self, depfile):
+    def test_unicode_name(self, dep_manager):
         task_list = [Task("t做", [""], doc="t1 doc string 做"),]
         output = StringIO()
-        cmd_list = CmdFactory(List, outstream=output, dep_file=depfile.name,
+        cmd_list = CmdFactory(List, outstream=output, dep_file=dep_manager.name,
                               task_list=task_list)
         cmd_list._execute()
         got = [line.strip() for line in output.getvalue().split('\n') if line]
