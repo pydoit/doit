@@ -32,6 +32,11 @@ def reset_vars():
     _CMDLINE_VARS = {}
 
 def get_var(name, default=None):
+    # Ignore if not initialized.
+    # This is a work-around for Windows multi-processing
+    # See https://github.com/pydoit/doit/issues/164
+    if _CMDLINE_VARS is None:
+        return None
     return _CMDLINE_VARS.get(name, default)
 
 def set_var(name, value):
