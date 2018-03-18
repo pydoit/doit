@@ -131,6 +131,7 @@ Pythonic
 README
 RSS
 ReST
+Repology
 S3
 SCons
 Schettino
@@ -211,6 +212,7 @@ dict's
 dir
 dodoFile
 doit
+dryrun
 dumbdbm
 dumpdb
 efg
@@ -292,6 +294,7 @@ notavalidchoice
 o'
 once'
 online
+org
 os
 outfile
 param

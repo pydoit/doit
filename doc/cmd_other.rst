@@ -162,7 +162,7 @@ dry run
 If you want check which tasks the clean operation would affect you can use the option `-n/--dry-run`.
 
 When using a custom action on `dry-run`, the action is not executed at all
-**if** it does not include a `dryrun` paramter.
+**if** it does not include a `dryrun` parameter.
 
 If it includes a `dryrun` parameter the action will **always** be executed,
 and its implementation is responsible for handling the *dry-run* logic.

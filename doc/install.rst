@@ -3,23 +3,47 @@ Installing
 ==========
 
 
+pip
+^^^
 
-* Using `pip <http://pip.pypa.io/>`_::
+`package <http://pip.pypa.io/>`_::
 
-  $ pip install doit
+   $ pip install doit
 
 Latest version of `doit` supports only python 3.
 If you are using python 2::
 
   $ pip install "doit<0.30"
 
-* `Download <http://pypi.python.org/pypi/doit>`_ the source and::
+Source
+^^^^^^
+
+Download `source <http://pypi.python.org/pypi/doit>`_::
 
   $ pip install -e .
 
-* Get latest development version::
+
+git repository
+^^^^^^^^^^^^^^
+
+Get latest development version::
 
   $ git clone https://github.com/pydoit/doit.git
+
+
+OS package
+^^^^^^^^^^
+
+Several distributions include native `doit` packages.
+`Repology.org <https://repology.org/metapackage/doit/badges>`_
+provides up-to-date information about available packages and
+`doit` versions on each distribution.
+
+Anaconda
+^^^^^^^^
+
+`doit` is also packaged on `Anaconda <https://anaconda.org/conda-forge/doit>`_.
+Note this is not an official package and might be outdated.
 
 
 .. note::
