@@ -38,11 +38,11 @@ documentation
    install
    tasks
    dependencies
+   task_creation
    cmd_run
    cmd_other
    configuration
    task_args
-   task_creation
    uptodate
    tools
    extending
