@@ -4,7 +4,7 @@ Changes
 =======
 
 
-0.31.1 (*unreleased*)
+0.31.1 (*2018-03-18*)
 =====================
 
  - Fix #249 reporter bug when using `--continue` option
