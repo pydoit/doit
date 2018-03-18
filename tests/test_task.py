@@ -484,16 +484,49 @@ class TestTaskClean(object):
         t.clean(StringIO(), True)
         assert os.path.exists(tmpdir['dir'])
 
-    def test_dryrun_actions(self, tmpdir):
-        # a clean action can be anything, it can even not clean anything!
+    def test_dryrun_actions_not_executed(self, tmpdir):
+        # clean action is not executed at all if it does not contain
+        # a `dryrun` parameter
         self.executed = False
         def say_hello(): self.executed = True
-        t = task.Task("xxx",None,targets=tmpdir['files'], clean=[(say_hello,)])
+        t = task.Task("xxx", None, targets=tmpdir['files'],
+                      clean=[(say_hello,)])
         assert False == t._remove_targets
         assert 1 == len(t.clean_actions)
         t.clean(StringIO(), True)
         assert not self.executed
 
+    def test_dryrun_actions_with_param_true(self, tmpdir):
+        # clean action is not executed at all if it does not contain
+        # a `dryrun` parameter
+        self.executed = False
+        self.dryrun_val = None
+        def say_hello(dryrun):
+            self.executed = True
+            self.dryrun_val = dryrun
+        t = task.Task("xxx", None, targets=tmpdir['files'],
+                      clean=[(say_hello,)])
+        assert False == t._remove_targets
+        assert 1 == len(t.clean_actions)
+        t.clean(StringIO(), dryrun=True)
+        assert self.executed is True
+        assert self.dryrun_val is True
+
+    def test_dryrun_actions_with_param_false(self, tmpdir):
+        # clean action is not executed at all if it does not contain
+        # a `dryrun` parameter
+        self.executed = False
+        self.dryrun_val = None
+        def say_hello(dryrun):
+            self.executed = True
+            self.dryrun_val = dryrun
+        t = task.Task("xxx", None, targets=tmpdir['files'],
+                      clean=[(say_hello,)])
+        assert False == t._remove_targets
+        assert 1 == len(t.clean_actions)
+        t.clean(StringIO(), dryrun=False)
+        assert self.executed is True
+        assert self.dryrun_val is False
 
 
 class TestTaskDoc(object):

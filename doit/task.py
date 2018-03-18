@@ -481,12 +481,14 @@ class Task(object):
                 outstream.write(msg % (self.name, action))
 
                 # add extra arguments used by clean actions
+                execute_on_dryrun = False
                 if isinstance(action, PythonAction):
                     action_sig = inspect.signature(action.py_callable)
                     if 'dryrun' in action_sig.parameters:
+                        execute_on_dryrun = True
                         action.kwargs['dryrun'] = dryrun
 
-                if not dryrun:
+                if (not dryrun) or execute_on_dryrun:
                     result = action.execute(out=outstream)
                     if isinstance(result, CatchedException):
                         sys.stderr.write(str(result))

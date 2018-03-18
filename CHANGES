@@ -10,6 +10,7 @@ Changes
  - Fix #249 reporter bug when using `--continue` option
  - Fix #248 test failures of debian when using GDBM
  - Fix #164 `get_var` fails on multiprocess execution on Windows
+ - Fix #245 custom `clean` action takes `dry-run` into account
 
 
 0.31.0 (*2018-02-25*)

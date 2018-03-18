@@ -120,7 +120,7 @@ include a *clean* attribute. This attribute can be ``True`` to remove all of its
 target files. If there is a folder as a target it will be removed if the folder
 is empty, otherwise it will display a warning message.
 
-The *clean* attribute can be a list of actions, again, an action could be a
+The *clean* attribute can be a list of actions. An action could be a
 string with a shell command or a tuple with a python callable.
 
 If you want to clean the targets and add some custom clean actions,
@@ -146,8 +146,6 @@ If you are executing the default tasks this flag is automatically set.
     By default only the default tasks' clean are executed, not from all tasks.
     You can clean all tasks using the *-a*/*--all* argument.
 
-If you want check which tasks the clean operation would affect you can use the option *-n*/*--dry-run*.
-
 If you like to also make doit forget previous execution of cleaned tasks, use option
 *--forget*. This can be made the default behavior by adding the corresponding ``cleanforget``
 configuration switch:
@@ -157,6 +155,21 @@ configuration switch:
     DOIT_CONFIG = {
         'cleanforget': True,
     }
+
+dry run
+^^^^^^^
+
+If you want check which tasks the clean operation would affect you can use the option `-n/--dry-run`.
+
+When using a custom action on `dry-run`, the action is not executed at all
+**if** it does not include a `dryrun` paramter.
+
+If it includes a `dryrun` parameter the action will **always** be executed,
+and its implementation is responsible for handling the *dry-run* logic.
+
+.. literalinclude:: samples/custom_clean.py
+
+
 
 
 ignore
