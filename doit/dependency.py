@@ -84,6 +84,8 @@ class JsonDB(object):
         finally:
             db_file.close()
 
+    sync = dump
+
     def set(self, task_id, dependency, value):
         """Store value in the DB."""
         if task_id not in self._db:
@@ -162,6 +164,11 @@ class DbmDB(object):
             self._dbm[task_id] = json.dumps(self._db[task_id])
         self._dbm.close()
 
+    def sync(self):
+        for task_id in self.dirty:
+            self._dbm[task_id] = json.dumps(self._db[task_id])
+        self._dbm.sync()
+        self.dirty = set()
 
     def set(self, task_id, dependency, value):
         """Store value in the DB."""
@@ -317,6 +324,14 @@ class SqliteDB(object):
                                (task_id, json.dumps(self._cache[task_id])))
         self._conn.commit()
         self._conn.close()
+        self._dirty = set()
+
+    def sync(self):
+        """save/close sqlite3 DB file"""
+        for task_id in self._dirty:
+            self._conn.execute('insert or replace into doit values (?,?)',
+                               (task_id, json.dumps(self._cache[task_id])))
+        self._conn.commit()
         self._dirty = set()
 
     def remove(self, task_id):
@@ -479,6 +494,7 @@ class Dependency(object):
         self.remove_all = self.backend.remove_all
         self._in = self.backend.in_
         self.name = self.backend.name
+        self.sync = self.backend.sync
 
     def close(self):
         """Write DB in file"""
@@ -515,6 +531,7 @@ class Dependency(object):
 
         # save list of file_deps
         self._set(task.name, 'deps:', tuple(task.file_dep))
+        self.sync()
 
     def get_values(self, task_name):
         """get all saved values from a task
