@@ -34,6 +34,9 @@ def test_md5():
     expected_crlf = "cf7b48b2fec3b581b135f7c9a1f7ae04"
     assert get_file_md5(filePath) in {expected_lf, expected_crlf}
 
+    with pytest.raises(ValueError):
+        get_file_md5(os.path.dirname(filePath))
+
 
 def test_sqlite_import():
     """

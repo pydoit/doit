@@ -36,6 +36,9 @@ def get_file_md5(path):
     @param path: (string) file path
     @return: (string) md5
     """
+    if os.path.isdir(path):
+        raise ValueError("Cannot compute MD5 sum of directory. You must "
+                         "specify a file as a dependency instead.")
     with open(path, 'rb') as file_data:
         md5 = hashlib.md5()
         block_size = 128 * md5.block_size
