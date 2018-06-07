@@ -157,6 +157,16 @@ class DoitMain(object):
         # get "global vars" from cmd-line
         args = self.process_args(cmd_args)
 
+        # move -k and -f args to the and of args list so cmd name can be 
+        # used after them
+        if len(args) > 0 and (args[0] == "-k" or args[0] == "--seek-file"):
+            args.append(args.pop(0))
+        if len(args) > 0 and (args[0].startswith("--file=")):
+            args.append(args.pop(0))
+        if len(args) > 1 and (args[0] == "-f"):
+            args.append(args.pop(0))
+            args.append(args.pop(0))
+
         # get specified sub-command or use default='run'
         if len(args) == 0 or args[0] not in sub_cmds:
             specified_run = False
