@@ -95,13 +95,13 @@ class TestRun(object):
         cmd_main(['--seek-file', 'list'])
         assert 1 == mock_list.call_count
 
-    def test_cmdline_option_f_position(self, monkeypatch):
+    def test_cmdline_option_k_position(self, monkeypatch):
         mock_list = Mock()
         monkeypatch.setattr(List, "execute", mock_list)
         cmd_main(['-f', 'filename', 'list'])
         assert 1 == mock_list.call_count
 
-    def test_cmdline_option_seek_file_position(self, monkeypatch):
+    def test_cmdline_option_file_position(self, monkeypatch):
         mock_list = Mock()
         monkeypatch.setattr(List, "execute", mock_list)
         cmd_main(['--file=filename', 'list'])
