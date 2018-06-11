@@ -43,7 +43,7 @@ configuration management, etc.
 
 setup(name = 'doit',
       description = 'doit - Automation Tool',
-      version = '0.31.1',
+      version = '0.32.dev0',
       license = 'MIT',
       author = 'Eduardo Naufel Schettino',
       author_email = 'schettino72@gmail.com',
@@ -69,7 +69,11 @@ setup(name = 'doit',
         'Topic :: Scientific/Engineering',
         ],
       keywords = "build make task automation pipeline",
-
+      project_urls = {
+          'Documentation': 'https://pydoit.org/',
+          'Source': 'https://github.com/pydoit/doit/',
+          'Tracker': 'https://github.com/pydoit/doit/issues',
+      },
       packages = ['doit'],
       python_requires='>=3.4',
       install_requires = ['cloudpickle'],
