@@ -8,6 +8,7 @@ Changes
 =====================
 
  - BACKWARD INCOMPATIBLE: Changed signature of `DoitCommand`
+ - Fix #204: Accept loader command options before command name
 
 
 0.31.1 (*2018-03-18*)

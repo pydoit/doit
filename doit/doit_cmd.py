@@ -9,7 +9,7 @@ from configparser import ConfigParser
 from .version import VERSION
 from .plugin import PluginDict
 from .exceptions import InvalidDodoFile, InvalidCommand, InvalidTask
-from .cmdparse import CmdParseError
+from .cmdparse import CmdOption, CmdParseError, CmdParse
 from .cmd_base import get_loader
 from .cmd_help import Help
 from .cmd_run import Run
@@ -123,10 +123,10 @@ class DoitMain(object):
         sys.exit(3)
 
 
-    def run(self, cmd_args):
+    def run(self, all_args):
         """entry point for all commands
 
-        :param cmd_args: list of string arguments from command line
+        :param all_args: list of string arguments from command line
         :param extra_config: dict of extra argument values (by argument name)
                This is parameter is only used by explicit API call.
 
@@ -141,21 +141,30 @@ class DoitMain(object):
         """
         # get list of available commands
         sub_cmds = self.get_cmds()
-        # loader options might appear before command name
         task_loader = get_loader(self.config, self.task_loader, sub_cmds)
 
         # special parameters that dont run anything
-        if cmd_args:
-            if cmd_args[0] == "--version":
+        if all_args:
+            if all_args[0] == "--version":
                 self.print_version()
                 return 0
-            if cmd_args[0] == "--help":
+            if all_args[0] == "--help":
                 help = Help(task_loader=task_loader,
                             config=self.config,
                             bin_name=self.BIN_NAME,
                             cmds=sub_cmds)
                 help.print_usage(sub_cmds.to_dict())
                 return 0
+
+        # loader command options might appear before command name
+        try:
+            loader_opt_parser = CmdParse(
+                [CmdOption(opt) for opt in task_loader.cmd_options])
+            loader_params, cmd_args = loader_opt_parser.parse_only(all_args)
+        except CmdParseError:
+            # normal to fail parsing if RUN command is not explicit
+            loader_params = {}
+            cmd_args = all_args
 
         # get "global vars" from cmd-line
         args = self.process_args(cmd_args)
@@ -174,6 +183,7 @@ class DoitMain(object):
             config=self.config,
             bin_name=self.BIN_NAME,
             cmds=sub_cmds,
+            opt_vals=loader_params,
             )
 
         try:

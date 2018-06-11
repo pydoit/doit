@@ -55,7 +55,7 @@ class Command(object):
     # should be used.
     execute_tasks = False
 
-    def __init__(self, config=None, bin_name='doit', **kwargs):
+    def __init__(self, config=None, bin_name='doit', opt_vals=None, **kwargs):
         """configure command
 
         :param bin_name: str - name of command line program
@@ -70,6 +70,8 @@ class Command(object):
         # config includes all option values and plugins
         self.config = config if config else {}
         self._cmdparser = None
+        # option values (i.e. loader options)
+        self.opt_vals = opt_vals if opt_vals else {}
 
         # config_vals contains cmd option values
         self.config_vals = {}
@@ -124,6 +126,7 @@ class Command(object):
         """
         params, args = self.cmdparser.parse(in_args)
         self.pdb = params.get('pdb', False)
+        params.update(self.opt_vals)
         return self.execute(params, args)
 
 

@@ -294,7 +294,7 @@ class CmdParse(object):
                 opt.set_default(opt.str2type(val))
 
 
-    def parse(self, in_args):
+    def parse_only(self, in_args, params=None):
         """parse arguments into options(params) and positional arguments
 
         @param in_args (list - string): typically sys.argv[1:]
@@ -303,17 +303,7 @@ class CmdParse(object):
                            where the key is the name of the option.
              pos_args (list - string): positional arguments
         """
-        params = DefaultUpdate()
-        # add default values
-        for opt in self._options.values():
-            params.set_default(opt.name, opt.default)
-
-        # get values from shell ENV
-        for opt in self._options.values():
-            if opt.env_var:
-                val = os.getenv(opt.env_var)
-                if val is not None:
-                    params[opt.name] = opt.str2type(val)
+        params = params if params else {}
 
         # parse cmdline options using getopt
         try:
@@ -334,6 +324,35 @@ class CmdParse(object):
                 params[this.name] = this.str2type(val)
 
         return params, args
+
+
+    def parse(self, in_args):
+        """parse arguments into options(params) and positional arguments
+
+        Also get values from shell ENV.
+
+        Returned params is a `DefaultUpdate` type and includes
+        an item for every option.
+
+        @param in_args (list - string): typically sys.argv[1:]
+        @return params, args
+             params(dict): params contain the actual values from the options.
+                           where the key is the name of the option.
+             pos_args (list - string): positional arguments
+        """
+        params = DefaultUpdate()
+        # add default values
+        for opt in self._options.values():
+            params.set_default(opt.name, opt.default)
+
+        # get values from shell ENV
+        for opt in self._options.values():
+            if opt.env_var:
+                val = os.getenv(opt.env_var)
+                if val is not None:
+                    params[opt.name] = opt.str2type(val)
+
+        return self.parse_only(in_args, params)
 
 
 

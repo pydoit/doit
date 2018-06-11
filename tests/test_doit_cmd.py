@@ -63,6 +63,26 @@ class TestRun(object):
         cmd_main(['--z=5'])
         assert None == doit_cmd.get_var('--z')
 
+    def test_cmdline_loader_option_before_cmd_name(self, monkeypatch):
+        mock_list = Mock()
+        monkeypatch.setattr(List, "execute", mock_list)
+        cmd_main(['-k', 'list', '--all'])
+        assert mock_list.called
+        params, args = mock_list.call_args[0]
+        assert params['subtasks'] == True
+        assert params['seek_file'] == True
+        assert args == []
+
+    def test_cmdline_loader_option_mixed(self, monkeypatch):
+        mock_run = Mock()
+        monkeypatch.setattr(Run, "execute", mock_run)
+        cmd_main(['-c', '-k', 'lala'])
+        assert mock_run.called
+        params, args = mock_run.call_args[0]
+        assert params['continue'] == True
+        assert params['seek_file'] == True
+        assert args == ['lala']
+
     def test_task_loader_has_cmd_list(self, monkeypatch):
         cmd_names = []
         def save_cmd_names(self, params, args):
