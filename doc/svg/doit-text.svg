@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
+
 <svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
-   xmlns:cc="http://web.resource.org/cc/"
+   xmlns:cc="http://creativecommons.org/ns#"
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
@@ -12,14 +13,13 @@
    height="300"
    id="svg6253"
    sodipodi:version="0.32"
-   inkscape:version="0.45.1"
+   inkscape:version="0.92.2 (5c3e80d, 2017-08-06)"
    version="1.0"
-   sodipodi:docbase="/home/eduardo/learn/inkspace"
    sodipodi:docname="doit-text.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
-   inkscape:export-filename="/home/eduardo/learn/inkspace/doit.png"
-   inkscape:export-xdpi="90"
-   inkscape:export-ydpi="90">
+   inkscape:export-filename="/home/eduardo/work/doit/universal2/img/doit-logo-small.png"
+   inkscape:export-xdpi="16"
+   inkscape:export-ydpi="16">
   <defs
      id="defs6255">
     <linearGradient
@@ -45,14 +45,12 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.6075"
-     inkscape:cx="397.39066"
+     inkscape:cx="118.37831"
      inkscape:cy="285.04896"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      width="800px"
      height="300px"
-     gridspacingx="10px"
-     gridspacingy="10px"
      inkscape:grid-bbox="false"
      inkscape:grid-points="true"
      showgrid="false"
@@ -61,25 +59,42 @@
      inkscape:guide-bbox="true"
      inkscape:object-paths="false"
      inkscape:window-width="1024"
-     inkscape:window-height="697"
+     inkscape:window-height="678"
      inkscape:window-x="0"
-     inkscape:window-y="25">
+     inkscape:window-y="27"
+     inkscape:window-maximized="0">
     <sodipodi:guide
        orientation="vertical"
        position="150"
-       id="guide7244" />
+       id="guide7244"
+       inkscape:locked="false" />
     <sodipodi:guide
        orientation="vertical"
        position="230"
-       id="guide7246" />
+       id="guide7246"
+       inkscape:locked="false" />
     <sodipodi:guide
        orientation="vertical"
        position="315"
-       id="guide7248" />
+       id="guide7248"
+       inkscape:locked="false" />
     <sodipodi:guide
        orientation="vertical"
        position="-94.280904"
-       id="guide7250" />
+       id="guide7250"
+       inkscape:locked="false" />
+    <inkscape:grid
+       id="GridFromPre046Settings"
+       type="xygrid"
+       originx="0"
+       originy="0"
+       spacingx="10"
+       spacingy="10"
+       color="#3f3fff"
+       empcolor="#3f3fff"
+       opacity="0.15"
+       empopacity="0.38"
+       empspacing="5" />
   </sodipodi:namedview>
   <metadata
      id="metadata6258">
