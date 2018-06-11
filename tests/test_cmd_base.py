@@ -8,7 +8,7 @@ from doit.exceptions import InvalidCommand, InvalidDodoFile
 from doit.dependency import FileChangedChecker
 from doit.task import Task
 from doit.cmd_base import version_tuple, Command, DoitCmdBase
-from doit.cmd_base import ModuleTaskLoader, DodoTaskLoader
+from doit.cmd_base import get_loader, ModuleTaskLoader, DodoTaskLoader
 from doit.cmd_base import check_tasks_exist, tasks_and_deps_iter, subtasks_iter
 from .conftest import CmdFactory
 
@@ -172,20 +172,17 @@ class TestDoitCmdBase(object):
                 return params['my_opt']
 
         members = {'task_xxx1': lambda : {'actions':[]},}
-        loader = ModuleTaskLoader(members)
-        mycmd = MyRawCmd(task_loader=loader, cmds={'foo':None, 'bar':None})
+        cmds = {'foo':None, 'bar':None}
+        loader = get_loader({}, task_loader=ModuleTaskLoader(members),
+                            cmds=cmds)
+        mycmd = MyRawCmd(task_loader=loader)
         assert mycmd.loader.cmd_names == ['bar', 'foo']
         assert 'min' == mycmd.parse_execute(['--mine', 'min'])
-
-    # loader gets a reference to config
-    def test_loader_config(self, depfile_name):
-        mycmd = self.MyCmd(config={'foo':{'bar':'x'}})
-        assert mycmd.loader.config['foo'] == {'bar':'x'}
 
     # command with _execute() method
     def test_execute(self, depfile_name):
         members = {'task_xxx1': lambda : {'actions':[]},}
-        loader = ModuleTaskLoader(members)
+        loader = get_loader({}, task_loader=ModuleTaskLoader(members))
 
         mycmd = self.MyCmd(task_loader=loader)
         assert 'min' == mycmd.parse_execute([
@@ -241,8 +238,12 @@ class TestDoitCmdBase(object):
 
     def testPluginLoader(self):
         entry_point = {'mod': 'tests.sample_plugin:MyLoader'}
-        mycmd = self.MyCmd(config={'GLOBAL': {'loader': 'mod'},
-                                   'LOADER': entry_point})
+        config = {
+            'GLOBAL': {'loader': 'mod'},
+            'LOADER': entry_point,
+        }
+        loader = get_loader(config)
+        mycmd = self.MyCmd(task_loader=loader, config=config)
         assert mycmd.loader.__class__.__name__ == 'MyLoader'
         task_list, dodo_config = mycmd.loader.load_tasks(mycmd, {}, [])
         assert task_list[0].name == 'sample_task'

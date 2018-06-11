@@ -10,6 +10,7 @@ from .version import VERSION
 from .plugin import PluginDict
 from .exceptions import InvalidDodoFile, InvalidCommand, InvalidTask
 from .cmdparse import CmdParseError
+from .cmd_base import get_loader
 from .cmd_help import Help
 from .cmd_run import Run
 from .cmd_clean import Clean
@@ -63,7 +64,6 @@ class DoitMain(object):
         ini_config = self.load_config_ini(config_filenames)
         for section in ini_config.sections():
             self.config[section].update(ini_config[section].items())
-
 
 
     @staticmethod
@@ -141,6 +141,8 @@ class DoitMain(object):
         """
         # get list of available commands
         sub_cmds = self.get_cmds()
+        # loader options might appear before command name
+        task_loader = get_loader(self.config, self.task_loader, sub_cmds)
 
         # special parameters that dont run anything
         if cmd_args:
@@ -148,7 +150,8 @@ class DoitMain(object):
                 self.print_version()
                 return 0
             if cmd_args[0] == "--help":
-                help = Help(config=self.config,
+                help = Help(task_loader=task_loader,
+                            config=self.config,
                             bin_name=self.BIN_NAME,
                             cmds=sub_cmds)
                 help.print_usage(sub_cmds.to_dict())
@@ -167,9 +170,9 @@ class DoitMain(object):
 
         # execute command
         command = sub_cmds.get_plugin(cmd_name)(
+            task_loader=task_loader,
             config=self.config,
             bin_name=self.BIN_NAME,
-            task_loader=self.task_loader,
             cmds=sub_cmds,
             )
 

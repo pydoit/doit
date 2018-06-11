@@ -4,6 +4,12 @@ Changes
 =======
 
 
+0.32.0 (*unreleased*)
+=====================
+
+ - BACKWARD INCOMPATIBLE: Changed signature of `DoitCommand`
+
+
 0.31.1 (*2018-03-18*)
 =====================
 

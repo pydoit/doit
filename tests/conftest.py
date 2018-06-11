@@ -7,6 +7,7 @@ import pytest
 
 from doit.dependency import DbmDB, Dependency, MD5Checker
 from doit.task import Task
+from doit.cmd_base import get_loader
 
 
 def get_abspath(relativePath):
@@ -154,7 +155,8 @@ def CmdFactory(cls, outstream=None, task_loader=None, dep_file=None,
                backend=None, task_list=None, sel_tasks=None,
                dep_manager=None, config=None, cmds=None):
     """helper for test code, so test can call _execute() directly"""
-    cmd = cls(task_loader=task_loader, config=config, cmds=cmds)
+    loader = get_loader(config, task_loader, cmds)
+    cmd = cls(task_loader=loader, config=config, cmds=cmds)
 
     if outstream:
         cmd.outstream = outstream

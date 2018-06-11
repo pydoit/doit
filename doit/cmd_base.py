@@ -282,6 +282,36 @@ class DodoTaskLoader(TaskLoader):
         return self._load_from(cmd, dodo_module, self.cmd_names)
 
 
+def get_loader(config, task_loader=None, cmds=None):
+    """get task loader and configure it
+
+    :param config: (dict) the whole config from INI
+    :param task_loader: a TaskLoader class
+    :param cmds: dict of available commands
+    """
+    config = config if config else {}
+    loader = None
+    if task_loader:
+        loader = task_loader  # task_loader set from the API
+    else:
+        global_config = config.get('GLOBAL', {})
+        if 'loader' in global_config:
+            # a plugin loader
+            loader_name = global_config['loader']
+            plugins = PluginDict()
+            plugins.add_plugins(config, 'LOADER')
+            loader = plugins.get_plugin(loader_name)()
+
+    if not loader:
+        loader = DodoTaskLoader() # default loader
+
+    if cmds:
+        loader.cmd_names = list(sorted(cmds.keys()))
+    loader.config = config
+    return loader
+
+
+################################
 
 class DoitCmdBase(Command):
     """
@@ -291,12 +321,12 @@ class DoitCmdBase(Command):
     """
     base_options = (opt_depfile, opt_backend, opt_check_file_uptodate)
 
-    def __init__(self, task_loader=None, cmds=None, **kwargs):
+    def __init__(self, task_loader, cmds=None, **kwargs):
         super(DoitCmdBase, self).__init__(**kwargs)
         self.sel_tasks = None # selected tasks for command
         self.dep_manager = None #
         self.outstream = sys.stdout
-        self.loader = self._get_loader(task_loader, cmds)
+        self.loader = task_loader
         self._backends = self.get_backends()
 
 
@@ -339,29 +369,6 @@ class DoitCmdBase(Command):
         else:
             # user defined class
             return check_file_uptodate
-
-
-    def _get_loader(self, task_loader=None, cmds=None):
-        """return task loader
-        :param task_loader: a TaskLoader class
-        :param cmds: dict of available commands
-        """
-        loader = None
-        if task_loader:
-            loader = task_loader  # task_loader set from the API
-        elif 'loader' in self.config_vals:
-            # a plugin loader
-            loader_name = self.config_vals['loader']
-            plugins = PluginDict()
-            plugins.add_plugins(self.config, 'LOADER')
-            loader = plugins.get_plugin(loader_name)()
-        else:
-            loader = DodoTaskLoader() # default loader
-
-        if cmds:
-            loader.cmd_names = list(sorted(cmds.keys()))
-        loader.config = self.config
-        return loader
 
 
     def get_backends(self):
