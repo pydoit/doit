@@ -103,7 +103,29 @@ class TestRun(object):
         doit_cmd.DoitMain(extra_config={'GLOBAL': extra_config}).run([])
         assert outfile_val[0] == 'foo.txt'
 
+    def test_cmdline_option_k_position(self, monkeypatch):
+        mock_list = Mock()
+        monkeypatch.setattr(List, "execute", mock_list)
+        cmd_main(['-k', 'list'])
+        assert 1 == mock_list.call_count
 
+    def test_cmdline_option_seek_file_position(self, monkeypatch):
+        mock_list = Mock()
+        monkeypatch.setattr(List, "execute", mock_list)
+        cmd_main(['--seek-file', 'list'])
+        assert 1 == mock_list.call_count
+
+    def test_cmdline_option_f_position(self, monkeypatch):
+        mock_list = Mock()
+        monkeypatch.setattr(List, "execute", mock_list)
+        cmd_main(['-f', 'filename', 'list'])
+        assert 1 == mock_list.call_count
+
+    def test_cmdline_option_file_position(self, monkeypatch):
+        mock_list = Mock()
+        monkeypatch.setattr(List, "execute", mock_list)
+        cmd_main(['--file=filename', 'list'])
+        assert 1 == mock_list.call_count
 
 class TestErrors(object):
     def test_interrupt(self, monkeypatch):
