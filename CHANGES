@@ -8,6 +8,7 @@ Changes
 =====================
 
  - BACKWARD INCOMPATIBLE: Changed signature of `DoitCommand`
+ - BACKWARD INCOMPATIBLE: Fix #254: Python actions keywords with task metadata `dependencies`, `targets` and `changed` are a copied list
  - Fix #204: Accept loader command options before command name
 
 

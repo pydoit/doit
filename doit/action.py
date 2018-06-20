@@ -47,10 +47,10 @@ class BaseAction(object):
 
         # use task meta information as extra_args
         meta_args = {
-            'task': task,
-            'targets': task.targets,
-            'dependencies': task.file_dep,
-            'changed': task.dep_changed,
+            'task': lambda: task,
+            'targets': lambda: list(task.targets),
+            'dependencies': lambda: list(task.file_dep),
+            'changed': lambda: list(task.dep_changed),
             }
 
         # start with dict passed together on action definition
@@ -73,7 +73,7 @@ class BaseAction(object):
 
                 # if value not taken from position parameter
                 if key not in bound_args.arguments:
-                    kwargs[key] = meta_args[key]
+                    kwargs[key] = meta_args[key]()
 
 
         # add tasks parameter options

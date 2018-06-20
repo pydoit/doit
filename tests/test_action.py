@@ -14,6 +14,7 @@ from unittest.mock import Mock
 import pytest
 
 from doit import action
+from doit.task import Task
 from doit.exceptions import TaskError, TaskFailed
 
 
@@ -27,18 +28,6 @@ def tmpfile(request):
     temp = tempfile.TemporaryFile('w+')
     request.addfinalizer(temp.close)
     return temp
-
-
-class FakeTask(object):
-    def __init__(self, file_dep, dep_changed, targets, options,
-                 pos_arg=None, pos_arg_val=None):
-        self.name = "Fake"
-        self.file_dep = file_dep
-        self.dep_changed = dep_changed
-        self.targets = targets
-        self.options = options
-        self.pos_arg = pos_arg
-        self.pos_arg_val = pos_arg_val
 
 
 ############# CmdAction
@@ -162,20 +151,23 @@ class TestCmdExpandAction(object):
         cmd += " %(dependencies)s - %(changed)s - %(targets)s"
         dependencies = ["data/dependency1", "data/dependency2", ":dep_on_task"]
         targets = ["data/target", "data/targetXXX"]
-        task = FakeTask(dependencies, ["data/dependency1"], targets, {})
-        my_action = action.CmdAction(cmd, task)
+        task = Task('Fake', [cmd], dependencies, targets)
+        task.dep_changed = ["data/dependency1"]
+        task.options = {}
+        my_action = task.actions[0]
         assert my_action.execute() is None
 
         got = my_action.out.split('-')
-        assert task.file_dep == got[0].split(), got[0]
-        assert task.dep_changed == got[1].split(), got[1]
-        assert targets == got[2].split(), got[2]
+        assert task.file_dep == set(got[0].split())
+        assert task.dep_changed == got[1].split()
+        assert targets == got[2].split()
 
     def test_task_options(self):
         cmd = "%s %s/myecho.py" % (executable, TEST_PATH)
         cmd += " %(opt1)s - %(opt2)s"
-        task = FakeTask([],[],[],{'opt1':'3', 'opt2':'abc def'})
-        my_action = action.CmdAction(cmd, task)
+        task = Task('Fake', [cmd])
+        task.options = {'opt1':'3', 'opt2':'abc def'}
+        my_action = task.actions[0]
         assert my_action.execute() is None
         got = my_action.out.strip()
         assert "3 - abc def" == got
@@ -183,8 +175,10 @@ class TestCmdExpandAction(object):
     def test_task_pos_arg(self):
         cmd = "%s %s/myecho.py" % (executable, TEST_PATH)
         cmd += " %(pos)s"
-        task = FakeTask([],[],[],{}, 'pos', ['hi', 'there'])
-        my_action = action.CmdAction(cmd, task)
+        task = Task('Fake', [cmd], pos_arg='pos')
+        task.options = {}
+        task.pos_arg_val = ['hi', 'there']
+        my_action = task.actions[0]
         assert my_action.execute() is None
         got = my_action.out.strip()
         assert "hi there" == got
@@ -194,8 +188,9 @@ class TestCmdExpandAction(object):
         # command line but executed because it is a task_dep
         cmd = "%s %s/myecho.py" % (executable, TEST_PATH)
         cmd += " %(pos)s"
-        task = FakeTask([],[],[],{}, 'pos', None)
-        my_action = action.CmdAction(cmd, task)
+        task = Task('Fake', [cmd], pos_arg='pos')
+        task.options = {}
+        my_action = task.actions[0]
         assert my_action.execute() is None
         got = my_action.out.strip()
         assert "" == got
@@ -204,8 +199,9 @@ class TestCmdExpandAction(object):
         def get_cmd(opt1, opt2):
             cmd = "%s %s/myecho.py" % (executable, TEST_PATH)
             return cmd + " %s - %s" % (opt1, opt2)
-        task = FakeTask([],[],[],{'opt1':'3', 'opt2':'abc def'})
-        my_action = action.CmdAction(get_cmd, task)
+        task = Task('Fake', [action.CmdAction(get_cmd)])
+        task.options = {'opt1':'3', 'opt2':'abc def'}
+        my_action = task.actions[0]
         assert my_action.execute() is None
         got = my_action.out.strip()
         assert "3 - abc def" == got, repr(got)
@@ -214,35 +210,38 @@ class TestCmdExpandAction(object):
         def get_cmd(opt1, opt2):
             cmd = "%s %s/myecho.py" % (executable, TEST_PATH)
             return cmd + " %s - %s" % (opt1, opt2)
-        task = FakeTask([],[],[],{'opt1':'3'})
-        my_action = action.CmdAction((get_cmd, [], {'opt2':'abc def'}), task)
+        task = Task('Fake',
+                    [action.CmdAction((get_cmd, [], {'opt2':'abc def'}))])
+        task.options = {'opt1':'3'}
+        my_action = task.actions[0]
         assert my_action.execute() is None
         got = my_action.out.strip()
         assert "3 - abc def" == got, repr(got)
 
     def test_callable_invalid(self):
         def get_cmd(blabla): pass
-        task = FakeTask([],[],[],{'opt1':'3'})
-        my_action = action.CmdAction(get_cmd, task)
+        task = Task('Fake', [action.CmdAction(get_cmd)])
+        task.options = {'opt1':'3'}
+        my_action = task.actions[0]
         got = my_action.execute()
         assert isinstance(got, TaskError)
 
     def test_string_list_cant_be_expanded(self):
         cmd = [executable,  "%s/myecho.py" % TEST_PATH]
-        task = FakeTask([],[],[], {})
-        my_action = action.CmdAction(cmd, task)
+        task = Task('Fake', [cmd])
+        my_action = task.actions[0]
         assert cmd == my_action.expand_action()
 
     def test_list_can_contain_path(self):
         cmd = [executable, PurePath(TEST_PATH), Path("myecho.py")]
-        task = FakeTask([], [], [], {})
-        my_action = action.CmdAction(cmd, task)
+        task = Task('Fake', [cmd])
+        my_action = task.actions[0]
         assert [executable, TEST_PATH, "myecho.py"] == my_action.expand_action()
 
     def test_list_should_contain_strings_or_paths(self):
         cmd = [executable, PurePath(TEST_PATH), 42, Path("myecho.py")]
-        task = FakeTask([], [], [], {})
-        my_action = action.CmdAction(cmd, task)
+        task = Task('Fake', [cmd])
+        my_action = task.actions[0]
         assert pytest.raises(action.InvalidTask, my_action.expand_action)
 
 
@@ -611,100 +610,116 @@ class TestPythonVerbosity(object):
 
 class TestPythonActionPrepareKwargsMeta(object):
 
-    @pytest.fixture
-    def task_depchanged(self, request):
-        return FakeTask(['dependencies'],['changed'],['targets'],{})
-
-    def test_no_extra_args(self, task_depchanged):
+    def test_no_extra_args(self):
         # no error trying to inject values
         def py_callable():
             return True
-        my_action = action.PythonAction(py_callable, task=task_depchanged)
+        task = Task('Fake', [py_callable], file_dep=['dependencies'])
+        task.options = {}
+        my_action = task.actions[0]
         my_action.execute()
 
     def test_keyword_extra_args(self):
-        my_task = FakeTask(['dependencies'], None, None, {'foo': 'bar'})
         got = []
         def py_callable(arg=None, **kwargs):
             got.append(kwargs)
-        my_action = action.PythonAction(py_callable, (), {'b': 4}, task=my_task)
+        my_task = Task('Fake', [(py_callable, (), {'b': 4})],
+                       file_dep=['dependencies'])
+        my_task.options = {'foo': 'bar'}
+        my_action = my_task.actions[0]
         my_action.execute()
         # meta args do not leak into kwargs
         assert got == [{'foo': 'bar', 'b': 4}]
 
 
-    def test_named_extra_args(self, task_depchanged):
+    def test_named_extra_args(self):
         got = []
         def py_callable(targets, dependencies, changed, task):
             got.append(targets)
             got.append(dependencies)
             got.append(changed)
             got.append(task)
-        my_action = action.PythonAction(py_callable, task=task_depchanged)
+        task = Task('Fake', [py_callable], file_dep=['dependencies'],
+                    targets=['targets'])
+        task.dep_changed = ['changed']
+        task.options = {}
+        my_action = task.actions[0]
         my_action.execute()
         assert got == [['targets'], ['dependencies'], ['changed'],
-                       task_depchanged]
+                       task]
 
-    def test_mixed_args(self, task_depchanged):
+    def test_mixed_args(self):
         got = []
         def py_callable(a, b, changed):
             got.append(a)
             got.append(b)
             got.append(changed)
-        my_action = action.PythonAction(py_callable, ('a', 'b'),
-                                        task=task_depchanged)
+        task = Task('Fake', [(py_callable, ('a', 'b'))])
+        task.options = {}
+        task.dep_changed = ['changed']
+        my_action = task.actions[0]
         my_action.execute()
         assert got == ['a', 'b', ['changed']]
 
-    def test_extra_arg_overwritten(self, task_depchanged):
+    def test_extra_arg_overwritten(self):
         got = []
         def py_callable(a, b, changed):
             got.append(a)
             got.append(b)
             got.append(changed)
-        my_action = action.PythonAction(py_callable, ('a', 'b', 'c'),
-                                        task=task_depchanged)
+        task = Task('Fake', [(py_callable, ('a', 'b', 'c'))])
+        task.dep_changed = ['changed']
+        task.options = {}
+        my_action = task.actions[0]
         my_action.execute()
         assert got == ['a', 'b', 'c']
 
-    def test_extra_kwarg_overwritten(self, task_depchanged):
+    def test_extra_kwarg_overwritten(self):
         got = []
         def py_callable(a, b, **kwargs):
             got.append(a)
             got.append(b)
             got.append(kwargs['changed'])
-        my_action = action.PythonAction(py_callable, ('a', 'b'),
-                                        {'changed': 'c'}, task_depchanged)
+        task = Task('Fake', [(py_callable, ('a', 'b'), {'changed': 'c'})])
+        task.options = {}
+        task.dep_changed = ['changed']
+        my_action = task.actions[0]
         my_action.execute()
         assert got == ['a', 'b', 'c']
 
-    def test_meta_arg_default_disallowed(self, task_depchanged):
+    def test_meta_arg_default_disallowed(self):
         def py_callable(a, b, changed=None): pass
-        my_action = action.PythonAction(py_callable, ('a', 'b'),
-                                        task=task_depchanged)
+        task = Task('Fake', [(py_callable, ('a', 'b'))])
+        task.options = {}
+        task.dep_changed = ['changed']
+        my_action = task.actions[0]
         pytest.raises(action.InvalidTask, my_action.execute)
 
-    def test_callable_obj(self, task_depchanged):
+    def test_callable_obj(self):
         got = []
         class CallMe(object):
             def __call__(self, a, b, changed):
                 got.append(a)
                 got.append(b)
                 got.append(changed)
-        my_action = action.PythonAction(CallMe(), ('a', 'b'),
-                                        task=task_depchanged)
+        task = Task('Fake', [(CallMe(), ('a', 'b'))])
+        task.options = {}
+        task.dep_changed = ['changed']
+        my_action = task.actions[0]
         my_action.execute()
         assert got == ['a', 'b', ['changed']]
 
-    def test_method(self, task_depchanged):
+    def test_method(self):
         got = []
         class CallMe(object):
             def xxx(self, a, b, changed):
                 got.append(a)
                 got.append(b)
                 got.append(changed)
-        my_action = action.PythonAction(CallMe().xxx, ('a', 'b'),
-                                        task=task_depchanged)
+        task = Task('Fake', [(CallMe().xxx, ('a', 'b'))])
+        task.options = {}
+        task.dep_changed = ['changed']
+        my_action = task.actions[0]
         my_action.execute()
         assert got == ['a', 'b', ['changed']]
 
@@ -714,8 +729,9 @@ class TestPythonActionPrepareKwargsMeta(object):
         def py_callable(opt1, opt3):
             got.append(opt1)
             got.append(opt3)
-        task = FakeTask([],[],[],{'opt1':'1', 'opt2':'abc def', 'opt3':3})
-        my_action = action.PythonAction(py_callable, task=task)
+        task = Task('Fake', [py_callable])
+        task.options = {'opt1':'1', 'opt2':'abc def', 'opt3':3}
+        my_action = task.actions[0]
         my_action.execute()
         assert ['1',3] == got, repr(got)
 
@@ -723,22 +739,25 @@ class TestPythonActionPrepareKwargsMeta(object):
         got = []
         def py_callable(pos):
             got.append(pos)
-        task = FakeTask([],[],[],{}, 'pos', ['hi', 'there'])
-        my_action = action.PythonAction(py_callable, task=task)
+        task = Task('Fake', [py_callable], pos_arg='pos')
+        task.options = {}
+        task.pos_arg_val = ['hi', 'there']
+        my_action = task.actions[0]
         my_action.execute()
         assert [['hi', 'there']] == got, repr(got)
 
-    def test_option_default_allowed(self, task_depchanged):
+    def test_option_default_allowed(self):
         got = []
         def py_callable(opt2='ABC'):
             got.append(opt2)
-        task = FakeTask([],[],[],{'opt2':'123'})
-        my_action = action.PythonAction(py_callable, task=task)
+        task = Task('Fake', [py_callable])
+        task.options = {'opt2':'123'}
+        my_action = task.actions[0]
         my_action.execute()
         assert ['123'] == got, repr(got)
 
 
-    def test_kwonlyargs_minimal(self, task_depchanged):
+    def test_kwonlyargs_minimal(self):
         got = []
         scope = {'got': got}
         exec(textwrap.dedent('''
@@ -746,14 +765,14 @@ class TestPythonActionPrepareKwargsMeta(object):
                 got.append(args)
                 got.append(kwonly)
         '''), scope)
-        my_action = action.PythonAction(scope['py_callable'],
-                                        (1, 2, 3), {'kwonly': 4},
-                                        task=task_depchanged)
+        task = Task('Fake', [(scope['py_callable'], (1, 2, 3), {'kwonly': 4})])
+        task.options = {}
+        my_action = task.actions[0]
         my_action.execute()
         assert [(1, 2, 3), 4] == got, repr(got)
 
 
-    def test_kwonlyargs_full(self, task_depchanged):
+    def test_kwonlyargs_full(self):
         got = []
         scope = {'got': got}
         exec(textwrap.dedent('''
@@ -763,25 +782,29 @@ class TestPythonActionPrepareKwargsMeta(object):
                 got.append(kwonly)
                 got.append(kwargs['foo'])
         '''), scope)
-        my_action = action.PythonAction(scope['py_callable'],
-                                        [1,2,3], {'kwonly': 4, 'foo': 5},
-                                        task=task_depchanged)
+        task = Task('Fake', [
+            (scope['py_callable'], [1,2,3], {'kwonly': 4, 'foo': 5})])
+        task.options = {}
+        my_action = task.actions[0]
         my_action.execute()
         assert [1, (2, 3), 4, 5] == got, repr(got)
 
-    def test_action_modifies_task_attributes(self, task_depchanged):
+    def test_action_modifies_task_but_not_attrs(self):
         def py_callable(targets, dependencies, changed, task):
             targets.append('new_target')
             dependencies.append('new_dependency')
             changed.append('new_changed')
-        my_action = action.PythonAction(py_callable, task=task_depchanged)
+            task.file_dep.add('dep2')
+        my_task = Task('Fake', [py_callable], file_dep=['dependencies'],
+                    targets=['targets'])
+        my_task.dep_changed = ['changed']
+        my_task.options = {}
+        my_action = my_task.actions[0]
         my_action.execute()
 
-        assert task_depchanged.file_dep == ['dependencies', 'new_dependency']
-
-        assert task_depchanged.targets == ['targets', 'new_target']
-
-        assert task_depchanged.dep_changed == ['changed', 'new_changed']
+        assert my_task.file_dep == set(['dependencies', 'dep2'])
+        assert my_task.targets == ['targets']
+        assert my_task.dep_changed == ['changed']
 
 
 ##############
