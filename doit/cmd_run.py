@@ -3,6 +3,7 @@ import codecs
 
 from .exceptions import InvalidCommand
 from .plugin import PluginDict
+from .action import PythonAction
 from .task import Stream
 from .control import TaskControl
 from .runner import Runner, MRunner, MThreadRunner
@@ -189,7 +190,7 @@ class Run(DoitCmdBase):
                  verbosity=None, always=False, continue_=False,
                  reporter='console', num_process=0, par_type='process',
                  single=False, auto_delayed_regex=False, force_verbosity=False,
-                 failure_verbosity=0):
+                 failure_verbosity=0, pdb=False):
         """
         @param reporter:
                (str) one of provided reporters or ...
@@ -197,6 +198,9 @@ class Run(DoitCmdBase):
                        from DOIT_CONFIG - never from command line)
                (reporter instance) - only used in unittests
         """
+        # configure PythonAction
+        PythonAction.pm_pdb = pdb
+
         # get tasks to be executed
         # self.control is saved on instance to be used by 'auto' command
         self.control = TaskControl(self.task_list,

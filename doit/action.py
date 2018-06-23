@@ -7,6 +7,7 @@ from io import StringIO
 import inspect
 from pathlib import PurePath
 from threading import Thread
+import pdb
 
 from .exceptions import InvalidTask, TaskFailed, TaskError
 
@@ -346,7 +347,10 @@ class PythonAction(BaseAction):
     @ivar args: (sequence)  Extra arguments to be passed to py_callable
     @ivar kwargs: (dict) Extra keyword arguments to be passed to py_callable
     @ivar task(Task): reference to task that contains this action
+    @ivar pm_pdb: if True drop into PDB on exception when executing task
     """
+    pm_pdb = False
+
     def __init__(self, py_callable, args=None, kwargs=None, task=None):
         #pylint: disable=W0231
         self.py_callable = py_callable
@@ -423,6 +427,11 @@ class PythonAction(BaseAction):
         try:
             returned_value = self.py_callable(*self.args, **kwargs)
         except Exception as exception:
+            if self.pm_pdb: # pragma: no cover
+                # start post-mortem debugger
+                deb = pdb.Pdb(stdin=sys.__stdin__, stdout=sys.__stdout__)
+                deb.reset()
+                deb.interaction(None, sys.exc_info()[2])
             return TaskError("PythonAction Error", exception)
         finally:
             # restore std streams /log captured streams
