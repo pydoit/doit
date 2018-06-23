@@ -353,7 +353,7 @@ So this is NOT 100% reliable, use with care!
 reset-dep
 ---------
 
-This command allows to recompute the informations on file dependencies
+This command allows to recompute the information on file dependencies
 (timestamp, md5sum, ... depending on the ``check_file_uptodate`` setting), and
 save this in the database, without executing the actions.
 

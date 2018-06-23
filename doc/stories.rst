@@ -64,7 +64,7 @@ that is an input toward the beginning of this workflow,
 results without missing a step.
 
 I tried to do this with `Make` first.
-`Make` just wasn't made to do what I want.
+`Make` just was not made to do what I want.
 Also, my lab's software has python bindings, so my entire workflow can be
 in python.
 Also, the ability to script anything directly into the workflow is
@@ -155,7 +155,7 @@ Document Production
 `Carve Systems <https://carvesystems.com>`_ uses `doit` as the core automation tool
 for all of our document production. This customized tool based on Pandoc, Latex, and
 coordinated by `doit` is used by everyone in our company to prepare our primary
-customer facing deliverable. Previously we used makefiles to coordinate builds. `doit`
+customer facing deliverable. Previously we used Makefiles to coordinate builds. `doit`
 let us create a system that can be more easily maintained, tested, and extended using
 plugins.
 
@@ -173,18 +173,18 @@ by_ `Dan Michael O. Heggø <https://github.com/danmichaelo>`_ (2018-02-26)
 
 .. _by: #https-data-ub-uio-no
 
-We're using `doit` for the publishing workflow at our vocabulary server https://data.ub.uio.no/ .
+We are using `doit` for the publishing workflow at our vocabulary server https://data.ub.uio.no/ .
 The server checks multiple remote sources for changes, and when there’s new changes somewhere, the data is fetched,
 converted to different formats, published and pushed to Fuseki and Elasticsearch.
 
 One part I love about `doit` is that you can control what is considered a change.
-For remote files, I've created a task that checks if some header, like ETag or Last-Modified, has changed.
-If it hasn't, I set `uptodate` to True and stop there.
+For remote files, I have created a task that checks if some header, like ETag or Last-Modified, has changed.
+If it has not, I set `uptodate` to True and stop there.
 
 Another part I love is the ability to re-use tasks.
 Each vocabulary (like https://github.com/realfagstermer/realfagstermer and https://github.com/scriptotek/humord)
 has a different publication workflow, but many tasks are shared.
-With `doit`, I've created a collection of tasks and task generators (https://github.com/scriptotek/data_ub_tasks/)
+With `doit`, I have created a collection of tasks and task generators (https://github.com/scriptotek/data_ub_tasks/)
 that I use with all the vocabularies.
 
 Finally, it's great that you can mix shell commands and Python tasks so easily.

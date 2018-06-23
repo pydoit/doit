@@ -334,7 +334,7 @@ Traditional build-tools can only handle files as "dependencies".
 targets
 -------
 
-Targets can be any file path (a file or folder). If a target doesn't exist
+Targets can be any file path (a file or folder). If a target does not exist
 the task will be executed. There is no limitation on the number of targets
 a task may define. Two different tasks can not have the same target. Target
 can be specified as a string or as an instance of any Path class from
