@@ -15,7 +15,7 @@ As example the `requests <https://github.com/requests/requests>`_ package will b
 
 In the image an arrow represents an import from one module to another. For example in the left side of image you can see an arrow from `requests.status_codes` to `requests.structures`. This comes from the following line in `status_code.py`:
 
-.. code-block:: python
+.. code-block:: python3
 
    from .structures import LookupDict
 
@@ -636,14 +636,116 @@ Running ``doit`` you should get the file ``requests.png`` with the image below:
 Code :download:`dodo.py <tutorial/tuto_1_3.py>`.
 
 
+printing imports
+================
+
+Getting rid of intermediate computation files (like ``requests.models.deps``) was nice...
+but sometimes it is nice to be able to quickly list the direct imports from a module.
+
+Let's create another task just print it's output in the terminal.
+
+.. task_print()
+.. literalinclude:: tutorial/tuto_1_4.py
+   :language: python3
+   :lines: 12-14, 32-44
+   :emphasize-lines: 14-15
+
+Here again we used a **task-group** to create one task per python module. And ``getargs`` to get list of module imports that were already calculated on ``imports`` task.
+
+Also note the usage of two metadata fields not seen before ``uptodate`` and ``verbosity``.
+
+
+custom `uptodate`
+-----------------
+
+So far we have seen how ``doit`` can determine if a task is **up-to-date** by taking into account changes to ``file_dep``, if ``targets`` exist and results from ``getargs``...
+
+While those cover a wide range of use cases, ``doit`` also provides a way to specify completely custom checks for  **up-to-date**, using the ``uptodate`` field.
+
+In this case the ``print`` task actually does not perform any computation, it is being used to display some info to the user.
+So this task should be **always** executed.
+
+``update`` will be explained in detail in part 2 of this tutorial.
+For now suffice to add value ``False`` to indicate this task will never be considered **up-do-date**.
+
+.. code-block:: python
+
+   'uptodate': [False],
+
+
 verbosity
-=========
+---------
+
+``doit`` output (for command ``run``) consists of:
+
+- one line with task name (preceded by `.` or `--`)
+- task output
+
+The actual task output displayed can be controlled by ``verbosity``,
+there are 3 levels of verbosity.
+
+- 0: both stdout and stderr from task are **NOT** displayed
+- 1: only stderr is displayed
+- 2: both stdout and stderr are displayed
+
+The default verbosity is `1`.
+
+If ``print`` task was executed with default verbosity we would actually not see any output, so we must force its ``verbosity`` value to ``2``.
 
 
-TODO
+.. code-block:: python3
+
+   'verbosity': 2,
+
+.. code-block:: console
+
+   $ doit print:requests.models
+   -- imports:requests.models
+   .  print:requests.models
+   requests._internal_utils
+   requests.auth
+   requests.compat
+   requests.cookies
+   requests.exceptions
+   requests.hooks
+   requests.status_codes
+   requests.structures
+   requests.utils
+
+Note ``verbosity`` can be overwritten from command-line with option ``-v/--verbosity``.
 
 
 DOIT_CONFIG
-===========
+-----------
 
-TODO
+There is one last problem to be solved.
+Since ``print`` is used only to display some information, it should not be executed by default. It should be executed only when explicitly asked.
+
+i.e. when you just run ``doit`` without any parameters it should create the graph image but not print out the information from ``print`` task.
+
+Before I said by default ``doit run`` would execute all tasks.
+That is not exactly true... it will execute all *default tasks*.
+The default tasks can be controlled by adding a configuration dictionary with the name ``DOIT_CONFIG`` in the `dodo.py`.
+
+
+.. DOIT_CONFIG
+.. literalinclude:: tutorial/tuto_1_4.py
+   :language: python3
+   :lines: 7-9
+
+
+Apart from ``default_tasks``, ``DOIT_CONFIG`` can change the default of any command line option. For example you can globally change task's verbosity for all tasks with:
+
+.. code-block:: python3
+
+   DOIT_CONFIG = {
+    'default_tasks': ['imports', 'dot', 'draw'],
+    'verbosity': 2,
+   }
+
+
+Code :download:`dodo.py <tutorial/tuto_1_4.py>`.
+
+
+
+And that's all for part 1 of tutorial :)
