@@ -16,6 +16,7 @@ As example the `requests <https://github.com/requests/requests>`_ package will b
 In the image an arrow represents an import from one module to another. For example in the left side of image you can see an arrow from `requests.status_codes` to `requests.structures`. This comes from the following line in `status_code.py`:
 
 .. code-block:: python3
+   :caption: requests/status_codes.py
 
    from .structures import LookupDict
 
