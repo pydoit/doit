@@ -13,6 +13,21 @@ As example the `requests <https://github.com/requests/requests>`_ package will b
 .. image:: _static/requests.png
 
 
+In the image an arrow represents an import from one module to another. For example in the left side of image you can see an arrow from `requests.status_codes` to `requests.structures`. This comes from the following line in `status_code.py`:
+
+.. code-block:: python
+
+   from .structures import LookupDict
+
+
+Drawing an "import" dependency graph can be very useful to understand how the code in a package is organized.
+It may also help you identify potential problems like circular imports.
+
+There are three main steps to generate this graph:
+
+1) read each python module and list it's imports
+2) generate a `dot` (text format) file representing the graph
+3) generate an image (PNG) from the `dot` file
 
 
 setup
@@ -48,7 +63,7 @@ Then clone the ``requests`` project
 finding a module's import
 =========================
 
-Using ``import_deps`` list all (intra-packages) imports from a module:
+Using `import_deps <https://github.com/schettino72/import-deps>`_ list all (intra-packages) imports from a module:
 
 For example:
 
@@ -94,9 +109,9 @@ the role of these functions is not to execute tasks but to return task's metadat
 A task name is taken from the function name,
 in this case the name is ``imports``.
 
-The most important Task metadata is ``actions``, this defines what will be done when a task is executed.
+The most important *Task* metadata is ``actions``, this defines what will be done when a task is executed.
 
-Note that ``actions`` is list where its element is a string with a shell command.
+Note that ``actions`` is a list where its element are a string with a shell command.
 
 
 task execution
@@ -151,9 +166,9 @@ And then, a second time:
    --  imports
 
 
-Note that the second time there is a ``--`` instead of ``.`` before the task name.
+Note that the second time there is a ``--`` instead of ``.`` preceding the task name.
 This means that the task was not executed, ``doit`` understood that
-the task output would be the same as previously executed,
+the task output would be the same as previously generated,
 so it does not execute the task again.
 
 .. warning::
@@ -293,7 +308,9 @@ doit help
 
 ``doit help`` will list all available sub-commands.
 
-You can also get help for a specific sub-command with ``doit help <sub-command>``, i.e. ``doit help run``.
+You can get help for a specific sub-command with ``doit help <sub-command>``, i.e. ``doit help run``.
+
+You can also get help for the task metadata fields with ``doit help task``.
 
 
 doit list
@@ -309,7 +326,7 @@ The command ``list`` displays the list of known tasks:
    imports   find imports from a python module
 
 
-Note how the docstring from task-creators functions were used as task's description.
+Note how the docstring from *task-creators* functions were used as task's description.
 
 
 info
@@ -355,7 +372,7 @@ For example if you want to execute only the ``imports`` task you would type:
 
 
 Note that even if you explicitly pass the name of task to be executed,
-``doit`` will actually execute the task only if it is not up-to-date.
+``doit`` will actually execute the task only if it is not **up-to-date**.
 
 You can also pass more than one task:
 
@@ -385,8 +402,9 @@ clean
 A common use-case is to be able to "revert" the operations done by a task.
 ``doit`` provides the ``clean`` command for that.
 
-By default it does nothing... You need to add a parameter ``clean`` to task metadata. You write custom ``actions`` (shell or python) of what should be done. But for the most common case you just want to remove the created targets. For that you can just pass the value ``True``.
+By default it does nothing... You need to add a parameter ``clean`` to task metadata. For the most common case where you just want to remove the created targets, just pass the value ``True``.
 
+You can also write custom ``actions`` (shell or python) of what should be done as a value to ``clean`` field.
 
 Add ``clean`` to all defined tasks, like:
 
@@ -421,7 +439,8 @@ Since targets were removed this will force the tasks to be executed on next ``ru
 forget
 ------
 
-``doit`` will look for changes in dependencies, but not changes in your code... While developing a task it is common to want to force the execution of task.
+``doit`` will look for changes in dependencies, but not changes in your code...
+While developing a task it is common to want to force the execution of task after making changes in the code.
 
 For example lets change the colors of nodes in graph:
 
@@ -452,14 +471,16 @@ To force its execution we need to ``doit`` to ``forget`` its state like:
 
 .. note::
 
-   The ``run`` command also has the option ``-a/--always-execute`` that will ignore the **up-to-date** check and always execute tasks.
+   Another option force execution of task after code changes is to use `run``'s command option ``-a/--always-execute``. That will ignore the **up-to-date** check and always execute tasks.
 
+
+Code :download:`dodo.py <tutorial/tuto_1_1.py>`.
 
 
 Pipelines
 =========
 
-So far we have relied on the pipeline based on files. Where one task's target is used as a dependency in another task.
+So far we have build a traditional "file" based pipeline where one task's target is used as a dependency in another task.
 
 While ``doit`` provides first-class support for file based pipelines, they are not required.
 
@@ -482,13 +503,16 @@ It returns a dictionary, this will be saved by ``doit`` in its internal database
 Note that the parameter ``module_path`` is passed into task definition of ``actions``.
 Instead of just specifying a callable it takes a tuple *(callable, args, kwargs)*.
 
+.. note::
+
+   Note in this example for simplicity we are using ``doit`` internal database but it is also possible to use any other external database or data source.
+
 
 
 getargs
 -------
 
-The task parameter ``getargs`` can be used to specify values that are
-computed in another task.
+The task parameter ``getargs`` can be used to specify values to be retrieved that are computed in another task.
 It is a dictionary where the *key* is the parameter name used in this task's action parameter.
 It's value is 2-value tuple where the first item is the task name, and the second is the value name (key in the returned dictionary).
 
@@ -508,12 +532,13 @@ Note how ``module_to_dot`` takes 3 parameters:
 - ``targets``: values is taken from Task metadata
 
 
-Everything should work as before, without the creation of intermediate files.
+Everything should work as before, but without the creation of intermediate files.
 
-``doit`` can determine if ``imports`` is **up-to-date** even without a target file (it just look at the ``file_dep``).
+``doit`` can determine if task ``imports`` is **up-to-date** even without a target file (it just look at the ``file_dep``).
 
 ``doit`` can also determine if ``dot`` is **up-to-date** by comparing the value returned by ``imports`` (instead of checking for file changes, it checks for changes in the JSON object).
 
+Code :download:`dodo.py <tutorial/tuto_1_2.py>`.
 
 
 package imports
@@ -524,7 +549,7 @@ Let's process all modules in the package.
 
 ``doit`` has the concept of a **task-group**.
 A task group performs the same operation over a set of instances.
-To create a task group the task-creator function should ``yield`` one more task dictionaries with task metadata.
+To create a task group the task-creator function should ``yield`` one or more task dictionaries with task metadata.
 
 Note that each task is still independent.
 Since each task needs to be independently identified an extra parameter ``name`` must be provided.
@@ -571,7 +596,7 @@ Sub-tasks (items of task group) by default are not reported on ``list`` command.
 
 
 Note the task name is composed by the (base name) group task name
-followed by a colon `:` and the `name` specified as a parameter.
+followed by a colon `:` and the ``name`` specified as a parameter.
 
 From command line a single task can executed like::
 
@@ -606,6 +631,9 @@ Finally adjust task ``draw``.
 Running ``doit`` you should get the file ``requests.png`` with the image below:
 
 .. image:: _static/requests.png
+
+
+Code :download:`dodo.py <tutorial/tuto_1_3.py>`.
 
 
 verbosity

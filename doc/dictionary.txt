@@ -110,6 +110,7 @@ KeyError
 KeyboardInterrupt
 L485
 LongRunning
+LookupDict
 MD5
 MP3
 Makefile
@@ -409,6 +410,7 @@ toc
 toctree
 traceback
 tsetup
+tuto
 txt
 txt'
 ub
@@ -433,5 +435,3 @@ x'
 xxx
 xyz
 zsh
-tuto
-
