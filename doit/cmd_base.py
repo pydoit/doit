@@ -195,6 +195,7 @@ opt_dodo = {
     'long': 'file',
     'type': str,
     'default': 'dodo.py',
+    'env_var': 'DOIT_FILE',
     'help':"load task from dodo FILE [default: %(default)s]"
 }
 

@@ -11,6 +11,7 @@ Changes
  - BACKWARD INCOMPATIBLE: Fix #254: Python actions keywords with task metadata `dependencies`, `targets` and `changed` are a copied list
  - Fix #204: Accept loader command options before command name
  - Fix #240: Command run: with `--pdb` drop into *pdb* on unhandled exception on `PythonAction`
+ - Fix #203: Allow configuration of `dodo.py` file name with env var `DOIT_FILE`
 
 
 0.31.1 (*2018-03-18*)
