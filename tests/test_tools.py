@@ -89,6 +89,19 @@ class TestConfigChanged(object):
         assert True == ua(t1, t1.values)
         assert False == ub(t1, t1.values)
 
+    def test_nested_dict(self):
+        # actually both dictionaries contain same values
+        # but nested dictionary keys are in a different order
+        c1a = tools.config_changed({'x':'a', 'y':{'one':1, 'two':2}})
+        c1b = tools.config_changed({'y':{'two':2, 'one':1}, 'x':'a'})
+
+        t1 = task.Task("TaskX", None, uptodate=[c1a])
+        assert False == c1a(t1, t1.values)
+        t1.save_extra_values()
+        assert True == c1a(t1, t1.values)
+        assert True == c1b(t1, t1.values)
+
+
 
 class TestTimeout(object):
     def test_invalid(self):

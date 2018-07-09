@@ -3,6 +3,7 @@
 import os
 import time as time_module
 import datetime
+import json
 import hashlib
 import operator
 import subprocess
@@ -56,9 +57,7 @@ class config_changed(object):
         if isinstance(self.config, str):
             return self.config
         elif isinstance(self.config, dict):
-            data = ''
-            for key in sorted(self.config):
-                data += key + repr(self.config[key])
+            data = json.dumps(self.config, sort_keys=True)
             byte_data = data.encode("utf-8")
             return hashlib.md5(byte_data).hexdigest()
         else:

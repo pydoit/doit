@@ -13,6 +13,9 @@ Changes
  - Fix #204: Accept loader command options before command name
  - Fix #240: Command run: with `--pdb` drop into *pdb* on unhandled exception on `PythonAction`
  - Fix #203: Allow configuration of `dodo.py` file name with env var `DOIT_FILE`
+ - Fix #113: `tools.config_changed` deals with nested dictionaries.
+             Using json instead of repr.
+
 
 
 0.31.1 (*2018-03-18*)
