@@ -42,7 +42,8 @@ class TestHelp(object):
         returned = cmd_main(["help", "list"], {'dep_file': 'foo.db'})
         assert returned == 0
         out, err = capsys.readouterr()
-        assert "Purpose: list tasks from dodo file" in out
+        assert "PURPOSE" in out
+        assert "list tasks from dodo file" in out
         # overwritten defaults, are shown as default
         assert "file used to save successful runs [default: foo.db]" in out
 

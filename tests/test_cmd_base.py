@@ -28,10 +28,12 @@ opt_bool = {'name': 'flag',
             'default': False,
             'help': 'help for opt1'}
 
-opt_rare = {'name': 'rare',
+opt_rare = {'section': 'my-section',
+            'name': 'rare',
             'long': 'rare-bool',
             'type': bool,
             'default': False,
+            'env_var': 'DOIT_RARE',
             'help': 'help for opt2 [default: %(default)s]'}
 
 opt_int = {'name': 'num',
@@ -51,9 +53,9 @@ opt_no = {'name': 'no',
 
 
 class SampleCmd(Command):
-    doc_purpose = 'PURPOSE'
-    doc_usage = 'USAGE'
-    doc_description = 'DESCRIPTION'
+    doc_purpose = 'PURPOSE-X'
+    doc_usage = 'USAGE-X'
+    doc_description = 'DESCRIPTION-X'
 
     cmd_options = [opt_bool, opt_rare, opt_int, opt_no]
 
@@ -92,13 +94,15 @@ class TestCommand(object):
     def test_help(self):
         cmd = SampleCmd(config={'GLOBAL':{'num': 20}})
         text = cmd.help()
-        assert 'PURPOSE' in text
-        assert 'USAGE' in text
-        assert 'DESCRIPTION' in text
+        assert 'PURPOSE-X' in text
+        assert 'USAGE-X' in text
+        assert 'DESCRIPTION-X' in text
         assert '-f' in text
         assert '--rare-bool' in text
         assert 'help for opt1' in text
+        assert 'my-section' in text
         assert opt_no['name'] in [o.name for o in cmd.get_options()]
+        assert "DOIT_RARE" in text
 
         # option wihtout short and long are not displayed
         assert 'user cant modify me' not in text

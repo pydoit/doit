@@ -1,6 +1,8 @@
 import inspect
 import sys
 from collections import deque
+from collections import defaultdict
+import textwrap
 
 from . import version
 from .cmdparse import CmdOption, CmdParse
@@ -26,6 +28,22 @@ def version_tuple(ver_in):
             result.append(-1)
     assert len(result) == 3
     return result
+
+
+def _wrap(content, indent_level):
+    """wrap multiple lines keeping the indentation"""
+    indent = ' ' * indent_level
+    wrap_opt = {
+        'initial_indent': indent,
+        'subsequent_indent': indent,
+    }
+    lines = []
+    for paragraph in content.splitlines():
+        if not paragraph:
+            lines.append('')
+            continue
+        lines.extend(textwrap.wrap(paragraph, **wrap_opt))
+    return lines
 
 
 class Command(object):
@@ -129,23 +147,48 @@ class Command(object):
         params.update(self.opt_vals)
         return self.execute(params, args)
 
-
     def help(self):
         """return help text"""
         text = []
-        text.append("Purpose: {}".format(self.doc_purpose))
-        text.append("Usage:   {} {} {}".format(
-            self.bin_name, self.name, self.doc_usage))
-        text.append('')
+        text.append("PURPOSE")
+        text.extend(_wrap(self.doc_purpose, 4))
 
-        text.append("Options:")
+        text.append("\nUSAGE")
+        usage = "{} {} {}".format(self.bin_name, self.name, self.doc_usage)
+        text.extend(_wrap(usage, 4))
+
+        text.append("\nOPTIONS")
+        options = defaultdict(list)
         for opt in self.cmdparser.options:
-            text.extend(opt.help_doc())
+            options[opt.section].append(opt)
+        for section, opts in sorted(options.items()):
+            section_name = '\n{}'.format(section or self.name)
+            text.extend(_wrap(section_name, 4))
+            for opt in opts:
+                # ignore option that cant be modified on cmd line
+                if not (opt.short or opt.long):
+                    continue
+                text.extend(_wrap(opt.help_param(), 6))
+                # TODO It should always display option's default value
+                opt_help = opt.help % {'default': opt.default}
+                opt_choices = opt.help_choices()
+                opt_config = 'config: {}'.format(opt.name)
+                if opt.env_var:
+                    opt_env = ', environ: {}'.format(opt.env_var)
+                else:
+                    opt_env = ''
+                desc = '{} {} ({}{})'.format(opt_help, opt_choices,
+                                             opt_config, opt_env)
+                text.extend(_wrap(desc, 12))
+
+                # print bool inverse option
+                if opt.inverse:
+                    text.extend(_wrap('--{}'.format(opt.inverse), 6))
+                    text.extend(_wrap('opposite of --{}'.format(opt.long), 12))
 
         if self.doc_description is not None:
-            text.append("")
-            text.append("Description:")
-            text.append(self.doc_description)
+            text.append("\n\nDESCRIPTION")
+            text.extend(_wrap(self.doc_description, 4))
         return "\n".join(text)
 
 
@@ -153,6 +196,7 @@ class Command(object):
 
 # choose internal dependency file.
 opt_depfile = {
+    'section': 'DB backend',
     'name': 'dep_file',
     'short':'',
     'long': 'db-file',
@@ -163,6 +207,7 @@ opt_depfile = {
 
 # dependency file DB backend
 opt_backend = {
+    'section': 'DB backend',
     'name': 'backend',
     'short':'',
     'long': 'backend',
@@ -172,6 +217,7 @@ opt_backend = {
 }
 
 opt_check_file_uptodate = {
+    'section': 'doit core',
     'name': 'check_file_uptodate',
     'short': '',
     'long': 'check_file_uptodate',
@@ -190,6 +236,7 @@ Available options [default: %(default)s]:
 #### options related to dodo.py
 # select dodo file containing tasks
 opt_dodo = {
+    'section': 'task loader',
     'name': 'dodoFile',
     'short':'f',
     'long': 'file',
@@ -201,6 +248,7 @@ opt_dodo = {
 
 # cwd
 opt_cwd = {
+    'section': 'task loader',
     'name': 'cwdPath',
     'short':'d',
     'long': 'dir',
@@ -212,6 +260,7 @@ opt_cwd = {
 
 # seek dodo file on parent folders
 opt_seek_file = {
+    'section': 'task loader',
     'name': 'seek_file',
     'short': 'k',
     'long': 'seek-file',

@@ -62,6 +62,7 @@ class CmdOption(object):
     """a command line option
 
        - name (string) : variable name
+       - section (string): meta info used to group entries when generating help
        - default (value from its type): default value
        - type (type): type of the variable. must be able to be initialized
                       taking a single string parameter.
@@ -85,6 +86,7 @@ class CmdOption(object):
                 raise CmdParseError(msg % (opt_dict, field))
 
         self.name = opt_dict.pop('name')
+        self.section = opt_dict.pop('section', '')
         self.type = opt_dict.pop('type', str)
         self.set_default(opt_dict.pop('default'))
         self.short = opt_dict.pop('short', '')
@@ -199,7 +201,12 @@ class CmdOption(object):
 
 
     def help_doc(self):
-        """return list of string of option's help doc"""
+        """return list of string of option's help doc
+
+        Note this is used only to display help on tasks.
+        For commands a better and more complete version is used.
+        see cmd_base:Command.help
+        """
         # ignore option that cant be modified on cmd line
         if not (self.short or self.long):
             return []
