@@ -92,7 +92,7 @@ config_changed()
 ``config_changed`` is used to check if any "configuration" value for the task has
 changed. Config values can be a string or dict.
 
-For dict's the values are converted to string (actually it uses python's `repr()`)
+For dict's the values are converted to string (using `json.dumps()` with `sort_key=True`)
 and only a digest/checksum of the dictionaries keys and values are saved.
 
 .. literalinclude:: samples/config_params.py
