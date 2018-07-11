@@ -8,6 +8,7 @@ environment:
     - PYTHON: "C:/Python34"
     - PYTHON: "C:/Python35"
     - PYTHON: "C:/Python36"
+    - PYTHON: "C:/Python37"
 init:
   - "ECHO %PYTHON%"
   - ps: "ls C:/Python*"
