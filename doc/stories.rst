@@ -18,18 +18,6 @@ Scientific
 ----------
 
 
-Software Carpentry
-^^^^^^^^^^^^^^^^^^
-
-The `Software Carpentry Foundation <http://software-carpentry.org>`_ is a
-non-profit membership organization devoted to improving basic computing skills
-among researchers in science, engineering, medicine, and other disciplines.
-
-`doit` is introduced in the Software Carpentry workshop lesson:
-`Automating an analysis pipeline using doit <http://swcarpentry.github.io/bc/intermediate/doit/>`_.
-
-
-
 Biomechanics Lab / Stanford University, USA
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
