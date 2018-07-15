@@ -6,14 +6,15 @@
 `doit` documentation
 ====================
 
-tutorial
---------
+getting started
+---------------
 
 Introduction of `doit` basic features with a real example.
 
 .. toctree::
    :maxdepth: 1
 
+   usecases
    tutorial_1
 
 
