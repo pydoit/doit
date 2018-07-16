@@ -54,4 +54,5 @@ project
    faq
    stories
    changes
+   support
    related

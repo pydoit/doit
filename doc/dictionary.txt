@@ -70,6 +70,7 @@ Biomechanics
 Blog
 CFEngine
 CMake
+CSV
 CamelCase
 CmdAction
 CmdAction's
@@ -122,6 +123,7 @@ MyCustomTask2
 MyLoader
 Naufel
 OGG
+OpenCollective
 PCM
 PDB
 PVR
@@ -172,6 +174,7 @@ attr
 auth
 autoclass
 autoload
+aws
 b4
 backend
 backends
@@ -185,6 +188,7 @@ bitbucket
 blog
 bool
 boolean
+bountysource
 c'
 cProfile
 calc
@@ -323,6 +327,7 @@ param2
 parametrize
 params
 pathlib
+paypal
 pdb
 perl
 picklable
@@ -345,11 +350,13 @@ py3
 pyFiles
 pychecker
 pycon
+pydoit
 pyflakes
 pygments
 pygraphviz
 pyinotify
 pylogo
+pypi
 pytest
 python2
 python3
@@ -358,9 +365,11 @@ refactor
 regex
 repr
 rst2s5
+runnable
 runtests
 runtime
 s'
+s3
 s5defs
 scalable
 schettino
@@ -373,9 +382,11 @@ setupX
 setupY
 setuptools
 shrinksafe
+shutils
 sourcecode
 sourceforge
 sqlite3
+src
 startswith
 stateful
 stderr
@@ -421,6 +432,8 @@ unix
 unmaintained
 uptodate
 uptodate'
+usecases
+ut
 utf8
 utils
 utm
@@ -435,12 +448,3 @@ x'
 xxx
 xyz
 zsh
-usecases
-aws
-s3
-CSV
-shutils
-src
-pypi
-runnable
-ut
