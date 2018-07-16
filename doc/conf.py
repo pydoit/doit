@@ -79,7 +79,7 @@ pygments_style = 'sphinx'
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+html_theme = 'sphinx_rtd_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -102,6 +102,17 @@ html_static_path = ['_static']
 #
 # html_sidebars = {}
 
+
+# non-default configuration for doit
+html_favicon = '_static/favico.ico'
+html_show_sourcelink = False
+
+# for rtd
+# FIXME: home should point to index.html
+html_theme_options = {
+    # TODO: top CSS so ugly. should be like alabaster
+    'prev_next_buttons_location': 'both',
+}
 
 # -- Options for HTMLHelp output ---------------------------------------------
 

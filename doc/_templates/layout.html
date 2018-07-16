@@ -1,47 +1,65 @@
-{% extends "!layout.html" %}
+{% extends "layout_rtd.html" %}
 
 {% block extrahead %}
 <style>
-  body {
-    font-size: 16px;
-  }
+/* FIX for https://github.com/rtfd/sphinx_rtd_theme/pull/657
+   pre.literal-block, div[class^='highlight'] pre, .linenodiv pre {
+   line-height: 1.4 !important;
+   }
+*/
 
-  div.topic {
-    padding: 0;
-    background-color: #F8F4A6;
-    border: 1px solid #D8D486;
-  }
+/* FIX: handle code-block-caption */
+pre {
+  font-size: 0.95em !important;
+  letter-spacing: 0.015em;
+  line-height: 120% !important; /* also fix 657 */
+  padding: 0.5em;
+  border: 1px solid #ccc;
+  background-color: #f8f8f8;
+}
+pre.literal-block, div[class^='highlight'], div[class^='highlight-python3'] {
+  margin-top: 0px !important;
+}
+div.code-block-caption {
+  background-color: #ddd;
+  color: #222;
+  border: 1px solid #ccc;
+}
+div.code-block-caption {
+  padding: 2px 5px;
+  font-size: small;
+}
+a.headerlink {
+  visibility: hidden;
+  color: #c60f0f!important;
+  font-size: 1em;
+  margin-left: 6px;
+  padding: 0 4px 0 4px;
+  text-decoration: none!important;
+}
+a.headerlink:after{
+  margin-left: 0px;
+  content:"";
+  font-family:FontAwesome;
+}
+.code-block-caption:hover .headerlink:after {
+  visibility:visible;
+}
 
-  div.topic p.first {
-    margin: 0;
-    padding: 0.1em 0 0.1em 0.5em;
-    background-color: #E8E496;
-    border-bottom: 1px solid #C8C476;
-  }
+/* CHANGE: code displayed in red color is too aggresive */
+code {
+    background-color: #f2f2f2;
+    border-bottom: 1px solid #ddd;
+    color: #333;
+}
+code.literal {
+  color: inherit !important;
+}
 
-  div.topic p {
-    margin: 0.5em 1em 0.5em 1em;
-  }
-
-  p.topic-title {
-    display: run-in;
-    margin-right: 15px;
-  }
-
-  a.external-link {
-    background: url(_static/external.png) center right no-repeat;
-    padding-right: 13px;
-  }
-
-  div.related ul li a.external-link {
-    padding-right: 13px;
-  }
-
-  .sidebartext {
-    font-size: 75%;
-    line-height: 130%;
-  }
-
+/* FIX: use full hight of nav-side (not version selector) */
+.wy-nav-side {
+  padding-bottom: 0px !important;
+}
 </style>
 
 {% if include_analytics %}
@@ -59,65 +77,8 @@
 {% endblock %}
 
 
-{% block rootrellink %}
-  <li><a href="{{ pathto('index') }}">Home</a>&nbsp;|&nbsp;</li>
-  <li><a href="{{ pathto('contents') }}">Documentation</a>&nbsp;|&nbsp;</li>
-  <li><a class="external-link" href="https://github.com/pydoit/doit">Code</a>&nbsp;|&nbsp;</li>
-  <li><a class="external-link" href="https://github.com/pydoit/doit/issues">Issues</a>&nbsp;|&nbsp;</li>
-  <li><a class="external-link" href="http://pypi.python.org/pypi/doit">Download</a>&nbsp;|&nbsp;</li>
-  <li><a class="external-link" href="https://stackoverflow.com/questions/tagged/doit">StackOverflow</a>&nbsp;|&nbsp;</li>
-  <li><a class="external-link" href="http://groups.google.co.in/group/python-doit">Forum</a>&nbsp;|&nbsp;</li>
-  <li><a class="external-link" href="https://twitter.com/py_doit">Twitter</a></li>
-{% endblock %}
 
-
-{% block header %}
-<div style="background-color: white; text-align: left; padding: 10px 10px 15px 50px">
-<img src="{{ pathto("_static/doit.png", 1) }}" alt="doit logo" />
-</div>
-{% endblock %}
-
-
-{% block sidebarsearch %}
-
-{{ super() }}
-
-{% if include_donate %}
-{% endif %}
-
-<h3>Donate</h3>
-
-{% if include_donate %}
-<div>
-
-<div class="sidebartext">
-
-<p><em>doit</em> is 100% open-source and maintained by individuals without any company backing it...</p>
-
-<p>Abandoned open-source project does not work for long. Thriving project requires a maintainer to keep list of issues and list of pull requests short. Financial goal is 500 USD per month to allow the maintainer working few hours a week on the project.</p>
-</div>
-
-<h5>OpenCollective</h5>
-<div>
-  <object type="image/svg+xml" data="https://opencollective.com/doit/tiers/backers.svg?avatarHeight=60&width=200"></object>
-</div>
-
-<h5>Paypal</h5>
-<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top" style="margin:auto;">
-<input type="hidden" name="cmd" value="_s-xclick">
-<input type="hidden" name="hosted_button_id" value="GFU3BPVN586A6">
-<input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
-<img alt="" border="0" src="https://www.paypalobjects.com/pt_BR/i/scr/pixel.gif" width="1" height="1">
-</form>
-</div>
-{% endif %}
-<br/>
-
-
-{# logo - python #}
-<h3></h3>
-<a href="http://python.org"><img src="_static/python-powered-w-100x40.png" alt="python logo"/></a><br/><br/>
-{% endblock %}
-
-{% block sidebarrel %}
+{% block sidebartitle %}
+  <p>hello</p>
+  {{ super() }}
 {% endblock %}
