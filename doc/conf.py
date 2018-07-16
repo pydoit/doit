@@ -110,8 +110,9 @@ html_show_sourcelink = False
 # for rtd
 # FIXME: home should point to index.html
 html_theme_options = {
-    # TODO: top CSS so ugly. should be like alabaster
-    'prev_next_buttons_location': 'both',
+    # top is also included but not from rtd theme.
+    # check breadcrumbs.html
+    'prev_next_buttons_location': 'bottom',
 }
 
 # -- Options for HTMLHelp output ---------------------------------------------
