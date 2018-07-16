@@ -73,6 +73,12 @@ exclude_patterns = ['_build', 'presentation.rst']
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
 
+# non-default configuration for doit
+html_favicon = '_static/favico.ico'
+html_show_sourcelink = False
+html_extra_path = ['index.html']
+
+
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -102,10 +108,6 @@ html_static_path = ['_static']
 #
 # html_sidebars = {}
 
-
-# non-default configuration for doit
-html_favicon = '_static/favico.ico'
-html_show_sourcelink = False
 
 # for rtd
 # FIXME: home should point to index.html
