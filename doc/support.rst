@@ -57,18 +57,15 @@ You might sponsor a feature by placing `bounties <bountysource.com/teams/pydoit>
 Donations
 ---------
 
-**doit** is 100% open-source and maintained by individuals without any company backing it... financial help is appreciated.
+If you consider **doit** to be a useful project, and would like to see it continue to be maintained and developed, please consider helping cover the development cost. Thriving project requires a maintainer to keep list of issues and list of pull requests short.
 
-Abandoned open-source project does not work for long.
-Thriving project requires a maintainer to keep list of issues and list of pull requests short.
+**doit** is 100% open-source and maintained by individuals without any company backing it... financial help is appreciated.
 
 The project receives donation through `OpenCollective <https://opencollective.com>`_ or Paypal.
 
 
-Professional support
---------------------
+Commercial Support
+------------------
 
-Professional support and development services available from `doit`
-creator & maintainer (*schettino72* at gmail.com).
-
-
+For commercial support as well as consulting on computational pipelines
+by `doit` creator & maintainer, please contact: *schettino72* at gmail.com.
