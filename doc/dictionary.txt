@@ -250,6 +250,7 @@ foo
 foo'
 fpath
 gdbm
+genindex
 genstandalone
 getargs
 gif
@@ -304,6 +305,7 @@ metadata
 microbiome
 minversion
 mkdir
+modindex
 mortem
 msg
 mtime

@@ -59,6 +59,14 @@ def task_coverage():
 DOC_ROOT = 'doc/'
 DOC_BUILD_PATH = DOC_ROOT + '_build/html/'
 
+def task_rm_index():
+    """remove/clean copied index.html if source changed"""
+    # work around https://github.com/sphinx-doc/sphinx/issues/1649
+    return {
+        'actions': ['cd doc && make clean'],
+        'file_dep': ['doc/index.html'],
+    }
+
 def task_docs():
     doc_files = glob.glob('doc/*.rst')
     doc_files += ['README.rst', 'CONTRIBUTING.md',
@@ -66,7 +74,7 @@ def task_docs():
     yield docs.spell(doc_files, 'doc/dictionary.txt')
     sphinx_opts = "-A include_analytics=1 -A include_donate=1"
     yield docs.sphinx(DOC_ROOT, DOC_BUILD_PATH, sphinx_opts=sphinx_opts,
-                      task_dep=['spell'])
+                      task_dep=['spell', 'rm_index'])
 
 def task_samples_check():
     """check samples are at least runnuable without error"""

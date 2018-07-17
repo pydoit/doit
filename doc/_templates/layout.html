@@ -66,6 +66,17 @@ code.literal {
   padding-bottom: 15px !important;
 }
 
+/* FIX: revert rtd messing up with every image in nav-search */
+.wy-side-nav-search img.logo, .wy-nav-top img.logo {
+    display: inherit !important;
+    margin: inherit !important;
+    height: inherit !important;
+    width: inherit !important;
+    background-color: inherit !important;
+    padding: 5px;
+    border-radius: inherit !important;
+}
+
 </style>
 
 {% if include_analytics %}
@@ -84,10 +95,36 @@ code.literal {
 
 
 
+
 {% block sidebartitle %}
-  <p>hello</p>
-  {{ super() }}
+  <div style="text-align:left">
+    <a href="{{ pathto('index') }}">
+      <img src="_static/doit-logo-small.png" alt="doit logo" class="logo">
+    </a>
+    <span style="font-size:x-large;padding:0px 20px;"><a href="https://twitter.com/py_doit" style="color:black"><i class="fa fa-twitter"></i></a></span>
+    <span style="font-size:x-large;padding:0px";><a href="https://github.com/pydoit/doit" style="color:black"><i class="fa fa-github"></i></a></span>
+  </div>
+  <div style="color:rgba(1,1,1,0.3); text-align:left; margin:10px;">
+    {% if theme_display_version %}
+      {%- set nav_version = version %}
+      {% if nav_version %}
+        <span>{{ nav_version }}</span>
+      {% endif %}
+    {% endif %}
+  </div>
+  {% include "searchbox.html" %}
 {% endblock %}
+
+
+{% block mobile_nav %}
+  <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+  <a href="{{ pathto('index') }}">
+      <img src="_static/doit-logo-small.png" alt="doit logo" class="logo">
+  </a>
+  <span style="font-size:x-large;padding:0px 20px;"><a href="https://twitter.com/py_doit" style="color:black; display:inline-block; vertical-align:middle;"><i class="fa fa-twitter"></i></a></span>
+  <span style="font-size:x-large;padding:0px";><a href="https://github.com/pydoit/doit" style="color:black; display:inline-block; vertical-align:middle;"><i class="fa fa-github"></i></a></span>
+{% endblock %}
+
 
 
 {% block extranav %}

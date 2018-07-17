@@ -38,7 +38,12 @@
       <!-- Navbar Start-->
       <header class="nav-holder make-sticky">
         <div id="navbar" role="navigation" class="navbar navbar-expand-lg">
-          <div class="container"><a href="index.html" class="navbar-brand home"><img src="_static/doit-logo.png" alt="doit logo" class="d-none d-md-inline-block"><img src="_static/doit-logo-small.png" alt="Universal logo" class="d-inline-block d-md-none"><span class="sr-only">doit - go to homepage</span></a>
+          <div class="container">
+            <a href="index.html" class="navbar-brand home"><img src="_static/doit-logo.png" alt="doit logo" class="d-none d-md-inline-block"><img src="_static/doit-logo-small.png" alt="doit logo" class="d-inline-block d-md-none"><span class="sr-only">doit - go to homepage</span></a>
+            <span style="flex-grow:5;text-align:right;">
+              <span style="font-size:x-large;padding:0px 10px;"><a href="https://twitter.com/py_doit" style="color:#55acee"><i class="fa fa-twitter"></i></a></span>
+              <span style="font-size:x-large;padding:0px 10px";><a href="https://github.com/pydoit/doit" style="color:black"><i class="fa fa-github"></i></a></span>
+            </span>
             <button type="button" data-toggle="collapse" data-target="#navigation" class="navbar-toggler btn-template-outlined"><span class="sr-only">Toggle navigation</span><i class="fa fa-align-justify"></i></button>
             <div id="navigation" class="navbar-collapse collapse">
               <ul class="nav navbar-nav ml-auto">
@@ -47,8 +52,6 @@
                 <li class="nav-item menu-large"><a href="/support.html">Support</a></li>
               </ul>
             </div>
-              <span style="font-size:x-large;padding:0px 10px;"><a href="https://twitter.com/py_doit" style="color:#55acee"><i class="fa fa-twitter"></i></a></span>
-              <span style="font-size:x-large;padding:0px 10px";><a href="https://github.com/py_doit/doit" style="color:black"><i class="fa fa-github"></i></a></span>
           </div>
         </div>
       </header>
@@ -388,6 +391,8 @@
             <h2>Status</h2>
           </div>
           <p class="lead"><code>doit</code> is under active development. Version 0.31 released on 2018-02.</p>
+          <p><em>doit</em> runs on Python 3.4 through 3.6 (including PyPy).
+            For python 2 support please use <em>doit</em> version <code>0.29</code>.
           <p>This <a href="http://schettino72.wordpress.com/2008/04/14/doit-a-build-tool-tale">blog post</a> explains how everything started in 2008.</p>
           <p><em>doit</em> core features are quite stable. If there is no recent development, it does NOT mean the project is not being maintained... The project has 100% unit-test code coverage.</p>
           <p>Development is done based on real world use cases. It is well designed and has a small code base, so adding new features is not hard. Contributions are welcome.</p>
@@ -405,14 +410,12 @@
               <dt class="col-md-2 col-sm-3">LICENSE</dt>
               <dd class="col">
                 This is an open-source project
-                (<a href="http://opensource.org/licenses/mit-license.php">MIT license</a>)written in python.
+                (<a href="http://opensource.org/licenses/mit-license.php">MIT license</a>) written in python.
               </dd>
             </dl>
             <dl class="row text-left">
               <dt class="col-md-2 col-sm-3">DOWNLOAD</dt>
-              <dd class="col">from <a href="http://pypi.python.org/pypi/doit">PyPi</a>.<br>
-                Runs on Python 3.4 through 3.6 (including PyPy support).
-                For python 2 support please use <em>doit</em> version <code>0.29</code>.</dd>
+              <dd class="col">from <a href="http://pypi.python.org/pypi/doit">PyPi</a></dd>
             </dl>
             <dl class="row text-left">
               <dt class="col-md-2 col-sm-3">SUPPORT</dt>

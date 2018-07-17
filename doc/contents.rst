@@ -12,6 +12,7 @@ getting started
 Introduction of `doit` basic features with a real example.
 
 .. toctree::
+   :caption: Getting Started
    :maxdepth: 1
 
    usecases
@@ -30,6 +31,7 @@ It was written to be both read in order and also serves as a complete reference.
 The total reading time for the whole documentation is about one hour.
 
 .. toctree::
+   :caption: Reference
    :maxdepth: 2
 
    install
@@ -49,10 +51,19 @@ project
 -------
 
 .. toctree::
+   :caption: Project
    :maxdepth: 2
 
-   faq
-   stories
-   changes
    support
+   changes
+   stories
+   faq
    related
+
+
+
+.. Indices and tables
+   ==================
+   * :ref:`genindex`
+   * :ref:`modindex`
+   * :ref:`search`
