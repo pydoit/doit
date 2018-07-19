@@ -35,6 +35,56 @@ doit - automation tool
 execute any kind of task
 
 
+Sample Code
+===========
+
+Define functions returning python dict with task's meta-data.
+
+Snippet from `tutorial <http://pydoit.org/tutorial_1.html>`_::
+
+  def task_imports():
+      """find imports from a python module"""
+      for name, module in PKG_MODULES.by_name.items():
+          yield {
+              'name': name,
+              'file_dep': [module.path],
+              'actions': [(get_imports, (PKG_MODULES, module.path))],
+          }
+
+  def task_dot():
+      """generate a graphviz's dot graph from module imports"""
+      return {
+          'targets': ['requests.dot'],
+          'actions': [module_to_dot],
+          'getargs': {'imports': ('imports', 'modules')},
+          'clean': True,
+      }
+
+  def task_draw():
+      """generate image from a dot file"""
+      return {
+          'file_dep': ['requests.dot'],
+          'targets': ['requests.png'],
+          'actions': ['dot -Tpng %(dependencies)s -o %(targets)s'],
+          'clean': True,
+      }
+
+
+Run from terminal::
+
+  $ doit list
+  dot       generate a graphviz's dot graph from module imports
+  draw      generate image from a dot file
+  imports   find imports from a python module
+  $ doit
+  .  imports:requests.models
+  .  imports:requests.__init__
+  .  imports:requests.help
+  (...)
+  .  dot
+  .  draw
+
+
 Project Details
 ===============
 
