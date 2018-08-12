@@ -84,8 +84,8 @@ html_extra_path = ['index.html']
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-#
-html_theme = 'sphinx_rtd_theme'
+
+html_theme = 'press' #'sphinx_rtd_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -114,7 +114,7 @@ html_static_path = ['_static']
 html_theme_options = {
     # top is also included but not from rtd theme.
     # check breadcrumbs.html
-    'prev_next_buttons_location': 'bottom',
+#    'prev_next_buttons_location': 'bottom',
 }
 
 # -- Options for HTMLHelp output ---------------------------------------------
