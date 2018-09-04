@@ -49,6 +49,7 @@ class CatchedException(object):
     def __init__(self, msg, exception=None):
         self.message = msg
         self.traceback = ''
+        self.base_exc = exception
 
         if isinstance(exception, CatchedException):
             self.traceback = exception.traceback
