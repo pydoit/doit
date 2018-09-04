@@ -164,22 +164,12 @@ class TestCmdList(object):
         got = [line.strip() for line in output.getvalue().split('\n') if line]
         assert 't做' == got[0]
 
-    def testSort(self):
-        # by default, the task list is ordered by name
+    def testSortByName(self):
+        # by default, the task list should be ordered by name
         task_list = list(tasks_sample())
         output = StringIO()
         cmd_list = CmdFactory(List, outstream=output, task_list=task_list)
         cmd_list._execute()
-        got = [line.strip() for line in output.getvalue().split('\n') if line]
-        expected = ['g1', 't1', 't2', 't3']
-        assert expected == got
-
-    def testSortByName(self):
-        # test explicitly sorting task list by name
-        task_list = list(tasks_sample())
-        output = StringIO()
-        cmd_list = CmdFactory(List, outstream=output, task_list=task_list)
-        cmd_list._execute(sort='name')
         got = [line.strip() for line in output.getvalue().split('\n') if line]
         expected = ['g1', 't1', 't2', 't3']
         assert expected == got
