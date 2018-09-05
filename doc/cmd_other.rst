@@ -34,7 +34,8 @@ list
 ------
 
 *list* is used to show all tasks available in a *dodo* file.
-Tasks are listed in alphabetical order, not by order of execution.
+Tasks are listed in alphabetical order by default, but *--sort=definition* can
+be speficied to sort them in the order in which they appear in the `dodo` file.
 
 .. code-block:: console
 

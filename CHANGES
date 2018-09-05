@@ -16,6 +16,7 @@ Changes
  - Fix #113: `tools.config_changed` deals with nested dictionaries.
              Using json instead of repr.
  - Fix #261: help organize command options in sections, and improve formatting.
+ - Fix #267: `doit list` now has a `--sort` parameter to determine the order in which the tasks are listed.
 
 
 0.31.1 (*2018-03-18*)

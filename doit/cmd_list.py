@@ -55,6 +55,18 @@ opt_template = {
     'help': "display entries with template"
     }
 
+opt_sort = {
+    'name': 'sort',
+    'short': '',
+    'long': 'sort',
+    'type': str,
+    'choices': [('name', 'sort by task name'),
+                ('definition', 'list tasks in the order they were defined')],
+    'default': 'name',
+    'help': ("choose the manner in which the task list is sorted. "
+             "[default: %(default)s]")
+    }
+
 
 class List(DoitCmdBase):
     doc_purpose = "list tasks from dodo file"
@@ -62,7 +74,8 @@ class List(DoitCmdBase):
     doc_description = None
 
     cmd_options = (opt_listall, opt_list_quiet, opt_list_status,
-                   opt_list_private, opt_list_dependencies, opt_template)
+                   opt_list_private, opt_list_dependencies, opt_template,
+                   opt_sort)
 
 
     STATUS_MAP = {'ignore': 'I', 'up-to-date': 'U', 'run': 'R', 'error': 'E'}
@@ -113,10 +126,9 @@ class List(DoitCmdBase):
         return print_list
 
 
-    def _execute(self, subtasks=False, quiet=True, status=False,
-                 private=False, list_deps=False, template=None, pos_args=None):
-        """List task generators, in the order they were defined.
-        """
+    def _execute(self, subtasks=False, quiet=True, status=False, private=False,
+                 list_deps=False, template=None, sort='name', pos_args=None):
+        """List task generators"""
         filter_tasks = pos_args
         # dict of all tasks
         tasks = dict([(t.name, t) for t in self.task_list])
@@ -144,7 +156,13 @@ class List(DoitCmdBase):
                 template = '{status} ' + template
         template += '\n'
 
+        # sort list of tasks
+        if sort == 'name':
+            print_list = sorted(print_list)
+        elif sort == 'definition':
+            pass  # task list is already sorted in order of definition
+
         # print list of tasks
-        for task in sorted(print_list):
+        for task in print_list:
             self._print_task(template, task, status, list_deps, tasks)
         return 0
