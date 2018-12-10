@@ -1,5 +1,6 @@
 import os
 import datetime
+import json
 import operator
 from sys import executable
 
@@ -101,6 +102,21 @@ class TestConfigChanged(object):
         assert True == c1a(t1, t1.values)
         assert True == c1b(t1, t1.values)
 
+    def test_using_custom_encoder(self):
+
+        class DatetimeJSONEncoder(json.JSONEncoder):
+            def default(self, o):
+                if isinstance(o, datetime.datetime):
+                    return o.isoformat()
+
+        ua = tools.config_changed({'a': datetime.datetime(2018, 12, 10, 10, 33, 55, 478421), 'b': 'bb'}, encoder=DatetimeJSONEncoder)
+        ub = tools.config_changed({'a': datetime.datetime.now(), 'b': 'bb'}, encoder=DatetimeJSONEncoder)
+        t1 = task.Task("TaskX", None, uptodate=[ua])
+        assert ua(t1, t1.values) is False
+        assert ub(t1, t1.values) is False
+        t1.save_extra_values()
+        assert ua(t1, t1.values) is True
+        assert ub(t1, t1.values) is False
 
 
 class TestTimeout(object):

@@ -17,6 +17,7 @@ Changes
              Using json instead of repr.
  - Fix #261: help organize command options in sections, and improve formatting.
  - Fix #267: `doit list` now has a `--sort` parameter to determine the order in which the tasks are listed.
+ - Make it possible to use a custom encoder when using config_changed with a dict.
 
 
 0.31.1 (*2018-03-18*)

@@ -48,16 +48,18 @@ def run_once(task, values):
 class config_changed(object):
     """check if passed config was modified
     @var config (str) or (dict)
+    @var encoder (json.JSONEncoder) Encoder used to convert non-default values.
     """
-    def __init__(self, config):
+    def __init__(self, config, encoder=None):
         self.config = config
         self.config_digest = None
+        self.encoder = encoder
 
     def _calc_digest(self):
         if isinstance(self.config, str):
             return self.config
         elif isinstance(self.config, dict):
-            data = json.dumps(self.config, sort_keys=True)
+            data = json.dumps(self.config, sort_keys=True, cls=self.encoder)
             byte_data = data.encode("utf-8")
             return hashlib.md5(byte_data).hexdigest()
         else:
