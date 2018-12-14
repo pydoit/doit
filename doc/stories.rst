@@ -89,6 +89,43 @@ our papers, mentioning it in our funding requests, etc).
 Thanks for developing `doit`, it's just wonderful for computational biology (and
 for many other tasks, of course, but this is our research field:)!
 
+`Cheminformatics data processing @ Atomwise <https://www.atomwise.com>`_ 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+by `Jon Sorenson <https://github.com/drkeoni>`_ (2018-12-14)
+
+I came to `doit` from the loose requirement that I wanted a task-dependency/DAG type
+of workflow solution for the various pipelines that our team is constructing.
+I come from computational biology originally, and the similarity of data processing pipeines
+to build systems has long been appreciated.  More than a decade ago  many of us were writing bioinformatics
+pipelines in `make` because it gave us so many features "for free."
+
+Starting afresh at Atomwise I did a survey of what DAG-based workflow
+execution frameworks were out there---restricting my search to `python`, active
+maintenance, good documentation etc.  Besides `doit` I evaluated `bonobo`, `Luigi`, and `airflow`.
+`bonobo` didn't fit my needs for dependency-based processing.  `Luigi` and `airflow` are
+very nice, but I didn't have any particular need for distributed workflows and the
+heavier weight feel of these platforms.  My favorite experience was `airflow` but it
+didn't have (obvious) support for reentrant processing: running a pipeline
+from an intermediate stage.
+
+I knew that build-system based frameworks would do exactly what I wanted and not
+hand me too much cruft, and on that note I found `doit`.  It's worked perfectly
+for my needs: 
+
+- The order of tasks is derived from dependencies
+
+- Tasks can be executed in parallel if they don't depend on each other
+
+- Plenty of bells and whistles to relieve the pipeline developer from writing
+  boilerplate code (easy task documentation, discovery of the pipeline state,
+  easy process for re-doing tasks)
+
+- Very light-weight. In this sense `doit` is the perfect example of a UNIX-style
+  tool: _do one thing and do it well_  `Luigi` and `airflow` are
+  attractive, but they also suffer from kitchen-sink bloat.  If you simply
+  want a pythonic alternative to `Makefiles` or `bash` scripts, `doit`
+  is the solution you're looking for.
 
 
 Build System
