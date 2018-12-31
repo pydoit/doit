@@ -35,9 +35,9 @@ branches:
 script:
    - doit pyflakes
    - py.test --ignore-flaky
-   - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then doit coverage; fi
+   - if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]; then doit coverage; fi
 after_success:
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then coveralls; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]; then coveralls; fi
 
 notifications:
     email:
