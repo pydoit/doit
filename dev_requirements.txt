@@ -2,7 +2,7 @@
 # $ pip install --requirement dev_requirements.txt
 
 pyflakes
-pytest>=2.8.0
+pytest>=2.8.0,<4.0
 pytest-ignore-flaky
 coverage>=4.0
 doit-py>=0.4.0
