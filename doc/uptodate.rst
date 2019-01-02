@@ -95,6 +95,9 @@ changed. Config values can be a string or dict.
 For dict's the values are converted to string (using `json.dumps()` with `sort_key=True`)
 and only a digest/checksum of the dictionaries keys and values are saved.
 
+If converting the values of the dict requires a special encoder this can be
+passed with the argument ``encoder=...``. This will be passed on to `json.dumps()`.
+
 .. literalinclude:: samples/config_params.py
 
 
