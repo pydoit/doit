@@ -96,11 +96,12 @@ by `Jon Sorenson <https://github.com/drkeoni>`_ (2018-12-14)
 
 I came to `doit` from the loose requirement that I wanted a task-dependency/DAG type
 of workflow solution for the various pipelines that our team is constructing.
-I come from computational biology originally, and the similarity of data processing pipeines
-to build systems has long been appreciated.  More than a decade ago  many of us were writing bioinformatics
+I come from computational biology originally, and the similarity of data processing pipelines
+to build systems has long been appreciated.  More than a decade ago 
+many of us were writing bioinformatics
 pipelines in `make` because it gave us so many features "for free."
 
-Starting afresh at Atomwise I did a survey of what DAG-based workflow
+Starting afresh at `Atomwise <https://www.atomwise.com/>`_ I did a survey of what DAG-based workflow
 execution frameworks were out there---restricting my search to `python`, active
 maintenance, good documentation etc.  Besides `doit` I evaluated `bonobo`, `Luigi`, and `airflow`.
 `bonobo` didn't fit my needs for dependency-based processing.  `Luigi` and `airflow` are
@@ -122,10 +123,13 @@ for my needs:
   easy process for re-doing tasks)
 
 - Very light-weight. In this sense `doit` is the perfect example of a UNIX-style
-  tool: _do one thing and do it well_  `Luigi` and `airflow` are
+  tool: *do one thing and do it well*.  `Luigi` and `airflow` are
   attractive, but they also suffer from kitchen-sink bloat.  If you simply
   want a pythonic alternative to `Makefiles` or `bash` scripts, `doit`
-  is the solution you're looking for.
+  is great solution.
+
+- It's easy to build up a library of common tasks that can be reused by
+  multiple `doit` pipelines.
 
 
 Build System
