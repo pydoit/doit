@@ -298,7 +298,7 @@ class CmdAction(BaseAction):
             else:
                 pos_val = ''
             subs_dict[self.task.pos_arg] = pos_val
-        return self.action % subs_dict
+        return self.action.format(**subs_dict) % subs_dict
 
     def __str__(self):
         return "Cmd: %s" % self._action
