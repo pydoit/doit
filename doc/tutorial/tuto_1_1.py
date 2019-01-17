@@ -7,7 +7,7 @@ def task_imports():
     return {
         'file_dep': ['projects/requests/requests/models.py'],
         'targets': ['requests.models.deps'],
-        'actions': ['python -m import_deps {dependencies} > {targets}'],
+        'actions': ['python -m import_deps %(dependencies)s > %(targets)s'],
         'clean': True,
     }
 
@@ -40,6 +40,6 @@ def task_draw():
     return {
         'file_dep': ['requests.models.dot'],
         'targets': ['requests.models.png'],
-        'actions': ['dot -Tpng {dependencies} -o {targets}'],
+        'actions': ['dot -Tpng %(dependencies)s -o %(targets)s'],
         'clean': True,
     }
