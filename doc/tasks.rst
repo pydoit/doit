@@ -393,27 +393,33 @@ keywords on cmd-action string
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 For *cmd-action* you can take advantage of implicit keyword
-substitution on *cmd-action* strings and use
-python old-string-formatting_ for it.
+substitution on *cmd-action* strings using
+python format-string-syntax_ or python old-string-formatting_.
+
+.. note:: The use of format-string-syntax is currently disabled by default.
+    To enable it, set the key `action_string_formatting` in `DOIT_CONFIG`
+    to `'new'` or `'both'`. The default value is `'old'`.
 
 The keyword value is a string containing all respective
 file names separated by a space (" ").
 
+.. _format-string-syntax: https://docs.python.org/3/library/string.html#format-string-syntax
 .. _old-string-formatting: http://docs.python.org/3/library/stdtypes.html#old-string-formatting
 
 
 .. literalinclude:: samples/report_deps.py
 
 
-Before the string is actually executed, it is always formatted using the
-python old-string-formatting_ using the `%` operator.
-If using `%` in your action string, make sure it does not break
-this formatting.
+Before the string is actually executed, it is always formatted using
+the formatters specified in `DOIT_CONFIG`. Make sure to escape your formatters
+control characters, namely `{` and `}` for format-string-syntax_ and `%` for
+old-string-formatting_. This is done by doubling them, so `%` becomes `%%` and so on.
 
 .. note:: *cmd-action* may have the form of a string (as `"echo hello world"`)
     or list of arguments (as `["echo", "hello", "world"]`).
     Implicit keywords substitution applies only to the string form
-    and does not affect the list form.
+    and does not affect the list form. This means `{}` and `%`
+    need not be escaped when using this form.
 
 
 
