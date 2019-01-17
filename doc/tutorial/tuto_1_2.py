@@ -43,6 +43,6 @@ def task_draw():
     return {
         'file_dep': ['requests.models.dot'],
         'targets': ['requests.models.png'],
-        'actions': ['dot -Tpng %(dependencies)s -o %(targets)s'],
+        'actions': ['dot -Tpng {dependencies} -o {targets}'],
         'clean': True,
     }
