@@ -7,7 +7,7 @@ def task_compute():
 
 
 def task_use_cmd():
-   return {'actions': ['echo x=%(x)s, z=%(z)s'],
+   return {'actions': ['echo x={x}, z={z}'],
            'getargs': {'x': ('compute', 'x'),
                        'z': ('compute', 'z')},
            'verbosity': 2,
