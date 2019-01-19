@@ -247,162 +247,98 @@ class TestCmdExpandAction(object):
 
 class TestCmdNewStyleFormattingExpandAction(object):
 
-    def test_task_meta_reference(self):
+    TASK_META_REFERENCE_DATA = [
+        (None, {"{dependencies}"}, None, ["{targets}"]),
+        ("old", {"{dependencies}"}, None, ["{targets}"]),
+        ("new", None, ["%(changed)s"], None),
+        ("both", None, None, None),
+    ]
+
+    @pytest.mark.parametrize("action_string_formatting,dep_result,changed_result,targets_result", TASK_META_REFERENCE_DATA)
+    def test_task_meta_reference(self, action_string_formatting, dep_result, changed_result, targets_result):
         cmd = "{} {}/myecho.py".format(executable, TEST_PATH)
-        cmd += " {dependencies} - {changed} - {targets}"
+        if action_string_formatting == 'new':
+            # quoting is necessary to prevent shell expansion
+            cmd += " {dependencies} - '%(changed)s' - {targets}"
+        else:
+            cmd += " {dependencies} - %(changed)s - {targets}"
         dependencies = ["data/dependency1", "data/dependency2", ":dep_on_task"]
         targets = ["data/target", "data/targetXXX"]
         task = Task('Fake', [cmd], dependencies, targets)
-        task.new_style_string_formatting = True # enable tested feature
+        if action_string_formatting:
+            task.action_string_formatting = action_string_formatting
         task.dep_changed = ["data/dependency1"]
         task.options = {}
         my_action = task.actions[0]
         assert my_action.execute() is None
 
         got = my_action.out.split('-')
-        assert task.file_dep == set(got[0].split())
-        assert task.dep_changed == got[1].split()
-        assert targets == got[2].split()
+        dep_result = dep_result or task.file_dep
+        changed_result = changed_result or task.dep_changed
+        targets_result = targets_result or targets
+        assert dep_result == set(got[0].split())
+        assert changed_result == got[1].split()
+        assert targets_result == got[2].split()
 
-    def test_task_meta_reference_negative(self):
+    TASK_OPTIONS_DATA = [
+        (None, "{opt1} - abc def"),
+        ("old", "{opt1} - abc def"),
+        ("new", "3 - %(opt2)s"),
+        ("both", "3 - abc def")
+    ]
+
+    @pytest.mark.parametrize("action_string_formatting,result",TASK_OPTIONS_DATA)
+    def test_task_options_default(self, action_string_formatting, result):
         cmd = "{} {}/myecho.py".format(executable, TEST_PATH)
-        cmd += " {dependencies} - {changed} - {targets}"
-        dependencies = ["data/dependency1", "data/dependency2", ":dep_on_task"]
-        targets = ["data/target", "data/targetXXX"]
-        task = Task('Fake', [cmd], dependencies, targets)
-        # don't enable tested feature
-        task.dep_changed = ["data/dependency1"]
-        task.options = {}
-        my_action = task.actions[0]
-        assert my_action.execute() is None
-
-        got = my_action.out.split('-')
-        assert {"{dependencies}"} == set(got[0].split())
-        assert ["{changed}"] == got[1].split()
-        assert ["{targets}"] == got[2].split()
-
-    def test_task_meta_reference_mixed(self):
-        cmd = "{} {}/myecho.py".format(executable, TEST_PATH)
-        cmd += " {dependencies} - %(changed)s - {targets}"
-        dependencies = ["data/dependency1", "data/dependency2", ":dep_on_task"]
-        targets = ["data/target", "data/targetXXX"]
-        task = Task('Fake', [cmd], dependencies, targets)
-        task.new_style_string_formatting = True # enable tested feature
-        task.dep_changed = ["data/dependency1"]
-        task.options = {}
-        my_action = task.actions[0]
-        assert my_action.execute() is None
-
-        got = my_action.out.split('-')
-        assert task.file_dep == set(got[0].split())
-        assert task.dep_changed == got[1].split()
-        assert targets == got[2].split()
-
-    def test_task_options(self):
-        cmd = "{} {}/myecho.py".format(executable, TEST_PATH)
-        cmd += " {opt1} - {opt2}"
+        if action_string_formatting == 'new':
+            # quoting is necessary to prevent shell expansion
+            cmd += " {opt1} - '%(opt2)s'"
+        else:
+            cmd += " {opt1} - %(opt2)s"
         task = Task('Fake', [cmd])
-        task.new_style_string_formatting = True # enable tested feature
+        if action_string_formatting:
+            task.action_string_formatting = action_string_formatting
         task.options = {'opt1':'3', 'opt2':'abc def'}
         my_action = task.actions[0]
         assert my_action.execute() is None
         got = my_action.out.strip()
-        assert "3 - abc def" == got
+        assert result == got
 
-    def test_task_options_negative(self):
-        cmd = "{} {}/myecho.py".format(executable, TEST_PATH)
-        cmd += " {opt1} - {opt2}"
-        task = Task('Fake', [cmd])
-        # don't enable tested feature
-        task.options = {'opt1':'3', 'opt2':'abc def'}
-        my_action = task.actions[0]
-        assert my_action.execute() is None
-        got = my_action.out.strip()
-        assert "{opt1} - {opt2}" == got
+    TASK_POS_ARG_DATA = [
+        (None, "%(pos)s", True, None),
+        (None, "{pos}", True, "{pos}"),
+        ("old", "%(pos)s", True, None),
+        ("old", "{pos}", True, "{pos}"),
+        ("new", "'%(pos)s'", True, "%(pos)s"),
+        ("new", "{pos}", True, None),
+        ("both", "%(pos)s", True, None),
+        ("both", "{pos}", True, None),
+        (None, "%(pos)s", False, ""),
+        (None, "{pos}", False, "{pos}"),
+        ("old", "%(pos)s",False, ""),
+        ("old", "{pos}", False, "{pos}"),
+        ("new", "'%(pos)s'", False, "%(pos)s"),
+        ("new", "{pos}", False, ""),
+        ("both", "%(pos)s", False, ""),
+        ("both", "{pos}", False, ""),
+    ]
 
-    def test_task_options_mixed(self):
-        cmd = "{} {}/myecho.py".format(executable, TEST_PATH)
-        cmd += " {opt1} - %(opt2)s"
-        task = Task('Fake', [cmd])
-        task.new_style_string_formatting = True # enable tested feature
-        task.options = {'opt1':'3', 'opt2':'abc def'}
-        my_action = task.actions[0]
-        assert my_action.execute() is None
-        got = my_action.out.strip()
-        assert "3 - abc def" == got
-
-    def test_task_options_generate(self):
-        cmd = "{} {}/myecho.py".format(executable, TEST_PATH)
-        cmd += " {opt1} - %(opt2)s"
-        task = Task('Fake', [cmd])
-        task.new_style_string_formatting = True # enable tested feature
-        task.options = {'opt1':'3', 'opt2':'abc {opt1} def'}
-        my_action = task.actions[0]
-        assert my_action.execute() is None
-        got = my_action.out.strip()
-        assert "3 - abc 3 def" == got
-
-    def test_task_options_generate_negative(self):
-        cmd = "{} {}/myecho.py".format(executable, TEST_PATH)
-        cmd += " %(opt1)s - {opt2}"
-        task = Task('Fake', [cmd])
-        task.new_style_string_formatting = True # enable tested feature
-        # quoting is necessary here to prevent shell expansion
-        task.options = {'opt1':'3', 'opt2':'abc "%(opt1)s" def'}
-        my_action = task.actions[0]
-        assert my_action.execute() is None
-        got = my_action.out.strip()
-        assert "3 - abc %(opt1)s def" == got
-
-    def test_task_pos_arg(self):
-        cmd = "{} {}/myecho.py".format(executable, TEST_PATH)
-        cmd += " {pos}"
+    @pytest.mark.parametrize("action_string_formatting,extra_cmd,has_val,result",TASK_POS_ARG_DATA)
+    def test_task_pos_arg(self, action_string_formatting, extra_cmd, has_val, result):
+        cmd = "{} {}/myecho.py ".format(executable, TEST_PATH)
+        cmd += extra_cmd
         task = Task('Fake', [cmd], pos_arg='pos')
-        task.new_style_string_formatting = True # enable tested feature
+        if action_string_formatting:
+            task.action_string_formatting = action_string_formatting
         task.options = {}
-        task.pos_arg_val = ['hi', 'there']
+        if has_val:
+            task.pos_arg_val = ['hi', 'there']
         my_action = task.actions[0]
         assert my_action.execute() is None
-        got = my_action.out.strip()
-        assert "hi there" == got
 
-    def test_task_pos_arg_negative(self):
-        cmd = "{} {}/myecho.py".format(executable, TEST_PATH)
-        cmd += " {pos}"
-        task = Task('Fake', [cmd], pos_arg='pos')
-        # don't enable tested feature
-        task.options = {}
-        task.pos_arg_val = ['hi', 'there']
-        my_action = task.actions[0]
-        assert my_action.execute() is None
         got = my_action.out.strip()
-        assert "{pos}" == got
-
-    def test_task_pos_arg_None(self):
-        # pos_arg_val is None when the task is not specified from
-        # command line but executed because it is a task_dep
-        cmd = "{} {}/myecho.py".format(executable, TEST_PATH)
-        cmd += " {pos}"
-        task = Task('Fake', [cmd], pos_arg='pos')
-        task.new_style_string_formatting = True # enable tested feature
-        task.options = {}
-        my_action = task.actions[0]
-        assert my_action.execute() is None
-        got = my_action.out.strip()
-        assert "" == got
-
-    def test_task_pos_arg_None_negative(self):
-        # pos_arg_val is None when the task is not specified from
-        # command line but executed because it is a task_dep
-        cmd = "{} {}/myecho.py".format(executable, TEST_PATH)
-        cmd += " {pos}"
-        task = Task('Fake', [cmd], pos_arg='pos')
-        # don't enable tested feature
-        task.options = {}
-        my_action = task.actions[0]
-        assert my_action.execute() is None
-        got = my_action.out.strip()
-        assert "{pos}" == got
+        result = result if result != None else "hi there"
+        assert result == got
 
 
 class TestCmd_print_process_output_line(object):
