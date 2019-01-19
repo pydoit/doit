@@ -103,14 +103,20 @@ opt_parallel_type = {
 """
 }
 
-opt_new_style_string_formatting = {
-    'name':'new_style_string_formatting',
+opt_action_string_formatting = {
+    'name':'action_string_formatting',
     'short':'',
-    'long':'new-string-format',
-    'type':bool,
-    'default':False,
+    'long':'action-string-formatting',
+    'type':str,
+    'default':'old',
+    'choices':[
+        ('old','Formatting using %(KEY)s'),
+        ('new','Formatting using {KEY}'),
+        ('both','Formatting using both styles'),
+    ],
     'help':
-"""Enables new-style string formatting using {x} in cmd-actions"""
+"""Change formatting style for cmd-actions.
+[default %(default)s]"""
 }
 
 
@@ -160,7 +166,7 @@ class Run(DoitCmdBase):
 
     cmd_options = (opt_always, opt_continue, opt_verbosity,
                    opt_reporter, opt_outfile, opt_num_process,
-                   opt_parallel_type, opt_new_style_string_formatting,
+                   opt_parallel_type, opt_action_string_formatting,
                    opt_pdb, opt_single, opt_auto_delayed_regex,
                    opt_report_failure_verbosity)
 
@@ -201,7 +207,7 @@ class Run(DoitCmdBase):
                  verbosity=None, always=False, continue_=False,
                  reporter='console', num_process=0, par_type='process',
                  single=False, auto_delayed_regex=False, force_verbosity=False,
-                 new_style_string_formatting=False,
+                 action_string_formatting='old',
                  failure_verbosity=0, pdb=False):
         """
         @param reporter:
@@ -214,9 +220,8 @@ class Run(DoitCmdBase):
         PythonAction.pm_pdb = pdb
 
         # hack to change string formatting of each task
-        if new_style_string_formatting:
-            for task in self.task_list:
-                task.new_style_string_formatting = new_style_string_formatting
+        for task in self.task_list:
+            task.action_string_formatting = action_string_formatting
 
         # get tasks to be executed
         # self.control is saved on instance to be used by 'auto' command
