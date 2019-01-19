@@ -13,7 +13,7 @@ from doit.dependency import DbmDB, JsonDB, SqliteDB, Dependency
 from doit.dependency import DatabaseException, UptodateCalculator
 from doit.dependency import FileChangedChecker, MD5Checker, TimestampChecker
 from doit.dependency import DependencyStatus
-from .conftest import get_abspath, dep_manager
+from .conftest import get_abspath
 
 #path to test folder
 TEST_PATH = os.path.dirname(__file__)
@@ -67,8 +67,8 @@ def test_sqlite_import():
 # create a separate fixture to be used only by this module
 # because only here it is required to test with all backends
 @pytest.fixture(params=[JsonDB, DbmDB, SqliteDB])
-def pdep_manager(request):
-    return dep_manager(request)
+def pdep_manager(dep_manager):
+    return dep_manager
 
 
 # FIXME there was major refactor breaking classes from dependency,

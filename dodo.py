@@ -29,7 +29,7 @@ def task_pyflakes():
     yield flaker.tasks('tests/*.py')
 
 def run_test(test):
-    return not bool(pytest.main(test))
+    return not bool(pytest.main([test]))
     #return not bool(pytest.main("-v " + test))
 def task_ut():
     """run unit-tests"""
