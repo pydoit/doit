@@ -1,4 +1,4 @@
-DOIT_CONFIG = {'new_style_string_formatting': True}
+DOIT_CONFIG = {'action_string_formatting': 'both'}
 
 def task_report_deps():
     """

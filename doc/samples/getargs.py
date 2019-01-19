@@ -1,6 +1,6 @@
 DOIT_CONFIG = {
    'default_tasks': ['use_cmd', 'use_python'],
-   'new_style_string_formatting': True,
+   'action_string_formatting': 'both',
 }
 
 def task_compute():
@@ -10,7 +10,8 @@ def task_compute():
 
 
 def task_use_cmd():
-   return {'actions': ['echo x={x}, z={z}'],
+   return {'actions': ['echo x={x}',    # new-style formatting
+                       'echo z=%(z)s'], # old-style formatting
            'getargs': {'x': ('compute', 'x'),
                        'z': ('compute', 'z')},
            'verbosity': 2,

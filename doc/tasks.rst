@@ -396,8 +396,9 @@ For *cmd-action* you can take advantage of implicit keyword
 substitution on *cmd-action* strings using
 python format-string-syntax_ or python old-string-formatting_.
 
-.. note:: To use format-string-syntax, you currently have to manually enable
-    this feature. Just add `"new_style_string_formatting": True` to `DOIT_CONFIG`.
+.. note:: The use of format-string-syntax is currently disabled by default.
+    To enable it, set the key `action_string_formatting` in `DOIT_CONFIG`
+    to `'new'` or `'both'`. The default value is `'old'`.
 
 The keyword value is a string containing all respective
 file names separated by a space (" ").
@@ -410,9 +411,9 @@ file names separated by a space (" ").
 
 
 Before the string is actually executed, it is always formatted using
-old-string-formatting_, followed by, optionally, format-string-syntax_.
-If your action string contains `{` `}` or `%`, make sure to escape them properly.
-This is done by writing `{{` instead of `{`, `}}` instead of `}` and `%%` instead of `%`.
+the formatters specified in `DOIT_CONFIG`. Make sure to escape your formatters
+control characters, namely `{` and `}` for format-string-syntax_ and `%` for
+old-string-formatting_. This is done by doubling them, so `%` becomes `%%` and so on.
 
 .. note:: *cmd-action* may have the form of a string (as `"echo hello world"`)
     or list of arguments (as `["echo", "hello", "world"]`).
