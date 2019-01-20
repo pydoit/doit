@@ -9,7 +9,7 @@ from pathlib import PurePath
 from threading import Thread
 import pdb
 
-from .exceptions import InvalidTask, TaskFailed, TaskError
+from .exceptions import InvalidTask, InvalidCommand, TaskFailed, TaskError
 
 
 def normalize_callable(ref):
@@ -298,7 +298,17 @@ class CmdAction(BaseAction):
             else:
                 pos_val = ''
             subs_dict[self.task.pos_arg] = pos_val
-        return self.action % subs_dict
+
+        formatting = self.task.action_string_formatting
+        if formatting == 'old':
+            return self.action % subs_dict
+        elif formatting == 'new':
+            return self.action.format(**subs_dict)
+        elif formatting == 'both':
+            return self.action.format(**subs_dict) % subs_dict
+        else:
+            msg = 'Invalid formatting style {}'.format(formatting)
+            raise InvalidCommand(msg)
 
     def __str__(self):
         return "Cmd: %s" % self._action

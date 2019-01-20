@@ -245,6 +245,102 @@ class TestCmdExpandAction(object):
         assert pytest.raises(action.InvalidTask, my_action.expand_action)
 
 
+class TestCmdNewStyleFormattingExpandAction(object):
+
+    TASK_META_REFERENCE_DATA = [
+        (None, {"{dependencies}"}, None, ["{targets}"]),
+        ("old", {"{dependencies}"}, None, ["{targets}"]),
+        ("new", None, ["%(changed)s"], None),
+        ("both", None, None, None),
+    ]
+
+    @pytest.mark.parametrize("action_string_formatting,dep_result,changed_result,targets_result", TASK_META_REFERENCE_DATA)
+    def test_task_meta_reference(self, action_string_formatting, dep_result, changed_result, targets_result):
+        cmd = "{} {}/myecho.py".format(executable, TEST_PATH)
+        if action_string_formatting == 'new':
+            # quoting is necessary to prevent shell expansion
+            cmd += " {dependencies} - '%(changed)s' - {targets}"
+        else:
+            cmd += " {dependencies} - %(changed)s - {targets}"
+        dependencies = ["data/dependency1", "data/dependency2", ":dep_on_task"]
+        targets = ["data/target", "data/targetXXX"]
+        task = Task('Fake', [cmd], dependencies, targets)
+        if action_string_formatting:
+            task.action_string_formatting = action_string_formatting
+        task.dep_changed = ["data/dependency1"]
+        task.options = {}
+        my_action = task.actions[0]
+        assert my_action.execute() is None
+
+        got = my_action.out.split('-')
+        dep_result = dep_result or task.file_dep
+        changed_result = changed_result or task.dep_changed
+        targets_result = targets_result or targets
+        assert dep_result == set(got[0].split())
+        assert changed_result == got[1].split()
+        assert targets_result == got[2].split()
+
+    TASK_OPTIONS_DATA = [
+        (None, "{opt1} - abc def"),
+        ("old", "{opt1} - abc def"),
+        ("new", "3 - %(opt2)s"),
+        ("both", "3 - abc def")
+    ]
+
+    @pytest.mark.parametrize("action_string_formatting,result",TASK_OPTIONS_DATA)
+    def test_task_options_default(self, action_string_formatting, result):
+        cmd = "{} {}/myecho.py".format(executable, TEST_PATH)
+        if action_string_formatting == 'new':
+            # quoting is necessary to prevent shell expansion
+            cmd += " {opt1} - '%(opt2)s'"
+        else:
+            cmd += " {opt1} - %(opt2)s"
+        task = Task('Fake', [cmd])
+        if action_string_formatting:
+            task.action_string_formatting = action_string_formatting
+        task.options = {'opt1':'3', 'opt2':'abc def'}
+        my_action = task.actions[0]
+        assert my_action.execute() is None
+        got = my_action.out.strip()
+        assert result == got
+
+    TASK_POS_ARG_DATA = [
+        (None, "%(pos)s", True, None),
+        (None, "{pos}", True, "{pos}"),
+        ("old", "%(pos)s", True, None),
+        ("old", "{pos}", True, "{pos}"),
+        ("new", "'%(pos)s'", True, "%(pos)s"),
+        ("new", "{pos}", True, None),
+        ("both", "%(pos)s", True, None),
+        ("both", "{pos}", True, None),
+        (None, "%(pos)s", False, ""),
+        (None, "{pos}", False, "{pos}"),
+        ("old", "%(pos)s",False, ""),
+        ("old", "{pos}", False, "{pos}"),
+        ("new", "'%(pos)s'", False, "%(pos)s"),
+        ("new", "{pos}", False, ""),
+        ("both", "%(pos)s", False, ""),
+        ("both", "{pos}", False, ""),
+    ]
+
+    @pytest.mark.parametrize("action_string_formatting,extra_cmd,has_val,result",TASK_POS_ARG_DATA)
+    def test_task_pos_arg(self, action_string_formatting, extra_cmd, has_val, result):
+        cmd = "{} {}/myecho.py ".format(executable, TEST_PATH)
+        cmd += extra_cmd
+        task = Task('Fake', [cmd], pos_arg='pos')
+        if action_string_formatting:
+            task.action_string_formatting = action_string_formatting
+        task.options = {}
+        if has_val:
+            task.pos_arg_val = ['hi', 'there']
+        my_action = task.actions[0]
+        assert my_action.execute() is None
+
+        got = my_action.out.strip()
+        result = result if result != None else "hi there"
+        assert result == got
+
+
 class TestCmd_print_process_output_line(object):
     def test_non_unicode_string_error_strict(self):
         my_action = action.CmdAction("", decode_error='strict')
