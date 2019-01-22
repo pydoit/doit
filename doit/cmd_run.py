@@ -103,22 +103,6 @@ opt_parallel_type = {
 """
 }
 
-opt_action_string_formatting = {
-    'name':'action_string_formatting',
-    'short':'',
-    'long':'action-string-formatting',
-    'type':str,
-    'default':'old',
-    'choices':[
-        ('old','Formatting using %(KEY)s'),
-        ('new','Formatting using {KEY}'),
-        ('both','Formatting using both styles'),
-    ],
-    'help':
-"""Change formatting style for cmd-actions.
-[default %(default)s]"""
-}
-
 
 # pdb post-mortem
 opt_pdb = {
@@ -166,9 +150,8 @@ class Run(DoitCmdBase):
 
     cmd_options = (opt_always, opt_continue, opt_verbosity,
                    opt_reporter, opt_outfile, opt_num_process,
-                   opt_parallel_type, opt_action_string_formatting,
-                   opt_pdb, opt_single, opt_auto_delayed_regex,
-                   opt_report_failure_verbosity)
+                   opt_parallel_type, opt_pdb, opt_single,
+                   opt_auto_delayed_regex, opt_report_failure_verbosity)
 
 
     def __init__(self, **kwargs):
@@ -207,7 +190,6 @@ class Run(DoitCmdBase):
                  verbosity=None, always=False, continue_=False,
                  reporter='console', num_process=0, par_type='process',
                  single=False, auto_delayed_regex=False, force_verbosity=False,
-                 action_string_formatting='old',
                  failure_verbosity=0, pdb=False):
         """
         @param reporter:
@@ -218,10 +200,6 @@ class Run(DoitCmdBase):
         """
         # configure PythonAction
         PythonAction.pm_pdb = pdb
-
-        # hack to change string formatting of each task
-        for task in self.task_list:
-            task.action_string_formatting = action_string_formatting
 
         # get tasks to be executed
         # self.control is saved on instance to be used by 'auto' command
