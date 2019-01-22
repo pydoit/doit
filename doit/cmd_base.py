@@ -8,6 +8,7 @@ from . import version
 from .cmdparse import CmdOption, CmdParse
 from .exceptions import InvalidCommand, InvalidDodoFile
 from .dependency import CHECKERS, DbmDB, JsonDB, SqliteDB, Dependency
+from .action import CmdAction
 from .plugin import PluginDict
 from . import loader
 
@@ -454,6 +455,10 @@ class DoitCmdBase(Command):
 
         # set selected tasks for command
         self.sel_tasks = args or params.get('default_tasks')
+
+        CmdAction.STRING_FORMAT = params.get('action_string_formatting', 'old')
+        if CmdAction.STRING_FORMAT not in ('old', 'both', 'new'):
+            raise InvalidDodoFile('`action_string_formatting` must be one of `old`, `both`, `new`')
 
         # create dep manager
         db_class = self._backends.get(params['backend'])

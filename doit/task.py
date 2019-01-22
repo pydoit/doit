@@ -164,7 +164,6 @@ class Task(object):
                  subtask_of=None, has_subtask=False,
                  doc=None, params=(), pos_arg=None,
                  verbosity=None, title=None, getargs=None,
-                 action_string_formatting='old',
                  watch=(), loader=None):
         """sanity checks and initialization
 
@@ -232,9 +231,6 @@ class Task(object):
         self.values = {}
         self.verbosity = verbosity
         self.custom_title = title
-
-        # gets set by _execute in cmd_run.Run
-        self.action_string_formatting = action_string_formatting
 
         # clean
         if clean is True:
