@@ -491,12 +491,15 @@ keywords on cmd-action string
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 For *cmd-action* you can take advantage of implicit keyword
-substitution on *cmd-action* strings using
-python format-string-syntax_ or python old-string-formatting_.
+substitution on *cmd-action* strings using python formatting.
 
-.. note:: The use of format-string-syntax is currently disabled by default.
-    To enable it, set the key `action_string_formatting` in `DOIT_CONFIG`
-    to `'new'` or `'both'`. The default value is `'old'`.
+Both format-string-syntax_ and old-string-formatting_ are available and
+are controlled by ``DOIT_CONFIG`` value of ``action_string_formatting``.
+It can be:
+
+  * ``'old'`` uses old-string-formatting_ (``%``)
+  * ``'new'`` uses  format-string-syntax_ (``{{}}``)
+  * ``'both'`` both old and new style
 
 The keyword value is a string containing all respective
 file names separated by a space (" ").
@@ -507,6 +510,7 @@ file names separated by a space (" ").
 
 .. literalinclude:: samples/report_deps.py
 
+.. warn:: ``action_string_formatting`` default value (as of `doit` version **0.32**) is ``'old'``. This default value might change in future versions, it is advised to always explicitly state a value.
 
 Before the string is actually executed, it is always formatted using
 the formatters specified in `DOIT_CONFIG`. Make sure to escape your formatters

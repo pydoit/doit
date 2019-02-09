@@ -345,14 +345,7 @@ getargs
 The values are taken from "saved computed values"
 (returned dict from a python-action).
 
-For *cmd-action* use dictionary-based string formatting.
-
-Here you can choose between format-string-syntax_ and old-string-formatting_,
-using the `action_string_formatting` key in `DOIT_CONFIG`.
-Possible values are `old`, `new` and `both`. The default is `old`.
-
-.. _format-string-syntax: https://docs.python.org/3/library/string.html#format-string-syntax
-.. _old-string-formatting: http://docs.python.org/3/library/stdtypes.html#old-string-formatting
+For *cmd-action* use dictionary-based string formatting. Formatting style is controlled by ``action_string_formatting`` key in ``DOIT_CONFIG`` (see keywords-on-cmd-action-string_).
 
 
 For *python-action* the action callable parameter names must match with keys

@@ -9,7 +9,7 @@ from pathlib import PurePath
 from threading import Thread
 import pdb
 
-from .exceptions import InvalidTask, InvalidCommand, TaskFailed, TaskError
+from .exceptions import InvalidTask, TaskFailed, TaskError
 
 
 def normalize_callable(ref):
