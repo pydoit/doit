@@ -64,6 +64,7 @@
 API
 ARG
 ATCI
+Atomwise
 BC3
 BaseAction
 Biomechanics
@@ -72,6 +73,7 @@ CFEngine
 CMake
 CSV
 CamelCase
+Cheminformatics
 CmdAction
 CmdAction's
 CmdActions
@@ -145,6 +147,7 @@ Schettino
 Segata
 SetupSample
 SkOink
+Sorenson
 StackOverflow
 Subclassing
 TC4
@@ -183,6 +186,7 @@ bar'
 basename
 basenames
 bioinformatic
+bioinformatics
 biomechanics
 bitbucket
 blog
@@ -224,6 +228,7 @@ dev
 dev0
 dict
 dict's
+didn
 dir
 docstring
 dodoFile
@@ -248,6 +253,8 @@ fnmatch
 folderXXX
 foo
 foo'
+formatter
+formatters
 fpath
 gdbm
 genindex
@@ -362,6 +369,7 @@ pypi
 pytest
 python2
 python3
+pythonic
 quickstart
 refactor
 regex

@@ -107,7 +107,7 @@ maintenance, good documentation etc.  Besides `doit` I evaluated `bonobo`, `Luig
 `bonobo` didn't fit my needs for dependency-based processing.  `Luigi` and `airflow` are
 very nice, but I didn't have any particular need for distributed workflows and the
 heavier weight feel of these platforms.  My favorite experience was `airflow` but it
-didn't have (obvious) support for reentrant processing: running a pipeline
+didn't have (obvious) support for re-entrant processing: running a pipeline
 from an intermediate stage.
 
 I knew that build-system based frameworks would do exactly what I wanted and not
