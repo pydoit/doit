@@ -130,6 +130,7 @@ PCM
 PDB
 PVR
 PYTHONPATH
+Pagel
 Pandoc
 Popen
 PyPi
@@ -299,6 +300,7 @@ kbd
 kwargs
 lelele
 letsdoit
+linters
 linux
 literalinclude
 longrunning
@@ -391,6 +393,7 @@ settrace
 setupX
 setupY
 setuptools
+shouldn
 shrinksafe
 shutils
 sourcecode
@@ -429,6 +432,8 @@ titlewithactions
 to's
 toc
 toctree
+toolchain
+toolchains
 traceback
 tsetup
 tuto

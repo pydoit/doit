@@ -135,6 +135,37 @@ for my needs:
 Build System
 ------------
 
+`BMW <https://www.bmw.com/de/index.html>`_ (Automotive)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+by `Mike Pagel <https://github.com/moltob>`_ (2019-02-06)
+
+We are responsible for the development of the next generation instrument
+cluster software at BMW. While we use CMake for the actual build of libraries
+and applications, we have learned in the past that you *can* do almost everything
+with ``CMake``, but probably you *shouldn’t*.
+
+``CMake`` is optimized for all tasks around compiler toolchain control, but the
+language is somewhat special and functions and macros cannot easily be tested
+outside of a real build. This is where ``doit`` enters the stage: We use it for
+everything *but* compiling software, as a high level command line interface for
+the development teams (and the CI systems). These are some of the tasks we
+perform with ``doit``:
+
+- Downloading and installing tools.
+- Calling ``CMake`` for multiple compiler toolchains.
+- Driving various code analysis tools.
+- Reporting.
+- Packaging the software for later deployment to the car etc.
+- Checking if dependencies of the toolchain are outdated and creating automatic
+  pull requests.
+
+Basically we implemented our complete high-level build control in ``doit``. The
+resulting framework is now used by us and our suppliers and supports a team
+over 100 developers. Since ``doit`` is written in Python, we have professional test
+frameworks, linters and code analyzers at hand, allowing for a thoroughly
+tested and well-designed platform for our build-systems and automation.
+
 
 Game Development
 ^^^^^^^^^^^^^^^^

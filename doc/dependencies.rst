@@ -345,7 +345,7 @@ getargs
 The values are taken from "saved computed values"
 (returned dict from a python-action).
 
-For *cmd-action* use dictionary-based string formatting. Formatting style is controlled by ``action_string_formatting`` key in ``DOIT_CONFIG`` (see keywords-on-cmd-action-string_).
+For *cmd-action* use dictionary-based string formatting. Formatting style is controlled by ``action_string_formatting`` key in ``DOIT_CONFIG`` (see :ref:`keywords on cmd-action string <keywords-on-cmd-action-string>`).
 
 
 For *python-action* the action callable parameter names must match with keys
