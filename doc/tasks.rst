@@ -364,89 +364,6 @@ Lets take the compilation example again.
 
 
 
-parameters on actions
----------------------
-
-Actions may take optional parameters provided as function keywords arguments for *python-action*. Or values for *printf-style* formatting on *cmd-action*.
-
-There are three sources of parameter values:
-
- - specified on action's `kwargs` definition
- - keywords with task metadata such as `dependencies`, `changed`, `targets` and `task`
- - values computed in other tasks. :ref:`getargs` describes, how a task can calculate and store values and how other tasks can refer to them.
-
-
-keywords with task metadata
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-These values are automatically calculated by `doit`:
-
- - `dependencies`: list of `file_dep`
- - `changed`: list of `file_dep` that changed since last
-   successful execution
- - `targets`: list of `targets`
- - `task`: only available to *python-action*.
-   Note: the value is a `Task` object instance, not the metadata *dict*.
-
-
-keywords on cmd-action string
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-For *cmd-action* you can take advantage of implicit keyword
-substitution on *cmd-action* strings using
-python format-string-syntax_ or python old-string-formatting_.
-
-.. note:: The use of format-string-syntax is currently disabled by default.
-    To enable it, set the key `action_string_formatting` in `DOIT_CONFIG`
-    to `'new'` or `'both'`. The default value is `'old'`.
-
-The keyword value is a string containing all respective
-file names separated by a space (" ").
-
-.. _format-string-syntax: https://docs.python.org/3/library/string.html#format-string-syntax
-.. _old-string-formatting: http://docs.python.org/3/library/stdtypes.html#old-string-formatting
-
-
-.. literalinclude:: samples/report_deps.py
-
-
-Before the string is actually executed, it is always formatted using
-the formatters specified in `DOIT_CONFIG`. Make sure to escape your formatters
-control characters, namely `{` and `}` for format-string-syntax_ and `%` for
-old-string-formatting_. This is done by doubling them, so `%` becomes `%%` and so on.
-
-.. note:: *cmd-action* may have the form of a string (as `"echo hello world"`)
-    or list of arguments (as `["echo", "hello", "world"]`).
-    Implicit keywords substitution applies only to the string form
-    and does not affect the list form. This means `{}` and `%`
-    need not be escaped when using this form.
-
-
-
-keywords on *python-action*
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-For *python-action* add a keyword parameter in the function,
-`doit` will take care of passing the value when the function is called.
-`dependencies`, `changed`, `targets` are passed as list of strings.
-
-
-.. literalinclude:: samples/hello.py
-
-
-You can also pass the keyword `task` to have a reference to all task
-metadata.
-
-.. literalinclude:: samples/meta.py
-
-
-.. note::
-
-  It is possible not only to retrieve task's attributes but also to
-  modify them while the action is running!
-
-
-
 execution order
 -----------------
 
@@ -542,6 +459,91 @@ You can also select tasks to be executed using a `glob <http://docs.python.org/l
     .  create_file:file1.txt
     .  create_file:file2.txt
     .  create_file:file3.txt
+
+
+
+parameters on actions
+---------------------
+
+Actions may take optional parameters provided as function keywords arguments for *python-action*. Or values for *printf-style* formatting on *cmd-action*.
+
+There are three sources of parameter values:
+
+ - specified on action's `kwargs` definition
+ - keywords with task metadata such as `dependencies`, `changed`, `targets` and `task`
+ - values computed in other tasks. :ref:`getargs` describes, how a task can calculate and store values and how other tasks can refer to them.
+
+
+keywords with task metadata
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+These values are automatically calculated by `doit`:
+
+ - `dependencies`: list of `file_dep`
+ - `changed`: list of `file_dep` that changed since last
+   successful execution
+ - `targets`: list of `targets`
+ - `task`: only available to *python-action*.
+   Note: the value is a `Task` object instance, not the metadata *dict*.
+
+
+keywords on cmd-action string
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For *cmd-action* you can take advantage of implicit keyword
+substitution on *cmd-action* strings using
+python format-string-syntax_ or python old-string-formatting_.
+
+.. note:: The use of format-string-syntax is currently disabled by default.
+    To enable it, set the key `action_string_formatting` in `DOIT_CONFIG`
+    to `'new'` or `'both'`. The default value is `'old'`.
+
+The keyword value is a string containing all respective
+file names separated by a space (" ").
+
+.. _format-string-syntax: https://docs.python.org/3/library/string.html#format-string-syntax
+.. _old-string-formatting: http://docs.python.org/3/library/stdtypes.html#old-string-formatting
+
+
+.. literalinclude:: samples/report_deps.py
+
+
+Before the string is actually executed, it is always formatted using
+the formatters specified in `DOIT_CONFIG`. Make sure to escape your formatters
+control characters, namely `{` and `}` for format-string-syntax_ and `%` for
+old-string-formatting_. This is done by doubling them, so `%` becomes `%%` and so on.
+
+.. note:: *cmd-action* may have the form of a string (as `"echo hello world"`)
+    or list of arguments (as `["echo", "hello", "world"]`).
+    Implicit keywords substitution applies only to the string form
+    and does not affect the list form. This means `{}` and `%`
+    need not be escaped when using this form.
+
+
+
+keywords on *python-action*
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For *python-action* add a keyword parameter in the function,
+`doit` will take care of passing the value when the function is called.
+`dependencies`, `changed`, `targets` are passed as list of strings.
+
+
+.. literalinclude:: samples/hello.py
+
+
+You can also pass the keyword `task` to have a reference to all task
+metadata.
+
+.. literalinclude:: samples/meta.py
+
+
+.. note::
+
+  It is possible not only to retrieve task's attributes but also to
+  modify them while the action is running!
+
+
 
 
 private/hidden tasks
