@@ -487,6 +487,8 @@ These values are automatically calculated by `doit`:
    Note: the value is a `Task` object instance, not the metadata *dict*.
 
 
+.. _keywords-on-cmd-action-string:
+
 keywords on cmd-action string
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -510,7 +512,7 @@ file names separated by a space (" ").
 
 .. literalinclude:: samples/report_deps.py
 
-.. warn:: ``action_string_formatting`` default value (as of `doit` version **0.32**) is ``'old'``. This default value might change in future versions, it is advised to always explicitly state a value.
+.. warning:: ``action_string_formatting`` default value (as of `doit` version **0.32**) is ``'old'``. This default value might change in future versions, it is advised to always explicitly state a value.
 
 Before the string is actually executed, it is always formatted using
 the formatters specified in `DOIT_CONFIG`. Make sure to escape your formatters
