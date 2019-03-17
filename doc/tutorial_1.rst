@@ -118,7 +118,7 @@ Note that ``actions`` is a list where its element are strings to be interpreted 
 task execution
 --------------
 
-``doit`` comes with a command line tool to act upon the set of tasks defined in a specific file. The default file is ``dodo.py`` in the current directory, and the default action is to execute all found tasks.
+``doit`` comes with a command line tool to act upon the set of tasks defined in a specific file. The default file is ``dodo.py`` in the current directory. With no argument it executes all tasks found in it.
 
 .. code-block:: console
 
@@ -501,7 +501,7 @@ Let's rewrite the ``imports`` task to use a python action instead of a shell com
 The function ``get_imports`` is used as the task's action.
 It returns a dictionary, which will be saved by ``doit`` in its internal database. The returned dictionary must contain only values that can be encoded as JSON.
 
-``get_imports`` takes the path's module as a parameter. The value of this parameter to be used upon task execution is specified in the ``actions`` of the task definition. Generally speaking, each element of the ``actions`` array is a tuple *(callable, args, kwargs)*.
+``get_imports`` takes the path's module as a parameter (``module_path``). The value that will be used for this parameter upon task execution is specified in the ``actions`` of the task definition. Generally speaking, each element of the ``actions`` array is a tuple *(callable, args, kwargs)*.
 
 .. note::
 
@@ -600,7 +600,7 @@ Sub-tasks (items of task group) by default are not reported by the ``list`` comm
    imports:requests.utils
 
 
-Note the task name is composed by the task's group name
+Note the task's name is composed of the task's group name (aka ``basename``)
 followed by a colon `:` and the ``name`` specified as a parameter when ``yield``ing.
 
 From the command line, a single task can be executed like this:
