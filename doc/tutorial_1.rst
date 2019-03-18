@@ -3,12 +3,12 @@
 tutorial 1 - basics
 ===================
 
-This tutorial demonstrates how to use ``doit`` to create simple computational pipeline.
+This tutorial demonstrates how to use ``doit`` to create a simple computational pipeline.
 
-The goal is to create a graph of python module imports in a package.
+The goal is to create a graph of python module's imports in a package.
 `graphviz <http://graphviz.org/>`_'s **dot** tool will be used to generate the graph.
 
-As example the `requests <https://github.com/requests/requests>`_ package will be used. The result is the image below:
+As an example, the `requests <https://github.com/requests/requests>`_ package will be used. The result is the image below:
 
 .. image:: _static/requests.png
 
@@ -21,12 +21,12 @@ In the image an arrow represents an import from one module to another. For examp
    from .structures import LookupDict
 
 
-Drawing an "import" dependency graph can be very useful to understand how the code in a package is organized.
+Drawing an "import" dependency graph can be very useful in understanding how the code in a package is organized.
 It may also help you identify potential problems like circular imports.
 
 There are three main steps to generate this graph:
 
-1) read each python module and list it's imports
+1) read each python module and list its imports
 2) generate a `dot` (text format) file representing the graph
 3) generate an image (PNG) from the `dot` file
 
@@ -88,10 +88,10 @@ The output contains one imported module per line.
 doit task
 ---------
 
-Next step we are going to wrap the above script in a ``doit`` *task*.
+On the next step we are going to wrap the above script in a ``doit`` *task*.
 In ``doit`` tasks are defined in a plain python module, by default called ``dodo.py``.
 
-For example a trivial task to execute the script above and save its output into a file would be:
+For example, a trivial task to execute the script above and save its output into a file would be:
 
 
 .. code-block:: python3
@@ -105,20 +105,20 @@ For example a trivial task to execute the script above and save its output into 
 
 
 In this module you write functions that are **task-creators**,
-the role of these functions is not to execute tasks but to return task's metadata.
+the role of which is not to execute tasks but to return tasks' metadata.
 **task-creators** are any function whose name starts with ``task_``.
-A task name is taken from the function name,
-in this case the name is ``imports``.
+A task name is taken from the function name, so
+in this case the task is called ``imports``.
 
-The most important *Task* metadata is ``actions``, this defines what will be done when a task is executed.
+The most important *Task* metadata is ``actions``, which defines what will be done when a task is executed.
 
-Note that ``actions`` is a list where its element are a string with a shell command.
+Note that ``actions`` is a list where its element are strings to be interpreted as shell commands.
 
 
 task execution
 --------------
 
-``doit`` command line by default will execute all tasks defined in ``dodo.py`` module in the current directory.
+``doit`` comes with a command line tool to act upon the set of tasks defined in a specific file. The default file is ``dodo.py`` in the current directory. With no argument it executes all tasks found in it.
 
 .. code-block:: console
 
@@ -134,10 +134,10 @@ a list of modules imported by ``requests.models``.
 incremental computation
 -----------------------
 
-One of the main purposes in the usage of ``doit`` is to make use
-of **up-to-date** checks to decide if tasks *needs* to be executed or not.
+One of the main purposes of ``doit`` is to make use
+of **up-to-date** checks to decide if tasks *need* to be executed or not.
 
-In this case as long as the input file is not modified we are certain
+In our case, as long as the input file is not modified we are certain
 that the same output would be generated...
 
 When dealing with files, task's metadata ``file_dep`` and ``targets`` can be used:
@@ -188,7 +188,7 @@ rules for up-to-date checks on files
 file_dep
 ^^^^^^^^
 
-``doit`` uses the *md5* of ``file_dep`` to determine if a dependency is changed.
+``doit`` uses the *md5* of ``file_dep`` to determine if a dependency has changed.
 
 
 .. code-block:: console
@@ -201,14 +201,14 @@ file_dep
    .  imports
 
 
-Note that simply changing a file timestamp would not trigger a new execution.
+Note that simply changing a file timestamp does not trigger a new execution.
 
 
 targets
 ^^^^^^^
 
-For ``targets``, it only checks if the target exists.
-So if a target is removed it will be re-created even without changes on dependencies.
+For ``targets``, the only verification that is made is whether the file exists or not.
+So if a target is removed it will be re-created even if the dependencies remain unmodified.
 
 .. code-block:: console
 
@@ -222,11 +222,11 @@ graphviz dot
 ============
 
 
-Next step we will create a `graphviz <http://graphviz.org/>`_'s ``dot`` file.
-``dot`` is a language to describe to graphs.
+On the next step we will create a `graphviz <http://graphviz.org/>`_'s ``dot`` file.
+``dot`` is a language to describe graphs.
 
-Code below defines a python function to read a file containing
-import dependencies (as generated by previously defined ``imports`` task).
+The code below defines a python function to read a file containing
+import dependencies (as generated by our previously defined ``imports`` task).
 
 
 .. module_to_dot()
@@ -238,8 +238,8 @@ import dependencies (as generated by previously defined ``imports`` task).
 Task with python action
 -----------------------
 
-Next we define the task ``dot``, it is similar to previous task...
-but note that instead of passing a string with a shell command
+Next we define the ``dot`` task, which is similar to previous tasks...
+except for the fact that instead of passing a string with a shell command
 we directly pass the previously created python function ``module_to_dot``.
 
 
@@ -250,7 +250,7 @@ we directly pass the previously created python function ``module_to_dot``.
    :lines: 28-33,35
 
 
-Also note the function takes the special parameters ``dependencies`` and ``targets``, those values will be injected by ``doit``.
+Also note that the function takes the special parameters ``dependencies`` and ``targets``, whose values will be injected by ``doit`` in the function call.
 
 
 .. code-block:: console
@@ -295,7 +295,7 @@ doit command line
 =================
 
 
-``doit`` has a rich (and extensible) command line to manipulate your tasks. So far we have only executed ``doit`` without any parameters...
+``doit`` has a rich (and extensible) command line tool to manipulate your tasks. So far we have only executed ``doit`` without any parameters...
 
 ``doit`` command line takes the form of ``doit <sub-command> <options> <arguments>``,
 where ``options`` and ``arguments`` are specific to the ``sub-command``.
@@ -327,14 +327,14 @@ The command ``list`` displays the list of known tasks:
    imports   find imports from a python module
 
 
-Note how the docstring from *task-creators* functions were used as task's description.
+Note how the docstring from *task-creators* functions were used as tasks' description.
 
 
 info
 ----
 
-The ``info`` command can be used to get more information from a specific task.
-Information about it's metadata, and it is state (whether it is up-to-date or not).
+The ``info`` command can be used to get more information about a specific task's
+metadata and state (whether it is up-to-date or not).
 
 
 .. code-block:: console
@@ -361,7 +361,7 @@ run
 So ``$ doit`` and ``$ doit run`` do exactly the same thing.
 
 Without any parameters ``run`` will execute all of your tasks.
-You can also select which tasks to be executed by passing a sequence of tasks names.
+You can also select which tasks to be executed by passing a sequence of tasks' names.
 
 For example if you want to execute only the ``imports`` task you would type:
 
@@ -372,7 +372,7 @@ For example if you want to execute only the ``imports`` task you would type:
    -- imports
 
 
-Note that even if you explicitly pass the name of task to be executed,
+Note that even if you explicitly pass the name of the task to be executed,
 ``doit`` will actually execute the task only if it is not **up-to-date**.
 
 You can also pass more than one task:
@@ -384,8 +384,8 @@ You can also pass more than one task:
    -- dot
 
 
-Another important point to take notice is that even
-if you specify only one task ``doit`` will run all of the dependencies of the specified task.
+Another important point to take notice of is that even
+if you specify only one task, ``doit`` will run all of the dependencies of the specified task.
 
 .. code-block:: console
 
@@ -403,9 +403,9 @@ clean
 A common use-case is to be able to "revert" the operations done by a task.
 ``doit`` provides the ``clean`` command for that.
 
-By default it does nothing... You need to add a parameter ``clean`` to task metadata. For the most common case where you just want to remove the created targets, just pass the value ``True``.
+By default it does nothing... You need to add the parameter ``clean`` to the task's metadata. For the most common case where you just want to remove the created targets, just pass the value ``True``.
 
-You can also write custom ``actions`` (shell or python) of what should be done as a value to ``clean`` field.
+You can also write custom ``actions`` (shell or python) to specify what should be done as a value to ``clean`` field.
 
 Add ``clean`` to all defined tasks, like:
 
@@ -440,10 +440,10 @@ Since targets were removed this will force the tasks to be executed on next ``ru
 forget
 ------
 
-``doit`` will look for changes in dependencies, but not changes in your code...
-While developing a task it is common to want to force the execution of task after making changes in the code.
+``doit`` will look for changes in the dependencies, but not for changes in the code that defines the tasks...
+While developing a task, it is common to want to force its execution after making changes to it.
 
-For example lets change the colors of nodes in graph:
+For example, let's change the colors of the nodes in the graph:
 
 .. module_to_dot()
 .. literalinclude:: tutorial/tuto_1_1.py
@@ -452,7 +452,7 @@ For example lets change the colors of nodes in graph:
    :emphasize-lines: 3-4
 
 
-To force its execution we need to ``doit`` to ``forget`` its state like:
+To force its execution we need ``doit`` to ``forget`` its state thus so:
 
 .. code-block:: console
 
@@ -472,7 +472,7 @@ To force its execution we need to ``doit`` to ``forget`` its state like:
 
 .. note::
 
-   Another option force execution of task after code changes is to use `run``'s command option ``-a/--always-execute``. That will ignore the **up-to-date** check and always execute tasks.
+   Another option to force the execution of a task after code changes is to use `run``'s command option ``-a/--always-execute``. That will ignore the **up-to-date** check and always execute tasks.
 
 
 Code :download:`dodo.py <tutorial/tuto_1_1.py>`.
@@ -481,14 +481,14 @@ Code :download:`dodo.py <tutorial/tuto_1_1.py>`.
 Pipelines
 =========
 
-So far we have build a traditional "file" based pipeline where one task's target is used as a dependency in another task.
+So far we have built a traditional "file" based pipeline where one task's target is used as a dependency for another task.
 
 While ``doit`` provides first-class support for file based pipelines, they are not required.
 
 get module imports - python
 ---------------------------
 
-Let's rewrite the ``imports`` task to use python action:
+Let's rewrite the ``imports`` task to use a python action instead of a shell command:
 
 .. task_imports()
 .. literalinclude:: tutorial/tuto_1_2.py
@@ -498,24 +498,28 @@ Let's rewrite the ``imports`` task to use python action:
 
 
 
-Function ``get_imports`` is used as task's action.
-It returns a dictionary, this will be saved by ``doit`` in its internal database. The returned dictionary must contain only values that can be encoded in JSON.
+The function ``get_imports`` is used as the task's action.
+It returns a dictionary, which will be saved by ``doit`` in its internal database. The returned dictionary must contain only values that can be encoded as JSON.
 
-Note that the parameter ``module_path`` is passed into task definition of ``actions``.
-Instead of just specifying a callable it takes a tuple *(callable, args, kwargs)*.
+``get_imports`` takes the path's module as a parameter (``module_path``). The value that will be used for this parameter upon task execution is specified in the ``actions`` of the task definition. Generally speaking, each element of the ``actions`` array is a tuple *(callable, args, kwargs)*.
 
 .. note::
 
-   Note in this example for simplicity we are using ``doit`` internal database but it is also possible to use any other external database or data source.
+   Note in this example for simplicity we are using ``doit`` internal database, but it is also possible to use any other external database or data source.
 
 
 
 getargs
 -------
 
-The task parameter ``getargs`` can be used to specify values to be retrieved that are computed in another task.
-It is a dictionary where the *key* is the parameter name used in this task's action parameter.
-It's value is 2-value tuple where the first item is the task name, and the second is the value name (key in the returned dictionary).
+The task's parameter ``getargs`` can be used to extract values from another task's result and pass it as a parameter to the current task's action.
+It's a dictionary of the form
+
+.. code-block:: python
+
+    {target_key: (task_name, source_key)}
+
+and what it does is to execute the task ``task_name``, get the value of ``source_key`` from its resulting dict, and passing that as the argument named ``target_key`` of the current task's action.
 
 
 
@@ -528,16 +532,16 @@ It's value is 2-value tuple where the first item is the task name, and the secon
 
 Note how ``module_to_dot`` takes 3 parameters:
 
-- ``source``: value is passed directly when task's actions is defined
-- ``imports``: value is taken from ``imports`` task result
+- ``source``: value is passed directly when the task's actions is defined
+- ``imports``: value is taken from ``imports`` task's result
 - ``targets``: values is taken from Task metadata
 
 
 Everything should work as before, but without the creation of intermediate files.
 
-``doit`` can determine if task ``imports`` is **up-to-date** even without a target file (it just look at the ``file_dep``).
+``doit`` can determine if the task ``imports`` is **up-to-date** even without a target file (it will just look at the ``file_dep``).
 
-``doit`` can also determine if ``dot`` is **up-to-date** by comparing the value returned by ``imports`` (instead of checking for file changes, it checks for changes in the JSON object).
+``doit`` can also determine if ``dot`` is **up-to-date** by comparing the value returned by ``imports`` (its dependency through the ``getargs`` parameter), with the value stored in its database.
 
 Code :download:`dodo.py <tutorial/tuto_1_2.py>`.
 
@@ -545,7 +549,7 @@ Code :download:`dodo.py <tutorial/tuto_1_2.py>`.
 package imports
 ===============
 
-So far we are creating a graph of only one module.
+So far we have been creating a graph of a single module.
 Let's process all modules in the package.
 
 ``doit`` has the concept of a **task-group**.
@@ -563,7 +567,7 @@ Since each task needs to be independently identified an extra parameter ``name``
    :emphasize-lines: 4,11,12
 
 
-Sub-tasks (items of task group) by default are not reported on ``list`` command. They be displayed using the ``--all`` flag.
+Sub-tasks (items of task group) by default are not reported by the ``list`` command. They can be displayed, though, using the ``--all`` flag.
 
 .. code-block:: console
 
@@ -596,10 +600,10 @@ Sub-tasks (items of task group) by default are not reported on ``list`` command.
    imports:requests.utils
 
 
-Note the task name is composed by the (base name) group task name
-followed by a colon `:` and the ``name`` specified as a parameter.
+Note the task's name is composed of the task's group name (aka ``basename``)
+followed by a colon `:` and the ``name`` specified as a parameter when ``yield``ing.
 
-From command line a single task can executed like::
+From the command line, a single task can be executed like this:
 
   $ doit imports:requests.models
   .  imports:requests.models
@@ -620,7 +624,7 @@ key is the sub-task name:
    :emphasize-lines: 5,15
 
 
-Finally adjust task ``draw``.
+Finally, adjust task ``draw``.
 
 .. task_draw()
 .. literalinclude:: tutorial/tuto_1_3.py
@@ -641,9 +645,9 @@ printing imports
 ================
 
 Getting rid of intermediate computation files (like ``requests.models.deps``) was nice...
-but sometimes it is nice to be able to quickly list the direct imports from a module.
+but sometimes it is usefull to be able to quickly list the direct imports from a module.
 
-Let's create another task just print it's output in the terminal.
+Let's create another task that just prints its output in the terminal.
 
 .. task_print()
 .. literalinclude:: tutorial/tuto_1_4.py
@@ -651,15 +655,15 @@ Let's create another task just print it's output in the terminal.
    :lines: 12-14, 32-44
    :emphasize-lines: 14-15
 
-Here again we used a **task-group** to create one task per python module. And ``getargs`` to get list of module imports that were already calculated on ``imports`` task.
+Here again we used a **task-group** to create one task per python module and ``getargs`` to extract the list of modules' imports from ``imports``'s result.
 
-Also note the usage of two metadata fields not seen before ``uptodate`` and ``verbosity``.
+Also note the usage of two metadata fields not seen before: ``uptodate`` and ``verbosity``.
 
 
 custom `uptodate`
 -----------------
 
-So far we have seen how ``doit`` can determine if a task is **up-to-date** by taking into account changes to ``file_dep``, if ``targets`` exist and results from ``getargs``...
+So far we have seen how ``doit`` can determine if a task is **up-to-date** by taking into consideration changes to ``file_dep``, if ``targets`` exist and results from ``getargs`` have changed.
 
 While those cover a wide range of use cases, ``doit`` also provides a way to specify completely custom checks for  **up-to-date**, using the ``uptodate`` field.
 
@@ -667,7 +671,7 @@ In this case the ``print`` task actually does not perform any computation, it is
 So this task should be **always** executed.
 
 ``update`` will be explained in detail in part 2 of this tutorial.
-For now suffice to add value ``False`` to indicate this task will never be considered **up-do-date**.
+For now it suffices to add the value ``False`` to indicate this task will never be considered **up-do-date**.
 
 .. code-block:: python
 
@@ -680,18 +684,18 @@ verbosity
 ``doit`` output (for command ``run``) consists of:
 
 - one line with task name (preceded by `.` or `--`)
-- task output
+- task's output
 
-The actual task output displayed can be controlled by ``verbosity``,
-there are 3 levels of verbosity.
+The actual task's output displayed can be controlled by ``verbosity``.
+There are 3 levels of verbosity.
 
-- 0: both stdout and stderr from task are **NOT** displayed
+- 0: both stdout and stderr from the task are **NOT** displayed
 - 1: only stderr is displayed
 - 2: both stdout and stderr are displayed
 
 The default verbosity is `1`.
 
-If ``print`` task was executed with default verbosity we would actually not see any output, so we must force its ``verbosity`` value to ``2``.
+If the ``print`` task would be executed with the default verbosity we would actually not see any output, so we must force its ``verbosity`` value to ``2``.
 
 
 .. code-block:: python3
@@ -724,7 +728,7 @@ Since ``print`` is used only to display some information, it should not be execu
 
 i.e. when you just run ``doit`` without any parameters it should create the graph image but not print out the information from ``print`` task.
 
-Before I said by default ``doit run`` would execute all tasks.
+Before I said that by default ``doit run`` would execute all tasks.
 That is not exactly true... it will execute all *default tasks*.
 The default tasks can be controlled by adding a configuration dictionary with the name ``DOIT_CONFIG`` in the `dodo.py`.
 
@@ -735,7 +739,7 @@ The default tasks can be controlled by adding a configuration dictionary with th
    :lines: 7-9
 
 
-Apart from ``default_tasks``, ``DOIT_CONFIG`` can change the default of any command line option. For example you can globally change task's verbosity for all tasks with:
+Apart from ``default_tasks``, ``DOIT_CONFIG`` can change the default of any command line option. For example you can globally change every task's ``verbosity`` level:
 
 .. code-block:: python3
 
