@@ -93,13 +93,13 @@ Here is the list of all attributes ``param`` accepts:
     :required:  True
 
 ``short``
-    Short parameter form, used for e.g. ``-p value``.
+    Short parameter form, used for e.g. :option:`-p value`.
 
     :required:  optional
     :type:      `str`
 
 ``long``
-    Long parameter form, used for e.g. ``--parameter value``.
+    Long parameter form, used for e.g. :option:`--parameter value`.
 
     :required:  optional
     :type:      `str`

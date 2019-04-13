@@ -34,7 +34,7 @@ list
 ------
 
 *list* is used to show all tasks available in a *dodo* file.
-Tasks are listed in alphabetical order by default, but *--sort=definition* can
+Tasks are listed in alphabetical order by default, but :option:`--sort=definition` can
 be specified to sort them in the order in which they appear in the `dodo` file.
 
 .. code-block:: console
@@ -48,17 +48,17 @@ be specified to sort them in the order in which they appear in the `dodo` file.
 By default task name and description are listed. The task description is taken
 from the first line of task function doc-string. You can also set it using the
 *doc* attribute on the task dictionary. It is possible to omit the description
-using the option *-q*/*--quiet*.
+using the option :option:`-q`/:option:`--quiet`.
 
 By default sub-tasks are not listed. It can list sub-tasks using the option
-*--all*.
+:option:`--all`.
 
 By default task names that start with an underscore(*_*) are not listed. They
-are listed if the option *-p*/*--private* is used.
+are listed if the option :option:`-p`/:option:`--private` is used.
 
-Task status can be printed using the option *-s*/*--status*.
+Task status can be printed using the option :option:`-s`/:option:`--status`.
 
-Task's file-dependencies can be printed using the option *--deps*.
+Task's file-dependencies can be printed using the option :option:`--deps`.
 
 
 info
@@ -78,7 +78,7 @@ the task meta-data.
     targets:['edit']
 
 
-Use the option `--status`, to check the reason a task is not up-to-date.
+Use the option :option:`--status`, to check the reason a task is not up-to-date.
 
 .. code-block:: console
 
@@ -138,17 +138,17 @@ You can specify which task to *clean*. If no task is specified the clean operati
 
 
 By default if a task contains task-dependencies those are not automatically
-cleaned too. You can enable this using the option *-c*/*--clean-dep*.
+cleaned too. You can enable this using the option :option:`-c`/:option:`--clean-dep`.
 If you are executing the default tasks this flag is automatically set.
 
 
 .. note::
 
     By default only the default tasks' clean are executed, not from all tasks.
-    You can clean all tasks using the *-a*/*--all* argument.
+    You can clean all tasks using the :option:`-a`/:option:`--all` argument.
 
 If you like to also make doit forget previous execution of cleaned tasks, use option
-*--forget*. This can be made the default behavior by adding the corresponding ``cleanforget``
+:option:`--forget`. This can be made the default behavior by adding the corresponding ``cleanforget``
 configuration switch:
 
 .. code-block:: python
@@ -160,7 +160,7 @@ configuration switch:
 dry run
 ^^^^^^^
 
-If you want check which tasks the clean operation would affect you can use the option `-n/--dry-run`.
+If you want check which tasks the clean operation would affect you can use the option :option:`-n`/:option:`--dry-run`.
 
 When using a custom action on `dry-run`, the action is not executed at all
 **if** it does not include a `dryrun` parameter.

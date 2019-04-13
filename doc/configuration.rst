@@ -10,7 +10,7 @@ Note that the configuration option's name is not always the same as the
 *long* argument name used in the command line.
 
 I.e. To specify dodo file other than `dodo.py` from the command line
-you specify the option as ``-f`` or ``--file``, but from a config file
+you specify the option as :option:`-f` or :option:`--file`, but from a config file
 it is called ``dodoFile``.
 
 The name can be seem from ``doit help`` output::
@@ -94,7 +94,7 @@ it will have the same effect as executing
 .. note::
 
   Not all options can be set on `dodo.py` file.
-  The parameters ``--file`` and ``--dir`` can not be used on config because
+  The parameters :option:`--file` and :option:`--dir` can not be used on config because
   they control how the *dodo* file itself is loaded.
 
   Also if the command does not read the `dodo.py` file it obviously will

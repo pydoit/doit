@@ -472,7 +472,7 @@ To force its execution we need ``doit`` to ``forget`` its state thus so:
 
 .. note::
 
-   Another option to force the execution of a task after code changes is to use `run``'s command option ``-a/--always-execute``. That will ignore the **up-to-date** check and always execute tasks.
+   Another option to force the execution of a task after code changes is to use `run`'s command option :option:`-a`/:option:`--always-execute`. That will ignore the **up-to-date** check and always execute tasks.
 
 
 Code :download:`dodo.py <tutorial/tuto_1_1.py>`.
@@ -567,7 +567,7 @@ Since each task needs to be independently identified an extra parameter ``name``
    :emphasize-lines: 4,11,12
 
 
-Sub-tasks (items of task group) by default are not reported by the ``list`` command. They can be displayed, though, using the ``--all`` flag.
+Sub-tasks (items of task group) by default are not reported by the ``list`` command. They can be displayed, though, using the :option:`--all` flag.
 
 .. code-block:: console
 
@@ -717,7 +717,7 @@ If the ``print`` task would be executed with the default verbosity we would actu
    requests.structures
    requests.utils
 
-Note ``verbosity`` can be overwritten from command-line with option ``-v/--verbosity``.
+Note ``verbosity`` can be overwritten from command-line with option :option:`-v`/:option:`--verbosity`.
 
 
 DOIT_CONFIG
