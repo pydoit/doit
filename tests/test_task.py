@@ -611,9 +611,6 @@ class TestResultDep(object):
         # t2 result changed
         tasks['t2'].result = '222'
         dep_manager.save_success(tasks['t2'])
-
-        tasks['t1'].save_extra_values()
-        dep_manager.save_success(tasks['t1'])
         assert 'run' == dep_manager.get_status(tasks['t1'], tasks).status
 
         tasks['t1'].save_extra_values()
@@ -645,9 +642,6 @@ class TestResultDep(object):
         # t2 result changed
         tasks['t2:a'].result = '222'
         dep_manager.save_success(tasks['t2:a'])
-
-        tasks['t1'].save_extra_values()
-        dep_manager.save_success(tasks['t1'])
         assert 'run' == dep_manager.get_status(tasks['t1'], tasks).status
 
         tasks['t1'].save_extra_values()

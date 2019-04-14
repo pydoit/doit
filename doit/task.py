@@ -6,7 +6,6 @@ import os
 import sys
 import inspect
 from collections import OrderedDict
-from functools import partial
 from pathlib import PurePath
 
 from .cmdparse import CmdOption, TaskParse
@@ -595,9 +594,6 @@ def clean_targets(task, dryrun):
                 os.rmdir(dir_)
 
 
-def _return_param(val):
-    '''just return passed parameter - make a callable from any value'''
-    return val
 
 # uptodate
 class result_dep(UptodateCalculator):
@@ -635,15 +631,23 @@ class result_dep(UptodateCalculator):
                 sub_tasks[sub] = self.get_val(sub, 'result:')
         return sub_tasks
 
-    def __call__(self, task, values):
-        """return True if result is the same as last run"""
-        dep_task = self.tasks_dict[self.dep_name]
+    def _get_dep_result(self, dep_task):
         if not dep_task.has_subtask:
             dep_result = self._result_single()
         else:
             dep_result = self._result_group(dep_task)
-        func = partial(_return_param, {self.result_name: dep_result})
-        task.value_savers.append(func)
+        return dep_result
+
+
+    def __call__(self, task, values):
+        """return True if result is the same as last run"""
+        dep_task = self.tasks_dict[self.dep_name]
+        dep_result = self._get_dep_result(dep_task)
+
+        def result_saver():
+            # get latest value after execution of dependent task
+            return {self.result_name: self._get_dep_result(dep_task)}
+        task.value_savers.append(result_saver)
 
         last_success = values.get(self.result_name)
         if last_success is None:
