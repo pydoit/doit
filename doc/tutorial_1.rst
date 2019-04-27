@@ -622,7 +622,7 @@ key is the sub-task name:
 .. literalinclude:: tutorial/tuto_1_3.py
    :language: python3
    :lines: 25-41
-   :emphasize-lines: 5,15
+   :emphasize-lines: 5,13-15
 
 
 Finally, adjust task ``draw``.
