@@ -41,6 +41,7 @@ required python packages
 
   $ pip install doit pygraphviz import_deps
 
+Note that on some linux systems it is necessary to install the system package `graphviz-dev` first.
 
 sample project
 --------------
