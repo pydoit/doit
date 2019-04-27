@@ -14,4 +14,5 @@ doc/samples/*.in
 doc/samples/*.out
 doc/samples/file*
 
-
+dev
+.vscode
