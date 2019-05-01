@@ -1,11 +1,11 @@
 
 """Tasks are the main abstractions managed by doit"""
 
-import types
 import os
 import sys
 import inspect
 from collections import OrderedDict
+from collections.abc import Callable
 from pathlib import PurePath
 
 from .cmdparse import CmdOption, TaskParse
@@ -152,7 +152,7 @@ class Task(object):
                   'pos_arg': (string_types, (None,)),
                   'verbosity': ((), (None, 0, 1, 2,)),
                   'getargs': ((dict,), ()),
-                  'title': ((types.FunctionType,), (None,)),
+                  'title': ((Callable,), (None,)),
                   'watch': ((list, tuple), ()),
     }
 
