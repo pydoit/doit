@@ -3,6 +3,7 @@ import tempfile
 from io import StringIO
 from pathlib import Path, PurePath
 from sys import executable
+from collections.abc import Iterable
 
 import pytest
 
@@ -51,6 +52,9 @@ class TestTaskCheckInput(object):
 
     def testOkType(self):
         task.Task.check_attr('xxx', 'attr', [], ([int, list],[]))
+
+    def testOkTypeABC(self):
+        task.Task.check_attr('xxx', 'attr', {}, ([Iterable],[]))
 
     def testOkValue(self):
         task.Task.check_attr('xxx', 'attr', None, ([list], [None]))
