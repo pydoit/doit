@@ -407,9 +407,8 @@ class Task(object):
         @param valid (list): of valid types/value accepted
         @raises InvalidTask if invalid input
         """
-        for t in valid[0]:
-            if isinstance(value, t):
-                return
+        if isinstance(value, valid[0]):
+            return
         if value in valid[1]:
             return
 
