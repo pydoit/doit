@@ -51,21 +51,21 @@ class TestStream():
 class TestTaskCheckInput(object):
 
     def testOkType(self):
-        task.Task.check_attr('xxx', 'attr', [], ([int, list],[]))
+        task.Task.check_attr('xxx', 'attr', [], ((int, list),()))
 
     def testOkTypeABC(self):
-        task.Task.check_attr('xxx', 'attr', {}, ([Iterable],[]))
+        task.Task.check_attr('xxx', 'attr', {}, ((Iterable,),()))
 
     def testOkValue(self):
-        task.Task.check_attr('xxx', 'attr', None, ([list], [None]))
+        task.Task.check_attr('xxx', 'attr', None, ((list,), (None,)))
 
     def testFailType(self):
         pytest.raises(task.InvalidTask, task.Task.check_attr, 'xxx',
-                      'attr', int, ([list], [False]))
+                      'attr', int, ((list,), (False,)))
 
     def testFailValue(self):
         pytest.raises(task.InvalidTask, task.Task.check_attr, 'xxx',
-                      'attr', True, ([list], [False]))
+                      'attr', True, ((list,), (False,)))
 
 
 
