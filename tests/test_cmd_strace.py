@@ -1,9 +1,9 @@
 import os.path
 from io import StringIO
-from unittest import mock
 
 import pytest
 
+from doit.cmd_base import TaskLoader2
 from doit.exceptions import InvalidCommand
 from doit.cmdparse import DefaultUpdate
 from doit.task import Task
@@ -14,12 +14,24 @@ from .conftest import CmdFactory
     "os.system('strace -V') != 0 or sys.platform in ['win32', 'cygwin']")
 class TestCmdStrace(object):
 
+    @staticmethod
+    def loader_for_task(task):
+
+        class MyTaskLoader(TaskLoader2):
+            def load_doit_config(self):
+                return {}
+
+            def load_tasks(self, cmd, pos_args):
+                return [task]
+
+        return MyTaskLoader()
+
     def test_dep(self, dependency1, depfile_name):
         output = StringIO()
         task = Task("tt", ["cat %(dependencies)s"],
                     file_dep=['tests/data/dependency1'])
         cmd = CmdFactory(Strace, outstream=output)
-        cmd.loader.load_tasks = mock.Mock(return_value=([task], {}))
+        cmd.loader = self.loader_for_task(task)
         params = DefaultUpdate(dep_file=depfile_name, show_all=False,
                                keep_trace=False, backend='dbm',
                                check_file_uptodate='md5')
@@ -35,7 +47,7 @@ class TestCmdStrace(object):
         task = Task("tt", ["cat %(dependencies)s"],
                     file_dep=['tests/data/dependency1'])
         cmd = CmdFactory(Strace, outstream=output)
-        cmd.loader.load_tasks = mock.Mock(return_value=([task], {}))
+        cmd.loader = self.loader_for_task(task)
         params = DefaultUpdate(dep_file=depfile_name, show_all=True,
                                keep_trace=False, backend='dbm',
                                check_file_uptodate='md5')
@@ -49,7 +61,7 @@ class TestCmdStrace(object):
         task = Task("tt", ["cat %(dependencies)s"],
                     file_dep=['tests/data/dependency1'])
         cmd = CmdFactory(Strace, outstream=output)
-        cmd.loader.load_tasks = mock.Mock(return_value=([task], {}))
+        cmd.loader = self.loader_for_task(task)
         params = DefaultUpdate(dep_file=depfile_name, show_all=True,
                                keep_trace=True, backend='dbm',
                                check_file_uptodate='md5')
@@ -66,7 +78,7 @@ class TestCmdStrace(object):
         task = Task("tt", ["touch %(targets)s"],
                     targets=['tests/data/dependency1'])
         cmd = CmdFactory(Strace, outstream=output)
-        cmd.loader.load_tasks = mock.Mock(return_value=([task], {}))
+        cmd.loader = self.loader_for_task(task)
         params = DefaultUpdate(dep_file=depfile_name, show_all=False,
                                keep_trace=False, backend='dbm',
                                check_file_uptodate='md5')
@@ -83,7 +95,7 @@ class TestCmdStrace(object):
                 ignore
         task = Task("tt", [py_open])
         cmd = CmdFactory(Strace, outstream=output)
-        cmd.loader.load_tasks = mock.Mock(return_value=([task], {}))
+        cmd.loader = self.loader_for_task(task)
         params = DefaultUpdate(dep_file=depfile_name, show_all=False,
                                keep_trace=False, backend='dbm',
                                check_file_uptodate='md5')

@@ -7,7 +7,7 @@ from doit.cmdparse import CmdParseError, CmdParse
 from doit.exceptions import InvalidCommand, InvalidDodoFile
 from doit.dependency import FileChangedChecker
 from doit.task import Task
-from doit.cmd_base import version_tuple, Command, DoitCmdBase
+from doit.cmd_base import version_tuple, Command, DoitCmdBase, TaskLoader
 from doit.cmd_base import get_loader, ModuleTaskLoader, DodoTaskLoader
 from doit.cmd_base import check_tasks_exist, tasks_and_deps_iter, subtasks_iter
 from .conftest import CmdFactory
@@ -121,7 +121,7 @@ class TestCommand(object):
 
 
 class TestModuleTaskLoader(object):
-    def test_load_tasks(self):
+    def test_load_tasks_from_dict(self):
         cmd = Command()
         members = {'task_xxx1': lambda : {'actions':[]},
                    'task_no': 'strings are not tasks',
@@ -129,7 +129,18 @@ class TestModuleTaskLoader(object):
                    'DOIT_CONFIG': {'verbose': 2},
                    }
         loader = ModuleTaskLoader(members)
-        task_list, config = loader.load_tasks(cmd, {}, [])
+        loader.setup({})
+        config = loader.load_doit_config()
+        task_list = loader.load_tasks(cmd, [])
+        assert ['xxx1'] == [t.name for t in task_list]
+        assert {'verbose': 2} == config
+
+    def test_load_tasks_from_module(self):
+        import tests.module_with_tasks as module
+        loader = ModuleTaskLoader(module)
+        loader.setup({})
+        config = loader.load_doit_config()
+        task_list = loader.load_tasks(Command(), [])
         assert ['xxx1'] == [t.name for t in task_list]
         assert {'verbose': 2} == config
 
@@ -143,7 +154,9 @@ class TestDodoTaskLoader(object):
                   'seek_file': False,
                   }
         loader = DodoTaskLoader()
-        task_list, config = loader.load_tasks(cmd, params, [])
+        loader.setup(params)
+        config = loader.load_doit_config()
+        task_list = loader.load_tasks(cmd, [])
         assert ['xxx1', 'yyy2'] == [t.name for t in task_list]
         assert {'verbose': 2} == config
 
@@ -192,6 +205,35 @@ class TestDoitCmdBase(object):
         assert 'min' == mycmd.parse_execute([
             '--db-file', depfile_name,
             '--mine', 'min'])
+
+
+    def test_execute_with_legacy_dict_loader(self, depfile_name):
+        members = {'task_xxx1': lambda: {'actions': []}}
+
+        class LegacyLoader(TaskLoader):
+            def load_tasks(self, cmd, opt_values, pos_args):
+                return super()._load_from(cmd, members, [])
+
+        mycmd = self.MyCmd(task_loader=LegacyLoader())
+        assert 'min' == mycmd.parse_execute([
+            '--db-file', depfile_name,
+            '--mine', 'min',
+        ])
+
+
+    def test_execute_with_legacy_module_loader(self, depfile_name):
+        import tests.module_with_tasks as module
+
+        class LegacyLoader(TaskLoader):
+            def load_tasks(self, cmd, opt_values, pos_args):
+                return super()._load_from(cmd, module, [])
+
+        mycmd = self.MyCmd(task_loader=LegacyLoader())
+        assert 'min' == mycmd.parse_execute([
+            '--db-file', depfile_name,
+            '--mine', 'min',
+        ])
+
 
     # command with _execute() method
     def test_minversion(self, depfile_name, monkeypatch):

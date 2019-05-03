@@ -6,7 +6,6 @@ from string import Template
 from .exceptions import InvalidCommand
 from .cmd_base import DoitCmdBase
 
-
 opt_shell = {
     'name': 'shell',
     'short': 's',
@@ -98,8 +97,13 @@ class TabCompletion(DoitCmdBase):
 
         # if hardcode tasks
         if opt_values['hardcode_tasks']:
-            self.task_list, _ = self.loader.load_tasks(
-                self, opt_values, pos_args)
+            if getattr(self.loader, 'API', 1) == 2:
+                self.loader.setup(opt_values)
+                self.loader.load_doit_config()
+                self.task_list = self.loader.load_tasks(cmd=self, pos_args=pos_args)
+            else:
+                self.task_list, _ = self.loader.load_tasks(
+                    self, opt_values, pos_args)
             task_names = (t.name for t in self.task_list if not t.subtask_of)
             tmpl_vars['pt_tasks'] = '"{0}"'.format(' '.join(sorted(task_names)))
         else:
@@ -190,8 +194,13 @@ class TabCompletion(DoitCmdBase):
         }
 
         if opt_values['hardcode_tasks']:
-            self.task_list, _ = self.loader.load_tasks(
-                self, opt_values, pos_args)
+            if getattr(self.loader, 'API', 1) == 2:
+                self.loader.setup(opt_values)
+                self.loader.load_doit_config()
+                self.task_list = self.loader.load_tasks(cmd=self, pos_args=pos_args)
+            else:
+                self.task_list, _ = self.loader.load_tasks(
+                    self, opt_values, pos_args)
             lines = []
             for task in self.task_list:
                 if not task.subtask_of:
