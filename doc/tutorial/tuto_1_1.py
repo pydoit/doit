@@ -18,7 +18,7 @@ def module_to_dot(dependencies, targets):
     for dep in dependencies:
         filepath = pathlib.Path(dep)
         source = filepath.stem
-        with open(filepath) as fh:
+        with filepath.open() as fh:
             for line in fh:
                 sink = line.strip()
                 if sink:

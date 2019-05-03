@@ -41,6 +41,7 @@ required python packages
 
   $ pip install doit pygraphviz import_deps
 
+Note that on some linux systems it is necessary to install the system package `graphviz-dev` first.
 
 sample project
 --------------
@@ -621,7 +622,7 @@ key is the sub-task name:
 .. literalinclude:: tutorial/tuto_1_3.py
    :language: python3
    :lines: 25-41
-   :emphasize-lines: 5,15
+   :emphasize-lines: 5,13-15
 
 
 Finally, adjust task ``draw``.
