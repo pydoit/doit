@@ -129,6 +129,7 @@ class TestModuleTaskLoader(object):
                    'DOIT_CONFIG': {'verbose': 2},
                    }
         loader = ModuleTaskLoader(members)
+        loader.setup({})
         config = loader.load_doit_config()
         task_list = loader.load_tasks(cmd, [])
         assert ['xxx1'] == [t.name for t in task_list]
