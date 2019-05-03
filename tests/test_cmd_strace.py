@@ -16,7 +16,8 @@ class TestCmdStrace(object):
 
     @staticmethod
     def loader_for_task(task):
-        loader = mock.MagicMock()
+        from doit.cmd_base import TaskLoader2
+        loader = mock.MagicMock(spec_set=TaskLoader2)
         loader.setup = mock.Mock()
         loader.load_doit_config = mock.Mock(return_value={})
         loader.load_tasks = mock.Mock(return_value=[task])
