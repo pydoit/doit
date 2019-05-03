@@ -129,7 +129,8 @@ class TestModuleTaskLoader(object):
                    'DOIT_CONFIG': {'verbose': 2},
                    }
         loader = ModuleTaskLoader(members)
-        task_list, config = loader.load_tasks(cmd, {}, [])
+        config = loader.load_doit_config()
+        task_list = loader.load_tasks(cmd, [])
         assert ['xxx1'] == [t.name for t in task_list]
         assert {'verbose': 2} == config
 
@@ -143,7 +144,9 @@ class TestDodoTaskLoader(object):
                   'seek_file': False,
                   }
         loader = DodoTaskLoader()
-        task_list, config = loader.load_tasks(cmd, params, [])
+        loader.setup(params)
+        config = loader.load_doit_config()
+        task_list = loader.load_tasks(cmd, [])
         assert ['xxx1', 'yyy2'] == [t.name for t in task_list]
         assert {'verbose': 2} == config
 

@@ -272,11 +272,10 @@ opt_seek_file = {
              "[default: %(default)s]")
 }
 
-
 class TaskLoader(object):
     """task-loader interface responsible of creating Task objects
 
-    Subclasses must implement the method `load_tasks`
+    Subclasses must implement the method `load_tasks`.
 
     :cvar cmd_options:
           (list of dict) see cmdparse.CmdOption for dict format
@@ -286,7 +285,7 @@ class TaskLoader(object):
     def __init__(self):
         # list of command names, used to detect clash of task names and commands
         self.cmd_names = []
-        self.config = None # reference to config object taken from Command
+        self.config = None  # reference to config object taken from Command
 
     def load_tasks(self, cmd, opt_values, pos_args): # pragma: no cover
         """load tasks and DOIT_CONFIG
@@ -310,30 +309,64 @@ class TaskLoader(object):
         return task_list, doit_config
 
 
-class ModuleTaskLoader(TaskLoader):
+class TaskLoader2(TaskLoader):
+    """Interface of task loaders with new-style API.
+
+    The default implementation assumes tasks are loaded from a namespace, mapping identifiers to
+    elements like functions (like task generators) or constants (like configuration values).
+
+    This API update separates the loading of the configuration and the loading of the actual tasks,
+    which enables additional elements to be available during task creation.
+    """
+    def __init__(self):
+        super().__init__()
+        self.namespace = None
+
+    def setup(self, opt_values):
+        """Delayed initialization.
+
+        To be implemented if the data is needed by derived classes.
+
+        :param opt_values: (dict) with values for cmd_options
+        """
+
+    def load_doit_config(self):
+        """Load doit configuration."""
+        return loader.load_doit_config(self.namespace)
+
+    def load_tasks(self, cmd, pos_args):
+        """Load tasks.
+
+        :return: (List[Task])
+        :param cmd: (doit.cmd_base.Command) current command being executed
+        :param pos_args: (list str) positional arguments from command line
+        """
+        return loader.load_tasks(self.namespace, self.cmd_names, cmd.execute_tasks)
+
+
+class ModuleTaskLoader(TaskLoader2):
     """load tasks from a module/dictionary containing task generators
     Usage: `ModuleTaskLoader(my_module)` or `ModuleTaskLoader(globals())`
     """
-    cmd_options = ()
-
     def __init__(self, mod_dict):
         super(ModuleTaskLoader, self).__init__()
-        self.mod_dict = mod_dict
+        if inspect.ismodule(mod_dict):
+            self.namespace = dict(inspect.getmembers(mod_dict))
+        else:
+            self.namespace = mod_dict
 
-    def load_tasks(self, cmd, params, args):
-        return self._load_from(cmd, self.mod_dict, self.cmd_names)
 
-
-class DodoTaskLoader(TaskLoader):
+class DodoTaskLoader(TaskLoader2):
     """default task-loader create tasks from a dodo.py file"""
     cmd_options = (opt_dodo, opt_cwd, opt_seek_file)
 
-    def load_tasks(self, cmd, params, args):
-        dodo_module = loader.get_module(
-            params['dodoFile'],
-            params['cwdPath'],
-            params['seek_file'])
-        return self._load_from(cmd, dodo_module, self.cmd_names)
+    def setup(self, opt_values):
+        # lazily load namespace from dodo file per config parameters:
+        self.namespace = loader.get_module(
+            opt_values['dodoFile'],
+            opt_values['cwdPath'],
+            opt_values['seek_file'],
+        ).__dict__
 
 
 def get_loader(config, task_loader=None, cmds=None):
@@ -446,8 +479,17 @@ class DoitCmdBase(Command):
         :param params: instance of cmdparse.DefaultUpdate
         :param args: list of string arguments (containing task names)
         """
-        self.task_list, dodo_config = self.loader.load_tasks(
-            self, params, args)
+
+        # distinguish legacy and new-style task loader API when loading tasks:
+        if isinstance(self.loader, TaskLoader2):
+            new_style_loader = True
+            self.loader.setup(params)
+            dodo_config = self.loader.load_doit_config()
+        else:
+            new_style_loader = False
+            self.task_list, dodo_config = self.loader.load_tasks(
+                self, params, args)
+
         # merge config values from dodo.py into params
         params.update_defaults(dodo_config)
 
@@ -469,6 +511,10 @@ class DoitCmdBase(Command):
             # dep_manager might have been already set (used on unit-test)
             self.dep_manager = Dependency(
                 db_class, params['dep_file'], checker_cls)
+
+        # load tasks from new-style loader, now that dependency manager is available:
+        if new_style_loader:
+            self.task_list = self.loader.load_tasks(cmd=self, pos_args=args)
 
         # hack to pass parameter into _execute() calls that are not part
         # of command line options
