@@ -272,10 +272,11 @@ opt_seek_file = {
              "[default: %(default)s]")
 }
 
+
 class TaskLoader(object):
     """task-loader interface responsible of creating Task objects
 
-    Subclasses must implement the method `load_tasks`.
+    Subclasses must implement the method `load_tasks`
 
     :cvar cmd_options:
           (list of dict) see cmdparse.CmdOption for dict format
@@ -285,7 +286,7 @@ class TaskLoader(object):
     def __init__(self):
         # list of command names, used to detect clash of task names and commands
         self.cmd_names = []
-        self.config = None  # reference to config object taken from Command
+        self.config = None # reference to config object taken from Command
 
     def load_tasks(self, cmd, opt_values, pos_args): # pragma: no cover
         """load tasks and DOIT_CONFIG
@@ -482,11 +483,11 @@ class DoitCmdBase(Command):
 
         # distinguish legacy and new-style task loader API when loading tasks:
         if isinstance(self.loader, TaskLoader2):
-            new_style_loader = True
+            legacy_loader = False
             self.loader.setup(params)
             dodo_config = self.loader.load_doit_config()
         else:
-            new_style_loader = False
+            legacy_loader = True
             self.task_list, dodo_config = self.loader.load_tasks(
                 self, params, args)
 
@@ -513,7 +514,7 @@ class DoitCmdBase(Command):
                 db_class, params['dep_file'], checker_cls)
 
         # load tasks from new-style loader, now that dependency manager is available:
-        if new_style_loader:
+        if not legacy_loader:
             self.task_list = self.loader.load_tasks(cmd=self, pos_args=args)
 
         # hack to pass parameter into _execute() calls that are not part
