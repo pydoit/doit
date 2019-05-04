@@ -77,7 +77,7 @@ pygments_style = 'sphinx'
 html_favicon = '_static/favico.ico'
 html_show_sourcelink = False
 html_extra_path = ['index.html']
-
+html_logo = '_static/doit-logo-small.png'
 
 
 # -- Options for HTML output -------------------------------------------------
