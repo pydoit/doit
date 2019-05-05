@@ -374,8 +374,11 @@ class TestTaskClean(object):
     def tmpdir(self, request):
         tmpdir = {}
         tmpdir['dir'] = tempfile.mkdtemp(prefix='doit-')
+        tmpdir['subdir'] = tempfile.mkdtemp(dir=tmpdir['dir'])
         files = [os.path.join(tmpdir['dir'], fname)
-                 for fname in ['a.txt', 'b.txt']]
+                 for fname in ['a.txt',
+                               'b.txt',
+                               os.path.join(tmpdir['subdir'], 'c.txt')]]
         tmpdir['files'] = files
         # create empty files
         for filename in tmpdir['files']:
@@ -412,14 +415,15 @@ class TestTaskClean(object):
 
     def test_clean_empty_dirs(self, tmpdir):
         # Remove empty directories listed in targets
-        targets = tmpdir['files'] + [tmpdir['dir']]
+        targets = tmpdir['files'] + [tmpdir['subdir']]
         t = task.Task("xxx", None, targets=targets, clean=True)
         assert True == t._remove_targets
         assert 0 == len(t.clean_actions)
         t.clean(StringIO(), False)
         for filename in tmpdir['files']:
             assert not os.path.exists(filename)
-        assert not os.path.exists(tmpdir['dir'])
+        assert not os.path.exists(tmpdir['subdir'])
+        assert os.path.exists(tmpdir['dir'])
 
     def test_keep_non_empty_dirs(self, tmpdir):
         # Keep non empty directories listed in targets
@@ -432,6 +436,19 @@ class TestTaskClean(object):
             expected = not filename in targets
             assert expected == os.path.exists(filename)
         assert os.path.exists(tmpdir['dir'])
+
+    def test_clean_in_reverse_lexical_order(self, tmpdir):
+        # Remove targets in reverse lexical order so that subdirectories' order
+        # in the targets array is irrelevant
+        targets = tmpdir['files'] + [tmpdir['dir'], tmpdir['subdir']]
+        t = task.Task("xxx", None, targets=targets, clean=True)
+        assert True == t._remove_targets
+        assert 0 == len(t.clean_actions)
+        t.clean(StringIO(), False)
+        for filename in tmpdir['files']:
+            assert not os.path.exists(filename)
+        assert not os.path.exists(tmpdir['dir'])
+        assert not os.path.exists(tmpdir['subdir'])
 
     def test_clean_actions(self, tmpdir):
         # a clean action can be anything, it can even not clean anything!
