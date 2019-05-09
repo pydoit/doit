@@ -31,10 +31,10 @@ Normally `doit` tasks are defined in a `dodo.py` file.
 This file is loaded, and the list of tasks is created from
 the dict containing task meta-data from the *task-creator* functions.
 
-Subclass TaskLoader to create a custom loader:
+Subclass ``TaskLoader2`` to create a custom loader:
 
-.. autoclass:: doit.cmd_base.TaskLoader
-   :members: load_tasks
+.. autoclass:: doit.cmd_base.TaskLoader2
+   :members:
 
 
 The main program is implemented in the `DoitMain`. It's constructor

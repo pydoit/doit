@@ -3,21 +3,23 @@
 import sys
 
 from doit.task import dict_to_task
-from doit.cmd_base import TaskLoader
+from doit.cmd_base import TaskLoader2
 from doit.doit_cmd import DoitMain
 
 my_builtin_task = {
     'name': 'sample_task',
     'actions': ['echo hello from built in'],
     'doc': 'sample doc',
-    }
+}
 
-class MyLoader(TaskLoader):
-    @staticmethod
-    def load_tasks(cmd, opt_values, pos_args):
+
+class MyLoader(TaskLoader2):
+    def load_doit_config(self):
+        return {'verbosity': 2}
+
+    def load_tasks(self, cmd, pos_args):
         task_list = [dict_to_task(my_builtin_task)]
-        config = {'verbosity': 2}
-        return task_list, config
+        return task_list
 
 
 if __name__ == "__main__":
