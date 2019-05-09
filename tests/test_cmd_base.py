@@ -7,7 +7,7 @@ from doit.cmdparse import CmdParseError, CmdParse
 from doit.exceptions import InvalidCommand, InvalidDodoFile
 from doit.dependency import FileChangedChecker
 from doit.task import Task
-from doit.cmd_base import version_tuple, Command, DoitCmdBase
+from doit.cmd_base import version_tuple, Command, DoitCmdBase, TaskLoader
 from doit.cmd_base import get_loader, ModuleTaskLoader, DodoTaskLoader
 from doit.cmd_base import check_tasks_exist, tasks_and_deps_iter, subtasks_iter
 from .conftest import CmdFactory
@@ -196,6 +196,17 @@ class TestDoitCmdBase(object):
         assert 'min' == mycmd.parse_execute([
             '--db-file', depfile_name,
             '--mine', 'min'])
+
+    def test_execute_with_legacy_loader(self):
+
+        members = {'task_xxx1': lambda : {'actions': []},}
+
+        class LegacyLoader(TaskLoader):
+            def load_tasks(self, cmd, opt_values, pos_args):
+                return super()._load_from(cmd, members, [])
+
+        mycmd = self.MyCmd(task_loader=LegacyLoader())
+        assert 'min' == mycmd.parse_execute(['--mine', 'min'])
 
     # command with _execute() method
     def test_minversion(self, depfile_name, monkeypatch):
