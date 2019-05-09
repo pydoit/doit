@@ -21,6 +21,7 @@ Changes
  - Add configuration `DOIT_CONFIG` `action_string_formatting` to control command action formatter.
  - Fix `result_dep`, use result **after** its execution
  - Fix #286: Cannot use functools.partial as title
+ - Deprecated TaskLoader in favor of TaskLoader2, which separates loading doit's configuration from loading tasks.
 
 
 0.31.1 (*2018-03-18*)
