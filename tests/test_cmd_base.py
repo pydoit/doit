@@ -121,7 +121,7 @@ class TestCommand(object):
 
 
 class TestModuleTaskLoader(object):
-    def test_load_tasks(self):
+    def test_load_tasks_from_dict(self):
         cmd = Command()
         members = {'task_xxx1': lambda : {'actions':[]},
                    'task_no': 'strings are not tasks',
@@ -132,6 +132,15 @@ class TestModuleTaskLoader(object):
         loader.setup({})
         config = loader.load_doit_config()
         task_list = loader.load_tasks(cmd, [])
+        assert ['xxx1'] == [t.name for t in task_list]
+        assert {'verbose': 2} == config
+
+    def test_load_tasks_from_module(self):
+        import tests.module_with_tasks as module
+        loader = ModuleTaskLoader(module)
+        loader.setup({})
+        config = loader.load_doit_config()
+        task_list = loader.load_tasks(Command(), [])
         assert ['xxx1'] == [t.name for t in task_list]
         assert {'verbose': 2} == config
 
