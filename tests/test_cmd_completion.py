@@ -5,7 +5,7 @@ from doit.exceptions import InvalidCommand
 from doit.cmdparse import CmdOption
 from doit.plugin import PluginDict
 from doit.task import Task
-from doit.cmd_base import Command, TaskLoader, DodoTaskLoader
+from doit.cmd_base import Command, TaskLoader, DodoTaskLoader, TaskLoader2
 from doit.cmd_completion import TabCompletion
 from doit.cmd_help import Help
 from .conftest import CmdFactory
@@ -22,6 +22,18 @@ class FakeLoader(TaskLoader):
             ]
         return task_list, {}
 
+
+class FakeLoader2(TaskLoader2):
+    def load_doit_config(self):
+        return {}
+
+    def load_tasks(self, cmd, pos_args):
+        task_list = [
+            Task("t1", None, ),
+            Task("t2", None, task_dep=['t2:a'], has_subtask=True, ),
+            Task("t2:a", None, subtask_of='t2'),
+            ]
+        return task_list
 
 @pytest.fixture
 def commands(request):
@@ -48,9 +60,10 @@ class TestCmdCompletionBash(object):
         assert 't1' not in got
         assert 'tabcompletion' in got
 
-    def test_no_dodo__hardcoded_tasks(self, commands):
+    @pytest.mark.parametrize('loader_class', [FakeLoader, FakeLoader2])
+    def test_no_dodo__hardcoded_tasks(self, commands, loader_class):
         output = StringIO()
-        cmd = CmdFactory(TabCompletion, task_loader=FakeLoader(),
+        cmd = CmdFactory(TabCompletion, task_loader=loader_class(),
                          outstream=output, cmds=commands)
         cmd.execute({'shell':'bash', 'hardcode_tasks': True}, [])
         got = output.getvalue()
@@ -124,9 +137,10 @@ class TestCmdCompletionZsh(object):
         got = output.getvalue()
         assert "tabcompletion: generate script" in got
 
-    def test_hardcoded_tasks(self, commands):
+    @pytest.mark.parametrize('loader_class', [FakeLoader, FakeLoader2])
+    def test_hardcoded_tasks(self, commands, loader_class):
         output = StringIO()
-        cmd = CmdFactory(TabCompletion, task_loader=FakeLoader(),
+        cmd = CmdFactory(TabCompletion, task_loader=loader_class(),
                          outstream=output, cmds=commands)
         cmd.execute({'shell':'zsh', 'hardcode_tasks': True}, [])
         got = output.getvalue()
