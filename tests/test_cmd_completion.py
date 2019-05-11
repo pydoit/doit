@@ -87,14 +87,14 @@ class TestCmdCompletionZsh(object):
 
         opt4 = CmdOption({'name':'o4', 'default':'', 'help':'my desc [b]a',
                           'short':'s', 'long':'lll'})
-        assert ('"(-s|--lll)"{-s,--lll}"[my desc [b\]a]" \\' ==
+        assert ('"(-s|--lll)"{-s,--lll}"[my desc [b\\]a]" \\' ==
                 TabCompletion._zsh_arg_line(opt4))
 
         # escaping `"` test
         opt5 = CmdOption({'name':'o5', 'default':'',
                           'help':'''my "des'c [b]a''',
                           'short':'s', 'long':'lll'})
-        assert ('''"(-s|--lll)"{-s,--lll}"[my \\"des'c [b\]a]" \\''' ==
+        assert ('''"(-s|--lll)"{-s,--lll}"[my \\"des'c [b\\]a]" \\''' ==
                 TabCompletion._zsh_arg_line(opt5))
 
 
