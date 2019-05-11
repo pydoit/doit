@@ -11,4 +11,4 @@ task_no = 'strings are not tasks'
 
 
 def blabla():
-    ...
+    ...  # pragma: no cover
