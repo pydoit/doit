@@ -206,13 +206,25 @@ class TestDoitCmdBase(object):
             '--db-file', depfile_name,
             '--mine', 'min'])
 
-    def test_execute_with_legacy_loader(self, depfile_name):
-
+    def test_execute_with_legacy_dict_loader(self, depfile_name):
         members = {'task_xxx1': lambda: {'actions': []}}
 
         class LegacyLoader(TaskLoader):
             def load_tasks(self, cmd, opt_values, pos_args):
                 return super()._load_from(cmd, members, [])
+
+        mycmd = self.MyCmd(task_loader=LegacyLoader())
+        assert 'min' == mycmd.parse_execute([
+            '--db-file', depfile_name,
+            '--mine', 'min',
+        ])
+
+    def test_execute_with_legacy_module_loader(self, depfile_name):
+        import tests.module_with_tasks as module
+
+        class LegacyLoader(TaskLoader):
+            def load_tasks(self, cmd, opt_values, pos_args):
+                return super()._load_from(cmd, module, [])
 
         mycmd = self.MyCmd(task_loader=LegacyLoader())
         assert 'min' == mycmd.parse_execute([
