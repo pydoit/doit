@@ -197,16 +197,19 @@ class TestDoitCmdBase(object):
             '--db-file', depfile_name,
             '--mine', 'min'])
 
-    def test_execute_with_legacy_loader(self):
+    def test_execute_with_legacy_loader(self, depfile_name):
 
-        members = {'task_xxx1': lambda : {'actions': []},}
+        members = {'task_xxx1': lambda: {'actions': []}}
 
         class LegacyLoader(TaskLoader):
             def load_tasks(self, cmd, opt_values, pos_args):
                 return super()._load_from(cmd, members, [])
 
         mycmd = self.MyCmd(task_loader=LegacyLoader())
-        assert 'min' == mycmd.parse_execute(['--mine', 'min'])
+        assert 'min' == mycmd.parse_execute([
+            '--db-file', depfile_name,
+            '--mine', 'min',
+        ])
 
     # command with _execute() method
     def test_minversion(self, depfile_name, monkeypatch):
