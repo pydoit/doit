@@ -25,7 +25,8 @@ class FakeLoader(TaskLoader):
 
 class FakeLoader2(TaskLoader2):
     def load_doit_config(self):
-        return {}
+        # not used in tested functionality:
+        raise NotImplementedError()
 
     def load_tasks(self, cmd, pos_args):
         task_list = [
@@ -50,7 +51,7 @@ def test_invalid_shell_option():
 
 class TestCmdCompletionBash(object):
 
-    def test_with_dodo__dinamic_tasks(self, commands):
+    def test_with_dodo__dynamic_tasks(self, commands):
         output = StringIO()
         cmd = CmdFactory(TabCompletion, task_loader=DodoTaskLoader(),
                          outstream=output, cmds=commands)
