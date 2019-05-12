@@ -573,26 +573,20 @@ def dict_to_task(task_dict):
 
 def clean_targets(task, dryrun):
     """remove all targets from a task"""
-    files = [path for path in task.targets if os.path.isfile(path)]
-    dirs = [path for path in task.targets if os.path.isdir(path)]
-
-    # remove all files
-    for file_ in files:
-        print("%s - removing file '%s'" % (task.name, file_))
-        if not dryrun:
-            os.remove(file_)
-
-    # remove all directories (if empty)
-    for dir_ in dirs:
-        if os.listdir(dir_):
-            msg = "%s - cannot remove (it is not empty) '%s'"
-            print(msg % (task.name, dir_))
-        else:
-            msg = "%s - removing dir '%s'"
-            print(msg % (task.name, dir_))
+    for target in sorted(task.targets, reverse=True):
+        if os.path.isfile(target):
+            print("%s - removing file '%s'" % (task.name, target))
             if not dryrun:
-                os.rmdir(dir_)
-
+                os.remove(target)
+        elif os.path.isdir(target):
+            if os.listdir(target):
+                msg = "%s - cannot remove (it is not empty) '%s'"
+                print(msg % (task.name, target))
+            else:
+                msg = "%s - removing dir '%s'"
+                print(msg % (task.name, target))
+                if not dryrun:
+                    os.rmdir(target)
 
 
 # uptodate
