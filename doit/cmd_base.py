@@ -326,10 +326,6 @@ class TaskLoader2(TaskLoaderBase):
     """
     API = 2
 
-    def __init__(self):
-        super().__init__()
-        self.namespace = None
-
     def setup(self, opt_values):
         """Delayed initialization.
 
@@ -345,7 +341,7 @@ class TaskLoader2(TaskLoaderBase):
 
         :return: (dict) Dictionary of doit configuration values.
         """
-        return loader.load_doit_config(self.namespace)
+        raise NotImplementedError()
 
     def load_tasks(self, cmd, pos_args):
         """Load tasks.
@@ -356,10 +352,27 @@ class TaskLoader2(TaskLoaderBase):
         :param pos_args: (list str) positional arguments from command line
         :return: (List[Task])
         """
+        raise NotImplementedError()
+
+
+class NamespaceTaskLoader(TaskLoader2):
+    """Implementation of a loader of tasks from an abstract namespace.
+
+    A namespace is simply a dictionary to objects like functions and objects. See the derived
+    classes for some concrete namespace types.
+    """
+    def __init__(self):
+        super().__init__()
+        self.namespace = None
+
+    def load_doit_config(self):
+        return loader.load_doit_config(self.namespace)
+
+    def load_tasks(self, cmd, pos_args):
         return loader.load_tasks(self.namespace, self.cmd_names, cmd.execute_tasks)
 
 
-class ModuleTaskLoader(TaskLoader2):
+class ModuleTaskLoader(NamespaceTaskLoader):
     """load tasks from a module/dictionary containing task generators
     Usage: `ModuleTaskLoader(my_module)` or `ModuleTaskLoader(globals())`
     """
@@ -371,7 +384,7 @@ class ModuleTaskLoader(TaskLoader2):
             self.namespace = mod_dict
 
 
-class DodoTaskLoader(TaskLoader2):
+class DodoTaskLoader(NamespaceTaskLoader):
     """default task-loader create tasks from a dodo.py file"""
     cmd_options = (opt_dodo, opt_cwd, opt_seek_file)
 
