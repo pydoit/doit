@@ -3,7 +3,7 @@ import os
 import mock
 import pytest
 
-from doit import version, Globals
+from doit import version
 from doit.cmdparse import CmdParseError, CmdParse
 from doit.exceptions import InvalidCommand, InvalidDodoFile
 from doit.dependency import FileChangedChecker
