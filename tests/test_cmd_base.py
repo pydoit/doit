@@ -1,6 +1,6 @@
 import os
 
-import mock
+from unittest import mock
 import pytest
 
 from doit import version
