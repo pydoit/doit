@@ -341,7 +341,7 @@ class TaskLoader2(TaskLoaderBase):
 
         :return: (dict) Dictionary of doit configuration values.
         """
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: no cover
 
     def load_tasks(self, cmd, pos_args):
         """Load tasks.
@@ -352,7 +352,7 @@ class TaskLoader2(TaskLoaderBase):
         :param pos_args: (list str) positional arguments from command line
         :return: (List[Task])
         """
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: no cover
 
 
 class NamespaceTaskLoader(TaskLoader2):
