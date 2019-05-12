@@ -4,7 +4,7 @@ import sys
 from string import Template
 
 from .exceptions import InvalidCommand
-from .cmd_base import DoitCmdBase, TaskLoader2
+from .cmd_base import DoitCmdBase
 
 opt_shell = {
     'name': 'shell',
@@ -97,7 +97,7 @@ class TabCompletion(DoitCmdBase):
 
         # if hardcode tasks
         if opt_values['hardcode_tasks']:
-            if isinstance(self.loader, TaskLoader2):
+            if getattr(self.loader, 'API', 1) == 2:
                 self.loader.setup(opt_values)
                 self.task_list = self.loader.load_tasks(cmd=self, pos_args=pos_args)
             else:
@@ -193,7 +193,7 @@ class TabCompletion(DoitCmdBase):
         }
 
         if opt_values['hardcode_tasks']:
-            if isinstance(self.loader, TaskLoader2):
+            if getattr(self.loader, 'API', 1) == 2:
                 self.loader.setup(opt_values)
                 self.task_list = self.loader.load_tasks(cmd=self, pos_args=pos_args)
             else:

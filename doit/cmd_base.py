@@ -292,9 +292,6 @@ class TaskLoader(TaskLoaderBase):
 
     Subclasses must implement the method `load_tasks`. Note: This interface is deprecated, use
     `TaskLoader2` instead.
-
-    :cvar cmd_options:
-          (list of dict) see cmdparse.CmdOption for dict format
     """
     def load_tasks(self, cmd, opt_values, pos_args): # pragma: no cover
         """load tasks and DOIT_CONFIG
@@ -327,6 +324,8 @@ class TaskLoader2(TaskLoaderBase):
     This API update separates the loading of the configuration and the loading of the actual tasks,
     which enables additional elements to be available during task creation.
     """
+    API = 2
+
     def __init__(self):
         super().__init__()
         self.namespace = None
@@ -493,7 +492,7 @@ class DoitCmdBase(Command):
         """
 
         # distinguish legacy and new-style task loader API when loading tasks:
-        legacy_loader = not isinstance(self.loader, TaskLoader2)  # TODO: invert after breaking hierarchy
+        legacy_loader = getattr(self.loader, 'API', 1) < 2
         if legacy_loader:
             self.task_list, dodo_config = self.loader.load_tasks(
                 self, params, args)
