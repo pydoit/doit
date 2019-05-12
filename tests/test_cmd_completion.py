@@ -25,8 +25,7 @@ class FakeLoader(TaskLoader):
 
 class FakeLoader2(TaskLoader2):
     def load_doit_config(self):  # pragma: no cover
-        # not used in tested functionality:
-        raise NotImplementedError()
+        return {}
 
     def load_tasks(self, cmd, pos_args):
         task_list = [

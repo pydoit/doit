@@ -341,12 +341,16 @@ class TaskLoader2(TaskLoaderBase):
     def load_doit_config(self):
         """Load doit configuration.
 
+        The method must not be called before invocation of ``setup``.
+
         :return: (dict) Dictionary of doit configuration values.
         """
         return loader.load_doit_config(self.namespace)
 
     def load_tasks(self, cmd, pos_args):
         """Load tasks.
+
+        The method must not be called before invocation of ``load_doit_config``.
 
         :param cmd: (doit.cmd_base.Command) current command being executed
         :param pos_args: (list str) positional arguments from command line

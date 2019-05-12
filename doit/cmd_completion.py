@@ -99,6 +99,7 @@ class TabCompletion(DoitCmdBase):
         if opt_values['hardcode_tasks']:
             if getattr(self.loader, 'API', 1) == 2:
                 self.loader.setup(opt_values)
+                self.loader.load_doit_config()
                 self.task_list = self.loader.load_tasks(cmd=self, pos_args=pos_args)
             else:
                 self.task_list, _ = self.loader.load_tasks(
@@ -195,6 +196,7 @@ class TabCompletion(DoitCmdBase):
         if opt_values['hardcode_tasks']:
             if getattr(self.loader, 'API', 1) == 2:
                 self.loader.setup(opt_values)
+                self.loader.load_doit_config()
                 self.task_list = self.loader.load_tasks(cmd=self, pos_args=pos_args)
             else:
                 self.task_list, _ = self.loader.load_tasks(
