@@ -373,11 +373,11 @@ class DodoTaskLoader(TaskLoader2):
 
     def setup(self, opt_values):
         # lazily load namespace from dodo file per config parameters:
-        self.namespace = loader.get_module(
+        self.namespace = dict(inspect.getmembers(loader.get_module(
             opt_values['dodoFile'],
             opt_values['cwdPath'],
             opt_values['seek_file'],
-        ).__dict__
+        )))
 
 
 def get_loader(config, task_loader=None, cmds=None):
