@@ -66,7 +66,7 @@ def remove_db(filename):
         if os.path.exists(filename + ext):
             os.remove(filename + ext)
 
-# dbm backends use different file extentions
+# dbm backends use different file extensions
 db_ext = {'dbhash': [''],
           'gdbm': [''],
           'dbm': ['.db', '.dir'],

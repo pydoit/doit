@@ -116,7 +116,7 @@ class TestTaskInit(object):
         assert 'p1-default' == t.options['p1']
         assert '' == t.options['p2']
         assert 'pos' == t.pos_arg
-        assert None == t.pos_arg_val # always unitialized
+        assert None == t.pos_arg_val # always uninitialized
 
     def test_setup(self):
         t = task.Task("task5", ['action'], setup=["task2"])
