@@ -80,7 +80,7 @@ class TestCmdAction(object):
         assert "12" == my_action.result
 
     def test_values(self):
-        # for cmdActions they are emtpy if save_out not specified
+        # for cmdActions they are empty if save_out not specified
         my_action = action.CmdAction("%s 1 2" % PROGRAM)
         my_action.execute()
         assert {} == my_action.values
