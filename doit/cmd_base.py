@@ -273,11 +273,13 @@ opt_seek_file = {
 }
 
 
-class TaskLoaderBase:
-    """Common attributes of task loaders.
+class TaskLoader():
+    """DEPRECATED: task-loader interface responsible of creating Task objects
 
     :cvar cmd_options:
           (list of dict) see cmdparse.CmdOption for dict format
+
+    Subclasses must implement the method `load_tasks`.
     """
     cmd_options = ()
 
@@ -286,13 +288,6 @@ class TaskLoaderBase:
         self.cmd_names = []
         self.config = None  # reference to config object taken from Command
 
-
-class TaskLoader(TaskLoaderBase):
-    """task-loader interface responsible of creating Task objects
-
-    Subclasses must implement the method `load_tasks`. Note: This interface is deprecated, use
-    `TaskLoader2` instead.
-    """
     def load_tasks(self, cmd, opt_values, pos_args): # pragma: no cover
         """load tasks and DOIT_CONFIG
 
@@ -315,16 +310,23 @@ class TaskLoader(TaskLoaderBase):
         return task_list, doit_config
 
 
-class TaskLoader2(TaskLoaderBase):
+class TaskLoader2():
     """Interface of task loaders with new-style API.
 
-    The default implementation assumes tasks are loaded from a namespace, mapping identifiers to
-    elements like functions (like task generators) or constants (like configuration values).
+    :cvar cmd_options:
+          (list of dict) see cmdparse.CmdOption for dict format
 
-    This API update separates the loading of the configuration and the loading of the actual tasks,
-    which enables additional elements to be available during task creation.
+    This API separates the loading of the configuration and the loading
+    of the actual tasks, which enables additional elements to be available
+    during task creation.
     """
     API = 2
+    cmd_options = ()
+
+    def __init__(self):
+        # list of command names, used to detect clash of task names and commands
+        self.cmd_names = []
+        self.config = None  # reference to config object taken from Command
 
     def setup(self, opt_values):
         """Delayed initialization.
@@ -333,6 +335,7 @@ class TaskLoader2(TaskLoaderBase):
 
         :param opt_values: (dict) with values for cmd_options
         """
+        pass
 
     def load_doit_config(self):
         """Load doit configuration.
@@ -358,8 +361,8 @@ class TaskLoader2(TaskLoaderBase):
 class NamespaceTaskLoader(TaskLoader2):
     """Implementation of a loader of tasks from an abstract namespace.
 
-    A namespace is simply a dictionary to objects like functions and objects. See the derived
-    classes for some concrete namespace types.
+    A namespace is simply a dictionary to objects like functions and
+    objects. See the derived classes for some concrete namespace types.
     """
     def __init__(self):
         super().__init__()
@@ -369,7 +372,8 @@ class NamespaceTaskLoader(TaskLoader2):
         return loader.load_doit_config(self.namespace)
 
     def load_tasks(self, cmd, pos_args):
-        return loader.load_tasks(self.namespace, self.cmd_names, cmd.execute_tasks)
+        return loader.load_tasks(self.namespace, self.cmd_names,
+                                 cmd.execute_tasks)
 
 
 class ModuleTaskLoader(NamespaceTaskLoader):
