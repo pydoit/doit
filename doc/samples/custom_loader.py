@@ -14,6 +14,9 @@ my_builtin_task = {
 
 
 class MyLoader(TaskLoader2):
+    def setup(self, opt_values):
+        pass
+
     def load_doit_config(self):
         return {'verbosity': 2}
 

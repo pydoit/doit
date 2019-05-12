@@ -36,6 +36,8 @@ Subclass ``TaskLoader2`` to create a custom loader:
 .. autoclass:: doit.cmd_base.TaskLoader2
    :members:
 
+Before the introduction of ``TaskLoader2`` a now deprecated loader interface ``TaskLoader`` was
+used, which did not separate the setup, configuration loading and task loading phases explicit.
 
 The main program is implemented in the `DoitMain`. It's constructor
 takes an instance of the task loader to be used.

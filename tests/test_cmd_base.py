@@ -206,6 +206,7 @@ class TestDoitCmdBase(object):
             '--db-file', depfile_name,
             '--mine', 'min'])
 
+
     def test_execute_with_legacy_dict_loader(self, depfile_name):
         members = {'task_xxx1': lambda: {'actions': []}}
 
@@ -219,6 +220,7 @@ class TestDoitCmdBase(object):
             '--mine', 'min',
         ])
 
+
     def test_execute_with_legacy_module_loader(self, depfile_name):
         import tests.module_with_tasks as module
 
@@ -231,6 +233,7 @@ class TestDoitCmdBase(object):
             '--db-file', depfile_name,
             '--mine', 'min',
         ])
+
 
     # command with _execute() method
     def test_minversion(self, depfile_name, monkeypatch):

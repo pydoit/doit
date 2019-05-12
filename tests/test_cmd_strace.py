@@ -4,6 +4,7 @@ from unittest import mock
 
 import pytest
 
+from doit.cmd_base import TaskLoader2
 from doit.exceptions import InvalidCommand
 from doit.cmdparse import DefaultUpdate
 from doit.task import Task
@@ -16,12 +17,15 @@ class TestCmdStrace(object):
 
     @staticmethod
     def loader_for_task(task):
-        from doit.cmd_base import TaskLoader2
-        loader = mock.MagicMock(spec_set=TaskLoader2)
-        loader.setup = mock.Mock()
-        loader.load_doit_config = mock.Mock(return_value={})
-        loader.load_tasks = mock.Mock(return_value=[task])
-        return loader
+
+        class MyTaskLoader(TaskLoader2):
+            def load_doit_config(self):
+                return {}
+
+            def load_tasks(self, cmd, pos_args):
+                return [task]
+
+        return MyTaskLoader()
 
     def test_dep(self, dependency1, depfile_name):
         output = StringIO()

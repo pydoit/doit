@@ -332,15 +332,18 @@ class TaskLoader2(TaskLoader):
         """
 
     def load_doit_config(self):
-        """Load doit configuration."""
+        """Load doit configuration.
+
+        :return: (dict) Dictionary of doit configuration values.
+        """
         return loader.load_doit_config(self.namespace)
 
     def load_tasks(self, cmd, pos_args):
         """Load tasks.
 
-        :return: (List[Task])
         :param cmd: (doit.cmd_base.Command) current command being executed
         :param pos_args: (list str) positional arguments from command line
+        :return: (List[Task])
         """
         return loader.load_tasks(self.namespace, self.cmd_names, cmd.execute_tasks)
 
@@ -350,7 +353,7 @@ class ModuleTaskLoader(TaskLoader2):
     Usage: `ModuleTaskLoader(my_module)` or `ModuleTaskLoader(globals())`
     """
     def __init__(self, mod_dict):
-        super(ModuleTaskLoader, self).__init__()
+        super().__init__()
         if inspect.ismodule(mod_dict):
             self.namespace = dict(inspect.getmembers(mod_dict))
         else:
@@ -482,14 +485,13 @@ class DoitCmdBase(Command):
         """
 
         # distinguish legacy and new-style task loader API when loading tasks:
-        if isinstance(self.loader, TaskLoader2):
-            legacy_loader = False
-            self.loader.setup(params)
-            dodo_config = self.loader.load_doit_config()
-        else:
-            legacy_loader = True
+        legacy_loader = not isinstance(self.loader, TaskLoader2)  # TODO: invert after breaking hierarchy
+        if legacy_loader:
             self.task_list, dodo_config = self.loader.load_tasks(
                 self, params, args)
+        else:
+            self.loader.setup(params)
+            dodo_config = self.loader.load_doit_config()
 
         # merge config values from dodo.py into params
         params.update_defaults(dodo_config)
