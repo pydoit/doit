@@ -33,11 +33,19 @@ from doit.loader import create_after
 from doit.doit_cmd import get_var
 from doit.api import run
 from doit.tools import load_ipython_extension
+from doit.globals import Globals
 
 __all__ = ['get_var', 'run', 'create_after']
+
 
 def get_initial_workdir():
     """working-directory from where the doit command was invoked on shell"""
     return loader.initial_workdir
+
+
+def get_dep_manager():
+    """Dependency manager singleton."""
+    return Globals.dep_manager
+
 
 assert load_ipython_extension  # silence pyflakes
