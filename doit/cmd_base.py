@@ -4,6 +4,7 @@ from collections import deque
 from collections import defaultdict
 import textwrap
 
+from .globals import Globals
 from . import version
 from .cmdparse import CmdOption, CmdParse
 from .exceptions import InvalidCommand, InvalidDodoFile
@@ -288,6 +289,13 @@ class TaskLoader():
         self.cmd_names = []
         self.config = None  # reference to config object taken from Command
 
+
+class TaskLoader(TaskLoaderBase):
+    """task-loader interface responsible of creating Task objects
+
+    Subclasses must implement the method `load_tasks`. Note: This interface is deprecated, use
+    `TaskLoader2` instead.
+    """
     def load_tasks(self, cmd, opt_values, pos_args): # pragma: no cover
         """load tasks and DOIT_CONFIG
 
@@ -542,6 +550,9 @@ class DoitCmdBase(Command):
             # dep_manager might have been already set (used on unit-test)
             self.dep_manager = Dependency(
                 db_class, params['dep_file'], checker_cls)
+
+        # register dependency manager in global registry:
+        Globals.dep_manager = self.dep_manager
 
         # load tasks from new-style loader, now that dependency manager is available:
         if not legacy_loader:

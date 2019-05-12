@@ -22,7 +22,8 @@ Changes
  - Fix `result_dep`, use result **after** its execution
  - Fix #286: Support `functools.partial` on tasks' dict metadata `task.title`
  - Fix #285: `clean` command, remove targets in reverse lexical order
- - Deprecated TaskLoader in favor of TaskLoader2, which separates loading doit's configuration from loading tasks.
+ - Deprecated `TaskLoader` in favor of `TaskLoader2`, which separates loading doit's configuration from loading tasks.
+ - Added `doit.get_dep_manager()` to access dependency manager during all task processing phases.
 
 
 0.31.1 (*2018-03-18*)
