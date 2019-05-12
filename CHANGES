@@ -20,7 +20,8 @@ Changes
  - Make it possible to use a custom encoder when using config_changed with a dict.
  - Add configuration `DOIT_CONFIG` `action_string_formatting` to control command action formatter.
  - Fix `result_dep`, use result **after** its execution
- - Fix #286: Cannot use functools.partial as title
+ - Fix #286: Support `functools.partial` on tasks' dict metadata `task.title`
+ - Fix #285: `clean` command, remove targets in reverse DFS order
 
 
 0.31.1 (*2018-03-18*)
