@@ -437,7 +437,7 @@ class TestTaskClean(object):
             assert expected == os.path.exists(filename)
         assert os.path.exists(tmpdir['dir'])
 
-    def test_clean_in_reverse_lexical_order(self, tmpdir):
+    def test_clean_any_order(self, tmpdir):
         # Remove targets in reverse lexical order so that subdirectories' order
         # in the targets array is irrelevant
         targets = tmpdir['files'] + [tmpdir['dir'], tmpdir['subdir']]
