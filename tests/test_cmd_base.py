@@ -1,8 +1,7 @@
 import os
-
 import pytest
 
-from doit import version
+from doit import version, Globals
 from doit.cmdparse import CmdParseError, CmdParse
 from doit.exceptions import InvalidCommand, InvalidDodoFile
 from doit.dependency import FileChangedChecker
@@ -205,6 +204,30 @@ class TestDoitCmdBase(object):
         assert 'min' == mycmd.parse_execute([
             '--db-file', depfile_name,
             '--mine', 'min'])
+
+
+    def test_execute_provides_dep_manager(self, depfile_name):
+        members = {'task_xxx1': lambda : {'actions':[]},}
+
+        global_dep_manager = None
+
+        class MockTaskLoader(ModuleTaskLoader):
+            def load_doit_config(self):
+                # reset singleton
+                Globals.dep_manager = None
+                return super().load_doit_config()
+
+            def load_tasks(self, cmd, pos_args):
+                nonlocal global_dep_manager
+                global_dep_manager = Globals.dep_manager
+                assert global_dep_manager, 'dep_manager not set before tasks are loaded'
+                return super().load_tasks(cmd, pos_args)
+
+        loader = get_loader({}, task_loader=MockTaskLoader(members))
+        mycmd = self.MyCmd(task_loader=loader)
+
+        mycmd.parse_execute(['--db-file', depfile_name, '--mine', 'min'])
+        assert global_dep_manager and global_dep_manager == mycmd.dep_manager
 
 
     def test_execute_with_legacy_dict_loader(self, depfile_name):
