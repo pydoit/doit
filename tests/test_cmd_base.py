@@ -1,5 +1,6 @@
 import os
 
+from unittest import mock
 import pytest
 
 from doit import version
@@ -205,6 +206,24 @@ class TestDoitCmdBase(object):
         assert 'min' == mycmd.parse_execute([
             '--db-file', depfile_name,
             '--mine', 'min'])
+
+
+    @mock.patch('doit.cmd_base.Globals')
+    def test_execute_provides_dep_manager(self, mock_globals, depfile_name):
+        mock_globals.dep_manager = None
+        members = {'task_xxx1': lambda: {'actions': []}}
+
+        class MockTaskLoader(ModuleTaskLoader):
+            def load_tasks(self, cmd, pos_args):
+                # ensure dep_manager is set before tasks are loaded:
+                assert mock_globals.dep_manager
+                return super().load_tasks(cmd, pos_args)
+
+        loader = get_loader({}, task_loader=MockTaskLoader(members))
+        mycmd = self.MyCmd(task_loader=loader)
+
+        mycmd.parse_execute(['--db-file', depfile_name, '--mine', 'min'])
+        assert mock_globals.dep_manager == mycmd.dep_manager
 
 
     def test_execute_with_legacy_dict_loader(self, depfile_name):
