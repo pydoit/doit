@@ -124,8 +124,8 @@ is empty, otherwise it will display a warning message.
 .. note::
 
   The targets' removal order will be the reverse of their lexical ordering.
-  This ensures that the directory structure formed by the targets is correctly
-  removed irrespective of their order in the ``targets`` array.
+  This ensures that files in a directory are removed before the directory
+  irrespective of their order in the ``targets`` array.
 
 The *clean* attribute can be a list of actions. An action could be a
 string with a shell command or a tuple with a python callable.

@@ -602,7 +602,7 @@ Sub-tasks (items of task group) by default are not reported by the ``list`` comm
 
 
 Note the task's name is composed of the task's group name (aka ``basename``)
-followed by a colon `:` and the ``name`` specified as a parameter when ``yield``ing.
+followed by a colon `:` and the ``name`` specified as a parameter when ``yield``.
 
 From the command line, a single task can be executed like this:
 
@@ -646,7 +646,7 @@ printing imports
 ================
 
 Getting rid of intermediate computation files (like ``requests.models.deps``) was nice...
-but sometimes it is usefull to be able to quickly list the direct imports from a module.
+but sometimes it is useful to be able to quickly list the direct imports from a module.
 
 Let's create another task that just prints its output in the terminal.
 
