@@ -273,10 +273,8 @@ opt_seek_file = {
 }
 
 
-class TaskLoader(object):
-    """task-loader interface responsible of creating Task objects
-
-    Subclasses must implement the method `load_tasks`
+class TaskLoaderBase:
+    """Common attributes of task loaders.
 
     :cvar cmd_options:
           (list of dict) see cmdparse.CmdOption for dict format
@@ -286,8 +284,18 @@ class TaskLoader(object):
     def __init__(self):
         # list of command names, used to detect clash of task names and commands
         self.cmd_names = []
-        self.config = None # reference to config object taken from Command
+        self.config = None  # reference to config object taken from Command
 
+
+class TaskLoader(TaskLoaderBase):
+    """task-loader interface responsible of creating Task objects
+
+    Subclasses must implement the method `load_tasks`. Note: This interface is deprecated, use
+    `TaskLoader2` instead.
+
+    :cvar cmd_options:
+          (list of dict) see cmdparse.CmdOption for dict format
+    """
     def load_tasks(self, cmd, opt_values, pos_args): # pragma: no cover
         """load tasks and DOIT_CONFIG
 
@@ -310,7 +318,7 @@ class TaskLoader(object):
         return task_list, doit_config
 
 
-class TaskLoader2(TaskLoader):
+class TaskLoader2(TaskLoaderBase):
     """Interface of task loaders with new-style API.
 
     The default implementation assumes tasks are loaded from a namespace, mapping identifiers to
