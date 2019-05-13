@@ -1,5 +1,4 @@
 import os
-from unittest import mock
 
 import doit
 from doit.loader import get_module
@@ -13,3 +12,4 @@ def test_get_initial_workdir(restore_cwd):
     get_module(fileName, cwd)
     assert os.getcwd() == cwd, os.getcwd()
     assert doit.get_initial_workdir() == initial_wd
+

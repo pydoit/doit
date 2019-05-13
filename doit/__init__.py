@@ -36,10 +36,8 @@ from doit.tools import load_ipython_extension
 
 __all__ = ['get_var', 'run', 'create_after']
 
-
 def get_initial_workdir():
     """working-directory from where the doit command was invoked on shell"""
     return loader.initial_workdir
-
 
 assert load_ipython_extension  # silence pyflakes
