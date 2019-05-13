@@ -2,7 +2,6 @@ import os
 from unittest import mock
 
 import doit
-from doit.globals import Globals
 from doit.loader import get_module
 
 
@@ -14,8 +13,3 @@ def test_get_initial_workdir(restore_cwd):
     get_module(fileName, cwd)
     assert os.getcwd() == cwd, os.getcwd()
     assert doit.get_initial_workdir() == initial_wd
-
-
-def test_get_dep_manager():
-    Globals.dep_manager = mock.sentinel.DEP_MANAGER
-    assert doit.get_dep_manager() == mock.sentinel.DEP_MANAGER
