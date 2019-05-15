@@ -50,9 +50,11 @@ def get_file_md5(path):
 class JsonDB(object):
     """Backend using a single text file with JSON content"""
 
-    def __init__(self, name):
+    def __init__(self, name, encoder_cls=json.JSONEncoder, decoder_cls=json.JSONDecoder):
         """Open/create a DB file"""
         self.name = name
+        self.encoder = encoder_cls()
+        self.decoder = decoder_cls()
         if not os.path.exists(self.name):
             self._db = {}
         else:
@@ -63,7 +65,7 @@ class JsonDB(object):
         db_file = open(self.name, 'r')
         try:
             try:
-                return json.load(db_file)
+                return self.decoder.decode(db_file.read())
             except ValueError as error:
                 # file contains corrupted json data
                 msg = (error.args[0] +
@@ -80,7 +82,7 @@ class JsonDB(object):
         """save DB content in file"""
         try:
             db_file = open(self.name, 'w')
-            json.dump(self._db, db_file)
+            db_file.write(self.encoder.encode(self._db))
         finally:
             db_file.close()
 
@@ -479,11 +481,11 @@ class Dependency(object):
     :ivar string name: filepath of the DB file
     :ivar bool _closed: DB was flushed to file
     """
-    def __init__(self, db_class, backend_name, checker_cls=MD5Checker):
+    def __init__(self, db_class, backend_name, checker_cls=MD5Checker, encoder_cls=json.JSONEncoder):
         self._closed = False
         self.checker = checker_cls()
         self.db_class = db_class
-        self.backend = db_class(backend_name)
+        self.backend = db_class(backend_name, encoder_cls=encoder_cls)
         self._set = self.backend.set
         self._get = self.backend.get
         self.remove = self.backend.remove
