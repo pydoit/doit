@@ -50,9 +50,11 @@ def get_file_md5(path):
 class JsonDB(object):
     """Backend using a single text file with JSON content"""
 
-    def __init__(self, name):
+    def __init__(self, name, encoder_cls=json.JSONEncoder, decoder_cls=json.JSONDecoder):
         """Open/create a DB file"""
         self.name = name
+        self.encoder = encoder_cls()
+        self.decoder = decoder_cls()
         if not os.path.exists(self.name):
             self._db = {}
         else:
@@ -63,7 +65,7 @@ class JsonDB(object):
         db_file = open(self.name, 'r')
         try:
             try:
-                return json.load(db_file)
+                return self.decoder.decode(db_file.read())
             except ValueError as error:
                 # file contains corrupted json data
                 msg = (error.args[0] +
@@ -80,7 +82,7 @@ class JsonDB(object):
         """save DB content in file"""
         try:
             db_file = open(self.name, 'w')
-            json.dump(self._db, db_file)
+            db_file.write(self.encoder.encode(self._db))
         finally:
             db_file.close()
 
@@ -133,9 +135,11 @@ class DbmDB(object):
     """
     DBM_CONTENT_ERROR_MSG = 'db type could not be determined'
 
-    def __init__(self, name):
+    def __init__(self, name, encoder_cls=json.JSONEncoder, decoder_cls=json.JSONDecoder):
         """Open/create a DB file"""
         self.name = name
+        self.encoder = encoder_cls()
+        self.decoder = decoder_cls()
         try:
             self._dbm = ddbm.open(self.name, 'c')
         except ddbm.error as exception:
@@ -160,7 +164,7 @@ class DbmDB(object):
     def dump(self):
         """save/close DBM file"""
         for task_id in self.dirty:
-            self._dbm[task_id] = json.dumps(self._db[task_id])
+            self._dbm[task_id] = self.encoder.encode(self._db[task_id])
         self._dbm.close()
 
 
@@ -195,7 +199,7 @@ class DbmDB(object):
                 task_data = self._dbm[task_id]
             except KeyError:
                 return
-            self._db[task_id] = json.loads(task_data.decode('utf-8'))
+            self._db[task_id] = self.decoder.decode(task_data.decode('utf-8'))
             return self._db[task_id].get(dependency, None)
 
 
@@ -232,14 +236,15 @@ class DbmDB(object):
 class SqliteDB(object):
     """ sqlite3 json backend """
 
-    def __init__(self, name):
+    def __init__(self, name, encoder_cls=json.JSONEncoder, decoder_cls=json.JSONDecoder):
         self.name = name
+        self.encoder = encoder_cls()
+        self.decoder = decoder_cls()
         self._conn = self._sqlite3(self.name)
         self._cache = {}
         self._dirty = set()
 
-    @staticmethod
-    def _sqlite3(name):
+    def _sqlite3(self, name):
         """Open/create a sqlite3 DB file"""
 
         # Import sqlite here so it's only imported when required
@@ -251,10 +256,10 @@ class SqliteDB(object):
                 data[col[0]] = row[idx]
             return data
         def converter(data):
-            return json.loads(data.decode('utf-8'))
+            return self.decoder.decode(data.decode('utf-8'))
 
-        sqlite3.register_adapter(list, json.dumps)
-        sqlite3.register_adapter(dict, json.dumps)
+        sqlite3.register_adapter(list, self.encoder.encode)
+        sqlite3.register_adapter(dict, self.encoder.encode)
         sqlite3.register_converter("json", converter)
         conn = sqlite3.connect(
             name,
@@ -315,7 +320,7 @@ class SqliteDB(object):
         """save/close sqlite3 DB file"""
         for task_id in self._dirty:
             self._conn.execute('insert or replace into doit values (?,?)',
-                               (task_id, json.dumps(self._cache[task_id])))
+                               (task_id, self.encoder.encode(self._cache[task_id])))
         self._conn.commit()
         self._conn.close()
         self._dirty = set()
@@ -479,11 +484,11 @@ class Dependency(object):
     :ivar string name: filepath of the DB file
     :ivar bool _closed: DB was flushed to file
     """
-    def __init__(self, db_class, backend_name, checker_cls=MD5Checker):
+    def __init__(self, db_class, backend_name, checker_cls=MD5Checker, encoder_cls=json.JSONEncoder, decoder_cls=json.JSONDecoder):
         self._closed = False
         self.checker = checker_cls()
         self.db_class = db_class
-        self.backend = db_class(backend_name)
+        self.backend = db_class(backend_name, encoder_cls=encoder_cls, decoder_cls=decoder_cls)
         self._set = self.backend.set
         self._get = self.backend.get
         self.remove = self.backend.remove

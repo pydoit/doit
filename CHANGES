@@ -24,7 +24,7 @@ Changes
  - Fix #285: `clean` command, remove targets in reverse lexical order
  - Deprecated `TaskLoader` in favor of `TaskLoader2`, which separates loading doit's configuration from loading tasks.
  - Fix #288: Added `doit.globals.Globals.dep_manager` to access dependency manager during all task processing phases.
-
+ - Fix #98: Support custom backend codecs so that python-action return values which are not JSON serializable may be used.
 
 0.31.1 (*2018-03-18*)
 =====================

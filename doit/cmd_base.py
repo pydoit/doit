@@ -3,6 +3,7 @@ import sys
 from collections import deque
 from collections import defaultdict
 import textwrap
+import importlib
 
 from .globals import Globals
 from . import version
@@ -216,6 +217,27 @@ opt_backend = {
     'type': str,
     'default': "dbm",
     'help': ("Select dependency file backend. [default: %(default)s]")
+}
+
+# dependency file codecs
+opt_encoder = {
+    'section': 'DB backend encoder',
+    'name': 'encoder_cls',
+    'short':'',
+    'long': 'encoder',
+    'type': str,
+    'default': "json.JSONEncoder",
+    'help': ("Select encoder for python-action return values. [default: %(default)s]")
+}
+
+opt_decoder = {
+    'section': 'DB backend decoder',
+    'name': 'decoder_cls',
+    'short':'',
+    'long': 'decoder',
+    'type': str,
+    'default': "json.JSONDecoder",
+    'help': ("Select decoder for python-action return values. [default: %(default)s]")
 }
 
 opt_check_file_uptodate = {
@@ -439,7 +461,7 @@ class DoitCmdBase(Command):
     cmd_options => list of option dictionary (see CmdOption)
     _execute => method, argument names must be option names
     """
-    base_options = (opt_depfile, opt_backend, opt_check_file_uptodate)
+    base_options = (opt_depfile, opt_backend, opt_encoder, opt_decoder, opt_check_file_uptodate)
 
     def __init__(self, task_loader, cmds=None, **kwargs):
         super(DoitCmdBase, self).__init__(**kwargs)
@@ -490,6 +512,25 @@ class DoitCmdBase(Command):
             # user defined class
             return check_file_uptodate
 
+    def get_codec_cls(self, codec_name):
+        """return a class used to encode or decode python-action results"""
+        if isinstance(codec_name, str):
+            parts = codec_name.split(".")
+            if len(parts) >= 2:
+                module_name = ".".join(parts[:-1])
+                cls_name = parts[-1]
+
+                try:
+                    module = importlib.import_module(module_name)
+                    cls = getattr(module, cls_name)
+                except (ModuleNotFoundError, AttributeError):
+                    raise InvalidCommand("Could not import encoder or decoder class '{}'".format(codec_name))
+                
+                return cls
+        
+        # Prior checks
+        raise InvalidCommand("Encoder or decoder class '{}' is not valid.".format(codec_name))
+            
 
     def get_backends(self):
         """return PluginDict of DB backends, including core and plugins"""
@@ -537,12 +578,14 @@ class DoitCmdBase(Command):
         # create dep manager
         db_class = self._backends.get(params['backend'])
         checker_cls = self.get_checker_cls(params['check_file_uptodate'])
+        encoder_cls = self.get_codec_cls(params['encoder_cls'])
+        decoder_cls = self.get_codec_cls(params['decoder_cls'])
         # note the command have the responsibility to call dep_manager.close()
 
         if self.dep_manager is None:
             # dep_manager might have been already set (used on unit-test)
             self.dep_manager = Dependency(
-                db_class, params['dep_file'], checker_cls)
+                db_class, params['dep_file'], checker_cls=checker_cls, encoder_cls=encoder_cls, decoder_cls=decoder_cls)
 
         # register dependency manager in global registry:
         Globals.dep_manager = self.dep_manager
