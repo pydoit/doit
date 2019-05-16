@@ -14,9 +14,9 @@ def get_abspath(relativePath):
     """ return abs file path relative to this file"""
     return os.path.join(os.path.dirname(__file__), relativePath)
 
+
 # fixture to create a sample file to be used as file_dep
 def dependency_factory(relative_path):
-
     @pytest.fixture
     def dependency(request):
         path = get_abspath(relative_path)
@@ -29,6 +29,7 @@ def dependency_factory(relative_path):
         def remove_dependency():
             if os.path.exists(path):
                 os.remove(path)
+
         request.addfinalizer(remove_dependency)
 
         return path
@@ -45,9 +46,11 @@ def target1(request):
     path = get_abspath("data/target1")
     if os.path.exists(path):  # pragma: no cover
         os.remove(path)
+
     def remove_path():
         if os.path.exists(path):
             os.remove(path)
+
     request.addfinalizer(remove_path)
     return path
 
@@ -68,6 +71,7 @@ def remove_db(filename):
         if os.path.exists(filename + ext):
             os.remove(filename + ext)
 
+
 # dbm backends use different file extensions
 db_ext = {
     'dbhash': [''],
@@ -87,13 +91,11 @@ def dep_manager_fixture(request, dep_class):
     dep_file.whichdb = whichdb(dep_file.name) if dep_class is DbmDB else 'XXX'
     dep_file.name_ext = db_ext.get(dep_file.whichdb, [''])
 
-    def remove_depfile():
-        if not dep_file._closed:
-            dep_file.close()
-        remove_db(dep_file.name)
-    request.addfinalizer(remove_depfile)
+    yield dep_file
 
-    return dep_file
+    if not dep_file._closed:
+        dep_file.close()
+    remove_db(dep_file.name)
 
 
 @pytest.fixture
@@ -107,10 +109,11 @@ def depfile_name(request):
     name = request._pyfuncitem.name
     name = py.std.re.sub("[\W]", "_", name)
     my_tmpdir = request.config._tmpdirhandler.mktemp(name, numbered=True)
-    depfile_name = (os.path.join(my_tmpdir.strpath, "testdb"))
+    depfile_name = os.path.join(my_tmpdir.strpath, "testdb")
 
     def remove_depfile():
         remove_db(depfile_name)
+
     request.addfinalizer(remove_depfile)
 
     return depfile_name
@@ -120,8 +123,10 @@ def depfile_name(request):
 def restore_cwd(request):
     """restore cwd to its initial value after test finishes."""
     previous = os.getcwd()
+
     def restore_cwd():
         os.chdir(previous)
+
     request.addfinalizer(restore_cwd)
 
 
@@ -131,8 +136,7 @@ def tasks_sample():
         # 0
         Task("t1", [""], doc="t1 doc string"),
         # 1
-        Task("t2", [""], file_dep=['tests/data/dependency1'],
-             doc="t2 doc string"),
+        Task("t2", [""], file_dep=['tests/data/dependency1'], doc="t2 doc string"),
         # 2
         Task("g1", None, doc="g1 doc string", has_subtask=True),
         # 3
@@ -148,15 +152,22 @@ def tasks_sample():
 
 def tasks_bad_sample():
     """Create list of tasks that cause errors."""
-    bad_sample = [
-        Task("e1", [""], doc='e4 bad file dep', file_dep=['xxxx'])
-    ]
+    bad_sample = [Task("e1", [""], doc='e4 bad file dep', file_dep=['xxxx'])]
     return bad_sample
 
 
-def CmdFactory(cls, outstream=None, task_loader=None, dep_file=None,
-               backend=None, task_list=None, sel_tasks=None,
-               dep_manager=None, config=None, cmds=None):
+def CmdFactory(
+    cls,
+    outstream=None,
+    task_loader=None,
+    dep_file=None,
+    backend=None,
+    task_list=None,
+    sel_tasks=None,
+    dep_manager=None,
+    config=None,
+    cmds=None,
+):
     """helper for test code, so test can call _execute() directly"""
     loader = get_loader(config, task_loader, cmds)
     cmd = cls(task_loader=loader, config=config, cmds=cmds)

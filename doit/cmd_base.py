@@ -3,6 +3,7 @@ import sys
 from collections import deque
 from collections import defaultdict
 import textwrap
+import json
 
 from .globals import Globals
 from . import version
@@ -505,6 +506,10 @@ class DoitCmdBase(Command):
             self.cmdparser['backend'].choices = choices
 
         return backend_map
+
+    def get_encoder_cls(self, encoder_cls_name):
+        """return JSON encoder used to encode python-action return values"""
+        return json.JSONEncoder
 
     def execute(self, params, args):
         """load dodo.py, set attributes and call self._execute

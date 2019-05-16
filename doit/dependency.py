@@ -135,9 +135,11 @@ class DbmDB(object):
     """
     DBM_CONTENT_ERROR_MSG = 'db type could not be determined'
 
-    def __init__(self, name):
+    def __init__(self, name, encoder_cls=json.JSONEncoder, decoder_cls=json.JSONDecoder):
         """Open/create a DB file"""
         self.name = name
+        self.encoder = encoder_cls()
+        self.decoder = decoder_cls()
         try:
             self._dbm = ddbm.open(self.name, 'c')
         except ddbm.error as exception:
@@ -162,7 +164,7 @@ class DbmDB(object):
     def dump(self):
         """save/close DBM file"""
         for task_id in self.dirty:
-            self._dbm[task_id] = json.dumps(self._db[task_id])
+            self._dbm[task_id] = self.encoder.encode(self._db[task_id])
         self._dbm.close()
 
 
@@ -197,7 +199,7 @@ class DbmDB(object):
                 task_data = self._dbm[task_id]
             except KeyError:
                 return
-            self._db[task_id] = json.loads(task_data.decode('utf-8'))
+            self._db[task_id] = self.decoder.decode(task_data.decode('utf-8'))
             return self._db[task_id].get(dependency, None)
 
 
@@ -234,14 +236,15 @@ class DbmDB(object):
 class SqliteDB(object):
     """ sqlite3 json backend """
 
-    def __init__(self, name):
+    def __init__(self, name, encoder_cls=json.JSONEncoder, decoder_cls=json.JSONDecoder):
         self.name = name
+        self.encoder = encoder_cls()
+        self.decoder = decoder_cls()
         self._conn = self._sqlite3(self.name)
         self._cache = {}
         self._dirty = set()
 
-    @staticmethod
-    def _sqlite3(name):
+    def _sqlite3(self, name):
         """Open/create a sqlite3 DB file"""
 
         # Import sqlite here so it's only imported when required
@@ -253,10 +256,10 @@ class SqliteDB(object):
                 data[col[0]] = row[idx]
             return data
         def converter(data):
-            return json.loads(data.decode('utf-8'))
+            return self.decoder.decode(data.decode('utf-8'))
 
-        sqlite3.register_adapter(list, json.dumps)
-        sqlite3.register_adapter(dict, json.dumps)
+        sqlite3.register_adapter(list, self.encoder.encode)
+        sqlite3.register_adapter(dict, self.encoder.encode)
         sqlite3.register_converter("json", converter)
         conn = sqlite3.connect(
             name,
@@ -317,7 +320,7 @@ class SqliteDB(object):
         """save/close sqlite3 DB file"""
         for task_id in self._dirty:
             self._conn.execute('insert or replace into doit values (?,?)',
-                               (task_id, json.dumps(self._cache[task_id])))
+                               (task_id, self.encoder.encode(self._cache[task_id])))
         self._conn.commit()
         self._conn.close()
         self._dirty = set()

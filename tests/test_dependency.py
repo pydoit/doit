@@ -3,9 +3,11 @@ import time
 import sys
 import tempfile
 import uuid
+import json
 from sys import executable
 
 import pytest
+from dbm import whichdb
 
 from doit.task import Task
 from doit.dependency import get_md5, get_file_md5
@@ -13,7 +15,7 @@ from doit.dependency import DbmDB, JsonDB, SqliteDB, Dependency
 from doit.dependency import DatabaseException, UptodateCalculator
 from doit.dependency import FileChangedChecker, MD5Checker, TimestampChecker
 from doit.dependency import DependencyStatus
-from .conftest import get_abspath, dep_manager_fixture
+from .conftest import get_abspath, pdep_manager_fixture
 
 # path to test folder
 TEST_PATH = os.path.dirname(__file__)
@@ -61,16 +63,33 @@ def test_sqlite_import():
 # taskId_dependency => signature(dependency)
 # taskId is md5(CmdTask.task)
 
+class CustomJSONEncoder(json.JSONEncoder):
+    'Test JSON encoder that just drops non-json serializable data'
 
+    def default(self, obj):
+        if type(obj) not in [str, int, float, bool, None]:
+            return None
+        else:
+            return obj    
 
 # test parametrization, execute tests for all DB backends.
 # create a separate fixture to be used only by this module
 # because only here it is required to test with all backends
 @pytest.fixture(params=[JsonDB, DbmDB, SqliteDB])
 def pdep_manager(request):
-    return dep_manager_fixture(request, request.param)
+    yield pdep_manager_fixture(request, request.param)
 
-
+    if not dep_file._closed:
+        try:
+            dep_file.close()
+        except TypeError:
+            if (
+                request.function.__name__ == 'test_save_result_instance'
+                and type(dep_file.backend.encoder) == json.JSONEncoder
+            ):
+                pytest.xfail(reason='Standard JSON encoder can not encode classes')
+            else:
+                raise
 
 # FIXME there was major refactor breaking classes from dependency,
 # unit-tests could be more specific to base classes.
@@ -200,6 +219,19 @@ class TestSaveSuccess(object):
         t1.result = {'d': "result"}
         pdep_manager.save_success(t1)
         assert {'d': "result"} == pdep_manager._get(t1.name, "result:")
+
+    @pytest.mark.parametrize('codec', [(json.JSONEncoder, json.JSONDecoder), (CustomJSONEncoder, json.JSONDecoder)])
+    def test_save_result_instance(self, pdep_manager, codec):
+        # monkey patch the backend codec
+        pdep_manager.backend.encoder = codec[0]()
+        pdep_manager.backend.decoder = codec[1]()
+        class Result:
+            a = 1
+
+        t1 = Task('t_name', None)
+        t1.result = {'d': Result()}
+        pdep_manager.save_success(t1)
+        assert type(pdep_manager._get(t1.name, "result:")['d']) == Result
 
     def test_save_file_md5(self, pdep_manager):
         # create a test dependency file
