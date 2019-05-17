@@ -1,5 +1,6 @@
 import os
 import time
+import json
 from dbm import whichdb
 
 import py
@@ -82,12 +83,17 @@ db_ext = {
     'dbm.ndbm': ['.db'],
 }
 
-def dep_manager_fixture(request, dep_class):
+def dep_manager_fixture(request, dep_class, encoder_cls=json.JSONEncoder, decoder_cls=json.JSONDecoder):
     # copied from tempdir plugin
     name = request._pyfuncitem.name
     name = py.std.re.sub("[\W]", "_", name)
     my_tmpdir = request.config._tmpdirhandler.mktemp(name, numbered=True)
-    dep_file = Dependency(dep_class, os.path.join(my_tmpdir.strpath, "testdb"))
+    dep_file = Dependency(
+        dep_class,
+        os.path.join(my_tmpdir.strpath, "testdb"),
+        encoder_cls=encoder_cls,
+        decoder_cls=decoder_cls,
+    )
     dep_file.whichdb = whichdb(dep_file.name) if dep_class is DbmDB else 'XXX'
     dep_file.name_ext = db_ext.get(dep_file.whichdb, [''])
 

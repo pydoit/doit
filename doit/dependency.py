@@ -484,11 +484,11 @@ class Dependency(object):
     :ivar string name: filepath of the DB file
     :ivar bool _closed: DB was flushed to file
     """
-    def __init__(self, db_class, backend_name, checker_cls=MD5Checker, encoder_cls=json.JSONEncoder):
+    def __init__(self, db_class, backend_name, checker_cls=MD5Checker, encoder_cls=json.JSONEncoder, decoder_cls=json.JSONDecoder):
         self._closed = False
         self.checker = checker_cls()
         self.db_class = db_class
-        self.backend = db_class(backend_name, encoder_cls=encoder_cls)
+        self.backend = db_class(backend_name, encoder_cls=encoder_cls, decoder_cls=decoder_cls)
         self._set = self.backend.set
         self._get = self.backend.get
         self.remove = self.backend.remove

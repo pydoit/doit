@@ -4,6 +4,7 @@ import sys
 import tempfile
 import uuid
 import json
+import importlib
 from sys import executable
 
 import pytest
@@ -16,11 +17,16 @@ from doit.dependency import DatabaseException, UptodateCalculator
 from doit.dependency import FileChangedChecker, MD5Checker, TimestampChecker
 from doit.dependency import DependencyStatus
 from .conftest import get_abspath, pdep_manager_fixture
+from doit.cmd_base import DoitCmdBase
+from doit.tools import JSONNullEncoder
 
 # path to test folder
 TEST_PATH = os.path.dirname(__file__)
 PROGRAM = "%s %s/sample_process.py" % (executable, TEST_PATH)
 
+class Result:
+    'class used to test codecs'
+    a = 1
 
 def test_unicode_md5():
     data = "我"
@@ -67,9 +73,26 @@ def test_sqlite_import():
 # test parametrization, execute tests for all DB backends.
 # create a separate fixture to be used only by this module
 # because only here it is required to test with all backends
+@pytest.fixture(params=[
+        ['json', 'JSONEncoder', 'json', 'JSONDecoder'],
+        ['doit.tools', 'JSONNullEncoder', 'json', 'JSONDecoder'],
+        ['doit.tools', 'PickleEncoder', 'doit.tools', 'PickleDecoder'],
+    ], ids=['json', 'json_null', 'pickle'])
+def codecs(request):
+    res = []
+    for codec in [request.param[:2], request.param[2:]]:
+        module_name, cls_name = codec
+        module = importlib.import_module(module_name)
+        cls = getattr(module, cls_name)
+        res.append(cls)
+
+    return res
+
 @pytest.fixture(params=[JsonDB, DbmDB, SqliteDB])
 def pdep_manager(request):
-    yield pdep_manager_fixture(request, request.param)
+    encoder_cls, decoder_cls = codecs
+
+    yield pdep_manager_fixture(request, request.param, encoder_cls=encoder_cls, decoder_cls=decoder_cls)
 
     if not dep_file._closed:
         try:
@@ -77,7 +100,7 @@ def pdep_manager(request):
         except TypeError:
             if (
                 request.function.__name__ == 'test_save_result_instance'
-                and type(dep_file.backend.encoder) == json.JSONEncoder
+                and encoder_cls == json.JSONEncoder
             ):
                 pytest.xfail(reason='Standard JSON encoder can not encode classes')
             else:
@@ -100,14 +123,14 @@ class TestDependencyDb(object):
         value = pdep_manager._get("taskId_我", "dependency_A")
         assert "da_md5" == value, value
 
-    #
-    def test_dump(self, pdep_manager):
+    def test_dump(self, pdep_manager, codecs):
         # save and close db
         pdep_manager._set("taskId_X", "dependency_A", "da_md5")
         pdep_manager.close()
 
         # open it again and check the value
-        d2 = Dependency(pdep_manager.db_class, pdep_manager.name)
+        encoder_cls, decoder_cls = codecs
+        d2 = Dependency(pdep_manager.db_class, pdep_manager.name, encoder_cls=encoder_cls, decoder_cls=decoder_cls)
 
         value = d2._get("taskId_X", "dependency_A")
         assert "da_md5" == value, value
@@ -162,17 +185,18 @@ class TestDependencyDb(object):
         assert "14" == pdep_manager._get("taskId_YYY", "dep_1")
 
     # special test for DBM backend and "dirty"/caching mechanism
-    def test_remove_from_non_empty_file(self, pdep_manager):
+    def test_remove_from_non_empty_file(self, pdep_manager, codecs):
+        encoder_cls, decoder_cls = codecs
         # 1 - put 2 tasks of file
         pdep_manager._set("taskId_XXX", "dep_1", "x")
         pdep_manager._set("taskId_YYY", "dep_1", "x")
         pdep_manager.close()
         # 2 - re-open and remove one task
-        reopened = Dependency(pdep_manager.db_class, pdep_manager.name)
+        reopened = Dependency(pdep_manager.db_class, pdep_manager.name, encoder_cls=encoder_cls, decoder_cls=decoder_cls)
         reopened.remove("taskId_YYY")
         reopened.close()
         # 3 - re-open again and check task was really removed
-        reopened2 = Dependency(pdep_manager.db_class, pdep_manager.name)
+        reopened2 = Dependency(pdep_manager.db_class, pdep_manager.name, encoder_cls=encoder_cls, decoder_cls=decoder_cls)
         assert reopened2._in("taskId_XXX")
         assert not reopened2._in("taskId_YYY")
 
@@ -211,18 +235,7 @@ class TestSaveSuccess(object):
         pdep_manager.save_success(t1)
         assert {'d': "result"} == pdep_manager._get(t1.name, "result:")
 
-    @pytest.mark.parametrize(
-        'codec',
-        [(json.JSONEncoder, json.JSONDecoder), (CustomJSONEncoder, json.JSONDecoder)],
-    )
-    def test_save_result_instance(self, pdep_manager, codec):
-        # monkey patch the backend codec
-        pdep_manager.backend.encoder = codec[0]()
-        pdep_manager.backend.decoder = codec[1]()
-
-        class Result:
-            a = 1
-
+    def test_save_result_instance(self, pdep_manager):
         t1 = Task('t_name', None)
         t1.result = {'d': Result()}
         pdep_manager.save_success(t1)

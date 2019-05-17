@@ -7,6 +7,8 @@ import json
 import hashlib
 import operator
 import subprocess
+import base64
+import cloudpickle
 
 from . import exceptions
 from .action import CmdAction, PythonAction
@@ -309,3 +311,26 @@ class JSONNullEncoder(json.JSONEncoder):
             return None
         else:
             return obj    
+
+class PickleEncoder(json.JSONEncoder):
+
+    PREFIX = '__PICKLED__'
+
+    def default(self, obj):
+        if type(obj) not in [str, int, float, bool, None]:
+            return self.PREFIX + base64.b64encode(cloudpickle.dumps(obj)).decode()
+        else:
+            return obj    
+
+class PickleDecoder(json.JSONDecoder):
+
+    def __init__(self, *args, **kwargs):
+        kwargs['object_hook'] = self._unpickle
+        super().__init__(*args, **kwargs)
+    
+    def _unpickle(self, obj):
+        if type(obj) == str:
+            if obj.startswith(PickleEncoder.PREFIX):
+                return cloudpickle.loads(base64.b64decode(obj[len(PickleEncoder.PREFIX):]))
+        
+        return obj
