@@ -299,3 +299,13 @@ def load_ipython_extension(ip=None):  # pragma: no cover
 
 # also expose another way of registering ipython extension
 register_doit_as_IPython_magic = load_ipython_extension
+
+# encoder for db backend
+class JSONNullEncoder(json.JSONEncoder):
+    'Encodes non-serializable values as null'
+
+    def default(self, obj):
+        if type(obj) not in [str, int, float, bool, None]:
+            return None
+        else:
+            return obj    
