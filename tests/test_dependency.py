@@ -16,7 +16,7 @@ from doit.dependency import DbmDB, JsonDB, SqliteDB, Dependency
 from doit.dependency import DatabaseException, UptodateCalculator
 from doit.dependency import FileChangedChecker, MD5Checker, TimestampChecker
 from doit.dependency import DependencyStatus
-from .conftest import get_abspath, pdep_manager_fixture
+from .conftest import get_abspath, dep_manager_fixture
 from doit.cmd_base import DoitCmdBase
 from doit.tools import JSONNullEncoder
 
@@ -89,10 +89,12 @@ def codecs(request):
     return res
 
 @pytest.fixture(params=[JsonDB, DbmDB, SqliteDB])
-def pdep_manager(request):
+def pdep_manager(request, codecs):
     encoder_cls, decoder_cls = codecs
 
-    yield pdep_manager_fixture(request, request.param, encoder_cls=encoder_cls, decoder_cls=decoder_cls)
+    dep_file = dep_manager_fixture(request, request.param, encoder_cls=encoder_cls, decoder_cls=decoder_cls)
+
+    yield dep_file
 
     if not dep_file._closed:
         try:

@@ -97,16 +97,18 @@ def dep_manager_fixture(request, dep_class, encoder_cls=json.JSONEncoder, decode
     dep_file.whichdb = whichdb(dep_file.name) if dep_class is DbmDB else 'XXX'
     dep_file.name_ext = db_ext.get(dep_file.whichdb, [''])
 
+    return dep_file
+
+
+@pytest.fixture
+def dep_manager(request):
+    dep_file = dep_manager_fixture(request, DbmDB)
+
     yield dep_file
 
     if not dep_file._closed:
         dep_file.close()
     remove_db(dep_file.name)
-
-
-@pytest.fixture
-def dep_manager(request):
-    return dep_manager_fixture(request, DbmDB)
 
 
 @pytest.fixture
