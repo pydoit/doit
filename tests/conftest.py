@@ -75,13 +75,7 @@ db_ext = {'dbhash': [''],
           'dbm.ndbm': ['.db'],
           }
 
-@pytest.fixture
-def dep_manager(request):
-    if hasattr(request, 'param'):
-        dep_class = request.param
-    else:
-        dep_class = DbmDB
-
+def dep_manager_fixture(request, dep_class):
     # copied from tempdir plugin
     name = request._pyfuncitem.name
     name = py.std.re.sub("[\W]", "_", name)
@@ -97,6 +91,12 @@ def dep_manager(request):
     request.addfinalizer(remove_depfile)
 
     return dep_file
+
+
+@pytest.fixture
+def dep_manager(request):
+    return dep_manager_fixture(request, DbmDB)
+
 
 @pytest.fixture
 def depfile_name(request):
