@@ -215,7 +215,8 @@ class TestDoitCmdBase(object):
 
         class MockTaskLoader(ModuleTaskLoader):
             def load_tasks(self, cmd, pos_args):
-                assert mock_globals.dep_manager, 'dep_manager not set before tasks are loaded'
+                # ensure dep_manager is set before tasks are loaded:
+                assert mock_globals.dep_manager
                 return super().load_tasks(cmd, pos_args)
 
         loader = get_loader({}, task_loader=MockTaskLoader(members))
