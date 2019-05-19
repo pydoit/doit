@@ -42,6 +42,7 @@ The total reading time for the whole documentation is about one hour.
    cmd_other
    configuration
    task_args
+   globals
    uptodate
    tools
    extending
