@@ -18,9 +18,9 @@ information stored in `doit`'s database file.
 The ``dep_manager`` attribute is initialized right before tasks are loaded, which means it allows to
 be accessed during *all* task evaluation phases, in particular during:
 
-* Task generation, i.e. from the body of any ``task_*`` function. Task execution, i.e. from the code
-* executed by one of the task's actions. Task cleanup, i.e. from the the code executed by one of the
-* tasks's clean activities.
+* Task generation, i.e. from the body of any ``task_*`` function.
+* Task execution, i.e. from the code executed by one of the task's actions.
+* Task cleanup, i.e. from the the code executed by one of the tasks's clean activities.
 
 An example of this is a task, where at generation time the *target* of the task action is not yet
 known, because it is determined during execution. Then it would be possible to store that target in
