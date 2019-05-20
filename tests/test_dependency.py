@@ -76,8 +76,7 @@ def test_sqlite_import():
 @pytest.fixture(params=[
         ['json', 'JSONEncoder', 'json', 'JSONDecoder'],
         ['doit.tools', 'JSONNullEncoder', 'json', 'JSONDecoder'],
-        ['doit.tools', 'PickleEncoder', 'doit.tools', 'PickleDecoder'],
-    ], ids=['json', 'json_null', 'pickle'])
+    ], ids=['json', 'json_null'])
 def codecs(request):
     res = []
     for codec in [request.param[:2], request.param[2:]]:

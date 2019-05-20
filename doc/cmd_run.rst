@@ -160,25 +160,6 @@ must be modified to set the ``uptodate`` task parameter to ``[False]``. This is 
 ``JSONNullEncoder`` does not serialize the return value and therefore the task must be re-run each
 time the value is required.
 
-Pickle Encoder/Decoder
-^^^^^^^^^^^^^^^^^^^^^^
-
-A custom encoder/decoder pair which can pickle Python objects is also available in ``doit.tools``:
-
-.. code-block:: INI
-
-    [GLOBAL]
-    encoder_cls = doit.tools.PickleEncoder
-    decoder_cls = doit.tools.PickleDecoder
-
-Since Python objects are serialized this codec does not require tasks to set the ``uptodate`` task parameter to ``[False]``.
-
-Any non-serializable values will be pickled and base 64 encoded. The ``pickle`` documentation warns:
-
-    **Warning** The pickle module is not secure against erroneous or maliciously constructed data. Never unpickle data received from an untrusted or unauthenticated source.
-
-Ensure that your ``.doit.db`` file is stored in a secure location. Never accept a ``.doit.db`` file from an untrusted source.
-
 DB-file
 ----------
 
