@@ -305,3 +305,26 @@ class TestPythonInteractiveAction(object):
         got = my_action.execute()
         assert got is None
         assert my_action.result == 'hello'
+
+class TestNullEncoder(object):
+
+    class Foo(object):
+        pass
+
+    @pytest.mark.parametrize('payload, has_null, decoded', [
+        [{}, False, {}],
+        [{'a': 1}, False, {'a': 1}],
+        [{'a': [1]}, False, {'a': [1]}],
+        [{'a': {'b': 1}}, False, {'a': {'b': 1}}],
+        [{'a': 1.0}, False, {'a': 1.0}],
+        [{'a': True}, False, {'a': True}],
+        [{'a': None}, True, {'a': None}],
+        [{'a': Foo()}, True, {'a': None}],
+        [{'a': [Foo()]}, True, {'a': [None]}],
+        [{'a': {'b': Foo()}}, True, {'a': {'b': None}}],
+    ])
+    def test_null_encoder(self, payload, has_null, decoded):
+        serialized = tools.JSONNullEncoder().encode(payload)
+        deserialized = json.JSONDecoder().decode(serialized)
+        assert ("null" in serialized) == has_null
+        assert deserialized == decoded

@@ -305,7 +305,7 @@ class JSONNullEncoder(json.JSONEncoder):
     'Encodes non-serializable values as null'
 
     def default(self, obj):
-        if type(obj) not in [str, int, float, bool, None]:
+        if type(obj) not in [str, int, float, bool, list, dict, None]:
             return None
         else:
             return obj
