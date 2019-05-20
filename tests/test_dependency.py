@@ -8,7 +8,6 @@ import importlib
 from sys import executable
 
 import pytest
-from dbm import whichdb
 
 from doit.task import Task
 from doit.dependency import get_md5, get_file_md5
@@ -17,8 +16,6 @@ from doit.dependency import DatabaseException, UptodateCalculator
 from doit.dependency import FileChangedChecker, MD5Checker, TimestampChecker
 from doit.dependency import DependencyStatus
 from .conftest import get_abspath, dep_manager_fixture
-from doit.cmd_base import DoitCmdBase
-from doit.tools import JSONNullEncoder
 
 # path to test folder
 TEST_PATH = os.path.dirname(__file__)

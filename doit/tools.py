@@ -7,7 +7,6 @@ import json
 import hashlib
 import operator
 import subprocess
-import base64
 
 from . import exceptions
 from .action import CmdAction, PythonAction
@@ -309,4 +308,4 @@ class JSONNullEncoder(json.JSONEncoder):
         if type(obj) not in [str, int, float, bool, None]:
             return None
         else:
-            return obj    
+            return obj

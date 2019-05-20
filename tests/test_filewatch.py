@@ -13,8 +13,6 @@ def testUnsuportedPlatform(monkeypatch):
 
 
 platform = get_platform_system()
-
-
 @pytest.mark.skipif('platform not in FileModifyWatcher.supported_platforms')
 class TestFileWatcher(object):
     def testInit(self, restore_cwd, tmpdir):
@@ -38,11 +36,11 @@ class TestFileWatcher(object):
         assert 1 == len(fw.notify_dirs)
         assert tmpdir.join('data3') in fw.notify_dirs
 
+
     def testHandleEventNotSubclassed(self):
         fw = FileModifyWatcher([])
         pytest.raises(NotImplementedError, fw.handle_event, None)
 
-    @pytest.mark.skip()
     def testLoop(self, restore_cwd, tmpdir):
         files = ['data/w1.txt', 'data/w2.txt', 'data/w3.txt']
         stop_file = 'data/stop'
@@ -55,12 +53,10 @@ class TestFileWatcher(object):
         events = []
         should_stop = []
         started = []
-
         def handle_event(event):
             events.append(event.pathname)
             if event.pathname.endswith("stop"):
                 should_stop.append(True)
-
         fw.handle_event = handle_event
 
         def loop_callback(notifier):
@@ -68,13 +64,12 @@ class TestFileWatcher(object):
             # force loop to stop
             if should_stop:
                 raise KeyboardInterrupt
-
         loop_thread = threading.Thread(target=fw.loop, args=(loop_callback,))
         loop_thread.daemon = True
         loop_thread.start()
 
         # wait watcher to be ready
-        while not started:  # pragma: no cover
+        while not started: # pragma: no cover
             time.sleep(0.01)
             assert loop_thread.isAlive()
 
@@ -98,7 +93,7 @@ class TestFileWatcher(object):
         time.sleep(0.1)
         loop_thread.join(1)
 
-        if loop_thread.isAlive():  # pragma: no cover
+        if loop_thread.isAlive(): # pragma: no cover
             # this test is very flaky so we give it one more chance...
             # write on file to terminate thread
             fd = open(stop_file, 'w')
@@ -106,7 +101,7 @@ class TestFileWatcher(object):
             fd.close()
 
             loop_thread.join(1)
-            if loop_thread.is_alive():  # pragma: no cover
+            if loop_thread.is_alive(): # pragma: no cover
                 raise Exception("thread not terminated")
 
         assert os.path.abspath(files[0]) == events[0]
