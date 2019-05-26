@@ -157,6 +157,7 @@ TODO
 TaskError
 TaskFailed
 TaskLoader
+TaskLoader2
 Tpng
 Trento
 USD
@@ -257,6 +258,7 @@ foo'
 formatter
 formatters
 fpath
+functools
 gdbm
 genindex
 genstandalone
@@ -463,4 +465,3 @@ x'
 xxx
 xyz
 zsh
-functools
