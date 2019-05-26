@@ -2,4 +2,5 @@
 # $ pip install --requirement doc_requirements.txt
 
 sphinx
-sphinx_rtd_theme
+sphinx_press_theme
+

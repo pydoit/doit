@@ -1,0 +1,27 @@
+{% block extranav %}
+
+  {% if include_donate %}
+    <div style="margin-bottom: 0px; padding:1rem; background-color: #2980B9; color:#fcfcfc;">
+      <h3>Donate</h3>
+      <p>If you find <em>doit</em> useful, please consider supporting the maintainer with a donation.</p>
+      <p><em>doit</em> is 100% open-source and maintained by individuals without any company backing it... Your donation keeps the project healthy and maintained.</p>
+    </div>
+
+    <div style="text-align:center; padding:1rem; color:black;background-color:#fcfcfc; margin-bottom:2rem;">
+      <h4 style="margin-bottom:5px;margin-top:5px;">OpenCollective</h4>
+      <div>
+        <object type="image/svg+xml" data="https://opencollective.com/doit/tiers/backers.svg?avatarHeight=60&width=200"></object>
+      </div>
+
+      <hr style="margin-top:5px;">
+      <h4 style="margin-bottom:20px;">Paypal</h4>
+      <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top" style="margin:auto;">
+        <input type="hidden" name="cmd" value="_s-xclick">
+        <input type="hidden" name="hosted_button_id" value="GFU3BPVN586A6">
+        <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+        <img alt="" border="0" src="https://www.paypalobjects.com/pt_BR/i/scr/pixel.gif" width="1" height="1" style="visibility:hidden;">
+      </form>
+    </div>
+    <br>
+  {% endif %}
+{% endblock %}

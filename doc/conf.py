@@ -77,15 +77,15 @@ pygments_style = 'sphinx'
 html_favicon = '_static/favico.ico'
 html_show_sourcelink = False
 html_extra_path = ['index.html']
-
+html_logo = '_static/doit-logo-small.png'
 
 
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-#
-html_theme = 'sphinx_rtd_theme'
+
+html_theme = 'press' #'sphinx_rtd_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -106,7 +106,13 @@ html_static_path = ['_static']
 # default: ``['localtoc.html', 'relations.html', 'sourcelink.html',
 # 'searchbox.html']``.
 #
-# html_sidebars = {}
+html_sidebars = {
+    '**': [
+        'util/searchbox.html',
+        'util/sidetoc.html',
+        'donate.html'
+    ]
+}
 
 
 # for rtd
@@ -114,7 +120,7 @@ html_static_path = ['_static']
 html_theme_options = {
     # top is also included but not from rtd theme.
     # check breadcrumbs.html
-    'prev_next_buttons_location': 'bottom',
+#    'prev_next_buttons_location': 'bottom',
 }
 
 # -- Options for HTMLHelp output ---------------------------------------------

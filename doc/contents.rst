@@ -6,13 +6,12 @@
 `doit` documentation
 ====================
 
-getting started
+Getting Started
 ---------------
 
 Introduction of `doit` basic features with a real example.
 
 .. toctree::
-   :caption: Getting Started
    :maxdepth: 1
 
    usecases
@@ -22,8 +21,8 @@ Introduction of `doit` basic features with a real example.
 
 .. _main-ref-toc:
 
-reference
----------
+Guide
+-----
 
 Introduces the concepts of *every* feature one by one with examples.
 It was written to be both read in order and also serves as a complete reference.
@@ -31,7 +30,6 @@ It was written to be both read in order and also serves as a complete reference.
 The total reading time for the whole documentation is about one hour.
 
 .. toctree::
-   :caption: Reference
    :maxdepth: 2
 
    install
@@ -47,11 +45,10 @@ The total reading time for the whole documentation is about one hour.
    extending
 
 
-project
+Project
 -------
 
 .. toctree::
-   :caption: Project
    :maxdepth: 2
 
    support
