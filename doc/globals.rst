@@ -22,10 +22,26 @@ be accessed during *all* task evaluation phases, in particular during:
 * Task execution, i.e. from the code executed by one of the task's actions.
 * Task cleanup, i.e. from the the code executed by one of the tasks's clean activities.
 
-An example of this is a task, where at creation time the *target* of the task action is not yet
-known, because it is determined during execution. Then it would be possible to store that target in
-the dependency manager by returning it from the action. A `clean` action is subsequently able to
-query `dep_manager`for that result and perform the cleanup action:
+The `Dependency` class has members to access persistent doit data via its API:
+
+.. autoclass:: doit.dependency.Dependency
+   :members: get_values, get_value, get_result
+
+The class internally interacts with a data base backend which may be accessed via the `backend`
+attribute. An experienced user may also *modify* persistently stored *doit* data through that
+attribute. As an example of a backend API look at the common methods exposed by the default `DbmDB`
+backend implementation:
+
+.. autoclass:: doit.dependency.DbmDB
+   :members: get, set, remove
+
+There are other backends available in *doit*, see the documentation on :ref:`db_backends` on how to
+select between them.
+
+An example of using the exposed dependency manager is a task, where at creation time the *target* of
+the task action is not yet known, because it is determined during execution. Then it would be
+possible to store that target in the dependency manager by returning it from the action. A `clean`
+action is subsequently able to query `dep_manager`for that result and perform the cleanup action:
 
 
 .. literalinclude:: samples/global_dep_manager.py

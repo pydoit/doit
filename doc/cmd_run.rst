@@ -98,6 +98,7 @@ returned value
  * 3 => error before task execution starts
         (in this case the reporter is not used)
 
+.. _db_backends:
 
 DB backend
 --------------
