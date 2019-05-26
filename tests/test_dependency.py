@@ -15,7 +15,7 @@ from doit.dependency import FileChangedChecker, MD5Checker, TimestampChecker
 from doit.dependency import DependencyStatus
 from .conftest import get_abspath, dep_manager_fixture
 
-#path to test folder
+# path to test folder
 TEST_PATH = os.path.dirname(__file__)
 PROGRAM = "%s %s/sample_process.py" % (executable, TEST_PATH)
 
@@ -28,8 +28,8 @@ def test_unicode_md5():
 
 def test_md5():
     filePath = os.path.join(os.path.dirname(__file__), "sample_md5.txt")
-    # result got using command line md5sum, with different line-endings to deal with different GIT
-    # configurations:
+    # result got using command line md5sum, with different line-endings
+    # to deal with different GIT configurations:
     expected_lf = "45d1503cb985898ab5bd8e58973007dd"
     expected_crlf = "cf7b48b2fec3b581b135f7c9a1f7ae04"
     assert get_file_md5(filePath) in {expected_lf, expected_crlf}
@@ -78,8 +78,8 @@ def pdep_manager(request):
 class TestDependencyDb(object):
     # adding a new value to the DB
     def test_get_set(self, pdep_manager):
-        pdep_manager._set("taskId_X","dependency_A","da_md5")
-        value = pdep_manager._get("taskId_X","dependency_A")
+        pdep_manager._set("taskId_X", "dependency_A", "da_md5")
+        value = pdep_manager._get("taskId_X", "dependency_A")
         assert "da_md5" == value, value
 
     def test_get_set_unicode_name(self, pdep_manager):
@@ -90,17 +90,17 @@ class TestDependencyDb(object):
     #
     def test_dump(self, pdep_manager):
         # save and close db
-        pdep_manager._set("taskId_X","dependency_A","da_md5")
+        pdep_manager._set("taskId_X", "dependency_A", "da_md5")
         pdep_manager.close()
 
         # open it again and check the value
         d2 = Dependency(pdep_manager.db_class, pdep_manager.name)
 
-        value = d2._get("taskId_X","dependency_A")
+        value = d2._get("taskId_X", "dependency_A")
         assert "da_md5" == value, value
 
     def test_corrupted_file(self, pdep_manager):
-        if pdep_manager.whichdb is None: # pragma: no cover
+        if pdep_manager.whichdb is None:  # pragma: no cover
             pytest.skip('dumbdbm too dumb to detect db corruption')
 
         # create some corrupted files
@@ -115,7 +115,7 @@ class TestDependencyDb(object):
     def test_corrupted_file_unrecognized_excep(self, monkeypatch, pdep_manager):
         if pdep_manager.db_class is not DbmDB:
             pytest.skip('test doesnt apply to non DBM DB')
-        if pdep_manager.whichdb is None: # pragma: no cover
+        if pdep_manager.whichdb is None:  # pragma: no cover
             pytest.skip('dumbdbm too dumb to detect db corruption')
 
         # create some corrupted files
@@ -130,23 +130,23 @@ class TestDependencyDb(object):
 
     # _get must return None if entry doesnt exist.
     def test_getNonExistent(self, pdep_manager):
-        assert pdep_manager._get("taskId_X","dependency_A") == None
+        assert pdep_manager._get("taskId_X", "dependency_A") == None
 
 
     def test_in(self, pdep_manager):
-        pdep_manager._set("taskId_ZZZ","dep_1","12")
+        pdep_manager._set("taskId_ZZZ", "dep_1", "12")
         assert pdep_manager._in("taskId_ZZZ")
         assert not pdep_manager._in("taskId_hohoho")
 
 
     def test_remove(self, pdep_manager):
-        pdep_manager._set("taskId_ZZZ","dep_1","12")
-        pdep_manager._set("taskId_ZZZ","dep_2","13")
-        pdep_manager._set("taskId_YYY","dep_1","14")
+        pdep_manager._set("taskId_ZZZ", "dep_1", "12")
+        pdep_manager._set("taskId_ZZZ", "dep_2", "13")
+        pdep_manager._set("taskId_YYY", "dep_1", "14")
         pdep_manager.remove("taskId_ZZZ")
-        assert None == pdep_manager._get("taskId_ZZZ","dep_1")
-        assert None == pdep_manager._get("taskId_ZZZ","dep_2")
-        assert "14" == pdep_manager._get("taskId_YYY","dep_1")
+        assert None == pdep_manager._get("taskId_ZZZ", "dep_1")
+        assert None == pdep_manager._get("taskId_ZZZ", "dep_2")
+        assert "14" == pdep_manager._get("taskId_YYY", "dep_1")
 
 
     # special test for DBM backend and "dirty"/caching mechanism
@@ -166,13 +166,13 @@ class TestDependencyDb(object):
 
 
     def test_remove_all(self, pdep_manager):
-        pdep_manager._set("taskId_ZZZ","dep_1","12")
-        pdep_manager._set("taskId_ZZZ","dep_2","13")
-        pdep_manager._set("taskId_YYY","dep_1","14")
+        pdep_manager._set("taskId_ZZZ", "dep_1", "12")
+        pdep_manager._set("taskId_ZZZ", "dep_2", "13")
+        pdep_manager._set("taskId_YYY", "dep_1", "14")
         pdep_manager.remove_all()
-        assert None == pdep_manager._get("taskId_ZZZ","dep_1")
-        assert None == pdep_manager._get("taskId_ZZZ","dep_2")
-        assert None == pdep_manager._get("taskId_YYY","dep_1")
+        assert None == pdep_manager._get("taskId_ZZZ", "dep_1")
+        assert None == pdep_manager._get("taskId_ZZZ", "dep_2")
+        assert None == pdep_manager._get("taskId_YYY", "dep_1")
 
 
 class TestSaveSuccess(object):
@@ -204,7 +204,7 @@ class TestSaveSuccess(object):
     def test_save_file_md5(self, pdep_manager):
         # create a test dependency file
         filePath = get_abspath("data/dependency1")
-        ff = open(filePath,"w")
+        ff = open(filePath, "w")
         ff.write("i am the first dependency ever for doit")
         ff.close()
 
@@ -212,13 +212,12 @@ class TestSaveSuccess(object):
         t1 = Task("taskId_X", None, [filePath])
         pdep_manager.save_success(t1)
         expected = "a1bb792202ce163b4f0d17cb264c04e1"
-        value = pdep_manager._get("taskId_X",filePath)
-        assert os.path.getmtime(filePath) == value[0] # timestamp
-        assert 39 == value[1] # size
-        assert expected == value[2] # MD5
+        value = pdep_manager._get("taskId_X", filePath)
+        assert os.path.getmtime(filePath) == value[0]  # timestamp
+        assert 39 == value[1]  # size
+        assert expected == value[2]  # MD5
 
     def test_save_skip(self, pdep_manager, monkeypatch):
-        #self.test_save_file_md5(pdep_manager)
         filePath = get_abspath("data/dependency1")
         t1 = Task("taskId_X", None, [filePath])
         pdep_manager._set(t1.name, filePath, (345, 0, "fake"))
@@ -230,20 +229,20 @@ class TestSaveSuccess(object):
 
     def test_save_files(self, pdep_manager):
         filePath = get_abspath("data/dependency1")
-        ff = open(filePath,"w")
+        ff = open(filePath, "w")
         ff.write("part1")
         ff.close()
         filePath2 = get_abspath("data/dependency2")
-        ff = open(filePath2,"w")
+        ff = open(filePath2, "w")
         ff.write("part2")
         ff.close()
-        assert pdep_manager._get("taskId_X",filePath) is None
-        assert pdep_manager._get("taskId_X",filePath2) is None
+        assert pdep_manager._get("taskId_X", filePath) is None
+        assert pdep_manager._get("taskId_X", filePath2) is None
 
-        t1 = Task("taskId_X", None, [filePath,filePath2])
+        t1 = Task("taskId_X", None, [filePath, filePath2])
         pdep_manager.save_success(t1)
-        assert pdep_manager._get("taskId_X",filePath) is not None
-        assert pdep_manager._get("taskId_X",filePath2) is not None
+        assert pdep_manager._get("taskId_X", filePath) is not None
+        assert pdep_manager._get("taskId_X", filePath2) is not None
         assert set(pdep_manager._get("taskId_X", 'deps:')) == t1.file_dep
 
     def test_save_values(self, pdep_manager):
@@ -402,7 +401,7 @@ class TestGetStatus(object):
 
     def test_fileDependencies(self, pdep_manager):
         filePath = get_abspath("data/dependency1")
-        ff = open(filePath,"w")
+        ff = open(filePath, "w")
         ff.write("part1")
         ff.close()
 
@@ -419,9 +418,9 @@ class TestGetStatus(object):
         assert [] == t1.dep_changed
 
         # FIXME - mock timestamp
-        time.sleep(1) # required otherwise timestamp is not modified!
+        time.sleep(1)  # required otherwise timestamp is not modified!
         # a small change on the file
-        ff = open(filePath,"a")
+        ff = open(filePath, "a")
         ff.write(" part2")
         ff.close()
 
@@ -431,12 +430,12 @@ class TestGetStatus(object):
 
     def test_fileDependencies_changed(self, pdep_manager):
         filePath = get_abspath("data/dependency1")
-        ff = open(filePath,"w")
+        ff = open(filePath, "w")
         ff.write("part1")
         ff.close()
 
         filePath2 = get_abspath("data/dependency2")
-        ff = open(filePath,"w")
+        ff = open(filePath, "w")
         ff.write("part1")
         ff.close()
 
@@ -461,12 +460,12 @@ class TestGetStatus(object):
 
     def test_fileDependencies_changed_get_log(self, pdep_manager):
         filePath = get_abspath("data/dependency1")
-        ff = open(filePath,"w")
+        ff = open(filePath, "w")
         ff.write("part1")
         ff.close()
 
         filePath2 = get_abspath("data/dependency2")
-        ff = open(filePath,"w")
+        ff = open(filePath, "w")
         ff.write("part1")
         ff.close()
 
@@ -519,7 +518,7 @@ class TestGetStatus(object):
 
     def test_UptodateFalse(self, pdep_manager):
         filePath = get_abspath("data/dependency1")
-        ff = open(filePath,"w")
+        ff = open(filePath, "w")
         ff.write("part1")
         ff.close()
 
@@ -541,7 +540,7 @@ class TestGetStatus(object):
 
     def test_UptodateNone(self, pdep_manager):
         filePath = get_abspath("data/dependency1")
-        ff = open(filePath,"w")
+        ff = open(filePath, "w")
         ff.write("part1")
         ff.close()
 
@@ -566,11 +565,12 @@ class TestGetStatus(object):
 
     def test_UptodateFunction_False(self, pdep_manager):
         filePath = get_abspath("data/dependency1")
-        ff = open(filePath,"w")
+        ff = open(filePath, "w")
         ff.write("part1")
         ff.close()
 
-        def check(task, values): return False
+        def check(task, values):
+            return False
         t1 = Task("t1", None, file_dep=[filePath], uptodate=[check])
 
         # first time execute
@@ -583,7 +583,8 @@ class TestGetStatus(object):
         assert [] == t1.dep_changed
 
     def test_UptodateFunction_without_args_True(self, pdep_manager):
-        def check(): return True
+        def check():
+            return True
         t1 = Task("t1", None, uptodate=[check])
         pdep_manager.save_success(t1)
         assert 'up-to-date' == pdep_manager.get_status(t1, {}).status
@@ -594,7 +595,6 @@ class TestGetStatus(object):
             checks.append(1)
             return False
         t1 = Task("t1", None, uptodate=[check, check])
-        #pdep_manager.save_success(t1)
         assert 'run' == pdep_manager.get_status(t1, {}).status
         assert 2 == len(checks)
 
@@ -602,8 +602,8 @@ class TestGetStatus(object):
     def test_UptodateFunction_extra_args_True(self, pdep_manager):
         def check(task, values, control):
             assert task.name == 't1'
-            return control>30
-        t1 = Task("t1", None, uptodate=[ (check, [34]) ])
+            return control > 30
+        t1 = Task("t1", None, uptodate=[(check, [34])])
         pdep_manager.save_success(t1)
         assert 'up-to-date' == pdep_manager.get_status(t1, {}).status
 
@@ -612,7 +612,7 @@ class TestGetStatus(object):
             def __call__(self, task, values):
                 assert task.name == 't1'
                 return True
-        t1 = Task("t1", None, uptodate=[ MyChecker() ])
+        t1 = Task("t1", None, uptodate=[MyChecker()])
         pdep_manager.save_success(t1)
         assert 'up-to-date' == pdep_manager.get_status(t1, {}).status
 
@@ -621,7 +621,7 @@ class TestGetStatus(object):
             def check(self, task, values):
                 assert task.name == 't1'
                 return True
-        t1 = Task("t1", None, uptodate=[ MyChecker().check ])
+        t1 = Task("t1", None, uptodate=[MyChecker().check])
         pdep_manager.save_success(t1)
         assert 'up-to-date' == pdep_manager.get_status(t1, {}).status
 
@@ -663,7 +663,7 @@ class TestGetStatus(object):
 
     def test_targets(self, pdep_manager, dependency1):
         filePath = get_abspath("data/target")
-        ff = open(filePath,"w")
+        ff = open(filePath, "w")
         ff.write("part1")
         ff.close()
 

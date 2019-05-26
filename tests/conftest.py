@@ -20,7 +20,8 @@ def dependency_factory(relative_path):
     @pytest.fixture
     def dependency(request):
         path = get_abspath(relative_path)
-        if os.path.exists(path): os.remove(path)
+        if os.path.exists(path):  # pragma: no cover
+            os.remove(path)
         ff = open(path, "w")
         ff.write("whatever" + str(time.asctime()))
         ff.close()
@@ -42,7 +43,7 @@ dependency2 = dependency_factory("data/dependency2")
 @pytest.fixture
 def target1(request):
     path = get_abspath("data/target1")
-    if os.path.exists(path): # pragma: no cover
+    if os.path.exists(path):  # pragma: no cover
         os.remove(path)
     def remove_path():
         if os.path.exists(path):
@@ -55,25 +56,27 @@ def target1(request):
 def remove_db(filename):
     """remove db file from anydbm"""
     # dbm on some systems add '.db' on others add ('.dir', '.pag')
-    extensions = ['', #dbhash #gdbm
-                  '.bak', #dumbdb
-                  '.dat', #dumbdb
-                  '.dir', #dumbdb #dbm2
-                  '.db', #dbm1
-                  '.pag', #dbm2
-                  ]
+    extensions = [
+        '', #dbhash #gdbm
+        '.bak', #dumbdb
+        '.dat', #dumbdb
+        '.dir', #dumbdb #dbm2
+        '.db', #dbm1
+        '.pag', #dbm2
+    ]
     for ext in extensions:
         if os.path.exists(filename + ext):
             os.remove(filename + ext)
 
 # dbm backends use different file extensions
-db_ext = {'dbhash': [''],
-          'gdbm': [''],
-          'dbm': ['.db', '.dir'],
-          'dumbdbm': ['.dat'],
-          # for python3
-          'dbm.ndbm': ['.db'],
-          }
+db_ext = {
+    'dbhash': [''],
+    'gdbm': [''],
+    'dbm': ['.db', '.dir'],
+    'dumbdbm': ['.dat'],
+    # for python3
+    'dbm.ndbm': ['.db'],
+}
 
 def dep_manager_fixture(request, dep_class):
     # copied from tempdir plugin
@@ -138,7 +141,7 @@ def tasks_sample():
         Task("g1.b", [""], doc="g1.b doc string", subtask_of='g1'),
         # 5
         Task("t3", [""], doc="t3 doc string", task_dep=["t1"])
-        ]
+    ]
     tasks_sample[2].task_dep = ['g1.a', 'g1.b']
     return tasks_sample
 
@@ -161,11 +164,11 @@ def CmdFactory(cls, outstream=None, task_loader=None, dep_file=None,
     if outstream:
         cmd.outstream = outstream
     if backend:
-        assert backend == "dbm" # the only one used on tests
+        assert backend == "dbm"  # the only one used on tests
         cmd.dep_manager = Dependency(DbmDB, dep_file, MD5Checker)
     elif dep_manager:
         cmd.dep_manager = dep_manager
-    cmd.dep_file = dep_file    # (str) filename usually '.doit.db'
+    cmd.dep_file = dep_file  # (str) filename usually '.doit.db'
     cmd.task_list = task_list  # list of tasks
     cmd.sel_tasks = sel_tasks  # from command line or default_tasks
     return cmd
