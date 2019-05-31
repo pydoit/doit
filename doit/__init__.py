@@ -33,8 +33,10 @@ from doit.loader import create_after
 from doit.doit_cmd import get_var
 from doit.api import run
 from doit.tools import load_ipython_extension
+from doit.globals import Globals
 
-__all__ = ['get_var', 'run', 'create_after']
+
+__all__ = ['get_var', 'run', 'create_after', 'Globals']
 
 def get_initial_workdir():
     """working-directory from where the doit command was invoked on shell"""

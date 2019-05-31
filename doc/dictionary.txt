@@ -83,6 +83,7 @@ ConsoleReporter
 Ctrl
 DSL
 Daniele
+DbmDB
 DelayedLoader
 DelayedTask
 Dembia

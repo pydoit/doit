@@ -1,4 +1,4 @@
-import doit.globals
+import doit
 
 DOIT_CONFIG = dict(
     verbosity=2,
@@ -7,9 +7,9 @@ DOIT_CONFIG = dict(
 
 def task_create():
     # dependency manager is defined for all code inside the generator:
-    dep_manager = doit.globals.Globals.dep_manager
+    dep_manager = doit.Globals.dep_manager
 
-    def action(ident):
+    def action():
         # assume some involved logic to define ident:
         ident = 42
         print('Created', ident)

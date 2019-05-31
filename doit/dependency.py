@@ -119,16 +119,17 @@ class JsonDB(object):
 class DbmDB(object):
     """Backend using a DBM file with individual values encoded in JSON
 
-    On initialization all items are read from DBM file and loaded on _dbm.
-    During execution whenever an item is read ('get' method) the json value
-    is cached on _db. If a item is modified _db is update and the id is added
-    to the 'dirty' set. Only on 'dump' all dirty items values are encoded
-    in json into _dbm and the DBM file is saved.
+    On initialization all items are read from DBM file and loaded on ``_dbm``.
+    During execution whenever an item is read (``get`` method) the `json` value
+    is cached on ``_db``.
+    If an item is modified ``_db`` is update and the `id` is added
+    to the `dirty` set. Only on ``dump`` all dirty items values are encoded
+    in json into ``_dbm`` and the DBM file is saved.
 
-    @ivar name: (str) file name/path
-    @ivar _dbm: (dbm) items with json encoded values
-    @ivar _db: (dict) items with python-dict as value
-    @ivar dirty: (set) id of modified tasks
+    :ivar str name: file name/path
+    :ivar dbm _dbm: items with json encoded values
+    :ivar dict _db: items with python-dict as value
+    :ivar set dirty: id of modified tasks
     """
     DBM_CONTENT_ERROR_MSG = 'db type could not be determined'
 
@@ -184,7 +185,7 @@ class DbmDB(object):
     def get(self, task_id, dependency):
         """Get value stored in the DB.
 
-        @return: (string) or (None) if entry not found
+        :return: string or None if entry not found
         """
         # optimization, just try to get it without checking it exists
         if task_id in self._db:
@@ -455,18 +456,28 @@ class DependencyStatus(object):
 
 
 class Dependency(object):
-    """Manage tasks dependencies
+    """Manage tasks dependencies.
 
-    Each dependency is saved in "db". the "db" can have json or dbm
-    format where there is a dictionary for every task. each task has a
-    dictionary where key is a dependency (abs file path), and the value is the
-    dependency signature.
-    Apart from dependencies other values are also saved on the task dictionary
-     * 'result:', 'task:<task-name>', 'ignore:'
-     * user(task) defined values are defined in '_values_:' sub-dict
+    Each dependency is saved in "db". There are several "db" backends.
+    It uses a Key-Value format where the key is task-name
+    and value is a dictionary.
+    Each task has a dictionary where keys are `dependency`'s (absolute file path),
+    and the value is the dependency signature.
+    Apart from dependencies other values are also saved on the task dictionary:
 
-    @ivar name: (string) filepath of the DB file
-    @ivar _closed: (bool) DB was flushed to file
+    * ``_values_:`` task's values
+    * ``result:`` task result
+
+    And also some internal doit attributes:
+
+    * ``ignore:``
+    * ``deps:``
+    * ``checker:``
+
+    Those can be accessed with generic DB ``get()``, see below...
+
+    :ivar string name: filepath of the DB file
+    :ivar bool _closed: DB was flushed to file
     """
     def __init__(self, db_class, backend_name, checker_cls=MD5Checker):
         self._closed = False
@@ -492,7 +503,7 @@ class Dependency(object):
     def save_success(self, task, result_hash=None):
         """save info after a task is successfully executed
 
-        :param result_hash: (str) explicitly set result_hash
+        :param str result_hash: explicitly set result_hash
         """
         # save task values
         self._set(task.name, "_values_:", task.values)
@@ -518,15 +529,17 @@ class Dependency(object):
 
     def get_values(self, task_name):
         """get all saved values from a task
-        @return dict
+
+        :return dict:
         """
         values = self._get(task_name, '_values_:')
         return values or {}
 
     def get_value(self, task_id, key_name):
         """get saved value from task
-        @param task_id (str)
-        @param key_name (str): key result dict of the value
+
+        :param str task_id:
+        :param str key_name: key result dict of the value
         """
         if not self._in(task_id):
             # FIXME do not use generic exception
@@ -539,7 +552,8 @@ class Dependency(object):
 
     def get_result(self, task_name):
         """get the result saved from a task
-        @return dict or md5sum
+
+        :return (dict or md5sum):
         """
         return self._get(task_name, 'result:')
 
