@@ -71,7 +71,7 @@ language = None
 exclude_patterns = ['_build', 'presentation.rst']
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+pygments_style = None
 
 # non-default configuration for doit
 html_favicon = '_static/favico.ico'
