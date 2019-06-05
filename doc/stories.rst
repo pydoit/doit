@@ -183,6 +183,47 @@ Each sound should be loaded from PCM, converted into MP3 or OGG and linked with 
 `doit` is well designed tool for such purposes, i think.
 
 
+`MetalK8s @ Scality <https://www.scality.com/>`_
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+by `Sylvain Laperche <https://github.com/slaperche-scality>`_ (2019-05-06)
+
+We use ``doit`` as the build system for
+`MetalK8s <https://github.com/scality/metalk8s/>`_, a Kubernetes distribution
+with a focus on long-term on-prem deployments.
+
+``doit``'s main role is to generate the MetalK8s ISO archive that should contain
+everything to allow offline installation and deployment of a Kubernetes cluster.
+This involves several tasks like downloading and/or building container images,
+building software packages (RPMs) from source, creating packages repositories, …
+We also use ``doit`` for others tasks, such as executing linting tools and
+spawning a local cluster using Vagrant.
+
+We wanted to move away from ``make`` because as complexity grows it becomes hard
+to maintain, evolve and debug.
+Given that almost everyone in our team is familiar with Python, we started to
+look for alternatives that are Python-based.
+
+We investigated ``Scons``, ``waf``, ``Invoke`` and ``doit``.
+``Scons`` and ``waf`` were put aside because their main advantage is to hide the
+underlying complexity of compiling software in a portable way (which we aren't
+doing). However, running arbitrary shell commands was cumbersome.
+``Invoke`` was pretty good at executing commands, but didn't have a good
+dependency tracking system: a task will always be re-executed even if its
+dependencies are unchanged, which was a deal-breaker.
+
+``doit`` was chosen to replace our ``make``-based approach because of the
+following characteristics:
+
+- Easy to invoke external commands
+- Simple and flexible core concepts
+- Easily customizable (``uptodate`` API, ``clean`` attribute, …)
+- Extensive documentation
+- Actively maintained
+- Various useful features: JSON output, ``doit info`` to inspect dependencies,
+  ``doit auto`` for automatically replaying tasks based on dependency changes…
+
+
 Content Generation
 ------------------
 
