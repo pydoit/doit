@@ -3,8 +3,6 @@ import time
 import sys
 import tempfile
 import uuid
-import json
-import importlib
 from sys import executable
 
 import pytest
@@ -15,15 +13,13 @@ from doit.dependency import DbmDB, JsonDB, SqliteDB, Dependency
 from doit.dependency import DatabaseException, UptodateCalculator
 from doit.dependency import FileChangedChecker, MD5Checker, TimestampChecker
 from doit.dependency import DependencyStatus
+from doit.dependency import JSONCodec
 from .conftest import get_abspath, dep_manager_fixture
 
 # path to test folder
 TEST_PATH = os.path.dirname(__file__)
 PROGRAM = "%s %s/sample_process.py" % (executable, TEST_PATH)
 
-class Result:
-    'class used to test codecs'
-    a = 1
 
 def test_unicode_md5():
     data = "我"
@@ -47,7 +43,7 @@ def test_sqlite_import():
     filename = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()))
 
     assert 'sqlite3' not in sys.modules
-    SqliteDB(filename)
+    SqliteDB(filename, JSONCodec())
     assert 'sqlite3' in sys.modules
 
     os.remove(filename)
@@ -71,39 +67,10 @@ def test_sqlite_import():
 # test parametrization, execute tests for all DB backends.
 # create a separate fixture to be used only by this module
 # because only here it is required to test with all backends
-@pytest.fixture(params=[
-        ['json', 'JSONEncoder', 'json', 'JSONDecoder'],
-        ['doit.tools', 'JSONNullEncoder', 'json', 'JSONDecoder'],
-    ], ids=['json', 'json_null'])
-def codecs(request):
-    res = []
-    for codec in [request.param[:2], request.param[2:]]:
-        module_name, cls_name = codec
-        module = importlib.import_module(module_name)
-        cls = getattr(module, cls_name)
-        res.append(cls)
-
-    return res
-
 @pytest.fixture(params=[JsonDB, DbmDB, SqliteDB])
-def pdep_manager(request, codecs):
-    encoder_cls, decoder_cls = codecs
+def pdep_manager(request):
+    return dep_manager_fixture(request, request.param)
 
-    dep_file = dep_manager_fixture(request, request.param, encoder_cls=encoder_cls, decoder_cls=decoder_cls)
-
-    yield dep_file
-
-    if not dep_file._closed:
-        try:
-            dep_file.close()
-        except TypeError:
-            if (
-                request.function.__name__ == 'test_save_result_instance'
-                and encoder_cls == json.JSONEncoder
-            ):
-                pytest.xfail(reason='Standard JSON encoder can not encode classes')
-            else:
-                raise
 
 
 # FIXME there was major refactor breaking classes from dependency,
@@ -234,12 +201,6 @@ class TestSaveSuccess(object):
         t1.result = {'d': "result"}
         pdep_manager.save_success(t1)
         assert {'d': "result"} == pdep_manager._get(t1.name, "result:")
-
-    def test_save_result_instance(self, pdep_manager):
-        t1 = Task('t_name', None)
-        t1.result = {'d': Result()}
-        pdep_manager.save_success(t1)
-        assert type(pdep_manager._get(t1.name, "result:")['d']) == Result
 
     def test_save_file_md5(self, pdep_manager):
         # create a test dependency file

@@ -6,7 +6,7 @@ import pytest
 from doit import version
 from doit.cmdparse import CmdParseError, CmdParse
 from doit.exceptions import InvalidCommand, InvalidDodoFile
-from doit.dependency import FileChangedChecker
+from doit.dependency import FileChangedChecker, JSONCodec
 from doit.task import Task
 from doit.cmd_base import version_tuple, Command, DoitCmdBase, TaskLoader
 from doit.cmd_base import get_loader, ModuleTaskLoader, DodoTaskLoader
@@ -290,6 +290,17 @@ class TestDoitCmdBase(object):
         params['dep_file'] = depfile_name
         mycmd.execute(params, args)
         assert isinstance(mycmd.dep_manager.checker, MyChecker)
+
+    def testCustomCodec(self, depfile_name):
+        class MyCodec(JSONCodec):
+            pass
+
+        mycmd = self.MyCmd(task_loader=ModuleTaskLoader({}))
+        params, args = CmdParse(mycmd.get_options()).parse([])
+        params['codec_cls'] = MyCodec
+        params['dep_file'] = depfile_name
+        mycmd.execute(params, args)
+        assert isinstance(mycmd.dep_manager.backend.codec, MyCodec)
 
 
     def testPluginBackend(self, depfile_name):

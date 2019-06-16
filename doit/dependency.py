@@ -4,6 +4,7 @@ import os
 import hashlib
 import subprocess
 import inspect
+import json
 from collections import defaultdict
 from dbm import dumb
 import dbm as ddbm
@@ -16,7 +17,6 @@ import dbm as ddbm
 # note: to check which DBM backend is being used (in py2):
 #       >>> anydbm._defaultmod
 
-import json
 
 
 class DatabaseException(Exception):
@@ -47,14 +47,27 @@ def get_file_md5(path):
     return md5.hexdigest()
 
 
+class JSONCodec():
+    """default implmentation for codec used to save individual task's data"""
+    def __init__(self):
+        self.encoder = json.JSONEncoder()
+        self.decoder = json.JSONDecoder()
+
+    def encode(self, data):
+        return self.encoder.encode(data)
+
+    def decode(self, data):
+        return self.decoder.decode(data)
+
+
+
 class JsonDB(object):
     """Backend using a single text file with JSON content"""
 
-    def __init__(self, name, encoder_cls=json.JSONEncoder, decoder_cls=json.JSONDecoder):
+    def __init__(self, name, codec):
         """Open/create a DB file"""
         self.name = name
-        self.encoder = encoder_cls()
-        self.decoder = decoder_cls()
+        self.codec = codec
         if not os.path.exists(self.name):
             self._db = {}
         else:
@@ -65,7 +78,7 @@ class JsonDB(object):
         db_file = open(self.name, 'r')
         try:
             try:
-                return self.decoder.decode(db_file.read())
+                return self.codec.decode(db_file.read())
             except ValueError as error:
                 # file contains corrupted json data
                 msg = (error.args[0] +
@@ -82,7 +95,7 @@ class JsonDB(object):
         """save DB content in file"""
         try:
             db_file = open(self.name, 'w')
-            db_file.write(self.encoder.encode(self._db))
+            db_file.write(self.codec.encode(self._db))
         finally:
             db_file.close()
 
@@ -135,11 +148,10 @@ class DbmDB(object):
     """
     DBM_CONTENT_ERROR_MSG = 'db type could not be determined'
 
-    def __init__(self, name, encoder_cls=json.JSONEncoder, decoder_cls=json.JSONDecoder):
+    def __init__(self, name, codec):
         """Open/create a DB file"""
         self.name = name
-        self.encoder = encoder_cls()
-        self.decoder = decoder_cls()
+        self.codec = codec
         try:
             self._dbm = ddbm.open(self.name, 'c')
         except ddbm.error as exception:
@@ -164,7 +176,7 @@ class DbmDB(object):
     def dump(self):
         """save/close DBM file"""
         for task_id in self.dirty:
-            self._dbm[task_id] = self.encoder.encode(self._db[task_id])
+            self._dbm[task_id] = self.codec.encode(self._db[task_id])
         self._dbm.close()
 
 
@@ -199,7 +211,7 @@ class DbmDB(object):
                 task_data = self._dbm[task_id]
             except KeyError:
                 return
-            self._db[task_id] = self.decoder.decode(task_data.decode('utf-8'))
+            self._db[task_id] = self.codec.decode(task_data.decode('utf-8'))
             return self._db[task_id].get(dependency, None)
 
 
@@ -236,10 +248,9 @@ class DbmDB(object):
 class SqliteDB(object):
     """ sqlite3 json backend """
 
-    def __init__(self, name, encoder_cls=json.JSONEncoder, decoder_cls=json.JSONDecoder):
+    def __init__(self, name, codec):
         self.name = name
-        self.encoder = encoder_cls()
-        self.decoder = decoder_cls()
+        self.codec = codec
         self._conn = self._sqlite3(self.name)
         self._cache = {}
         self._dirty = set()
@@ -256,10 +267,10 @@ class SqliteDB(object):
                 data[col[0]] = row[idx]
             return data
         def converter(data):
-            return self.decoder.decode(data.decode('utf-8'))
+            return self.codec.decode(data.decode('utf-8'))
 
-        sqlite3.register_adapter(list, self.encoder.encode)
-        sqlite3.register_adapter(dict, self.encoder.encode)
+        sqlite3.register_adapter(list, self.codec.encode)
+        sqlite3.register_adapter(dict, self.codec.encode)
         sqlite3.register_converter("json", converter)
         conn = sqlite3.connect(
             name,
@@ -320,7 +331,7 @@ class SqliteDB(object):
         """save/close sqlite3 DB file"""
         for task_id in self._dirty:
             self._conn.execute('insert or replace into doit values (?,?)',
-                               (task_id, self.encoder.encode(self._cache[task_id])))
+                               (task_id, self.codec.encode(self._cache[task_id])))
         self._conn.commit()
         self._conn.close()
         self._dirty = set()
@@ -484,11 +495,12 @@ class Dependency(object):
     :ivar string name: filepath of the DB file
     :ivar bool _closed: DB was flushed to file
     """
-    def __init__(self, db_class, backend_name, checker_cls=MD5Checker, encoder_cls=json.JSONEncoder, decoder_cls=json.JSONDecoder):
+    def __init__(self, db_class, backend_name, checker_cls=MD5Checker,
+                 codec_cls=JSONCodec):
         self._closed = False
         self.checker = checker_cls()
         self.db_class = db_class
-        self.backend = db_class(backend_name, encoder_cls=encoder_cls, decoder_cls=decoder_cls)
+        self.backend = db_class(backend_name, codec=codec_cls())
         self._set = self.backend.set
         self._get = self.backend.get
         self.remove = self.backend.remove

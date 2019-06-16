@@ -124,41 +124,6 @@ It is quite easy to add a new backend for any key-value store.
    `dbm` modules do not support concurrent access through different processes.
    `dbm.dumb` will even cause file corruption!
 
-DB codec
-----------
-
-`doit` uses the ``json`` package to serialize and deserialize values returned by
-python-actions. If required an alternate encoder/decoder pair may be specified
-so that return values which are not JSON serializable, such as Python class
-instances, may be provided as return values from python-actions.
-
-All database backends use JSON to serialize python-action return values.
-
-The options ``--encoder`` and ``--decoder`` may be used to specify Python classes
-to be used for encoding and decoding, respectively. Alternate classes must implement
-the following methods signature:
-
-- Encoding: ``encode(self, obj) -> str``
-- Decoding: ``decode(self, obj) -> str``
-
-JSONNullEncoder
-^^^^^^^^^^^^^^^
-
-The ``doit.tools.JSONNullEncoder`` will encode any non-serializable values, such as object
-instances, as ``null``. To use this encoder add to the ``doit.cfg`` file:
-
-.. code-block:: INI
-
-    [GLOBAL]
-    encoder_cls = doit.tools.JSONNullEncoder
-
-A custom decoder does not need to be specified since the default JSON decoder will parse ``null``
-appropriately.
-
-Next any task's python-action which returns a non-serializable value, such as an object instance,
-must be modified to set the ``uptodate`` task parameter to ``[False]``. This is required because the
-``JSONNullEncoder`` does not serialize the return value and therefore the task must be re-run each
-time the value is required.
 
 DB-file
 ----------

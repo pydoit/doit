@@ -6,6 +6,7 @@ import pytest
 from doit.cmd_base import TaskLoader2
 from doit.exceptions import InvalidCommand
 from doit.cmdparse import DefaultUpdate
+from doit.dependency import JSONCodec
 from doit.task import Task
 from doit.cmd_strace import Strace
 from .conftest import CmdFactory
@@ -34,7 +35,7 @@ class TestCmdStrace(object):
         cmd.loader = self.loader_for_task(task)
         params = DefaultUpdate(dep_file=depfile_name, show_all=False,
                                keep_trace=False, backend='dbm',
-                               check_file_uptodate='md5')
+                               check_file_uptodate='md5', codec_cls=JSONCodec)
         result = cmd.execute(params, ['tt'])
         assert 0 == result
         got = output.getvalue().split("\n")
@@ -50,7 +51,7 @@ class TestCmdStrace(object):
         cmd.loader = self.loader_for_task(task)
         params = DefaultUpdate(dep_file=depfile_name, show_all=True,
                                keep_trace=False, backend='dbm',
-                               check_file_uptodate='md5')
+                               check_file_uptodate='md5', codec_cls=JSONCodec)
         result = cmd.execute(params, ['tt'])
         assert 0 == result
         got = output.getvalue().split("\n")
@@ -64,7 +65,7 @@ class TestCmdStrace(object):
         cmd.loader = self.loader_for_task(task)
         params = DefaultUpdate(dep_file=depfile_name, show_all=True,
                                keep_trace=True, backend='dbm',
-                               check_file_uptodate='md5')
+                               check_file_uptodate='md5', codec_cls=JSONCodec)
         result = cmd.execute(params, ['tt'])
         assert 0 == result
         got = output.getvalue().split("\n")
@@ -81,7 +82,7 @@ class TestCmdStrace(object):
         cmd.loader = self.loader_for_task(task)
         params = DefaultUpdate(dep_file=depfile_name, show_all=False,
                                keep_trace=False, backend='dbm',
-                               check_file_uptodate='md5')
+                               check_file_uptodate='md5', codec_cls=JSONCodec)
         result = cmd.execute(params, ['tt'])
         assert 0 == result
         got = output.getvalue().split("\n")
@@ -98,7 +99,7 @@ class TestCmdStrace(object):
         cmd.loader = self.loader_for_task(task)
         params = DefaultUpdate(dep_file=depfile_name, show_all=False,
                                keep_trace=False, backend='dbm',
-                               check_file_uptodate='md5')
+                               check_file_uptodate='md5', codec_cls=JSONCodec)
         result = cmd.execute(params, ['tt'])
         assert 0 == result
 
