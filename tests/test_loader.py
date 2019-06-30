@@ -143,6 +143,37 @@ class TestLoadTasks(object):
         tasks2 = {t.name:t for t in list2}
         assert tasks['bar'].loader is not tasks2['bar'].loader
 
+    def testClassCreateAfterDecorator(self):
+        'Check that class-defined tasks are loaded as bound methods'
+        class Tasks:
+            @create_after('yyy2')
+            def task_zzz3(): # pragma: no cover
+                pass
+
+        # create_after annotates the function
+        task_list = load_tasks({'task_zzz3': Tasks().task_zzz3}, allow_delayed=True)
+        tasks = {t.name:t for t in task_list}
+        task_zzz3 = tasks['zzz3']
+        assert isinstance(task_zzz3.loader, DelayedLoader)
+        assert getattr(task_zzz3.loader.creator, '__self__', None) is not None, 'Class-defined delayed task creating method is not bound'
+
+    def testClassInitialLoadDelayedTask_creates(self, dodo):
+        'Check that class-defined tasks support the creates argument of @create_after'       
+        class Tasks:
+            @create_after('yyy2', creates=['foo', 'bar'])
+            def task_zzz3(): # pragma: no cover
+                '''not loaded task doc'''
+                raise Exception('Cant be executed on load phase')
+
+        # placeholder task is created with `loader` attribute
+        task_list = load_tasks({'task_zzz3': Tasks().task_zzz3}, allow_delayed=True)
+        tasks = {t.name:t for t in task_list}
+        assert 'zzz3' not in tasks
+        f_task = tasks['foo']
+        assert f_task.loader.task_dep == 'yyy2'
+        assert getattr(f_task.loader.creator, '__self__', None) is not None, 'Class-defined delayed task creating method is not bound'
+        assert tasks['bar'].loader is tasks['foo'].loader
+        assert tasks['foo'].doc == 'not loaded task doc'
 
     def testNameInBlacklist(self):
         dodo_module = {'task_cmd_name': lambda:None}

@@ -137,7 +137,17 @@ def load_tasks(namespace, command_names=(), allow_delayed=False):
     task_list = []
     def _process_gen():
         task_list.extend(generate_tasks(name, ref(), ref.__doc__))
-    def _add_delayed(tname):
+        task_list.append(Task(tname, None, loader=,
+
+    def _add_delayed(tname, ref):
+        # If ref is a bound method this updates the DelayedLoader specification
+        # so that when delayed.creator is executed later (control.py:469) the
+        # self parameter is provided. control.py:469 may execute this function
+        # with any additional parameters.
+        #
+        # If ref is NOT a method this this line simply re-assigns the
+        # same function.
+        delayed.creator = ref
         task_list.append(Task(tname, None, loader=copy.copy(delayed),
                               doc=delayed.creator.__doc__))
 
@@ -148,9 +158,9 @@ def load_tasks(namespace, command_names=(), allow_delayed=False):
             _process_gen()
         elif delayed.creates:  # delayed with explicit task basename
             for tname in delayed.creates:
-                _add_delayed(tname)
+                _add_delayed(tname, ref)
         elif allow_delayed:  # delayed no explicit name, cmd run
-            _add_delayed(name)
+            _add_delayed(name, ref)
         else:  # delayed no explicit name, cmd list (run creator)
             _process_gen()
 
