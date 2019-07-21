@@ -57,7 +57,7 @@ class TaskControl(object):
         for task in task_list:
             # task must be a Task
             if not isinstance(task, Task):
-                msg = "Task must an instance of Task class. %s"
+                msg = "Task must be an instance of Task class. %s"
                 raise InvalidTask(msg % (task.__class__))
             # task name must be unique
             if task.name in self.tasks:
