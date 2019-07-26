@@ -21,15 +21,40 @@ TASK_STRING = "task_"
 
 def flat_generator(gen, gen_doc=''):
     """return only values from generators
-    if any generator yields another generator it is recursively called
+    if any generator yields another generator it is recursively called.
+    `return` statements in the generators will be correctly propagated.
+    Note that only the root-level generator is allowed to return a
+    non-None value (to customize the group task)
     """
-    for item in gen:
-        if inspect.isgenerator(item):
-            item_doc = item.gi_code.co_consts[0]
-            for value, value_doc in flat_generator(item, item_doc):
-                yield value, value_doc
+    while True:
+        try:
+            item = next(gen)
+        except StopIteration as e:
+            # make sure we re-raise the contents!
+            return e.value
         else:
-            yield item, gen_doc
+            if inspect.isgenerator(item):
+                item_doc = item.gi_code.co_consts[0]
+                g = flat_generator(item, item_doc)
+                while True:
+                    try:
+                        value, value_doc = next(g)
+                    except StopIteration as e:
+                        # make sure that the user did not make a mistake by
+                        # using return in the wrong place
+                        if e.value is not None:
+                            raise Exception("Invalid `return` statement in"
+                                            "nested generator. Only root-level"
+                                            "generators can include a non-None"
+                                            "return statement (to customize a"
+                                            " group Task).")
+                        else:
+                            # generate a new StopIteration by returning None
+                            return
+                    else:
+                        yield value, value_doc
+            else:
+                yield item, gen_doc
 
 
 
@@ -135,6 +160,7 @@ def load_tasks(namespace, command_names=(), allow_delayed=False):
 
     task_list = []
     def _process_gen():
+        # meta = extract_meta_info(ref)
         task_list.extend(generate_tasks(name, ref(), ref.__doc__))
     def _add_delayed(tname):
         task_list.append(Task(tname, None, loader=delayed,
@@ -289,6 +315,69 @@ def _generate_task_from_yield(tasks, func_name, task_dict, gen_doc):
         tasks[basename] = dict_to_task(task_dict)
 
 
+def _generate_tasks_from_generator(func_name, gen_result, gen_doc):
+    """generate all tasks corresponding to a task generator"""
+
+    tasks = OrderedDict()  # task_name: task
+
+    # the generator return subtasks as dictionaries
+    gen = flat_generator(gen_result, gen_doc)
+    while True:
+        try:
+            task_dict, x_doc = next(gen)
+        except StopIteration as e:
+            if e.value is not None:
+                # User added some task-related information override.
+                extra_info = e.value
+                if isinstance(extra_info, dict):
+                    # get task group
+                    group_task = tasks.get(func_name)
+
+                    # override contents
+                    for k, v in extra_info.items():
+                        # TODO should we support overriding other items?
+                        if k in ('params',):
+                            # add the param on the main task
+                            group_task.check_attr(func_name, k, v,
+                                                  group_task.valid_attr[k])
+                            setattr(group_task, k, v)
+
+                            # and also on all subtasks if not overridden
+                            # TODO is this really what we want ?
+                            for subtask_name, subtask in tasks.items():
+                                if subtask.subtask_of == group_task.name:
+                                    # concatenate tuples
+                                    new_val = tuple(o for l in (getattr(subtask, k), v) for o in l)
+                                    setattr(subtask, k, new_val)
+
+                        else:
+                            raise InvalidTask("Task '%s' is a subtask "
+                                              "generator, so only a subset"
+                                              "of properties can be "
+                                              "changed on the whole group "
+                                              "using a `return` statement:"
+                                              " only 'params' is supported"
+                                              ". Found %s"
+                                              % (func_name, extra_info))
+
+                else:
+                    raise InvalidTask("Task '%s' is a subtask generator,"
+                                      " but returned a non-None none-dict "
+                                      "value. Please only return a dict "
+                                      "with the common information you "
+                                      "wish to share across the subtasks"
+                                      " (typically `'params'`). Received"
+                                      " '%s'" % (func_name, extra_info))
+            break
+        else:
+            # Iteration was not stopped: handle the generated `task_dict`
+            if isinstance(task_dict, Task):
+                tasks[task_dict.name] = task_dict
+            else:
+                _generate_task_from_yield(tasks, func_name, task_dict, x_doc)
+    return tasks
+
+
 def generate_tasks(func_name, gen_result, gen_doc=None):
     """Create tasks from a task generator result.
 
@@ -308,14 +397,7 @@ def generate_tasks(func_name, gen_result, gen_doc=None):
 
     # a generator
     if inspect.isgenerator(gen_result):
-        tasks = OrderedDict() # task_name: task
-        # the generator return subtasks as dictionaries
-        for task_dict, x_doc in flat_generator(gen_result, gen_doc):
-            if isinstance(task_dict, Task):
-                tasks[task_dict.name] = task_dict
-            else:
-                _generate_task_from_yield(tasks, func_name, task_dict, x_doc)
-
+        tasks = _generate_tasks_from_generator(func_name, gen_result, gen_doc)
         if tasks:
             return list(tasks.values())
         else:
