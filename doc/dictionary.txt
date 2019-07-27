@@ -110,9 +110,12 @@ IPython's
 InteractiveAction
 InvalidCommand
 JSON
+JSONCodec
 KeyError
 KeyboardInterrupt
+Kubernetes
 L485
+Laperche
 LongRunning
 LookupDict
 MD5
@@ -120,6 +123,7 @@ MP3
 Makefile
 Makefiles
 Metagenomics
+MetalK8s
 ModuleTaskLoader
 MyChecker
 MyCustomTask2
@@ -140,11 +144,13 @@ PythonAction
 PythonInteractiveAction
 Pythonic
 README
+RPMs
 RSS
 ReST
 Repology
 S3
 SCons
+Scality
 Schettino
 Segata
 SetupSample
@@ -152,6 +158,7 @@ SkOink
 Sorenson
 StackOverflow
 Subclassing
+Sylvain
 TC4
 TC5
 TODO
@@ -174,12 +181,14 @@ analytics
 api
 aplay
 app
+aren
 args
 atime
 attr
 auth
 autoclass
 autoload
+automethod
 aws
 b4
 backend
@@ -206,9 +215,12 @@ chdir
 cid
 cleanforget
 cloudpickle
+cls
 cmd
 cmp
 codebase
+codec
+codecs
 compFile
 compat
 compinit
@@ -227,6 +239,7 @@ defs
 dep
 dep'
 deps
+deserialize
 dev
 dev0
 dict
@@ -285,6 +298,7 @@ https
 hunspell
 img
 init
+initializer
 inotify
 interactiveaction
 internet
@@ -353,6 +367,7 @@ popen
 pos
 pos1
 pre
+prem
 prev
 printf
 procida
@@ -392,6 +407,7 @@ schettino72
 schettino72
 scons
 selecttasks
+serializable
 settrace
 setupX
 setupY
@@ -456,6 +472,7 @@ utf8
 utils
 utm
 virtualenv
+waf
 wget
 wildcard
 withenvX

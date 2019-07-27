@@ -388,6 +388,17 @@ This can be used for example set which tasks will be executed:
 .. literalinclude:: samples/initial_workdir.py
 
 
+codec_cls
+---------
+
+`doit` uses the ``json`` package to serialize and deserialize values returned by
+python-actions. If required an alternate encoder/decoder pair may be specified
+so that return values which are not JSON serializable, such as Python class
+instances, may be provided as return values from python-actions.
+
+Check ``dependency.py`` 's ``JSONCodec`` interface.
+
+
 minversion
 -------------
 

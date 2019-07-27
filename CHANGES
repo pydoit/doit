@@ -10,7 +10,7 @@ Changes
  - python 3.7 support
  - BACKWARD INCOMPATIBLE: Changed signature of `DoitCommand`
  - BACKWARD INCOMPATIBLE: Fix #254: Python actions keywords with task metadata `dependencies`, `targets` and `changed` are a copied list
- - BACKWARS INCOMPATIBLE: Custom backend initializer added parameter ``codec_cls``
+ - BACKWARD INCOMPATIBLE: Custom backend initializer added parameter ``codec_cls``
  - Fix #204: Accept loader command options before command name
  - Fix #240: Command run: with `--pdb` drop into *pdb* on unhandled exception on `PythonAction`
  - Fix #203: Allow configuration of `dodo.py` file name with env var `DOIT_FILE`
