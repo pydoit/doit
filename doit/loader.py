@@ -49,8 +49,9 @@ def flat_generator(gen, gen_doc=''):
                                             "return statement (to customize a"
                                             " group Task).")
                         else:
-                            # generate a new StopIteration by returning None
-                            return
+                            # break from this loop as this generator has nothing more
+                            # to provide
+                            break
                     else:
                         yield value, value_doc
             else:
@@ -334,6 +335,7 @@ def _generate_tasks_from_generator(func_name, gen_result, gen_doc):
                     group_task = tasks.get(func_name)
 
                     # override contents
+                    # TODO maybe move part of this code into a task.update() method for consistency
                     for k, v in extra_info.items():
                         # TODO should we support overriding other items?
                         if k in ('params',):
