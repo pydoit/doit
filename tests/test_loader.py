@@ -2,6 +2,7 @@ import os
 import inspect
 
 import pytest
+from doit.control import TaskControl
 
 from doit.exceptions import InvalidDodoFile, InvalidCommand
 from doit.task import InvalidTask, DelayedLoader, Task
@@ -248,6 +249,18 @@ class TestGenerateTasksGenerator(object):
         assert "xpto:0" == tasks[0].task_dep[0]
         assert "xpto:0" == tasks[1].name
         assert tasks[1].subtask_of == 'xpto'
+
+    def testGeneratorWithParams(self):
+        def f_xpto():
+            for i in range(3):
+                yield {'name': str(i),
+                       'actions': ["{cmd_name} -%d"%i]}
+            return {'params': [{'name': 'cmd_name', 'short': 'n', 'long': 'cmd_name', 'default': None}]}
+        tasks = generate_tasks("xpto", f_xpto())
+        options = ["xpto:0", "--cmd_name", "xpto"]
+        tc = TaskControl(tasks)
+        assert ['xpto:0'] == tc._filter_tasks(options)
+        assert "xpto" == tc.tasks['xpto:0'].options['cmd_name']
 
     def testMultiLevelGenerator(self):
         def f_xpto(base_name):
