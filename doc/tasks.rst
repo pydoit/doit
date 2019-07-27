@@ -206,6 +206,34 @@ This is useful to write some generic/reusable task-creators.
   .  t1
 
 
+listing tasks
+-------------
+
+``doit`` has built-in sub-command that can be used to list/print all tasks.
+
+.. code-block:: console
+
+   $ doit list
+   hello    say hello
+   hello2   say hello again
+
+
+doc
+---
+
+Every task has an associated documentation.
+By default this documentation is taken from the task-creator function's docstring.
+It can also be set by the ``doc`` attribute.
+
+.. literalinclude:: samples/task_doc.py
+
+.. code-block:: console
+
+  $ doit list
+  .  hello
+
+
+
 sub-tasks
 ---------
 
@@ -562,7 +590,7 @@ title
 -------
 
 By default when you run `doit` only the task name is printed out on the output.
-You can customize the output passing a "title" function to the task:
+You can customize the output passing a ``title`` function to the task:
 
 .. literalinclude:: samples/title.py
 
