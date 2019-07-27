@@ -43,7 +43,7 @@ def flat_generator(gen, gen_doc=''):
                         # make sure that the user did not make a mistake by
                         # using return in the wrong place
                         if e.value is not None:
-                            raise Exception("Invalid `return` statement in"
+                            raise Exception("Invalid `return` statement in "
                                             "nested generator. Only root-level"
                                             "generators can include a non-None"
                                             "return statement (to customize a"

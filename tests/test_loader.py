@@ -280,6 +280,39 @@ class TestGenerateTasksGenerator(object):
         assert "xpto:0-0" == tasks[1].name
         assert "xpto:1-2" == tasks[-1].name
 
+    def testMultiLevelGeneratorWithParams(self):
+        def f_xpto(base_name):
+            """second level docstring"""
+            for i in range(3):
+                name = "%s-%d" % (base_name, i)
+                yield {'name': name, 'actions': ["{cmd_name} -%d" % i]}
+
+        def f_first_level():
+            for i in range(2):
+                yield f_xpto(str(i))
+            return {'params': [{'name': 'cmd_name', 'short': 'n', 'long': 'cmd_name', 'default': None}]}
+
+        tasks = generate_tasks("xpto", f_first_level())
+        options = ["xpto:1-1", "--cmd_name", "xpto"]
+        tc = TaskControl(tasks)
+        assert ['xpto:1-1'] == tc._filter_tasks(options)
+        assert "xpto" == tc.tasks['xpto:1-1'].options['cmd_name']
+
+    def testMultiLevelGeneratorWithParamsError(self):
+        def f_xpto(base_name):
+            """second level docstring"""
+            for i in range(3):
+                name = "%s-%d" % (base_name, i)
+                yield {'name': name, 'actions': ["{cmd_name} -%d" % i]}
+            return {'params': [{'name': 'cmd_name', 'short': 'n', 'long': 'cmd_name', 'default': None}]}
+
+        def f_first_level():
+            for i in range(2):
+                yield f_xpto(str(i))
+
+        with pytest.raises(Exception) as err_info:
+            generate_tasks("xpto", f_first_level())
+        assert "Invalid `return` statement in nested generator" in str(err_info.value)
 
     def testGeneratorReturnTaskObj(self):
         def foo(base_name):
