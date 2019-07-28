@@ -578,6 +578,10 @@ class DoitCmdBase(Command):
         if not legacy_loader:
             self.task_list = self.loader.load_tasks(cmd=self, pos_args=args)
 
+        # Add task options from config, if present
+        for task in self.task_list:
+            task.cfg_defaults = self.config.get(task.name, {})
+
         # hack to pass parameter into _execute() calls that are not part
         # of command line options
         params['pos_args'] = args
