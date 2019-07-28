@@ -384,9 +384,17 @@ class NamespaceTaskLoader(TaskLoader2):
         return loader.load_doit_config(self.namespace)
 
     def load_tasks(self, cmd, pos_args):
-        return loader.load_tasks(self.namespace, self.cmd_names,
+        tasks = loader.load_tasks(self.namespace, self.cmd_names,
                                  cmd.execute_tasks)
 
+        # Add task options from config, if present
+        if self.config is not None:
+            for task in tasks:
+                task_stanza = 'task:' + task.name
+                if task_stanza in self.config:
+                    task.cfg_values = self.config[task_stanza]
+
+        return tasks
 
 class ModuleTaskLoader(NamespaceTaskLoader):
     """load tasks from a module/dictionary containing task generators

@@ -68,6 +68,17 @@ Check the :ref:`plugins <plugins>` section for an introduction
 on available plugin categories.
 
 
+per-task sections
+^^^^^^^^^^^^^^^^^
+
+To configure options for a specific task, use a section with
+the task name prefixed with "task:"::
+
+ [task:make_cookies]
+ cookie_type = chocolate
+ temp = 375F
+ duration = 12
+
 configuration at *dodo.py*
 --------------------------
 

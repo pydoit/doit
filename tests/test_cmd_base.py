@@ -145,6 +145,25 @@ class TestModuleTaskLoader(object):
         assert ['xxx1'] == [t.name for t in task_list]
         assert {'verbose': 2} == config
 
+    def test_task_config(self):
+        'Ensure that doit.cfg specified task parameters are applied.'
+
+        cmd = Command()
+        members = {'task_foo': lambda: {'actions':[],
+                                        'params': [{
+                                            'name': 'x',
+                                            'default': None,
+                                            'long': 'x'
+                                        }]},
+                   'DOIT_CONFIG': {'task:foo': {'x': 1}},
+                   }
+        loader = ModuleTaskLoader(members)
+        loader.setup({})
+        loader.config = loader.load_doit_config()
+        task_list = loader.load_tasks(cmd, [])
+        task = task_list.pop()
+        task.init_options()
+        assert 1 == task.options['x']
 
 class TestDodoTaskLoader(object):
     def test_load_tasks(self, restore_cwd):

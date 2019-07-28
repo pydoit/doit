@@ -5,7 +5,6 @@ from collections import OrderedDict
 import re
 
 from .exceptions import InvalidTask, InvalidCommand, InvalidDodoFile
-from .cmdparse import TaskParse, CmdOption
 from .task import Task, DelayedLoaded
 from .loader import generate_tasks
 
@@ -156,9 +155,10 @@ class TaskControl(object):
             if f_name in self.tasks:
                 # parse task_selection
                 the_task = self.tasks[f_name]
-                # remaining items are other tasks not positional options
-                taskcmd = TaskParse([CmdOption(opt) for opt in the_task.params])
-                the_task.options, seq = taskcmd.parse(seq)
+
+                # Initialize options for the task
+                seq = the_task.init_options(seq)
+
                 # if task takes positional parameters set all as pos_arg_val
                 if the_task.pos_arg is not None:
                     the_task.pos_arg_val = seq

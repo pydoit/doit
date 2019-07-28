@@ -154,7 +154,7 @@ class Task(object):
                   'getargs': ((dict,), ()),
                   'title': ((Callable,), (None,)),
                   'watch': ((list, tuple), ()),
-    }
+                  }
 
 
     def __init__(self, name, actions, file_dep=(), targets=(),
@@ -230,6 +230,7 @@ class Task(object):
         self.values = {}
         self.verbosity = verbosity
         self.custom_title = title
+        self.cfg_values = None
 
         # clean
         if clean is True:
@@ -358,17 +359,28 @@ class Task(object):
             self._expand_map[dep](self, dep_values)
 
 
-    def init_options(self):
+    def init_options(self, args=None):
         """Put default values on options.
 
-        This will only be used, if params options were not passed
-        on the command line.
+        This function will only initialize task options once. If provided the args
+        parameter will be parsed for command line arguments intended for this task.
+
+        Return value: unparsed command line task arguments or None.
         """
         if self.options is None:
+            self.options = {}
             taskcmd = TaskParse([CmdOption(opt) for opt in self.params])
-            # ignore positional parameters
-            self.options = taskcmd.parse('')[0]
+            if self.cfg_values is not None:
+                taskcmd.overwrite_defaults(self.cfg_values)
 
+            if args is None:
+                # ignore positional parameters
+                self.options.update(taskcmd.parse('')[0])
+                return None
+            else:
+                parsed_options, args = taskcmd.parse(args)
+                self.options.update(parsed_options)
+                return args
 
     def _init_getargs(self):
         """task getargs attribute define implicit task dependencies"""
