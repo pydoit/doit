@@ -113,12 +113,10 @@ def create_after(executed=None, target_regex=None, creates=None):
 def task_param(param_def=None):
     """Annotate a task-creator function with definition of required parameters"""
 
-    print(f'Preparing decorator with {param_def}')
     if param_def is None or type(param_def) != list:
         raise ValueError('task_param must be called with a valid parameter definition.')
     
     def decorated(func):
-        print(f'decorating {func}')
         func.doit_task_param_def = param_def
         return func
     
