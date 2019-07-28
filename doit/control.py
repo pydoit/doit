@@ -466,7 +466,7 @@ class TaskDispatcher(object):
             to_load = this_task.loader.basename or this_task.name
             this_loader = self.tasks[to_load].loader
             if this_loader and not this_loader.created:
-                new_tasks = generate_tasks(to_load, ref(), ref.__doc__)
+                new_tasks = generate_tasks(to_load, ref(**ref.doit_task_generator_params), ref.__doc__)
                 TaskControl.set_implicit_deps(self.targets, new_tasks)
                 for nt in new_tasks:
                     if not nt.loader:

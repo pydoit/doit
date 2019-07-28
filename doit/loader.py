@@ -8,6 +8,7 @@ from collections import OrderedDict
 
 from .exceptions import InvalidTask, InvalidCommand, InvalidDodoFile
 from .task import DelayedLoader, Task, dict_to_task
+from .cmdparse import TaskParse, CmdOption
 
 
 # Directory path from where doit was executed.
@@ -109,9 +110,19 @@ def create_after(executed=None, target_regex=None, creates=None):
         return func
     return decorated
 
+def task_param(param_def=None):
+    """Annotate a task-creator function with definition of required parameters"""
 
+    if param_def is None or type(param_def) != list:
+        raise ValueError('task_param must be called with a valid parameter definition.')
+    
+    def decorated(func):
+        func.doit_task_param_def = param_def
+        return func
+    
+    return decorated
 
-def load_tasks(namespace, command_names=(), allow_delayed=False):
+def load_tasks(namespace, command_names=(), allow_delayed=False, args=''):
     """Find task-creators and create tasks
 
     @param namespace: (dict) containing the task creators, it might
@@ -134,8 +145,18 @@ def load_tasks(namespace, command_names=(), allow_delayed=False):
 
 
     task_list = []
-    def _process_gen():
-        task_list.extend(generate_tasks(name, ref(), ref.__doc__))
+
+    def _append_params(tasks, param_def):
+        'Apply parameters defined for the task generator to the tasks defined by the generator.'
+        for task in tasks:
+            # TODO: Check for duplicates?
+            task.params = tuple(list(task.params) + param_def)
+        return tasks
+            
+    def _process_gen(ref):
+        params = ref.doit_task_generator_params
+        task_list.extend(_append_params(generate_tasks(name, ref(**params), ref.__doc__), ref.doit_task_param_def))
+
     def _add_delayed(tname, ref):
         # If ref is a bound method this updates the DelayedLoader specification
         # so that when delayed.creator is executed later (control.py:469) the
@@ -151,15 +172,23 @@ def load_tasks(namespace, command_names=(), allow_delayed=False):
     for name, ref, _ in funcs:
         delayed = getattr(ref, 'doit_create_after', None)
 
+        # Parse command line arguments for task generator parameters
+        task_param_def = getattr(ref, 'doit_task_param_def', [])
+        parser = TaskParse([CmdOption(opt) for opt in task_param_def])
+        # Annotate the task generator with parsed parameter values so that when
+        # the task is eventually called the parsed parameters are available.
+        ref.doit_task_param_def = task_param_def  # sets the default value
+        ref.doit_task_generator_params, _ = parser.parse(args)
+
         if not delayed:  # not a delayed task, just run creator
-            _process_gen()
+            _process_gen(ref)
         elif delayed.creates:  # delayed with explicit task basename
             for tname in delayed.creates:
                 _add_delayed(tname, ref)
         elif allow_delayed:  # delayed no explicit name, cmd run
             _add_delayed(name, ref)
         else:  # delayed no explicit name, cmd list (run creator)
-            _process_gen()
+            _process_gen(ref)
 
     return task_list
 
@@ -304,6 +333,7 @@ def generate_tasks(func_name, gen_result, gen_doc=None):
     @param gen_result: value returned by a task generator function
                        it can be a dict or generator (generating dicts)
     @param gen_doc: (string/None) docstring from the task generator function
+    @param param_def: (dict) additional task parameter definitions passed down from generator
     @return: (list - Task)
     """
     # a task instance, just return it without any processing

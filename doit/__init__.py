@@ -29,7 +29,7 @@ __version__ = VERSION
 
 
 from doit import loader
-from doit.loader import create_after
+from doit.loader import create_after, task_param
 from doit.doit_cmd import get_var
 from doit.api import run
 from doit.tools import load_ipython_extension
