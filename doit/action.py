@@ -94,6 +94,19 @@ class BaseAction(object):
                 kwargs[key] = opt_args[key]
         return kwargs
 
+    def to_str(self, expand_options):
+        """
+        Should return a string representation of this action,
+        with options taken into account if `expand_options` is `True`.
+
+        Subclasses should override this to expand the options properly.
+
+        :param expand_options: a boolean indicating if the string representation
+            should contain the actual options used by the action in current
+            execution context.
+        :return:
+        """
+        return str(self)
 
 
 class CmdAction(BaseAction):
@@ -310,7 +323,15 @@ class CmdAction(BaseAction):
             return self.action.format(**subs_dict) % subs_dict
 
     def __str__(self):
-        return "Cmd: %s" % self._action
+        return self.to_str(expand_options=False)
+
+    def to_str(self, expand_options):
+        if expand_options:
+            a = self.expand_action()
+        else:
+            a = self._action
+
+        return "Cmd: %s" % a
 
     def __repr__(self):
         return "<CmdAction: '%s'>" % str(self._action)
@@ -471,8 +492,32 @@ class PythonAction(BaseAction):
                               type(returned_value)))
 
     def __str__(self):
-        # get object description excluding runtime memory address
-        return "Python: %s"% str(self.py_callable)[1:].split(' at ')[0]
+        return self.to_str(expand_options=False)
+
+    def to_str(self, expand_options):
+        # old: get object description excluding runtime memory address
+        # obj_desc = str(self.py_callable)[1:].split(' at ')[0]
+
+        # new:
+        if not inspect.isfunction(self.py_callable):
+            # an object
+            obj_desc = str(self.py_callable)
+        else:
+            # a function
+            try:
+                obj_desc = "function %s" % self.py_callable.__name__
+            except AttributeError:
+                # a bound method or some strange thing
+                obj_desc = str(self.py_callable)
+
+        if expand_options:
+            kwargs = self._prepare_kwargs()
+            str_args = ['%s' % a for a in self.args] + ['%s=%s' % (var, val) for var, val in kwargs.items()]
+            a = "%s(%s)" % (obj_desc, ', '.join(str_args))
+        else:
+            a = obj_desc
+
+        return "Python: %s" % a
 
     def __repr__(self):
         return "<PythonAction: '%s'>"% (repr(self.py_callable))

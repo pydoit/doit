@@ -168,6 +168,8 @@ class TestCmdExpandAction(object):
         task = Task('Fake', [cmd])
         task.options = {'opt1':'3', 'opt2':'abc def'}
         my_action = task.actions[0]
+        assert my_action.to_str(expand_options=False).endswith('myecho.py %(opt1)s - %(opt2)s')
+        assert my_action.to_str(expand_options=True).endswith('myecho.py 3 - abc def')
         assert my_action.execute() is None
         got = my_action.out.strip()
         assert "3 - abc def" == got
@@ -179,6 +181,8 @@ class TestCmdExpandAction(object):
         task.options = {}
         task.pos_arg_val = ['hi', 'there']
         my_action = task.actions[0]
+        assert my_action.to_str(expand_options=False).endswith('myecho.py %(pos)s')
+        assert my_action.to_str(expand_options=True).endswith('myecho.py hi there')
         assert my_action.execute() is None
         got = my_action.out.strip()
         assert "hi there" == got
@@ -191,6 +195,8 @@ class TestCmdExpandAction(object):
         task = Task('Fake', [cmd], pos_arg='pos')
         task.options = {}
         my_action = task.actions[0]
+        assert my_action.to_str(expand_options=False).endswith('myecho.py %(pos)s')
+        assert my_action.to_str(expand_options=True).endswith('myecho.py ')
         assert my_action.execute() is None
         got = my_action.out.strip()
         assert "" == got
@@ -548,17 +554,21 @@ class TestPythonAction(object):
         pytest.raises(action.InvalidTask, action.PythonAction, any)
 
     def test_functionParametersArgs(self):
-        my_action = action.PythonAction(self._func_par,args=(2,2,25))
+        my_action = action.PythonAction(self._func_par, args=(2,2,25))
+        assert my_action.to_str(expand_options=False).endswith('>')
+        assert my_action.to_str(expand_options=True).endswith('>(2, 2, 25)')
         my_action.execute()
 
     def test_functionParametersKwargs(self):
         my_action = action.PythonAction(self._func_par,
-                              kwargs={'par1':2,'par2':2,'par3':25})
+                                        kwargs={'par1':2,'par2':2,'par3':25})
         my_action.execute()
 
     def test_functionParameters(self):
         my_action = action.PythonAction(self._func_par,args=(2,2),
                                    kwargs={'par3':25})
+        assert my_action.to_str(expand_options=False).endswith('>')
+        assert my_action.to_str(expand_options=True).endswith('>(2, 2, par3=25)')
         my_action.execute()
 
     def test_functionParametersFail(self):
