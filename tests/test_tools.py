@@ -5,6 +5,7 @@ import operator
 from sys import executable
 
 import pytest
+from pathlib import Path
 
 from doit import exceptions
 from doit import tools
@@ -305,3 +306,79 @@ class TestPythonInteractiveAction(object):
         got = my_action.execute()
         assert got is None
         assert my_action.result == 'hello'
+
+
+class TestFilePattern(object):
+    def test_stem_only_simplest(self):
+        # locate the data_fp folder
+        data_fp = Path(__file__).parent / "data_fp"
+
+        # use the file_pattern and assert results
+        res = tools.file_pattern(data_fp / "foo/*.y*ml",  "./target/%.toto")
+        expected = [
+            '%s/foo/xfile.yml -> target/xfile.toto' % data_fp.as_posix()
+        ]
+        assert [str(r) for r in res] == expected
+
+    def test_stem_with_multifolder_not_dst(self):
+        # locate the data_fp folder
+        data_fp = Path(__file__).parent / "data_fp"
+
+        # use the file_pattern and assert results
+        res = tools.file_pattern(data_fp / "foo/**/*.y*ml", "./target/%.toto")
+        expected = [
+            '%s/foo/xfile.yml -> target/xfile.toto' % data_fp.as_posix(),
+            '%s/foo/bar/file3.yaml -> target/file3.toto' % data_fp.as_posix()
+        ]
+        assert [str(r) for r in res] == expected
+
+    def test_stem_with_multifolder_in_dst(self):
+        # locate the data_fp folder
+        data_fp = Path(__file__).parent / "data_fp"
+
+        # use the file_pattern and assert results
+        res = tools.file_pattern(str(data_fp) + "/foo/**/*.y*ml",  "./%%/target/%")
+        expected = [
+            '%s/foo/xfile.yml -> target/xfile' % data_fp.as_posix(),
+            '%s/foo/bar/file3.yaml -> bar/target/file3' % data_fp.as_posix()
+        ]
+        assert [str(r) for r in res] == expected
+
+    def test_stem_multifolder_multi_dst(self):
+        # locate the data_fp folder
+        data_fp = Path(__file__).parent / "data_fp"
+
+        # use the file_pattern and assert results
+        res = tools.file_pattern(str(data_fp) + "/foo/**/*.y*ml",
+                                 dst_pattern=dict(flat="./target/%.toto", nested="./%%/target2/%"))
+        expected = [
+            "%s/foo/xfile.yml -> {flat=target/xfile.toto, nested=target2/xfile}" % data_fp.as_posix(),
+            '%s/foo/bar/file3.yaml -> {flat=target/file3.toto, nested=bar/target2/file3}' % data_fp.as_posix()
+        ]
+        assert [str(r) for r in res] == expected
+
+    def test_nostem_nofolder(self):
+        # locate the data_fp folder
+        data_fp = Path(__file__).parent / "data_fp"
+
+        # use the file_pattern and assert results
+        res = tools.file_pattern(str(data_fp) + "/foo/", "./target/")
+        expected = [
+            "%s/foo -> target" % data_fp.as_posix(),
+        ]
+        assert [str(r) for r in res] == expected
+
+    def test_nostem_folders(self):
+        # locate the data_fp folder
+        data_fp = Path(__file__).parent / "data_fp"
+
+        # use the file_pattern and assert results
+        res = tools.file_pattern(str(data_fp) + "/foo/**/[!x]*", "./target/%%")
+        expected = [
+            # Warning: these first 2 are not intuitive but are actually correct answers.
+            "%s/foo/bar -> target" % data_fp.as_posix(),     # since /bar matches [!x]*
+            "%s/foo/barbar -> target" % data_fp.as_posix(),  # since /barbar matches [!x]*
+            "%s/foo/bar/file2 -> target/bar" % data_fp.as_posix(),
+            "%s/foo/bar/file3.yaml -> target/bar" % data_fp.as_posix(),
+        ]
+        assert [str(r) for r in res] == expected
