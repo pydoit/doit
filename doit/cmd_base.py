@@ -580,7 +580,9 @@ class DoitCmdBase(Command):
 
         # Add task options from config, if present
         for task in self.task_list:
-            task.cfg_defaults = self.config.get(task.name, {})
+            task_stanza = 'task:' + task.name
+            if task_stanza in self.config:
+                task.cfg_values = self.config[task_stanza]
 
         # hack to pass parameter into _execute() calls that are not part
         # of command line options

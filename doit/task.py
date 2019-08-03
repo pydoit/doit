@@ -131,7 +131,7 @@ class Task(object):
     @ivar pos_arg_val: (list - str) list of positional parameters values
     @ivar custom_title: function reference that takes a task object as
                         parameter and returns a string.
-    @ivar cfg_defaults: Default task parameters from doit.cfg
+    @ivar cfg_values: Default task parameters from doit.cfg
     """
 
     DEFAULT_VERBOSITY = 1
@@ -155,7 +155,6 @@ class Task(object):
                   'getargs': ((dict,), ()),
                   'title': ((Callable,), (None,)),
                   'watch': ((list, tuple), ()),
-                  'cfg_defaults': ((dict,), ()),
     }
 
 
@@ -165,7 +164,7 @@ class Task(object):
                  subtask_of=None, has_subtask=False,
                  doc=None, params=(), pos_arg=None,
                  verbosity=None, title=None, getargs=None,
-                 watch=(), loader=None, cfg_defaults=dict()):
+                 watch=(), loader=None, cfg_values=None):
         """sanity checks and initialization
 
         @param params: (list of dict for parameters) see cmdparse.CmdOption
@@ -191,7 +190,6 @@ class Task(object):
         self.check_attr(name, 'getargs', getargs, self.valid_attr['getargs'])
         self.check_attr(name, 'title', title, self.valid_attr['title'])
         self.check_attr(name, 'watch', watch, self.valid_attr['watch'])
-        self.check_attr(name, 'cfg_defaults', cfg_defaults, self.valid_attr['cfg_defaults'])
 
         if '=' in name:
             msg = "Task '{}': name must not use the char '=' (equal sign)."
@@ -233,7 +231,7 @@ class Task(object):
         self.values = {}
         self.verbosity = verbosity
         self.custom_title = title
-        self.cfg_defaults = cfg_defaults
+        self.cfg_values = cfg_values
 
         # clean
         if clean is True:
@@ -370,8 +368,10 @@ class Task(object):
         """
         if self.options is None:
             taskcmd = TaskParse([CmdOption(opt) for opt in self.params])
+            if self.cfg_values is not None:
+                taskcmd.overwrite_defaults(self.cfg_values)
             # ignore positional parameters
-            self.options = taskcmd.parse('', cfg_defaults=self.cfg_defaults)[0]
+            self.options = taskcmd.parse('')[0]
 
 
     def _init_getargs(self):

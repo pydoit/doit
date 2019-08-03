@@ -333,7 +333,7 @@ class CmdParse(object):
         return params, args
 
 
-    def parse(self, in_args, cfg_defaults={}):
+    def parse(self, in_args):
         """parse arguments into options(params) and positional arguments
 
         Also get values from shell ENV.
@@ -342,7 +342,6 @@ class CmdParse(object):
         an item for every option.
 
         @param in_args (list - string): typically sys.argv[1:]
-        @param cfg_defaults (dict): dict of values parsed from doit.cfg
         @return params, args
              params(dict): params contain the actual values from the options.
                            where the key is the name of the option.
@@ -352,9 +351,6 @@ class CmdParse(object):
         # add default values
         for opt in self._options.values():
             params.set_default(opt.name, opt.default)
-
-        # apply from doit.cfg
-        params.update(cfg_defaults)
 
         # get values from shell ENV
         for opt in self._options.values():

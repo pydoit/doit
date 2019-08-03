@@ -158,7 +158,9 @@ class TaskControl(object):
                 the_task = self.tasks[f_name]
                 # remaining items are other tasks not positional options
                 taskcmd = TaskParse([CmdOption(opt) for opt in the_task.params])
-                the_task.options, seq = taskcmd.parse(seq, the_task.cfg_defaults)
+                if the_task.cfg_values is not None:
+                    taskcmd.overwrite_defaults(the_task.cfg_values)
+                the_task.options, seq = taskcmd.parse(seq)
                 # if task takes positional parameters set all as pos_arg_val
                 if the_task.pos_arg is not None:
                     the_task.pos_arg_val = seq
