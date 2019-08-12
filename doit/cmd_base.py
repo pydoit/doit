@@ -388,10 +388,11 @@ class NamespaceTaskLoader(TaskLoader2):
                                  cmd.execute_tasks)
 
         # Add task options from config, if present
-        for task in tasks:
-            task_stanza = 'task:' + task.name
-            if task_stanza in self.config:
-                task.cfg_values = self.config[task_stanza]
+        if self.config is not None:
+            for task in tasks:
+                task_stanza = 'task:' + task.name
+                if task_stanza in self.config:
+                    task.cfg_values = self.config[task_stanza]
 
         return tasks
 
