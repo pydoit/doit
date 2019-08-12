@@ -131,7 +131,6 @@ class Task(object):
     @ivar pos_arg_val: (list - str) list of positional parameters values
     @ivar custom_title: function reference that takes a task object as
                         parameter and returns a string.
-    @ivar cfg_values: Default task parameters from doit.cfg
     """
 
     DEFAULT_VERBOSITY = 1
@@ -155,7 +154,7 @@ class Task(object):
                   'getargs': ((dict,), ()),
                   'title': ((Callable,), (None,)),
                   'watch': ((list, tuple), ()),
-    }
+                  }
 
 
     def __init__(self, name, actions, file_dep=(), targets=(),
@@ -164,7 +163,7 @@ class Task(object):
                  subtask_of=None, has_subtask=False,
                  doc=None, params=(), pos_arg=None,
                  verbosity=None, title=None, getargs=None,
-                 watch=(), loader=None, cfg_values=None):
+                 watch=(), loader=None):
         """sanity checks and initialization
 
         @param params: (list of dict for parameters) see cmdparse.CmdOption
@@ -231,7 +230,7 @@ class Task(object):
         self.values = {}
         self.verbosity = verbosity
         self.custom_title = title
-        self.cfg_values = cfg_values
+        self.cfg_values = None
 
         # clean
         if clean is True:
@@ -360,18 +359,25 @@ class Task(object):
             self._expand_map[dep](self, dep_values)
 
 
-    def init_options(self):
+    def init_options(self, args=None):
         """Put default values on options.
 
-        This will only be used, if params options were not passed
-        on the command line.
+        This can be called with optional command line task arguments.
+
+        Return value: unparsed command line task arguments.
         """
         if self.options is None:
             taskcmd = TaskParse([CmdOption(opt) for opt in self.params])
             if self.cfg_values is not None:
                 taskcmd.overwrite_defaults(self.cfg_values)
-            # ignore positional parameters
-            self.options = taskcmd.parse('')[0]
+
+            if args is None:
+                # ignore positional parameters
+                self.options = taskcmd.parse('')[0]
+                return None
+            else:
+                self.options, args = taskcmd.parse(args)
+                return args
 
 
     def _init_getargs(self):
