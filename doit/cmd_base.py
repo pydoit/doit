@@ -384,9 +384,16 @@ class NamespaceTaskLoader(TaskLoader2):
         return loader.load_doit_config(self.namespace)
 
     def load_tasks(self, cmd, pos_args):
-        return loader.load_tasks(self.namespace, self.cmd_names,
+        tasks = loader.load_tasks(self.namespace, self.cmd_names,
                                  cmd.execute_tasks)
 
+        # Add task options from config, if present
+        for task in tasks:
+            task_stanza = 'task:' + task.name
+            if task_stanza in self.config:
+                task.cfg_values = self.config[task_stanza]
+
+        return tasks
 
 class ModuleTaskLoader(NamespaceTaskLoader):
     """load tasks from a module/dictionary containing task generators
@@ -577,12 +584,6 @@ class DoitCmdBase(Command):
         # load tasks from new-style loader
         if not legacy_loader:
             self.task_list = self.loader.load_tasks(cmd=self, pos_args=args)
-
-        # Add task options from config, if present
-        for task in self.task_list:
-            task_stanza = 'task:' + task.name
-            if task_stanza in self.config:
-                task.cfg_values = self.config[task_stanza]
 
         # hack to pass parameter into _execute() calls that are not part
         # of command line options
