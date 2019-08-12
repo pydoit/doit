@@ -7,7 +7,7 @@ from doit.exceptions import InvalidDodoFile, InvalidCommand
 from doit.task import InvalidTask, DelayedLoader, Task
 from doit.loader import flat_generator, get_module
 from doit.loader import load_tasks, load_doit_config, generate_tasks
-from doit.loader import create_after
+from doit.loader import create_after, task_param
 
 
 class TestFlatGenerator(object):
@@ -135,12 +135,13 @@ class TestLoadTasks(object):
         'Check that class-defined tasks are loaded as bound methods'
         class Tasks:
             @create_after('yyy2')
-            def task_zzz3(): # pragma: no cover
+            def task_zzz3(self): # pragma: no cover
                 pass
 
         # create_after annotates the function
-        task_list = load_tasks({'task_zzz3': Tasks().task_zzz3}, allow_delayed=True)
-        tasks = {t.name:t for t in task_list}
+        task_list = load_tasks({'task_zzz3': Tasks().task_zzz3},
+                                allow_delayed=True)
+        tasks = {t.name: t for t in task_list}
         task_zzz3 = tasks['zzz3']
         assert isinstance(task_zzz3.loader, DelayedLoader)
         assert getattr(task_zzz3.loader.creator, '__self__', None) is not None, 'Class-defined delayed task creating method is not bound'
@@ -206,7 +207,48 @@ class TestLoadTasks(object):
         assert 'method1' == task_list[0].name
         assert 'method2' == task_list[1].name
 
+class TestTaskGeneratorParams(object):
 
+    class Tasks(object):
+        @task_param([{"name": "foo", "default": "bar", "long": "foo"}])
+        def task_foo(self, foo):
+            return {
+                'actions': [],
+                'doc': foo
+            }
+
+    def test_method_default(self):
+        'Ensure that a task parameter can be passed to the task generator.'
+
+        @task_param([{"name": "foo", "default": "bar", "long": "foo"}])
+        def task_foo(foo):
+            return {
+                'actions': [],
+                'doc': foo
+            }
+        task_list = load_tasks({'task_foo': task_foo})
+        task = task_list.pop()
+        assert task.doc == 'bar'
+
+    def test_method_args(self):
+        'Ensure that a task generator parameter can be set from the command line.'
+        @task_param([{"name": "foo", "default": "bar", "long": "foo"}])
+        def task_foo(foo):
+            return {
+                'actions': [],
+                'doc': foo
+            }
+        task_list = load_tasks({'task_foo': task_foo}, args=['foo', '--foo=from_arg'])
+        task = task_list.pop()
+        assert task.doc == 'from_arg'
+
+    def test_class_default(self):
+        'Ensure that a task parameter can be passed to the task generator defined as a class method.'
+        foo = self.Tasks().task_foo
+        task_list = load_tasks({'task_foo': foo})
+        task = task_list.pop()
+        assert task.doc == 'bar'
+    
 class TestDodoConfig(object):
 
     def testConfigType_Error(self):

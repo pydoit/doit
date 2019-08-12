@@ -19,6 +19,7 @@ initial_workdir = None
 # that are task generators in a dodo file.
 TASK_STRING = "task_"
 
+TASK_GEN_PARAM = 'doit_task_generator_parameters'
 
 def flat_generator(gen, gen_doc=''):
     """return only values from generators
@@ -117,7 +118,12 @@ def task_param(param_def=None):
         raise ValueError('task_param must be called with a valid parameter definition.')
     
     def decorated(func):
-        func.doit_task_param_def = param_def
+        # For tasks defined as a method this must
+        # be a dict. Once bound to an instance the function
+        # attributes can not be modified.
+        setattr(func, TASK_GEN_PARAM, {
+            'params': param_def
+        })
         return func
     
     return decorated
@@ -154,8 +160,8 @@ def load_tasks(namespace, command_names=(), allow_delayed=False, args=''):
         return tasks
             
     def _process_gen(ref):
-        params = ref.doit_task_generator_params
-        task_list.extend(_append_params(generate_tasks(name, ref(**params), ref.__doc__), ref.doit_task_param_def))
+        task_gen = getattr(ref, TASK_GEN_PARAM, {'params': [], 'parsed': {}})
+        task_list.extend(_append_params(generate_tasks(name, ref(**task_gen['parsed']), ref.__doc__), task_gen['params']))
 
     def _add_delayed(tname, ref):
         # If ref is a bound method this updates the DelayedLoader specification
@@ -173,12 +179,18 @@ def load_tasks(namespace, command_names=(), allow_delayed=False, args=''):
         delayed = getattr(ref, 'doit_create_after', None)
 
         # Parse command line arguments for task generator parameters
-        task_param_def = getattr(ref, 'doit_task_param_def', [])
-        parser = TaskParse([CmdOption(opt) for opt in task_param_def])
-        # Annotate the task generator with parsed parameter values so that when
-        # the task is eventually called the parsed parameters are available.
-        ref.doit_task_param_def = task_param_def  # sets the default value
-        ref.doit_task_generator_params, _ = parser.parse(args)
+        task_gen = getattr(ref, TASK_GEN_PARAM, None)
+        if task_gen is not None:
+            parser = TaskParse([CmdOption(opt) for opt in task_gen['params']])
+            # Annotate the task generator with parsed parameter values so that when
+            # the task is eventually called the parsed parameters are available.
+            if len(args) > 0:
+                if name == args[0]:
+                    # parse command line
+                    task_gen['parsed'], _ = parser.parse(args[1:])
+            else:
+                # set defaults
+                task_gen['parsed'], _ = parser.parse('')
 
         if not delayed:  # not a delayed task, just run creator
             _process_gen(ref)
