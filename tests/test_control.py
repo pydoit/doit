@@ -59,44 +59,45 @@ class TestTaskControlInit(object):
         TaskControl([t1, t2, t3])
         assert ['taskZ', 'taskX'] == t2.task_dep
 
-
-TASKS_SAMPLE = [Task("t1", [""], doc="t1 doc string"),
-                Task("t2", [""], doc="t2 doc string"),
-                Task("g1", None, doc="g1 doc string"),
-                Task("g1.a", [""], doc="g1.a doc string", subtask_of='g1'),
-                Task("g1.b", [""], doc="g1.b doc string", subtask_of='g1'),
-                Task("t3", [""], doc="t3 doc string",
-                     params=[{'name':'opt1','long':'message','default':''}])]
-
+@pytest.fixture
+def tasks_sample():
+    return [Task("t1", [""], doc="t1 doc string"),
+            Task("t2", [""], doc="t2 doc string"),
+            Task("g1", None, doc="g1 doc string"),
+            Task("g1.a", [""], doc="g1.a doc string", subtask_of='g1'),
+            Task("g1.b", [""], doc="g1.b doc string", subtask_of='g1'),
+            Task("t3", [""], doc="t3 doc string",
+                params=[{'name':'opt1','long':'message','default':''}])
+            ]
 
 class TestTaskControlCmdOptions(object):
-    def testFilter(self):
+    def testFilter(self, tasks_sample):
         filter_ = ['t2', 't3']
-        tc = TaskControl(TASKS_SAMPLE)
+        tc = TaskControl(tasks_sample)
         assert filter_ == tc._filter_tasks(filter_)
 
-    def testProcessSelection(self):
+    def testProcessSelection(self, tasks_sample):
         filter_ = ['t2', 't3']
-        tc = TaskControl(TASKS_SAMPLE)
+        tc = TaskControl(tasks_sample)
         tc.process(filter_)
         assert filter_ == tc.selected_tasks
 
-    def testProcessAll(self):
-        tc = TaskControl(TASKS_SAMPLE)
+    def testProcessAll(self, tasks_sample):
+        tc = TaskControl(tasks_sample)
         tc.process(None)
         assert ['t1', 't2', 'g1', 'g1.a', 'g1.b', 't3'] == tc.selected_tasks
 
-    def testFilterPattern(self):
-        tc = TaskControl(TASKS_SAMPLE)
+    def testFilterPattern(self, tasks_sample):
+        tc = TaskControl(tasks_sample)
         assert ['t1', 'g1', 'g1.a', 'g1.b'] == tc._filter_tasks(['*1*'])
 
-    def testFilterSubtask(self):
+    def testFilterSubtask(self, tasks_sample):
         filter_ = ["t1", "g1.b"]
-        tc =  TaskControl(TASKS_SAMPLE)
+        tc =  TaskControl(tasks_sample)
         assert filter_ == tc._filter_tasks(filter_)
 
-    def testFilterTarget(self):
-        tasks = list(TASKS_SAMPLE)
+    def testFilterTarget(self, tasks_sample):
+        tasks = list(tasks_sample)
         tasks.append(Task("tX", [""],[],["targetX"]))
         tc =  TaskControl(tasks)
         assert ['tX'] == tc._filter_tasks(["targetX"])
@@ -184,8 +185,8 @@ class TestTaskControlCmdOptions(object):
 
 
     # filter a non-existent task raises an error
-    def testFilterWrongName(self):
-        tc =  TaskControl(TASKS_SAMPLE)
+    def testFilterWrongName(self, tasks_sample):
+        tc =  TaskControl(tasks_sample)
         pytest.raises(InvalidCommand, tc._filter_tasks, ['no'])
 
     def testFilterWrongSubtaskName(self):
@@ -194,19 +195,19 @@ class TestTaskControlCmdOptions(object):
         tc =  TaskControl([t1, t2])
         pytest.raises(InvalidCommand, tc._filter_tasks, ['taskX:no'])
 
-    def testFilterEmptyList(self):
+    def testFilterEmptyList(self, tasks_sample):
         filter_ = []
-        tc = TaskControl(TASKS_SAMPLE)
+        tc = TaskControl(tasks_sample)
         assert filter_ == tc._filter_tasks(filter_)
 
-    def testOptions(self):
+    def testOptions(self, tasks_sample):
         options = ["t3", "--message", "hello option!", "t1"]
-        tc = TaskControl(TASKS_SAMPLE)
+        tc = TaskControl(tasks_sample)
         assert ['t3', 't1'] == tc._filter_tasks(options)
         assert "hello option!" == tc.tasks['t3'].options['opt1']
 
-    def testPosParam(self):
-        tasks = list(TASKS_SAMPLE)
+    def testPosParam(self, tasks_sample):
+        tasks = list(tasks_sample)
         tasks.append(Task("tP", [""],[],[], pos_arg='myp'))
         tc = TaskControl(tasks)
         args = ["tP", "hello option!", "t1"]

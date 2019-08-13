@@ -362,9 +362,10 @@ class Task(object):
     def init_options(self, args=None):
         """Put default values on options.
 
-        This can be called with optional command line task arguments.
+        This function will only initialize task options once. If provided the args
+        parameter will be parsed for command line arguments intended for this task.
 
-        Return value: unparsed command line task arguments.
+        Return value: unparsed command line task arguments or None.
         """
         if self.options is None:
             self.options = {}
@@ -380,7 +381,6 @@ class Task(object):
                 parsed_options, args = taskcmd.parse(args)
                 self.options.update(parsed_options)
                 return args
-
 
     def _init_getargs(self):
         """task getargs attribute define implicit task dependencies"""
