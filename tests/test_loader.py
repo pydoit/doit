@@ -7,7 +7,7 @@ from doit.exceptions import InvalidDodoFile, InvalidCommand
 from doit.task import InvalidTask, DelayedLoader, Task
 from doit.loader import flat_generator, get_module
 from doit.loader import load_tasks, load_doit_config, generate_tasks
-from doit.loader import create_after, task_param
+from doit.loader import create_after, task_param, TASK_GEN_PARAM
 
 
 class TestFlatGenerator(object):
@@ -209,13 +209,12 @@ class TestLoadTasks(object):
 
 class TestTaskGeneratorParams(object):
 
-    class Tasks(object):
-        @task_param([{"name": "foo", "default": "bar", "long": "foo"}])
-        def task_foo(self, foo):
-            return {
-                'actions': [],
-                'doc': foo
-            }
+    def test_task_param_annotations(self):
+        pd = [{"name": "foo", "default": "bar", "long": "foo"}]
+        func = task_param(pd)(lambda: 1)
+        assert hasattr(func, TASK_GEN_PARAM)
+        assert getattr(func, TASK_GEN_PARAM)['params'] == pd
+        assert getattr(func, TASK_GEN_PARAM)['parsed'] == {}
 
     def test_method_default(self):
         'Ensure that a task parameter can be passed to the task generator.'
@@ -229,6 +228,8 @@ class TestTaskGeneratorParams(object):
         task_list = load_tasks({'task_foo': task_foo})
         task = task_list.pop()
         assert task.doc == 'bar'
+        task.init_options()
+        assert task.options['foo'] == 'bar'
 
     def test_method_args(self):
         'Ensure that a task generator parameter can be set from the command line.'
@@ -238,16 +239,30 @@ class TestTaskGeneratorParams(object):
                 'actions': [],
                 'doc': foo
             }
-        task_list = load_tasks({'task_foo': task_foo}, args=['foo', '--foo=from_arg'])
+        
+        args = ['foo', '--foo=from_arg']
+        task_list = load_tasks({'task_foo': task_foo}, args=args)
         task = task_list.pop()
         assert task.doc == 'from_arg'
+        task.init_options(args=args[1:])
+        assert task.options['foo'] == 'from_arg'
 
+    class Tasks(object):
+        @task_param([{"name": "foo", "default": "bar", "long": "foo"}])
+        def task_foo(self, foo):
+            return {
+                'actions': [],
+                'doc': foo
+            }
+    
     def test_class_default(self):
         'Ensure that a task parameter can be passed to the task generator defined as a class method.'
         foo = self.Tasks().task_foo
         task_list = load_tasks({'task_foo': foo})
         task = task_list.pop()
         assert task.doc == 'bar'
+        task.init_options()
+        assert task.options['foo'] == 'bar'
     
 class TestDodoConfig(object):
 

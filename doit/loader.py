@@ -186,13 +186,12 @@ def load_tasks(namespace, command_names=(), allow_delayed=False, args=''):
             parser = TaskParse([CmdOption(opt) for opt in task_gen['params']])
             # Annotate the task generator with parsed parameter values so that when
             # the task is eventually called the parsed parameters are available.
+            task_gen['parsed'], _ = parser.parse('')
+
+            # if relevant command line defaults are available parse those
             if len(args) > 0:
                 if name == args[0]:
-                    # parse command line
                     task_gen['parsed'], _ = parser.parse(args[1:])
-            else:
-                # set defaults
-                task_gen['parsed'], _ = parser.parse('')
 
         if not delayed:  # not a delayed task, just run creator
             _process_gen(ref)

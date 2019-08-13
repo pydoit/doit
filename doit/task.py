@@ -373,14 +373,14 @@ class Task(object):
             if self.cfg_values is not None:
                 taskcmd.overwrite_defaults(self.cfg_values)
 
-            if args is None:
+            if args is None or len(args) == 0:
                 # ignore positional parameters
                 self.options.update(taskcmd.parse('')[0])
-                return None
-            else:
+            elif len(args) > 0:
                 parsed_options, args = taskcmd.parse(args)
                 self.options.update(parsed_options)
-                return args
+
+            return args
 
     def _init_getargs(self):
         """task getargs attribute define implicit task dependencies"""
