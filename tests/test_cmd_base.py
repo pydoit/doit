@@ -146,6 +146,8 @@ class TestModuleTaskLoader(object):
         assert {'verbose': 2} == config
 
     def test_task_config(self):
+        'Ensure that doit.cfg specified task parameters are applied.'
+
         cmd = Command()
         members = {'task_foo': lambda: {'actions':[],
                                         'params': [{
