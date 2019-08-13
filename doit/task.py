@@ -367,16 +367,18 @@ class Task(object):
         Return value: unparsed command line task arguments.
         """
         if self.options is None:
+            self.options = {}
             taskcmd = TaskParse([CmdOption(opt) for opt in self.params])
             if self.cfg_values is not None:
                 taskcmd.overwrite_defaults(self.cfg_values)
 
             if args is None:
                 # ignore positional parameters
-                self.options = taskcmd.parse('')[0]
+                self.options.update(taskcmd.parse('')[0])
                 return None
             else:
-                self.options, args = taskcmd.parse(args)
+                parsed_options, args = taskcmd.parse(args)
+                self.options.update(parsed_options)
                 return args
 
 

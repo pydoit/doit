@@ -5,7 +5,6 @@ from collections import OrderedDict
 import re
 
 from .exceptions import InvalidTask, InvalidCommand, InvalidDodoFile
-from .cmdparse import TaskParse, CmdOption
 from .task import Task, DelayedLoaded
 from .loader import generate_tasks
 
