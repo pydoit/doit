@@ -20,6 +20,7 @@ initial_workdir = None
 TASK_STRING = "task_"
 
 TASK_GEN_PARAM = 'doit_task_generator_parameters'
+TASK_GEN_PARAM_DEFAULT = {'params': [], 'parsed': {}}
 
 def flat_generator(gen, gen_doc=''):
     """return only values from generators
@@ -121,11 +122,12 @@ def task_param(param_def=None):
         # For tasks defined as a method this must
         # be a dict. Once bound to an instance the function
         # attributes can not be modified.
-        setattr(func, TASK_GEN_PARAM, {
-            'params': param_def
-        })
+        # https://www.python.org/dev/peps/pep-0232/#id15
+        pd = TASK_GEN_PARAM_DEFAULT.copy()
+        pd['params'] = param_def
+        setattr(func, TASK_GEN_PARAM, pd)
         return func
-    
+
     return decorated
 
 def load_tasks(namespace, command_names=(), allow_delayed=False, args=''):
@@ -158,9 +160,9 @@ def load_tasks(namespace, command_names=(), allow_delayed=False, args=''):
             # TODO: Check for duplicates?
             task.params = tuple(list(task.params) + param_def)
         return tasks
-            
+
     def _process_gen(ref):
-        task_gen = getattr(ref, TASK_GEN_PARAM, {'params': [], 'parsed': {}})
+        task_gen = getattr(ref, TASK_GEN_PARAM, TASK_GEN_PARAM_DEFAULT)
         task_list.extend(_append_params(generate_tasks(name, ref(**task_gen['parsed']), ref.__doc__), task_gen['params']))
 
     def _add_delayed(tname, ref):

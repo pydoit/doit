@@ -384,7 +384,7 @@ class NamespaceTaskLoader(TaskLoader2):
         return loader.load_doit_config(self.namespace)
 
     def load_tasks(self, cmd, pos_args):
-        return loader.load_tasks(self.namespace, self.cmd_names,
+        tasks = loader.load_tasks(self.namespace, self.cmd_names,
                                  cmd.execute_tasks, pos_args)
 
         # Add task options from config, if present
