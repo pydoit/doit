@@ -412,6 +412,22 @@ class DodoTaskLoader(NamespaceTaskLoader):
             opt_values['seek_file'],
         )))
 
+class ClassTaskLoader:
+    """parent class for a class to have task generator."""
+    @staticmethod
+    def doit_task(func):
+        """decorator to mark a class method as a task generator."""
+        func.__doit__ = None
+        return func
+
+    def doit_tasks(self):
+        """Get all the doit tasks as a dict."""
+        tasks = {} 
+        for member_name, member in inspect.getmembers(
+                self, predicate=inspect.ismethod):
+            if hasattr(member, '__doit__'):
+                tasks[f'task_{member_name}'] = member
+        return tasks
 
 def get_loader(config, task_loader=None, cmds=None):
     """get task loader and configure it
