@@ -426,7 +426,7 @@ class ClassTaskLoader:
         for member_name, member in inspect.getmembers(
                 self, predicate=inspect.ismethod):
             if hasattr(member, '__doit__'):
-                tasks[f'task_{member_name}'] = member
+                tasks['task_{}'.format(member_name)] = member
         return tasks
 
 def get_loader(config, task_loader=None, cmds=None):
