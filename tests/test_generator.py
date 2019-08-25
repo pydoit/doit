@@ -5,12 +5,9 @@ class Runner(TaskGenerator):
 
     @TaskGenerator.doit_task
     def work(self):
-        for message in ("foo", "bar"):
-            yield {
-                'actions': None,
-                'name': message,
-                'clean': True
-            }
+        return {
+            'actions': None,
+        }
 
 
 class TestGenerator(object):
