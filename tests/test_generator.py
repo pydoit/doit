@@ -15,4 +15,4 @@ class TestGenerator(object):
         runner = Runner()
         tasks = runner.doit_tasks()
         assert 'task_work' in tasks
-        assert runner.work() == {'actions', None}
+        assert runner.work() == {'actions': None}
