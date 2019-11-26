@@ -146,17 +146,18 @@ class TestModuleTaskLoader(object):
         assert {'verbose': 2} == config
 
     def test_task_config(self):
-        'Ensure that doit.cfg specified task parameters are applied.'
+        # Ensure that doit.cfg specified task parameters are applied.
 
         cmd = Command()
-        members = {'task_foo': lambda: {'actions':[],
-                                        'params': [{
-                                            'name': 'x',
-                                            'default': None,
-                                            'long': 'x'
-                                        }]},
-                   'DOIT_CONFIG': {'task:foo': {'x': 1}},
-                   }
+        members = {
+            'task_foo': lambda: {'actions':[],
+                                 'params': [{
+                                     'name': 'x',
+                                     'default': None,
+                                     'long': 'x'
+                                 }]},
+            'DOIT_CONFIG': {'task:foo': {'x': 1}},
+        }
         loader = ModuleTaskLoader(members)
         loader.setup({})
         loader.config = loader.load_doit_config()

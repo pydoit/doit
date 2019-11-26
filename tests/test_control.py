@@ -61,14 +61,15 @@ class TestTaskControlInit(object):
 
 @pytest.fixture
 def tasks_sample():
-    return [Task("t1", [""], doc="t1 doc string"),
-            Task("t2", [""], doc="t2 doc string"),
-            Task("g1", None, doc="g1 doc string"),
-            Task("g1.a", [""], doc="g1.a doc string", subtask_of='g1'),
-            Task("g1.b", [""], doc="g1.b doc string", subtask_of='g1'),
-            Task("t3", [""], doc="t3 doc string",
-                params=[{'name':'opt1','long':'message','default':''}])
-            ]
+    return [
+        Task("t1", [""], doc="t1 doc string"),
+        Task("t2", [""], doc="t2 doc string"),
+        Task("g1", None, doc="g1 doc string"),
+        Task("g1.a", [""], doc="g1.a doc string", subtask_of='g1'),
+        Task("g1.b", [""], doc="g1.b doc string", subtask_of='g1'),
+        Task("t3", [""], doc="t3 doc string",
+             params=[{'name':'opt1','long':'message','default':''}])
+    ]
 
 class TestTaskControlCmdOptions(object):
     def testFilter(self, tasks_sample):

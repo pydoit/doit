@@ -119,7 +119,7 @@ class TestTaskInit(object):
         assert None == t.pos_arg_val # always uninitialized
 
     def test_options_from_cfg(self):
-        'Ensure that doit.cfg can specify task options.'
+        # Ensure that doit.cfg can specify task options.
         p1 = {'name': 'x', 'long': 'x', 'default': None}
         t = task.Task("MyName", None, params=[p1])
         t.cfg_values = {'x': 1}
@@ -129,7 +129,8 @@ class TestTaskInit(object):
         assert 1 == t.options['x']
 
     def test_options_from_cfg_override(self):
-        'Ensure that doit.cfg specified task options can be replaced by command line specified options.'
+        # Ensure that doit.cfg specified task options can be replaced by
+        # command line specified options.
 
         p1 = {'name': 'x', 'long': 'x', 'default': None, 'type': int}
         p2 = {'name': 'y', 'long': 'y', 'default': 2, 'type': int}
