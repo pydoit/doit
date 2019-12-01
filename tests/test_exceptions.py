@@ -1,3 +1,5 @@
+import pytest
+
 from doit import exceptions
 
 
@@ -63,10 +65,19 @@ class TestCatchedException(object):
         assert 'IndexError' in msg
 
 
+@pytest.mark.parametrize(
+    "exception",
+    (
+        exceptions.TaskFailed,
+        exceptions.TaskError,
+        exceptions.SetupError,
+        exceptions.DependencyError
+    )
+)
 class TestAllCatched(object):
-    def test(self):
-        assert issubclass(exceptions.TaskFailed, exceptions.CatchedException)
-        assert issubclass(exceptions.TaskError, exceptions.CatchedException)
-        assert issubclass(exceptions.SetupError, exceptions.CatchedException)
-        assert issubclass(exceptions.DependencyError,
-                          exceptions.CatchedException)
+    def test(self, exception):
+        assert issubclass(exception, exceptions.CatchedException)
+
+    def test_raise(self, exception):
+        with pytest.raises(exception):
+            raise exception("Foo bar baz")
