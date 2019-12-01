@@ -42,7 +42,7 @@ class InvalidTask(Exception):
     pass
 
 
-class CatchedException(object):
+class CatchedException(Exception):
     """This used to save info from caught exceptions
     The traceback from the original exception is saved
     """
