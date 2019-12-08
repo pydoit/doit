@@ -3,12 +3,9 @@ python:
     - "3.4"
     - "3.5"
     - "3.6"
+    - "3.7"
+    - "3.8"
     - "pypy3.5"
-
-matrix:
-  include:
-    - python: 3.7
-      dist: xenial
 
 # when setting sudo to true, issues with strace are fixed
 # see: https://github.com/travis-ci/travis-ci/issues/9033
