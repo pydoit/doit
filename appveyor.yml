@@ -14,8 +14,7 @@ init:
 install:
   - "%PYTHON%/python.exe -m pip install -U pip setuptools"
 
-  - "%PYTHON%/Scripts/pip.exe install ."
-  - "%PYTHON%/Scripts/pip.exe install -r dev_requirements.txt"
+  - "%PYTHON%/Scripts/pip.exe install .[tests]"
 
 test_script:
   - "set path=%PYTHON%/Scripts;%path%"

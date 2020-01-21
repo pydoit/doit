@@ -3,8 +3,7 @@
 # docker build -t doit-debian .
 # docker run -it --cap-add SYS_PTRACE -v /home/eduardo/work/doit/dev:/root/doit doit-debian
 
-# pip3 install -e .
-# pip3 install -r dev_requirements.txt
+# pip3 install -e .[tests]
 
 
 from debian:unstable

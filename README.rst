@@ -150,10 +150,9 @@ create a virtualenv...
   doit$ source dev/bin/activate
 
 install ``doit`` as "editable", and add development dependencies
-from `dev_requirements.txt`::
+to run tests and to build documentation::
 
-  (dev) doit$ pip install --editable .
-  (dev) doit$ pip install --requirement dev_requirements.txt
+  (dev) doit$ pip install --editable .[docs,tests]
 
 
 

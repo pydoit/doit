@@ -41,6 +41,15 @@ configuration management, etc.
 `website/docs <http://pydoit.org>`_
 """
 
+# modules required to generate documentation
+# $ pip install pip install --editable .[docs]
+docs_require = [
+    'sphinx',
+    'sphinx_press_theme',
+]
+
+# modules required for execution of tests only
+# $ pip install pip install --editable .[tests]
 tests_require = [
     'coverage>=4.0',
     'doit-py>=0.4.0',
@@ -89,6 +98,7 @@ setup(name = 'doit',
       extras_require={
           ':sys.platform == "darwin"': ['macfsevents'],
           ':sys.platform == "linux"': ['pyinotify'],
+          'docs': docs_require,
           'tests': tests_require,
       },
       long_description = long_description,

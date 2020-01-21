@@ -1,7 +1,0 @@
-# modules required for development only
-# $ pip install --requirement dev_requirements.txt
-
-pyflakes
-pytest>=5.4.1
-coverage>=4.0
-doit-py>=0.4.0
