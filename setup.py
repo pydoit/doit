@@ -41,6 +41,13 @@ configuration management, etc.
 `website/docs <http://pydoit.org>`_
 """
 
+tests_require = [
+    'coverage>=4.0',
+    'doit-py>=0.4.0',
+    'pyflakes',
+    'pytest>=5.4.1',
+]
+
 setup(name = 'doit',
       description = 'doit - Automation Tool',
       version = '0.33.dev0',
@@ -78,9 +85,11 @@ setup(name = 'doit',
       packages = ['doit'],
       python_requires='>=3.4',
       install_requires = ['cloudpickle'],
+      tests_require=tests_require,
       extras_require={
           ':sys.platform == "darwin"': ['macfsevents'],
           ':sys.platform == "linux"': ['pyinotify'],
+          'tests': tests_require,
       },
       long_description = long_description,
       entry_points = {
