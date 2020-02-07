@@ -250,19 +250,33 @@ class TestTaskGeneratorParams(object):
     class Tasks(object):
         @task_param([{"name": "foo", "default": "bar", "long": "foo"}])
         def task_foo(self, foo):
-            return {
-                'actions': [],
-                'doc': foo
-            }
+            for i in range(2):
+                yield {
+                    'name': 'subtask' + str(i),
+                    'actions': [],
+                    'doc': foo
+                }
     
     def test_class_default(self):
         'Ensure that a task parameter can be passed to the task generator defined as a class method.'
         foo = self.Tasks().task_foo
         task_list = load_tasks({'task_foo': foo})
-        task = task_list.pop()
-        assert task.doc == 'bar'
-        task.init_options()
-        assert task.options['foo'] == 'bar'
+        
+        assert len(task_list) == 3
+
+        for task in task_list:
+            task.init_options()
+
+            if task.has_subtask:
+                # only parent task gets @task_param value
+                assert len(task.params) == 1
+                assert task.options['foo'] == 'bar'
+                assert task.doc == ''
+            else:
+                # option used to define subtask doc value
+                assert task.doc == 'bar'
+                # subtasks do not get @task_param
+                assert len(task.params) == 0
     
 class TestDodoConfig(object):
 

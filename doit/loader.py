@@ -158,7 +158,9 @@ def load_tasks(namespace, command_names=(), allow_delayed=False, args=''):
         'Apply parameters defined for the task generator to the tasks defined by the generator.'
         for task in tasks:
             # TODO: Check for duplicates?
-            task.params = tuple(list(task.params) + param_def)
+            if task.subtask_of is None:
+                # only parent tasks
+                task.params = tuple(list(task.params) + param_def)
         return tasks
 
     def _process_gen(ref):
