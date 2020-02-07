@@ -256,6 +256,13 @@ class TestTaskGeneratorParams(object):
                     'actions': [],
                     'doc': foo
                 }
+        
+        @task_param([{"name": "foo", "default": "decorator", "long": "foo"}])
+        def task_dup(self, foo):
+            return {
+                'actions': [],
+                'params': [{"name": "foo", "default": "dict", "long": "foo"}],
+            }
     
     def test_class_default(self):
         'Ensure that a task parameter can be passed to the task generator defined as a class method.'
@@ -277,7 +284,14 @@ class TestTaskGeneratorParams(object):
                 assert task.doc == 'bar'
                 # subtasks do not get @task_param
                 assert len(task.params) == 0
-    
+
+    def test_dup_param(self):
+        'Ensure that @task_param duplicated task definitions are prohibited'
+        
+        with pytest.raises(InvalidTask):
+            load_tasks({'task_dup': self.Tasks().task_dup})
+        
+
 class TestDodoConfig(object):
 
     def testConfigType_Error(self):

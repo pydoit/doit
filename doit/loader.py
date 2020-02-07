@@ -4,7 +4,7 @@ import os
 import sys
 import inspect
 import importlib
-from collections import OrderedDict
+from collections import OrderedDict, Counter
 
 from .exceptions import InvalidTask, InvalidCommand, InvalidDodoFile
 from .task import DelayedLoader, Task, dict_to_task
@@ -157,10 +157,15 @@ def load_tasks(namespace, command_names=(), allow_delayed=False, args=''):
     def _append_params(tasks, param_def):
         'Apply parameters defined for the task generator to the tasks defined by the generator.'
         for task in tasks:
-            # TODO: Check for duplicates?
             if task.subtask_of is None:
                 # only parent tasks
                 task.params = tuple(list(task.params) + param_def)
+
+            # Check for duplicated parameter names
+            param_names = [p['name'] for p in task.params]
+            dups = [name for name, count in Counter(param_names).items() if count > 1]
+            if len(dups) > 0:
+                raise InvalidTask('Task \'{}\'. Duplicate parameter definitions for parameters: {}'.format(task.name, ', '.join(sorted(dups))))
         return tasks
 
     def _process_gen(ref):
