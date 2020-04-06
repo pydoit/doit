@@ -604,7 +604,7 @@ Sub-tasks (items of task group) by default are not reported by the ``list`` comm
 Note the task's name is composed of the task's group name (aka ``basename``)
 followed by a colon `:` and the ``name`` specified as a parameter when ``yield``.
 
-From the command line, a single task can be executed like this:
+From the command line, a single task can be executed like this::
 
   $ doit imports:requests.models
   .  imports:requests.models
