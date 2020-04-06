@@ -534,7 +534,7 @@ and what it does is to execute the task ``task_name``, get the value of ``source
 Note how ``module_to_dot`` takes 3 parameters:
 
 - ``source``: value is passed directly when the task's actions is defined
-- ``imports``: value is taken from ``imports`` task's result
+- ``sinks``: value is taken from ``imports`` task's result
 - ``targets``: values is taken from Task metadata
 
 
