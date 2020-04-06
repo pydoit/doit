@@ -671,7 +671,7 @@ While those cover a wide range of use cases, ``doit`` also provides a way to spe
 In this case the ``print`` task actually does not perform any computation, it is being used to display some info to the user.
 So this task should be **always** executed.
 
-``update`` will be explained in detail in part 2 of this tutorial.
+``uptodate`` will be explained in detail in part 2 of this tutorial.
 For now it suffices to add the value ``False`` to indicate this task will never be considered **up-do-date**.
 
 .. code-block:: python
