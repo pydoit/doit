@@ -3,6 +3,7 @@ import time
 import sys
 import tempfile
 import uuid
+from unittest.mock import patch
 from sys import executable
 
 import pytest
@@ -42,9 +43,14 @@ def test_sqlite_import():
     """
     filename = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()))
 
-    assert 'sqlite3' not in sys.modules
-    SqliteDB(filename, JSONCodec())
-    assert 'sqlite3' in sys.modules
+    sys_modules_without_sqlite3 = {
+        k: v for k, v in sys.modules.items()
+        if k != 'sqlite3'
+    }
+    with patch.object(sys, 'modules', sys_modules_without_sqlite3):
+        assert 'sqlite3' not in sys.modules
+        SqliteDB(filename, JSONCodec())
+        assert 'sqlite3' in sys.modules
 
     os.remove(filename)
 
