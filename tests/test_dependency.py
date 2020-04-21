@@ -40,14 +40,8 @@ def test_sqlite_import():
     """
     Checks that SQLite module is not imported until the SQLite class is instantiated
     """
-    filename = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()))
-
-    assert 'sqlite3' not in sys.modules
-    db = SqliteDB(filename, JSONCodec())
-    db.dump()
-    assert 'sqlite3' in sys.modules
-
-    os.remove(filename)
+    from doit import dependency
+    assert not hasattr(dependency, 'sqlite3')
 
 ####
 # dependencies are files only (not other tasks).
