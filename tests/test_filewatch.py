@@ -71,7 +71,7 @@ class TestFileWatcher(object):
         # wait watcher to be ready
         while not started: # pragma: no cover
             time.sleep(0.01)
-            assert loop_thread.isAlive()
+            assert loop_thread.is_alive()
 
         # write in watched file
         fd = open(files[0], 'w')
@@ -93,7 +93,7 @@ class TestFileWatcher(object):
         time.sleep(0.1)
         loop_thread.join(1)
 
-        if loop_thread.isAlive(): # pragma: no cover
+        if loop_thread.is_alive(): # pragma: no cover
             # this test is very flaky so we give it one more chance...
             # write on file to terminate thread
             fd = open(stop_file, 'w')
