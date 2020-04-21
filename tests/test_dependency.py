@@ -1,8 +1,5 @@
 import os
 import time
-import sys
-import tempfile
-import uuid
 from sys import executable
 
 import pytest
@@ -13,7 +10,6 @@ from doit.dependency import DbmDB, JsonDB, SqliteDB, Dependency
 from doit.dependency import DatabaseException, UptodateCalculator
 from doit.dependency import FileChangedChecker, MD5Checker, TimestampChecker
 from doit.dependency import DependencyStatus
-from doit.dependency import JSONCodec
 from .conftest import get_abspath, dep_manager_fixture
 
 # path to test folder
