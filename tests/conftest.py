@@ -2,7 +2,6 @@ import os
 import time
 from dbm import whichdb
 
-import py
 import pytest
 
 from doit.dependency import DbmDB, Dependency, MD5Checker
