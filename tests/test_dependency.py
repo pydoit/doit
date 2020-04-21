@@ -68,8 +68,8 @@ def test_sqlite_import():
 # create a separate fixture to be used only by this module
 # because only here it is required to test with all backends
 @pytest.fixture(params=[JsonDB, DbmDB, SqliteDB])
-def pdep_manager(request):
-    return dep_manager_fixture(request, request.param)
+def pdep_manager(request, tmp_path_factory):
+    return dep_manager_fixture(request, request.param, tmp_path_factory)
 
 
 

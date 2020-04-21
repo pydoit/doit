@@ -78,12 +78,9 @@ db_ext = {
     'dbm.ndbm': ['.db'],
 }
 
-def dep_manager_fixture(request, dep_class):
-    # copied from tempdir plugin
-    name = request._pyfuncitem.name
-    name = py.std.re.sub("[\W]", "_", name)
-    my_tmpdir = request.config._tmpdirhandler.mktemp(name, numbered=True)
-    dep_file = Dependency(dep_class, os.path.join(my_tmpdir.strpath, "testdb"))
+def dep_manager_fixture(request, dep_class, tmp_path_factory):
+    filename = str(tmp_path_factory.mktemp('x', True) / 'testdb')
+    dep_file = Dependency(dep_class, filename)
     dep_file.whichdb = whichdb(dep_file.name) if dep_class is DbmDB else 'XXX'
     dep_file.name_ext = db_ext.get(dep_file.whichdb, [''])
 
@@ -97,18 +94,13 @@ def dep_manager_fixture(request, dep_class):
 
 
 @pytest.fixture
-def dep_manager(request):
-    return dep_manager_fixture(request, DbmDB)
+def dep_manager(request, tmp_path_factory):
+    return dep_manager_fixture(request, DbmDB, tmp_path_factory)
 
 
 @pytest.fixture
-def depfile_name(request):
-    # copied from tempdir plugin
-    name = request._pyfuncitem.name
-    name = py.std.re.sub("[\W]", "_", name)
-    my_tmpdir = request.config._tmpdirhandler.mktemp(name, numbered=True)
-    depfile_name = (os.path.join(my_tmpdir.strpath, "testdb"))
-
+def depfile_name(request, tmp_path_factory):
+    depfile_name = str(tmp_path_factory.mktemp('x', True) / 'testdb')
     def remove_depfile():
         remove_db(depfile_name)
     request.addfinalizer(remove_depfile)
