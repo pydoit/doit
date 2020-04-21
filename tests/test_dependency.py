@@ -43,7 +43,8 @@ def test_sqlite_import():
     filename = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()))
 
     assert 'sqlite3' not in sys.modules
-    SqliteDB(filename, JSONCodec())
+    db = SqliteDB(filename, JSONCodec())
+    db.dump()
     assert 'sqlite3' in sys.modules
 
     os.remove(filename)
@@ -99,6 +100,7 @@ class TestDependencyDb(object):
 
         value = d2._get("taskId_X", "dependency_A")
         assert "da_md5" == value, value
+        d2.close()
 
     def test_corrupted_file(self, pdep_manager):
         if pdep_manager.whichdb is None:  # pragma: no cover
@@ -164,7 +166,7 @@ class TestDependencyDb(object):
         reopened2 = Dependency(pdep_manager.db_class, pdep_manager.name)
         assert reopened2._in("taskId_XXX")
         assert not reopened2._in("taskId_YYY")
-
+        reopened2.close()
 
     def test_remove_all(self, pdep_manager):
         pdep_manager._set("taskId_ZZZ", "dep_1", "12")
