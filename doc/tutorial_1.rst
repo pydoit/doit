@@ -175,7 +175,7 @@ so it does not execute the task again.
 
 .. warning::
 
-   When ``doit`` *loads* a ``dodo.py`` file it executes all *task-creator* functions in order to generate all tasks metadata.
+   When ``doit`` *loads* a :file:`dodo.py` file it executes all *task-creator* functions in order to generate all tasks metadata.
    A task's ``action`` is only executed if the task is selected to run and not **up-to-date**.
 
    Expensive computation should always be done on task's ``action``
@@ -544,7 +544,7 @@ Everything should work as before, but without the creation of intermediate files
 
 ``doit`` can also determine if ``dot`` is **up-to-date** by comparing the value returned by ``imports`` (its dependency through the ``getargs`` parameter), with the value stored in its database.
 
-Code :download:`dodo.py <tutorial/tuto_1_2.py>`.
+Code :download `dodo.py <tutorial/tuto_1_2.py>`.
 
 
 package imports
@@ -634,7 +634,7 @@ Finally, adjust task ``draw``.
    :emphasize-lines: 4-5
 
 
-Running ``doit`` you should get the file ``requests.png`` with the image below:
+Running ``doit`` you should get the file :file:`requests.png` with the image below:
 
 .. image:: _static/requests.png
 

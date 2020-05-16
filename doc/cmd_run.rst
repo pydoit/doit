@@ -34,7 +34,7 @@ This is specially useful when testing `doit` with different python versions.
 dodo file
 ----------
 
-By default all commands are relative to ``dodo.py`` in the current folder.
+By default all commands are relative to :file:`dodo.py` in the current folder.
 You can specify a different *dodo* file containing task with the flag ``-f``.
 This flag is valid for all sub-commands.
 
@@ -44,7 +44,7 @@ This flag is valid for all sub-commands.
     $ doit -f release.py
 
 
-*doit* can seek for the ``dodo.py`` file on parent folders if the option
+*doit* can seek for the :file:`dodo.py` file on parent folders if the option
 ``--seek-file`` is specified.
 
 
@@ -129,7 +129,7 @@ DB-file
 ----------
 
 Option ``--db-file`` sets the name of the file to save the "DB",
-default is ``.doit.db``.
+default is dbm.dumb `.doit.db`.
 Note that DBM backends might save more than one file, in this case
 the specified name is used as a base name.
 
@@ -292,7 +292,7 @@ custom reporter
 -----------------
 
 It is possible to define your own custom reporter. Check the code on
-`doit/reporter.py
+:file:`doit/reporter.py'
 <https://github.com/pydoit/doit/blob/master/doit/reporter.py>`_ ... It is easy
 to get started by sub-classing the default reporter as shown below. The custom
 reporter can be enabled directly on DOIT_CONFIG dict.
@@ -337,7 +337,7 @@ custom check_file_uptodate
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 It is possible to define your own custom up to date checker. Check the code on
-`doit/dependency.py
+:file:`doit/dependency.py`
 <https://github.com/pydoit/doit/blob/master/doit/dependency.py>`_ ...
 Sub-class ``FileChangedChecker`` and define the 2 required methods as shown
 below. The custom checker must be configured using DOIT_CONFIG dict.
@@ -396,17 +396,17 @@ python-actions. If required an alternate encoder/decoder pair may be specified
 so that return values which are not JSON serializable, such as Python class
 instances, may be provided as return values from python-actions.
 
-Check ``dependency.py`` 's ``JSONCodec`` interface.
+Check :file:`dependency.py` 's ``JSONCodec`` interface.
 
 
 minversion
 -------------
 
 `minversion` can be used to specify the minimum/oldest `doit` version
-that can be used with a `dodo.py` file.
+that can be used with a :file:`dodo.py` file.
 
-For example if your `dodo.py` makes use of a feature added at `doit X`
-and distribute it. If another user who tries this `dodo.py` with a version
+For example if your :file:`dodo.py` makes use of a feature added at `doit X`
+and distribute it. If another user who tries this :file:`dodo.py` with a version
 older that `X`, doit will display an error warning the user to update `doit`.
 
 `minversion` can be specified as a string or a 3-element tuple with integer

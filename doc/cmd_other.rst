@@ -2,6 +2,7 @@
 Other Commands
 ================
 
+
 .. note::
 
     Not all options/arguments are documented below.
@@ -12,7 +13,8 @@ Let's use a more complex example to demonstrate the command line features.
 The example below is used to manage a very simple C project.
 
 
-.. literalinclude:: samples/cproject.py
+
+.. literalinclude:: `samples/cproject.py`
 
 
 
@@ -109,7 +111,7 @@ If you do not specify any task, the default tasks are "*forget*".
 
 .. note::
 
-  *doit* keeps track of which tasks are successful in the file ``.doit.db``.
+  *doit* keeps track of which tasks are successful in the file :file:`.doit.db`. 
 
 
 
@@ -242,7 +244,7 @@ This can used to display desktop notifications, so you do not need to keep
 an eye in the terminal to notice when tasks succeed or failed.
 
 Example of sound and desktop notification on Ubuntu.
-Contents of a `doit.cfg` file:
+Contents of a :file:`doit.cfg` file:
 
 .. code-block:: INI
 
@@ -311,7 +313,7 @@ hard-coding tasks
 If you are creating an application based on `doit`
 or if you tasks take a long time to load you may create
 a completion script that includes the list of tasks
-from your dodo.py.
+from your :file:`dodo.py`.
 
 .. code-block:: console
 
@@ -322,7 +324,7 @@ from your dodo.py.
 dumpdb
 --------
 
-`doit` saves internal data in a file (`.doit.db` by default).
+`doit` saves internal data in a file (:file:`.doit.db` by default).
 It uses a binary format (whatever python's dbm is using in your system).
 This command will simply dump its content in readable text format in the output.
 

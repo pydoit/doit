@@ -36,7 +36,7 @@ Issues/bugs
 If you find issues using *doit* please report at
 `github issues <https://github.com/pydoit/doit/issues>`_.
 
-All issues should contain a sample minimal ``dodo.py`` and
+All issues should contain a sample minimal :file:`dodo.py` and
 the used command line to reproduce the problem.
 
 

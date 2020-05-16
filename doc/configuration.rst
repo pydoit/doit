@@ -9,7 +9,7 @@ config param names
 Note that the configuration option's name is not always the same as the
 *long* argument name used in the command line.
 
-I.e. To specify dodo file other than `dodo.py` from the command line
+I.e. To specify dodo file other than :file:`dodo.py` from the command line
 you specify the option as ``-f`` or ``--file``, but from a config file
 it is called ``dodoFile``.
 
@@ -20,14 +20,14 @@ The name can be seem from ``doit help`` output::
 
 
 
-doit.cfg
+:file:`doit.cfg`
 --------
 
 `doit` uses an INI style configuration file
 (see `configparser <https://docs.python.org/3/library/configparser.html>`_).
 Note: key/value entries can be separated only by the equal sign `=`.
 
-If a file name `doit.cfg` is present in the current working directory,
+If a file name :file:`doit.cfg` is present in the current working directory,
 it is processed. It supports 3 kind of sections:
 
 - a `GLOBAL` section
@@ -79,7 +79,7 @@ the task name prefixed with "task:"::
  temp = 375F
  duration = 12
 
-configuration at *dodo.py*
+configuration at :file:`dodo.py`
 --------------------------
 
 As a convenience you can also set `GLOBAL` options directly into a `dodo.py`.
@@ -104,9 +104,9 @@ it will have the same effect as executing
 
 .. note::
 
-  Not all options can be set on `dodo.py` file.
+  Not all options can be set on :file:`dodo.py` file.
   The parameters ``--file`` and ``--dir`` can not be used on config because
   they control how the *dodo* file itself is loaded.
 
-  Also if the command does not read the `dodo.py` file it obviously will
+  Also if the command does not read the :file:`dodo.py` file it obviously will
   not be used.

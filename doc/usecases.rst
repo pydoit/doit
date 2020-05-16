@@ -43,7 +43,7 @@ Automate typical project related actions
 Do you have to lint your code, run test suite, evaluate coverage,
 generate documentation incl. spelling?
 
-Create the `dodo.py`, which defines tasks you have to do and next time:
+Create the :file:`dodo.py`, which defines tasks you have to do and next time:
 
 .. code-block:: console
 
@@ -73,10 +73,10 @@ Share unified way of doing things
 Do you expect your colleagues perform the same steps before committing
 changes to repository? What to do with the complains the steps are too complex?
 
-Provide them with the `dodo.py` file doing the things. What goes easy,
+Provide them with the :file:`dodo.py` file doing the things. What goes easy,
 is more likely to be used.
 
-`dodo.py` will become easy to use prescription of best practices.
+:file:`dodo.py` will become easy to use prescription of best practices.
 
 Optimize processing time by skipping tasks already done
 =======================================================
@@ -128,6 +128,6 @@ Do you have team members working on MS Windows and others on Linux?
 Scripts are great, but all those small shell differences prevent
 single reusable solution.
 
-With `dodo.py` and python you are more likely to write the processing
+With :file:`dodo.py` and python you are more likely to write the processing
 in cross-platform way. Use `pathlib.Path` and `shutils` magic to
 create directories, move files around, copy them, etc.

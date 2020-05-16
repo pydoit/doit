@@ -194,7 +194,7 @@ with positional arguments *after* optional arguments.
 command line variables (*doit.get_var*)
 -----------------------------------------
 
-It is possible to pass variable values to be used in dodo.py from the command line.
+It is possible to pass variable values to be used in:file:`dodo.py` from the command line.
 
 .. literalinclude:: samples/get_var.py
 

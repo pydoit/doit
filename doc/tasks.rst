@@ -26,12 +26,12 @@ These functions must return (or yield) dictionaries representing a *task*.
 A python module/file that defines *tasks* for `doit` is called **dodo** file
 (that is something like a `Makefile` for `make`).
 
-Take a look at this example (file dodo.py):
+Take a look at this example (file :file:`dodo.py`):
 
 .. literalinclude:: samples/hello.py
 
 When `doit` is executed without any parameters it will look for tasks in a
-file named `dodo.py` in the current folder and execute its tasks.
+file named :file:`dodo.py` in the current folder and execute its tasks.
 
 
 .. code-block:: console

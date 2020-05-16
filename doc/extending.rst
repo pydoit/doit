@@ -131,7 +131,7 @@ The value is an entry point to the python class/function/object
 that implements the plugin. The format is <module-name>:<attribute-name>.
 
 Example of command plugin implemented in the *class* `FooCmd`,
-located at the module `my_plugins.py`::
+located at the module :file:`my_plugins.py`::
 
  [COMMAND]
  foo = my_plugins:FooCmd
