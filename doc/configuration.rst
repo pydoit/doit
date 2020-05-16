@@ -41,7 +41,7 @@ GLOBAL section
 The `GLOBAL` section may contain command line options that will
 be used (if applicable) by any commands.
 
-Example setting the DB backend type::
+Example setting the :abbr:`DB (database)` backend type::
 
  [GLOBAL]
  backend = json

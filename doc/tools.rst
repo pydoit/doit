@@ -57,8 +57,8 @@ set_trace
 
 `doit` by default redirects stdout and stderr. Because of this when you try to
 use the python debugger with ``pdb.set_trace``, it does not work properly.
-To make sure you get a proper PDB shell you should use doit.tools.set_trace
-instead of ``pdb.set_trace``.
+To make sure you get a proper :abbr:`PDB (Python debugger)` shell you should
+use doit.tools.set_trace instead of ``pdb.set_trace``.
 
 .. literalinclude:: samples/settrace.py
 

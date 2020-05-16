@@ -31,8 +31,8 @@ Get latest development version::
   $ git clone https://github.com/pydoit/doit.git
 
 
-OS package
-^^^^^^^^^^
+:abbr:`OS (operating system)` package
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Several distributions include native `doit` packages.
 `Repology.org <https://repology.org/metapackage/doit/badges>`_

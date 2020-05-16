@@ -123,7 +123,8 @@ Simply integrate `doit` functionality into your own command line tool and nobody
 
 Create cross-platform tool for processing  your stuff
 =====================================================
-Do you have team members working on MS Windows and others on Linux?
+Do you have team members working on :abbr:`MS (Microsoft)` Windows and others
+on Linux?
 
 Scripts are great, but all those small shell differences prevent
 single reusable solution.

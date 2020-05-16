@@ -18,7 +18,8 @@ So far we have seen:
 
 
 Apart from those, `doit` also provides a plugin system and
-expose it's internal API so you can create new applications on top of `doit`.
+expose its internal :abbr:`API (application programming interface)` so you
+can create new applications on top of `doit`.
 
 
 .. _custom_loader:
@@ -111,7 +112,7 @@ plugins
 
 `doit` plugin system is based on the use of *entry points*, the plugin
 does not need to implement any kind of "plugin interface".
-It needs only to implement the API of the component it is extending.
+It needs only to implement the :abbr:`API` of the component it is extending.
 
 Plugins can be enabled in 2 different ways:
 
@@ -151,7 +152,7 @@ for details on how to create a new command.
 category BACKEND
 ----------------
 
-Implements the internal `doit` DB storage system.
+Implements the internal `doit` :abbr:`DB (database)` storage system.
 Check the module `doit/dependency.py` to see the existing implementation / API.
 
 

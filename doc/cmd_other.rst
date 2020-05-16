@@ -387,5 +387,5 @@ to a task that has already run.
    up-to-date status. So only use this command if you are sure it is OK for your
    tasks.
 
-   If the DB already has any saved `values` or `result` they will be preserved
-   otherwise they will not be set at all.
+   If the database already has any saved `values` or `result` they will be
+   preserved otherwise they will not be set at all.
