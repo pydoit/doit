@@ -40,7 +40,9 @@ Sample Code
 
 Define functions returning python dict with task's meta-data.
 
-Snippet from `tutorial <http://pydoit.org/tutorial_1.html>`_::
+Snippet from `tutorial <http://pydoit.org/tutorial_1.html>`_:
+
+.. code:: python
 
   def task_imports():
       """find imports from a python module"""
@@ -116,7 +118,7 @@ install
 
 The last version supporting python 2 is version 0.29.
 
-::
+.. code:: bash
 
  $ pip install doit
 
@@ -144,13 +146,15 @@ development setup
 The best way to setup an environment to develop *doit* itself is to
 create a virtualenv...
 
-::
+.. code:: bash
 
   doit$ virtualenv dev
   doit$ source dev/bin/activate
 
 install ``doit`` as "editable", and add development dependencies
-from `dev_requirements.txt`::
+from `dev_requirements.txt`:
+
+.. code:: bash
 
   (dev) doit$ pip install --editable .
   (dev) doit$ pip install --requirement dev_requirements.txt
@@ -162,7 +166,7 @@ tests
 
 Use py.test - http://pytest.org
 
-::
+.. code:: bash
 
   $ py.test
 
@@ -173,13 +177,15 @@ documentation
 
 ``doc`` folder contains ReST documentation based on Sphinx.
 
-::
+.. code:: bash
 
  doc$ make html
 
 They are the base for creating the website. The only difference is
 that the website includes analytics tracking.
-To create it (after installing *doit*)::
+To create it (after installing *doit*):
+
+.. code:: bash
 
  $ doit website
 
@@ -188,7 +194,9 @@ To create it (after installing *doit*)::
 spell checking
 --------------
 
-All documentation is spell checked using the task `spell`::
+All documentation is spell checked using the task `spell`:
+
+.. code:: bash
 
   $ doit spell
 
@@ -202,7 +210,7 @@ systems install the hunspell package: `apt-get install hunspell`.
 profiling
 ---------
 
-::
+.. code:: bash
 
   python -m cProfile -o output.pstats `which doit` list
 
