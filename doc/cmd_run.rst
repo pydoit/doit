@@ -240,6 +240,8 @@ parallel execution
 This allows different tasks to be run in parallel, as long any dependencies are met.
 By default the `multiprocessing <http://docs.python.org/library/multiprocessing.html>`_
 module is used.
+If the `multiprocess <https://pypi.org/project/multiprocess/>`_ module is installed,
+it will be used instead.
 So the same restrictions also apply to the use of multiprocessing in `doit`.
 
 .. code-block:: console

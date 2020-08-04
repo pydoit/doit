@@ -1,8 +1,8 @@
 import time
-from multiprocessing import Process
 
 import pytest
 
+from doit.compat import Process
 from doit.cmdparse import DefaultUpdate
 from doit.task import Task
 from doit.cmd_base import TaskLoader

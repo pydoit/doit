@@ -1,12 +1,12 @@
 """Task runner"""
 
-from multiprocessing import Process, Queue as MQueue
 from threading import Thread
 import pickle
 import queue
 
 import cloudpickle
 
+from .compat import is_multiprocessing_available, MQueue, Process
 from .exceptions import InvalidTask, CatchedException
 from .exceptions import TaskFailed, SetupError, DependencyError, UnmetDependency
 from .task import Stream, DelayedLoaded
@@ -327,16 +327,7 @@ class MRunner(Runner):
     @staticmethod
     def available():
         """check if multiprocessing module is available"""
-        # see: https://bitbucket.org/schettino72/doit/issue/17
-        #      http://bugs.python.org/issue3770
-        # not available on BSD systens
-        try:
-            import multiprocessing.synchronize
-            multiprocessing # pyflakes
-        except ImportError: # pragma: no cover
-            return False
-        else:
-            return True
+        return is_multiprocessing_available()
 
     def __init__(self, dep_manager, reporter,
                  continue_=False, always_execute=False,
