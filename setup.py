@@ -6,23 +6,6 @@ import sys
 from setuptools import setup
 
 
-
-########### last version to support python2 is 0.29 ####
-try:
-    import pip
-    pip_version = tuple([int(x) for x in pip.__version__.split('.')[:3]])
-    if pip_version < (9, 0, 1) :
-        pip_message = 'Your pip version is out of date, please install pip >= 9.0.1. '\
-                      'pip {} detected.'.format(pip.__version__)
-        print(pip_message, file=sys.stderr)
-        sys.exit(1)
-except Exception:
-    # what if someone does not have pip installed
-    pass
-
-########################################################
-
-
 long_description = """
 `doit` is a task management & automation tool
 
