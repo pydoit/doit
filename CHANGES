@@ -3,11 +3,12 @@
 Changes
 =======
 
-0.33.0 (*unreleased*)
+0.33.0 (*2020-09-01*)
 =====================
 
  - python 3.8 support
  - BACKWARD INCOMPATIBLE: Drop Python 3.4 support
+ - fix error installing with setuptools 50.0
 
 
 0.32.0 (*2019-12-10*)

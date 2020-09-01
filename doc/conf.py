@@ -20,13 +20,13 @@
 # -- Project information -----------------------------------------------------
 
 project = 'doit'
-copyright = '2008-2019, Eduardo Schettino'
+copyright = '2008-2020, Eduardo Schettino'
 author = 'Eduardo Schettino (schettino72)'
 
 # The short X.Y version
-version = '0.32'
+version = '0.33'
 # The full version, including alpha/beta/rc tags
-release = '0.32'
+release = '0.33'
 
 
 # -- General configuration ---------------------------------------------------
