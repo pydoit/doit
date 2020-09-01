@@ -17,17 +17,6 @@ README
   :target: https://coveralls.io/r/pydoit/doit?branch=master
 
 
-.. image:: https://badges.gitter.im/Join%20Chat.svg
-  :alt: Join the chat at https://gitter.im/pydoit/doit
-  :target: https://gitter.im/pydoit/doit?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
-
-.. image:: https://opencollective.com/doit/backers/badge.svg
-  :target: `backers`_
-
-.. image:: https://opencollective.com/doit/sponsors/badge.svg
-  :target: `sponsors`_
-
-
 doit - automation tool
 ======================
 
@@ -216,61 +205,25 @@ profiling
 
   gprof2dot -f pstats output.pstats | dot -Tpng -o output.png
 
+
+releases
+========
+
+Update version number at:
+
+- doit/version.py
+- setup.py
+- doc/conf.py
+
+.. code:: bash
+
+   python setup.py sdist
+   python setup.py bdist_wheel
+   twine upload dist/doit-X.Y.Z.tar.gz
+   twine upload dist/doit-X.Y.Z-py3-none-any.whl
+
+
 contributing
 ==============
 
 On github create pull requests using a named feature branch.
-
-
-
-
-.. _backers
-
-backers
--------
-
-
-`Become a backer <https://opencollective.com/doit#backer>`_ and show your support to our open source project.
-
-.. image:: https://opencollective.com/doit/backers.svg?width=890
-  :target: https://opencollective.com/doit#backers
-
-
-
-.. _sponsors
-
-sponsors
---------
-
-Support this project by `becoming a sponsor <https://opencollective.com/doit#sponsor>`_.
-Your logo will show up here with a link to your website.
-
-.. image:: https://opencollective.com/doit/sponsor/0/avatar
-  :target: https://opencollective.com/doit/sponsor/0/website
-
-.. image:: https://opencollective.com/doit/sponsor/1/avatar
-  :target: https://opencollective.com/doit/sponsor/1/website
-
-.. image:: https://opencollective.com/doit/sponsor/2/avatar
-  :target: https://opencollective.com/doit/sponsor/2/website
-
-.. image:: https://opencollective.com/doit/sponsor/3/avatar
-  :target: https://opencollective.com/doit/sponsor/3/website
-
-.. image:: https://opencollective.com/doit/sponsor/4/avatar
-  :target: https://opencollective.com/doit/sponsor/4/website
-
-.. image:: https://opencollective.com/doit/sponsor/5/avatar
-  :target: https://opencollective.com/doit/sponsor/5/website
-
-.. image:: https://opencollective.com/doit/sponsor/6/avatar
-  :target: https://opencollective.com/doit/sponsor/6/website
-
-.. image:: https://opencollective.com/doit/sponsor/7/avatar
-  :target: https://opencollective.com/doit/sponsor/7/website
-
-.. image:: https://opencollective.com/doit/sponsor/8/avatar
-  :target: https://opencollective.com/doit/sponsor/8/website
-
-.. image:: https://opencollective.com/doit/sponsor/9/avatar
-  :target: https://opencollective.com/doit/sponsor/9/website

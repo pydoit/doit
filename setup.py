@@ -59,7 +59,7 @@ setup(name = 'doit',
           'Tracker': 'https://github.com/pydoit/doit/issues',
       },
       packages = ['doit'],
-      python_requires='>=3.4',
+      python_requires='>=3.5',
       install_requires = ['cloudpickle'],
       extras_require={
           ':sys.platform == "darwin"': ['macfsevents'],

@@ -198,6 +198,7 @@ backport
 bar'
 basename
 basenames
+bdist
 bioinformatic
 bioinformatics
 biomechanics
@@ -226,6 +227,7 @@ compFile
 compat
 compinit
 compressed1
+conf
 config
 configparser
 cp
@@ -286,6 +288,7 @@ gmail
 google
 gprof2dot
 graphviz
+gz
 hardcode
 hashbang
 hashlib
@@ -407,6 +410,7 @@ schettino
 schettino72
 schettino72
 scons
+sdist
 selecttasks
 serializable
 settrace
@@ -475,6 +479,7 @@ utm
 virtualenv
 waf
 wget
+whl
 wildcard
 withenvX
 withenvY

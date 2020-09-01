@@ -85,6 +85,7 @@ def task_samples_check():
         'taskresult.py',  # uses mercurial
         'tar.py',  # uses mercurial
         'calc_dep.py',  # uses files not created by the script
+        'report_deps.py',  # uses files not created by the script
         'doit_config.py',  # no tasks defined
     ]
     exclude = set('doc/samples/{}'.format(m) for m in black_list)
