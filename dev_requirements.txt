@@ -5,3 +5,4 @@ pyflakes
 pytest>=5.4.1
 coverage>=4.0
 doit-py>=0.4.0
+toml>=0.10.1
