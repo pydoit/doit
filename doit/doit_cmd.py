@@ -52,11 +52,11 @@ class DoitMain(object):
                  Strace, TabCompletion, ResetDep)
 
     def __init__(self, task_loader=None,
-                 config_filenames=['doit.cfg', 'pyproject.toml'],
+                 config_filenames=['pyproject.toml', 'doit.cfg'],
                  extra_config=None):
         self.task_loader = task_loader
 
-        # combine config option from INI files and API
+        # combine config option from INI/TOML files and API
         self.config = defaultdict(dict)
         if extra_config:
             for section, items in extra_config.items():
@@ -66,11 +66,10 @@ class DoitMain(object):
             config_filenames = [config_filenames]
 
         for config_filename in config_filenames:
-            if config_filename.lower().endswith('.toml'):
+            if str(config_filename).lower().endswith('.toml'):
                 toml_config = self.load_config_toml(config_filename)
                 for section in toml_config:
                     self.config[section].update(toml_config[section].items())
-
             else:
                 ini_config = self.load_config_ini(config_filename)
                 for section in ini_config.sections():
