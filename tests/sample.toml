@@ -1,0 +1,6 @@
+[tools.doit.GLOBAL]
+optx = "6"
+opty = "7"
+
+[tools.doit.COMMAND]
+foo = "tests.sample_plugin:MyCmd"

@@ -52,7 +52,7 @@ class DoitMain(object):
                  Strace, TabCompletion, ResetDep)
 
     def __init__(self, task_loader=None,
-                 config_filenames='doit.cfg',
+                 config_filenames=['doit.cfg', 'pyproject.toml'],
                  extra_config=None):
         self.task_loader = task_loader
 
@@ -61,9 +61,20 @@ class DoitMain(object):
         if extra_config:
             for section, items in extra_config.items():
                 self.config[section].update(items)
-        ini_config = self.load_config_ini(config_filenames)
-        for section in ini_config.sections():
-            self.config[section].update(ini_config[section].items())
+
+        if isinstance(config_filenames, str):
+            config_filenames = [config_filenames]
+
+        for config_filename in config_filenames:
+            if config_filename.lower().endswith('.toml'):
+                toml_config = self.load_config_toml(config_filename)
+                for section in toml_config:
+                    self.config[section].update(toml_config[section].items())
+
+            else:
+                ini_config = self.load_config_ini(config_filename)
+                for section in ini_config.sections():
+                    self.config[section].update(ini_config[section].items())
 
 
     @staticmethod
@@ -78,6 +89,24 @@ class DoitMain(object):
         cfg_parser.read(filenames)
         return cfg_parser
 
+    @staticmethod
+    def load_config_toml(filename):
+        """read config from a TOML file
+
+        :param filename: str
+        """
+        toml_config = {}
+
+        if os.path.exists(filename):
+            try:
+                import toml
+            except ImportError:
+                return toml_config
+
+            with open(filename) as fp:
+                toml_config = toml.load(fp).get('tools', {}).get('doit', {})
+
+        return toml_config
 
     @staticmethod
     def print_version():
