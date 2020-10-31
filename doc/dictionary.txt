@@ -163,6 +163,7 @@ Sylvain
 TC4
 TC5
 TODO
+TOML
 TaskError
 TaskFailed
 TaskLoader
@@ -394,6 +395,7 @@ pytest
 python2
 python3
 pythonic
+pyproject
 quickstart
 refactor
 regex
@@ -456,6 +458,7 @@ titlewithactions
 to's
 toc
 toctree
+toml
 toolchain
 toolchains
 traceback

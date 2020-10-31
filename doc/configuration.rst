@@ -18,8 +18,6 @@ The name can be seem from ``doit help`` output::
    -f ARG, --file=ARG        load task from dodo FILE [default: dodo.py]  (config: dodoFile)
 
 
-
-
 doit.cfg
 --------
 
@@ -34,6 +32,20 @@ it is processed. It supports 3 kind of sections:
 - a section for each command
 - a section for each plugin category
 
+.. note::
+
+   `doit` will also look for configuration in
+   `pyproject.toml <https://www.python.org/dev/peps/pep-0518/>`_ under the
+   `tools.doit` namespace.
+
+   While mostly similar, `TOML <https://toml.io>`_ differs from the INI examples
+   documented below in a few ways:
+
+   - all strings must be double-quoted
+   - integers and floating point numbers can be written without quotes
+   - boolean values can be written unquoted and lower-cased, as `true` and `false`
+   - `doit` will parse pythonic strings into their correct types, e.g. `"True"`,
+     `"False"`, `"3'`
 
 GLOBAL section
 ^^^^^^^^^^^^^^
@@ -78,6 +90,17 @@ the task name prefixed with "task:"::
  cookie_type = chocolate
  temp = 375F
  duration = 12
+
+ .. note::
+
+   If using TOML, task sections names need to be quoted:
+
+   .. code-block:: toml
+
+   [tools.doit."task:make_cookies"]
+   cookie_type = "chocolate"
+   temp = "375F"
+   duration = 12
 
 configuration at *dodo.py*
 --------------------------
