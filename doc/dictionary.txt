@@ -307,6 +307,7 @@ hoc
 html
 https
 hunspell
+ini
 img
 ini
 init
@@ -404,6 +405,7 @@ pytest
 python2
 python3
 pythonic
+pyproject
 quickstart
 refactor
 regex

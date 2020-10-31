@@ -1,5 +1,7 @@
 import os
 from unittest.mock import Mock
+import tempfile
+import shutil
 
 import pytest
 
@@ -160,3 +162,36 @@ class TestConfig(object):
         main.run(['foo'])
         got = capsys.readouterr()[0]
         assert got == 'this command does nothing!\n'
+
+    def test_merge_api_toml_config(self):
+        pytest.importorskip("toml")
+        config_filename = os.path.join(os.path.dirname(__file__), 'sample.toml')
+        api_config = {'GLOBAL': {'opty':'10', 'optz':'10'}}
+        main = doit_cmd.DoitMain(config_filenames=config_filename,
+                                 extra_config=api_config)
+        assert 1 == len(main.config['COMMAND'])
+        # test loaded plugin command is actually used with plugin name
+        assert 'foo' in main.get_cmds()
+        # INI has higher preference the api_config
+        assert main.config['GLOBAL'] == {'optx':'6', 'opty':'7', 'optz':'10'}
+
+    def test_find_pyproject_toml_config(self):
+        pytest.importorskip("toml")
+        config_filename = os.path.join(os.path.dirname(__file__), 'sample.toml')
+        api_config = {'GLOBAL': {'opty':'10', 'optz':'10'}}
+
+        with tempfile.TemporaryDirectory() as td:
+            shutil.copy(config_filename, os.path.join(td, 'pyproject.toml'))
+            old_cwd = os.getcwd()
+
+            try:
+                os.chdir(td)
+                main = doit_cmd.DoitMain(extra_config=api_config)
+            finally:
+                os.chdir(old_cwd)
+
+            assert 1 == len(main.config['COMMAND']), main.config
+            # test loaded plugin command is actually used with plugin name
+            assert 'foo' in main.get_cmds()
+            # INI has higher preference the api_config
+            assert main.config['GLOBAL'] == {'optx':'6', 'opty':'7', 'optz':'10'}

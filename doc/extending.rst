@@ -128,13 +128,22 @@ config plugin
 
 To enable a plugin create a section named after the plugin category.
 The value is an entry point to the python class/function/object
-that implements the plugin. The format is <module-name>:<attribute-name>.
+that implements the plugin. The format is `<module-name>:<attribute-name>`.
 
-Example of command plugin implemented in the *class* `FooCmd`,
-located at the module `my_plugins.py`::
+Example of command plugin configured in `pyproject.toml`, implemented in
+the *class* `FooCmd`, located at the module `my_plugins.py`:
 
- [COMMAND]
- foo = my_plugins:FooCmd
+.. code-block:: toml
+
+   [tools.doit.plugins]
+   COMMAND = { foo = "my_plugins:FooCmd" }
+
+Similarly, in `doit.cfg`:
+
+.. code-block:: ini
+
+   [COMMAND]
+   foo = my_plugins:FooCmd
 
 .. note::
 
@@ -171,13 +180,23 @@ Creates a custom task loader. Check :ref:`loader <custom_loader>` section
 for details on how to create a new command.
 
 Apart from getting the plugin you also need to indicate which loader will be
-used in the `GLOBAL` section of your config file.
+used. In the `tool.doit` section in `pyproject.toml`:
 
-.. code-block:: INI
+.. code-block:: toml
+
+   [tool.doit]
+   loader = "my_loader"
+
+   [tool.doit.plugins]
+   LOADER = { my_loader = "my_plugins:Loader" }
+
+
+In the `GLOBAL` section of `doit.cfg`:
+
+.. code-block:: ini
 
   [GLOBAL]
   loader = my_loader
 
   [LOADER]
   my_loader = my_plugins:MyLoader
-

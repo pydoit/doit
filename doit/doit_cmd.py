@@ -1,8 +1,10 @@
 """doit CLI (command line interface)"""
 
 import os
+import re
 import sys
 import traceback
+import warnings
 from collections import defaultdict
 from configparser import ConfigParser
 
@@ -44,6 +46,23 @@ def set_var(name, value):
     _CMDLINE_VARS[name] = value
 
 
+# until there is one in python's standard library
+_TOML_LIBS = ['toml', 'tomlkit']
+
+
+def _toml_loads(text):
+    """load a TOML string, if a parser is available
+
+    :param text: str
+
+    returns the parsed data, or `None` if no parser is found
+    """
+    for toml_lib in _TOML_LIBS:
+        try:
+            return __import__(toml_lib).loads(text)
+        except (ImportError, AttributeError):  # pragma: no cover
+            pass
+
 
 class DoitMain(object):
     # core doit commands
@@ -52,18 +71,28 @@ class DoitMain(object):
                  Strace, TabCompletion, ResetDep)
 
     def __init__(self, task_loader=None,
-                 config_filenames='doit.cfg',
+                 config_filenames=['pyproject.toml', 'doit.cfg'],
                  extra_config=None):
         self.task_loader = task_loader
 
-        # combine config option from INI files and API
+        # combine config option from INI/TOML files and API
         self.config = defaultdict(dict)
         if extra_config:
             for section, items in extra_config.items():
                 self.config[section].update(items)
-        ini_config = self.load_config_ini(config_filenames)
-        for section in ini_config.sections():
-            self.config[section].update(ini_config[section].items())
+
+        if isinstance(config_filenames, str):
+            config_filenames = [config_filenames]
+
+        for config_filename in config_filenames:
+            if str(config_filename).lower().endswith('.toml'):
+                toml_config = self.load_config_toml(config_filename)
+                for section in toml_config:
+                    self.config[section].update(toml_config[section].items())
+            else:
+                ini_config = self.load_config_ini(config_filename)
+                for section in ini_config.sections():
+                    self.config[section].update(ini_config[section].items())
 
 
     @staticmethod
@@ -77,6 +106,55 @@ class DoitMain(object):
         cfg_parser.optionxform = str  # preserve case of option names
         cfg_parser.read(filenames)
         return cfg_parser
+
+
+    @staticmethod
+    def load_config_toml(filename):
+        """read config from a TOML file, adapt to ConfigParser structure
+
+        :param filename: str
+
+        returns an empty dictionary if either no TOML parser is available, or
+        tool.doit is not present in the parsed data
+        """
+
+        toml_config = {}
+        raw = None
+
+        if os.path.exists(filename):
+            with open(filename, encoding='utf-8') as fp:
+                text = fp.read()
+
+            if re.findall(r'tool.*doit', text):
+                raw = _toml_loads(text)
+                if raw is None:
+                    warnings.warn(
+                        '''It looks like {} might contain doit configuration,'''
+                        ''' but a TOML parser is not available. '''
+                        ''' Please install one of: {}'''
+                        .format(filename, ', '.join(_TOML_LIBS))
+                    )
+
+            if raw and isinstance(raw, dict):
+                doit_toml = raw.get('tool', {}).get('doit', {})
+
+                # hoist /tool/doit/plugins/AAA to /AAA
+                for plugin_type, plugins in doit_toml.pop('plugins', {}).items():
+                    toml_config[plugin_type] = plugins
+
+                # hoist /tool/doit/commands/bbb to /bbb
+                for command, command_config in doit_toml.pop('commands', {}).items():
+                    toml_config[command] = command_config
+
+                # hoist /tool/doit/tasks/ccc to /task:ccc
+                for task, task_config in doit_toml.pop('tasks', {}).items():
+                    toml_config['task:{}'.format(task)] = task_config
+
+                # hoist /tool/doit/ddd to /GLOBAL/ddd
+                for global_name, global_value in doit_toml.items():
+                    toml_config.setdefault('GLOBAL', {})[global_name] = global_value
+
+        return toml_config
 
 
     @staticmethod

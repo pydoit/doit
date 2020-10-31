@@ -263,14 +263,27 @@ This can used to display desktop notifications, so you do not need to keep
 an eye in the terminal to notice when tasks succeed or failed.
 
 Example of sound and desktop notification on Ubuntu.
+
+Contents of a `pyproject.toml` file:
+
+.. code-block:: toml
+
+  [tool.doit.commands.auto]
+  success_callback = """
+      notify-send -u low -i /usr/share/icons/gnome/16x16/emotes/face-smile.png "doit:   success"; aplay -q /usr/share/sounds/purple/send.wav
+      """
+  failure_callback = """
+      notify-send -u normal -i /usr/share/icons/gnome/16x16/status/error.png "doit:  fail"; aplay -q /usr/share/sounds/purple/alert.wav
+      """
+
+
 Contents of a `doit.cfg` file:
 
-.. code-block:: INI
+.. code-block:: ini
 
   [auto]
   success_callback = notify-send -u low -i /usr/share/icons/gnome/16x16/emotes/face-smile.png "doit:   success"; aplay -q /usr/share/sounds/purple/send.wav
   failure_callback = notify-send -u normal -i /usr/share/icons/gnome/16x16/status/error.png "doit:  fail"; aplay -q /usr/share/sounds/purple/alert.wav
-
 
 
 

@@ -18,12 +18,94 @@ The name can be seem from ``doit help`` output::
    -f ARG, --file=ARG        load task from dodo FILE [default: dodo.py]  (config: dodoFile)
 
 
+pyproject.toml
+--------------
+
+`doit` configuration can be read from `pyproject.toml <https://www.python.org/dev/peps/pep-0518/>`_
+under the `tool.doit` namespace. In the future, especially if a TOML parser becomes
+part of the python standard library, this will become the preferred configuration source,
+and may gain features not available in the legacy `doit.cfg`.
+
+.. note::
+
+   As a TOML parser is _not_ yet part of the standard library, a third-party package is
+   required, one of:
+
+   - `toml <https://pypi.org/project/toml/>`_
+   - `tomlkit <https://pypi.org/project/tomlkit/>`_
+
+
+TOML vs INI
+^^^^^^^^^^^
+
+While mostly similar, `TOML <https://toml.io>`_ differs from the INI format
+in a few ways:
+
+- all strings must be quoted with `'` or `"`
+- triple-quoted strings may contain new line characters (`\n`) and quotes
+- must be saved as UTF-8
+- integers and floating point numbers can be written without quotes
+- boolean values can be written unquoted and lower-cased, as `true` and `false`
+
+Unlike "plain" TOML, `doit` will parse pythonic strings into their correct types,
+e.g. `"True"`, `"False"`, `"3"`, but using "native" TOML types may be preferable.
+
+
+tool.doit
+^^^^^^^^^
+
+The `tool.doit` section may contain command line options that will be used
+(if applicable) by any commands.
+
+Example setting the DB backend type:
+
+.. code-block:: toml
+
+   [tool.doit]
+   backend = "json"
+
+All commands that have a `backend` option (*run*, *clean*, *forget*, etc),
+will use this option without the need for this option in the command line.
+
+
+tools.doit.commands
+^^^^^^^^^^^^^^^^^^^
+
+To configure options for a specific command, use a section with
+the command name under `tools.doit.commands`:
+
+.. code-block:: toml
+
+   [tools.doit.commands.list]
+   status = true
+   subtasks = true
+
+
+tools.doit.plugins
+^^^^^^^^^^^^^^^^^^
+
+Check the :ref:`plugins <plugins>` section for an introduction
+on available plugin categories.
+
+
+tools.doit.tasks
+^^^^^^^^^^^^^^^^
+
+To configure options for a specific task, use a section with
+the task name under `tool.doit.tasks`:
+
+.. code-block:: toml
+
+   [tool.doit.tasks.make_cookies]
+   cookie_type = "chocolate"
+   temp = "375F"
+   duration = 12
 
 
 doit.cfg
 --------
 
-`doit` uses an INI style configuration file
+`doit` also supports an INI style configuration file
 (see `configparser <https://docs.python.org/3/library/configparser.html>`_).
 Note: key/value entries can be separated only by the equal sign `=`.
 
@@ -41,20 +123,24 @@ GLOBAL section
 The `GLOBAL` section may contain command line options that will
 be used (if applicable) by any commands.
 
-Example setting the DB backend type::
+Example setting the DB backend type:
+
+.. code-block:: ini
 
  [GLOBAL]
  backend = json
 
-All commands that has a `backend` option (*run*, *clean*, *forget*, etc),
-will use this option without the need this option in the command line.
+All commands that have a `backend` option (*run*, *clean*, *forget*, etc),
+will use this option without the need for this option in the command line.
 
 
 commands section
 ^^^^^^^^^^^^^^^^
 
 To configure options for a specific command, use a section with
-the command name::
+the command name:
+
+.. code-block:: ini
 
  [list]
  status = True
@@ -72,12 +158,15 @@ per-task sections
 ^^^^^^^^^^^^^^^^^
 
 To configure options for a specific task, use a section with
-the task name prefixed with "task:"::
+the task name prefixed with "task:":
+
+.. code-block:: ini
 
  [task:make_cookies]
  cookie_type = chocolate
  temp = 375F
  duration = 12
+
 
 configuration at *dodo.py*
 --------------------------
