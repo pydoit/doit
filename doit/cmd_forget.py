@@ -11,21 +11,44 @@ opt_forget_taskdep = {
     'help': 'forget task dependencies too',
     }
 
+opt_disable_default_all = {
+    'name': 'disable_default_all',
+    'long': 'disable-default-all',
+    'type': bool,
+    'default': False,
+    'help': 'disable forgetting all tasks by default',
+    }
+
+opt_forget_all = {
+    'name': 'forget_all',
+    'short': 'a',
+    'long': 'all',
+    'type': bool,
+    'default': False,
+    'help': 'forget all tasks if --disable-default-all is passed',
+    }
+
+
 
 class Forget(DoitCmdBase):
     doc_purpose = "clear successful run status from internal DB"
     doc_usage = "[TASK ...]"
     doc_description = None
 
-    cmd_options = (opt_forget_taskdep, )
+    cmd_options = (opt_forget_taskdep, opt_disable_default_all, opt_forget_all)
 
-    def _execute(self, forget_sub):
+    def _execute(self, forget_sub, disable_default_all, forget_all):
         """remove saved data successful runs from DB
         """
         # no task specified. forget all
-        if not self.sel_tasks:
+        # if --disable-default-all passed then --all must be passed too
+        if not self.sel_tasks and (not disable_default_all or forget_all):
             self.dep_manager.remove_all()
             self.outstream.write("forgetting all tasks\n")
+
+        elif not self.sel_tasks:
+             self.outstream.write(
+                 "no tasks specified, pass --all to forget all tasks\n")
 
         # forget tasks from list
         else:
