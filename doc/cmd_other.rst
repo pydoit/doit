@@ -132,6 +132,11 @@ If you do not specify any task, the default tasks are "*forget*".
 
   *doit* keeps track of which tasks are successful in the file ``.doit.db``.
 
+.. note::
+
+  If your default tasks are expensive, you can avoid accidentally forgetting
+  all of your default tasks by setting ``disable_default_all = True`` in
+  ``doit.cfg``. You can then do ``doit forget --all`` to forget default tasks.
 
 
 clean

@@ -15,6 +15,7 @@ Changes
 - Fix #373: read DOIT_CONFIG from TOML.
 - Fix #405: Add Task attribute `meta`.
 - Fix #349: Handle passing task args in "single" task execution.
+- Fix #377: Add --disable-default-all and --all options to forget command.
 
 0.33.1 (*2020-09-04*)
 =====================
