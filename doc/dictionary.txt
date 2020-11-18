@@ -171,6 +171,7 @@ TaskLoader2
 Tpng
 Trento
 USD
+UTF
 UptodateCalculator
 Uz
 VCS
@@ -301,6 +302,7 @@ hgrc
 html
 https
 hunspell
+ini
 img
 init
 initializer
@@ -459,6 +461,7 @@ to's
 toc
 toctree
 toml
+tomlkit
 toolchain
 toolchains
 traceback

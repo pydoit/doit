@@ -1,6 +1,12 @@
-[tools.doit.GLOBAL]
+[tool.doit]
 optx = "6"
 opty = "7"
 
-[tools.doit.COMMAND]
-foo = "tests.sample_plugin:MyCmd"
+[tool.doit.plugins]
+COMMAND = { foo = "tests.sample_plugin:MyCmd" }
+
+[tool.doit.commands.foo]
+foo = "foo"
+
+[tool.doit.tasks.bar]
+bar = "bar"

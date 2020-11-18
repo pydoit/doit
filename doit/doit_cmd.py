@@ -88,22 +88,55 @@ class DoitMain(object):
         cfg_parser.read(filenames)
         return cfg_parser
 
+
     @staticmethod
     def load_config_toml(filename):
-        """read config from a TOML file
+        """read config from a TOML file, adapt to ConfigParser structure
 
         :param filename: str
+
+        returns an empty dictionary if no toml parser is available, or tool.doit
+        is not present in the parsed data
         """
+
+        if not os.path.exists(filename):
+            return {}
+
+        toml_loads = None
+
+        try:  # pragma: no cover
+            from toml import loads as toml_loads
+        except ImportError:  # pragma: no cover
+            pass
+
+        try:  # pragma: no cover
+            from tomlkit import loads as toml_loads
+        except ImportError:  # pragma: no cover
+            pass
+
+        if toml_loads is None:  # pragma: no cover
+            return {}
+
         toml_config = {}
 
-        if os.path.exists(filename):
-            try:
-                import toml
-            except ImportError:
-                return toml_config
+        with open(filename, encoding='utf-8') as fp:
+            raw = toml_loads(fp.read()).get('tool', {}).get('doit', {})
 
-            with open(filename) as fp:
-                toml_config = toml.load(fp).get('tools', {}).get('doit', {})
+        # hoist /tool/doit/plugins/AAA to /AAA
+        for plugin_type, plugins in raw.pop('plugins', {}).items():
+            toml_config[plugin_type] = plugins
+
+        # hoist /tool/doit/commands/bbb to /bbb
+        for command, command_config in raw.pop('commands', {}).items():
+            toml_config[command] = command_config
+
+        # hoist /tool/doit/tasks/ccc to /task:ccc
+        for task, task_config in raw.pop('tasks', {}).items():
+            toml_config['task:{}'.format(task)] = task_config
+
+        # hoist /tool/doit/ddd to /GLOBAL/ddd
+        for global_name, global_value in raw.items():
+            toml_config.setdefault('GLOBAL', {})[global_name] = global_value
 
         return toml_config
 
