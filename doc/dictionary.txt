@@ -394,6 +394,7 @@ pyinotify
 pylogo
 pypi
 pytest
+pytoml
 python2
 python3
 pythonic

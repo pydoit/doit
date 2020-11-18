@@ -21,27 +21,35 @@ The name can be seem from ``doit help`` output::
 pyproject.toml
 --------------
 
-If one of:
-
-- `toml <https://pypi.org/project/toml/>`_
-- `tomlkit <https://pypi.org/project/tomlkit/>`_
-
-are installed, `doit` configuration can be read from `pyproject.toml <https://www.python.org/dev/peps/pep-0518/>`_
-under the `tool.doit` namespace.
+`doit` configuration can be read from `pyproject.toml <https://www.python.org/dev/peps/pep-0518/>`_
+under the `tool.doit` namespace. In the future, especially if a TOML parser becomes
+part of the python standard library, this will become the preferred configuration source,
+and may gain features not available in the legacy `doit.cfg`.
 
 .. note::
 
-   While mostly similar, `TOML <https://toml.io>`_ differs from the INI format
-   in a few ways:
+   As a TOML parser is _not_ yet part of the standard library, a third-party package is
+   required, one of:
 
-   - all strings must be quoted with `'` or `"`
-   - triple-quoted strings may contain new line characters (`\n`) and quotes
-   - must be saved as UTF-8
-   - integers and floating point numbers can be written without quotes
-   - boolean values can be written unquoted and lower-cased, as `true` and `false`
+   - `toml <https://pypi.org/project/toml/>`_
+   - `tomlkit <https://pypi.org/project/tomlkit/>`_
+   - `pytoml <https://pypi.org/project/pytoml/>`_
 
-   `doit` will parse pythonic strings into their correct types, e.g. `"True"`,
-   `"False"`, `"3"`, but using "native" TOML types may be preferable.
+
+TOML vs INI
+^^^^^^^^^^^
+
+While mostly similar, `TOML <https://toml.io>`_ differs from the INI format
+in a few ways:
+
+- all strings must be quoted with `'` or `"`
+- triple-quoted strings may contain new line characters (`\n`) and quotes
+- must be saved as UTF-8
+- integers and floating point numbers can be written without quotes
+- boolean values can be written unquoted and lower-cased, as `true` and `false`
+
+Unlike "plain" TOML, `doit` will parse pythonic strings into their correct types,
+e.g. `"True"`, `"False"`, `"3"`, but using "native" TOML types may be preferable.
 
 
 tool.doit

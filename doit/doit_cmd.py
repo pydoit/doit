@@ -49,17 +49,12 @@ def _toml_loads(text):  # pragma: no cover
 
     :param text: str
     """
-    try:
-        import toml
-        return toml.loads(text)
-    except ImportError:
-        pass
 
-    try:
-        import tomlkit
-        return tomlkit.loads(text)
-    except ImportError:
-        pass
+    for toml_lib in ["toml", "tomlkit", "pytoml"]:
+        try:
+            return __import__(toml_lib).loads(text)
+        except (ImportError, AttributeError):
+            pass
 
 
 class DoitMain(object):
