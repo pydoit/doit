@@ -1,8 +1,10 @@
 """doit CLI (command line interface)"""
 
 import os
+import re
 import sys
 import traceback
+import warnings
 from collections import defaultdict
 from configparser import ConfigParser
 
@@ -44,16 +46,21 @@ def set_var(name, value):
     _CMDLINE_VARS[name] = value
 
 
-def _toml_loads(text):  # pragma: no cover
+# until there is one in python's standard library
+_TOML_LIBS = ['toml', 'tomlkit', 'pytoml']
+
+
+def _toml_loads(text):
     """load a TOML string, if a parser is available
 
     :param text: str
-    """
 
-    for toml_lib in ["toml", "tomlkit", "pytoml"]:
+    returns the parsed data, or `None` if no parser is found
+    """
+    for toml_lib in _TOML_LIBS:
         try:
             return __import__(toml_lib).loads(text)
-        except (ImportError, AttributeError):
+        except (ImportError, AttributeError):  # pragma: no cover
             pass
 
 
@@ -107,33 +114,44 @@ class DoitMain(object):
 
         :param filename: str
 
-        returns an empty dictionary if no toml parser is available, or tool.doit
-        is not present in the parsed data
+        returns an empty dictionary if either no TOML parser is available, or
+        tool.doit is not present in the parsed data
         """
 
         toml_config = {}
+        raw = None
 
         if os.path.exists(filename):
             with open(filename, encoding='utf-8') as fp:
-                raw = _toml_loads(fp.read())
+                text = fp.read()
 
-            if isinstance(raw, dict):
-                raw = raw.get('tool', {}).get('doit', {})
+            if re.findall(r'tool.*doit', text):
+                raw = _toml_loads(text)
+                if raw is None:
+                    warnings.warn(
+                        '''It looks like {} might contain doit configuration,'''
+                        ''' but a TOML parser is not available. '''
+                        ''' Please install one of: {}'''
+                        .format(filename, ', '.join(_TOML_LIBS))
+                    )
+
+            if raw and isinstance(raw, dict):
+                doit_toml = raw.get('tool', {}).get('doit', {})
 
                 # hoist /tool/doit/plugins/AAA to /AAA
-                for plugin_type, plugins in raw.pop('plugins', {}).items():
+                for plugin_type, plugins in doit_toml.pop('plugins', {}).items():
                     toml_config[plugin_type] = plugins
 
                 # hoist /tool/doit/commands/bbb to /bbb
-                for command, command_config in raw.pop('commands', {}).items():
+                for command, command_config in doit_toml.pop('commands', {}).items():
                     toml_config[command] = command_config
 
                 # hoist /tool/doit/tasks/ccc to /task:ccc
-                for task, task_config in raw.pop('tasks', {}).items():
+                for task, task_config in doit_toml.pop('tasks', {}).items():
                     toml_config['task:{}'.format(task)] = task_config
 
                 # hoist /tool/doit/ddd to /GLOBAL/ddd
-                for global_name, global_value in raw.items():
+                for global_name, global_value in doit_toml.items():
                     toml_config.setdefault('GLOBAL', {})[global_name] = global_value
 
         return toml_config
