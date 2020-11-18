@@ -44,6 +44,23 @@ def set_var(name, value):
     _CMDLINE_VARS[name] = value
 
 
+def _toml_loads(text):  # pragma: no cover
+    """load a TOML string, if a parser is available
+
+    :param text: str
+    """
+    try:
+        import toml
+        return toml.loads(text)
+    except ImportError:
+        pass
+
+    try:
+        import tomlkit
+        return tomlkit.loads(text)
+    except ImportError:
+        pass
+
 
 class DoitMain(object):
     # core doit commands
@@ -99,46 +116,33 @@ class DoitMain(object):
         is not present in the parsed data
         """
 
-        if not os.path.exists(filename):
-            return {}
-
-        toml_loads = None
-
-        try:  # pragma: no cover
-            from toml import loads as toml_loads
-        except ImportError:  # pragma: no cover
-            pass
-
-        try:  # pragma: no cover
-            from tomlkit import loads as toml_loads
-        except ImportError:  # pragma: no cover
-            pass
-
-        if toml_loads is None:  # pragma: no cover
-            return {}
-
         toml_config = {}
 
-        with open(filename, encoding='utf-8') as fp:
-            raw = toml_loads(fp.read()).get('tool', {}).get('doit', {})
+        if os.path.exists(filename):
+            with open(filename, encoding='utf-8') as fp:
+                raw = _toml_loads(fp.read())
 
-        # hoist /tool/doit/plugins/AAA to /AAA
-        for plugin_type, plugins in raw.pop('plugins', {}).items():
-            toml_config[plugin_type] = plugins
+            if isinstance(raw, dict):
+                raw = raw.get('tool', {}).get('doit', {})
 
-        # hoist /tool/doit/commands/bbb to /bbb
-        for command, command_config in raw.pop('commands', {}).items():
-            toml_config[command] = command_config
+                # hoist /tool/doit/plugins/AAA to /AAA
+                for plugin_type, plugins in raw.pop('plugins', {}).items():
+                    toml_config[plugin_type] = plugins
 
-        # hoist /tool/doit/tasks/ccc to /task:ccc
-        for task, task_config in raw.pop('tasks', {}).items():
-            toml_config['task:{}'.format(task)] = task_config
+                # hoist /tool/doit/commands/bbb to /bbb
+                for command, command_config in raw.pop('commands', {}).items():
+                    toml_config[command] = command_config
 
-        # hoist /tool/doit/ddd to /GLOBAL/ddd
-        for global_name, global_value in raw.items():
-            toml_config.setdefault('GLOBAL', {})[global_name] = global_value
+                # hoist /tool/doit/tasks/ccc to /task:ccc
+                for task, task_config in raw.pop('tasks', {}).items():
+                    toml_config['task:{}'.format(task)] = task_config
+
+                # hoist /tool/doit/ddd to /GLOBAL/ddd
+                for global_name, global_value in raw.items():
+                    toml_config.setdefault('GLOBAL', {})[global_name] = global_value
 
         return toml_config
+
 
     @staticmethod
     def print_version():
