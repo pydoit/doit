@@ -89,7 +89,7 @@ our papers, mentioning it in our funding requests, etc).
 Thanks for developing `doit`, it's just wonderful for computational biology (and
 for many other tasks, of course, but this is our research field:)!
 
-`Cheminformatics data processing @ Atomwise <https://www.atomwise.com>`_ 
+`Cheminformatics data processing @ Atomwise <https://www.atomwise.com>`_
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 by `Jon Sorenson <https://github.com/drkeoni>`_ (2018-12-14)
@@ -97,7 +97,7 @@ by `Jon Sorenson <https://github.com/drkeoni>`_ (2018-12-14)
 I came to `doit` from the loose requirement that I wanted a task-dependency/DAG type
 of workflow solution for the various pipelines that our team is constructing.
 I come from computational biology originally, and the similarity of data processing pipelines
-to build systems has long been appreciated.  More than a decade ago 
+to build systems has long been appreciated.  More than a decade ago
 many of us were writing bioinformatics
 pipelines in `make` because it gave us so many features "for free."
 
@@ -112,7 +112,7 @@ from an intermediate stage.
 
 I knew that build-system based frameworks would do exactly what I wanted and not
 hand me too much cruft, and on that note I found `doit`.  It's worked perfectly
-for my needs: 
+for my needs:
 
 - The order of tasks is derived from dependencies
 
@@ -184,7 +184,7 @@ Each sound should be loaded from PCM, converted into MP3 or OGG and linked with 
 
 
 `MetalK8s @ Scality <https://www.scality.com/>`_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 by `Sylvain Laperche <https://github.com/slaperche-scality>`_ (2019-05-06)
 

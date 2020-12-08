@@ -3,5 +3,5 @@
 
 pyflakes
 pytest>=5.4.1
-coverage>=4.0
+coverage>=4.0,<5
 doit-py>=0.4.0

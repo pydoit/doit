@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [master, test]
+  pull_request:
+    branches: [master, test]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu, windows, macos]
+        python-version: ['3.5', '3.6', '3.7', '3.8', '3.9', 'pypy3']
+        include:
+          # https://github.com/pydoit/doit/issues/372
+          - os: macos
+            pytest-args: -k 'not(cmd_auto or TestFileWatcher)'
+          - os: macos
+            python-version: pypy3
+            pytest-args: -k 'not(cmd_auto or TestFileWatcher or remove_all or ForgetAll)'
+        exclude:
+          - os: windows
+            python-version: pypy3
+    steps:
+      - if: ${{ matrix.os == 'ubuntu' }}
+        run: sudo apt-get install strace
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install -U pip wheel setuptools
+      - id: pip-cache
+        run: echo "::set-output name=dir::$(pip cache dir)"
+      - uses: actions/cache@v2
+        with:
+          path: ${{ steps.pip-cache.outputs.dir }}
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('setup.py', 'dev_requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ matrix.python-version }}-
+            ${{ runner.os }}-pip-
+      - run: pip install . -r dev_requirements.txt python-coveralls
+      - run: pip freeze
+      - run: pip check
+      - run: doit pyflakes
+      - run: py.test -vv ${{ matrix.pytest-args }}
+      - if: ${{ matrix.os == 'ubuntu' && matrix.python-version == '3.8' }}
+        run: |
+          doit coverage
+          coveralls || echo "TODO: remove when run on a repo that is set up"
