@@ -16,6 +16,9 @@ README
 .. image:: https://coveralls.io/repos/pydoit/doit/badge.png?branch=master
   :target: https://coveralls.io/r/pydoit/doit?branch=master
 
+.. image:: https://xscode.com/assets/promo-banner.svg
+   :target: https://xscode.com/schettino72/doit
+
 
 doit - automation tool
 ======================
@@ -227,3 +230,6 @@ contributing
 ==============
 
 On github create pull requests using a named feature branch.
+
+Financial contribution to support maitanance welcome.
+https://xscode.com/schettino72/doit
