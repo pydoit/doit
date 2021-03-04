@@ -128,8 +128,14 @@ class TestLoadTasks(object):
         f_task = tasks['foo']
         assert f_task.loader.task_dep == 'yyy2'
         assert f_task.loader.creator == task_zzz3
-        assert tasks['bar'].loader is tasks['foo'].loader
+        assert tasks['bar'].loader.task_dep == tasks['foo'].loader.task_dep
         assert tasks['foo'].doc == 'not loaded task doc'
+
+        # make sure doit can be executed more then once in single process GH#381
+        list2 = load_tasks(dodo, allow_delayed=True)
+        tasks2 = {t.name:t for t in list2}
+        assert tasks['bar'].loader is not tasks2['bar'].loader
+
 
     def testNameInBlacklist(self):
         dodo_module = {'task_cmd_name': lambda:None}
