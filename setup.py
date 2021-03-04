@@ -26,7 +26,7 @@ configuration management, etc.
 
 setup(name = 'doit',
       description = 'doit - Automation Tool',
-      version = '0.33.1',
+      version = '0.34.dev0',
       license = 'MIT',
       author = 'Eduardo Naufel Schettino',
       author_email = 'schettino72@gmail.com',
