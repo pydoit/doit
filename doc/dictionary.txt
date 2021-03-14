@@ -447,6 +447,7 @@ task1
 task2
 taskorder
 taskresult
+TaskResult
 tasks'
 teardown
 time'
