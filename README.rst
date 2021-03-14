@@ -231,5 +231,5 @@ contributing
 
 On github create pull requests using a named feature branch.
 
-Financial contribution to support maitanance welcome.
+Financial contribution to support maintenance welcome.
 https://xscode.com/schettino72/doit

@@ -41,7 +41,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-${{ matrix.python-version }}-
             ${{ runner.os }}-pip-
-      - run: pip install . -r dev_requirements.txt python-coveralls
+      - run: pip install . -r dev_requirements.txt codecov
       - run: pip freeze
       - run: pip check
       - run: doit pyflakes
@@ -49,4 +49,4 @@ jobs:
       - if: ${{ matrix.os == 'ubuntu' && matrix.python-version == '3.8' }}
         run: |
           doit coverage
-          coveralls || echo "TODO: remove when run on a repo that is set up"
+          codecov
