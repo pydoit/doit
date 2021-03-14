@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu, windows, macos]
-        python-version: ['3.5', '3.6', '3.7', '3.8', '3.9', 'pypy3']
+        python-version: ['3.6', '3.7', '3.8', '3.9', 'pypy3']
         include:
           # https://github.com/pydoit/doit/issues/372
           - os: macos
@@ -41,12 +41,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-${{ matrix.python-version }}-
             ${{ runner.os }}-pip-
-      - run: pip install . -r dev_requirements.txt python-coveralls
+      - run: pip install . -r dev_requirements.txt
       - run: pip freeze
       - run: pip check
       - run: doit pyflakes
       - run: py.test -vv ${{ matrix.pytest-args }}
       - if: ${{ matrix.os == 'ubuntu' && matrix.python-version == '3.8' }}
         run: |
+          pip install codecov
           doit coverage
-          coveralls || echo "TODO: remove when run on a repo that is set up"
+          codecov

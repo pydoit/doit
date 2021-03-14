@@ -5,19 +5,16 @@ README
 .. display some badges
 
 .. image:: https://img.shields.io/pypi/v/doit.svg
-        :target: https://pypi.python.org/pypi/doit
+    :target: https://pypi.python.org/pypi/doit
 
-.. image:: https://travis-ci.org/pydoit/doit.png?branch=master
-    :target: https://travis-ci.org/pydoit/doit
+.. image:: https://github.com/pydoit/doit/actions/workflows/ci.yml/badge.svg?branch=master
+    :target: https://github.com/pydoit/doit/actions/workflows/ci.yml?query=branch%3Amaster
 
-.. image:: https://ci.appveyor.com/api/projects/status/f7f97iywo8y7fe4d/branch/master?svg=true
-    :target: https://ci.appveyor.com/project/schettino72/doit/branch/master
-
-.. image:: https://coveralls.io/repos/pydoit/doit/badge.png?branch=master
-  :target: https://coveralls.io/r/pydoit/doit?branch=master
+.. image:: https://codecov.io/gh/pydoit/doit/branch/master/graph/badge.svg?token=wxKa1h11zn
+    :target: https://codecov.io/gh/pydoit/doit
 
 .. image:: https://xscode.com/assets/promo-banner.svg
-   :target: https://xscode.com/schettino72/doit
+    :target: https://xscode.com/schettino72/doit
 
 
 doit - automation tool
@@ -92,7 +89,7 @@ license
 =======
 
 The MIT License
-Copyright (c) 2008-2018 Eduardo Naufel Schettino
+Copyright (c) 2008-2021 Eduardo Naufel Schettino
 
 see LICENSE file
 
@@ -106,7 +103,7 @@ see AUTHORS file
 install
 =======
 
-*doit* is tested on python 3.5 to 3.8.
+*doit* is tested on python 3.6 to 3.9.
 
 The last version supporting python 2 is version 0.29.
 
@@ -231,5 +228,5 @@ contributing
 
 On github create pull requests using a named feature branch.
 
-Financial contribution to support maitanance welcome.
+Financial contribution to support maintenance welcome.
 https://xscode.com/schettino72/doit
