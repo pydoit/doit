@@ -3,6 +3,18 @@
 Changes
 =======
 
+0.34.0 (*unreleased*)
+=====================
+
+- Fix #381: Allow Delayed tasks to be executed multiple times in same process.
+- Fix #382: TaskResult make sure `started` include microsecond as decimal number.
+
+
+0.33.1 (*2020-09-04*)
+=====================
+
+ - fix sdist distribution to include all files
+
 0.33.0 (*2020-09-01*)
 =====================
 

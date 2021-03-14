@@ -132,7 +132,7 @@ def task_package():
     yield pkg.revision_git()
     yield pkg.manifest_git()
     yield pkg.sdist()
-    yield pkg.sdist_upload()
+    # yield pkg.sdist_upload()
 
 
 

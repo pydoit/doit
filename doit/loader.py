@@ -2,6 +2,7 @@
 
 import os
 import sys
+import copy
 import inspect
 import importlib
 from collections import OrderedDict
@@ -137,7 +138,7 @@ def load_tasks(namespace, command_names=(), allow_delayed=False):
     def _process_gen():
         task_list.extend(generate_tasks(name, ref(), ref.__doc__))
     def _add_delayed(tname):
-        task_list.append(Task(tname, None, loader=delayed,
+        task_list.append(Task(tname, None, loader=copy.copy(delayed),
                               doc=delayed.creator.__doc__))
 
     for name, ref, _ in funcs:

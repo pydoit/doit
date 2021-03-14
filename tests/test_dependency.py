@@ -17,6 +17,7 @@ TEST_PATH = os.path.dirname(__file__)
 PROGRAM = "%s %s/sample_process.py" % (executable, TEST_PATH)
 
 
+
 def test_unicode_md5():
     data = "我"
     # no exception is raised
