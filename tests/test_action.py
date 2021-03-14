@@ -25,7 +25,7 @@ PROGRAM = "%s %s/sample_process.py" % (executable, TEST_PATH)
 
 @pytest.fixture
 def tmpfile(request):
-    temp = tempfile.TemporaryFile('w+')
+    temp = tempfile.TemporaryFile('w+', encoding="utf-8")
     request.addfinalizer(temp.close)
     return temp
 
