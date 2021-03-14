@@ -47,7 +47,7 @@ def set_var(name, value):
 
 
 # until there is one in python's standard library
-_TOML_LIBS = ['toml', 'tomlkit', 'pytoml']
+_TOML_LIBS = ['toml', 'tomlkit']
 
 
 def _toml_loads(text):

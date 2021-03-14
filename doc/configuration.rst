@@ -33,7 +33,6 @@ and may gain features not available in the legacy `doit.cfg`.
 
    - `toml <https://pypi.org/project/toml/>`_
    - `tomlkit <https://pypi.org/project/tomlkit/>`_
-   - `pytoml <https://pypi.org/project/pytoml/>`_
 
 
 TOML vs INI
