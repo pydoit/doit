@@ -5,7 +5,7 @@ README
 .. display some badges
 
 .. image:: https://img.shields.io/pypi/v/doit.svg
-        :target: https://pypi.python.org/pypi/doit
+    :target: https://pypi.python.org/pypi/doit
 
 .. image:: https://travis-ci.org/pydoit/doit.png?branch=master
     :target: https://travis-ci.org/pydoit/doit
@@ -13,11 +13,14 @@ README
 .. image:: https://ci.appveyor.com/api/projects/status/f7f97iywo8y7fe4d/branch/master?svg=true
     :target: https://ci.appveyor.com/project/schettino72/doit/branch/master
 
-.. image:: https://coveralls.io/repos/pydoit/doit/badge.png?branch=master
-  :target: https://coveralls.io/r/pydoit/doit?branch=master
+.. image:: https://github.com/pydoit/doit/actions/workflows/ci.yml/badge.svg?branch=master
+    :target: https://github.com/pydoit/doit/actions/workflows/ci.yml?query=branch%3Amaster
+
+.. image:: https://codecov.io/gh/pydoit/doit/branch/master/graph/badge.svg?token=wxKa1h11zn
+    :target: https://codecov.io/gh/pydoit/doit
 
 .. image:: https://xscode.com/assets/promo-banner.svg
-   :target: https://xscode.com/schettino72/doit
+    :target: https://xscode.com/schettino72/doit
 
 
 doit - automation tool
