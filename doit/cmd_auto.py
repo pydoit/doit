@@ -1,4 +1,4 @@
-"""starts a long-running process that whatches the file system and
+"""starts a long-running process that watches the file system and
 automatically execute tasks when file dependencies change"""
 
 import os
