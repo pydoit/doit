@@ -1,4 +1,5 @@
 import os
+import sys
 import pickle
 from multiprocessing import Queue
 import platform
@@ -26,7 +27,10 @@ def _error():
 def _exit():
     raise SystemExit()
 def simple_result():
+    print("simple output")
+    print("simple error", file=sys.stderr)
     return 'my-result'
+
 
 class FakeReporter(object):
     """Just log everything in internal attribute - used on tests"""
@@ -793,7 +797,13 @@ class TestMRunner_execute_task(object):
         run.finish()
         # check result
         assert result_q.get() == {'name': 't1', 'reporter': 'execute_task'}
-        assert result_q.get()['task']['result'] == 'my-result'
+        res = result_q.get()
+        assert res['task']['result'] == 'my-result'
+        # check task attributes are pickled
+        assert res['task']['executed']
+        # check stdout and stderr are passed
+        assert res['out'] == ['simple output\n']
+        assert res['err'] == ['simple error\n']
         assert result_q.empty()
 
 
