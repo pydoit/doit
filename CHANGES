@@ -10,6 +10,7 @@ Changes
 - python 3.9 support
 - Fix #381: Allow Delayed tasks to be executed multiple times in same process.
 - Fix #382: TaskResult make sure `started` include microsecond as decimal number.
+- Fix #387: Pass pickled attributes, err and out when a task fails in multi processes context.
 
 
 0.33.1 (*2020-09-04*)
