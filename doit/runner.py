@@ -435,16 +435,12 @@ class MRunner(Runner):
 
     def _process_result(self, node, task, result):
         """process result received from sub-process"""
-        if 'failure' in result:
-            catched_excp = result['failure']
-        else:
-            # success set values taken from subprocess result
-            catched_excp = None
-            task.update_from_pickle(result['task'])
-            for action, output in zip(task.actions, result['out']):
-                action.out = output
-            for action, output in zip(task.actions, result['err']):
-                action.err = output
+        catched_excp = result.get('failure')
+        task.update_from_pickle(result['task'])
+        for action, output in zip(task.actions, result['out']):
+            action.out = output
+        for action, output in zip(task.actions, result['err']):
+            action.err = output
         self.process_task_result(node, catched_excp)
 
 
@@ -542,14 +538,13 @@ class MRunner(Runner):
                     continue # pragma: no cover
 
                 result = {'name': task.name}
-                t_result = self.execute_task(task)
+                task_failure = self.execute_task(task)
+                if task_failure:
+                    result['failure'] = task_failure
+                result['task'] = task.pickle_safe_dict()
+                result['out'] = [action.out for action in task.actions]
+                result['err'] = [action.err for action in task.actions]
 
-                if t_result is None:
-                    result['task'] = task.pickle_safe_dict()
-                    result['out'] = [a.out for a in task.actions]
-                    result['err'] = [a.err for a in task.actions]
-                else:
-                    result['failure'] = t_result
                 result_q.put(result)
         except (SystemExit, KeyboardInterrupt, Exception) as exception:
             # error, blow-up everything. send exception info to master process
