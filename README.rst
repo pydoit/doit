@@ -214,6 +214,7 @@ Update version number at:
 - doit/version.py
 - setup.py
 - doc/conf.py
+- doc/index.html
 
 .. code:: bash
 
