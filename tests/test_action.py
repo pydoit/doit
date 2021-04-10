@@ -85,6 +85,11 @@ class TestCmdAction(object):
         my_action.execute()
         assert {} == my_action.values
 
+    def test_title(self):
+        cmd = "%s 1 2" % PROGRAM
+        my_action = action.CmdAction(cmd)
+        assert "+ " + cmd == my_action.title()
+
 
 class TestCmdActionParams(object):
     def test_invalid_param_stdout(self):

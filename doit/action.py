@@ -7,6 +7,7 @@ from io import StringIO
 import inspect
 from pathlib import PurePath
 from threading import Thread
+from typing import Union
 import pdb
 
 from .exceptions import InvalidTask, TaskFailed, TaskError
@@ -26,6 +27,9 @@ class BaseAction(object):
 
     # must implement:
     # def execute(self, out=None, err=None)
+
+    # must implement:
+    # def title(self)
 
     @staticmethod
     def _prepare_kwargs(task, func, args, kwargs):
@@ -152,6 +156,15 @@ class CmdAction(BaseAction):
             ref, args, kw = normalize_callable(self._action)
             kwargs = self._prepare_kwargs(self.task, ref, args, kw)
             return ref(*args, **kwargs)
+
+    def title(self) -> Union[str, TaskError]:
+        try:
+            action = self.expand_action()
+        except Exception as exc:
+            return TaskError(
+                "CmdAction Error creating command string", exc)
+        assert isinstance(action, str)
+        return "+ " + action
 
 
     def _print_process_output(self, process, input_, capture, realtime):
