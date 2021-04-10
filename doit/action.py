@@ -409,6 +409,9 @@ class PythonAction(BaseAction):
             msg = "%r kwargs must be a 'dict'. got '%s'"
             raise InvalidTask(msg % (self.task, self.kwargs))
 
+    def title(self) -> str:
+        return f"+ {self.py_callable.__name__}(*{self.args}, **{self._prepare_kwargs()})"
+
 
     def _prepare_kwargs(self):
         return BaseAction._prepare_kwargs(self.task, self.py_callable,

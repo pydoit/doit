@@ -601,6 +601,11 @@ class TestPythonAction(object):
         my_action.execute()
         assert {'x': 5, 'y':10} == my_action.values
 
+    def test_title(self):
+        my_action = action.PythonAction(self._func_par,args=(2,2),
+                                   kwargs={'par3':25})
+        assert "+ _func_par(*(2, 2), **{'par3': 25})" == my_action.title()
+
 
 class TestPythonVerbosity(object):
     def write_stderr(self):
