@@ -3,6 +3,7 @@ import json
 from io import StringIO
 
 from doit import reporter
+from doit.action import BaseAction
 from doit.task import Stream, Task
 from doit.exceptions import CatchedException
 
@@ -27,6 +28,13 @@ class TestConsoleReporter(object):
         t1 = Task("with_action",[(do_nothing,)])
         rep.execute_task(t1)
         assert ".  with_action\n" == rep.outstream.getvalue()
+
+    def test_executeAction(self):
+        rep = reporter.ConsoleReporter(StringIO(), {})
+        a1 = BaseAction()
+        a1.title = lambda: "action_title"
+        rep.execute_action(a1)
+        assert " +  action_title\n" == rep.outstream.getvalue()
 
     def test_executeTask_unicode(self):
         rep = reporter.ConsoleReporter(StringIO(), {})

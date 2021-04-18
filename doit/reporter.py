@@ -42,6 +42,10 @@ class ConsoleReporter(object):
         if task.actions and (task.name[0] != '_'):
             self.write('.  %s\n' % task.title())
 
+    def execute_action(self, action):
+        """called before executing each action"""
+        self.write(' +  %s\n' % action.title())
+
     def add_failure(self, task, exception):
         """called when execution finishes with a failure"""
         result = {'task': task, 'exception':exception}
