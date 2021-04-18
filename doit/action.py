@@ -164,7 +164,7 @@ class CmdAction(BaseAction):
             return TaskError(
                 "CmdAction Error creating command string", exc)
         assert isinstance(action, str)
-        return "+ " + action
+        return action
 
 
     def _print_process_output(self, process, input_, capture, realtime):
@@ -410,7 +410,7 @@ class PythonAction(BaseAction):
             raise InvalidTask(msg % (self.task, self.kwargs))
 
     def title(self) -> str:
-        return f"+ {self.py_callable.__name__}(*{self.args}, **{self._prepare_kwargs()})"
+        return f"{self.py_callable.__name__}(*{self.args}, **{self._prepare_kwargs()})"
 
 
     def _prepare_kwargs(self):
