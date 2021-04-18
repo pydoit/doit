@@ -7,6 +7,8 @@ from doit.action import BaseAction
 from doit.task import Stream, Task
 from doit.exceptions import CatchedException
 
+import pytest
+
 
 class TestConsoleReporter(object):
 
@@ -29,12 +31,20 @@ class TestConsoleReporter(object):
         rep.execute_task(t1)
         assert ".  with_action\n" == rep.outstream.getvalue()
 
-    def test_executeAction(self):
-        rep = reporter.ConsoleReporter(StringIO(), {})
+    @pytest.mark.parametrize(
+        "options,expected",
+        [
+            ({}, ""),
+            ({"show_action": True}, " +  action_title\n"),
+            ({"show_action": False}, ""),
+        ],
+    )
+    def test_executeAction(self, options, expected):
+        rep = reporter.ConsoleReporter(StringIO(), options)
         a1 = BaseAction()
         a1.title = lambda: "action_title"
         rep.execute_action(a1)
-        assert " +  action_title\n" == rep.outstream.getvalue()
+        assert expected == rep.outstream.getvalue()
 
     def test_executeTask_unicode(self):
         rep = reporter.ConsoleReporter(StringIO(), {})
