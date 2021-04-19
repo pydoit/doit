@@ -174,7 +174,7 @@ class Runner():
 
         # finally execute it!
         self.reporter.execute_task(task)
-        return task.execute(self.stream)
+        return task.execute(self.stream, self.reporter)
 
 
     def process_task_result(self, node, catched_excp):
@@ -227,7 +227,7 @@ class Runner():
         """run teardown from all tasks"""
         for task in reversed(self.teardown_list):
             self.reporter.teardown_task(task)
-            catched = task.execute_teardown(self.stream)
+            catched = task.execute_teardown(self.stream, self.reporter)
             if catched:
                 msg = "ERROR: task '%s' teardown action" % task.name
                 error = SetupError(msg, catched)

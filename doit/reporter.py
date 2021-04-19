@@ -143,7 +143,7 @@ class ZeroReporter(ConsoleReporter):
         """over-write base to do nothing"""
         pass
 
-    get_status = execute_task = add_failure = add_success \
+    get_status = execute_task = execute_action = add_failure = add_success \
         = skip_uptodate = skip_ignore = teardown_task = complete_run \
         = _just_pass
 
