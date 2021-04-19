@@ -392,33 +392,26 @@ class TestTaskTeardown(object):
         got = t.execute_teardown(Stream(0))
         assert isinstance(got, CatchedException)
 
+
+def py_fn(x):
+    pass
+
 @pytest.mark.parametrize(
-    "show_action,expected",
+    "t",
     [
-        (False, ""),
-        (True, " +  put(*[1], **{})\n +  put(*[2], **{})\n"),
+        task.Task("t1", [(py_fn, [1]), (py_fn, [2])]),
+        task.Task("t1", [], teardown=[(py_fn, [1]), (py_fn, [2])]),
     ],
 )
-class TestTaskCallsShowAction(object):
-    def test_show_action(self, show_action, expected):
-        rep = reporter.ConsoleReporter(StringIO(), {"show_action": show_action})
-        got = []
-        def put(x):
-            got.append(x)
-        t = task.Task("t1", [(put, [1]), (put, [2])])
-        t.execute(Stream(0), rep)
-        t.execute_teardown(Stream(0), rep)
-        assert expected == rep.outstream.getvalue()
-
-    def test_teardown_show_action(self, show_action, expected):
-        rep = reporter.ConsoleReporter(StringIO(), {"show_action": show_action})
-        got = []
-        def put(x):
-            got.append(x)
-        t = task.Task("t1", [], teardown=[(put, [1]), (put, [2])])
-        t.execute(Stream(0), rep)
-        t.execute_teardown(Stream(0), rep)
-        assert expected == rep.outstream.getvalue()
+@pytest.mark.parametrize(
+    "show_action,expected",
+    [(False, ""), (True, " +  py_fn(*[1], **{})\n +  py_fn(*[2], **{})\n")],
+)
+def test_show_action(t, show_action, expected):
+    rep = reporter.ConsoleReporter(StringIO(), {"show_action": show_action})
+    t.execute(Stream(0), rep)
+    t.execute_teardown(Stream(0), rep)
+    assert expected == rep.outstream.getvalue()
 
 class TestTaskClean(object):
 
