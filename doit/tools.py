@@ -80,6 +80,23 @@ class config_changed(object):
 
 
 # uptodate
+def targets_uptodate(task, values):
+    """check if target files exist and are not older than the dependencies
+    """
+    targets = task.targets
+    dependencies = task.file_dep
+    
+    # if one target is missing, is not uptodate
+    if any(not os.path.exists(target) for target in targets):
+        return False
+    # if one dependency is newer than a target, is not uptodate
+    newest_dependency_time = max(os.path.getmtime(dep) for dep in dependencies)
+    oldest_target_time = min(os.path.getmtime(target) for target in targets)
+    target_is_newer = not (newest_dependency_time > oldest_target_time)
+    return target_is_newer
+
+
+# uptodate
 class timeout(object):
     """add timeout to task
 

@@ -47,6 +47,55 @@ def get_file_md5(path):
     return md5.hexdigest()
 
 
+class TemporaryDB(object):
+    """Forgetful backend, in-memory only."""
+
+    def __init__(self, name, codec):
+        """Open/create a DB file"""
+        self._db = {}
+        self.name = name
+        self.codec = codec
+
+    def _load(self):
+        """load db content"""
+        pass
+
+    def dump(self):
+        """save DB content in file"""
+        pass
+
+    def set(self, task_id, dependency, value):
+        """Store value in the DB."""
+        if task_id not in self._db:
+            self._db[task_id] = {}
+        self._db[task_id][dependency] = value
+
+
+    def get(self, task_id, dependency):
+        """Get value stored in the DB.
+
+        @return: (string) or (None) if entry not found
+        """
+        if task_id in self._db:
+            return self._db[task_id].get(dependency, None)
+
+
+    def in_(self, task_id):
+        """@return bool if task_id is in DB"""
+        return task_id in self._db
+
+
+    def remove(self, task_id):
+        """remove saved dependencies from DB for taskId"""
+        if task_id in self._db:
+            del self._db[task_id]
+
+    def remove_all(self):
+        """remove saved dependencies from DB for all tasks"""
+        self._db = {}
+
+
+
 class JSONCodec():
     """default implmentation for codec used to save individual task's data"""
     def __init__(self):
@@ -393,6 +442,9 @@ class MD5Checker(FileChangedChecker):
     def check_modified(self, file_path, file_stat, state):
         """Check if file in file_path is modified from previous "state".
         """
+        if state is None:
+            return True
+
         timestamp, size, file_md5 = state
 
         # 1 - if timestamp is not modified file is the same
@@ -422,16 +474,30 @@ class TimestampChecker(FileChangedChecker):
     """Checker that use only the timestamp."""
 
     def check_modified(self, file_path, file_stat, state):
+        if state is None:
+            return True
+
         return file_stat.st_mtime != state
 
     def get_state(self, dep, current_state):
         """@returns float: mtime for file `dep`"""
         return os.path.getmtime(dep)
 
+class NoChecker(FileChangedChecker):
+    """Not checking anything checker."""
+
+    def check_modified(self, file_path, file_stat, state):
+        return False
+
+    def get_state(self, dep, current_state):
+        """@returns 0"""
+        return 0
+
 
 # name of checkers class available
 CHECKERS = {'md5': MD5Checker,
-            'timestamp': TimestampChecker}
+            'timestamp': TimestampChecker,
+            'none': NoChecker}
 
 
 class DependencyStatus(object):
@@ -697,7 +763,7 @@ class Dependency(object):
                 if result.add_reason('missing_file_dep', dep, 'error'):
                     return result
             else:
-                if state is None or check_modified(dep, file_stat, state):
+                if check_modified(dep, file_stat, state):
                     changed.append(dep)
         task.dep_changed = changed
 
