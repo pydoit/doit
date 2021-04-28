@@ -89,6 +89,9 @@ def targets_uptodate(task, values):
     # if one target is missing, is not uptodate
     if any(not os.path.exists(target) for target in targets):
         return False
+    # if not dependent on anything, and target is there, is uptodate
+    if len(dependencies) == 0:
+        return True
     # if one dependency is newer than a target, is not uptodate
     newest_dependency_time = max(os.path.getmtime(dep) for dep in dependencies)
     oldest_target_time = min(os.path.getmtime(target) for target in targets)
