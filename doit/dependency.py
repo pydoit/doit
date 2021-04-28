@@ -47,55 +47,6 @@ def get_file_md5(path):
     return md5.hexdigest()
 
 
-class TemporaryDB(object):
-    """Forgetful backend, in-memory only."""
-
-    def __init__(self, name, codec):
-        """Open/create a DB file"""
-        self._db = {}
-        self.name = name
-        self.codec = codec
-
-    def _load(self):
-        """load db content"""
-        pass
-
-    def dump(self):
-        """save DB content in file"""
-        pass
-
-    def set(self, task_id, dependency, value):
-        """Store value in the DB."""
-        if task_id not in self._db:
-            self._db[task_id] = {}
-        self._db[task_id][dependency] = value
-
-
-    def get(self, task_id, dependency):
-        """Get value stored in the DB.
-
-        @return: (string) or (None) if entry not found
-        """
-        if task_id in self._db:
-            return self._db[task_id].get(dependency, None)
-
-
-    def in_(self, task_id):
-        """@return bool if task_id is in DB"""
-        return task_id in self._db
-
-
-    def remove(self, task_id):
-        """remove saved dependencies from DB for taskId"""
-        if task_id in self._db:
-            del self._db[task_id]
-
-    def remove_all(self):
-        """remove saved dependencies from DB for all tasks"""
-        self._db = {}
-
-
-
 class JSONCodec():
     """default implmentation for codec used to save individual task's data"""
     def __init__(self):
