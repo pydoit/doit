@@ -64,6 +64,7 @@ setup(name = 'doit',
       extras_require={
           ':sys.platform == "darwin"': ['macfsevents'],
           ':sys.platform == "linux"': ['pyinotify'],
+          'plugins': ['setuptools'],
       },
       long_description = long_description,
       entry_points = {
