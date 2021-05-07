@@ -355,7 +355,7 @@ Traditional build-tools can only handle files as "dependencies".
 
    `doit` saves the MD5 of a `file_dep` after the actions are executed.
    Be careful about editing a `file_dep` while a task is running because
-   `doit` might saves the MD5 of a version of the file that is different
+   `doit` might save the MD5 of a version of the file that is different
    than it actually used to execute the task.
 
 
