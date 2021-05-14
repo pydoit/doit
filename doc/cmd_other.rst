@@ -56,13 +56,24 @@ By default sub-tasks are not listed. It can list sub-tasks using the option
 By default task names that start with an underscore(*_*) are not listed. They
 are listed if the option *-p*/*--private* is used.
 
-Task status can be printed using the option *-s*/*--status*.
-
 Task's file-dependencies can be printed using the option *--deps*.
+
+status
+^^^^^^
+
+If you would like to know if a task would actually be executed,
+the option *-s*/*--status* can be used to display the task's status .
+It is one of:
+
+ - ``R``: run
+ - ``U``: up-to-date
+ - ``I``: ignored
+
+This is an alternative to *dry-run* or *preflight* feature provided by some tools.
 
 
 info
--------
+----
 
 You can check a task meta-data using the *info* command.
 This might be useful when have some complex code generating
@@ -71,20 +82,30 @@ the task meta-data.
 .. code-block:: console
 
     $ doit info link
-    name:'link'
 
-    file_dep:set(['command.o', 'kbd.o', 'main.o'])
+    link
 
-    targets:['edit']
+    status  : up-to-date
+
+    file_dep:
+      - command.o
+      - kbd.o
+      - main.o
+
+    targets:
+      - edit
 
 
-Use the option `--status`, to check the reason a task is not up-to-date.
+Note that if the task is **not** *up-to-date* the reason a task is not up-to-date.
 
 .. code-block:: console
 
    $ doit info link
 
-   Task is not up-to-date:
+   link
+
+   status  : run
+
     * The following file dependencies have changed:
        - main.o
        - kbd.o
