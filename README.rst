@@ -82,7 +82,7 @@ Project Details
  - Website & docs - http://pydoit.org
  - Project management on github - https://github.com/pydoit/doit
  - Discussion group - https://groups.google.com/forum/#!forum/python-doit
- - News/twitter - https://twitter.com/py_doit
+ - News/twitter - https://twitter.com/pydoit
  - Plugins, extensions and projects based on doit - https://github.com/pydoit/doit/wiki/powered-by-doit
 
 license
@@ -214,6 +214,7 @@ Update version number at:
 - doit/version.py
 - setup.py
 - doc/conf.py
+- doc/index.html
 
 .. code:: bash
 

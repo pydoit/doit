@@ -115,12 +115,11 @@ html_sidebars = {
 }
 
 
-# for rtd
-# FIXME: home should point to index.html
 html_theme_options = {
-    # top is also included but not from rtd theme.
-    # check breadcrumbs.html
-#    'prev_next_buttons_location': 'bottom',
+    "external_links": [
+        ("Twitter", "https://twitter.com/pydoit"),
+        ("Github", "https://github.com/pydoit/doit"),
+    ],
 }
 
 # -- Options for HTMLHelp output ---------------------------------------------

@@ -15,6 +15,12 @@ If you are using python 2::
 
   $ pip install "doit<0.30"
 
+
+If you want to use non-local plugins you need to install `setuptools` as well.
+
+  $ pip install doit[plugins]
+
+
 Source
 ^^^^^^
 

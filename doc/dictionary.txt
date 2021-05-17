@@ -169,6 +169,7 @@ TaskError
 TaskFailed
 TaskLoader
 TaskLoader2
+TaskResult
 Tpng
 Trento
 USD
@@ -375,6 +376,7 @@ popen
 pos
 pos1
 pre
+preflight
 prem
 prev
 printf
@@ -452,7 +454,6 @@ task1
 task2
 taskorder
 taskresult
-TaskResult
 tasks'
 teardown
 time'

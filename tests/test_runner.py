@@ -1,4 +1,5 @@
 import os
+import sys
 import pickle
 from multiprocessing import Queue
 import platform
@@ -6,7 +7,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from doit.exceptions import InvalidTask
+from doit.exceptions import CatchedException, InvalidTask
 from doit.dependency import DbmDB, Dependency
 from doit.reporter import ConsoleReporter
 from doit.task import Task, DelayedLoader
@@ -26,7 +27,13 @@ def _error():
 def _exit():
     raise SystemExit()
 def simple_result():
+    print("success output")
+    print("success error", file=sys.stderr)
     return 'my-result'
+def simple_fail():
+    print("simple output")
+    print("simple error", file=sys.stderr)
+    raise Exception('this task failed')
 
 class FakeReporter(object):
     """Just log everything in internal attribute - used on tests"""
@@ -793,7 +800,32 @@ class TestMRunner_execute_task(object):
         run.finish()
         # check result
         assert result_q.get() == {'name': 't1', 'reporter': 'execute_task'}
-        assert result_q.get()['task']['result'] == 'my-result'
+        res = result_q.get()
+        assert res['task']['result'] == 'my-result'
+        assert res['task']['executed']
+        assert res['out'] == ['success output\n']
+        assert res['err'] == ['success error\n']
+        assert result_q.empty()
+
+
+    def test_full_task_fail(self, reporter, dep_manager):
+        # test execute_task_subprocess can receive a full Task object
+        run = runner.MRunner(dep_manager, reporter)
+        t1 = Task('t1', [simple_fail])
+        task_q = Queue()
+        task_q.put(runner.JobTask(t1)) # to test
+        task_q.put(None) # to terminate function
+        result_q = Queue()
+        run.execute_task_subprocess(task_q, result_q, reporter.__class__)
+        run.finish()
+        # check result
+        assert result_q.get() == {'name': 't1', 'reporter': 'execute_task'}
+        res = result_q.get()
+        assert res['name'] == 't1'
+        assert isinstance(res['failure'], CatchedException)
+        assert res['out'] == ['simple output\n']
+        assert res['err'] == ['simple error\n']
+        # assert result_q.get()['task']['result'] == 'my-result'
         assert result_q.empty()
 
 
