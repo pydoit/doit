@@ -68,28 +68,28 @@ All commands that have a `backend` option (*run*, *clean*, *forget*, etc),
 will use this option without the need for this option in the command line.
 
 
-tools.doit.commands
-^^^^^^^^^^^^^^^^^^^
+tool.doit.commands
+^^^^^^^^^^^^^^^^^^
 
 To configure options for a specific command, use a section with
-the command name under `tools.doit.commands`:
+the command name under `tool.doit.commands`:
 
 .. code-block:: toml
 
-   [tools.doit.commands.list]
+   [tool.doit.commands.list]
    status = true
    subtasks = true
 
 
-tools.doit.plugins
-^^^^^^^^^^^^^^^^^^
+tool.doit.plugins
+^^^^^^^^^^^^^^^^^
 
 Check the :ref:`plugins <plugins>` section for an introduction
 on available plugin categories.
 
 
-tools.doit.tasks
-^^^^^^^^^^^^^^^^
+tool.doit.tasks
+^^^^^^^^^^^^^^^
 
 To configure options for a specific task, use a section with
 the task name under `tool.doit.tasks`:

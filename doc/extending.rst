@@ -135,8 +135,15 @@ the *class* `FooCmd`, located at the module `my_plugins.py`:
 
 .. code-block:: toml
 
-   [tools.doit.plugins]
+   [tool.doit.plugins]
    COMMAND = { foo = "my_plugins:FooCmd" }
+
+or, alternately:
+
+.. code-block:: toml
+
+   [tool.doit.plugins.COMMAND]
+   foo = "my_plugins:FooCmd"
 
 Similarly, in `doit.cfg`:
 
