@@ -16,12 +16,40 @@ README
 .. image:: https://xscode.com/assets/promo-banner.svg
     :target: https://xscode.com/schettino72/doit
 
+.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.4892136.svg
+   :target: https://doi.org/10.5281/zenodo.4892136
+
 
 doit - automation tool
 ======================
 
-*doit* comes from the idea of bringing the power of build-tools to
-execute any kind of task
+*doit* comes from the idea of bringing the power of build-tools to execute any
+kind of task
+
+*doit* can be uses as a simple **Task Runner** allowing you to easily define ad hoc
+tasks, helping you to organize all your project related tasks in an unified
+easy-to-use & discoverable way.
+
+*doit* scales-up with an efficient execution model like a **build-tool**.
+*doit* creates a DAG (direct acyclic graph) and is able to cache task results.
+It ensures that only required tasks will be executed and in the correct order
+(aka incremental-builds).
+
+The *up-to-date* check to cache task results is not restricted to looking for
+file modification on dependencies.  Nor it requires "target" files.
+So it is also suitable to handle **workflows** not handled by traditional build-tools.
+
+Tasks' dependencies and creation can be done dynamically during it is execution
+making it suitable to drive complex workflows and **pipelines**.
+
+*doit* is build with a plugin architecture allowing extensible commands, custom
+output, storage backend and "task loader". It also provides an API allowing
+users to create new applications/tools leveraging *doit* functionality like a framework.
+
+*doit* is a mature project being actively developed for more than 10 years.
+It includes several extras like: parallel execution, auto execution (watch for file
+changes), shell tab-completion, DAG visualisation, IPython integration, and more.
+
 
 
 Sample Code

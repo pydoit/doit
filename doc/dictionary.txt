@@ -164,6 +164,7 @@ Sylvain
 TC4
 TC5
 TODO
+TOML
 TaskError
 TaskFailed
 TaskLoader
@@ -172,6 +173,7 @@ TaskResult
 Tpng
 Trento
 USD
+UTF
 UptodateCalculator
 Uz
 VCS
@@ -180,6 +182,7 @@ Waf
 ZeroReporter
 a2
 abc
+acyclic
 analytics
 api
 aplay
@@ -251,6 +254,7 @@ dict
 dict's
 didn
 dir
+discoverable
 docstring
 dodoFile
 doit
@@ -299,10 +303,12 @@ helloworld
 hg
 hggit
 hgrc
+hoc
 html
 https
 hunspell
 img
+ini
 init
 initializer
 inotify
@@ -393,6 +399,7 @@ pygraphviz
 pyinotify
 pylogo
 pypi
+pyproject
 pytest
 python2
 python3
@@ -459,6 +466,8 @@ titlewithactions
 to's
 toc
 toctree
+toml
+tomlkit
 toolchain
 toolchains
 traceback
@@ -480,6 +489,7 @@ utf8
 utils
 utm
 virtualenv
+visualisation
 waf
 wget
 whl
