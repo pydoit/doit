@@ -208,7 +208,7 @@ class Run(DoitCmdBase):
         self.control.process(self.sel_tasks)
 
         if single:
-            for task_name in self.sel_tasks:
+            for task_name in self.control._process_filter(self.sel_tasks):
                 task = self.control.tasks[task_name]
                 if task.has_subtask:
                     for task_name in task.task_dep:
