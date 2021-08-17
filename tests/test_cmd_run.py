@@ -92,6 +92,17 @@ class TestCmdRun(object):
         # t3 is a depenendency of g1.b but not included
         assert [".  g1.a", ".  g1.b"] == got
 
+    def testProcessRunSingleWithArgs(self, depfile_name):
+        output = StringIO()
+        task_list = tasks_sample()
+        cmd_run = CmdFactory(Run, backend='dbm', dep_file=depfile_name,
+                             task_list=task_list,
+                             sel_tasks=["t1", "--arg1", "ABC"])
+        cmd_run._execute(output, single=True)
+        got = output.getvalue().split("\n")[:-1]
+        # t1 is a depenendency of t3 but not included
+        assert [".  t1"] == got
+
     def testProcessRunEmptyFilter(self, depfile_name):
         output = StringIO()
         cmd_run = CmdFactory(Run, backend='dbm', dep_file=depfile_name,

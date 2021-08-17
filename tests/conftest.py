@@ -120,7 +120,8 @@ def restore_cwd(request):
 def tasks_sample():
     tasks_sample = [
         # 0
-        Task("t1", [""], doc="t1 doc string"),
+        Task("t1", [""], doc="t1 doc string", params=[{'name': 'arg1', 
+             'short': 'a', 'long': 'arg1', 'default': 'default_value'}]),
         # 1
         Task("t2", [""], file_dep=['tests/data/dependency1'],
              doc="t2 doc string"),
