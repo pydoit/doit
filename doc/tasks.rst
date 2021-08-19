@@ -230,7 +230,7 @@ It can also be set by the ``doc`` attribute.
 .. code-block:: console
 
   $ doit list
-  .  hello
+  .  hello  say hello
 
 
 
