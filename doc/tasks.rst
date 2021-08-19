@@ -260,7 +260,7 @@ avoiding empty sub-tasks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If you are not sure sub-tasks will be created for a given ``basename``
-but you want to make sure that a task exist,
+but you want to make sure that a task exists,
 you can yield a sub-task with ``name`` equal to ``None``.
 This can also be used to set the task ``doc`` and ``watch`` attributes.
 
