@@ -330,6 +330,12 @@ class CmdParse(object):
             else:
                 params[this.name] = this.str2type(val)
 
+        # make sure all params end up using their declared type
+        for opt in self._options.values():
+            val = params.get(opt.name)
+            if val is not None and not isinstance(val, opt.type):
+                params[opt.name] = opt.str2type(val)
+
         return params, args
 
 
