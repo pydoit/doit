@@ -107,7 +107,7 @@ class DoitMain(object):
         reset_vars()
         args_no_vars = []
         for arg in cmd_args:
-            if (arg[0] != '-') and ('=' in arg):
+            if (not arg.startswith('-')) and ('=' in arg):
                 name, value = arg.split('=', 1)
                 set_var(name, value)
             else:
