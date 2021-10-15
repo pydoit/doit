@@ -13,7 +13,8 @@ class TestCmdInfo(object):
     def test_info_basic_attrs(self, dep_manager):
         output = StringIO()
         task = Task("t1", [], file_dep=['tests/data/dependency1'],
-                    doc="task doc", getargs={'a': ('x', 'y')}, verbosity=2)
+                    doc="task doc", getargs={'a': ('x', 'y')}, verbosity=2,
+                    meta={'a': ['b', 'c']})
         cmd = CmdFactory(Info, outstream=output,
                          dep_file=dep_manager.name, task_list=[task])
         cmd._execute(['t1'], hide_status=True)
@@ -22,6 +23,7 @@ class TestCmdInfo(object):
         assert "- tests/data/dependency1" in output.getvalue()
         assert "verbosity  : 2" in output.getvalue()
         assert "getargs    : {'a': ('x', 'y')}" in output.getvalue()
+        assert "meta       : {'a': ['b', 'c']}" in output.getvalue()
 
     def test_invalid_command_args(self, dep_manager):
         output = StringIO()
