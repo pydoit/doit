@@ -61,7 +61,8 @@ class DoitConfig():
     def loads(self, config_filenames):
         for config_filename in config_filenames:
             if str(config_filename).lower().endswith('.toml'):
-                toml_config = self.load_config_toml(config_filename)
+                prefix = 'tool.doit' if config_filename == 'pyproject.toml' else ''
+                toml_config = self.load_config_toml(config_filename, prefix)
                 for section in toml_config:
                     self.config[section].update(toml_config[section].items())
             else:
@@ -104,7 +105,7 @@ class DoitConfig():
         return cfg_parser
 
 
-    def load_config_toml(self, filename, prefix='tool.doit'):
+    def load_config_toml(self, filename, prefix):
         """read config from a TOML file, adapt to ConfigParser structure
 
         :param filename: str
@@ -116,21 +117,24 @@ class DoitConfig():
         raw = None
 
         if os.path.exists(filename):
+            if not self.toml:
+                warnings.warn(
+                    '''It looks like {} might contain doit configuration,'''
+                    ''' but a TOML parser is not available. '''
+                    ''' Please install one of: {}'''
+                    .format(filename, ', '.join(self._TOML_LIBS))
+                )
+
             with open(filename, encoding='utf-8') as fp:
                 text = fp.read()
 
-            if re.findall(prefix, text):
-                raw = self.toml.loads(text)
-                if raw is None:
-                    warnings.warn(
-                        '''It looks like {} might contain doit configuration,'''
-                        ''' but a TOML parser is not available. '''
-                        ''' Please install one of: {}'''
-                        .format(filename, ', '.join(self._TOML_LIBS))
-                    )
+            raw = self.toml.loads(text)
 
             if raw and isinstance(raw, dict):
-                doit_toml = raw.get('tool', {}).get('doit', {})
+                if prefix:
+                    for part in prefix.split('.'):
+                        raw = raw.get(part, {})
+                doit_toml = raw
 
                 # hoist /tool/doit/plugins/AAA to /AAA
                 for plugin_type, plugins in doit_toml.pop('plugins', {}).items():

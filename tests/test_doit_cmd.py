@@ -179,9 +179,8 @@ class TestConfig(object):
         assert main.config['task:bar'] == {'opt': "baz"}
 
 
-    # FIXME: pyproject has prefix
     def test_find_pyproject_toml_config(self):
-        config_filename = os.path.join(os.path.dirname(__file__), 'sample.toml')
+        config_filename = os.path.join(os.path.dirname(__file__), 'pyproject.toml')
         api_config = {'GLOBAL': {'opty':'10', 'optz':'10'}}
 
         with tempfile.TemporaryDirectory() as td:
@@ -196,6 +195,6 @@ class TestConfig(object):
 
             assert 1 == len(main.config['COMMAND']), main.config
             # test loaded plugin command is actually used with plugin name
-            assert 'foo' in main.get_cmds()
+            assert 'bar' in main.get_cmds()
             # INI has higher preference the api_config
-            assert main.config['GLOBAL'] == {'optx':'6', 'opty':'7', 'optz':'10'}
+            assert main.config['GLOBAL'] == {'optx':'2', 'opty':'3', 'optz':'10'}

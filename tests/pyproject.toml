@@ -1,0 +1,6 @@
+[tool.doit]
+optx = "2"
+opty = "3"
+
+[tool.doit.plugins.command]
+bar = "tests.sample_plugin:MyCmd"
