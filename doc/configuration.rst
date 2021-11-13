@@ -22,9 +22,8 @@ pyproject.toml
 --------------
 
 `doit` configuration can be read from `pyproject.toml <https://www.python.org/dev/peps/pep-0518/>`_
-under the `tool.doit` namespace. In the future, especially if a TOML parser becomes
-part of the python standard library, this will become the preferred configuration source,
-and may gain features not available in the legacy `doit.cfg`.
+under the `tool.doit` namespace.
+This is the preferred configuration source, and may gain features not available in the legacy `doit.cfg`.
 
 .. note::
 
@@ -68,11 +67,11 @@ All commands that have a `backend` option (*run*, *clean*, *forget*, etc),
 will use this option without the need for this option in the command line.
 
 
-tools.doit.commands
-^^^^^^^^^^^^^^^^^^^
+tool.doit.commands
+^^^^^^^^^^^^^^^^^^
 
 To configure options for a specific command, use a section with
-the command name under `tools.doit.commands`:
+the command name under `tool.doit.commands`:
 
 .. code-block:: toml
 
@@ -81,15 +80,15 @@ the command name under `tools.doit.commands`:
    subtasks = true
 
 
-tools.doit.plugins
-^^^^^^^^^^^^^^^^^^
+tool.doit.plugins
+^^^^^^^^^^^^^^^^^
 
 Check the :ref:`plugins <plugins>` section for an introduction
 on available plugin categories.
 
 
-tools.doit.tasks
-^^^^^^^^^^^^^^^^
+tool.doit.tasks
+^^^^^^^^^^^^^^^
 
 To configure options for a specific task, use a section with
 the task name under `tool.doit.tasks`:
@@ -110,11 +109,12 @@ doit.cfg
 Note: key/value entries can be separated only by the equal sign `=`.
 
 If a file name `doit.cfg` is present in the current working directory,
-it is processed. It supports 3 kind of sections:
+it is processed. It supports 4 kind of sections:
 
 - a `GLOBAL` section
-- a section for each command
 - a section for each plugin category
+- a section for each command
+- a section for each task
 
 
 GLOBAL section

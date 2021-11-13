@@ -51,25 +51,52 @@ class PluginEntry(object):
 
 
 class PluginDict(dict):
-    """A dict where item values *might* be a PluginEntry"""
+    """A dict where item values *might* be a PluginEntry or a direct reference to class/obj.
 
-    def add_plugins(self, cfg_parser, section):
-        """read all items from a ConfigParser section containing plugins"""
-        # plugins from INI file
-        if section in cfg_parser:
-            for name, location in cfg_parser[section].items():
-                self[name] = PluginEntry(section, name, location)
+    Values should not be accessed directly, use `get_plugin()` to make sure plugin is loaded.
 
-        # plugins from pkg_resources
+    Typically, one dict is created for each kind of plugin.
+    doit supports 4 categories:
+     - COMMAND
+     - LOADER
+     - BACKEND
+     - REPORTER
+    """
+
+    entry_point_prefix = 'doit'
+
+    def add_plugins(self, cfg_data, category):
+        """read all items from a ConfigParser section containing plugins & entry-points.
+
+        Plugins from entry-point have higher priority
+        """
+        self.update(self._from_ini(cfg_data, category))
+        self.update(self._from_entry_points(category))
+
+    def _from_ini(self, cfg_data, category):
+        """plugins from INI file
+
+        INI `section` names map exactly to plugin `category`.
+        """
+        result = {}
+        if category in cfg_data:
+            for name, location in cfg_data[category].items():
+                result[name] = PluginEntry(category, name, location)
+        return result
+
+    def _from_entry_points(self, category):
+        """get all plugins from setuptools entry_points"""
+        result = {}
         try:
             import pkg_resources
-            group = "doit.{}".format(section)
+            group = f"{self.entry_point_prefix}.{category}"
             for point in pkg_resources.iter_entry_points(group=group):
                 name = point.name
                 location = "{}:{}".format(point.module_name, point.attrs[0])
-                self[name] = PluginEntry(section, name, location)
+                result[name] = PluginEntry(category, name, location)
         except ImportError: # pragma: no cover
             pass  # ignore, if setuptools is not installed
+        return result
 
 
     def get_plugin(self, key):
@@ -82,5 +109,5 @@ class PluginDict(dict):
             return val
 
     def to_dict(self):
-        """return a standard dict with all plugins loaded"""
+        """return a standard dict with all plugins values loaded (no PluginEntry)"""
         return {k: self.get_plugin(k) for k in self.keys()}

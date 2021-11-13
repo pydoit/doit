@@ -136,4 +136,18 @@ def task_package():
 
 
 
+def task_sample():
+    return {
+        'actions': ['echo %(param1)s'],
+        'params': [
+            {
+                'name':'param1',
+                'short':'p',
+                'default':'default value',
+            },
+        ],
+        'verbosity': 2,
+    }
+
+
 # doit -f ../doit-recipes/deps/deps.py -d . --reporter=executed-only

@@ -135,8 +135,8 @@ the *class* `FooCmd`, located at the module `my_plugins.py`:
 
 .. code-block:: toml
 
-   [tools.doit.plugins]
-   COMMAND = { foo = "my_plugins:FooCmd" }
+   [tool.doit.plugins.command]
+   foo = "my_plugins:FooCmd"
 
 Similarly, in `doit.cfg`:
 
@@ -187,8 +187,8 @@ used. In the `tool.doit` section in `pyproject.toml`:
    [tool.doit]
    loader = "my_loader"
 
-   [tool.doit.plugins]
-   LOADER = { my_loader = "my_plugins:Loader" }
+   [tool.doit.plugins.loader]
+   my_loader = "my_plugins:Loader"
 
 
 In the `GLOBAL` section of `doit.cfg`:

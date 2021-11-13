@@ -163,8 +163,8 @@ class TestConfig(object):
         got = capsys.readouterr()[0]
         assert got == 'this command does nothing!\n'
 
+    # TOML
     def test_merge_api_toml_config(self):
-        pytest.importorskip("toml")
         config_filename = os.path.join(os.path.dirname(__file__), 'sample.toml')
         api_config = {'GLOBAL': {'opty':'10', 'optz':'10'}}
         main = doit_cmd.DoitMain(config_filenames=config_filename,
@@ -175,8 +175,12 @@ class TestConfig(object):
         # INI has higher preference the api_config
         assert main.config['GLOBAL'] == {'optx':'6', 'opty':'7', 'optz':'10'}
 
+        assert main.config['foo'] == {'nval': 33}
+        assert main.config['task:bar'] == {'opt': "baz"}
+
+
+    # FIXME: pyproject has prefix
     def test_find_pyproject_toml_config(self):
-        pytest.importorskip("toml")
         config_filename = os.path.join(os.path.dirname(__file__), 'sample.toml')
         api_config = {'GLOBAL': {'opty':'10', 'optz':'10'}}
 

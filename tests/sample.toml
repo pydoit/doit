@@ -2,11 +2,11 @@
 optx = "6"
 opty = "7"
 
-[tool.doit.plugins]
-COMMAND = { foo = "tests.sample_plugin:MyCmd" }
+[tool.doit.plugins.command]
+foo = "tests.sample_plugin:MyCmd"
 
 [tool.doit.commands.foo]
-foo = "foo"
+nval = 33
 
 [tool.doit.tasks.bar]
-bar = "bar"
+opt = "baz"

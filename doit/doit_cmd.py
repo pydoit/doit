@@ -7,6 +7,7 @@ import traceback
 import warnings
 from collections import defaultdict
 from configparser import ConfigParser
+import importlib
 
 from .version import VERSION
 from .plugin import PluginDict
@@ -46,53 +47,48 @@ def set_var(name, value):
     _CMDLINE_VARS[name] = value
 
 
-# until there is one in python's standard library
-_TOML_LIBS = ['toml', 'tomlkit']
 
+class DoitConfig():
+    """Parse and store values taken from INI and TOML configuration files"""
+    # support TOML python libs
+    _TOML_LIBS = ['toml', 'tomlkit']
+    PLUGIN_TYPES = ['command', 'loader', 'backend', 'reporter']
 
-def _toml_loads(text):
-    """load a TOML string, if a parser is available
-
-    :param text: str
-
-    returns the parsed data, or `None` if no parser is found
-    """
-    for toml_lib in _TOML_LIBS:
-        try:
-            return __import__(toml_lib).loads(text)
-        except (ImportError, AttributeError):  # pragma: no cover
-            pass
-
-
-class DoitMain(object):
-    # core doit commands
-    BIN_NAME = sys.argv[0].split('/')[-1]
-    DOIT_CMDS = (Help, Run, List, Info, Clean, Forget, Ignore, Auto, DumpDB,
-                 Strace, TabCompletion, ResetDep)
-
-    def __init__(self, task_loader=None,
-                 config_filenames=['pyproject.toml', 'doit.cfg'],
-                 extra_config=None):
-        self.task_loader = task_loader
-
-        # combine config option from INI/TOML files and API
+    def __init__(self):
+        self._toml = None
         self.config = defaultdict(dict)
-        if extra_config:
-            for section, items in extra_config.items():
-                self.config[section].update(items)
 
-        if isinstance(config_filenames, str):
-            config_filenames = [config_filenames]
-
+    def loads(self, config_filenames):
         for config_filename in config_filenames:
             if str(config_filename).lower().endswith('.toml'):
                 toml_config = self.load_config_toml(config_filename)
                 for section in toml_config:
                     self.config[section].update(toml_config[section].items())
             else:
+                # INI config format
                 ini_config = self.load_config_ini(config_filename)
                 for section in ini_config.sections():
                     self.config[section].update(ini_config[section].items())
+
+    @property
+    def toml(self):
+        """get available toml lib, if any"""
+        if self._toml is None:
+            for toml_lib in self._TOML_LIBS:
+                try:
+                    self._toml = importlib.import_module(toml_lib)
+                    break
+                except ImportError:
+                    pass
+            else:
+                # FIXME: use somethinig that does not show a traceback
+                raise Exception('TOML lib not found, could not parse config file XXX.')
+        return self._toml
+
+    def as_dict(self):
+        """return values in legacy dict format"""
+        # FIXME: convert INI to TOML format instead of converting TOML to INI
+        return self.config
 
 
     @staticmethod
@@ -108,14 +104,12 @@ class DoitMain(object):
         return cfg_parser
 
 
-    @staticmethod
-    def load_config_toml(filename):
+    def load_config_toml(self, filename, prefix='tool.doit'):
         """read config from a TOML file, adapt to ConfigParser structure
 
         :param filename: str
 
-        returns an empty dictionary if either no TOML parser is available, or
-        tool.doit is not present in the parsed data
+        returns an empty dictionary if tool.doit is not present in the parsed data
         """
 
         toml_config = {}
@@ -125,14 +119,14 @@ class DoitMain(object):
             with open(filename, encoding='utf-8') as fp:
                 text = fp.read()
 
-            if re.findall(r'tool.*doit', text):
-                raw = _toml_loads(text)
+            if re.findall(prefix, text):
+                raw = self.toml.loads(text)
                 if raw is None:
                     warnings.warn(
                         '''It looks like {} might contain doit configuration,'''
                         ''' but a TOML parser is not available. '''
                         ''' Please install one of: {}'''
-                        .format(filename, ', '.join(_TOML_LIBS))
+                        .format(filename, ', '.join(self._TOML_LIBS))
                     )
 
             if raw and isinstance(raw, dict):
@@ -140,7 +134,8 @@ class DoitMain(object):
 
                 # hoist /tool/doit/plugins/AAA to /AAA
                 for plugin_type, plugins in doit_toml.pop('plugins', {}).items():
-                    toml_config[plugin_type] = plugins
+                    assert plugin_type in self.PLUGIN_TYPES
+                    toml_config[plugin_type.upper()] = plugins
 
                 # hoist /tool/doit/commands/bbb to /bbb
                 for command, command_config in doit_toml.pop('commands', {}).items():
@@ -155,6 +150,41 @@ class DoitMain(object):
                     toml_config.setdefault('GLOBAL', {})[global_name] = global_value
 
         return toml_config
+
+
+class DoitMain(object):
+    # core doit commands
+    BIN_NAME = sys.argv[0].split('/')[-1]
+    DOIT_CMDS = (Help, Run, List, Info, Clean, Forget, Ignore, Auto, DumpDB,
+                 Strace, TabCompletion, ResetDep)
+
+    def __init__(self, task_loader=None,
+                 config_filenames=('pyproject.toml', 'doit.cfg'),
+                 extra_config=None):
+        """
+        :param extra_config: dict of extra argument values (by argument name)
+                             This is parameter is only used by explicit API call.
+        """
+        self.task_loader = task_loader
+
+        # backward compability: convert single filename to list
+        if isinstance(config_filenames, str):
+            config_filenames = [config_filenames]
+
+        # ignore config files do that not exist
+        config_filenames = [fn for fn in config_filenames if os.path.exists(fn)]
+
+        self.config = defaultdict(dict)
+        if extra_config:
+            for section, items in extra_config.items():
+                self.config[section].update(items)
+
+        # combine config option from INI/TOML files and API
+        config_in = DoitConfig()
+        config_in.loads(config_filenames)
+        for section, vals in config_in.as_dict().items():
+            self.config[section].update(vals)
+
 
 
     @staticmethod
@@ -205,8 +235,6 @@ class DoitMain(object):
         """entry point for all commands
 
         :param all_args: list of string arguments from command line
-        :param extra_config: dict of extra argument values (by argument name)
-               This is parameter is only used by explicit API call.
 
         return codes:
           0: tasks executed successfully
