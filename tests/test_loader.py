@@ -68,6 +68,10 @@ class TestLoadTasks(object):
         def task_yyy2():
             return {'actions':None}
 
+        def task_meta():
+            return {'actions' : ['do nothing'],
+                    'meta'    : { 'a' : ['b', 'c']}}
+        
         def bad_seed(): pass
         task_nono = 5
         task_nono # pyflakes
@@ -75,9 +79,10 @@ class TestLoadTasks(object):
 
     def testNormalCase(self, dodo):
         task_list = load_tasks(dodo)
-        assert 2 == len(task_list)
+        assert 3 == len(task_list)
         assert 'xxx1' == task_list[0].name
         assert 'yyy2' == task_list[1].name
+        assert 'meta' == task_list[2].name
 
     def testCreateAfterDecorator(self):
         @create_after('yyy2')
@@ -145,6 +150,10 @@ class TestLoadTasks(object):
         task_list = load_tasks(dodo)
         assert "task doc" == task_list[0].doc
 
+    def testMetaInfo(self, dodo):
+        task_list = load_tasks(dodo)
+        assert task_list[2].meta == {'a': ['b', 'c']}
+        
     def testUse_create_doit_tasks(self):
         def original(): pass
         def creator():

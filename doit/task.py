@@ -154,6 +154,7 @@ class Task(object):
                   'getargs': ((dict,), ()),
                   'title': ((Callable,), (None,)),
                   'watch': ((list, tuple), ()),
+                  'meta': ((dict,), {})
                   }
 
 
@@ -163,7 +164,7 @@ class Task(object):
                  subtask_of=None, has_subtask=False,
                  doc=None, params=(), pos_arg=None,
                  verbosity=None, title=None, getargs=None,
-                 watch=(), loader=None):
+                 watch=(), meta = {}, loader=None):
         """sanity checks and initialization
 
         @param params: (list of dict for parameters) see cmdparse.CmdOption
@@ -189,6 +190,7 @@ class Task(object):
         self.check_attr(name, 'getargs', getargs, self.valid_attr['getargs'])
         self.check_attr(name, 'title', title, self.valid_attr['title'])
         self.check_attr(name, 'watch', watch, self.valid_attr['watch'])
+        self.check_attr(name, 'meta', meta, self.valid_attr['meta'])
 
         if '=' in name:
             msg = "Task '{}': name must not use the char '=' (equal sign)."
@@ -243,6 +245,7 @@ class Task(object):
         self.teardown = [create_action(a, self, 'teardown') for a in teardown]
         self.doc = self._init_doc(doc)
         self.watch = watch
+        self.meta = meta
         # just indicate if actions were executed at all
         self.executed = False
 
