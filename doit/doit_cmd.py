@@ -1,7 +1,6 @@
 """doit CLI (command line interface)"""
 
 import os
-import re
 import sys
 import traceback
 import warnings
