@@ -87,6 +87,9 @@ verbosity:
 title:
  - type: callable taking one parameter as argument (the task reference)
 
+meta:
+ - type: dict. Extra info from user/plugin not directly used by doit
+
 watch:
  - type: list. items:
    * (string) path to be watched when using the `auto` command

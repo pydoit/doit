@@ -638,6 +638,15 @@ You can control the verbosity by:
 * from command line, see :ref:`verbosity option<verbosity_option>`.
 
 
+meta
+----
+
+You can pass *extra* metadata (dict) to a task through the **meta** attribute.
+This could be used by custom commands or plugins.
+
+.. literalinclude:: samples/metadata.py
+
+
 pathlib
 --------
 

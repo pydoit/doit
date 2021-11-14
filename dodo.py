@@ -137,8 +137,10 @@ def task_package():
 
 
 def task_sample():
+    def show_meta(task):
+        print(f'META: {task.meta}')
     return {
-        'actions': ['echo %(param1)s'],
+        'actions': ['echo %(param1)s', show_meta],
         'params': [
             {
                 'name':'param1',
@@ -146,6 +148,7 @@ def task_sample():
                 'default':'default value',
             },
         ],
+        'meta': {'tags': ['sample']},
         'verbosity': 2,
     }
 

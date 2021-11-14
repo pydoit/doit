@@ -13,6 +13,8 @@ Changes
 - Fix #387: Pass pickled attributes, err and out when a task fails in multi processes context.
 - Fix #398: Add `setuptools` as` extras_require`.
 - Fix #373: read DOIT_CONFIG from TOML.
+- Fix #405: Add Task attribute `meta`.
+
 
 0.33.1 (*2020-09-04*)
 =====================

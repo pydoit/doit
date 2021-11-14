@@ -123,6 +123,7 @@ class Task(object):
     @ivar values: (dict) values saved by task that might be used by other tasks
     @ivar getargs: (dict) values from other tasks
     @ivar doc: (string) task documentation
+    @ivar meta: (dict) extra info from user/plugin not directly used by doit
 
     @ivar options: (dict) calculated params values (from getargs and taskopt)
     @ivar taskopt: (cmdparse.CmdParse)
@@ -154,7 +155,7 @@ class Task(object):
                   'getargs': ((dict,), ()),
                   'title': ((Callable,), (None,)),
                   'watch': ((list, tuple), ()),
-                  'meta': ((dict,), {})
+                  'meta': ((dict,), (None,))
                   }
 
 
@@ -164,7 +165,7 @@ class Task(object):
                  subtask_of=None, has_subtask=False,
                  doc=None, params=(), pos_arg=None,
                  verbosity=None, title=None, getargs=None,
-                 watch=(), meta = {}, loader=None):
+                 watch=(), meta=None, loader=None):
         """sanity checks and initialization
 
         @param params: (list of dict for parameters) see cmdparse.CmdOption
