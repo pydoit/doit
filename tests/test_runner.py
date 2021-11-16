@@ -1,12 +1,12 @@
 import os
 import sys
 import pickle
-from multiprocessing import Queue
 import platform
 from unittest.mock import Mock
 
 import pytest
 
+from doit.compat import MQueue
 from doit.exceptions import CatchedException, InvalidTask
 from doit.dependency import DbmDB, Dependency
 from doit.reporter import ConsoleReporter
@@ -557,7 +557,7 @@ class TestRunner_run_tasks(object):
 class TestMReporter(object):
     class MyRunner(object):
         def __init__(self):
-            self.result_q = Queue()
+            self.result_q = MQueue()
 
     def testReporterMethod(self, reporter):
         fake_runner = self.MyRunner()
@@ -696,8 +696,8 @@ class TestMRunner_start_process(object):
         td = TaskDispatcher({'t1':t1, 't2':t2}, [], ['t1', 't2'])
         run = runner.MRunner(dep_manager, reporter, num_process=2)
         run._run_tasks_init(td)
-        result_q = Queue()
-        task_q = Queue()
+        result_q = MQueue()
+        task_q = MQueue()
 
         proc_list = run._run_start_processes(task_q, result_q)
         run.finish()
@@ -714,8 +714,8 @@ class TestMRunner_start_process(object):
         td = TaskDispatcher({'t1':t1}, [], ['t1'])
         run = runner.MRunner(dep_manager, reporter, num_process=2)
         run._run_tasks_init(td)
-        result_q = Queue()
-        task_q = Queue()
+        result_q = MQueue()
+        task_q = MQueue()
 
         proc_list = run._run_start_processes(task_q, result_q)
         run.finish()
@@ -732,8 +732,8 @@ class TestMRunner_start_process(object):
         td = TaskDispatcher({'t1':t1, 't2':t2}, [], ['t1', 't2'])
         run = runner.MRunner(dep_manager, reporter, num_process=2)
         run._run_tasks_init(td)
-        result_q = Queue()
-        task_q = Queue()
+        result_q = MQueue()
+        task_q = MQueue()
 
         proc_list = run._run_start_processes(task_q, result_q)
         run.finish()
@@ -779,10 +779,10 @@ class TestMRunner_parallel_run_tasks(object):
 class TestMRunner_execute_task(object):
     def test_hold(self, reporter, dep_manager):
         run = runner.MRunner(dep_manager, reporter)
-        task_q = Queue()
+        task_q = MQueue()
         task_q.put(runner.JobHold()) # to test
         task_q.put(None) # to terminate function
-        result_q = Queue()
+        result_q = MQueue()
         run.execute_task_subprocess(task_q, result_q, reporter.__class__)
         run.finish()
         # nothing was done
@@ -792,10 +792,10 @@ class TestMRunner_execute_task(object):
         # test execute_task_subprocess can receive a full Task object
         run = runner.MRunner(dep_manager, reporter)
         t1 = Task('t1', [simple_result])
-        task_q = Queue()
+        task_q = MQueue()
         task_q.put(runner.JobTask(t1)) # to test
         task_q.put(None) # to terminate function
-        result_q = Queue()
+        result_q = MQueue()
         run.execute_task_subprocess(task_q, result_q, reporter.__class__)
         run.finish()
         # check result
@@ -812,10 +812,10 @@ class TestMRunner_execute_task(object):
         # test execute_task_subprocess can receive a full Task object
         run = runner.MRunner(dep_manager, reporter)
         t1 = Task('t1', [simple_fail])
-        task_q = Queue()
+        task_q = MQueue()
         task_q.put(runner.JobTask(t1)) # to test
         task_q.put(None) # to terminate function
-        result_q = Queue()
+        result_q = MQueue()
         run.execute_task_subprocess(task_q, result_q, reporter.__class__)
         run.finish()
         # check result

@@ -4,9 +4,9 @@ automatically execute tasks when file dependencies change"""
 import os
 import time
 import sys
-from multiprocessing import Process
 from subprocess import call
 
+from .compat import Process
 from .exceptions import InvalidCommand
 from .cmdparse import CmdParse
 from .filewatch import FileModifyWatcher
