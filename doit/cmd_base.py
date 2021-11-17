@@ -464,6 +464,7 @@ class DoitCmdBase(Command):
     def __init__(self, task_loader, cmds=None, **kwargs):
         super(DoitCmdBase, self).__init__(**kwargs)
         self.sel_tasks = None # selected tasks for command
+        self.sel_default_tasks = True # False if tasks were specified from command line
         self.dep_manager = None #
         self.outstream = sys.stdout
         self.loader = task_loader
@@ -560,6 +561,7 @@ class DoitCmdBase(Command):
         self.check_minversion(params.get('minversion'))
 
         # set selected tasks for command
+        self.sel_default_tasks = len(args) == 0
         self.sel_tasks = args or params.get('default_tasks')
 
         CmdAction.STRING_FORMAT = params.get('action_string_formatting', 'old')

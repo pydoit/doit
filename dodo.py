@@ -14,6 +14,7 @@ DOIT_CONFIG = {
     'minversion': '0.24.0',
     'default_tasks': ['pyflakes', 'ut'],
 #    'backend': 'sqlite3',
+    'forget_disable_default': True,
     }
 
 CODE_FILES = glob.glob("doit/*.py")

@@ -9,15 +9,16 @@ opt_forget_taskdep = {
     'type': bool,
     'default': False,
     'help': 'forget task dependencies too',
-    }
+}
 
-opt_disable_default_all = {
-    'name': 'disable_default_all',
-    'long': 'disable-default-all',
+opt_disable_default = {
+    'name': 'forget_disable_default',
+    'long': 'disable-default',
+    'inverse': 'enable-default',
     'type': bool,
     'default': False,
-    'help': 'disable forgetting all tasks by default',
-    }
+    'help': 'disable forgetting default tasks (when no arguments are passed)',
+}
 
 opt_forget_all = {
     'name': 'forget_all',
@@ -25,8 +26,8 @@ opt_forget_all = {
     'long': 'all',
     'type': bool,
     'default': False,
-    'help': 'forget all tasks if --disable-default-all is passed',
-    }
+    'help': 'forget all tasks',
+}
 
 
 
@@ -35,20 +36,18 @@ class Forget(DoitCmdBase):
     doc_usage = "[TASK ...]"
     doc_description = None
 
-    cmd_options = (opt_forget_taskdep, opt_disable_default_all, opt_forget_all)
+    cmd_options = (opt_forget_taskdep, opt_disable_default, opt_forget_all)
 
-    def _execute(self, forget_sub, disable_default_all, forget_all):
+    def _execute(self, forget_sub, forget_disable_default, forget_all):
         """remove saved data successful runs from DB
         """
-        # no task specified. forget all
-        # if --disable-default-all passed then --all must be passed too
-        if not self.sel_tasks and (not disable_default_all or forget_all):
+        if forget_all:
             self.dep_manager.remove_all()
             self.outstream.write("forgetting all tasks\n")
 
-        elif not self.sel_tasks:
+        elif self.sel_default_tasks and forget_disable_default:
              self.outstream.write(
-                 "no tasks specified, pass --all to forget all tasks\n")
+                 "no tasks specified, pass task name, --enable-default or --all\n")
 
         # forget tasks from list
         else:

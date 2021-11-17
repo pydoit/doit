@@ -27,30 +27,40 @@ class TestCmdForget(object):
         dep2.close()
 
 
-    @pytest.mark.parametrize("forced", [True, False])
-    def testForgetAll(self, tasks, depfile_name, forced):
+    def testForgetDefault(self, tasks, depfile_name):
+        self._add_task_deps(tasks, depfile_name)
+        output = StringIO()
+        cmd_forget = CmdFactory(Forget, outstream=output, dep_file=depfile_name,
+                                backend='dbm', task_list=tasks, sel_tasks=['t1', 't2'], )
+        cmd_forget._execute(False, False, False)
+        got = output.getvalue().split("\n")[:-1]
+        assert ["forgetting t1", "forgetting t2"] == got, repr(output.getvalue())
+        dep = Dependency(DbmDB, depfile_name)
+        assert None == dep._get('t1', "dep")
+        assert None == dep._get('t2', "dep")
+        assert '1' == dep._get('t3', "dep")
+
+    def testForgetAll(self, tasks, depfile_name):
         self._add_task_deps(tasks, depfile_name)
         output = StringIO()
         cmd_forget = CmdFactory(Forget, outstream=output, dep_file=depfile_name,
                                 backend='dbm', task_list=tasks, sel_tasks=[])
-        if not forced:
-            cmd_forget._execute(False, False, False)
-        else:
-            cmd_forget._execute(False, True, True)
+        cmd_forget._execute(False, False, True)
         got = output.getvalue().split("\n")[:-1]
         assert ["forgetting all tasks"] == got, repr(output.getvalue())
         dep = Dependency(DbmDB, depfile_name)
         for task in tasks:
             assert None == dep._get(task.name, "dep")
 
-    def testDisableDefaultAll(self, tasks, depfile_name):
+    def testDisableDefault(self, tasks, depfile_name):
         self._add_task_deps(tasks, depfile_name)
         output = StringIO()
         cmd_forget = CmdFactory(Forget, outstream=output, dep_file=depfile_name,
-                                backend='dbm', task_list=tasks, sel_tasks=[])
+                                backend='dbm', task_list=tasks,
+                                sel_tasks=['t1', 't2'], sel_default_tasks=True)
         cmd_forget._execute(False, True, False)
         got = output.getvalue().split("\n")[:-1]
-        assert ["no tasks specified, pass --all to forget all tasks"] == got, (
+        assert ["no tasks specified, pass task name, --enable-default or --all"] == got, (
             repr(output.getvalue()))
         dep = Dependency(DbmDB, depfile_name)
         for task in tasks:
@@ -62,7 +72,7 @@ class TestCmdForget(object):
         cmd_forget = CmdFactory(Forget, outstream=output, dep_file=depfile_name,
                                 backend='dbm', task_list=tasks,
                                 sel_tasks=["t2", "t1"])
-        cmd_forget._execute(False, False, False)
+        cmd_forget._execute(False, True, False)
         got = output.getvalue().split("\n")[:-1]
         assert ["forgetting t2", "forgetting t1"] == got
         dep = Dependency(DbmDB, depfile_name)

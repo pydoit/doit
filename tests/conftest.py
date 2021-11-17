@@ -155,7 +155,7 @@ def tasks_bad_sample():
 
 
 def CmdFactory(cls, outstream=None, task_loader=None, dep_file=None,
-               backend=None, task_list=None, sel_tasks=None,
+               backend=None, task_list=None, sel_tasks=None, sel_default_tasks=False,
                dep_manager=None, config=None, cmds=None):
     """helper for test code, so test can call _execute() directly"""
     loader = get_loader(config, task_loader, cmds)
@@ -171,4 +171,5 @@ def CmdFactory(cls, outstream=None, task_loader=None, dep_file=None,
     cmd.dep_file = dep_file  # (str) filename usually '.doit.db'
     cmd.task_list = task_list  # list of tasks
     cmd.sel_tasks = sel_tasks  # from command line or default_tasks
+    cmd.sel_default_tasks = sel_default_tasks
     return cmd
