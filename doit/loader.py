@@ -137,7 +137,6 @@ def load_tasks(namespace, command_names=(), allow_delayed=False):
     task_list = []
     def _process_gen():
         task_list.extend(generate_tasks(name, ref(), ref.__doc__))
-        task_list.append(Task(tname, None, loader=,
 
     def _add_delayed(tname, ref):
         # Make sure create_after can be used on class methods.
