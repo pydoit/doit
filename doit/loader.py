@@ -140,14 +140,11 @@ def load_tasks(namespace, command_names=(), allow_delayed=False):
         task_list.append(Task(tname, None, loader=,
 
     def _add_delayed(tname, ref):
-        # If ref is a bound method this updates the DelayedLoader specification
-        # so that when delayed.creator is executed later (control.py:469) the
-        # self parameter is provided. control.py:469 may execute this function
-        # with any additional parameters.
-        #
-        # If ref is NOT a method this this line simply re-assigns the
-        # same function.
+        # Make sure create_after can be used on class methods.
+        # delayed.creator is initially set by the decorator, so always an unbound function.
+        # Here we re-assign with the reference taken on doit load phase because it is bounded method.
         delayed.creator = ref
+
         task_list.append(Task(tname, None, loader=copy.copy(delayed),
                               doc=delayed.creator.__doc__))
 

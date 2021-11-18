@@ -17,7 +17,7 @@ Changes
 - Fix #405: Add Task attribute `meta`.
 - Fix #349: Handle passing task args in "single" task execution.
 - Fix #377: cmd forget, added options `--disable-default` and `--all`.
-
+- Fix #307: Allows `create_after` decorator to be used on methods.
 
 0.33.1 (*2020-09-04*)
 =====================

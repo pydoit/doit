@@ -143,7 +143,7 @@ class TestLoadTasks(object):
         tasks2 = {t.name:t for t in list2}
         assert tasks['bar'].loader is not tasks2['bar'].loader
 
-    def testClassCreateAfterDecorator(self):
+    def testCreateAfterDecoratorOnMethod(self):
         'Check that class-defined tasks are loaded as bound methods'
         class Tasks:
             @create_after('yyy2')
@@ -155,10 +155,11 @@ class TestLoadTasks(object):
         tasks = {t.name:t for t in task_list}
         task_zzz3 = tasks['zzz3']
         assert isinstance(task_zzz3.loader, DelayedLoader)
-        assert getattr(task_zzz3.loader.creator, '__self__', None) is not None, 'Class-defined delayed task creating method is not bound'
+        # check creator is a bound method, not a plain function
+        assert getattr(task_zzz3.loader.creator, '__self__', None) is not None
 
-    def testClassInitialLoadDelayedTask_creates(self, dodo):
-        'Check that class-defined tasks support the creates argument of @create_after'       
+    def testCreateAfterDecoratorOnMethodWithParams(self, dodo):
+        'Check that class-defined tasks support the creates argument of @create_after'
         class Tasks:
             @create_after('yyy2', creates=['foo', 'bar'])
             def task_zzz3(): # pragma: no cover
@@ -171,8 +172,10 @@ class TestLoadTasks(object):
         assert 'zzz3' not in tasks
         f_task = tasks['foo']
         assert f_task.loader.task_dep == 'yyy2'
-        assert getattr(f_task.loader.creator, '__self__', None) is not None, 'Class-defined delayed task creating method is not bound'
-        assert tasks['bar'].loader is tasks['foo'].loader
+        assert getattr(f_task.loader.creator, '__self__', None) is not None
+        # loaders are not the same because of #381 (multiple execution on same process)
+        # But this is not a problem because once the task already exists, the loader is just not used.
+        # assert tasks['bar'].loader is tasks['foo'].loader
         assert tasks['foo'].doc == 'not loaded task doc'
 
     def testNameInBlacklist(self):
