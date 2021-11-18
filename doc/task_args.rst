@@ -1,13 +1,13 @@
 
-Passing Task Arguments from the command line
+Passing arguments from the command line
 ============================================
 
 .. _parameters:
 
-arguments
+Task action arguments
 -----------
 
-It is possible to pass option parameters to the task through the command line.
+It is possible to pass option parameters to the task action through the command line.
 
 Just add a ``params`` field to the task dictionary. ``params`` must be a list of
 dictionaries where every entry is an option parameter. Each parameter must
@@ -69,8 +69,6 @@ For cmd-actions use python string substitution notation:
     $ doit cmd_params -f "-c --other value"
     .  cmd_params
     mycmd -c --other value xxx
-
-
 
 .. _parameters-attributes:
 
@@ -206,3 +204,35 @@ It is possible to pass variable values to be used in dodo.py from the command li
     $ doit abc=xyz x=3
     .  echo
     hi {abc: xyz}
+
+Task generator arguments
+-----------
+
+Command line arguments may also be defined for a task generating function or method
+using the same parameter syntax as is used with task action parameters.
+
+.. code-block:: python
+
+    from doit import task_param
+
+    @task_param([{"name": "howmany", "default": 3, "type": int, "long": "howmany"}])
+    def task_subtasks(howmany):
+        for i in range(howmany):
+            yield {"name": i, "actions": [f"echo I can count to {howmany}: {i}"]}
+
+Any argument defined for the task generating function will also be available as an
+argument for any task actions.
+
+.. code-block:: python
+
+    def do_work(foo):
+        print(f'Argument foo={foo}')
+
+    @task_param([{"name": "foo", "default": "bar", "long": "foo"}])
+    def task_use_in_action(foo):
+        print(f'When the task action runs it will print {foo}')
+
+        return {
+            'actions': [do_work],
+            'verbosity': 2
+        }

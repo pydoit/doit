@@ -385,7 +385,7 @@ class NamespaceTaskLoader(TaskLoader2):
 
     def load_tasks(self, cmd, pos_args):
         tasks = loader.load_tasks(self.namespace, self.cmd_names,
-                                 cmd.execute_tasks)
+                                 cmd.execute_tasks, pos_args)
 
         # Add task options from config, if present
         if self.config is not None:
