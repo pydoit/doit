@@ -148,7 +148,8 @@ class Help(DoitCmdBase):
         if not task:
             return False
         print("%s  %s" % (task.name, task.doc))
-        taskcmd = TaskParse([CmdOption(opt) for opt in task.params])
+        params = list(task.creator_params) + list(task.params)
+        taskcmd = TaskParse([CmdOption(opt) for opt in params])
         for opt in taskcmd.options:
             print("\n".join(opt.help_doc()))
         return True

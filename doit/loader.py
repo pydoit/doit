@@ -5,7 +5,7 @@ import sys
 import copy
 import inspect
 import importlib
-from collections import OrderedDict, Counter
+from collections import OrderedDict
 
 from .exceptions import InvalidTask, InvalidCommand, InvalidDodoFile
 from .task import DelayedLoader, Task, dict_to_task
@@ -149,13 +149,13 @@ def load_tasks(namespace, command_names=(), allow_delayed=False, args=()):
         for task in tasks:
             if task.subtask_of is None:
                 # only parent tasks
-                task.params = tuple(list(task.params) + param_def)
+                task.creator_params = param_def
 
             # Check for duplicated parameter names
-            param_names = [p['name'] for p in task.params]
-            dups = [name for name, count in Counter(param_names).items() if count > 1]
-            if len(dups) > 0:
-                raise InvalidTask('Task \'{}\'. Duplicate parameter definitions for parameters: {}'.format(task.name, ', '.join(sorted(dups))))
+            names = set(p['name'] for p in task.params)
+            for cp in param_def:
+                if cp['name'] in names:
+                    raise InvalidTask(f"Task '{task.name}'. Duplicate parameter definitions for parameters: {cp['name']}")
 
 
     def _process_gen(ref, creator_kwargs):
@@ -165,14 +165,18 @@ def load_tasks(namespace, command_names=(), allow_delayed=False, args=()):
             _append_params(gen_tasks, ref._task_creator_params)
         task_list.extend(gen_tasks)
 
-    def _add_delayed(tname, ref, kwargs):
+    def _add_delayed(tname, ref, original_delayed, kwargs):
         # Make sure create_after can be used on class methods.
         # delayed.creator is initially set by the decorator, so always an unbound function.
         # Here we re-assign with the reference taken on doit load phase because it is bounded method.
-        delayed.creator = ref
-        delayed.kwargs = kwargs
-        task_list.append(Task(tname, None, loader=copy.copy(delayed),
-                              doc=delayed.creator.__doc__))
+        this_delayed = copy.copy(delayed)
+        this_delayed.creator = ref
+        d_task = Task(tname, None, loader=this_delayed, doc=delayed.creator.__doc__)
+
+        if hasattr(ref, '_task_creator_params'):
+            this_delayed.kwargs = kwargs
+            d_task.creator_params = getattr(ref, '_task_creator_params', None)
+        task_list.append(d_task)
 
     for name, ref, _ in funcs:
         delayed = getattr(ref, 'doit_create_after', None)
@@ -193,9 +197,9 @@ def load_tasks(namespace, command_names=(), allow_delayed=False, args=()):
             _process_gen(ref, creator_kwargs)
         elif delayed.creates:  # delayed with explicit task basename
             for tname in delayed.creates:
-                _add_delayed(tname, ref, creator_kwargs)
+                _add_delayed(tname, ref, delayed, creator_kwargs)
         elif allow_delayed:  # delayed no explicit name, cmd run
-            _add_delayed(name, ref, creator_kwargs)
+            _add_delayed(name, ref, delayed, creator_kwargs)
         else:  # delayed no explicit name, cmd list (run creator)
             _process_gen(ref, creator_kwargs)
 

@@ -199,6 +199,7 @@ class Task(object):
             raise InvalidTask(msg.format(name))
         self.name = name
         self.params = params # save just for use on command `info`
+        self.creator_params = [] # add through task_params decorator
         self.options = None
         self.pos_arg = pos_arg
         self.pos_arg_val = None # to be set when parsing command line
@@ -374,7 +375,7 @@ class Task(object):
         """
         if self.options is None:
             self.options = {}
-            taskcmd = TaskParse([CmdOption(opt) for opt in self.params])
+            taskcmd = TaskParse([CmdOption(opt) for opt in (list(self.params) + self.creator_params)])
             if self.cfg_values is not None:
                 taskcmd.overwrite_defaults(self.cfg_values)
 

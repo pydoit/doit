@@ -235,7 +235,7 @@ class TestTaskGeneratorParams(object):
         func = task_param(params)(lambda: 1)
         assert func._task_creator_params == params
 
-    def test_method_default(self):
+    def test_default(self):
         'Ensure that a task parameter can be passed to the task generator.'
 
         @task_param([{"name": "foo", "default": "bar", "long": "foo"}])
@@ -250,7 +250,7 @@ class TestTaskGeneratorParams(object):
         task.init_options()
         assert task.options['foo'] == 'bar'
 
-    def test_method_args(self):
+    def test_args(self):
         'Ensure that a task generator parameter can be set from the command line.'
         @task_param([{"name": "fp", "default": "default p", "long": "fp"}])
         def task_foo(fp):
@@ -264,7 +264,7 @@ class TestTaskGeneratorParams(object):
         assert task.doc == 'from_arg'
 
     @pytest.mark.xfail # FIXME getting task_params only works if parametrized task is the first
-    def test_method_args_second(self):
+    def test_args_second(self):
         def task_bar():
             return {'actions': []}
 
@@ -281,8 +281,7 @@ class TestTaskGeneratorParams(object):
         assert foo.name == 'foo'
         assert foo.doc == 'from_arg'
 
-
-    def test_creator_method(self):
+    def test_method(self):
         'Ensure that a task parameter can be passed to the task generator defined as a class method.'
         class Tasks(object):
             @task_param([{"name": "param1", "default": "placeholder", "long": "param1"}])
@@ -300,11 +299,28 @@ class TestTaskGeneratorParams(object):
         assert len(task_list) == 3
         tasks = {t.name: t for t in task_list}
 
-        assert len(tasks['foo'].params) == 1
+        assert len(tasks['foo'].params) == 0
+        assert len(tasks['foo'].creator_params) == 1
         assert tasks['foo'].doc == ''
 
         assert len(tasks['foo:subtask0'].params) == 0
         assert tasks['foo:subtask0'].doc == 'my_val'
+
+
+    def test_delayed(self):
+        @create_after()
+        @task_param([{"name": "fp", "default": "default p", "long": "fp"}])
+        def task_foo(fp):
+            return {
+                'actions': [],
+                'doc': fp
+            }
+        args = ['foo', '--fp=from_arg']
+        task_list = load_tasks({'task_foo': task_foo}, allow_delayed=True, args=args)
+        task = task_list.pop()
+        assert task.name == 'foo'
+        assert task.loader.kwargs == {'fp': 'from_arg'}
+        assert len(task.creator_params) == 1
 
 
     def test_dup_param(self):
