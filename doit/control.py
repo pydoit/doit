@@ -6,7 +6,7 @@ import re
 
 from .exceptions import InvalidTask, InvalidCommand, InvalidDodoFile
 from .task import Task, DelayedLoaded
-from .loader import generate_tasks, TASK_GEN_PARAM, TASK_GEN_PARAM_DEFAULT
+from .loader import generate_tasks
 
 
 class RegexGroup(object):
@@ -466,8 +466,8 @@ class TaskDispatcher(object):
             to_load = this_task.loader.basename or this_task.name
             this_loader = self.tasks[to_load].loader
             if this_loader and not this_loader.created:
-                task_gen = getattr(ref, TASK_GEN_PARAM, TASK_GEN_PARAM_DEFAULT)
-                new_tasks = generate_tasks(to_load, ref(**task_gen['parsed']), ref.__doc__)
+                task_gen = ref(**this_loader.kwargs) if this_loader.kwargs else ref()
+                new_tasks = generate_tasks(to_load, task_gen, ref.__doc__)
                 TaskControl.set_implicit_deps(self.targets, new_tasks)
                 for nt in new_tasks:
                     if not nt.loader:

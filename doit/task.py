@@ -45,6 +45,7 @@ class DelayedLoader(object):
         self.target_regex = target_regex
         self.creates = creates[:] if creates else []
         self.regex_groups = OrderedDict()  # task_name:RegexGroup
+        self.kwargs = None # task creator kwargs
 
 
 # used to indicate that a task had DelayedLoader but was already created

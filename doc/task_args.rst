@@ -1,11 +1,12 @@
 
 Passing arguments from the command line
-============================================
+=======================================
 
 .. _parameters:
 
-Task action arguments
------------
+
+Task action parameters
+----------------------
 
 It is possible to pass option parameters to the task action through the command line.
 
@@ -156,7 +157,7 @@ Here is the list of all attributes ``param`` accepts:
 
 
 positional arguments
-------------------------
+--------------------
 
 Tasks might also get positional arguments from the command line
 as standard unix commands do,
@@ -205,11 +206,12 @@ It is possible to pass variable values to be used in dodo.py from the command li
     .  echo
     hi {abc: xyz}
 
-Task generator arguments
------------
 
-Command line arguments may also be defined for a task generating function or method
-using the same parameter syntax as is used with task action parameters.
+Task creator parameters
+-----------------------
+
+Command line arguments may also be passed to task creators.
+It uses the same parameter syntax as is used with task action parameters.
 
 .. code-block:: python
 

@@ -20,9 +20,6 @@ initial_workdir = None
 # that are task generators in a dodo file.
 TASK_STRING = "task_"
 
-TASK_GEN_PARAM = 'doit_task_generator_parameters'
-TASK_GEN_PARAM_DEFAULT = {'params': [], 'parsed': {}}
-
 def flat_generator(gen, gen_doc=''):
     """return only values from generators
     if any generator yields another generator it is recursively called
@@ -113,25 +110,17 @@ def create_after(executed=None, target_regex=None, creates=None):
         return func
     return decorated
 
-def task_param(param_def=None):
-    """Annotate a task-creator function with definition of required parameters"""
 
+def task_param(param_def=None):
+    """Annotate a task-creator function with definition of parameters to get arguments from cmd line"""
     if param_def is None or type(param_def) != list:
         raise ValueError('task_param must be called with a valid parameter definition.')
-    
     def decorated(func):
-        # For tasks defined as a method this must
-        # be a dict. Once bound to an instance the function
-        # attributes can not be modified.
-        # https://www.python.org/dev/peps/pep-0232/#id15
-        pd = TASK_GEN_PARAM_DEFAULT.copy()
-        pd['params'] = param_def
-        setattr(func, TASK_GEN_PARAM, pd)
+        func._task_creator_params = param_def
         return func
-
     return decorated
 
-def load_tasks(namespace, command_names=(), allow_delayed=False, args=''):
+def load_tasks(namespace, command_names=(), allow_delayed=False, args=()):
     """Find task-creators and create tasks
 
     @param namespace: (dict) containing the task creators, it might
@@ -167,18 +156,21 @@ def load_tasks(namespace, command_names=(), allow_delayed=False, args=''):
             dups = [name for name, count in Counter(param_names).items() if count > 1]
             if len(dups) > 0:
                 raise InvalidTask('Task \'{}\'. Duplicate parameter definitions for parameters: {}'.format(task.name, ', '.join(sorted(dups))))
-        return tasks
 
-    def _process_gen(ref):
-        task_gen = getattr(ref, TASK_GEN_PARAM, TASK_GEN_PARAM_DEFAULT)
-        task_list.extend(_append_params(generate_tasks(name, ref(**task_gen['parsed']), ref.__doc__), task_gen['params']))
 
-    def _add_delayed(tname, ref):
+    def _process_gen(ref, creator_kwargs):
+        """process a task creator, generating tasks"""
+        gen_tasks = generate_tasks(name, ref(**creator_kwargs), ref.__doc__)
+        if hasattr(ref, '_task_creator_params'):
+            _append_params(gen_tasks, ref._task_creator_params)
+        task_list.extend(gen_tasks)
+
+    def _add_delayed(tname, ref, kwargs):
         # Make sure create_after can be used on class methods.
         # delayed.creator is initially set by the decorator, so always an unbound function.
         # Here we re-assign with the reference taken on doit load phase because it is bounded method.
         delayed.creator = ref
-
+        delayed.kwargs = kwargs
         task_list.append(Task(tname, None, loader=copy.copy(delayed),
                               doc=delayed.creator.__doc__))
 
@@ -186,27 +178,26 @@ def load_tasks(namespace, command_names=(), allow_delayed=False, args=''):
         delayed = getattr(ref, 'doit_create_after', None)
 
         # Parse command line arguments for task generator parameters
-        task_gen = getattr(ref, TASK_GEN_PARAM, None)
-        if task_gen is not None:
-            parser = TaskParse([CmdOption(opt) for opt in task_gen['params']])
-            # Annotate the task generator with parsed parameter values so that when
-            # the task is eventually called the parsed parameters are available.
-            task_gen['parsed'], _ = parser.parse('')
-
+        creator_params = getattr(ref, '_task_creator_params', None)
+        if creator_params is not None:
+            parser = TaskParse([CmdOption(opt) for opt in creator_params])
             # if relevant command line defaults are available parse those
-            if len(args) > 0:
-                if name == args[0]:
-                    task_gen['parsed'], _ = parser.parse(args[1:])
+            if len(args) > 0 and name == args[0]: # FIXME: this works only for first task
+                creator_kwargs, _ = parser.parse(args[1:])
+            else:
+                creator_kwargs, _ = parser.parse('')
+        else:
+            creator_kwargs = {}
 
         if not delayed:  # not a delayed task, just run creator
-            _process_gen(ref)
+            _process_gen(ref, creator_kwargs)
         elif delayed.creates:  # delayed with explicit task basename
             for tname in delayed.creates:
-                _add_delayed(tname, ref)
+                _add_delayed(tname, ref, creator_kwargs)
         elif allow_delayed:  # delayed no explicit name, cmd run
-            _add_delayed(name, ref)
+            _add_delayed(name, ref, creator_kwargs)
         else:  # delayed no explicit name, cmd list (run creator)
-            _process_gen(ref)
+            _process_gen(ref, creator_kwargs)
 
     return task_list
 
