@@ -111,10 +111,10 @@ def create_after(executed=None, target_regex=None, creates=None):
     return decorated
 
 
-def task_param(param_def=None):
+def task_params(param_def=None):
     """Annotate a task-creator function with definition of parameters to get arguments from cmd line"""
     if param_def is None or type(param_def) != list:
-        raise ValueError('task_param must be called with a valid parameter definition.')
+        raise ValueError('task_params must be called with a valid parameter definition.')
     def decorated(func):
         func._task_creator_params = param_def
         return func
@@ -220,8 +220,8 @@ def _get_task_creators(namespace, command_names):
     # get all functions that are task-creators
     for name, ref in namespace.items():
 
-        # Do not solicit tasks from the @task_param decorator.
-        if ref == task_param:
+        # Do not solicit tasks from the @task_params decorator.
+        if ref == task_params:
             continue
 
         # function is a task creator because of its name

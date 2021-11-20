@@ -215,9 +215,9 @@ It uses the same parameter syntax as is used with task action parameters.
 
 .. code-block:: python
 
-    from doit import task_param
+    from doit import task_params
 
-    @task_param([{"name": "howmany", "default": 3, "type": int, "long": "howmany"}])
+    @task_params([{"name": "howmany", "default": 3, "type": int, "long": "howmany"}])
     def task_subtasks(howmany):
         for i in range(howmany):
             yield {"name": i, "actions": [f"echo I can count to {howmany}: {i}"]}
@@ -230,7 +230,7 @@ argument for any task actions.
     def do_work(foo):
         print(f'Argument foo={foo}')
 
-    @task_param([{"name": "foo", "default": "bar", "long": "foo"}])
+    @task_params([{"name": "foo", "default": "bar", "long": "foo"}])
     def task_use_in_action(foo):
         print(f'When the task action runs it will print {foo}')
 

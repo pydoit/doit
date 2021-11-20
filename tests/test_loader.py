@@ -8,7 +8,7 @@ from doit.exceptions import InvalidDodoFile, InvalidCommand
 from doit.task import InvalidTask, DelayedLoader, Task
 from doit.loader import flat_generator, get_module
 from doit.loader import load_tasks, load_doit_config, generate_tasks
-from doit.loader import create_after, task_param
+from doit.loader import create_after, task_params
 
 
 class TestFlatGenerator(object):
@@ -230,15 +230,15 @@ class TestLoadTasks(object):
 
 class TestTaskGeneratorParams(object):
 
-    def test_task_param_annotations(self):
+    def test_task_params_annotations(self):
         params = [{"name": "foo", "default": "bar", "long": "foo"}]
-        func = task_param(params)(lambda: 1)
+        func = task_params(params)(lambda: 1)
         assert func._task_creator_params == params
 
     def test_default(self):
         'Ensure that a task parameter can be passed to the task generator.'
 
-        @task_param([{"name": "foo", "default": "bar", "long": "foo"}])
+        @task_params([{"name": "foo", "default": "bar", "long": "foo"}])
         def task_foo(foo):
             return {
                 'actions': [],
@@ -252,7 +252,7 @@ class TestTaskGeneratorParams(object):
 
     def test_args(self):
         'Ensure that a task generator parameter can be set from the command line.'
-        @task_param([{"name": "fp", "default": "default p", "long": "fp"}])
+        @task_params([{"name": "fp", "default": "default p", "long": "fp"}])
         def task_foo(fp):
             return {
                 'actions': [],
@@ -263,12 +263,12 @@ class TestTaskGeneratorParams(object):
         task = task_list.pop()
         assert task.doc == 'from_arg'
 
-    @pytest.mark.xfail # FIXME getting task_params only works if parametrized task is the first
+    @pytest.mark.xfail # FIXME getting task_paramss only works if parametrized task is the first
     def test_args_second(self):
         def task_bar():
             return {'actions': []}
 
-        @task_param([{"name": "foo", "default": "placeholder", "long": "foo"}])
+        @task_params([{"name": "foo", "default": "placeholder", "long": "foo"}])
         def task_foo(foo):
             return {
                 'actions': [],
@@ -281,10 +281,13 @@ class TestTaskGeneratorParams(object):
         assert foo.name == 'foo'
         assert foo.doc == 'from_arg'
 
+    # FIXME mix creator params and task params
+
+
     def test_method(self):
         'Ensure that a task parameter can be passed to the task generator defined as a class method.'
         class Tasks(object):
-            @task_param([{"name": "param1", "default": "placeholder", "long": "param1"}])
+            @task_params([{"name": "param1", "default": "placeholder", "long": "param1"}])
             def task_foo(self, param1):
                 for i in range(2):
                     yield {
@@ -309,7 +312,7 @@ class TestTaskGeneratorParams(object):
 
     def test_delayed(self):
         @create_after()
-        @task_param([{"name": "fp", "default": "default p", "long": "fp"}])
+        @task_params([{"name": "fp", "default": "default p", "long": "fp"}])
         def task_foo(fp):
             return {
                 'actions': [],
@@ -324,8 +327,8 @@ class TestTaskGeneratorParams(object):
 
 
     def test_dup_param(self):
-        'Ensure that @task_param duplicated task definitions are prohibited'
-        @task_param([{"name": "foo", "default": "decorator", "long": "foo"}])
+        'Ensure that @task_params duplicated task definitions are prohibited'
+        @task_params([{"name": "foo", "default": "decorator", "long": "foo"}])
         def task_dup(foo):
             return {
                 'actions': [],

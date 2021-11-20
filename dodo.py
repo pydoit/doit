@@ -155,3 +155,14 @@ def task_sample():
 
 
 # doit -f ../doit-recipes/deps/deps.py -d . --reporter=executed-only
+
+
+from doit import task_params
+
+@task_params([{"name": "howmany", "default": 3, "type": int, "long": "howmany"}])
+def task_subtasks(howmany):
+    for i in range(howmany):
+        yield {
+            "name": i,
+            "actions": [f"echo I can count to {howmany}: {i}"],
+        }
