@@ -386,7 +386,7 @@ dictionary with `file_dep`, `task_dep`, `uptodate` or another `calc_dep`.
 
 .. note::
    An alternative way (and often easier) to have task attributes that
-   rely on other tasks execution is to use `delayed tasks <delayed-task-creation>`.
+   rely on other tasks execution is to use :ref:`delayed tasks <delayed-task-creation>`.
 
 
 On the example below ``mod_deps`` prints on the screen all direct dependencies
