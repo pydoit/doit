@@ -120,13 +120,17 @@ def task_params(param_def=None):
         return func
     return decorated
 
-def load_tasks(namespace, command_names=(), allow_delayed=False, args=()):
+
+
+def load_tasks(namespace, command_names=(), allow_delayed=False, args=(), config=None):
     """Find task-creators and create tasks
 
     @param namespace: (dict) containing the task creators, it might
                         contain other stuff
     @param command_names: (list - str) blacklist for task names
-    @param load_all: (bool) if True ignore doit_crate_after['executed']
+    @param allow_delayed: (bool) if True ignore doit_crate_after['executed']
+    @param args: (list - str) command line arguments (task names and option arguments)
+    @param config: (dict) configuration taken from TOML and INI files
 
     `load_all == False` is used by the runner to delay the creation of
     tasks until a dependent task is executed. This is only used by the `run`
@@ -185,6 +189,12 @@ def load_tasks(namespace, command_names=(), allow_delayed=False, args=()):
         creator_params = getattr(ref, '_task_creator_params', None)
         if creator_params is not None:
             parser = TaskParse([CmdOption(opt) for opt in creator_params])
+            # Add task options from config, if present
+            if config:
+                task_stanza = 'task:' + name
+                if task_stanza in config:
+                    parser.overwrite_defaults(config[task_stanza])
+
             # if relevant command line defaults are available parse those
             if len(args) > 0 and name == args[0]: # FIXME: this works only for first task
                 creator_kwargs, _ = parser.parse(args[1:])

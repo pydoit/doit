@@ -304,6 +304,7 @@ hg
 hggit
 hgrc
 hoc
+howmany
 html
 https
 hunspell

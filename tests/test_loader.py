@@ -281,6 +281,25 @@ class TestTaskGeneratorParams(object):
         assert foo.name == 'foo'
         assert foo.doc == 'from_arg'
 
+
+    def test_config(self):
+        @task_params([{"name": "fp", "default": "default p", "long": "fp"}])
+        def task_foo(fp):
+            return {
+                'actions': [],
+                'doc': fp
+            }
+        config = {'task:foo': {'fp': 'from_config'}}
+        task_list = load_tasks({'task_foo': task_foo}, args=(), config=config)
+        task = task_list.pop()
+        assert task.doc == 'from_config'
+        # config is overwritten from args
+        args = ['foo', '--fp=from_arg']
+        task_list2 = load_tasks({'task_foo': task_foo}, args=args, config=config)
+        task2 = task_list2.pop()
+        assert task2.doc == 'from_arg'
+
+
     # FIXME mix creator params and task params
 
 
