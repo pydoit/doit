@@ -354,6 +354,14 @@ class SqliteDB(object):
 class FileChangedChecker(object):
     """Base checker for dependencies, must be inherited."""
 
+    CheckerError = os.error
+
+    def exists(self, file_path):
+        return os.path.exists(file_path)
+
+    def info(self, file_path):
+        return os.stat(file_path)
+
     def check_modified(self, file_path, file_stat, state):
         """Check if file in file_path is modified from previous "state".
 
@@ -657,7 +665,7 @@ class Dependency(object):
 
         # if target file is not there, task is not up to date
         for targ in task.targets:
-            if not os.path.exists(targ):
+            if not self.checker.exists(targ):
                 task.dep_changed = list(task.file_dep)
                 if result.add_reason('missing_target', targ):
                     return result
@@ -690,8 +698,8 @@ class Dependency(object):
         for dep in task.file_dep:
             state = self._get(task.name, dep)
             try:
-                file_stat = os.stat(dep)
-            except OSError:
+                file_stat = self.checker.info(dep)
+            except self.checker.CheckerError:
                 error_msg = "Dependent file '{}' does not exist.".format(dep)
                 result.error_reason = error_msg.format(dep)
                 if result.add_reason('missing_file_dep', dep, 'error'):
