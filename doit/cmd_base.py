@@ -3,6 +3,7 @@ import sys
 from collections import deque
 from collections import defaultdict
 import textwrap
+import warnings
 
 from .globals import Globals
 from . import version
@@ -296,6 +297,7 @@ class TaskLoader():
     cmd_options = ()
 
     def __init__(self):
+        warnings.warn('doit.cmd_base.py:TaskLoader is deprecated user TaskLoader2 instead', DeprecationWarning)
         # list of command names, used to detect clash of task names and commands
         self.cmd_names = []
         self.config = None  # reference to config object taken from Command
@@ -546,7 +548,6 @@ class DoitCmdBase(Command):
         :param params: instance of cmdparse.DefaultUpdate
         :param args: list of string arguments (containing task names)
         """
-
         # distinguish legacy and new-style task loader API when loading tasks:
         legacy_loader = getattr(self.loader, 'API', 1) < 2
         if legacy_loader:
