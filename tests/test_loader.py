@@ -346,16 +346,17 @@ class TestTaskGeneratorParams(object):
 
 
     def test_dup_param(self):
-        'Ensure that @task_params duplicated task definitions are prohibited'
+        'Ensure that `params` field and @task_params definitions are prohibited'
         @task_params([{"name": "foo", "default": "decorator", "long": "foo"}])
         def task_dup(foo):
             return {
                 'actions': [],
-                'params': [{"name": "foo", "default": "dict", "long": "foo"}],
+                'params': [{"name": "bar", "default": "dict", "long": "bar"}],
             }
 
-        with pytest.raises(InvalidTask):
+        with pytest.raises(InvalidTask) as exc_info:
             load_tasks({'task_dup': task_dup})
+        assert ('attribute can not be used in conjuction with' in str(exc_info.value))
 
 
 

@@ -151,15 +151,14 @@ def load_tasks(namespace, command_names=(), allow_delayed=False, args=(), config
     def _append_params(tasks, param_def):
         'Apply parameters defined for the task generator to the tasks defined by the generator.'
         for task in tasks:
-            if task.subtask_of is None:
-                # only parent tasks
+            if task.subtask_of is None: # only parent tasks
+                # task.params can not be used with creator_params
+                if task.params:
+                    raise InvalidTask(f"Task '{task.name}'. `params` attribute can not be used in conjuction with `@task_params`")
+
                 task.creator_params = param_def
 
-            # Check for duplicated parameter names
-            names = set(p['name'] for p in task.params)
-            for cp in param_def:
-                if cp['name'] in names:
-                    raise InvalidTask(f"Task '{task.name}'. Duplicate parameter definitions for parameters: {cp['name']}")
+
 
 
     def _process_gen(ref, creator_kwargs):

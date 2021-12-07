@@ -317,8 +317,8 @@ class CmdParse(object):
             opts, args = getopt.getopt(in_args, self.get_short(),
                                        self.get_long())
         except Exception as error:
-            msg = "Error parsing %s: %s (parsing options: %s)"
-            raise CmdParseError(msg % (self._type, str(error), in_args))
+            msg = f"Error parsing {self._type}: {error} (parsing options: {self.options}). Got: {in_args}"
+            raise CmdParseError(msg)
 
         # update params with values from command line
         for opt, val in opts:

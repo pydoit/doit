@@ -222,6 +222,7 @@ It uses the same parameter syntax as is used with task action parameters.
         for i in range(howmany):
             yield {"name": i, "actions": [f"echo I can count to {howmany}: {i}"]}
 
+
 Any argument defined for the task generating function will also be available as an
 argument for any task actions.
 
@@ -238,3 +239,12 @@ argument for any task actions.
             'actions': [do_work],
             'verbosity': 2
         }
+
+
+.. warning::
+
+   When the ``@task_params`` decorator is used, you must not use the ``params`` field.
+   The content from ``params`` can be easily included in ``@task_params``.
+
+   The reason for this limitation is that the command line parsing happens before the task's dict
+   is returned. Hence impossible to know its value.
