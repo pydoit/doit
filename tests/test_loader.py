@@ -263,7 +263,7 @@ class TestTaskGeneratorParams(object):
         task = task_list.pop()
         assert task.doc == 'from_arg'
 
-    @pytest.mark.xfail # FIXME getting task_paramss only works if parametrized task is the first
+
     def test_args_second(self):
         def task_bar():
             return {'actions': []}
@@ -298,9 +298,6 @@ class TestTaskGeneratorParams(object):
         task_list2 = load_tasks({'task_foo': task_foo}, args=args, config=config)
         task2 = task_list2.pop()
         assert task2.doc == 'from_arg'
-
-
-    # FIXME mix creator params and task params
 
 
     def test_method(self):

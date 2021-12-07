@@ -181,6 +181,13 @@ def load_tasks(namespace, command_names=(), allow_delayed=False, args=(), config
             d_task.creator_params = getattr(ref, '_task_creator_params', None)
         task_list.append(d_task)
 
+
+    # map arg_name to its position. Save only args that do not start with `-` (potentially task names)
+    arg_pos = {}
+    for index, term in enumerate(args):
+        if term[0] != '-':
+            arg_pos[term] = index
+
     for name, ref, _ in funcs:
         delayed = getattr(ref, 'doit_create_after', None)
 
@@ -195,8 +202,8 @@ def load_tasks(namespace, command_names=(), allow_delayed=False, args=(), config
                     parser.overwrite_defaults(config[task_stanza])
 
             # if relevant command line defaults are available parse those
-            if len(args) > 0 and name == args[0]: # FIXME: this works only for first task
-                creator_kwargs, _ = parser.parse(args[1:])
+            if name in arg_pos:
+                creator_kwargs, _ = parser.parse(args[arg_pos[name]+1:])
             else:
                 creator_kwargs, _ = parser.parse('')
         else:
