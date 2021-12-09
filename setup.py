@@ -61,7 +61,7 @@ setup(name = 'doit',
       },
       packages = ['doit'],
       python_requires='>=3.6',
-      install_requires = ['cloudpickle'],
+      install_requires = ['cloudpickle<2.0'],
       extras_require={
           ':sys.platform == "darwin"': ['macfsevents'],
           ':sys.platform == "linux"': ['pyinotify'],
