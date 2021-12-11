@@ -24,236 +24,236 @@ Changes
 0.33.1 (*2020-09-04*)
 =====================
 
- - fix sdist distribution to include all files
+- fix sdist distribution to include all files
 
 0.33.0 (*2020-09-01*)
 =====================
 
- - python 3.8 support
- - BACKWARD INCOMPATIBLE: Drop Python 3.4 support
- - fix error installing with setuptools 50.0
+- python 3.8 support
+- BACKWARD INCOMPATIBLE: Drop Python 3.4 support
+- fix error installing with setuptools 50.0
 
 
 0.32.0 (*2019-12-10*)
 =====================
 
- - python 3.7 support
- - BACKWARD INCOMPATIBLE: Changed signature of `DoitCommand`
- - BACKWARD INCOMPATIBLE: Fix #254: Python actions keywords with task metadata `dependencies`, `targets` and `changed` are a copied list
- - BACKWARD INCOMPATIBLE: Custom backend initializer added parameter ``codec_cls``
- - Fix #204: Accept loader command options before command name
- - Fix #240: Command run: with `--pdb` drop into *pdb* on unhandled exception on `PythonAction`
- - Fix #203: Allow configuration of `dodo.py` file name with env var `DOIT_FILE`
- - Fix #113: `tools.config_changed` deals with nested dictionaries.
+- python 3.7 support
+- BACKWARD INCOMPATIBLE: Changed signature of `DoitCommand`
+- BACKWARD INCOMPATIBLE: Fix #254: Python actions keywords with task metadata `dependencies`, `targets` and `changed` are a copied list
+- BACKWARD INCOMPATIBLE: Custom backend initializer added parameter ``codec_cls``
+- Fix #204: Accept loader command options before command name
+- Fix #240: Command run: with `--pdb` drop into *pdb* on unhandled exception on `PythonAction`
+- Fix #203: Allow configuration of `dodo.py` file name with env var `DOIT_FILE`
+- Fix #113: `tools.config_changed` deals with nested dictionaries.
              Using json instead of repr.
- - Fix #261: help organize command options in sections, and improve formatting.
- - Fix #267: `doit list` now has a `--sort` parameter to determine the order in which the tasks are listed.
- - Make it possible to use a custom encoder when using config_changed with a dict.
- - Add configuration `DOIT_CONFIG` `action_string_formatting` to control command action formatter.
- - Fix `result_dep`, use result **after** its execution
- - Fix #286: Support `functools.partial` on tasks' dict metadata `task.title`
- - Fix #285: `clean` command, remove targets in reverse lexical order
- - Deprecated `TaskLoader` in favor of `TaskLoader2`, which separates loading doit's configuration from loading tasks.
- - Fix #288: Added `doit.globals.Globals.dep_manager` to access dependency manager during all task processing phases.
- - Fix #98: Support custom backend codecs so that python-action return values which are not JSON serializable may be used.
- - Fix #283: set task options from doit.cfg
+- Fix #261: help organize command options in sections, and improve formatting.
+- Fix #267: `doit list` now has a `--sort` parameter to determine the order in which the tasks are listed.
+- Make it possible to use a custom encoder when using config_changed with a dict.
+- Add configuration `DOIT_CONFIG` `action_string_formatting` to control command action formatter.
+- Fix `result_dep`, use result **after** its execution
+- Fix #286: Support `functools.partial` on tasks' dict metadata `task.title`
+- Fix #285: `clean` command, remove targets in reverse lexical order
+- Deprecated `TaskLoader` in favor of `TaskLoader2`, which separates loading doit's configuration from loading tasks.
+- Fix #288: Added `doit.globals.Globals.dep_manager` to access dependency manager during all task processing phases.
+- Fix #98: Support custom backend codecs so that python-action return values which are not JSON serializable may be used.
+- Fix #283: set task options from doit.cfg
 
 
 0.31.1 (*2018-03-18*)
 =====================
 
- - Fix #249 reporter bug when using `--continue` option
- - Fix #248 test failures of debian when using GDBM
- - Fix #164 `get_var` fails on multiprocess execution on Windows
- - Fix #245 custom `clean` action takes `dry-run` into account
+- Fix #249 reporter bug when using `--continue` option
+- Fix #248 test failures of debian when using GDBM
+- Fix #164 `get_var` fails on multiprocess execution on Windows
+- Fix #245 custom `clean` action takes `dry-run` into account
 
 
 0.31.0 (*2018-02-25*)
 =====================
 
- - BACKWARD INCOMPATIBLE: Drop Python 3.3 support
- - Fix #171 Passing environment variables to CmdAction
- - Fix #184 parametrize script name
- - CmdParse now support getting values from OS environment variables
- - option `seek_file` control by ENV var `DOIT_SEEK_FILE`
- - #192 ipython extension uses `load_ipython_extension`
- - #218 clean with option `--forget` can be used to also forget about cleaned tasks
- - Fix strace command (seems strace output was modified)
- - Fix #224: use `mock` from stdlib
- - #227: enhancements to `info` command
- - Fix #197: improve error message for invalid `clean` and `teardown` task params
- - Fix #211: do not display traceback for error when missing `file_dep`
- - Task `verbosity` has precedence over `verbosity` from config
- - Fix #140: add `failure-verbosity`. ConsoleReporter, by default,
-   do not print stderr twice.
- - Fix #155: pass `selected_tasks` to `Reporter.initialize()`
- - Fix #221: do not leak meta arguments to actions `kwargs`
- - Fix #202: help command display option's name used on config
- - Fix #209: fix `clean` ordering, and following implicit task_deps
- - Fix: list of sub-tasks do not include non-related `task_dep`
- - Internal: Removed `Task.is_subtask` use `Task.subtask_of` instead
+- BACKWARD INCOMPATIBLE: Drop Python 3.3 support
+- Fix #171 Passing environment variables to CmdAction
+- Fix #184 parametrize script name
+- CmdParse now support getting values from OS environment variables
+- option `seek_file` control by ENV var `DOIT_SEEK_FILE`
+- #192 ipython extension uses `load_ipython_extension`
+- #218 clean with option `--forget` can be used to also forget about cleaned tasks
+- Fix strace command (seems strace output was modified)
+- Fix #224: use `mock` from stdlib
+- #227: enhancements to `info` command
+- Fix #197: improve error message for invalid `clean` and `teardown` task params
+- Fix #211: do not display traceback for error when missing `file_dep`
+- Task `verbosity` has precedence over `verbosity` from config
+- Fix #140: add `failure-verbosity`. ConsoleReporter, by default,
+  do not print stderr twice.
+- Fix #155: pass `selected_tasks` to `Reporter.initialize()`
+- Fix #221: do not leak meta arguments to actions `kwargs`
+- Fix #202: help command display option's name used on config
+- Fix #209: fix `clean` ordering, and following implicit task_deps
+- Fix: list of sub-tasks do not include non-related `task_dep`
+- Internal: Removed `Task.is_subtask` use `Task.subtask_of` instead
 
 
 0.30.3 (*2017-02-20*)
 =====================
 
- - Revert usage of setuptools environment markers (feature too new)
+- Revert usage of setuptools environment markers (feature too new)
 
 
 0.30.2 (*2017-02-16*)
 =====================
 
- - Fix dependency on `pathlib` from PyPi
+- Fix dependency on `pathlib` from PyPi
 
 
 0.30.1 (*2017-02-16*)
 =====================
 
- - Fix GH-#159 KeyError on doit list --status when missing file dependency
- - add python3.6 support
+- Fix GH-#159 KeyError on doit list --status when missing file dependency
+- add python3.6 support
 
 
 0.30.0 (*2016-11-22*)
 =====================
 
- - BACKWARD INCOMPATIBLE: #112 drop python2 compatibility
- - GH-#94: option to read output from CmdAction line or byte buffered
- - GH-#114: `file_dep`, `targets` and `CmdAction` support pathlib.
- - fix GH-#100: make cmd `completion` output deterministic
- - fix GH-#99: positional argument on tasks not specified from cmd-line
- - fix GH-#97: `list` command does not display task-doc for `DelayedTask`
-                when `creates` is specified
- - fix GH-#131: race condition in doit.tools.create_folder
- - fix `auto` command on OS-X systems
- - fix GH-#117: Give error when user tries to use equal sign on task name
+- BACKWARD INCOMPATIBLE: #112 drop python2 compatibility
+- GH-#94: option to read output from CmdAction line or byte buffered
+- GH-#114: `file_dep`, `targets` and `CmdAction` support pathlib.
+- fix GH-#100: make cmd `completion` output deterministic
+- fix GH-#99: positional argument on tasks not specified from cmd-line
+- fix GH-#97: `list` command does not display task-doc for `DelayedTask`
+               when `creates` is specified
+- fix GH-#131: race condition in doit.tools.create_folder
+- fix `auto` command on OS-X systems
+- fix GH-#117: Give error when user tries to use equal sign on task name
 
 
 
 0.29.0 (*2015-08-16*)
 =====================
 
- - BACKWARD INCOMPATIBLE: revert - `result_dep` to create an implicit `task_dep`
- - fix GH-#59: command `list` issue with unicode names
- - fix GH-#72: cmd `completion` escaping of apostrophes in zsh
- - fix GH-#74: Task action's handle python3 callables with keyword only args
- - fix GH-#50: Executing tasks in parallel (multi-process) fails on Windows
- - fix GH-#71 #92: Better error messages for invalid command line tasks/commands
- - fix issue with `--always-execute` and `setup` tasks
- - GH-#67: multiprocess runner handles closures in tasks (using cloudpickle)
- - GH-#58: add `DelayedLoader` parameter `target_regex`
- - GH-#30: add `DelayedLoader` parameter `creates`
- - GH-#58: cmd `Run` add option `--auto-delayed-regex`
- - GH-#24: cmd `info` add option `--status` show reason a task is not up-to-date
- - GH-#66: cmd `auto` support custom ( user specified ) commands to be executed
-   after each task execution
- - GH-#61: speed up sqlite3 backend (use internal memory cache)
+- BACKWARD INCOMPATIBLE: revert - `result_dep` to create an implicit `task_dep`
+- fix GH-#59: command `list` issue with unicode names
+- fix GH-#72: cmd `completion` escaping of apostrophes in zsh
+- fix GH-#74: Task action's handle python3 callables with keyword only args
+- fix GH-#50: Executing tasks in parallel (multi-process) fails on Windows
+- fix GH-#71 #92: Better error messages for invalid command line tasks/commands
+- fix issue with `--always-execute` and `setup` tasks
+- GH-#67: multiprocess runner handles closures in tasks (using cloudpickle)
+- GH-#58: add `DelayedLoader` parameter `target_regex`
+- GH-#30: add `DelayedLoader` parameter `creates`
+- GH-#58: cmd `Run` add option `--auto-delayed-regex`
+- GH-#24: cmd `info` add option `--status` show reason a task is not up-to-date
+- GH-#66: cmd `auto` support custom ( user specified ) commands to be executed
+  after each task execution
+- GH-#61: speed up sqlite3 backend (use internal memory cache)
 
 
 0.28.0 (*2015-04-22*)
 =====================
 
- - BACKWARD INCOMPATIBLE: signature for custom DB backend changed
- - BACKWARD INCOMPATIBLE: `DoitMain` API change
- - BACKWARD INCOMPATIBLE: `Command` API change
- - BACKWARD INCOMPATIBLE: `default` reporter renamed to `console`
- - GH-#25: Add a `reset-dep` command to recompute dependencies state
- - GH-#22: Allow to customize how file_dep are checked
- - GH-#31: Add IPython `%doit` magic-function loading tasks from its global
-   namespace
- - read configuration options from INI files
- - GH-#32 plugin system
- - plugin support: COMMAND - add new commands
- - plugin support: LOADER - add custom task loaders
- - plugin support: REPORTER - add custom reporter for `run` command
- - plugin support: BACKEND - add custom DB persistence backend
- - GH-#36 PythonAction recognizes returned TaskError or TaskFailed
- - GH-#37 CmdParse support for arguments of type list
- - GH-#47 CmdParse support for choices
- - fix issue when using unicode strings to specify `minversion` on python 2
- - fix GH-#27 auto command in conjunction with task arguments
- - fix GH-#44 Fix the list -s command when result_dep is used
- - fix GH-#45 make sure all `uptodate` checks are executed (no short-circuit)
+- BACKWARD INCOMPATIBLE: signature for custom DB backend changed
+- BACKWARD INCOMPATIBLE: `DoitMain` API change
+- BACKWARD INCOMPATIBLE: `Command` API change
+- BACKWARD INCOMPATIBLE: `default` reporter renamed to `console`
+- GH-#25: Add a `reset-dep` command to recompute dependencies state
+- GH-#22: Allow to customize how file_dep are checked
+- GH-#31: Add IPython `%doit` magic-function loading tasks from its global
+  namespace
+- read configuration options from INI files
+- GH-#32 plugin system
+- plugin support: COMMAND - add new commands
+- plugin support: LOADER - add custom task loaders
+- plugin support: REPORTER - add custom reporter for `run` command
+- plugin support: BACKEND - add custom DB persistence backend
+- GH-#36 PythonAction recognizes returned TaskError or TaskFailed
+- GH-#37 CmdParse support for arguments of type list
+- GH-#47 CmdParse support for choices
+- fix issue when using unicode strings to specify `minversion` on python 2
+- fix GH-#27 auto command in conjunction with task arguments
+- fix GH-#44 Fix the list -s command when result_dep is used
+- fix GH-#45 make sure all `uptodate` checks are executed (no short-circuit)
 
 
 0.27.0 (*2015-01-30*)
 ======================
 
- - BACKWARD INCOMPATIBLE: drop python 2.6 support
- - BACKWARD INCOMPATIBLE: removed unmaintained genstandalone script
- - BACKWARD INCOMPATIBLE: removed runtests.py script and support to run
-                          tests through setup.py
- - BACKWARD INCOMPATIBLE: `result_dep` creates an implicit `setup`
-                          (was `task_dep`)
- - BACKWARD INCOMPATIBLE: GH-#9 `getargs` creates an implicit `result_dep`
- - BACKWARD INCOMPATIBLE: `CmdAction` would always decode process output
-                          using `errors='strict'` default changed to `replace`
- - allow task-creators to return/yield Task instances
- - fix GH-#14: add support for delayed task creation
- - fix GH-#15: `auto` (linux) inotify also listen for `MOVE_TO` events
- - GH-#4 `CmdAction` added parameters `encoding` and `decode_error`
- - GH-#6: `loader.task_loader()` accepts methods as *task creators*
+- BACKWARD INCOMPATIBLE: drop python 2.6 support
+- BACKWARD INCOMPATIBLE: removed unmaintained genstandalone script
+- BACKWARD INCOMPATIBLE: removed runtests.py script and support to run
+                         tests through setup.py
+- BACKWARD INCOMPATIBLE: `result_dep` creates an implicit `setup`
+                         (was `task_dep`)
+- BACKWARD INCOMPATIBLE: GH-#9 `getargs` creates an implicit `result_dep`
+- BACKWARD INCOMPATIBLE: `CmdAction` would always decode process output
+                         using `errors='strict'` default changed to `replace`
+- allow task-creators to return/yield Task instances
+- fix GH-#14: add support for delayed task creation
+- fix GH-#15: `auto` (linux) inotify also listen for `MOVE_TO` events
+- GH-#4 `CmdAction` added parameters `encoding` and `decode_error`
+- GH-#6: `loader.task_loader()` accepts methods as *task creators*
 
 
 0.26.0 (*2014-08-30*)
 ======================
 
- - moved development to git/github
- - `uptodate` callable "magic" arguments `task` and `values` are now optional
- - added command `info` to display task metadata
- - command `clean` smarter execution order
- - remove `strace` short option `-k` because it conflicts with `run` option
- - fix zsh tab-completion script when not `doit` script
- - fix #79. Use setuptools and `entry_points`
- - order of yielded tasks is preserved
- - #68. pass positional args to tasks
- - fix tab-completion on BASH for sub-commands that take file arguments
+- moved development to git/github
+- `uptodate` callable "magic" arguments `task` and `values` are now optional
+- added command `info` to display task metadata
+- command `clean` smarter execution order
+- remove `strace` short option `-k` because it conflicts with `run` option
+- fix zsh tab-completion script when not `doit` script
+- fix #79. Use setuptools and `entry_points`
+- order of yielded tasks is preserved
+- #68. pass positional args to tasks
+- fix tab-completion on BASH for sub-commands that take file arguments
 
 0.25.0 (*2014-03-26*)
 ======================
 
- - BACKWARD INCOMPATIBLE: use function `doit.get_initial_workdir()`
-   instead of variable `doit.initial_workdir`
- - DEPRECATED `tools.InteractiveAction` renamed to `tools.LongRunning`
- - fix: `strace` raises `InvalidCommand` instead of using `assert`
- - #28: task `uptodate` support string to be executed as shell command
- - added `tools.Interactive` for use with interactive commands
- - #69: added doit.run() to make it easier to turn a dodo file into executable
- - #70: added option "--pdb" to command `run`
- - added option "--single" to command `run`
- - include list of file_dep as an implicit dependency
+- BACKWARD INCOMPATIBLE: use function `doit.get_initial_workdir()`
+  instead of variable `doit.initial_workdir`
+- DEPRECATED `tools.InteractiveAction` renamed to `tools.LongRunning`
+- fix: `strace` raises `InvalidCommand` instead of using `assert`
+- #28: task `uptodate` support string to be executed as shell command
+- added `tools.Interactive` for use with interactive commands
+- #69: added doit.run() to make it easier to turn a dodo file into executable
+- #70: added option "--pdb" to command `run`
+- added option "--single" to command `run`
+- include list of file_dep as an implicit dependency
 
 
 0.24.0 (*2013-11-24*)
 ======================
 
- - reporter added `initialize()`
- - cmd `list`: added option `--template`
- - dodo.py can specify minimum required doit version with DOIT_CONFIG['minversion']
- - #62: added the absolute path from which doit is invoked `doit.initial_workdir`
- - fix #36: added method `isatty()` to `action.Writer`
- - added command `tabcompletion` for bash and zsh
- - fix #56: allow python actions to have default values for task parameters
+- reporter added `initialize()`
+- cmd `list`: added option `--template`
+- dodo.py can specify minimum required doit version with DOIT_CONFIG['minversion']
+- #62: added the absolute path from which doit is invoked `doit.initial_workdir`
+- fix #36: added method `isatty()` to `action.Writer`
+- added command `tabcompletion` for bash and zsh
+- fix #56: allow python actions to have default values for task parameters
 
 
 0.23.0 (*2013-09-20*)
 ======================
 
- - support definition of group tasks using basename without any task
- - added task property `watch` to specific extra files/folders in auto command
- - CmdAction support for all arguments of subprocess.Popen, but stdout and stderr
- - added command option `-k` as short for `--seek-file`
- - task action can be specified as a list of strings (executed using subprocess.Popen shell=False)
- - fix #60: result of calc_dep only considered if not run yet
- - fix #61: test failures involving DBM
- - fix: do not allow duplicate task names
+- support definition of group tasks using basename without any task
+- added task property `watch` to specific extra files/folders in auto command
+- CmdAction support for all arguments of subprocess.Popen, but stdout and stderr
+- added command option `-k` as short for `--seek-file`
+- task action can be specified as a list of strings (executed using subprocess.Popen shell=False)
+- fix #60: result of calc_dep only considered if not run yet
+- fix #61: test failures involving DBM
+- fix: do not allow duplicate task names
 
 
 0.22.1 (*2013-08-04*)
 ======================
 
- - fix reporter output in py3 was being displayed as bytes instead of string
- - fix pr#12 read file in chunks when calculating MD5
- - fix #54 - remove distribute bootstrapping during installation
+- fix reporter output in py3 was being displayed as bytes instead of string
+- fix pr#12 read file in chunks when calculating MD5
+- fix #54 - remove distribute bootstrapping during installation
 
 
 0.22.0 (*2013-07-05*)
