@@ -39,7 +39,7 @@ def get_var(name, default=None):
     # This is a work-around for Windows multi-processing
     # See https://github.com/pydoit/doit/issues/164
     if _CMDLINE_VARS is None:
-        return None
+        return default
     return _CMDLINE_VARS.get(name, default)
 
 def set_var(name, value):
