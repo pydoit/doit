@@ -3,7 +3,6 @@
 import os
 import sys
 import traceback
-import warnings
 from collections import defaultdict
 from configparser import ConfigParser
 import importlib
@@ -80,9 +79,6 @@ class DoitConfig():
                     break
                 except ImportError:
                     pass
-            else:
-                # FIXME: use somethinig that does not show a traceback
-                raise Exception('TOML lib not found, could not parse config file XXX.')
         return self._toml
 
     def as_dict(self):
@@ -117,40 +113,40 @@ class DoitConfig():
 
         if os.path.exists(filename):
             if not self.toml:
-                warnings.warn(
-                    '''It looks like {} might contain doit configuration,'''
-                    ''' but a TOML parser is not available. '''
-                    ''' Please install one of: {}'''
-                    .format(filename, ', '.join(self._TOML_LIBS))
+                sys.stderr.write(
+                    f'''WARNING: File "{filename}" might contain doit configuration,'''
+                    '''but a TOML parser is not available.\n'''
+                    f'''\tPlease install one of: {', '.join(self._TOML_LIBS)}.\n'''
                 )
 
-            with open(filename, encoding='utf-8') as fp:
-                text = fp.read()
+            else:
+                with open(filename, encoding='utf-8') as fp:
+                    text = fp.read()
 
-            raw = self.toml.loads(text)
+                raw = self.toml.loads(text)
 
-            if raw and isinstance(raw, dict):
-                if prefix:
-                    for part in prefix.split('.'):
-                        raw = raw.get(part, {})
-                doit_toml = raw
+                if raw and isinstance(raw, dict):
+                    if prefix:
+                        for part in prefix.split('.'):
+                            raw = raw.get(part, {})
+                    doit_toml = raw
 
-                # hoist /tool/doit/plugins/AAA to /AAA
-                for plugin_type, plugins in doit_toml.pop('plugins', {}).items():
-                    assert plugin_type in self.PLUGIN_TYPES
-                    toml_config[plugin_type.upper()] = plugins
+                    # hoist /tool/doit/plugins/AAA to /AAA
+                    for plugin_type, plugins in doit_toml.pop('plugins', {}).items():
+                        assert plugin_type in self.PLUGIN_TYPES
+                        toml_config[plugin_type.upper()] = plugins
 
-                # hoist /tool/doit/commands/bbb to /bbb
-                for command, command_config in doit_toml.pop('commands', {}).items():
-                    toml_config[command] = command_config
+                    # hoist /tool/doit/commands/bbb to /bbb
+                    for command, command_config in doit_toml.pop('commands', {}).items():
+                        toml_config[command] = command_config
 
-                # hoist /tool/doit/tasks/ccc to /task:ccc
-                for task, task_config in doit_toml.pop('tasks', {}).items():
-                    toml_config['task:{}'.format(task)] = task_config
+                    # hoist /tool/doit/tasks/ccc to /task:ccc
+                    for task, task_config in doit_toml.pop('tasks', {}).items():
+                        toml_config['task:{}'.format(task)] = task_config
 
-                # hoist /tool/doit/ddd to /GLOBAL/ddd
-                for global_name, global_value in doit_toml.items():
-                    toml_config.setdefault('GLOBAL', {})[global_name] = global_value
+                    # hoist /tool/doit/ddd to /GLOBAL/ddd
+                    for global_name, global_value in doit_toml.items():
+                        toml_config.setdefault('GLOBAL', {})[global_name] = global_value
 
         return toml_config
 
