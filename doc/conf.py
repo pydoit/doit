@@ -77,7 +77,7 @@ pygments_style = None
 # non-default configuration for doit
 html_favicon = '_static/favico.ico'
 html_show_sourcelink = False
-html_extra_path = ['index.html', 'google726fc03ab55ebbfc.html']
+html_extra_path = ['index.html', 'robots.txt', 'google726fc03ab55ebbfc.html']
 html_logo = '_static/doit-logo-small.png'
 
 

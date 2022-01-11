@@ -1,0 +1,6 @@
+User-agent: *
+
+Disallow: /_modules/
+Disallow: /_sources/
+
+Sitemap: https://pydoit.org/sitemap.xml
