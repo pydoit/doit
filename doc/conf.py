@@ -44,6 +44,7 @@ extensions = [
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
+    'sphinx_sitemap',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -81,6 +82,8 @@ html_logo = '_static/doit-logo-small.png'
 
 
 # -- Options for HTML output -------------------------------------------------
+
+html_baseurl = 'https://pydoit.org'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
@@ -121,6 +124,10 @@ html_theme_options = {
         ("Github", "https://github.com/pydoit/doit"),
     ],
 }
+
+
+# configuration for sphinx_sitemap extension
+sitemap_url_scheme = "{link}"
 
 # -- Options for HTMLHelp output ---------------------------------------------
 

@@ -30,7 +30,7 @@ This is the preferred configuration source, and may gain features not available 
    As a TOML parser is _not_ yet part of the standard library, a third-party package is
    required, one of:
 
-   - `toml <https://pypi.org/project/toml/>`_
+   - `toml <https://pypi.org/project/toml/>`__
    - `tomlkit <https://pypi.org/project/tomlkit/>`_
 
 
