@@ -1,2 +1,2 @@
 """doit version, defined out of __init__.py to avoid circular reference"""
-VERSION = (0, 34, '1dev')
+VERSION = (0, 34, 1)

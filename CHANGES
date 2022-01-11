@@ -3,7 +3,7 @@
 Changes
 =======
 
-0.34.1 (*unreleased*)
+0.34.1 (*2022-01-12*)
 =====================
 
 - Fix #410: if TOML lib not present, just print warning instead of raising error.
