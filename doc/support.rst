@@ -51,7 +51,7 @@ You will be expected provide a real world / example of why and how this feature 
 Users are expected to implement new features themselves.
 If you are not willing to spend your time on it, probably nobody else will...
 
-You might sponsor a feature by placing `bounties <bountysource.com/teams/pydoit>`_ or by contacting the maintainer directly.
+You might sponsor a feature by placing `bounties <https://bountysource.com/teams/pydoit>`_ or by contacting the maintainer directly.
 
 
 Donations
