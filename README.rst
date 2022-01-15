@@ -13,11 +13,11 @@ README
 .. image:: https://codecov.io/gh/pydoit/doit/branch/master/graph/badge.svg?token=wxKa1h11zn
     :target: https://codecov.io/gh/pydoit/doit
 
-.. image:: https://xscode.com/assets/promo-banner.svg
-    :target: https://xscode.com/schettino72/doit
-
 .. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.4892136.svg
    :target: https://doi.org/10.5281/zenodo.4892136
+
+
+Financial contributions on `Open Collective <https://opencollective.com/doit/tiers>`_
 
 
 doit - automation tool
@@ -258,4 +258,6 @@ contributing
 On github create pull requests using a named feature branch.
 
 Financial contribution to support maintenance welcome.
-https://xscode.com/schettino72/doit
+
+.. image:: https://opencollective.com/doit/tiers/backers.svg?avatarHeight=50
+    :target: https://opencollective.com/doit/tiers
