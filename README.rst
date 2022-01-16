@@ -57,7 +57,7 @@ Sample Code
 
 Define functions returning python dict with task's meta-data.
 
-Snippet from `tutorial <http://pydoit.org/tutorial_1.html>`_:
+Snippet from `tutorial <http://pydoit.org/tutorial-1.html>`_:
 
 .. code:: python
 

@@ -15,7 +15,7 @@ Introduction of `doit` basic features with a real example.
    :maxdepth: 1
 
    usecases
-   tutorial_1
+   tutorial-1
 
 
 
@@ -35,11 +35,11 @@ The total reading time for the whole documentation is about one hour.
    install
    tasks
    dependencies
-   task_creation
-   cmd_run
-   cmd_other
+   task-creation
+   cmd-run
+   cmd-other
    configuration
-   task_args
+   task-args
    globals
    uptodate
    tools

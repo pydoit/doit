@@ -45,6 +45,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
     'sphinx_sitemap',
+    'sphinx_reredirects',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -128,6 +129,14 @@ html_theme_options = {
 
 # configuration for sphinx_sitemap extension
 sitemap_url_scheme = "{link}"
+
+redirects = {
+    "tutorial_1": "tutorial-1.html",
+    "cmd_other": "cmd-other.html",
+    "cmd_run": "cmd-run.html",
+    "task_args": "task-args.html",
+    "task_creation": "task-creation.html",
+}
 
 # -- Options for HTMLHelp output ---------------------------------------------
 
