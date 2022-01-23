@@ -1,6 +1,13 @@
-=======
-Globals
-=======
+.. meta::
+   :description: Accessing doit internal database
+   :keywords: python, doit, documentation, guide, database, status
+
+.. title:: Accessing doit internal database  - pydoit guide
+
+
+==================================
+Globals - accessing doit internals
+==================================
 
 During the life-cycle of a command invocation,
 some properties of `doit` are stored in global singletons,

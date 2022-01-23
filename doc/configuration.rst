@@ -1,6 +1,12 @@
+.. meta::
+   :description: Configuring pydoit with TOML and INI files
+   :keywords: python, doit, documentation, guide, configuration, ini, toml
+
+.. title:: Configuration with TOML and INI files  - pydoit guide
+
+
 Configuration
 =============
-
 
 
 config param names

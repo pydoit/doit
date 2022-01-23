@@ -72,6 +72,7 @@ BaseAction
 Biomechanics
 Blog
 CFEngine
+CLI
 CMake
 CSV
 CamelCase
@@ -218,6 +219,7 @@ calc
 callables
 cd
 cfg
+changelog
 chdir
 cid
 cleanforget
@@ -250,6 +252,7 @@ deps
 deserialize
 dev
 dev0
+devops
 dict
 dict's
 didn
@@ -313,6 +316,7 @@ ini
 init
 initializer
 inotify
+integrations
 interactiveaction
 internet
 intra
@@ -365,7 +369,9 @@ outfile
 param
 param1
 param2
+parametrization
 parametrize
+parametrizing
 params
 pathlib
 paypal
@@ -477,6 +483,7 @@ tuto
 txt
 txt'
 ub
+ubuntu
 uio
 unhandled
 unicode
@@ -492,6 +499,7 @@ utm
 virtualenv
 visualisation
 waf
+walkthrough
 wget
 whl
 wildcard

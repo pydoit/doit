@@ -1,3 +1,9 @@
+.. meta::
+   :description: Related Projects - task runner, build tool & pipelines
+   :keywords: python, doit, task-runner, build-tool, pipeline, workflow
+
+.. title:: Related Projects - task runner, build tool & pipelines
+
 ================
 Related Projects
 ================

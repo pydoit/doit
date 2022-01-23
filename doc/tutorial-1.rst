@@ -1,7 +1,12 @@
+.. meta::
+   :description: pydoit tutorial - walkthrough doit basic and intermediate concepts with real-world example
+   :keywords: python, doit, tutorial, getting started, graph, graphviz, task-runner, pipeline
 
-===================
-tutorial 1 - basics
-===================
+.. title:: pydoit tutorial - build a graph of python module's import with graphviz
+
+======================================
+tutorial - python imports graph
+======================================
 
 This tutorial demonstrates how to use ``doit`` to create a simple computational pipeline.
 

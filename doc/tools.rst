@@ -1,6 +1,13 @@
-======
-Tools
-======
+.. meta::
+   :description: Help snippets for tasks and integrations
+   :keywords: python, doit, documentation, guide, ipython, interactive
+
+.. title:: help snippets for tasks and integrations - pydoit guide
+
+
+====================
+Tools & Integrations
+====================
 
 `doit.tools` includes some commonly used code. These are not used by the `doit`
 core, you can see it as a "standard library".

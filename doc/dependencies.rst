@@ -1,5 +1,11 @@
+.. meta::
+   :description: pydoit guide - doit has a flexible dependency system, not exclusively based on files
+   :keywords: python, doit, documentation, guide, task, dependency, incremental-build, up-to-date
+
+.. title:: pydoit task dependency system support - pydoit guide
+
 =====================
-More on dependencies
+Non-file dependencies
 =====================
 
 .. _attr-uptodate:

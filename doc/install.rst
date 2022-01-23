@@ -1,3 +1,9 @@
+.. meta::
+   :description: How-to install pydoit using pip, from source or OS package
+   :keywords: python, doit, install, git, github, ubuntu, linux, windows
+
+.. title:: Installing pydoit package
+
 ==========
 Installing
 ==========

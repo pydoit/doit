@@ -1,3 +1,10 @@
+.. meta::
+   :description: Frequently Asked Questions on doit design and usage
+   :keywords: python, doit, faq
+
+.. title:: FAQ - Frequently Asked Questions on doit design and usage
+
+
 =======
 FAQ
 =======

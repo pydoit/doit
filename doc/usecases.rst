@@ -1,3 +1,9 @@
+.. meta::
+   :description: pydoit is a generic tool based on build-tool concepts. Flexible and scalable.
+   :keywords: python, doit, CLI, linux, windows, task-runner, build-tool, pipeline, workflow, incremental build, data pipeline
+
+.. title:: pydoit use cases - from CLI task-runner to complex pipelines
+
 =========
 Use Cases
 =========

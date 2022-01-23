@@ -1,6 +1,13 @@
-================
-custom uptodate
-================
+.. meta::
+   :description: Customize the up-to-date check for incremental task execution
+   :keywords: python, doit, documentation, guide, incremental-build, result-dependency, run_one, config_changed, timeout
+
+.. title:: Customize the up-to-date check for incremental task execution  - pydoit guide
+
+
+=================
+custom up-to-date
+=================
 
 The basics of `uptodate` was already :ref:`introduced <attr-uptodate>`.
 Here we look in more

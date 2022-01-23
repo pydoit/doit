@@ -1,3 +1,8 @@
+.. meta::
+   :description: pydoit guide - core concepts: tasks, actions, dependencies and targets.
+   :keywords: python, doit, documentation, guide, introduction, task, actions, dependencies, targets, cmd action
+
+.. title:: Introduction to Tasks, metadata and basic operation - pydoit guide
 
 ========
 Tasks

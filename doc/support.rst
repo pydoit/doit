@@ -1,3 +1,10 @@
+.. meta::
+   :description: doit community & getting help/support
+   :keywords: python, doit, question, support, feature request, donations
+
+.. title:: doit community & getting help/support
+
+
 =======
 Support
 =======

@@ -1,3 +1,10 @@
+.. meta::
+   :description: pydoit guide - re-using task definitions & alternative ways to define tasks.
+   :keywords: python, doit, documentation, guide, task, dynamic workflow
+
+.. title:: Alternative way of defining tasks - pydoit guide
+
+
 More on Task creation
 =====================
 

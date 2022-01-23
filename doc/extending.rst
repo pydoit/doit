@@ -1,3 +1,10 @@
+.. meta::
+   :description: How to modify to core doit components, extend and create CLI programs
+   :keywords: python, doit, documentation, guide, extending, framework, CLI
+
+.. title:: Using doit as a framework for CLI power-tools - pydoit guide
+
+
 =========================
 Extending `doit`
 =========================

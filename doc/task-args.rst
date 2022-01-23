@@ -1,3 +1,9 @@
+.. meta::
+   :description: Parametrizing tasks with command line arguments and environment variables.
+   :keywords: python, doit, documentation, guide, parametrization, task_param
+
+.. title:: Task parametrization, getting arguments from command line  - pydoit guide
+
 
 Passing arguments from the command line
 =======================================

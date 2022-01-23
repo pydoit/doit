@@ -1,9 +1,15 @@
+.. meta::
+   :description: pydoit release history & changelog
+   :keywords: python, doit, release, changelog
+
+.. title:: pydoit release history & changelog
+
 
 =======
 Changes
 =======
 
-0.34.1 (*unreleased*)
+0.35.0 (*unreleased*)
 =====================
 
 
