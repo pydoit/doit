@@ -2,7 +2,7 @@
    :description: Customize the up-to-date check for incremental task execution
    :keywords: python, doit, documentation, guide, incremental-build, result-dependency, run_one, config_changed, timeout
 
-.. title:: Customize the up-to-date check for incremental task execution  - pydoit guide
+.. title:: Customize the up-to-date check for incremental execution
 
 
 =================

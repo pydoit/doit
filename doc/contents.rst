@@ -7,7 +7,7 @@
    :description: Index of user documentation for pydoit - python task-runner & build-tool
    :keywords: python, doit, tutorial, documentation, task-runner, guide, how-to, getting started
 
-.. title:: pydoit - documentation index
+.. title:: documentation index | pydoit - python task-runner
 
 
 `doit` documentation

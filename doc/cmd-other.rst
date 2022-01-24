@@ -2,7 +2,7 @@
    :description: doit provides several sub-commands to introspect and manipulated defined tasks
    :keywords: python, doit, documentation, guide, task, list, auto, introspection
 
-.. title:: A survey of doit sub-commands for task manipulation - pydoit guide
+.. title:: A survey of doit sub-commands for task manipulation
 
 
 ==================================

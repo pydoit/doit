@@ -1,8 +1,8 @@
 .. meta::
-   :description: pydoit Success Stories
+   :description: pydoit Success Stories on scientific pipelines, build system, content generation and DevOps
    :keywords: python, doit, case study, build system, content generation, devops, scientific pipelines
 
-.. title:: pydoit Success Stories on Scientific, Build System, Content Generation and DevOps
+.. title:: pydoit Success Stories: users testimonials
 
 
 Success Stories

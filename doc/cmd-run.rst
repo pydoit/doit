@@ -3,7 +3,7 @@
    :description: pydoit guide - CLI usage and options
    :keywords: python, doit, documentation, guide, task-runner
 
-.. title:: pydoit CLI usage and options
+.. title:: pydoit CLI usage and options - command run
 
 ==============================
 Command line interface - run
