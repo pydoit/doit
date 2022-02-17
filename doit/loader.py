@@ -237,7 +237,7 @@ def _get_task_creators(namespace, command_names):
     for name, ref in namespace.items():
 
         # Do not solicit tasks from the @task_params decorator.
-        if ref == task_params:
+        if ref is task_params:
             continue
 
         # function is a task creator because of its name
