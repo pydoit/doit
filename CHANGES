@@ -9,7 +9,7 @@
 Changes
 =======
 
-0.34.2 (*unreleased*)
+0.34.2 (*2022-02-18*)
 =====================
 
 - Fix #416: compare `task_params` using `is` operator.
