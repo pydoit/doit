@@ -52,6 +52,9 @@ class DoitConfig():
     _TOML_LIBS = ['toml', 'tomlkit']
     PLUGIN_TYPES = ['command', 'loader', 'backend', 'reporter']
 
+    # configuration file entry prefix
+    PREFIX = 'tool.doit'
+
     def __init__(self):
         self._toml = None
         self.config = defaultdict(dict)
@@ -59,7 +62,7 @@ class DoitConfig():
     def loads(self, config_filenames):
         for config_filename in config_filenames:
             if str(config_filename).lower().endswith('.toml'):
-                prefix = 'tool.doit' if config_filename == 'pyproject.toml' else ''
+                prefix = self.PREFIX if config_filename == 'pyproject.toml' else ''
                 toml_config = self.load_config_toml(config_filename, prefix)
                 for section in toml_config:
                     self.config[section].update(toml_config[section].items())
