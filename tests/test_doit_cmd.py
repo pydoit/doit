@@ -178,6 +178,19 @@ class TestConfig(object):
         assert main.config['foo'] == {'nval': 33}
         assert main.config['task:bar'] == {'opt': "baz"}
 
+    def test_merge_api_toml_config_with_prefix(self):
+        config_filename = os.path.join(os.path.dirname(__file__), 'sample_with_prefix.toml')
+        main = doit_cmd.DoitMain(config_filenames=config_filename,
+                                 toml_config_files_prefix="tool.doit")
+        assert 1 == len(main.config['COMMAND'])
+        # test loaded plugin command is actually used with plugin name
+        assert 'foo' in main.get_cmds()
+        # INI has higher preference the api_config
+        assert main.config['GLOBAL'] == {'optx':'6', 'opty':'7'}
+
+        assert main.config['foo'] == {'nval': 33}
+        assert main.config['task:bar'] == {'opt': "baz"}
+
 
     def test_find_pyproject_toml_config(self):
         config_filename = os.path.join(os.path.dirname(__file__), 'pyproject.toml')
