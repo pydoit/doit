@@ -9,6 +9,14 @@
 Changes
 =======
 
+0.35.0 (*unreleased*)
+=====================
+
+- BACKWARD INCOMPATIBLE: Drop Python 3.6 support
+- BACKWARD INCOMPATIBLE: Drop Python 3.7 support
+
+
+
 0.34.2 (*2022-02-18*)
 =====================
 
