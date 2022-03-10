@@ -1,3 +1,4 @@
+import fnmatch
 from collections import OrderedDict
 
 from .control import TaskControl
@@ -63,6 +64,15 @@ class Clean(DoitCmdBase):
 
         self.dep_manager.close()
 
+    def _expand(self, clean_list):
+        result = []
+        for name in clean_list:
+            if '*' in name:
+                result.extend(t.name for t in self.task_list if fnmatch.fnmatch(t.name, name))
+            else:
+                result.append(name)
+        return result
+
     def _execute(self, dryrun, cleandep, cleanall, cleanforget,
                  pos_args=None):
         """Clean tasks
@@ -80,16 +90,16 @@ class Clean(DoitCmdBase):
         # behavior of cleandep is different if selected_tasks comes from
         # command line or DOIT_CONFIG.default_tasks
         selected_tasks = pos_args
-        check_tasks_exist(tasks, selected_tasks)
+        check_tasks_exist(tasks, selected_tasks, skip_wildcard=True)
 
         # get base list of tasks to be cleaned
         if selected_tasks and not cleanall: # from command line
-            clean_list = selected_tasks
+            clean_list = self._expand(selected_tasks)
         else:
             # if not cleaning specific task enable clean_dep automatically
             cleandep = True
             if self.sel_tasks is not None:
-                clean_list = self.sel_tasks # default tasks from config
+                clean_list = self._expand(self.sel_tasks) # default tasks from config
             else:
                 clean_list = [t.name for t in self.task_list]
             # note: reversing is not required, but helps reversing
