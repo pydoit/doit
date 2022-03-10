@@ -609,11 +609,13 @@ class DoitCmdBase(Command):
 # helper functions to find list of tasks
 
 
-def check_tasks_exist(tasks, name_list):
+def check_tasks_exist(tasks, name_list, skip_wildcard=False):
     """check task exist"""
     if not name_list:
         return
     for task_name in name_list:
+        if skip_wildcard and '*' in task_name:
+            continue
         if task_name not in tasks:
             msg = "'%s' is not a task."
             raise InvalidCommand(msg % task_name)

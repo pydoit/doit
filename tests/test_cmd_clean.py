@@ -64,6 +64,17 @@ class TestCmdClean(object):
         assert ['t2'] == self.cleaned
         mock_dep_manager.remove.assert_not_called()
 
+    def test_clean_selected_wildcard(self, tasks):
+        output = StringIO()
+        mock_dep_manager = mock.MagicMock()
+        cmd_clean = CmdFactory(
+            Clean, outstream=output, task_list=tasks,
+            dep_manager=mock_dep_manager)
+        cmd_clean._execute(dryrun=False, cleandep=False, cleanall=False,
+                           cleanforget=False, pos_args=['t3*'])
+        assert ['t3', 't3:a'] == self.cleaned
+        mock_dep_manager.remove.assert_not_called()
+
     def test_clean_taskdep(self, tasks):
         output = StringIO()
         mock_dep_manager = mock.MagicMock()
