@@ -8,6 +8,7 @@ from doit.cmdparse import CmdParseError, CmdParse
 from doit.exceptions import InvalidCommand, InvalidDodoFile
 from doit.dependency import FileChangedChecker, JSONCodec
 from doit.task import Task
+from doit.loader import task_params
 from doit.cmd_base import version_tuple, Command, DoitCmdBase, TaskLoader
 from doit.cmd_base import get_loader, ModuleTaskLoader, DodoTaskLoader
 from doit.cmd_base import check_tasks_exist, tasks_and_deps_iter, subtasks_iter
@@ -145,9 +146,27 @@ class TestModuleTaskLoader(object):
         assert ['xxx1'] == [t.name for t in task_list]
         assert {'verbose': 2} == config
 
+    def test_task_opt_from_api(self):
+        cmd = Command()
+
+        @task_params([{'name': 'x', 'long': 'x', 'default': None}])
+        def creator(x):
+            return {
+                'actions': None,
+                'targets': [x],
+            }
+        members = {
+            'task_foo': creator,
+        }
+        loader = ModuleTaskLoader(members)
+        loader.setup({})
+        loader.task_opts = {'foo': {'x': 'dep'}}
+        task_list = loader.load_tasks(cmd, [])
+        task = task_list.pop()
+        assert task.targets[0] == 'dep'
+
     def test_task_config(self):
         # Ensure that doit.cfg specified task parameters are applied.
-
         cmd = Command()
         members = {
             'task_foo': lambda: {'actions':[],

@@ -122,7 +122,7 @@ def task_params(param_def=None):
 
 
 
-def load_tasks(namespace, command_names=(), allow_delayed=False, args=(), config=None):
+def load_tasks(namespace, command_names=(), allow_delayed=False, args=(), config=None, task_opts=None):
     """Find task-creators and create tasks
 
     @param namespace: (dict) containing the task creators, it might
@@ -201,8 +201,11 @@ def load_tasks(namespace, command_names=(), allow_delayed=False, args=(), config
                 if task_stanza in config:
                     parser.overwrite_defaults(config[task_stanza])
 
+            # option params passed through API
+            if task_opts and name in task_opts:
+                creator_kwargs = task_opts[name]
             # if relevant command line defaults are available parse those
-            if name in arg_pos:
+            elif name in arg_pos:
                 creator_kwargs, _ = parser.parse(args[arg_pos[name]+1:])
             else:
                 creator_kwargs, _ = parser.parse('')

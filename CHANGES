@@ -15,6 +15,7 @@ Changes
 - BACKWARD INCOMPATIBLE: Drop Python 3.6 support.
 - BACKWARD INCOMPATIBLE: Drop Python 3.7 support.
 - Fix #344: Command `clean`: add support for wildcard `*`.
+- Add `TaskLoader2.task_opts` attribute.
 
 
 0.34.2 (*2022-02-18*)

@@ -264,6 +264,21 @@ class TestTaskGeneratorParams(object):
         assert task.doc == 'from_arg'
 
 
+    def test_call_api(self):
+        'Ensure that a task generator parameter can be set from direct API call'
+        @task_params([{"name": "fp", "default": "default p", "long": "fp"}])
+        def task_foo(fp):
+            return {
+                'actions': [],
+                'doc': fp
+            }
+        args = ['foo']
+        task_opts = {'foo': {'fp': 'from_api'}}
+        task_list = load_tasks({'task_foo': task_foo}, args=args, task_opts=task_opts)
+        task = task_list.pop()
+        assert task.doc == 'from_api'
+
+
     def test_args_second(self):
         def task_bar():
             return {'actions': []}

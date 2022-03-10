@@ -341,6 +341,7 @@ class TaskLoader2():
         # list of command names, used to detect clash of task names and commands
         self.cmd_names = []
         self.config = None  # reference to config object taken from Command
+        self.task_opts = None # dict with task options (no need parsing, API usage)
 
     def setup(self, opt_values):
         """Delayed initialization.
@@ -388,7 +389,7 @@ class NamespaceTaskLoader(TaskLoader2):
     def load_tasks(self, cmd, pos_args):
         tasks = loader.load_tasks(
             self.namespace, self.cmd_names, allow_delayed=cmd.execute_tasks,
-            args=pos_args, config=self.config)
+            args=pos_args, config=self.config, task_opts=self.task_opts)
 
         # Add task options from config, if present
         if self.config is not None:
