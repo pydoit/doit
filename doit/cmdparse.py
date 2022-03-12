@@ -94,6 +94,7 @@ class CmdOption(object):
         self.inverse = opt_dict.pop('inverse', '')
         self.choices = dict(opt_dict.pop('choices', []))
         self.help = opt_dict.pop('help', '')
+        self.metavar = opt_dict.pop('metavar', 'ARG')
         self.env_var = opt_dict.pop('env_var', None)
 
         # TODO add some hint for tab-completion scripts
@@ -170,18 +171,17 @@ class CmdOption(object):
         """return string of option's short and long name
         i.e.:   -f ARG, --file=ARG
         """
-        # TODO replace 'ARG' with metavar (copy from optparse)
         opts_str = []
         if self.short:
             if self.type is bool:
                 opts_str.append('-%s' % self.short)
             else:
-                opts_str.append('-%s ARG' % self.short)
+                opts_str.append('-%s %s' % (self.short, self.metavar))
         if self.long:
             if self.type is bool:
                 opts_str.append('--%s' % self.long)
             else:
-                opts_str.append('--%s=ARG' % self.long)
+                opts_str.append('--%s=%s' % (self.long, self.metavar))
         return ', '.join(opts_str)
 
     def help_choices(self):

@@ -133,6 +133,12 @@ class TestCmdOption_help_param(object):
         assert '-s ARG, --susu=ARG' == opt1.help_param()
 
 
+    def test_metavar(self):
+        opt1 = CmdOption({'name':'op1', 'default':'', 'type':str, 'metavar':'VAL',
+                          'short':'s', 'long': 'susu'})
+        assert '-s VAL, --susu=VAL' == opt1.help_param()
+
+
     def test_no_long(self):
         opt1 = CmdOption({'name':'op1', 'default':'', 'type':str,
                           'short':'s'})
