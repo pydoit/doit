@@ -398,7 +398,13 @@ class NamespaceTaskLoader(TaskLoader2):
                 if task_stanza in self.config:
                     task.cfg_values = self.config[task_stanza]
 
+        # # add values from API usage
+        if self.task_opts is not None:
+            for task in tasks:
+                if self.task_opts and task.name in self.task_opts:
+                    task.cfg_values = self.task_opts[task.name]
         return tasks
+
 
 class ModuleTaskLoader(NamespaceTaskLoader):
     """load tasks from a module/dictionary containing task generators

@@ -146,7 +146,7 @@ class TestModuleTaskLoader(object):
         assert ['xxx1'] == [t.name for t in task_list]
         assert {'verbose': 2} == config
 
-    def test_task_opt_from_api(self):
+    def test_task_opt_from_api_to_creator(self):
         cmd = Command()
 
         @task_params([{'name': 'x', 'long': 'x', 'default': None}])
@@ -184,6 +184,27 @@ class TestModuleTaskLoader(object):
         task = task_list.pop()
         task.init_options()
         assert 1 == task.options['x']
+
+    def test_task_opt_from_api_to_action(self):
+        cmd = Command()
+
+        members = {
+        'task_foo': lambda: {
+            'actions':[],
+            'params': [{
+                'name': 'x',
+                'default': None,
+                'long': 'x'
+            }]},
+        }
+        loader = ModuleTaskLoader(members)
+        loader.setup({})
+        loader.task_opts = {'foo': {'x': 2}}
+        task_list = loader.load_tasks(cmd, [])
+        task = task_list.pop()
+        task.init_options()
+        assert 2 == task.options['x']
+
 
 class TestDodoTaskLoader(object):
     def test_load_tasks(self, restore_cwd):
