@@ -488,7 +488,7 @@ You can also select tasks to be executed using a `glob <http://docs.python.org/l
 
 .. code-block:: console
 
-    $ doit create_file:file*
+    $ doit "create_file:file*"
     .  create_file:file1.txt
     .  create_file:file2.txt
     .  create_file:file3.txt
