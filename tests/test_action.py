@@ -1,5 +1,6 @@
 import os
 import sys
+import io
 import tempfile
 import textwrap
 import locale
@@ -401,6 +402,15 @@ class TestCmdSaveOuput(object):
 
 
 
+class FakeStream():
+    def __init__(self, tty, fileno=None):
+        self.tty = tty
+        self._fileno = fileno
+    def isatty(self):
+        return self.tty
+    def fileno(self):
+        return self._fileno
+
 class TestWriter(object):
     def test_write(self):
         w1 = StringIO()
@@ -413,33 +423,31 @@ class TestWriter(object):
 
     def test_isatty_true(self):
         w1 = StringIO()
-        w1.isatty = lambda: True
-        w2 = StringIO()
-        writer = action.Writer(w1, w2)
-        assert not writer.isatty()
-
-    def test_isatty_false(self):
-        w1 = StringIO()
-        w1.isatty = lambda: True
-        w2 = StringIO()
-        w2.isatty = lambda: True
-        writer = action.Writer(w1, w2)
+        writer = action.Writer(w1)
+        w2 = FakeStream(True)
+        writer.add_writer(w2, is_original=True)
         assert writer.isatty()
 
-    def test_isatty_overwrite_yes(self):
-        w1 = StringIO()
+    def test_isatty_false(self):
+        # not a tty even if stream is a tty but not marked as original stream
+        w1 = FakeStream(True)
         w1.isatty = lambda: True
-        w2 = StringIO()
         writer = action.Writer(w1)
-        writer.add_writer(w2, True)
+        assert not writer.isatty()
 
-    def test_isatty_overwrite_no(self):
+    def test_fileno(self):
         w1 = StringIO()
-        w1.isatty = lambda: True
-        w2 = StringIO()
-        w2.isatty = lambda: True
+        w2 = FakeStream(True, 32)
+        writer = action.Writer()
+        writer.add_writer(w1)
+        writer.add_writer(w2, is_original=True)
+        assert writer.isatty()
+        assert 32 == writer.fileno()
+
+    def test_fileno_not_supported(self):
+        w1 = FakeStream(True, 11)
         writer = action.Writer(w1)
-        writer.add_writer(w2, False)
+        pytest.raises(io.UnsupportedOperation, writer.fileno)
 
 
 ############# PythonAction

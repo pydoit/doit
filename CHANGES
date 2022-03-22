@@ -18,6 +18,7 @@ Changes
 - Add `TaskLoader2.task_opts` attribute.
   This is passed to task creator and also as task config.
 - CmdOption add `metavar` attribute.
+- Fix #156: `actions.py:Writer`, add support for `fileno()`. Taken from original stream.
 
 
 0.34.2 (*2022-02-18*)

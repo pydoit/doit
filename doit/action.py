@@ -3,6 +3,7 @@
 
 import os
 import subprocess, sys
+import io
 from io import StringIO
 import inspect
 from pathlib import PurePath
@@ -319,21 +320,24 @@ class CmdAction(BaseAction):
 
 
 class Writer(object):
-    """write to many streams"""
+    """Write to N streams.
+
+    This is used on python-actions to allow the stream to be output to terminal and captured at the same time.
+    """
     def __init__(self, *writers):
         """@param writers - file stream like objects"""
         self.writers = []
-        self._isatty = True
+        self.orig_stream = None # The original stream terminal/file
         for writer in writers:
             self.add_writer(writer)
 
-    def add_writer(self, stream, isatty=None):
+    def add_writer(self, stream, *, is_original=False):
         """adds a stream to the list of writers
-        @param isatty: (bool) if specified overwrites real isatty from stream
+        @param is: (bool) if specified overwrites real isatty from stream
         """
         self.writers.append(stream)
-        isatty = stream.isatty() if (isatty is None) else isatty
-        self._isatty = self._isatty and isatty
+        if is_original:
+            self.orig_stream = stream
 
     def write(self, text):
         """write 'text' to all streams"""
@@ -346,7 +350,14 @@ class Writer(object):
             stream.flush()
 
     def isatty(self):
-        return self._isatty
+        if self.orig_stream:
+            return self.orig_stream.isatty()
+        return False
+
+    def fileno(self):
+        if self.orig_stream:
+            return self.orig_stream.fileno()
+        raise io.UnsupportedOperation()
 
 
 class PythonAction(BaseAction):
@@ -417,17 +428,17 @@ class PythonAction(BaseAction):
         output = StringIO()
         out_writer = Writer()
         # capture output but preserve isatty() from original stream
-        out_writer.add_writer(output, old_stdout.isatty())
+        out_writer.add_writer(output)
         if out:
-            out_writer.add_writer(out)
+            out_writer.add_writer(out, is_original=True)
         sys.stdout = out_writer
 
         old_stderr = sys.stderr
         errput = StringIO()
         err_writer = Writer()
-        err_writer.add_writer(errput, old_stderr.isatty())
+        err_writer.add_writer(errput)
         if err:
-            err_writer.add_writer(err)
+            err_writer.add_writer(err, is_original=True)
         sys.stderr = err_writer
 
         kwargs = self._prepare_kwargs()
