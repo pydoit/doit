@@ -145,7 +145,6 @@ def load_tasks(namespace, command_names=(), allow_delayed=False, args=(), config
     # from different modules
     funcs.sort(key=lambda obj: obj[2])
 
-
     task_list = []
 
     def _append_params(tasks, param_def):
@@ -252,12 +251,8 @@ def _get_task_creators(namespace, command_names):
         # object is a task creator because it contains the special method
         elif hasattr(ref, 'create_doit_tasks'):
             ref = ref.create_doit_tasks
-            # If create_doit_tasks is a method, it should be called only
-            # if it is bounded to an object.
-            # This avoids calling it for the class definition.
-            if inspect.signature(ref).parameters:
-                continue
-            task_name = name
+            # create_doit_tasks might have a basename to overwrite task name.
+            task_name = getattr(ref, 'basename', name)
 
         # ignore functions that are not a task creator
         else:  # pragma: no cover

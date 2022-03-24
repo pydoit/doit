@@ -200,14 +200,33 @@ class TestLoadTasks(object):
         assert 1 == len(task_list)
         assert set(['foox']) == task_list[0].file_dep
 
-    def testUse_create_doit_tasks_only_noargs_call(self):
+    def testUse_create_doit_tasks_class_method(self):
         class Foo(object):
-            def create_doit_tasks(self):
+            def __init__(self):
+                self.create_doit_tasks = self._create_doit_tasks
+            def _create_doit_tasks(self):
                 return {'actions': ['do nothing'], 'file_dep': ['fooy']}
 
         task_list = load_tasks({'Foo':Foo, 'foo':Foo()})
         assert len(task_list) == 1
         assert task_list[0].file_dep == set(['fooy'])
+
+    def testUse_create_doit_tasks_basename_kwargs(self):
+        class Foo(object):
+            def __init__(self):
+                @task_params([{"name": "t", "default": None, "type": list}])
+                def creator(**kwargs):
+                    return self._create_doit_tasks(**kwargs)
+                creator.basename = 'my-foo'
+                self.create_doit_tasks = creator
+
+            def _create_doit_tasks(self, **kwargs):
+                return {'actions': ['do nothing'], 'file_dep': ['fooy'], 'targets': kwargs['t']}
+
+        task_list = load_tasks({'Foo':Foo, 'foo':Foo()}, task_opts={'my-foo': {'t': ['bar']}})
+        assert len(task_list) == 1
+        assert task_list[0].name == 'my-foo'
+        assert task_list[0].targets == ['bar']
 
     def testUse_object_methods(self):
         class Dodo(object):
