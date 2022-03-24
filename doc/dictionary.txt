@@ -80,6 +80,7 @@ Cheminformatics
 CmdAction
 CmdAction's
 CmdActions
+CmdOption
 CmdParse
 Config
 ConsoleReporter
@@ -275,6 +276,7 @@ file0
 file1
 file2
 file3
+fileno
 filepath
 flagoff
 fnmatch
@@ -345,6 +347,7 @@ maxdepth
 md5
 md5sum
 metadata
+metavar
 microbiome
 minversion
 mkdir
