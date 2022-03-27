@@ -21,6 +21,8 @@ Changes
 - CmdOption add `metavar` attribute.
 - Fix #156: `actions.py:Writer`, add support for `fileno()`. Taken from original stream.
 - `create_doit_tasks` supports `basename` attribute.
+- Task: add attribute `io`; add `io.capture`.
+
 
 0.34.2 (*2022-02-18*)
 =====================

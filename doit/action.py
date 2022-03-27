@@ -213,29 +213,37 @@ class CmdAction(BaseAction):
                 env = os.environ.copy()
             env['PYTHONUNBUFFERED'] = '1'
 
+        capture_io = self.task.io.capture if self.task else True
+        if capture_io:
+            p_out = p_err = subprocess.PIPE
+        else:
+            p_out = p_err = None
+
         # spawn task process
         process = subprocess.Popen(
             action,
             shell=self.shell,
             #bufsize=2, # ??? no effect use PYTHONUNBUFFERED instead
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            stdout=p_out,
+            stderr=p_err,
             env=env,
             **subprocess_pkwargs)
 
-        output = StringIO()
-        errput = StringIO()
-        t_out = Thread(target=self._print_process_output,
-                       args=(process, process.stdout, output, out))
-        t_err = Thread(target=self._print_process_output,
-                       args=(process, process.stderr, errput, err))
-        t_out.start()
-        t_err.start()
-        t_out.join()
-        t_err.join()
+        if capture_io:
+            output = StringIO()
+            errput = StringIO()
+            t_out = Thread(target=self._print_process_output,
+                           args=(process, process.stdout, output, out))
+            t_err = Thread(target=self._print_process_output,
+                           args=(process, process.stderr, errput, err))
+            t_out.start()
+            t_err.start()
+            t_out.join()
+            t_err.join()
 
-        self.out = output.getvalue()
-        self.err = errput.getvalue()
-        self.result = self.out + self.err
+            self.out = output.getvalue()
+            self.err = errput.getvalue()
+            self.result = self.out + self.err
 
         # make sure process really terminated
         process.wait()
@@ -423,23 +431,26 @@ class PythonAction(BaseAction):
 
         @return failure: see CmdAction.execute
         """
-        # set std stream
-        old_stdout = sys.stdout
-        output = StringIO()
-        out_writer = Writer()
-        # capture output but preserve isatty() from original stream
-        out_writer.add_writer(output)
-        if out:
-            out_writer.add_writer(out, is_original=True)
-        sys.stdout = out_writer
+        capture_io = self.task.io.capture if self.task else True
 
-        old_stderr = sys.stderr
-        errput = StringIO()
-        err_writer = Writer()
-        err_writer.add_writer(errput)
-        if err:
-            err_writer.add_writer(err, is_original=True)
-        sys.stderr = err_writer
+        if capture_io:
+            # set std stream
+            old_stdout = sys.stdout
+            output = StringIO()
+            out_writer = Writer()
+            # capture output but preserve isatty() from original stream
+            out_writer.add_writer(output)
+            if out:
+                out_writer.add_writer(out, is_original=True)
+            sys.stdout = out_writer
+
+            old_stderr = sys.stderr
+            errput = StringIO()
+            err_writer = Writer()
+            err_writer.add_writer(errput)
+            if err:
+                err_writer.add_writer(err, is_original=True)
+            sys.stderr = err_writer
 
         kwargs = self._prepare_kwargs()
 
@@ -455,10 +466,11 @@ class PythonAction(BaseAction):
             return TaskError("PythonAction Error", exception)
         finally:
             # restore std streams /log captured streams
-            sys.stdout = old_stdout
-            sys.stderr = old_stderr
-            self.out = output.getvalue()
-            self.err = errput.getvalue()
+            if capture_io:
+                sys.stdout = old_stdout
+                sys.stderr = old_stderr
+                self.out = output.getvalue()
+                self.err = errput.getvalue()
 
         # if callable returns false. Task failed
         if returned_value is False:

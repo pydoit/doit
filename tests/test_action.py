@@ -145,6 +145,44 @@ class TestCmdVerbosity(object):
         assert "hi_stdout" == my_action.out, repr(my_action.out)
 
 
+class TestTaskIOCapture:
+    def test_cmd_io_capture_yes(self):
+        task = Task(name='foo', actions=[f"{PROGRAM} hi_stdout hi2"], io={'capture': True})
+        task.init_options()
+        my_action = task.actions[0]
+        got = my_action.execute()
+        assert got is None
+        assert "hi_stdout" == my_action.out
+
+    def test_cmd_io_capture_no(self):
+        task = Task(name='foo', actions=[f"{PROGRAM} hi_stdout hi2"], io={'capture': False})
+        task.init_options()
+        my_action = task.actions[0]
+        got = my_action.execute()
+        assert got is None
+        assert my_action.out is None
+
+    def test_py_io_capture_yes(self):
+        def hello():
+            print('hello')
+        task = Task(name='foo', actions=[hello], io={'capture': True})
+        task.init_options()
+        my_action = task.actions[0]
+        got = my_action.execute()
+        assert got is None
+        assert "hello\n" == my_action.out
+
+    def test_py_io_capture_no(self):
+        def hello():
+            print('hello')
+        task = Task(name='foo', actions=[hello], io={'capture': False})
+        task.init_options()
+        my_action = task.actions[0]
+        got = my_action.execute()
+        assert got is None
+        assert my_action.out is None
+
+
 class TestCmdExpandAction(object):
 
     def test_task_meta_reference(self):

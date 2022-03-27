@@ -96,6 +96,12 @@ class Stream():
             return (sys.stdout, sys.stderr)
 
 
+class IOConfig:
+    def __init__(self, io_data):
+        self.capture = io_data.get('capture', True)
+    def __repr__(self):
+        return f'IOConfig(capture={self.capture})'
+
 
 class Task(object):
     """Task
@@ -153,6 +159,7 @@ class Task(object):
                   'params': ((list, tuple,), ()),
                   'pos_arg': (string_types, (None,)),
                   'verbosity': ((), (None, 0, 1, 2,)),
+                  'io': ((dict,), (None,)),
                   'getargs': ((dict,), ()),
                   'title': ((Callable,), (None,)),
                   'watch': ((list, tuple), ()),
@@ -165,7 +172,7 @@ class Task(object):
                  calc_dep=(), setup=(), clean=(), teardown=(),
                  subtask_of=None, has_subtask=False,
                  doc=None, params=(), pos_arg=None,
-                 verbosity=None, title=None, getargs=None,
+                 verbosity=None, io=None, title=None, getargs=None,
                  watch=(), meta=None, loader=None):
         """sanity checks and initialization
 
@@ -185,10 +192,9 @@ class Task(object):
         self.check_attr(name, 'teardown', teardown, self.valid_attr['teardown'])
         self.check_attr(name, 'doc', doc, self.valid_attr['doc'])
         self.check_attr(name, 'params', params, self.valid_attr['params'])
-        self.check_attr(name, 'pos_arg', pos_arg,
-                        self.valid_attr['pos_arg'])
-        self.check_attr(name, 'verbosity', verbosity,
-                        self.valid_attr['verbosity'])
+        self.check_attr(name, 'pos_arg', pos_arg, self.valid_attr['pos_arg'])
+        self.check_attr(name, 'verbosity', verbosity, self.valid_attr['verbosity'])
+        self.check_attr(name, 'io', io, self.valid_attr['io'])
         self.check_attr(name, 'getargs', getargs, self.valid_attr['getargs'])
         self.check_attr(name, 'title', title, self.valid_attr['title'])
         self.check_attr(name, 'watch', watch, self.valid_attr['watch'])
@@ -206,6 +212,7 @@ class Task(object):
         self.setup_tasks = list(setup)
 
         # actions
+        self.io = IOConfig(io or {})
         self._action_instances = None
         if actions is None:
             self._actions = []
