@@ -134,35 +134,3 @@ def task_package():
     yield pkg.manifest_git()
     yield pkg.sdist()
     # yield pkg.sdist_upload()
-
-
-
-def task_sample():
-    def show_meta(task):
-        print(f'META: {task.meta}')
-    return {
-        'actions': ['echo %(param1)s', show_meta],
-        'params': [
-            {
-                'name':'param1',
-                'short':'p',
-                'default':'default value',
-            },
-        ],
-        'meta': {'tags': ['sample']},
-        'verbosity': 2,
-    }
-
-
-# doit -f ../doit-recipes/deps/deps.py -d . --reporter=executed-only
-
-
-from doit import task_params
-
-@task_params([{"name": "howmany", "default": 3, "type": int, "long": "howmany"}])
-def task_subtasks(howmany):
-    for i in range(howmany):
-        yield {
-            "name": i,
-            "actions": [f"echo I can count to {howmany}: {i}"],
-        }
