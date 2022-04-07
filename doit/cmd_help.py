@@ -84,6 +84,10 @@ verbosity:
    -  1: (default) capture stdout only.
    -  2: do not capture anything (print everything immediately).
 
+io:
+ - type: dict
+   - capture (bool): If False task stdout/stderr is not captured/saved internally [default: True]
+
 title:
  - type: callable taking one parameter as argument (the task reference)
 
