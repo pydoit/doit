@@ -26,7 +26,7 @@ author = 'Eduardo Schettino (schettino72)'
 # The short X.Y version
 version = '0.35'
 # The full version, including alpha/beta/rc tags
-release = '0.35.0dev'
+release = '0.35.0'
 
 
 # -- General configuration ---------------------------------------------------
