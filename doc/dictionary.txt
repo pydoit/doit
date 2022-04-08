@@ -478,7 +478,9 @@ to's
 toc
 toctree
 toml
+tomli
 tomlkit
+tomllib
 toolchain
 toolchains
 traceback

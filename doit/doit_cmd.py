@@ -49,7 +49,7 @@ def set_var(name, value):
 class DoitConfig():
     """Parse and store values taken from INI and TOML configuration files"""
     # support TOML python libs
-    _TOML_LIBS = ['toml', 'tomlkit']
+    _TOML_LIBS = ['tomllib', 'tomli', 'tomlkit', 'toml']
     PLUGIN_TYPES = ['command', 'loader', 'backend', 'reporter']
 
     def __init__(self):
