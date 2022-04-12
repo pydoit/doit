@@ -14,6 +14,7 @@ Changes
 =====================
 
 - BACKWARD INCOMPATIBLE: remove deprecated `doit.cmd_base.py:TaskLoader`.
+- BACKWARD INCOMPATIBLE: does not use not maintained `toml` package, user `tomli` instead.
 
 
 0.35.0 (*2022-04-07*)
