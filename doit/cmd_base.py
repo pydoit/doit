@@ -3,7 +3,6 @@ import sys
 from collections import deque
 from collections import defaultdict
 import textwrap
-import warnings
 
 from .globals import Globals
 from . import version
@@ -287,42 +286,8 @@ opt_seek_file = {
 
 
 class TaskLoader():
-    """DEPRECATED: task-loader interface responsible of creating Task objects
-
-    :cvar cmd_options:
-          (list of dict) see cmdparse.CmdOption for dict format
-
-    Subclasses must implement the method `load_tasks`.
-    """
-    cmd_options = ()
-
     def __init__(self):
-        warnings.warn('doit.cmd_base.py:TaskLoader is deprecated user TaskLoader2 instead', DeprecationWarning)
-        # list of command names, used to detect clash of task names and commands
-        self.cmd_names = []
-        self.config = None  # reference to config object taken from Command
-
-    def load_tasks(self, cmd, opt_values, pos_args): # pragma: no cover
-        """load tasks and DOIT_CONFIG
-
-        :return: (tuple) list of Task, dict with DOIT_CONFIG options
-        :param cmd: (doit.cmd_base.Command) current command being executed
-        :param opt_values: (dict) with values for cmd_options
-        :param pos_args: (list str) positional arguments from command line
-        """
-        raise NotImplementedError()
-
-    @staticmethod
-    def _load_from(cmd, namespace, cmd_list):
-        """load task from a module or dict with module members"""
-        if inspect.ismodule(namespace):
-            members = dict(inspect.getmembers(namespace))
-        else:
-            members = namespace
-        task_list = loader.load_tasks(members, cmd_list, cmd.execute_tasks)
-        doit_config = loader.load_doit_config(members)
-        return task_list, doit_config
-
+        raise NotImplementedError('doit.cmd_base.py:TaskLoader was removed on 0.36.0, use TaskLoader2 instead')
 
 class TaskLoader2():
     """Interface of task loaders with new-style API.
@@ -555,14 +520,8 @@ class DoitCmdBase(Command):
         :param params: instance of cmdparse.DefaultUpdate
         :param args: list of string arguments (containing task names)
         """
-        # distinguish legacy and new-style task loader API when loading tasks:
-        legacy_loader = getattr(self.loader, 'API', 1) < 2
-        if legacy_loader:
-            self.task_list, dodo_config = self.loader.load_tasks(
-                self, params, args)
-        else:
-            self.loader.setup(params)
-            dodo_config = self.loader.load_doit_config()
+        self.loader.setup(params)
+        dodo_config = self.loader.load_doit_config()
 
         # merge config values from dodo.py into params
         params.update_defaults(dodo_config)
@@ -592,10 +551,8 @@ class DoitCmdBase(Command):
 
         # register dependency manager in global registry:
         Globals.dep_manager = self.dep_manager
-
-        # load tasks from new-style loader
-        if not legacy_loader:
-            self.task_list = self.loader.load_tasks(cmd=self, pos_args=args)
+        # load tasks
+        self.task_list = self.loader.load_tasks(cmd=self, pos_args=args)
 
         # hack to pass parameter into _execute() calls that are not part
         # of command line options

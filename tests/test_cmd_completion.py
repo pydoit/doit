@@ -5,7 +5,7 @@ from doit.exceptions import InvalidCommand
 from doit.cmdparse import CmdOption
 from doit.plugin import PluginDict
 from doit.task import Task
-from doit.cmd_base import Command, TaskLoader, DodoTaskLoader, TaskLoader2
+from doit.cmd_base import Command, DodoTaskLoader, TaskLoader2
 from doit.cmd_completion import TabCompletion
 from doit.cmd_help import Help
 from .conftest import CmdFactory
@@ -13,18 +13,8 @@ from .conftest import CmdFactory
 # doesnt test the shell scripts. just test its creation!
 
 
-class FakeLoader(TaskLoader):
-    def load_tasks(self, cmd, params, args):
-        task_list = [
-            Task("t1", None, ),
-            Task("t2", None, task_dep=['t2:a'], has_subtask=True, ),
-            Task("t2:a", None, subtask_of='t2'),
-            ]
-        return task_list, {}
-
-
 class FakeLoader2(TaskLoader2):
-    def load_doit_config(self):  # pragma: no cover
+    def load_doit_config(self):
         return {}
 
     def load_tasks(self, cmd, pos_args):
@@ -60,7 +50,7 @@ class TestCmdCompletionBash(object):
         assert 't1' not in got
         assert 'tabcompletion' in got
 
-    @pytest.mark.parametrize('loader_class', [FakeLoader, FakeLoader2])
+    @pytest.mark.parametrize('loader_class', [FakeLoader2])
     def test_no_dodo__hardcoded_tasks(self, commands, loader_class):
         output = StringIO()
         cmd = CmdFactory(TabCompletion, task_loader=loader_class(),
@@ -72,7 +62,7 @@ class TestCmdCompletionBash(object):
 
     def test_cmd_takes_file_args(self, commands):
         output = StringIO()
-        cmd = CmdFactory(TabCompletion, task_loader=FakeLoader(),
+        cmd = CmdFactory(TabCompletion, task_loader=FakeLoader2(),
                          outstream=output, cmds=commands)
         cmd.execute({'shell':'bash', 'hardcode_tasks': False}, [])
         got = output.getvalue()
@@ -137,7 +127,7 @@ class TestCmdCompletionZsh(object):
         got = output.getvalue()
         assert "tabcompletion: generate script" in got
 
-    @pytest.mark.parametrize('loader_class', [FakeLoader, FakeLoader2])
+    @pytest.mark.parametrize('loader_class', [FakeLoader2])
     def test_hardcoded_tasks(self, commands, loader_class):
         output = StringIO()
         cmd = CmdFactory(TabCompletion, task_loader=loader_class(),

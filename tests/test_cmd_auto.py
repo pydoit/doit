@@ -5,7 +5,7 @@ import pytest
 
 from doit.cmdparse import DefaultUpdate
 from doit.task import Task
-from doit.cmd_base import TaskLoader
+from doit.cmd_base import TaskLoader2
 from doit import filewatch
 from doit import cmd_auto
 from .conftest import CmdFactory
@@ -42,12 +42,16 @@ class TestDepChanged(object):
                                               [dependency1])
 
 
-class FakeLoader(TaskLoader):
+class FakeLoader(TaskLoader2):
     def __init__(self, task_list, dep_file):
         self.task_list = task_list
         self.dep_file = dep_file
-    def load_tasks(self, cmd, params, args):
-        return self.task_list, {'verbosity':2, 'dep_file':self.dep_file}
+
+    def load_doit_config(self):
+        return {'verbosity': 2, 'dep_file': self.dep_file}
+
+    def load_tasks(self, cmd, pos_args):
+        return self.task_list
 
 
 class TestAuto(object):

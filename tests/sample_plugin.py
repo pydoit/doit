@@ -13,7 +13,7 @@ class MyCmd(Command):
 ##############
 
 from doit.task import dict_to_task
-from doit.cmd_base import TaskLoader
+from doit.cmd_base import TaskLoader2
 
 my_builtin_task = {
     'name': 'sample_task',
@@ -21,8 +21,11 @@ my_builtin_task = {
     'doc': 'sample doc',
     }
 
-class MyLoader(TaskLoader):
-    def load_tasks(self, cmd, opt_values, pos_args):
-        task_list = [dict_to_task(my_builtin_task)]
-        config = {'verbosity': 2}
-        return task_list, config
+class MyLoader(TaskLoader2):
+
+    def load_doit_config(self):
+        return {'verbosity': 2}
+
+    def load_tasks(self, cmd, pos_args):
+        return [dict_to_task(my_builtin_task)]
+

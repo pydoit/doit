@@ -9,7 +9,7 @@ from doit.exceptions import InvalidCommand, InvalidDodoFile
 from doit.dependency import FileChangedChecker, JSONCodec
 from doit.task import Task
 from doit.loader import task_params
-from doit.cmd_base import version_tuple, Command, DoitCmdBase, TaskLoader
+from doit.cmd_base import version_tuple, Command, DoitCmdBase
 from doit.cmd_base import get_loader, ModuleTaskLoader, DodoTaskLoader
 from doit.cmd_base import check_tasks_exist, tasks_and_deps_iter, subtasks_iter
 from .conftest import CmdFactory
@@ -286,34 +286,6 @@ class TestDoitCmdBase(object):
         assert mock_globals.dep_manager == mycmd.dep_manager
 
 
-    def test_execute_with_legacy_dict_loader(self, depfile_name):
-        members = {'task_xxx1': lambda: {'actions': []}}
-
-        class LegacyLoader(TaskLoader):
-            def load_tasks(self, cmd, opt_values, pos_args):
-                return super()._load_from(cmd, members, [])
-
-        mycmd = self.MyCmd(task_loader=LegacyLoader())
-        assert 'min' == mycmd.parse_execute([
-            '--db-file', depfile_name,
-            '--mine', 'min',
-        ])
-
-
-    def test_execute_with_legacy_module_loader(self, depfile_name):
-        import tests.module_with_tasks as module
-
-        class LegacyLoader(TaskLoader):
-            def load_tasks(self, cmd, opt_values, pos_args):
-                return super()._load_from(cmd, module, [])
-
-        mycmd = self.MyCmd(task_loader=LegacyLoader())
-        assert 'min' == mycmd.parse_execute([
-            '--db-file', depfile_name,
-            '--mine', 'min',
-        ])
-
-
     # command with _execute() method
     def test_minversion(self, depfile_name, monkeypatch):
         members = {
@@ -381,7 +353,8 @@ class TestDoitCmdBase(object):
         loader = get_loader(config)
         mycmd = self.MyCmd(task_loader=loader, config=config)
         assert mycmd.loader.__class__.__name__ == 'MyLoader'
-        task_list, dodo_config = mycmd.loader.load_tasks(mycmd, {}, [])
+        dodo_config = mycmd.loader.load_doit_config()
+        task_list = mycmd.loader.load_tasks(mycmd, [])
         assert task_list[0].name == 'sample_task'
         assert dodo_config == {'verbosity': 2}
 
