@@ -24,9 +24,9 @@ copyright = '2008-2020, Eduardo Schettino'
 author = 'Eduardo Schettino (schettino72)'
 
 # The short X.Y version
-version = '0.35'
+version = '0.36'
 # The full version, including alpha/beta/rc tags
-release = '0.35.0'
+release = '0.36.dev0'
 
 
 # -- General configuration ---------------------------------------------------

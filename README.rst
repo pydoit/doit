@@ -251,6 +251,11 @@ Update version number at:
    twine upload dist/doit-X.Y.Z.tar.gz
    twine upload dist/doit-X.Y.Z-py3-none-any.whl
 
+Remember to push GIT tags::
+
+  git push --tags
+
+
 
 contributing
 ==============
