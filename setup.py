@@ -1,6 +1,5 @@
 #! /usr/bin/env python3
 
-from __future__ import print_function
 import sys
 
 from setuptools import setup
@@ -101,7 +100,7 @@ license
 =======
 
 The MIT License
-Copyright (c) 2008-2021 Eduardo Naufel Schettino
+Copyright (c) 2008-2022 Eduardo Naufel Schettino
 '''
 
 setup(name = 'doit',
@@ -141,8 +140,6 @@ setup(name = 'doit',
       python_requires='>=3.8',
       install_requires = ['cloudpickle'],
       extras_require={
-          ':sys.platform == "darwin"': ['macfsevents'],
-          ':sys.platform == "linux"': ['pyinotify'],
           'plugins': ['setuptools'],
           'toml': ['tomli; python_version<"3.11"']
       },
