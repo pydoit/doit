@@ -138,9 +138,8 @@ setup(name = 'doit',
       },
       packages = ['doit'],
       python_requires='>=3.8',
-      install_requires = ['cloudpickle'],
+      install_requires = ['cloudpickle', 'importlib-metadata>=4.4'],
       extras_require={
-          'plugins': ['setuptools'],
           'toml': ['tomli; python_version<"3.11"']
       },
       long_description = long_description,

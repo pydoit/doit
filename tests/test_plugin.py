@@ -1,3 +1,4 @@
+from importlib.metadata import EntryPoint
 from unittest.mock import Mock
 
 import pytest
@@ -51,10 +52,10 @@ class TestPluginDict(object):
 
     def test_add_plugins_from_pkg_resources(self, monkeypatch):
         # mock entry points
-        import pkg_resources
+        from doit import plugin
         def fake_entries(group):
-            yield pkg_resources.EntryPoint('name1', 'pytest', ('raises',))
-        monkeypatch.setattr(pkg_resources, 'iter_entry_points', fake_entries)
+            yield EntryPoint(name='name1', value='pytest:raises', group=group)
+        monkeypatch.setattr(plugin, 'entry_points_impl', lambda: fake_entries)
 
         plugins = PluginDict()
         plugins.add_plugins({}, 'category2')

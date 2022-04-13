@@ -15,7 +15,8 @@ Changes
 
 - BACKWARD INCOMPATIBLE: remove deprecated `doit.cmd_base.py:TaskLoader`.
 - BACKWARD INCOMPATIBLE: does not use not maintained `toml` package, user `tomli` instead.
-- BACKWARD INCOMPATIBLE: remove `auto` command, use plugin `doit-auto1`
+- BACKWARD INCOMPATIBLE: remove `auto` command, use plugin `doit-auto1`.
+- BACKWARD INCOMPATIBLE: plugins use importlib-metadata instead of setuptools.
 
 
 0.35.0 (*2022-04-07*)

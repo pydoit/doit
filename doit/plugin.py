@@ -1,4 +1,15 @@
+import sys
 import importlib
+
+
+def entry_points_impl():
+    # entry_points is available since 3.8 but "horrible inefficient"
+    if sys.version_info < (3, 10):
+        from importlib_metadata import entry_points
+    else:
+        from importlib.metadata import entry_points
+    return entry_points
+
 
 class PluginEntry(object):
     """A Plugin entry point
@@ -87,15 +98,12 @@ class PluginDict(dict):
     def _from_entry_points(self, category):
         """get all plugins from setuptools entry_points"""
         result = {}
-        try:
-            import pkg_resources
-            group = f"{self.entry_point_prefix}.{category}"
-            for point in pkg_resources.iter_entry_points(group=group):
-                name = point.name
-                location = "{}:{}".format(point.module_name, point.attrs[0])
-                result[name] = PluginEntry(category, name, location)
-        except ImportError: # pragma: no cover
-            pass  # ignore, if setuptools is not installed
+        group = f"{self.entry_point_prefix}.{category}"
+        entry_points = entry_points_impl()
+        for point in entry_points(group=group):
+            name = point.name
+            location = "{}:{}".format(point.module, point.attr)
+            result[name] = PluginEntry(category, name, location)
         return result
 
 
