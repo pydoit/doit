@@ -44,7 +44,7 @@ class ConsoleReporter(object):
 
     def add_failure(self, task, exception):
         """called when execution finishes with a failure"""
-        result = {'task': task, 'exception':exception}
+        result = {'task': task, 'exception': exception}
         self.failures.append(result)
         self._write_failure(result)
 
@@ -94,7 +94,7 @@ class ConsoleReporter(object):
             show_err = task.verbosity < 1 or self.failure_verbosity > 0
             show_out = task.verbosity < 2 or self.failure_verbosity == 2
             if show_err or show_out:
-                self.write("#"*40 + "\n")
+                self.write("#" * 40 + "\n")
             if show_err:
                 self._write_failure(result,
                                     write_exception=self.failure_verbosity)
@@ -105,7 +105,7 @@ class ConsoleReporter(object):
                 self.write("{} <stdout>:\n{}\n".format(task.name, out))
 
         if self.runtime_errors:
-            self.write("#"*40 + "\n")
+            self.write("#" * 40 + "\n")
             self.write("Execution aborted.\n")
             self.write("\n".join(self.runtime_errors))
             self.write("\n")
@@ -151,14 +151,14 @@ class TaskResult(object):
     # FIXME what about returned value from python-actions ?
     def __init__(self, task):
         self.task = task
-        self.result = None # fail, success, up-to-date, ignore
-        self.out = None # stdout from task
-        self.err = None # stderr from task
-        self.error = None # error from doit (exception traceback)
-        self.started = None # datetime when task execution started
-        self.elapsed = None # time (in secs) taken to execute task
-        self._started_on = None # timestamp
-        self._finished_on = None # timestamp
+        self.result = None  # fail, success, up-to-date, ignore
+        self.out = None  # stdout from task
+        self.err = None  # stderr from task
+        self.error = None  # error from doit (exception traceback)
+        self.started = None  # datetime when task execution started
+        self.elapsed = None  # time (in secs) taken to execute task
+        self._started_on = None  # timestamp
+        self._finished_on = None  # timestamp
 
     def start(self):
         """called when task starts its execution"""
@@ -205,7 +205,7 @@ class JsonReporter(object):
 
     desc = 'output in JSON format'
 
-    def __init__(self, outstream, options=None): #pylint: disable=W0613
+    def __init__(self, outstream, options=None):  # pylint: disable=W0613
         # options parameter is not used
         # json result is sent to stdout when doit finishes running
         self.t_results = {}

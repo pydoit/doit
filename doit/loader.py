@@ -48,9 +48,9 @@ def get_module(dodo_file, cwd=None, seek_parent=False):
     def exist_or_raise(path):
         """raise exception if file on given path doesnt exist"""
         if not os.path.exists(path):
-            msg = ("Could not find dodo file '%s'.\n" +
+            msg = (f"Could not find dodo file '{path}'.\n"
                    "Please use '-f' to specify file name.\n")
-            raise InvalidDodoFile(msg % path)
+            raise InvalidDodoFile(msg)
 
     # get absolute path name
     if os.path.isabs(dodo_file):
@@ -68,7 +68,7 @@ def get_module(dodo_file, cwd=None, seek_parent=False):
             parent = os.path.dirname(dodo_path)
             while not os.path.exists(dodo_path):
                 new_parent = os.path.dirname(parent)
-                if new_parent == parent: # reached root path
+                if new_parent == parent:  # reached root path
                     exist_or_raise(dodo_file)
                 parent = new_parent
                 dodo_path = os.path.join(parent, file_name)
@@ -112,7 +112,9 @@ def create_after(executed=None, target_regex=None, creates=None):
 
 
 def task_params(param_def=None):
-    """Annotate a task-creator function with definition of parameters to get arguments from cmd line"""
+    """Annotate a task-creator function with definition of parameters
+    to get arguments from cmd line
+    """
     if param_def is None or type(param_def) != list:
         raise ValueError('task_params must be called with a valid parameter definition.')
     def decorated(func):
@@ -122,7 +124,8 @@ def task_params(param_def=None):
 
 
 
-def load_tasks(namespace, command_names=(), allow_delayed=False, args=(), config=None, task_opts=None):
+def load_tasks(namespace, command_names=(), allow_delayed=False, args=(),
+               config=None, task_opts=None):
     """Find task-creators and create tasks
 
     @param namespace: (dict) containing the task creators, it might
@@ -148,16 +151,17 @@ def load_tasks(namespace, command_names=(), allow_delayed=False, args=(), config
     task_list = []
 
     def _append_params(tasks, param_def):
-        'Apply parameters defined for the task generator to the tasks defined by the generator.'
+        """Apply parameters defined for the task generator to the tasks
+        defined by the generator.
+        """
         for task in tasks:
-            if task.subtask_of is None: # only parent tasks
+            if task.subtask_of is None:  # only parent tasks
                 # task.params can not be used with creator_params
                 if task.params:
-                    raise InvalidTask(f"Task '{task.name}'. `params` attribute can not be used in conjuction with `@task_params`")
-
+                    msg = (f"Task '{task.name}'. `params` attribute can not be used"
+                           " in conjuction with `@task_params`")
+                    raise InvalidTask(msg)
                 task.creator_params = param_def
-
-
 
 
     def _process_gen(ref, creator_kwargs):
@@ -169,8 +173,10 @@ def load_tasks(namespace, command_names=(), allow_delayed=False, args=(), config
 
     def _add_delayed(tname, ref, original_delayed, kwargs):
         # Make sure create_after can be used on class methods.
-        # delayed.creator is initially set by the decorator, so always an unbound function.
-        # Here we re-assign with the reference taken on doit load phase because it is bounded method.
+        # delayed.creator is initially set by the decorator,
+        # so always an unbound function.
+        # Here we re-assign with the reference taken on doit load phase
+        # because it is bounded method.
         this_delayed = copy.copy(delayed)
         this_delayed.creator = ref
         d_task = Task(tname, None, loader=this_delayed, doc=delayed.creator.__doc__)
@@ -181,7 +187,8 @@ def load_tasks(namespace, command_names=(), allow_delayed=False, args=(), config
         task_list.append(d_task)
 
 
-    # map arg_name to its position. Save only args that do not start with `-` (potentially task names)
+    # Map arg_name to its position.
+    # Save only args that do not start with `-` (potentially task names)
     arg_pos = {}
     for index, term in enumerate(args):
         if term[0] != '-':
@@ -205,7 +212,7 @@ def load_tasks(namespace, command_names=(), allow_delayed=False, args=(), config
                 creator_kwargs = task_opts[name]
             # if relevant command line defaults are available parse those
             elif name in arg_pos:
-                creator_kwargs, _ = parser.parse(args[arg_pos[name]+1:])
+                creator_kwargs, _ = parser.parse(args[arg_pos[name] + 1:])
             else:
                 creator_kwargs, _ = parser.parse('')
         else:
@@ -261,9 +268,9 @@ def _get_task_creators(namespace, command_names):
 
         # tasks can't have the same name of a commands
         if task_name in command_names:
-            msg = ("Task can't be called '%s' because this is a command name."+
+            msg = (f"Task can't be called '{task_name}' because this is a command name."
                    " Please choose another name.")
-            raise InvalidDodoFile(msg % task_name)
+            raise InvalidDodoFile(msg)
         # get line number where function is defined
         line = inspect.getsourcelines(ref)[1]
         # add to list task generator functions
@@ -293,7 +300,7 @@ def _generate_task_from_return(func_name, task_dict, gen_doc):
 
     # Use task generator docstring
     # if no doc present in task dict
-    if not 'doc' in task_dict:
+    if 'doc' not in task_dict:
         task_dict['doc'] = gen_doc
 
     return dict_to_task(task_dict)
@@ -325,7 +332,7 @@ def _generate_task_from_yield(tasks, func_name, task_dict, gen_doc):
             return
 
         # name is '<task>.<subtask>'
-        full_name = "%s:%s"% (basename, task_dict['name'])
+        full_name = f"{basename}:{task_dict['name']}"
         if full_name in tasks:
             raise InvalidTask(msg_dup % (func_name, full_name))
         task_dict['name'] = full_name
@@ -346,13 +353,13 @@ def _generate_task_from_yield(tasks, func_name, task_dict, gen_doc):
     else:
         if not basename:
             raise InvalidTask(
-                "Task '%s' must contain field 'name' or 'basename'. %s"%
+                "Task '%s' must contain field 'name' or 'basename'. %s" %
                 (func_name, task_dict))
         if basename in tasks:
             raise InvalidTask(msg_dup % (func_name, basename))
         task_dict['name'] = basename
         # Use task generator docstring if no doc present in task dict
-        if not 'doc' in task_dict:
+        if 'doc' not in task_dict:
             task_dict['doc'] = gen_doc
         tasks[basename] = dict_to_task(task_dict)
 
@@ -364,7 +371,8 @@ def generate_tasks(func_name, gen_result, gen_doc=None):
     @param gen_result: value returned by a task generator function
                        it can be a dict or generator (generating dicts)
     @param gen_doc: (string/None) docstring from the task generator function
-    @param param_def: (dict) additional task parameter definitions passed down from generator
+    @param param_def: (dict) additional task parameter definitions
+                      passed down from generator
     @return: (list - Task)
     """
     # a task instance, just return it without any processing
@@ -377,7 +385,7 @@ def generate_tasks(func_name, gen_result, gen_doc=None):
 
     # a generator
     if inspect.isgenerator(gen_result):
-        tasks = OrderedDict() # task_name: task
+        tasks = OrderedDict()  # task_name: task
         # the generator return subtasks as dictionaries
         for task_dict, x_doc in flat_generator(gen_result, gen_doc):
             if isinstance(task_dict, Task):

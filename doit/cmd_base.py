@@ -26,7 +26,7 @@ def version_tuple(ver_in):
     for rev in parts:
         try:
             result.append(int(rev))
-        except:
+        except ValueError:
             result.append(-1)
     assert len(result) == 3
     return result
@@ -65,7 +65,7 @@ class Command(object):
     # doc attributes, should be sub-classed
     doc_purpose = ''
     doc_usage = ''
-    doc_description = None # None value will completely omit line from doc
+    doc_description = None  # None value will completely omit line from doc
 
     # sequence of dicts
     cmd_options = tuple()
@@ -130,7 +130,7 @@ class Command(object):
         return [CmdOption(opt) for opt in self.cmd_options]
 
 
-    def execute(self, opt_values, pos_args): # pragma: no cover
+    def execute(self, opt_values, pos_args):  # pragma: no cover
         """execute command
         :param opt_values: (dict) with cmd_options values
         :param pos_args: (list) of cmd-line positional arguments
@@ -200,7 +200,7 @@ class Command(object):
 opt_depfile = {
     'section': 'DB backend',
     'name': 'dep_file',
-    'short':'',
+    'short': '',
     'long': 'db-file',
     'type': str,
     'default': ".doit.db",
@@ -211,7 +211,7 @@ opt_depfile = {
 opt_backend = {
     'section': 'DB backend',
     'name': 'backend',
-    'short':'',
+    'short': '',
     'long': 'backend',
     'type': str,
     'default': "dbm",
@@ -251,24 +251,24 @@ Available options [default: %(default)s]:
 opt_dodo = {
     'section': 'task loader',
     'name': 'dodoFile',
-    'short':'f',
+    'short': 'f',
     'long': 'file',
     'type': str,
     'default': 'dodo.py',
     'env_var': 'DOIT_FILE',
-    'help':"load task from dodo FILE [default: %(default)s]"
+    'help': "load task from dodo FILE [default: %(default)s]"
 }
 
 # cwd
 opt_cwd = {
     'section': 'task loader',
     'name': 'cwdPath',
-    'short':'d',
+    'short': 'd',
     'long': 'dir',
     'type': str,
     'default': None,
-    'help':("set path to be used as cwd directory (file paths on " +
-            "dodo file are relative to dodo.py location).")
+    'help': ("set path to be used as cwd directory "
+             "(file paths on dodo file are relative to dodo.py location).")
 }
 
 # seek dodo file on parent folders
@@ -280,14 +280,14 @@ opt_seek_file = {
     'type': bool,
     'default': False,
     'env_var': 'DOIT_SEEK_FILE',
-    'help': ("seek dodo file on parent folders " +
-             "[default: %(default)s]")
+    'help': ("seek dodo file on parent folders [default: %(default)s]")
 }
 
 
 class TaskLoader():
     def __init__(self):
-        raise NotImplementedError('doit.cmd_base.py:TaskLoader was removed on 0.36.0, use TaskLoader2 instead')
+        raise NotImplementedError(
+            'doit.cmd_base.py:TaskLoader was removed on 0.36.0, use TaskLoader2 instead')
 
 class TaskLoader2():
     """Interface of task loaders with new-style API.
@@ -305,8 +305,8 @@ class TaskLoader2():
     def __init__(self):
         # list of command names, used to detect clash of task names and commands
         self.cmd_names = []
-        self.config = None  # reference to config object taken from Command
-        self.task_opts = None # dict with task options (no need parsing, API usage)
+        self.config = None   # reference to config object taken from Command
+        self.task_opts = None  # dict with task options (no need parsing, API usage)
 
     def setup(self, opt_values):
         """Delayed initialization.
@@ -417,7 +417,7 @@ def get_loader(config, task_loader=None, cmds=None):
             loader = plugins.get_plugin(loader_name)()
 
     if not loader:
-        loader = DodoTaskLoader() # default loader
+        loader = DodoTaskLoader()  # default loader
 
     if cmds:
         loader.cmd_names = list(sorted(cmds.keys()))
@@ -438,9 +438,9 @@ class DoitCmdBase(Command):
 
     def __init__(self, task_loader, cmds=None, **kwargs):
         super(DoitCmdBase, self).__init__(**kwargs)
-        self.sel_tasks = None # selected tasks for command
-        self.sel_default_tasks = True # False if tasks were specified from command line
-        self.dep_manager = None #
+        self.sel_tasks = None  # selected tasks for command
+        self.sel_default_tasks = True  # False if tasks were specified from command line
+        self.dep_manager = None
         self.outstream = sys.stdout
         self.loader = task_loader
         self._backends = self.get_backends()
@@ -449,12 +449,11 @@ class DoitCmdBase(Command):
     def get_options(self):
         """from base class - merge base_options, loader_options and cmd_options
         """
-        opt_list = (self.base_options + self.loader.cmd_options +
-                    self.cmd_options)
+        opt_list = (self.base_options + self.loader.cmd_options + self.cmd_options)
         return [CmdOption(opt) for opt in opt_list]
 
 
-    def _execute(self): # pragma: no cover
+    def _execute(self):  # pragma: no cover
         """to be subclassed - actual command implementation"""
         raise NotImplementedError
 
@@ -508,7 +507,7 @@ class DoitCmdBase(Command):
 
         # set choices, sub-classes might not have this option
         if 'backend' in self.cmdparser:
-            choices = {k: getattr(v, 'desc', '') for k,v in backend_map.items()}
+            choices = {k: getattr(v, 'desc', '') for k, v in backend_map.items()}
             self.cmdparser['backend'].choices = choices
 
         return backend_map
@@ -592,8 +591,8 @@ def tasks_and_deps_iter(tasks, sel_tasks, yield_duplicates=False):
     @param tasks (dict - Task)
     @param sel_tasks(list - str)
     """
-    processed = set() # str - task name
-    to_process = deque(sel_tasks) # str - task name
+    processed = set()  # str - task name
+    to_process = deque(sel_tasks)  # str - task name
     # get initial task
     while to_process:
         task = tasks[to_process.popleft()]

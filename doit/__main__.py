@@ -1,5 +1,5 @@
 # lazy way to ignore coverage in this file
-if True: # pragma: no cover
+if True:  # pragma: no cover
     def main():
         import sys
 

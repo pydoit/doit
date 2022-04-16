@@ -46,8 +46,8 @@ class Forget(DoitCmdBase):
             self.outstream.write("forgetting all tasks\n")
 
         elif self.sel_default_tasks and forget_disable_default:
-             self.outstream.write(
-                 "no tasks specified, pass task name, --enable-default or --all\n")
+            self.outstream.write(
+                "no tasks specified, pass task name, --enable-default or --all\n")
 
         # forget tasks from list
         else:

@@ -221,7 +221,7 @@ class DoitMain(object):
         return args_no_vars
 
 
-    def get_commands(self): # pragma: no cover
+    def get_commands(self):  # pragma: no cover
         '''Notice for application subclassing DoitMain with old API'''
         msg = ('ERROR: You are using doit version {}, it is too new! '
                'This application requires version <= 0.27.\n')
@@ -288,7 +288,7 @@ class DoitMain(object):
             bin_name=self.BIN_NAME,
             cmds=sub_cmds,
             opt_vals=loader_params,
-            )
+        )
 
         try:
             return command.parse_execute(args)
@@ -303,7 +303,7 @@ class DoitMain(object):
             return 3
 
         except Exception:
-            if command.pdb: # pragma: no cover
+            if command.pdb:  # pragma: no cover
                 import pdb
                 pdb.post_mortem(sys.exc_info()[2])
             sys.stderr.write(traceback.format_exc())

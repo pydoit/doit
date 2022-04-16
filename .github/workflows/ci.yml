@@ -46,6 +46,7 @@ jobs:
       - run: pip freeze
       - run: pip check
       - run: doit pyflakes
+      - run: doit codestyle
       - run: py.test -vv ${{ matrix.pytest-args }}
       - if: ${{ matrix.os == 'ubuntu' && matrix.python-version == '3.8' }}
         run: |

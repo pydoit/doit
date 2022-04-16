@@ -1,4 +1,9 @@
-"""Definition of stuff that can be used directly by a user in a dodo.py file."""
+"""APIs to execute doit in non standard way.
+
+- run(): shortcut to get tasks from current module/dict (instead of dodo.py).
+- run_tasks(): to be used by custom CLIs, run tasks without CLI parsing.
+
+"""
 
 import sys
 
@@ -23,7 +28,7 @@ def run_tasks(loader, tasks, extra_config=None):
 
     :params tasks: list of task names (str)
     """
-    loader.task_opts = tasks # task_opts will be used as @task_param
+    loader.task_opts = tasks  # task_opts will be used as @task_param
     main = DoitMain(loader, extra_config=extra_config)
     task_names = list(tasks.keys())
 
@@ -39,7 +44,7 @@ def run_tasks(loader, tasks, extra_config=None):
         bin_name=main.BIN_NAME,
         cmds=sub_cmds,
         opt_vals={},
-        )
+    )
 
     try:
         return command.parse_execute(task_names)

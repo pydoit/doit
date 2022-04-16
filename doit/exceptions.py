@@ -10,7 +10,7 @@ class InvalidCommand(Exception):
         self.not_found = kwargs.pop('not_found', None)
         super(InvalidCommand, self).__init__(*args, **kwargs)
         self.cmd_used = None
-        self.bin_name = 'doit' # default but might be overwriten
+        self.bin_name = 'doit'  # default but might be overwriten
 
     def __str__(self):
         if self.not_found is None:
@@ -18,15 +18,15 @@ class InvalidCommand(Exception):
 
         if self.cmd_used:
             msg_task_not_found = (
-                'command `{cmd_used}` invalid parameter: "{not_found}".' +
-                ' Must be a task, or a target.\n' +
+                'command `{cmd_used}` invalid parameter: "{not_found}".'
+                ' Must be a task, or a target.\n'
                 'Type "{bin_name} list" to see available tasks')
             return msg_task_not_found.format(**self.__dict__)
         else:
             msg_cmd_task_not_found = (
-                'Invalid parameter: "{not_found}".' +
-                ' Must be a command, task, or a target.\n' +
-                'Type "{bin_name} help" to see available commands.\n' +
+                'Invalid parameter: "{not_found}".'
+                ' Must be a command, task, or a target.\n'
+                'Type "{bin_name} help" to see available commands.\n'
                 'Type "{bin_name} list" to see available tasks.\n')
             return msg_cmd_task_not_found.format(**self.__dict__)
 

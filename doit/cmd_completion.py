@@ -14,7 +14,7 @@ opt_shell = {
     'choices': (('bash', ''), ('zsh', '')),
     'default': 'bash',
     'help': 'Completion code for SHELL. [default: %(default)s]',
-    }
+}
 
 opt_hardcode_tasks = {
     'name': 'hardcode_tasks',
@@ -23,7 +23,7 @@ opt_hardcode_tasks = {
     'type': bool,
     'default': False,
     'help': 'Hardcode tasks from current task list.',
-    }
+}
 
 
 
@@ -50,7 +50,7 @@ class TabCompletion(DoitCmdBase):
         self.init_kwargs = kwargs
         self.init_kwargs['cmds'] = cmds
         if cmds:
-            self.cmds = cmds.to_dict() # dict name - Command class
+            self.cmds = cmds.to_dict()  # dict name - Command class
 
     def execute(self, opt_values, pos_args):
         if opt_values['shell'] == 'bash':
@@ -72,7 +72,7 @@ class TabCompletion(DoitCmdBase):
         if comp:
             completion = '-W "{0}"'.format(' '.join(comp))
         else:
-            completion = '-f' # complete file
+            completion = '-f'  # complete file
         return bash_subcmd_arg.format(cmd_name=cmd.name, completion=completion)
 
 
@@ -93,7 +93,7 @@ class TabCompletion(DoitCmdBase):
             'pt_bin_name': pt_bin_name,
             'pt_cmds': ' '.join(sorted(self.cmds)),
             'pt_list_param': pt_list_param,
-            }
+        }
 
         # if hardcode tasks
         if opt_values['hardcode_tasks']:
@@ -117,13 +117,14 @@ class TabCompletion(DoitCmdBase):
             cmd_class = self.cmds[name]
             cmd = cmd_class(**self.init_kwargs)
             cmds_args.append(self._bash_cmd_args(cmd))
-        comp_subcmds = ("\n    case ${words[1]} in\n" +
-                        "".join(cmds_args) +
-                        "\n    esac\n")
+        comp_subcmds = ("\n    case ${words[1]} in\n"
+                        + "".join(cmds_args)
+                        + "\n    esac\n")
 
-        template = Template(bash_start + bash_opt_file + get_dodo_part +
-                            bash_task_list + bash_first_arg +
-                            comp_subcmds + bash_end)
+        template = Template(
+            bash_start + bash_opt_file + get_dodo_part
+            + bash_task_list + bash_first_arg
+            + comp_subcmds + bash_end)
         self.outstream.write(template.safe_substitute(tmpl_vars))
 
 
@@ -139,7 +140,7 @@ class TabCompletion(DoitCmdBase):
             tmpl = '"--{0.long}[{help}]" \\'
         elif opt.short and not opt.long:
             tmpl = '"-{0.short}[{help}]" \\'
-        else: # without short or long options cant be really used
+        else:  # without short or long options cant be really used
             return ''
         ohelp = opt.help.replace(']', r'\]').replace('"', r'\"')
         return tmpl.format(opt, help=ohelp).replace('\n', ' ')
@@ -189,8 +190,8 @@ class TabCompletion(DoitCmdBase):
 
         template_vars = {
             'pt_bin_name': sys.argv[0].split('/')[-1],
-            'pt_cmds':'\n    '.join(cmds_desc),
-            'pt_cmds_args':'\n'.join(cmds_args),
+            'pt_cmds': '\n    '.join(cmds_desc),
+            'pt_cmds_args': '\n'.join(cmds_args),
         }
 
         if opt_values['hardcode_tasks']:

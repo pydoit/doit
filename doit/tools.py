@@ -10,8 +10,9 @@ import subprocess
 
 from . import exceptions
 from .action import CmdAction, PythonAction
-from .task import result_dep # imported for backward compatibility
-result_dep # pyflakes
+from .task import result_dep  # imported for backward compatibility
+result_dep  # pyflakes
+
 
 # action
 def create_folder(dir_path):
@@ -28,7 +29,7 @@ def title_with_actions(task):
     # is used as group task
     else:
         title = "Group: %s" % ", ".join(task.task_dep)
-    return "%s => %s"% (task.name, title)
+    return "%s => %s" % (task.name, title)
 
 
 
@@ -63,11 +64,12 @@ class config_changed(object):
             byte_data = data.encode("utf-8")
             return hashlib.md5(byte_data).hexdigest()
         else:
-            raise Exception(('Invalid type of config_changed parameter got %s' +
-                             ', must be string or dict') % (type(self.config),))
+            msg = ('Invalid type of config_changed parameter got %s,'
+                   ' must be string or dict')
+            raise Exception(msg % (type(self.config),))
 
     def configure_task(self, task):
-        task.value_savers.append(lambda: {'_config_changed':self.config_digest})
+        task.value_savers.append(lambda: {'_config_changed': self.config_digest})
 
     def __call__(self, task, values):
         """return True if config values are UNCHANGED"""
@@ -91,8 +93,8 @@ class timeout(object):
 
     def __init__(self, timeout_limit):
         if isinstance(timeout_limit, datetime.timedelta):
-            self.limit_sec = ((timeout_limit.days * 24 * 3600) +
-                              timeout_limit.seconds)
+            self.limit_sec = ((timeout_limit.days * 24 * 3600)
+                              + timeout_limit.seconds)
         elif isinstance(timeout_limit, int):
             self.limit_sec = timeout_limit
         else:
@@ -161,7 +163,7 @@ class check_timestamp_unchanged(object):
         task.value_savers.append(save_now)
 
         prev_time = values.get(self._key)
-        if prev_time is None: # this is first run
+        if prev_time is None:  # this is first run
             return False
         current_time = self._get_time()
         return self._cmp_op(prev_time, current_time)
@@ -227,14 +229,14 @@ class PythonInteractiveAction(PythonAction):
 
 
 # debug helper
-def set_trace(): # pragma: no cover
+def set_trace():  # pragma: no cover
     """start debugger, make sure stdout shows pdb output.
     output is not restored.
     """
     import pdb
     import sys
     debugger = pdb.Pdb(stdin=sys.__stdin__, stdout=sys.__stdout__)
-    debugger.set_trace(sys._getframe().f_back) #pylint: disable=W0212
+    debugger.set_trace(sys._getframe().f_back)  # pylint: disable=W0212
 
 
 

@@ -3,7 +3,8 @@
 
 setuptools # for plugins
 pyflakes
-pytest>=5.4.1
-coverage>=4.0,<5
+pycodestyle
+pytest>=7.1.0
+coverage>=6.0
 doit-py>=0.4.0
 tomli; python_version<"3.11"

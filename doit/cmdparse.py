@@ -105,7 +105,8 @@ class CmdOption(object):
             raise CmdParseError(msg % list(opt_dict.keys()))
 
     def __repr__(self):
-        tmpl = ("{0}({{'name':{1.name!r}, 'short':{1.short!r}," +
+        tmpl = ("{0}({{'name':{1.name!r}, "
+                "'short':{1.short!r},"
                 "'long':{1.long!r} }})")
         return tmpl.format(self.__class__.__name__, self)
 
@@ -121,18 +122,19 @@ class CmdOption(object):
         if given_value not in self.choices:
             msg = ("Error parsing parameter '{}'. "
                    "Provided '{}' but available choices are: {}.")
-            choices = ("'{}'".format(k) for k in self.choices.keys())
-            choices_str = ", ".join(choices)
-            raise CmdParseError(msg.format(self.name, given_value, choices_str))
+            choices = ", ".join(f"'{k}'" for k in self.choices.keys())
+            raise CmdParseError(msg.format(self.name, given_value, choices))
 
 
-    _boolean_states = {'1': True, 'yes': True, 'true': True, 'on': True,
-                       '0': False, 'no': False, 'false': False, 'off': False}
+    _boolean_states = {
+        '1': True, 'yes': True, 'true': True, 'on': True,
+        '0': False, 'no': False, 'false': False, 'off': False,
+    }
     def str2boolean(self, str_val):
         """convert string to boolean"""
         try:
             return self._boolean_states[str_val.lower()]
-        except:
+        except Exception:
             raise ValueError('Not a boolean: {}'.format(str_val))
 
     def str2type(self, str_val):
@@ -145,13 +147,13 @@ class CmdOption(object):
                 val = self.str2boolean(str_val)
             elif self.type is list:
                 parts = [p.strip() for p in str_val.split(',')]
-                val = [p for p in parts if p] # remove empty strings
+                val = [p for p in parts if p]  # remove empty strings
             else:
                 val = self.type(str_val)
         except ValueError as exception:
-            msg = "Error parsing parameter '{}' {}.\n{}\n"
-            raise CmdParseError(msg.format(self.name, self.type,
-                                           str(exception)))
+            msg = (f"Error parsing parameter '{self.name}' {self.type}.\n"
+                   f"{exception}\n")
+            raise CmdParseError(msg)
 
         if self.choices:
             self.validate_choice(val)
@@ -164,7 +166,7 @@ class CmdOption(object):
         column1_len = 24
         column2_start = 28
         left = (col1).ljust(column1_len)
-        right = col2.replace('\n', '\n'+ column2_start * ' ')
+        right = col2.replace('\n', '\n' + column2_start * ' ')
         return "  %s  %s" % (left, right)
 
     def help_param(self):
@@ -219,7 +221,7 @@ class CmdOption(object):
         opt_config = 'config: {}'.format(self.name)
         opt_env = ', environ: {}'.format(self.env_var) if self.env_var else ''
 
-        desc = '{} {} ({}{})'.format(opt_help, opt_choices, opt_config, opt_env)
+        desc = f'{opt_help} {opt_choices} ({opt_config}{opt_env})'
         text.append(self._print_2_columns(opt_str, desc))
         # print bool inverse option
         if self.inverse:
@@ -317,7 +319,8 @@ class CmdParse(object):
             opts, args = getopt.getopt(in_args, self.get_short(),
                                        self.get_long())
         except Exception as error:
-            msg = f"Error parsing {self._type}: {error} (parsing options: {self.options}). Got: {in_args}"
+            msg = (f"Error parsing {self._type}: {error} "
+                   f"(parsing options: {self.options}). Got: {in_args}")
             raise CmdParseError(msg)
 
         # update params with values from command line

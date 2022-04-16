@@ -134,3 +134,9 @@ def task_package():
     yield pkg.manifest_git()
     yield pkg.sdist()
     # yield pkg.sdist_upload()
+
+
+def task_codestyle():
+    return {
+        'actions': ['pycodestyle doit'],
+    }

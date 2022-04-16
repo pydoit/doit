@@ -55,8 +55,8 @@ to a task that has already run.
                             if not os.path.exists(dep)]
 
             if len(missing_deps) > 0:
-                write("failed {} (Dependent file '{}' does not "
-                "exist.)\n".format(task.name, "', '".join(missing_deps)))
+                deps = "', '".join(missing_deps)
+                write(f"failed {task.name} (Dependent file '{deps}' does not exist.)\n")
                 continue
 
             res = self.dep_manager.get_status(task, tasks)

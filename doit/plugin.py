@@ -62,9 +62,10 @@ class PluginEntry(object):
 
 
 class PluginDict(dict):
-    """A dict where item values *might* be a PluginEntry or a direct reference to class/obj.
+    """Item values *might* be a PluginEntry or a direct reference to class/obj.
 
-    Values should not be accessed directly, use `get_plugin()` to make sure plugin is loaded.
+    Values should not be accessed directly, use `get_plugin()`
+    to make sure the plugin is loaded.
 
     Typically, one dict is created for each kind of plugin.
     doit supports 4 categories:
@@ -111,7 +112,7 @@ class PluginDict(dict):
         """load and return a single plugin"""
         val = self[key]
         if isinstance(val, PluginEntry):
-            val.name = key # overwrite obj name attribute
+            val.name = key  # overwrite obj name attribute
             return val.get()
         else:
             return val

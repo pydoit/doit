@@ -10,21 +10,21 @@ from .cmd_run import Run
 
 # filter to display only files from cwd
 opt_show_all = {
-    'name':'show_all',
-    'short':'a',
-    'long':'all',
+    'name': 'show_all',
+    'short': 'a',
+    'long': 'all',
     'type': bool,
     'default': False,
     'help': "display all files (not only from within CWD path)",
-    }
+}
 
 opt_keep_trace = {
-    'name':'keep_trace',
-    'long':'keep',
+    'name': 'keep_trace',
+    'long': 'keep',
     'type': bool,
     'default': False,
     'help': "save strace command output into strace.txt",
-    }
+}
 
 
 class Strace(Run):
@@ -52,7 +52,7 @@ So this is NOT 100% reliable, use with care!
 
     def execute(self, params, args):
         """remove existing output file if any and do sanity checking"""
-        if os.path.exists(self.TRACE_OUT): # pragma: no cover
+        if os.path.exists(self.TRACE_OUT):  # pragma: no cover
             os.unlink(self.TRACE_OUT)
         if len(args) != 1:
             msg = ('strace failed, must select *one* task to strace.'
@@ -116,8 +116,9 @@ def find_deps(outstream, strace_out, show_all):
     # , (\[.*\])*          # ignore elements if inside [] - used by execve
     # (?P<mode>[^)]*)\)    # get mode opening file
     #  = ].*               # check syscall was successful""",
-    regex = re.compile(r'.*\([^"]*"(?P<file>[^"]*)",' +
-                       r' (\[.*\])*(?P<mode>[^)]*)\) = [^-].*')
+    regex = re.compile(
+        r'.*\([^"]*"(?P<file>[^"]*)",'
+        + r' (\[.*\])*(?P<mode>[^)]*)\) = [^-].*')
 
     read = set()
     write = set()

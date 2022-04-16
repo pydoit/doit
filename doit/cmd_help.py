@@ -8,15 +8,17 @@ HELP_TASK = """
 Task Dictionary parameters
 --------------------------
 
-Tasks are defined by functions starting with the string ``task_``. It must return a dictionary describing the task with the following fields:
+Tasks are defined by functions starting with the string ``task_``.
+It must return a dictionary describing the task with the following fields:
 
 actions [required]:
   - type: Python-Task -> callable or tuple (callable, `*args`, `**kwargs`)
-  - type: Cmd-Task -> string or list of strings (each item is a different command). to be executed by shell.
+  - type: Cmd-Task -> string or list of strings. Shell command.
   - type: Group-Task -> None.
 
 basename:
-  - type: string. if present use it as task name instead of taking name from python function
+  - type: string. if present use it as task name,
+          instead of taking name from python function
 
 name [required for sub-task]:
   - type: string. sub-task identifier
@@ -86,7 +88,8 @@ verbosity:
 
 io:
  - type: dict
-   - capture (bool): If False task stdout/stderr is not captured/saved internally [default: True]
+   - capture (bool): If False task stdout/stderr is not captured/saved internally
+                     [default: True]
 
 title:
  - type: callable taking one parameter as argument (the task reference)
@@ -113,7 +116,7 @@ class Help(DoitCmdBase):
         self.init_kwargs = kwargs
         super(Help, self).__init__(cmds=cmds, **kwargs)
         self._cmds = cmds
-        self.cmds = cmds.to_dict() # dict name - Command class
+        self.cmds = cmds.to_dict()  # dict name - Command class
 
 
     def print_usage(self, cmds):
@@ -135,7 +138,7 @@ class Help(DoitCmdBase):
                 "{}              show help / reference",
                 "{} task         show help on task dictionary fields",
                 "{} <command>    show command usage",
-                "{} <task-name>  show task usage",]:
+                "{} <task-name>  show task usage"]:
             print(line.format(cmd_help))
 
 

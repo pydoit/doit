@@ -44,8 +44,8 @@ class Runner():
         self.always_execute = always_execute
         self.stream = stream if stream else Stream(0)
 
-        self.teardown_list = [] # list of tasks to be teardown
-        self.final_result = SUCCESS # until something fails
+        self.teardown_list = []  # list of tasks to be teardown
+        self.final_result = SUCCESS  # until something fails
         self._stop_running = False
 
 
@@ -85,7 +85,7 @@ class Runner():
             if tasks_dict[task_id].has_subtask:
                 # if a group task, pass values from all sub-tasks
                 arg_value = {}
-                base_len = len(task_id) + 1 # length of base name string
+                base_len = len(task_id) + 1  # length of base name string
                 for sub_id in tasks_dict[task_id].task_dep:
                     name = sub_id[base_len:]
                     arg_value[name] = get_value(sub_id, key_name)
@@ -185,9 +185,8 @@ class Runner():
             try:
                 self.dep_manager.save_success(task)
             except FileNotFoundError as exception:
-                msg = ("ERROR: Task '{}' saving success: " \
-                       "Dependent file '{}' does not exist".format(
-                           task.name, exception.filename))
+                msg = (f"ERROR: Task '{task.name}' saving success: "
+                       f"Dependent file '{exception.filename}' does not exist.")
                 catched_excp = DependencyError(msg)
             else:
                 node.run_status = "successful"
@@ -288,7 +287,8 @@ class JobTaskPickle(object):
     """dict of Task object excluding attributes that might be unpicklable"""
     type = object()
     def __init__(self, task):
-        self.task_dict = task.pickle_safe_dict() # actually a dict to be pickled
+        # actually a dict to be pickled
+        self.task_dict = task.pickle_safe_dict()
     @property
     def name(self):
         return self.task_dict['name']
@@ -310,8 +310,10 @@ class MReporter(object):
         if not hasattr(self.reporter_cls, method_name):
             raise AttributeError(method_name)
         def rep_method(task):
-            self.runner.result_q.put({'name':task.name,
-                                      'reporter':method_name})
+            self.runner.result_q.put({
+                'name': task.name,
+                'reporter': method_name,
+            })
         return rep_method
 
     def complete_run(self):
@@ -332,8 +334,8 @@ class MRunner(Runner):
         # not available on BSD systens
         try:
             import multiprocessing.synchronize
-            multiprocessing # pyflakes
-        except ImportError: # pragma: no cover
+            multiprocessing  # pyflakes
+        except ImportError:  # pragma: no cover
             return False
         else:
             return True
@@ -346,7 +348,7 @@ class MRunner(Runner):
         self.num_process = num_process
 
         self.free_proc = 0   # number of free process
-        self.task_dispatcher = None # TaskDispatcher retrieve tasks
+        self.task_dispatcher = None  # TaskDispatcher retrieve tasks
         self.tasks = None    # dict of task instances by name
         self.result_q = None
 
@@ -369,7 +371,7 @@ class MRunner(Runner):
                    - JobXXX
         """
         if self._stop_running:
-            return None # gentle stop
+            return None  # gentle stop
         node = completed
         while True:
             # get next task from controller
@@ -408,12 +410,12 @@ class MRunner(Runner):
         """
         # #### DEBUG PICKLE ERRORS
         # class MyPickler (pickle._Pickler):
-            # def save(self, obj):
-                # print('pickling object {} of type {}'.format(obj, type(obj)))
-                # try:
-                    # Pickler.save(self, obj)
-                # except:
-                    # print('error. skipping...')
+        #     def save(self, obj):
+        #         print('pickling object {} of type {}'.format(obj, type(obj)))
+        #         try:
+        #             Pickler.save(self, obj)
+        #         except:
+        #             print('error. skipping...')
         # from io import BytesIO
         # pickler = MyPickler(BytesIO())
         # pickler.dump(self)
@@ -423,7 +425,7 @@ class MRunner(Runner):
         for _ in range(self.num_process):
             next_job = self.get_next_job(None)
             if next_job is None:
-                break # do not start more processes than tasks
+                break  # do not start more processes than tasks
             job_q.put(next_job)
             process = self.Child(
                 target=self.execute_task_subprocess,
@@ -492,7 +494,7 @@ class MRunner(Runner):
             proc.join()
 
         # get teardown results
-        while not result_q.empty(): # safe because subprocess joined
+        while not result_q.empty():  # safe because subprocess joined
             result = result_q.get()
             assert 'reporter' in result
             task = task_dispatcher.tasks[result['name']]
@@ -515,7 +517,7 @@ class MRunner(Runner):
 
                 if job is None:
                     self.teardown()
-                    return # no more tasks to execute finish this process
+                    return  # no more tasks to execute finish this process
 
                 # job is an incomplete Task obj when pickled, attrbiutes
                 # that might contain unpickleble data were removed.
@@ -523,7 +525,7 @@ class MRunner(Runner):
                 # to get dynamic task attributes.
                 if job.type is JobTaskPickle.type:
                     task = self.tasks[job.name]
-                    if self.Child == Process: # pragma: no cover ...
+                    if self.Child == Process:  # pragma: no cover ...
                         # ... actually covered but subprocess doesnt get it.
                         task.update_from_pickle(job.task_dict)
 
@@ -534,7 +536,7 @@ class MRunner(Runner):
                 # if no task is available when process is created.
                 else:
                     assert job.type is JobHold.type
-                    continue # pragma: no cover
+                    continue  # pragma: no cover
 
                 result = {'name': task.name}
                 task_failure = self.execute_task(task)

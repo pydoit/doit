@@ -13,10 +13,10 @@ from . import reporter
 
 # verbosity
 opt_verbosity = {
-    'name':'verbosity',
-    'short':'v',
-    'long':'verbosity',
-    'type':int,
+    'name': 'verbosity',
+    'short': 'v',
+    'long': 'verbosity',
+    'type': int,
     'default': None,
     'help': """0 capture (do not print) stdout/stderr from task.
 1 capture stdout only.
@@ -28,11 +28,11 @@ opt_verbosity = {
 # select output file
 opt_outfile = {
     'name': 'outfile',
-    'short':'o',
+    'short': 'o',
     'long': 'output-file',
     'type': str,
     'default': sys.stdout,
-    'help':"write output into file [default: stdout]"
+    'help': "write output into file [default: stdout]"
 }
 
 
@@ -54,7 +54,7 @@ opt_continue = {
     'inverse': 'no-continue',
     'type': bool,
     'default': False,
-    'help': ("continue executing tasks even after a failure " +
+    'help': ("continue executing tasks even after a failure "
              "[default: %(default)s]"),
 }
 
@@ -65,7 +65,7 @@ opt_single = {
     'long': 'single',
     'type': bool,
     'default': False,
-    'help': ("Execute only specified tasks ignoring their task_dep " +
+    'help': ("Execute only specified tasks ignoring their task_dep "
              "[default: %(default)s]"),
 }
 
@@ -82,19 +82,19 @@ opt_num_process = {
 
 # reporter
 opt_reporter = {
-    'name':'reporter',
-    'short':'r',
-    'long':'reporter',
-    'type':str,
+    'name': 'reporter',
+    'short': 'r',
+    'long': 'reporter',
+    'type': str,
     'default': 'console',
     'help': """Choose output reporter.\n[default: %(default)s]"""
 }
 
 opt_parallel_type = {
-    'name':'par_type',
-    'short':'P',
-    'long':'parallel-type',
-    'type':str,
+    'name': 'par_type',
+    'short': 'P',
+    'long': 'parallel-type',
+    'type': str,
     'default': 'process',
     'help': """Tasks can be executed in parallel in different ways:
 'process': uses python multiprocessing module
@@ -106,14 +106,13 @@ opt_parallel_type = {
 
 # pdb post-mortem
 opt_pdb = {
-    'name':'pdb',
-    'short':'',
-    'long':'pdb',
+    'name': 'pdb',
+    'short': '',
+    'long': 'pdb',
     'type': bool,
     'default': None,
-    'help':
-"""get into PDB (python debugger) post-mortem in case of unhandled exception"""
-    }
+    'help': "get into PDB (python debugger) post-mortem in case of unhandled exception"
+}
 
 
 # use ".*" as default regex for delayed tasks without explicitly specified regex
@@ -123,8 +122,8 @@ opt_auto_delayed_regex = {
     'long': 'auto-delayed-regex',
     'type': bool,
     'default': False,
-    'help':
-"""Uses the default regex ".*" for every delayed task loader for which no regex was explicitly defined"""
+    'help': ("""Uses the default regex ".*" for every delayed task loader"""
+             """for which no regex was explicitly defined"""),
 }
 
 opt_report_failure_verbosity = {
@@ -156,7 +155,7 @@ class Run(DoitCmdBase):
 
     def __init__(self, **kwargs):
         super(Run, self).__init__(**kwargs)
-        self.reporters = self.get_reporters() # dict
+        self.reporters = self.get_reporters()  # dict
 
 
     def get_reporters(self):
@@ -180,7 +179,7 @@ class Run(DoitCmdBase):
         # set choices for reporter cmdoption
         # sub-classes might not have this option
         if 'reporter' in self.cmdparser:
-            choices = {k: v.desc for k,v in reporters.items()}
+            choices = {k: v.desc for k, v in reporters.items()}
             self.cmdparser['reporter'].choices = choices
 
         return reporters
@@ -252,7 +251,7 @@ class Run(DoitCmdBase):
                     if not MRunner.available():
                         RunnerClass = MThreadRunner
                         sys.stderr.write(
-                            "WARNING: multiprocessing module not available, " +
+                            "WARNING: multiprocessing module not available, "
                             "running in parallel using threads.")
                 elif par_type == 'thread':
                     RunnerClass = MThreadRunner

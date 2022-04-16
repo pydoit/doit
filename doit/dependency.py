@@ -10,9 +10,9 @@ from dbm import dumb
 import dbm as ddbm
 
 # uncomment imports below to run tests on all dbm backends...
-#import dumbdbm as ddbm
-#import dbm as ddbm
-#import gdbm as ddbm
+# import dumbdbm as ddbm
+# import dbm as ddbm
+# import gdbm as ddbm
 
 # note: to check which DBM backend is being used (in py2):
 #       >>> anydbm._defaultmod
@@ -81,10 +81,9 @@ class JsonDB(object):
                 return self.codec.decode(db_file.read())
             except ValueError as error:
                 # file contains corrupted json data
-                msg = (error.args[0] +
-                       "\nInvalid JSON data in %s\n" %
-                       os.path.abspath(self.name) +
-                       "To fix this problem, you can just remove the " +
+                fname = os.path.abspath(self.name)
+                msg = (f"{error.args[0]}\nInvalid JSON data in {fname}\n"
+                       "To fix this problem, you can just remove the "
                        "corrupted file, a new one will be generated.\n")
                 error.args = (msg,)
                 raise DatabaseException(msg)
@@ -234,7 +233,7 @@ class DbmDB(object):
         """remove saved dependencies from DB for all tasks"""
         self._db = {}
         # dumb dbm always opens file in update mode
-        if isinstance(self._dbm, dumb._Database): # pragma: no cover
+        if isinstance(self._dbm, dumb._Database):  # pragma: no cover
             self._dbm._index = {}
             self._dbm.close()
         # gdbm can not be running on 2 instances on same thread
@@ -274,7 +273,7 @@ class SqliteDB(object):
         sqlite3.register_converter("json", converter)
         conn = sqlite3.connect(
             name,
-            detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES,
+            detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES,
             isolation_level='DEFERRED')
         conn.row_factory = dict_factory
         sqlscript = """
@@ -722,8 +721,8 @@ class UptodateCalculator(object):
     """Base class for 'uptodate' that need access to all tasks
     """
     def __init__(self):
-        self.get_val = None # Dependency._get
-        self.tasks_dict = None # dict with all tasks
+        self.get_val = None  # Dependency._get
+        self.tasks_dict = None  # dict with all tasks
 
     def setup(self, dep_manager, tasks_dict):
         """@param"""

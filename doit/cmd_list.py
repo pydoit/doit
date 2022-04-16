@@ -2,12 +2,12 @@ from .cmd_base import DoitCmdBase, check_tasks_exist, subtasks_iter
 
 opt_listall = {
     'name': 'subtasks',
-    'short':'',
+    'short': '',
     'long': 'all',
     'type': bool,
     'default': False,
     'help': "list include all sub-tasks from dodo file"
-    }
+}
 
 opt_list_quiet = {
     'name': 'quiet',
@@ -16,7 +16,7 @@ opt_list_quiet = {
     'type': bool,
     'default': False,
     'help': 'print just task name (less verbose than default)'
-    }
+}
 
 opt_list_status = {
     'name': 'status',
@@ -25,7 +25,7 @@ opt_list_status = {
     'type': bool,
     'default': False,
     'help': 'print task status (R)un, (U)p-to-date, (I)gnored'
-    }
+}
 
 opt_list_private = {
     'name': 'private',
@@ -34,7 +34,7 @@ opt_list_private = {
     'type': bool,
     'default': False,
     'help': "print private tasks (start with '_')"
-    }
+}
 
 opt_list_dependencies = {
     'name': 'list_deps',
@@ -44,7 +44,7 @@ opt_list_dependencies = {
     'default': False,
     'help': ("print list of dependencies "
              "(file dependencies only)")
-    }
+}
 
 opt_template = {
     'name': 'template',
@@ -53,7 +53,7 @@ opt_template = {
     'type': str,
     'default': None,
     'help': "display entries with template"
-    }
+}
 
 opt_sort = {
     'name': 'sort',
@@ -65,7 +65,7 @@ opt_sort = {
     'default': 'name',
     'help': ("choose the manner in which the task list is sorted. "
              "[default: %(default)s]")
-    }
+}
 
 
 class List(DoitCmdBase):
@@ -83,7 +83,7 @@ class List(DoitCmdBase):
 
     def _print_task(self, template, task, status, list_deps, tasks):
         """print a single task"""
-        line_data = {'name': task.name, 'doc':task.doc}
+        line_data = {'name': task.name, 'doc': task.doc}
         # FIXME group task status is never up-to-date
         if status:
             # FIXME: 'ignore' handling is ugly

@@ -45,7 +45,7 @@ class DelayedLoader(object):
         self.target_regex = target_regex
         self.creates = creates[:] if creates else []
         self.regex_groups = OrderedDict()  # task_name:RegexGroup
-        self.kwargs = None # task creator kwargs
+        self.kwargs = None  # task creator kwargs
 
 
 # used to indicate that a task had DelayedLoader but was already created
@@ -99,6 +99,7 @@ class Stream():
 class IOConfig:
     def __init__(self, io_data):
         self.capture = io_data.get('capture', True)
+
     def __repr__(self):
         return f'IOConfig(capture={self.capture})'
 
@@ -179,7 +180,7 @@ class Task(object):
         @param params: (list of dict for parameters) see cmdparse.CmdOption
         """
 
-        getargs = getargs or {} #default
+        getargs = getargs or {}  # default
         self.check_attr(name, 'name', name, self.valid_attr['name'])
         self.check_attr(name, 'actions', actions, self.valid_attr['actions'])
         self.check_attr(name, 'file_dep', file_dep, self.valid_attr['file_dep'])
@@ -204,11 +205,11 @@ class Task(object):
             msg = "Task '{}': name must not use the char '=' (equal sign)."
             raise InvalidTask(msg.format(name))
         self.name = name
-        self.params = params # save just for use on command `info`
-        self.creator_params = [] # add through task_params decorator
+        self.params = params  # save just for use on command `info`
+        self.creator_params = []  # add through task_params decorator
         self.options = None
         self.pos_arg = pos_arg
-        self.pos_arg_val = None # to be set when parsing command line
+        self.pos_arg_val = None  # to be set when parsing command line
         self.setup_tasks = list(setup)
 
         # actions
@@ -289,8 +290,7 @@ class Task(object):
             elif isinstance(target, PurePath):
                 targets.append(str(target))
             else:
-                msg = ("%s. target must be a str or Path from pathlib. " +
-                       "Got '%r' (%s)")
+                msg = ("%s. target must be a str or Path from pathlib. Got '%r' (%s)")
                 raise InvalidTask(msg % (self.name, target, type(target)))
         return targets
 
@@ -316,8 +316,8 @@ class Task(object):
             elif isinstance(item, str):
                 uptodate.append((item, [], {}))
             else:
-                msg = ("%s. task invalid 'uptodate' item '%r'. " +
-                       "Must be bool, None, str, callable or tuple " +
+                msg = ("%s. task invalid 'uptodate' item '%r'. "
+                       "Must be bool, None, str, callable or tuple "
                        "(callable, args, kwargs).")
                 raise InvalidTask(msg % (self.name, item))
         return uptodate
@@ -331,7 +331,7 @@ class Task(object):
             elif isinstance(dep, PurePath):
                 self.file_dep.add(str(dep))
             else:
-                msg = ("%s. file_dep must be a str or Path from pathlib. " +
+                msg = ("%s. file_dep must be a str or Path from pathlib. "
                        "Got '%r' (%s)")
                 raise InvalidTask(msg % (self.name, dep, type(dep)))
 
@@ -382,7 +382,8 @@ class Task(object):
         """
         if self.options is None:
             self.options = {}
-            taskcmd = TaskParse([CmdOption(opt) for opt in (list(self.params) + self.creator_params)])
+            all_opts = list(self.params) + self.creator_params
+            taskcmd = TaskParse([CmdOption(opt) for opt in all_opts])
             if self.cfg_values is not None:
                 taskcmd.overwrite_defaults(self.cfg_values)
 
@@ -404,11 +405,10 @@ class Task(object):
             # tuple (task_id, key_name)
             parts = desc
             if isinstance(parts, str) or len(parts) != 2:
-                msg = ("Taskid '%s' - Invalid format for getargs of '%s'.\n" %
-                       (self.name, arg_name) +
-                       "Should be tuple with 2 elements " +
-                       "('<taskid>', '<key-name>') got '%s'\n" % desc)
-                raise InvalidTask(msg)
+                raise InvalidTask(
+                    f"Taskid '{self.name}' - Invalid format for getargs of '{arg_name}'."
+                    "Should be tuple with 2 elements"
+                    f" ('<taskid>', '<key-name>') got '{desc}'")
 
             if parts[0] not in self.setup_tasks:
                 check_result.add(parts[0])
@@ -528,7 +528,7 @@ class Task(object):
 
 
     def __repr__(self):
-        return "<Task: %s>"% self.name
+        return f"<Task: {self.name}>"
 
 
     def __getstate__(self):
@@ -589,8 +589,8 @@ def dict_to_task(task_dict):
     valid_attrs = set(Task.valid_attr.keys())
     for key in task_attrs:
         if key not in valid_attrs:
-            raise InvalidTask("Task %s contains invalid field: '%s'"%
-                              (task_dict['name'], key))
+            name = task_dict['name']
+            raise InvalidTask(f"Task {name} contains invalid field: '{key}'")
 
     return Task(**task_dict)
 

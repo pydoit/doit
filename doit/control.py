@@ -81,13 +81,13 @@ class TaskControl(object):
         for task in self.tasks.values():
             for dep in task.task_dep:
                 if dep not in self.tasks:
-                    msg = "%s. Task dependency '%s' does not exist."
-                    raise InvalidTask(msg% (task.name, dep))
+                    msg = f"{task.name}. Task dependency '{dep}' does not exist."
+                    raise InvalidTask(msg)
 
             for setup_task in task.setup_tasks:
                 if setup_task not in self.tasks:
-                    msg = "Task '%s': invalid setup task '%s'."
-                    raise InvalidTask(msg % (task.name, setup_task))
+                    msg = f"Task '{task.name}': invalid setup task '{setup_task}'."
+                    raise InvalidTask(msg)
 
 
     @staticmethod
@@ -101,10 +101,9 @@ class TaskControl(object):
         for task in task_list:
             for target in task.targets:
                 if target in targets:
-                    msg = ("Two different tasks can't have a common target." +
+                    msg = ("Two different tasks can't have a common target."
                            "'%s' is a target for %s and %s.")
-                    raise InvalidTask(msg % (target, task.name,
-                                             targets[target]))
+                    raise InvalidTask(msg % (target, task.name, targets[target]))
                 targets[target] = task.name
 
         # 2) now go through all dependencies and check if they are target from
@@ -169,7 +168,7 @@ class TaskControl(object):
         seq = task_selection[:]
         # process cmd_opts until nothing left
         while seq:
-            f_name = seq.pop(0) # always start with a task/target name
+            f_name = seq.pop(0)  # always start with a task/target name
             # select tasks by task-name pattern
             if '*' in f_name:
                 for task_name in self._get_wild_tasks(f_name):
@@ -298,10 +297,10 @@ class ExecNode(object):
         self.wait_select = False
 
         # Wait for a task to finish its execution
-        self.wait_run = set() # task names
-        self.wait_run_calc = set() # task names
+        self.wait_run = set()  # task names
+        self.wait_run_calc = set()  # task names
 
-        self.waiting_me = set() # ExecNode
+        self.waiting_me = set()  # ExecNode
 
         self.run_status = None
         # all ancestors that failed
@@ -356,10 +355,10 @@ class TaskDispatcher(object):
         self.targets = targets
         self.selected_tasks = selected_tasks
 
-        self.nodes = {} # key task-name, value: ExecNode
+        self.nodes = {}  # key task-name, value: ExecNode
         # queues
-        self.waiting = set() # of ExecNode
-        self.ready = deque() # of ExecNode
+        self.waiting = set()  # of ExecNode
+        self.ready = deque()  # of ExecNode
 
         self.generator = self._dispatcher_generator(selected_tasks)
 
@@ -454,7 +453,7 @@ class TaskDispatcher(object):
 
             # do not wait until all possible task_dep are created
             if (node.calc_dep or node.task_dep):
-                continue # pragma: no cover # coverage cant catch this #198
+                continue  # pragma: no cover  # coverage cant catch this #198
             elif (node.wait_run or node.wait_run_calc):
                 yield 'wait'
             else:
@@ -567,8 +566,7 @@ class TaskDispatcher(object):
             # node wait_run will be ready if there are nothing left to wait
             if task_name in waiting_node.wait_run:
                 waiting_node.wait_run.remove(task_name)
-                is_ready = not (waiting_node.wait_run or
-                                waiting_node.wait_run_calc)
+                is_ready = not (waiting_node.wait_run or waiting_node.wait_run_calc)
             # node wait_run_calc
             else:
                 assert task_name in waiting_node.wait_run_calc

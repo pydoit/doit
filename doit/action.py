@@ -2,7 +2,8 @@
 """
 
 import os
-import subprocess, sys
+import sys
+import subprocess
 import io
 from io import StringIO
 import inspect
@@ -20,6 +21,7 @@ def normalize_callable(ref):
     if isinstance(ref, tuple):
         return list(ref)
     return [ref, (), {}]
+
 
 # Actions
 class BaseAction(object):
@@ -45,7 +47,7 @@ class BaseAction(object):
 
         func_sig = inspect.signature(func)
         sig_params = func_sig.parameters.values()
-        func_has_kwargs = any(p.kind==p.VAR_KEYWORD for p in sig_params)
+        func_has_kwargs = any(p.kind == p.VAR_KEYWORD for p in sig_params)
 
         # use task meta information as extra_args
         meta_args = {
@@ -53,7 +55,7 @@ class BaseAction(object):
             'targets': lambda: list(task.targets),
             'dependencies': lambda: list(task.file_dep),
             'changed': lambda: list(task.dep_changed),
-            }
+        }
 
         # start with dict passed together on action definition
         kwargs = kwargs.copy()
@@ -67,16 +69,15 @@ class BaseAction(object):
 
                 # it is forbidden to use default values for this arguments
                 # because the user might be unaware of this magic.
-                if (sig_param.default!=sig_param.empty):
-                    msg = ("Task %s, action %s(): The argument '%s' is not "
-                           "allowed  to have a default value (reserved by doit)"
-                           % (task.name, func.__name__, key))
+                if (sig_param.default != sig_param.empty):
+                    msg = (f"Task {task.name}, action {func.__name__}():"
+                           f"The argument '{key}' is not allowed to have "
+                           "a default value (reserved by doit)")
                     raise InvalidTask(msg)
 
                 # if value not taken from position parameter
                 if key not in bound_args.arguments:
                     kwargs[key] = meta_args[key]()
-
 
         # add tasks parameter options
         opt_args = dict(task.options)
@@ -120,7 +121,7 @@ class CmdAction(BaseAction):
 
     def __init__(self, action, task=None, save_out=None, shell=True,
                  encoding='utf-8', decode_error='replace', buffering=0,
-                 **pkwargs): #pylint: disable=W0231
+                 **pkwargs):  # pylint: disable=W0231
         '''
         :ivar buffering: (int) stdout/stderr buffering.
                Not to be confused with subprocess buffering
@@ -168,7 +169,7 @@ class CmdAction(BaseAction):
         while True:
             try:
                 line = read().decode(self.encoding, self.decode_error)
-            except:
+            except Exception:
                 # happens when fails to decoded input
                 process.terminate()
                 input_.read()
@@ -178,7 +179,7 @@ class CmdAction(BaseAction):
             capture.write(line)
             if realtime:
                 realtime.write(line)
-                realtime.flush() # required if on byte buffering mode
+                realtime.flush()  # required if on byte buffering mode
 
 
     def execute(self, out=None, err=None):
@@ -223,7 +224,7 @@ class CmdAction(BaseAction):
         process = subprocess.Popen(
             action,
             shell=self.shell,
-            #bufsize=2, # ??? no effect use PYTHONUNBUFFERED instead
+            # bufsize=2, # ??? no effect use PYTHONUNBUFFERED instead
             stdout=p_out,
             stderr=p_err,
             env=env,
@@ -283,14 +284,14 @@ class CmdAction(BaseAction):
                 elif isinstance(element, PurePath):
                     action.append(str(element))
                 else:
-                    msg = ("%s. CmdAction element must be a str " +
+                    msg = ("%s. CmdAction element must be a str "
                            "or Path from pathlib. Got '%r' (%s)")
                     raise InvalidTask(
                         msg % (self.task.name, element, type(element)))
             return action
 
         subs_dict = {
-            'targets' : " ".join(self.task.targets),
+            'targets': " ".join(self.task.targets),
             'dependencies': " ".join(self.task.file_dep),
         }
 
@@ -330,12 +331,13 @@ class CmdAction(BaseAction):
 class Writer(object):
     """Write to N streams.
 
-    This is used on python-actions to allow the stream to be output to terminal and captured at the same time.
+    This is used on python-actions to allow the stream to be output to terminal
+    and captured at the same time.
     """
     def __init__(self, *writers):
         """@param writers - file stream like objects"""
         self.writers = []
-        self.orig_stream = None # The original stream terminal/file
+        self.orig_stream = None  # The original stream terminal/file
         for writer in writers:
             self.add_writer(writer)
 
@@ -380,7 +382,7 @@ class PythonAction(BaseAction):
     pm_pdb = False
 
     def __init__(self, py_callable, args=None, kwargs=None, task=None):
-        #pylint: disable=W0231
+        # pylint: disable=W0231
         self.py_callable = py_callable
         self.task = task
         self.out = None
@@ -458,7 +460,7 @@ class PythonAction(BaseAction):
         try:
             returned_value = self.py_callable(*self.args, **kwargs)
         except Exception as exception:
-            if self.pm_pdb: # pragma: no cover
+            if self.pm_pdb:  # pragma: no cover
                 # start post-mortem debugger
                 deb = pdb.Pdb(stdin=sys.__stdin__, stdout=sys.__stdout__)
                 deb.reset()
@@ -495,10 +497,10 @@ class PythonAction(BaseAction):
 
     def __str__(self):
         # get object description excluding runtime memory address
-        return "Python: %s"% str(self.py_callable)[1:].split(' at ')[0]
+        return "Python: %s" % str(self.py_callable)[1:].split(' at ')[0]
 
     def __repr__(self):
-        return "<PythonAction: '%s'>"% (repr(self.py_callable))
+        return "<PythonAction: '%s'>" % (repr(self.py_callable))
 
 
 def create_action(action, task_ref, param_name):
@@ -526,7 +528,7 @@ def create_action(action, task_ref, param_name):
             msg = "Task '{}': invalid '{}' tuple length. got: {!r} {}".format(
                 task_ref.name, param_name, action, type(action))
             raise InvalidTask(msg)
-        py_callable, args, kwargs = (list(action) + [None]*(3-len(action)))
+        py_callable, args, kwargs = (list(action) + [None] * (3 - len(action)))
         return PythonAction(py_callable, args, kwargs, task_ref)
 
     if hasattr(action, '__call__'):

@@ -8,30 +8,30 @@ from .cmd_base import check_tasks_exist
 
 opt_clean_dryrun = {
     'name': 'dryrun',
-    'short': 'n', # like make dry-run
+    'short': 'n',  # like make dry-run
     'long': 'dry-run',
     'type': bool,
     'default': False,
     'help': 'print actions without really executing them',
-    }
+}
 
 opt_clean_cleandep = {
     'name': 'cleandep',
-    'short': 'c', # clean
+    'short': 'c',
     'long': 'clean-dep',
     'type': bool,
     'default': False,
     'help': 'clean task dependencies too',
-    }
+}
 
 opt_clean_cleanall = {
     'name': 'cleanall',
-    'short': 'a', # all
+    'short': 'a',  # all
     'long': 'clean-all',
     'type': bool,
     'default': False,
     'help': 'clean all task',
-    }
+}
 
 opt_clean_forget = {
     'name': 'cleanforget',
@@ -39,7 +39,8 @@ opt_clean_forget = {
     'type': bool,
     'default': False,
     'help': 'also forget tasks after cleaning',
-    }
+}
+
 
 class Clean(DoitCmdBase):
     doc_purpose = "clean action / remove targets"
@@ -61,14 +62,14 @@ class Clean(DoitCmdBase):
                 task.clean(self.outstream, dryrun)
                 if forget_tasks:
                     self.dep_manager.remove(task.name)
-
         self.dep_manager.close()
 
     def _expand(self, clean_list):
         result = []
         for name in clean_list:
             if '*' in name:
-                result.extend(t.name for t in self.task_list if fnmatch.fnmatch(t.name, name))
+                result.extend(t.name for t in self.task_list
+                              if fnmatch.fnmatch(t.name, name))
             else:
                 result.append(name)
         return result
@@ -93,13 +94,13 @@ class Clean(DoitCmdBase):
         check_tasks_exist(tasks, selected_tasks, skip_wildcard=True)
 
         # get base list of tasks to be cleaned
-        if selected_tasks and not cleanall: # from command line
+        if selected_tasks and not cleanall:  # from command line
             clean_list = self._expand(selected_tasks)
         else:
             # if not cleaning specific task enable clean_dep automatically
             cleandep = True
             if self.sel_tasks is not None:
-                clean_list = self._expand(self.sel_tasks) # default tasks from config
+                clean_list = self._expand(self.sel_tasks)  # default tasks from config
             else:
                 clean_list = [t.name for t in self.task_list]
             # note: reversing is not required, but helps reversing
@@ -127,7 +128,7 @@ class CleanDepTree:
     """
     def __init__(self):
         self.nodes = OrderedDict()
-        self._processed = set() # task names that were already built
+        self._processed = set()  # task names that were already built
 
     def build_nodes_with_deps(self, tasks, task_name):
         """build node including task_dep's"""
