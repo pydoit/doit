@@ -10,8 +10,9 @@ from pathlib import PurePath
 
 from .cmdparse import CmdOption, TaskParse
 from .exceptions import CatchedException, InvalidTask
-from .action import create_action, PythonAction
+from .action import create_action, BaseAction, PythonAction
 from .dependency import UptodateCalculator
+from .reporter import ConsoleReporter
 
 
 def first_line(doc):
@@ -462,7 +463,7 @@ class Task(object):
     def overwrite_verbosity(self, stream):
         self.verbosity = stream.effective_verbosity(self.verbosity)
 
-    def execute(self, stream):
+    def execute(self, stream, reporter=None):
         """Executes the task.
         @return failure: see CmdAction.execute
         """
@@ -470,6 +471,8 @@ class Task(object):
         self.init_options()
         task_stdout, task_stderr = stream._get_out_err(self.verbosity)
         for action in self.actions:
+            if isinstance(action, BaseAction) and isinstance(reporter, ConsoleReporter):
+                reporter.execute_action(action)
             action_return = action.execute(task_stdout, task_stderr)
             if isinstance(action_return, CatchedException):
                 return action_return
@@ -477,12 +480,14 @@ class Task(object):
             self.values.update(action.values)
 
 
-    def execute_teardown(self, stream):
+    def execute_teardown(self, stream, reporter=None):
         """Executes task's teardown
         @return failure: see CmdAction.execute
         """
         task_stdout, task_stderr = stream._get_out_err(self.verbosity)
         for action in self.teardown:
+            if isinstance(action, BaseAction) and isinstance(reporter, ConsoleReporter):
+                reporter.execute_action(action)
             action_return = action.execute(task_stdout, task_stderr)
             if isinstance(action_return, CatchedException):
                 return action_return

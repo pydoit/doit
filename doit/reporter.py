@@ -21,6 +21,7 @@ class ConsoleReporter(object):
         self.failures = []
         self.runtime_errors = []
         self.failure_verbosity = options.get('failure_verbosity', 0)
+        self.show_action = options.get('show_action', False)
         self.outstream = outstream
 
     def write(self, text):
@@ -41,6 +42,11 @@ class ConsoleReporter(object):
         # ignore private/hidden tasks (tasks that start with an underscore)
         if task.actions and (task.name[0] != '_'):
             self.write('.  %s\n' % task.title())
+
+    def execute_action(self, action):
+        """called before executing each action"""
+        if self.show_action:
+            self.write(' +  %s\n' % action.title())
 
     def add_failure(self, task, exception):
         """called when execution finishes with a failure"""
@@ -137,7 +143,7 @@ class ZeroReporter(ConsoleReporter):
         """over-write base to do nothing"""
         pass
 
-    get_status = execute_task = add_failure = add_success \
+    get_status = execute_task = execute_action = add_failure = add_success \
         = skip_uptodate = skip_ignore = teardown_task = complete_run \
         = _just_pass
 

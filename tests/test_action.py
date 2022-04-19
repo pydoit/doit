@@ -86,6 +86,11 @@ class TestCmdAction(object):
         my_action.execute()
         assert {} == my_action.values
 
+    def test_title(self):
+        cmd = "%s 1 2" % PROGRAM
+        my_action = action.CmdAction(cmd)
+        assert cmd == my_action.title()
+
 
 class TestCmdActionParams(object):
     def test_invalid_param_stdout(self):
@@ -641,6 +646,11 @@ class TestPythonAction(object):
         my_action = action.PythonAction(vvv)
         my_action.execute()
         assert {'x': 5, 'y':10} == my_action.values
+
+    def test_title(self):
+        my_action = action.PythonAction(self._func_par,args=(2,2),
+                                   kwargs={'par3':25})
+        assert "_func_par(*(2, 2), **{'par3': 25})" == my_action.title()
 
 
 class TestPythonVerbosity(object):

@@ -10,6 +10,7 @@ import pytest
 from doit.exceptions import TaskError
 from doit.exceptions import CatchedException
 from doit import action
+from doit import reporter
 from doit import task
 from doit.task import Stream
 
@@ -391,6 +392,26 @@ class TestTaskTeardown(object):
         got = t.execute_teardown(Stream(0))
         assert isinstance(got, CatchedException)
 
+
+def py_fn(x):
+    pass
+
+@pytest.mark.parametrize(
+    "t",
+    [
+        task.Task("t1", [(py_fn, [1]), (py_fn, [2])]),
+        task.Task("t1", [], teardown=[(py_fn, [1]), (py_fn, [2])]),
+    ],
+)
+@pytest.mark.parametrize(
+    "show_action,expected",
+    [(False, ""), (True, " +  py_fn(*[1], **{})\n +  py_fn(*[2], **{})\n")],
+)
+def test_show_action(t, show_action, expected):
+    rep = reporter.ConsoleReporter(StringIO(), {"show_action": show_action})
+    t.execute(Stream(0), rep)
+    t.execute_teardown(Stream(0), rep)
+    assert expected == rep.outstream.getvalue()
 
 class TestTaskClean(object):
 
