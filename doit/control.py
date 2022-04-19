@@ -160,8 +160,12 @@ class TaskControl(object):
 
                 # if task takes positional parameters set all as pos_arg_val
                 if the_task.pos_arg is not None:
-                    the_task.pos_arg_val = seq
-                    seq = []
+                    # cehck value is not set yet
+                    # it could be set directly with api.run_tasks()
+                    #     -> NamespaceTaskLoader.load_tasks()
+                    if the_task.pos_arg_val is None:
+                        the_task.pos_arg_val = seq
+                        seq = []
             return seq
 
         # process...

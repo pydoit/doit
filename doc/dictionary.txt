@@ -190,6 +190,7 @@ api
 aplay
 app
 aren
+arg
 args
 atime
 attr

@@ -70,3 +70,34 @@ def test_run_tasks_error(capsys, depfile_name):
         },
     )
     assert result == 1
+
+
+
+
+def test_run_tasks_pos(capsys, depfile_name):
+    def _dodo_pos():
+        """sample tasks"""
+        def hi(opt, pos):
+            print(f'hi:{opt}--{pos}')
+
+        def task_hi():
+            return {
+                'actions': [hi],
+                'params': [{'name': 'opt', 'default': '1'}],
+                'pos_arg': 'pos',
+            }
+        return {
+            'task_hi': task_hi,
+        }
+
+    tasks_selection = {'hi': {'opt': '3', 'pos': 'foo bar baz'}}
+    extra_config = {
+        'GLOBAL': {
+            'verbosity': 2,
+            'dep_file': depfile_name,
+        },
+    }
+    result = run_tasks(ModuleTaskLoader(_dodo_pos()), tasks_selection, extra_config=extra_config)
+    assert result == 0
+    out = capsys.readouterr().out
+    assert out.strip() == 'hi:3--foo bar baz'
