@@ -169,6 +169,7 @@ class Run(DoitCmdBase):
             'executed-only': reporter.ExecutedOnlyReporter,
             'json': reporter.JsonReporter,
             'zero': reporter.ZeroReporter,
+            'error-only': reporter.ErrorOnlyReporter,
         }
 
         # plugins

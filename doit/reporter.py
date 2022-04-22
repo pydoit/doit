@@ -6,6 +6,8 @@ import datetime
 import json
 from io import StringIO
 
+from .exceptions import TaskFailed
+
 
 class ConsoleReporter(object):
     """Default reporter. print results on console/terminal (stdout/stderr)
@@ -128,7 +130,6 @@ class ExecutedOnlyReporter(ConsoleReporter):
 
 
 
-
 class ZeroReporter(ConsoleReporter):
     """Report only internal errors from doit"""
     desc = 'report only internal errors from doit'
@@ -144,6 +145,17 @@ class ZeroReporter(ConsoleReporter):
     def runtime_error(self, msg):
         sys.stderr.write(msg)
 
+
+class ErrorOnlyReporter(ZeroReporter):
+    desc = """Report only errors internal or TaskError, TaskFailures are not reported"""
+
+    def add_failure(self, task, exception):
+        if isinstance(exception, TaskFailed):
+            return
+        exception_name = exception.get_name()
+        self.write(f'taskid:{task.name} - {exception_name}\n')
+        self.write(exception.get_msg())
+        self.write("\n")
 
 
 class TaskResult(object):

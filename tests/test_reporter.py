@@ -4,7 +4,7 @@ from io import StringIO
 
 from doit import reporter
 from doit.task import Stream, Task
-from doit.exceptions import CatchedException
+from doit.exceptions import CatchedException, TaskFailed, TaskError
 
 
 class TestConsoleReporter(object):
@@ -225,6 +225,41 @@ class TestZeroReporter(object):
         # imediate output
         rep.runtime_error(msg)
         assert msg in capsys.readouterr()[1]
+
+
+class TestErrorOnlyReporter(object):
+    def test_executeTask(self):
+        rep = reporter.ErrorOnlyReporter(StringIO(), {})
+        def do_nothing():pass
+        t1 = Task("with_action", [(do_nothing,)])
+        rep.execute_task(t1)
+        assert "" == rep.outstream.getvalue()
+
+    def test_failed(self):
+        rep = reporter.ErrorOnlyReporter(StringIO(), {})
+        exception = Exception("Failure message here")
+        failure = TaskFailed("Something failed", exception)
+        rep.add_failure(Task("t_name", None, verbosity=1), failure)
+        assert "" == rep.outstream.getvalue()
+
+    def test_error(self):
+        rep = reporter.ErrorOnlyReporter(StringIO(), {})
+        exception = Exception("Error message here")
+        failure = TaskError("An error here", exception)
+        rep.add_failure(Task("t_name", None, verbosity=1), failure)
+        assert "Error message here" in rep.outstream.getvalue()
+        assert "An error here" in rep.outstream.getvalue()
+
+    def test_catched(self):
+        class UnknownException(CatchedException):
+            pass
+        rep = reporter.ErrorOnlyReporter(StringIO(), {})
+        exception = Exception("Error message here")
+        failure = UnknownException("Something unexpected", exception)
+        rep.add_failure(Task("t_name", None, verbosity=1), failure)
+        assert "Error message here" in rep.outstream.getvalue()
+        assert "Something unexpected" in rep.outstream.getvalue()
+
 
 
 class TestTaskResult(object):

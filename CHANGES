@@ -19,7 +19,7 @@ Changes
 - BACKWARD INCOMPATIBLE: plugins use importlib-metadata instead of setuptools.
 - BACKWARD INCOMPATIBLE: remove extra install `doit[plugins]`.
 - api.run_tasks(): support `pos_arg`.
-
+- add reporter `error-only`
 
 
 0.35.0 (*2022-04-07*)
