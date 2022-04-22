@@ -257,8 +257,13 @@ auto (watch)
 
    Supported on Linux and Mac only.
 
+`auto` is provided through the package `doit-auto1 <https://github.com/pydoit/doit-auto1>`_ plugin.
+To install it::
+
+   $ pip install doit-auto1
+
 `auto` sub-command is an alternative way of executing your tasks.  It is a long
-running process that only terminates when it is interrupted (Ctrl-C).
+running process that only terminates when it is interrupted `Ctrl-C`.
 When started it will execute the given tasks. After that it will watch the
 file system for modifications in the file-dependencies.
 When a file is modified the tasks are re-executed.

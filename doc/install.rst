@@ -12,7 +12,7 @@ Installing
 pip
 ^^^
 
-`package <http://pip.pypa.io/>`_::
+`package <https://pip.pypa.io/>`_::
 
    $ pip install doit
 
@@ -21,10 +21,6 @@ If you are using python 2::
 
   $ pip install "doit<0.30"
 
-
-If you want to use non-local plugins you need to install `setuptools` as well.
-
-  $ pip install doit[plugins]
 
 
 Source
@@ -56,9 +52,3 @@ Anaconda
 
 `doit` is also packaged on `Anaconda <https://anaconda.org/conda-forge/doit>`_.
 Note this is not an official package and might be outdated.
-
-
-.. note::
-  * `doit` depends on the packages
-    `pyinotify <http://trac.dbzteam.org/pyinotify>`_ (for linux),
-    `macfsevents <http://pypi.python.org/pypi/MacFSEvents>`_ (mac).

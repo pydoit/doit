@@ -17,6 +17,7 @@ Changes
 - BACKWARD INCOMPATIBLE: does not use not maintained `toml` package, use `tomli` instead.
 - BACKWARD INCOMPATIBLE: remove `auto` command, use plugin `doit-auto1`.
 - BACKWARD INCOMPATIBLE: plugins use importlib-metadata instead of setuptools.
+- BACKWARD INCOMPATIBLE: remove extra install `doit[plugins]`.
 - api.run_tasks(): support `pos_arg`.
 
 
