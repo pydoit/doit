@@ -10,7 +10,7 @@ Changes
 =======
 
 
-0.36.0 (*unreleased*)
+0.36.0 (*2022-04-22*)
 =====================
 
 - BACKWARD INCOMPATIBLE: remove deprecated `doit.cmd_base.py:TaskLoader`.

@@ -105,7 +105,7 @@ Copyright (c) 2008-2022 Eduardo Naufel Schettino
 
 setup(name = 'doit',
       description = 'doit - Automation Tool',
-      version = '0.36.dev0',
+      version = '0.36.0',
       license = 'MIT',
       author = 'Eduardo Naufel Schettino',
       author_email = 'schettino72@gmail.com',
