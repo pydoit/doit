@@ -6,7 +6,7 @@ import datetime
 import json
 from io import StringIO
 
-from .exceptions import TaskFailed
+from .exceptions import BaseFail
 
 
 class ConsoleReporter(object):
@@ -44,11 +44,12 @@ class ConsoleReporter(object):
         if task.actions and (task.name[0] != '_'):
             self.write('.  %s\n' % task.title())
 
-    def add_failure(self, task, exception):
+    def add_failure(self, task, fail: BaseFail):
         """called when execution finishes with a failure"""
-        result = {'task': task, 'exception': exception}
-        self.failures.append(result)
-        self._write_failure(result)
+        result = {'task': task, 'exception': fail}
+        if fail.report:
+            self.failures.append(result)
+            self._write_failure(result)
 
     def add_success(self, task):
         """called when execution finishes successfully"""
@@ -147,14 +148,14 @@ class ZeroReporter(ConsoleReporter):
 
 
 class ErrorOnlyReporter(ZeroReporter):
-    desc = """Report only errors internal or TaskError, TaskFailures are not reported"""
+    desc = """Report only errors internal or TaskError and TaskFailure."""
 
-    def add_failure(self, task, exception):
-        if isinstance(exception, TaskFailed):
+    def add_failure(self, task, fail_info: BaseFail):
+        if not fail_info.report:
             return
-        exception_name = exception.get_name()
+        exception_name = fail_info.get_name()
         self.write(f'taskid:{task.name} - {exception_name}\n')
-        self.write(exception.get_msg())
+        self.write(fail_info.get_msg())
         self.write("\n")
 
 

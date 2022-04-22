@@ -47,10 +47,13 @@ class CatchedException():
     """DEPRECATED, use BaseFail instead. 2022-04-22 0.36.0 release.
 
     Wrong grammar and not all BaseFail contains an Exception
+
+    :ivar report: used by (some) reporters to decide if Failure/Error should be in printed
     """
-    def __init__(self, msg, exception=None):
+    def __init__(self, msg, exception=None, report=True):
         self.message = msg
         self.traceback = ''
+        self.report = report
         # It would be nice to include original exception, but they are not always pickable
         # https://stackoverflow.com/questions/49715881/how-to-pickle-inherited-exceptions
 

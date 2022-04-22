@@ -4,7 +4,7 @@ from io import StringIO
 
 from doit import reporter
 from doit.task import Stream, Task
-from doit.exceptions import BaseFail, TaskFailed, TaskError
+from doit.exceptions import BaseFail, TaskFailed
 
 
 class TestConsoleReporter(object):
@@ -101,6 +101,15 @@ class TestConsoleReporter(object):
         assert """raise Exception("original 中文 exception message here")""" in got
         # caught message
         assert "caught exception there" in got
+
+    def test_failure_no_report(self):
+        rep = reporter.ConsoleReporter(StringIO(), {})
+        failure = TaskFailed("caught exception there", Exception("ExceptionKind"), report=False)
+        rep.add_failure(Task("t_name", None, verbosity=1), failure)
+        rep.complete_run()
+        got = rep.outstream.getvalue()
+        assert "ExceptionKind" not in got
+        assert "caught exception there" not in got
 
     def test_runtime_error(self):
         msg = "runtime error"
@@ -229,22 +238,13 @@ class TestErrorOnlyReporter(object):
         rep.execute_task(t1)
         assert "" == rep.outstream.getvalue()
 
-    def test_failed(self):
+    def test_faile_no_report(self):
         rep = reporter.ErrorOnlyReporter(StringIO(), {})
-        exception = Exception("Failure message here")
-        failure = TaskFailed("Something failed", exception)
+        failure = TaskFailed("An error here", report=False)
         rep.add_failure(Task("t_name", None, verbosity=1), failure)
         assert "" == rep.outstream.getvalue()
 
-    def test_error(self):
-        rep = reporter.ErrorOnlyReporter(StringIO(), {})
-        exception = Exception("Error message here")
-        failure = TaskError("An error here", exception)
-        rep.add_failure(Task("t_name", None, verbosity=1), failure)
-        assert "Error message here" in rep.outstream.getvalue()
-        assert "An error here" in rep.outstream.getvalue()
-
-    def test_caught(self):
+    def test_error_report(self):
         class UnknownException(BaseFail):
             pass
         rep = reporter.ErrorOnlyReporter(StringIO(), {})

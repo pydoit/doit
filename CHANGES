@@ -22,6 +22,8 @@ Changes
 - DEPRECATED: `CatchedException`, renamed to `BaseFail`.
 - api.run_tasks(): support `pos_arg`.
 - add reporter `error-only`
+- add attribute `report` to `BaseFail`. Controls if reporter should create own output for failures.
+  If `False` relies on underlying action to output failure information.
 
 
 
