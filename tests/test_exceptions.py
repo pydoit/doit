@@ -26,9 +26,9 @@ class TestInvalidCommand(object):
 
 
 
-class TestCatchedException(object):
+class TestBaseFail(object):
     def test_name(self):
-        class XYZ(exceptions.CatchedException):
+        class XYZ(exceptions.BaseFail):
             pass
         my_excp = XYZ("hello")
         assert 'XYZ' == my_excp.get_name()
@@ -36,7 +36,7 @@ class TestCatchedException(object):
         assert 'XYZ' in repr(my_excp)
 
     def test_msg_notraceback(self):
-        my_excp = exceptions.CatchedException('got you')
+        my_excp = exceptions.BaseFail('got you')
         msg = my_excp.get_msg()
         assert 'got you' in msg
 
@@ -44,18 +44,18 @@ class TestCatchedException(object):
         try:
             raise IndexError('too big')
         except Exception as e:
-            my_excp = exceptions.CatchedException('got this', e)
+            my_excp = exceptions.BaseFail('got this', e)
         msg = my_excp.get_msg()
         assert 'got this' in msg
         assert 'too big' in msg
         assert 'IndexError' in msg
 
-    def test_catched(self):
+    def test_caught(self):
         try:
             raise IndexError('too big')
         except Exception as e:
-            my_excp = exceptions.CatchedException('got this', e)
-        my_excp2 = exceptions.CatchedException('handle that', my_excp)
+            my_excp = exceptions.BaseFail('got this', e)
+        my_excp2 = exceptions.BaseFail('handle that', my_excp)
         msg = my_excp2.get_msg()
         assert 'handle that' in msg
         assert 'got this' not in msg # could be there too...
@@ -63,10 +63,9 @@ class TestCatchedException(object):
         assert 'IndexError' in msg
 
 
-class TestAllCatched(object):
+class TestAllCaught(object):
     def test(self):
-        assert issubclass(exceptions.TaskFailed, exceptions.CatchedException)
-        assert issubclass(exceptions.TaskError, exceptions.CatchedException)
-        assert issubclass(exceptions.SetupError, exceptions.CatchedException)
-        assert issubclass(exceptions.DependencyError,
-                          exceptions.CatchedException)
+        assert issubclass(exceptions.TaskFailed, exceptions.BaseFail)
+        assert issubclass(exceptions.TaskError, exceptions.BaseFail)
+        assert issubclass(exceptions.SetupError, exceptions.BaseFail)
+        assert issubclass(exceptions.DependencyError, exceptions.BaseFail)

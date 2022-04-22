@@ -8,7 +8,7 @@ from collections.abc import Iterable
 import pytest
 
 from doit.exceptions import TaskError
-from doit.exceptions import CatchedException
+from doit.exceptions import BaseFail
 from doit import action
 from doit import task
 from doit.task import Stream
@@ -389,7 +389,7 @@ class TestTaskTeardown(object):
         t = task.Task('t1', [], teardown=[(my_raise,)])
         t.execute(Stream(0))
         got = t.execute_teardown(Stream(0))
-        assert isinstance(got, CatchedException)
+        assert isinstance(got, BaseFail)
 
 
 class TestTaskClean(object):

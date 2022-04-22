@@ -7,7 +7,7 @@ import queue
 
 import cloudpickle
 
-from .exceptions import InvalidTask, CatchedException
+from .exceptions import InvalidTask, BaseFail
 from .exceptions import TaskFailed, SetupError, DependencyError, UnmetDependency
 from .task import Stream, DelayedLoaded
 
@@ -49,18 +49,18 @@ class Runner():
         self._stop_running = False
 
 
-    def _handle_task_error(self, node, catched_excp):
+    def _handle_task_error(self, node, base_fail):
         """handle all task failures/errors
 
         called whenever there is an error before executing a task or
         its execution is not successful.
         """
-        assert isinstance(catched_excp, CatchedException)
+        assert isinstance(base_fail, BaseFail)
         node.run_status = "failure"
         self.dep_manager.remove_success(node.task)
-        self.reporter.add_failure(node.task, catched_excp)
+        self.reporter.add_failure(node.task, base_fail)
         # only return FAILURE if no errors happened.
-        if isinstance(catched_excp, TaskFailed) and self.final_result != ERROR:
+        if isinstance(base_fail, TaskFailed) and self.final_result != ERROR:
             self.final_result = FAILURE
         else:
             self.final_result = ERROR
@@ -176,24 +176,24 @@ class Runner():
         return task.execute(self.stream)
 
 
-    def process_task_result(self, node, catched_excp):
+    def process_task_result(self, node, base_fail):
         """handles result"""
         task = node.task
         # save execution successful
-        if catched_excp is None:
+        if base_fail is None:
             task.save_extra_values()
             try:
                 self.dep_manager.save_success(task)
             except FileNotFoundError as exception:
                 msg = (f"ERROR: Task '{task.name}' saving success: "
                        f"Dependent file '{exception.filename}' does not exist.")
-                catched_excp = DependencyError(msg)
+                base_fail = DependencyError(msg)
             else:
                 node.run_status = "successful"
                 self.reporter.add_success(task)
                 return
         # task error
-        self._handle_task_error(node, catched_excp)
+        self._handle_task_error(node, base_fail)
 
 
     def run_tasks(self, task_dispatcher):
@@ -217,18 +217,18 @@ class Runner():
             if not self.select_task(node, task_dispatcher.tasks):
                 continue
 
-            catched_excp = self.execute_task(node.task)
-            self.process_task_result(node, catched_excp)
+            base_fail = self.execute_task(node.task)
+            self.process_task_result(node, base_fail)
 
 
     def teardown(self):
         """run teardown from all tasks"""
         for task in reversed(self.teardown_list):
             self.reporter.teardown_task(task)
-            catched = task.execute_teardown(self.stream)
-            if catched:
+            result = task.execute_teardown(self.stream)
+            if result:
                 msg = "ERROR: task '%s' teardown action" % task.name
-                error = SetupError(msg, catched)
+                error = SetupError(msg, result)
                 self.reporter.cleanup_error(error)
 
 
@@ -436,13 +436,13 @@ class MRunner(Runner):
 
     def _process_result(self, node, task, result):
         """process result received from sub-process"""
-        catched_excp = result.get('failure')
+        base_fail = result.get('failure')
         task.update_from_pickle(result['task'])
         for action, output in zip(task.actions, result['out']):
             action.out = output
         for action, output in zip(task.actions, result['err']):
             action.err = output
-        self.process_task_result(node, catched_excp)
+        self.process_task_result(node, base_fail)
 
 
     def run_tasks(self, task_dispatcher):

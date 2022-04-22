@@ -7,7 +7,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from doit.exceptions import CatchedException, InvalidTask
+from doit.exceptions import BaseFail, InvalidTask
 from doit.dependency import DbmDB, Dependency
 from doit.reporter import ConsoleReporter
 from doit.task import Task, DelayedLoader
@@ -822,7 +822,7 @@ class TestMRunner_execute_task(object):
         assert result_q.get() == {'name': 't1', 'reporter': 'execute_task'}
         res = result_q.get()
         assert res['name'] == 't1'
-        assert isinstance(res['failure'], CatchedException)
+        assert isinstance(res['failure'], BaseFail)
         assert res['out'] == ['simple output\n']
         assert res['err'] == ['simple error\n']
         # assert result_q.get()['task']['result'] == 'my-result'

@@ -4,7 +4,7 @@ from io import StringIO
 
 from doit import reporter
 from doit.task import Stream, Task
-from doit.exceptions import CatchedException, TaskFailed, TaskError
+from doit.exceptions import BaseFail, TaskFailed, TaskError
 
 
 class TestConsoleReporter(object):
@@ -69,8 +69,8 @@ class TestConsoleReporter(object):
 
     def test_cleanupError(self, capsys):
         rep = reporter.ConsoleReporter(StringIO(), {})
-        exception = CatchedException("I got you")
-        rep.cleanup_error(exception)
+        fail = TaskFailed("I got you")
+        rep.cleanup_error(fail)
         err = capsys.readouterr()[1]
         assert "I got you" in err
 
@@ -91,16 +91,16 @@ class TestConsoleReporter(object):
         try:
             raise Exception("original 中文 exception message here")
         except Exception as e:
-            catched = CatchedException("catched exception there", e)
-        rep.add_failure(Task("t_name", None, verbosity=1), catched)
+            caught = TaskFailed("caught exception there", e)
+        rep.add_failure(Task("t_name", None, verbosity=1), caught)
         rep.complete_run()
         got = rep.outstream.getvalue()
         # description
         assert "Exception: original 中文 exception message here" in got, got
         # traceback
         assert """raise Exception("original 中文 exception message here")""" in got
-        # catched message
-        assert "catched exception there" in got
+        # caught message
+        assert "caught exception there" in got
 
     def test_runtime_error(self):
         msg = "runtime error"
@@ -120,12 +120,11 @@ class TestConsoleReporter(object):
 
     def test_complete_run_verbosity0(self):
         rep = reporter.ConsoleReporter(StringIO(), {})
-        catched = CatchedException("catched exception there",
-                                   Exception("foo"))
+        caught = TaskFailed("caught exception there", Exception("foo"))
 
         task = Task("t_name", None, verbosity=0)
         task.executed = True
-        rep.add_failure(task, catched)
+        rep.add_failure(task, caught)
 
         # assign new StringIO so output is only from complete_run()
         rep.outstream = StringIO()
@@ -136,12 +135,11 @@ class TestConsoleReporter(object):
 
     def test_complete_run_verbosity0_not_executed(self):
         rep = reporter.ConsoleReporter(StringIO(), {})
-        catched = CatchedException("catched exception there",
-                                   Exception("foo"))
+        caught = TaskFailed("caught exception there", Exception("foo"))
 
         task = Task("t_name", None, verbosity=0)
         task.executed = False
-        rep.add_failure(task, catched)
+        rep.add_failure(task, caught)
 
         # assign new StringIO so output is only from complete_run()
         rep.outstream = StringIO()
@@ -152,12 +150,11 @@ class TestConsoleReporter(object):
 
     def test_complete_run_verbosity1(self):
         rep = reporter.ConsoleReporter(StringIO(), {})
-        catched = CatchedException("catched exception there",
-                                   Exception("foo"))
+        caught = TaskFailed("caught exception there", Exception("foo"))
 
         task = Task("t_name", None, verbosity=1)
         task.executed = True
-        rep.add_failure(task, catched)
+        rep.add_failure(task, caught)
 
         # assign new StringIO so output is only from complete_run()
         rep.outstream = StringIO()
@@ -168,10 +165,8 @@ class TestConsoleReporter(object):
 
     def test_complete_run_verbosity2(self):
         rep = reporter.ConsoleReporter(StringIO(), {})
-        catched = CatchedException("catched exception there",
-                                   Exception("foo"))
-
-        rep.add_failure(Task("t_name", None, verbosity=2), catched)
+        caught = TaskFailed("caught exception there", Exception("foo"))
+        rep.add_failure(Task("t_name", None, verbosity=2), caught)
 
         # assign new StringIO so output is only from complete_run()
         rep.outstream = StringIO()
@@ -183,12 +178,11 @@ class TestConsoleReporter(object):
 
     def test_complete_run_verbosity2_redisplay(self):
         rep = reporter.ConsoleReporter(StringIO(), {'failure_verbosity': 2})
-        catched = CatchedException("catched exception there",
-                                   Exception("foo"))
+        caught = TaskFailed("caught exception there", Exception("foo"))
 
         task = Task("t_name", None, verbosity=2)
         task.executed = True
-        rep.add_failure(task, catched)
+        rep.add_failure(task, caught)
 
         # assign new StringIO so output is only from complete_run()
         rep.outstream = StringIO()
@@ -250,8 +244,8 @@ class TestErrorOnlyReporter(object):
         assert "Error message here" in rep.outstream.getvalue()
         assert "An error here" in rep.outstream.getvalue()
 
-    def test_catched(self):
-        class UnknownException(CatchedException):
+    def test_caught(self):
+        class UnknownException(BaseFail):
             pass
         rep = reporter.ErrorOnlyReporter(StringIO(), {})
         exception = Exception("Error message here")
@@ -294,7 +288,7 @@ class TestJsonReporter(object):
         # t1 fail
         rep.get_status(t1)
         rep.execute_task(t1)
-        rep.add_failure(t1, CatchedException('t1 failed!'))
+        rep.add_failure(t1, TaskFailed('t1 failed!'))
         # t2 skipped
         rep.get_status(t2)
         rep.skip_uptodate(t2)
@@ -320,12 +314,12 @@ class TestJsonReporter(object):
         rep = reporter.JsonReporter(output)
         t1 = Task("t1", None)
         msg = "cleanup error"
-        exception = CatchedException(msg)
+        fail = TaskFailed(msg)
         assert [] == rep.errors
         rep.get_status(t1)
         rep.execute_task(t1)
         rep.add_success(t1)
-        rep.cleanup_error(exception)
+        rep.cleanup_error(fail)
         assert [msg+'\n'] == rep.errors
         assert "" in rep.outstream.getvalue()
         rep.complete_run()

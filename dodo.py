@@ -43,11 +43,9 @@ def task_ut():
 
 def task_coverage():
     """show coverage for all modules including tests"""
-    cov = Coverage([PythonPackage('doit', 'tests')],
-                   config=Config(branch=False, parallel=True,
-                                 concurrency='multiprocessing',
-                          omit=['tests/myecho.py', 'tests/sample_process.py'],)
-                   )
+    config = Config(branch=False, parallel=True, concurrency='multiprocessing',
+                    omit=['tests/myecho.py', 'tests/sample_process.py'])
+    cov = Coverage([PythonPackage('doit', 'tests')], config=config)
     yield cov.all()
     yield cov.src()
     yield cov.by_module()

@@ -42,28 +42,30 @@ class InvalidTask(Exception):
     pass
 
 
-class CatchedException(object):
-    """This used to save info from caught exceptions
-    The traceback from the original exception is saved
+
+class CatchedException():
+    """DEPRECATED, use BaseFail instead. 2022-04-22 0.36.0 release.
+
+    Wrong grammar and not all BaseFail contains an Exception
     """
     def __init__(self, msg, exception=None):
         self.message = msg
         self.traceback = ''
+        # It would be nice to include original exception, but they are not always pickable
+        # https://stackoverflow.com/questions/49715881/how-to-pickle-inherited-exceptions
 
-        if isinstance(exception, CatchedException):
+        if isinstance(exception, BaseFail):
             self.traceback = exception.traceback
         elif exception is not None:
-            # TODO remove doit-code part from traceback
             self.traceback = traceback.format_exception(
                 exception.__class__, exception, sys.exc_info()[2])
-
 
     def get_msg(self):
         """return full exception description (includes traceback)"""
         return "%s\n%s" % (self.message, "".join(self.traceback))
 
     def get_name(self):
-        """get Exception name"""
+        """get fail kind name"""
         return self.__class__.__name__
 
     def __repr__(self):
@@ -73,13 +75,19 @@ class CatchedException(object):
         return "%s\n%s" % (self.get_name(), self.get_msg())
 
 
+class BaseFail(CatchedException):
+    """This used to save info Task failures/errors
 
-class TaskFailed(CatchedException):
+    Might contain a caught Exception.
+    """
+    pass
+
+class TaskFailed(BaseFail):
     """Task execution was not successful."""
     pass
 
 
-class TaskError(CatchedException):
+class TaskError(BaseFail):
     """Error while trying to execute task."""
     pass
 

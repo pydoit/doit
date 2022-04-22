@@ -9,7 +9,7 @@ from collections.abc import Callable
 from pathlib import PurePath
 
 from .cmdparse import CmdOption, TaskParse
-from .exceptions import CatchedException, InvalidTask
+from .exceptions import BaseFail, InvalidTask
 from .action import create_action, PythonAction
 from .dependency import UptodateCalculator
 
@@ -471,7 +471,7 @@ class Task(object):
         task_stdout, task_stderr = stream._get_out_err(self.verbosity)
         for action in self.actions:
             action_return = action.execute(task_stdout, task_stderr)
-            if isinstance(action_return, CatchedException):
+            if isinstance(action_return, BaseFail):
                 return action_return
             self.result = action.result
             self.values.update(action.values)
@@ -484,7 +484,7 @@ class Task(object):
         task_stdout, task_stderr = stream._get_out_err(self.verbosity)
         for action in self.teardown:
             action_return = action.execute(task_stdout, task_stderr)
-            if isinstance(action_return, CatchedException):
+            if isinstance(action_return, BaseFail):
                 return action_return
 
 
@@ -514,7 +514,7 @@ class Task(object):
 
                 if (not dryrun) or execute_on_dryrun:
                     result = action.execute(out=outstream)
-                    if isinstance(result, CatchedException):
+                    if isinstance(result, BaseFail):
                         sys.stderr.write(str(result))
 
     def title(self):
