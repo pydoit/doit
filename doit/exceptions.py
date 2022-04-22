@@ -79,21 +79,21 @@ class TaskFailed(CatchedException):
     pass
 
 
-class UnmetDependency(TaskFailed):
-    """Task was not executed because a dependent task failed or is ignored"""
-    pass
-
-
 class TaskError(CatchedException):
     """Error while trying to execute task."""
     pass
 
 
-class SetupError(CatchedException):
+class UnmetDependency(TaskError):
+    """Task was not executed because a dependent task failed or is ignored"""
+    pass
+
+
+class SetupError(TaskError):
     """Error while trying to execute setup object"""
     pass
 
 
-class DependencyError(CatchedException):
+class DependencyError(TaskError):
     """Error while trying to check if task is up-to-date or saving task status"""
     pass

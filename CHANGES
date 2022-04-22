@@ -18,8 +18,10 @@ Changes
 - BACKWARD INCOMPATIBLE: remove `auto` command, use plugin `doit-auto1`.
 - BACKWARD INCOMPATIBLE: plugins use importlib-metadata instead of setuptools.
 - BACKWARD INCOMPATIBLE: remove extra install `doit[plugins]`.
+- BACKWARD INCOMPATIBLE: `UnmetDependency`, `SetupError` and `DependencyError` as sub-class of `TaskError`.
 - api.run_tasks(): support `pos_arg`.
 - add reporter `error-only`
+
 
 
 0.35.0 (*2022-04-07*)
