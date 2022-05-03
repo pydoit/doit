@@ -12,6 +12,7 @@ from doit.cmd_base import get_loader
 # compatibility to run tests even if xdist is not installed
 try:
     from xdist import plugin
+    plugin
 except:
     @pytest.fixture
     def worker_id():
