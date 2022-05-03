@@ -9,9 +9,19 @@ from doit.task import Task
 from doit.cmd_base import get_loader
 
 
+# compatibility to run tests even if xdist is not installed
+try:
+    from xdist import plugin
+except:
+    @pytest.fixture
+    def worker_id():
+        return '0'
+
+
 def get_abspath(relativePath):
     """ return abs file path relative to this file"""
     return os.path.join(os.path.dirname(__file__), relativePath)
+
 
 # fixture to create a sample file to be used as file_dep
 def dependency_factory(relative_path):
