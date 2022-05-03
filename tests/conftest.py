@@ -17,8 +17,8 @@ def get_abspath(relativePath):
 def dependency_factory(relative_path):
 
     @pytest.fixture
-    def dependency(request):
-        path = get_abspath(relative_path)
+    def dependency(request, worker_id):
+        path = get_abspath(f"{relative_path}_{worker_id}")
         if os.path.exists(path):  # pragma: no cover
             os.remove(path)
         ff = open(path, "w")
@@ -117,7 +117,8 @@ def restore_cwd(request):
 
 
 # create a list of sample tasks
-def tasks_sample():
+def tasks_sample(dep1=None):
+    file_dep = dep1 if dep1 else 'tests/data/dependency1'
     tasks_sample = [
         # 0
         Task(
@@ -131,8 +132,7 @@ def tasks_sample():
                 },
             ]),
         # 1
-        Task("t2", [""], file_dep=['tests/data/dependency1'],
-             doc="t2 doc string"),
+        Task("t2", [""], file_dep=[file_dep], doc="t2 doc string"),
         # 2
         Task("g1", None, doc="g1 doc string", has_subtask=True),
         # 3

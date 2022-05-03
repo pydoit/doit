@@ -14,7 +14,7 @@ class TestCmdRun(object):
     def testProcessRun(self, dependency1, depfile_name):
         output = StringIO()
         cmd_run = CmdFactory(Run, backend='dbm', dep_file=depfile_name,
-                             task_list=tasks_sample())
+                             task_list=tasks_sample(dependency1))
         result = cmd_run._execute(output)
         assert 0 == result
         got = output.getvalue().split("\n")[:-1]
@@ -24,7 +24,7 @@ class TestCmdRun(object):
     def testProcessRunMP(self, dependency1, depfile_name):
         output = StringIO()
         cmd_run = CmdFactory(Run, backend='dbm', dep_file=depfile_name,
-                             task_list=tasks_sample())
+                             task_list=tasks_sample(dependency1))
         result = cmd_run._execute(output, num_process=1)
         assert 0 == result
         got = output.getvalue().split("\n")[:-1]
@@ -33,7 +33,7 @@ class TestCmdRun(object):
     def testProcessRunMThread(self, dependency1, depfile_name):
         output = StringIO()
         cmd_run = CmdFactory(Run, backend='dbm', dep_file=depfile_name,
-                             task_list=tasks_sample())
+                             task_list=tasks_sample(dependency1))
         result = cmd_run._execute(output, num_process=1, par_type='thread')
         assert 0 == result
         got = output.getvalue().split("\n")[:-1]
@@ -54,7 +54,7 @@ class TestCmdRun(object):
                             Mock(return_value=False))
         output = StringIO()
         cmd_run = CmdFactory(Run, backend='dbm', dep_file=depfile_name,
-                             task_list=tasks_sample())
+                             task_list=tasks_sample(dependency1))
         result = cmd_run._execute(output, num_process=1)
         assert 0 == result
         got = output.getvalue().split("\n")[:-1]

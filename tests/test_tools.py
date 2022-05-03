@@ -174,8 +174,8 @@ class TestTimeout(object):
 
 
 @pytest.fixture
-def checked_file(request):
-    fname = 'mytmpfile'
+def checked_file(request, worker_id):
+    fname = f'mytmpfile_{worker_id}'
     file_ = open(fname, 'a')
     file_.close()
     def remove():
