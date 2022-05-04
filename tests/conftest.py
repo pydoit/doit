@@ -16,7 +16,7 @@ try:
 except:
     @pytest.fixture
     def worker_id():
-        return '0'
+        return
 
 
 def get_abspath(relativePath):
@@ -29,7 +29,9 @@ def dependency_factory(relative_path):
 
     @pytest.fixture
     def dependency(request, worker_id):
-        path = get_abspath(f"{relative_path}_{worker_id}")
+        path = get_abspath(relative_path)
+        if worker_id:
+            path += f'_{worker_id}'
         if os.path.exists(path):  # pragma: no cover
             os.remove(path)
         ff = open(path, "w")
