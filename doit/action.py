@@ -218,7 +218,10 @@ class CmdAction(BaseAction):
         if capture_io:
             p_out = p_err = subprocess.PIPE
         else:
-            p_out = p_err = None
+            if capture_io is False:
+                p_out = p_err = None
+            else:  # None
+                p_out = p_err = open(os.devnull, "w")
 
         # spawn task process
         process = subprocess.Popen(
