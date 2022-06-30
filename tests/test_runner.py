@@ -337,7 +337,7 @@ def use_args(arg1):
 def make_args():
     return {'myarg':1}
 def action_add_filedep(task, extra_dep):
-    task.file_dep.add(extra_dep)
+    task.file_dep.append(extra_dep)
 
 
 class TestRunner_run_tasks(object):
@@ -542,7 +542,7 @@ class TestRunner_run_tasks(object):
         assert ('start', t1) == reporter.log.pop(0), reporter.log
         assert ('execute', t1) == reporter.log.pop(0)
         assert ('success', t1) == reporter.log.pop(0)
-        assert t1.file_dep == set([extra_dep])
+        assert t1.file_dep == [extra_dep]
 
     # SystemExit runner should not interfere with SystemExit
     def testSystemExitRaises(self, reporter, RunnerClass, dep_manager):

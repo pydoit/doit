@@ -483,7 +483,7 @@ class TaskDispatcher(object):
             # remove file_dep since generated tasks are not required
             # to really create the target (support multiple matches)
             if regex_group:
-                this_task.file_dep = {}
+                this_task.file_dep = []
                 if regex_group.target in self.targets:
                     regex_group.found = True
                 else:

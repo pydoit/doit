@@ -214,7 +214,7 @@ class TestCmdExpandAction(object):
         assert my_action.execute() is None
 
         got = my_action.out.split('-')
-        assert task.file_dep == set(got[0].split())
+        assert task.file_dep == got[0].split()
         assert task.dep_changed == got[1].split()
         assert targets == got[2].split()
 
@@ -896,7 +896,7 @@ class TestPythonActionPrepareKwargsMeta(object):
             targets.append('new_target')
             dependencies.append('new_dependency')
             changed.append('new_changed')
-            task.file_dep.add('dep2')
+            task.file_dep.append('dep2')
         my_task = Task('Fake', [py_callable], file_dep=['dependencies'],
                     targets=['targets'])
         my_task.dep_changed = ['changed']
@@ -904,7 +904,7 @@ class TestPythonActionPrepareKwargsMeta(object):
         my_action = my_task.actions[0]
         my_action.execute()
 
-        assert my_task.file_dep == set(['dependencies', 'dep2'])
+        assert my_task.file_dep == ['dependencies', 'dep2']
         assert my_task.targets == ['targets']
         assert my_task.dep_changed == ['changed']
 

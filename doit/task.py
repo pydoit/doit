@@ -266,7 +266,7 @@ class Task(object):
         self.dep_changed = None
 
         # file_dep
-        self.file_dep = set()
+        self.file_dep = []
         self._expand_file_dep(file_dep)
 
         # task_dep
@@ -327,9 +327,9 @@ class Task(object):
         """put input into file_dep"""
         for dep in file_dep:
             if isinstance(dep, str):
-                self.file_dep.add(dep)
+                self.file_dep.append(dep)
             elif isinstance(dep, PurePath):
-                self.file_dep.add(str(dep))
+                self.file_dep.append(str(dep))
             else:
                 msg = ("%s. file_dep must be a str or Path from pathlib. "
                        "Got '%r' (%s)")
