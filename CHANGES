@@ -13,6 +13,8 @@ Changes
 0.37.0 (*unreleased*)
 ======================
 
+- update timestamps of file dependencies even if the task is already up to date.
+
 
 0.36.0 (*2022-04-22*)
 =====================
@@ -607,4 +609,3 @@ Changes
 ====================
 
 - initial release
-
