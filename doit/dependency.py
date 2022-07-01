@@ -541,12 +541,19 @@ class Dependency(object):
             else:
                 self._set(task.name, "result:", get_md5(task.result))
 
+        self.update_deps(task)
+
+    def update_deps(self, task, ignore_missing=False):
         # file-dep
         self._set(task.name, 'checker:', self.checker.__class__.__name__)
         for dep in task.file_dep:
-            state = self.checker.get_state(dep, self._get(task.name, dep))
-            if state is not None:
-                self._set(task.name, dep, state)
+            try:
+                state = self.checker.get_state(dep, self._get(task.name, dep))
+                if state is not None:
+                    self._set(task.name, dep, state)
+            except FileNotFoundError:
+                if not ignore_missing:
+                    raise
 
         # save list of file_deps
         self._set(task.name, 'deps:', tuple(task.file_dep))
