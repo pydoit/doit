@@ -147,20 +147,29 @@ class TestCmdVerbosity(object):
 
 class TestTaskIOCapture:
     def test_cmd_io_capture_yes(self):
-        task = Task(name='foo', actions=[f"{PROGRAM} hi_stdout hi2"], io={'capture': True})
-        task.init_options()
-        my_action = task.actions[0]
-        got = my_action.execute()
-        assert got is None
-        assert "hi_stdout" == my_action.out
+        with tempfile.TemporaryFile('w+') as fp_out:
+            task = Task(name='foo', actions=[f"{PROGRAM} hi_stdout hi2"], io={'capture': True})
+            task.init_options()
+            my_action = task.actions[0]
+            got = my_action.execute(out=fp_out)
+            assert got is None
+            assert "hi_stdout" == my_action.out
+            fp_out.seek(0)
+            # TODO: assert  _print_process_output() was used
+            assert fp_out.read() == 'hi_stdout'
 
     def test_cmd_io_capture_no(self):
-        task = Task(name='foo', actions=[f"{PROGRAM} hi_stdout hi2"], io={'capture': False})
-        task.init_options()
-        my_action = task.actions[0]
-        got = my_action.execute()
-        assert got is None
-        assert my_action.out is None
+        with tempfile.TemporaryFile('w+') as fp_out:
+            task = Task(name='foo', actions=[f"{PROGRAM} hi_stdout hi2"], io={'capture': False})
+            task.init_options()
+            my_action = task.actions[0]
+            got = my_action.execute(fp_out)
+            assert got is None
+            # doit does not process output so can not capture value
+            assert my_action.out is None
+            fp_out.seek(0)
+            # TODO: assert  _print_process_output() was NOT used
+            assert fp_out.read() == 'hi_stdout'
 
     def test_py_io_capture_yes(self):
         def hello():
@@ -168,9 +177,13 @@ class TestTaskIOCapture:
         task = Task(name='foo', actions=[hello], io={'capture': True})
         task.init_options()
         my_action = task.actions[0]
-        got = my_action.execute()
-        assert got is None
-        assert "hello\n" == my_action.out
+        with tempfile.TemporaryFile('w+') as fp_out:
+            got = my_action.execute(out=fp_out)
+            assert got is None
+            assert "hello\n" == my_action.out
+            fp_out.seek(0)
+            # TODO: assert  Writer() was used
+            assert "hello\n" == fp_out.read()
 
     def test_py_io_capture_no(self):
         def hello():
@@ -178,9 +191,13 @@ class TestTaskIOCapture:
         task = Task(name='foo', actions=[hello], io={'capture': False})
         task.init_options()
         my_action = task.actions[0]
-        got = my_action.execute()
-        assert got is None
-        assert my_action.out is None
+        with tempfile.TemporaryFile('w+') as fp_out:
+            got = my_action.execute(out=fp_out)
+            assert got is None
+            assert my_action.out is None
+            fp_out.seek(0)
+            # TODO: assert  Writer() was NOT used
+            assert fp_out.read() == 'hello\n'
 
 
 class TestCmdExpandAction(object):
@@ -665,12 +682,14 @@ class TestPythonVerbosity(object):
         my_action.execute(err=sys.stderr)
         got = capsys.readouterr()[1]
         assert "this is stderr S\n" == got, repr(got)
+        assert "this is stderr S\n" == my_action.err
 
     def test_noCaptureStdout(self, capsys):
         my_action = action.PythonAction(self.write_stdout)
         my_action.execute(out=sys.stdout)
         got = capsys.readouterr()[0]
         assert "this is stdout S\n" == got, repr(got)
+        assert "this is stdout S\n" == my_action.out
 
     def test_redirectStderr(self):
         tmpfile = tempfile.TemporaryFile('w+')

@@ -219,7 +219,8 @@ class CmdAction(BaseAction):
             p_out = p_err = subprocess.PIPE
         else:
             if capture_io is False:
-                p_out = p_err = None
+                p_out = out
+                p_err = err
             else:  # None
                 p_out = p_err = open(os.devnull, "w")
 
@@ -456,6 +457,14 @@ class PythonAction(BaseAction):
             if err:
                 err_writer.add_writer(err, is_original=True)
             sys.stderr = err_writer
+        else:
+            if out:
+                old_stdout = sys.stdout
+                sys.stdout = out
+            if err:
+                old_stderr = sys.stderr
+                sys.stderr = err
+
 
         kwargs = self._prepare_kwargs()
 
@@ -476,6 +485,11 @@ class PythonAction(BaseAction):
                 sys.stderr = old_stderr
                 self.out = output.getvalue()
                 self.err = errput.getvalue()
+            else:
+                if out:
+                    sys.stdout = old_stdout
+                if err:
+                    sys.stderr = old_stderr
 
         # if callable returns false. Task failed
         if returned_value is False:

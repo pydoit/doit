@@ -181,7 +181,8 @@ class LongRunning(CmdAction):
     """
     def execute(self, out=None, err=None):
         action = self.expand_action()
-        process = subprocess.Popen(action, shell=self.shell, **self.pkwargs)
+        process = subprocess.Popen(
+            action, shell=self.shell, stdout=out, stderr=err, **self.pkwargs)
         try:
             process.wait()
         except KeyboardInterrupt:
@@ -199,7 +200,8 @@ class Interactive(CmdAction):
     """
     def execute(self, out=None, err=None):
         action = self.expand_action()
-        process = subprocess.Popen(action, shell=self.shell, **self.pkwargs)
+        process = subprocess.Popen(
+            action, shell=self.shell, stdout=out, stderr=err, **self.pkwargs)
         process.wait()
         if process.returncode != 0:
             return exceptions.TaskFailed(
