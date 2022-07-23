@@ -32,7 +32,7 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - run: pip install --user -U pip wheel setuptools
+      - run: python -m pip install --user -U pip wheel setuptools
       - id: pip-cache
         run: echo "::set-output name=dir::$(pip cache dir)"
       - uses: actions/cache@v2
