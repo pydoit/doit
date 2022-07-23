@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu, windows, macos]
-        python-version: ['3.8', '3.9', '3.10', '3.11-dev'] # 'pypy-3.8' # pypy broken, see #409
+        python-version: ['3.8', '3.9', '3.10', '3.11-dev', 'pypy-3.8']
         include:
           # https://github.com/pydoit/doit/issues/372
           - os: macos

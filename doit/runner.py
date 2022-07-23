@@ -5,7 +5,11 @@ from threading import Thread
 import pickle
 import queue
 
-import cloudpickle
+try:
+    import cloudpickle
+    pickle_dumps = cloudpickle.dumps
+except ImportError:
+    pickle_dumps = pickle.dumps
 
 from .exceptions import InvalidTask, BaseFail
 from .exceptions import TaskFailed, SetupError, DependencyError, UnmetDependency
@@ -272,8 +276,10 @@ class JobTask(object):
     def __init__(self, task):
         self.name = task.name
         try:
-            self.task_pickle = cloudpickle.dumps(task)
-        except pickle.PicklingError as excp:
+            self.task_pickle = pickle_dumps(task)
+        # bug on python raising AttributeError
+        # https://github.com/python/cpython/issues/73373
+        except (pickle.PicklingError, AttributeError) as excp:
             msg = """Error on Task: `{}`.
 Task created at execution time that has an attribute than can not be pickled,
 so not feasible to be used with multi-processing. To fix this issue make sure

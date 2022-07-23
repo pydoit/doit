@@ -138,9 +138,11 @@ setup(name = 'doit',
       },
       packages = ['doit'],
       python_requires='>=3.8',
-      install_requires = ['cloudpickle', 'importlib-metadata>=4.4'],
+      install_requires = ['importlib-metadata>=4.4'],
       extras_require={
-          'toml': ['tomli; python_version<"3.11"']
+          'toml': ['tomli; python_version<"3.11"'],
+          # cloudpickle broken on pypy, see #409
+          'cloudpickle': ['cloudpickle; platform_python_implementation!="pypy"'],
       },
       long_description = long_description,
       entry_points = {
