@@ -6,17 +6,11 @@ import subprocess
 import inspect
 import json
 from collections import defaultdict
-from dbm import dumb
-import dbm as ddbm
+import importlib
+import dbm
 
-# uncomment imports below to run tests on all dbm backends...
-# import dumbdbm as ddbm
-# import dbm as ddbm
-# import gdbm as ddbm
-
-# note: to check which DBM backend is being used (in py2):
-#       >>> anydbm._defaultmod
-
+# note: to check which DBM backend is being used:
+#   >>> doit dumpdb
 
 
 class DatabaseException(Exception):
@@ -64,7 +58,7 @@ class JSONCodec():
 class JsonDB(object):
     """Backend using a single text file with JSON content"""
 
-    def __init__(self, name, codec):
+    def __init__(self, name, codec, *, module_name=None):
         """Open/create a DB file"""
         self.name = name
         self.codec = codec
@@ -129,6 +123,11 @@ class JsonDB(object):
         self._db = {}
 
 
+def get_dbm_module(mod_name):
+    if mod_name:
+        return importlib.import_module(mod_name)
+    return importlib.import_module('dbm')  # use system default
+
 
 class DbmDB(object):
     """Backend using a DBM file with individual values encoded in JSON
@@ -141,19 +140,21 @@ class DbmDB(object):
     in json into ``_dbm`` and the DBM file is saved.
 
     :ivar str name: file name/path
+    :ivar module: DBM implementation name one of: 'dbm.gun', 'dbm.ndbm', 'dbm.dumb'.
     :ivar dbm _dbm: items with json encoded values
     :ivar dict _db: items with python-dict as value
     :ivar set dirty: id of modified tasks
     """
     DBM_CONTENT_ERROR_MSG = 'db type could not be determined'
 
-    def __init__(self, name, codec):
+    def __init__(self, name, codec, *, module_name=None):
         """Open/create a DB file"""
         self.name = name
         self.codec = codec
+        self.module = get_dbm_module(module_name)
         try:
-            self._dbm = ddbm.open(self.name, 'c')
-        except ddbm.error as exception:
+            self._dbm = self.module.open(self.name, 'c')
+        except dbm.error as exception:
             message = str(exception)
             if message == self.DBM_CONTENT_ERROR_MSG:
                 # When a corrupted/old format database is found
@@ -232,14 +233,9 @@ class DbmDB(object):
     def remove_all(self):
         """remove saved dependencies from DB for all tasks"""
         self._db = {}
-        # dumb dbm always opens file in update mode
-        if isinstance(self._dbm, dumb._Database):  # pragma: no cover
-            self._dbm._index = {}
-            self._dbm.close()
-        # gdbm can not be running on 2 instances on same thread
-        # see https://bitbucket.org/schettino72/doit/issue/16/
+        self._dbm.close()
         del self._dbm
-        self._dbm = ddbm.open(self.name, 'n')
+        self._dbm = self.module.open(self.name, 'n')
         self.dirty = set()
 
 
@@ -247,7 +243,7 @@ class DbmDB(object):
 class SqliteDB(object):
     """ sqlite3 json backend """
 
-    def __init__(self, name, codec):
+    def __init__(self, name, codec, *, module_name=None):
         self.name = name
         self.codec = codec
         self._conn = self._sqlite3(self.name)
@@ -503,11 +499,11 @@ class Dependency(object):
     :ivar bool _closed: DB was flushed to file
     """
     def __init__(self, db_class, backend_name, checker_cls=MD5Checker,
-                 codec_cls=JSONCodec):
+                 codec_cls=JSONCodec, module_name=None):
         self._closed = False
         self.checker = checker_cls()
         self.db_class = db_class
-        self.backend = db_class(backend_name, codec=codec_cls())
+        self.backend = db_class(backend_name, codec=codec_cls(), module_name=module_name)
         self._set = self.backend.set
         self._get = self.backend.get
         self.remove = self.backend.remove
@@ -728,3 +724,25 @@ class UptodateCalculator(object):
         """@param"""
         self.get_val = dep_manager._get
         self.tasks_dict = tasks_dict
+
+
+if __name__ == '__main__':
+    # inspect available DBM modules and used extensions
+    import tempfile
+    from pathlib import Path
+    import os
+
+    for name in dbm._names:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            print(f'# {name}')
+            try:
+                mod = __import__(name, fromlist=['open'])
+            except ImportError:
+                print('NOT FOUND')
+                continue
+            db = mod.open(f'{tmpdir}/test', 'c')
+            db['foo'] = 'bar'
+            db.close()
+
+            for file in Path(tmpdir).iterdir():
+                print(file.name)

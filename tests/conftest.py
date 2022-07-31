@@ -1,10 +1,12 @@
 import os
 import time
+import itertools
 from dbm import whichdb
 
 import pytest
 
-from doit.dependency import DbmDB, Dependency, MD5Checker
+from doit.dependency import Dependency, MD5Checker
+from doit.dependency import DbmDB, JsonDB, SqliteDB
 from doit.task import Task
 from doit.cmd_base import get_loader
 
@@ -64,42 +66,49 @@ def target1(request):
     return path
 
 
+# dbm backends use different file extensions
+db_ext = {
+    'dbm.ndbm': ['.db'],
+    'dbm.dump': ['.dat', '.dir', '.bak'],
+    'dbm.gnu': [''],
+}
+
 # fixture for "doit.db". create/remove for every test
-def remove_db(filename):
+def remove_all_db(filename):
     """remove db file from anydbm"""
-    # dbm on some systems add '.db' on others add ('.dir', '.pag')
-    extensions = [
-        '', #dbhash #gdbm
-        '.bak', #dumbdb
-        '.dat', #dumbdb
-        '.dir', #dumbdb #dbm2
-        '.db', #dbm1
-        '.pag', #dbm2
-    ]
-    for ext in extensions:
+    for ext in itertools.chain.from_iterable(db_ext.values()):
         if os.path.exists(filename + ext):
             os.remove(filename + ext)
 
-# dbm backends use different file extensions
-db_ext = {
-    'dbhash': [''],
-    'gdbm': [''],
-    'dbm': ['.db', '.dir'],
-    'dumbdbm': ['.dat'],
-    # for python3
-    'dbm.ndbm': ['.db'],
+backend_map = {
+    'dbm': DbmDB,
+    'dbm.gnu': DbmDB,
+    'dbm.ndbm': DbmDB,
+    'dbm.dumb': DbmDB,
+    'json': JsonDB,
+    'sqlite3': SqliteDB,
 }
 
-def dep_manager_fixture(request, dep_class, tmp_path_factory):
+def dep_manager_fixture(request, tmp_path_factory, backend_name):
     filename = str(tmp_path_factory.mktemp('x', True) / 'testdb')
-    dep_file = Dependency(dep_class, filename)
-    dep_file.whichdb = whichdb(dep_file.name) if dep_class is DbmDB else 'XXX'
+    dep_class = backend_map[backend_name]
+    try:
+        if backend_name.startswith('dbm.'):
+            dep_file = Dependency(dep_class, filename, module_name=backend_name)
+        else:
+            dep_file = Dependency(dep_class, filename)
+    except ImportError:
+        pytest.skip(f'"{backend_name}" not available.')
+    if backend_name == 'dbm':
+        dep_file.whichdb = whichdb(dep_file.name)
+    else:
+        dep_file.whichdb = backend_name
     dep_file.name_ext = db_ext.get(dep_file.whichdb, [''])
 
     def remove_depfile():
         if not dep_file._closed:
             dep_file.close()
-        remove_db(dep_file.name)
+        remove_all_db(dep_file.name)
     request.addfinalizer(remove_depfile)
 
     return dep_file
@@ -107,14 +116,14 @@ def dep_manager_fixture(request, dep_class, tmp_path_factory):
 
 @pytest.fixture
 def dep_manager(request, tmp_path_factory):
-    return dep_manager_fixture(request, DbmDB, tmp_path_factory)
+    return dep_manager_fixture(request, tmp_path_factory, 'dbm')
 
 
 @pytest.fixture
 def depfile_name(request, tmp_path_factory):
     depfile_name = str(tmp_path_factory.mktemp('x', True) / 'testdb')
     def remove_depfile():
-        remove_db(depfile_name)
+        remove_all_db(depfile_name)
     request.addfinalizer(remove_depfile)
 
     return depfile_name
@@ -177,8 +186,8 @@ def CmdFactory(cls, outstream=None, task_loader=None, dep_file=None,
     if outstream:
         cmd.outstream = outstream
     if backend:
-        assert backend == "dbm"  # the only one used on tests
-        cmd.dep_manager = Dependency(DbmDB, dep_file, MD5Checker)
+        dep_class = backend_map[backend]
+        cmd.dep_manager = Dependency(dep_class, dep_file, MD5Checker, module_name=backend)
     elif dep_manager:
         cmd.dep_manager = dep_manager
     cmd.dep_file = dep_file  # (str) filename usually '.doit.db'

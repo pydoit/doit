@@ -13,7 +13,7 @@ Changes
 0.37.0 (*unreleased*)
 ======================
 
-- Ref #409: make cloudpickle options, and not installed by default on PyPy.
+- Ref #409: make cloudpickle optional, and not installed by default on PyPy.
 - fix: make sure `io.capture` respects out/err option.
 
 
