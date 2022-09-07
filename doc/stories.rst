@@ -146,7 +146,7 @@ The `DECAR Systems Group <https://www.decar.ca/>`_ at McGill University
 conducts fundamental and applied research on state estimation, guidance, and
 control. We use ``doit`` to improve the reproducibility of our research.
 
-`One of our recent projects <https://github.com/decarsg/system_norm_koopman>`
+`One of our recent projects <https://github.com/decarsg/system_norm_koopman>`_
 involves modelling of robotic systems from data using the Koopman operator. Our
 pipeline consists of many small tasks like preprocessing data, profiling
 algorithms, and generating plots, along with a few large regression problems
