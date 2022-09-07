@@ -181,7 +181,7 @@ Build System
 by `Mike Pagel <https://github.com/moltob>`_ (2019-02-06)
 
 We are responsible for the development of the next generation instrument
-cluster software at BMW. While we use CMake for the actual build of libraries
+cluster software at BMW. While we use ``CMake`` for the actual build of libraries
 and applications, we have learned in the past that you *can* do almost everything
 with ``CMake``, but probably you *shouldn’t*.
 
