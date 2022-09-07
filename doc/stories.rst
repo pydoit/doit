@@ -147,10 +147,10 @@ conducts fundamental and applied research on state estimation, guidance, and
 control. We use ``doit`` to improve the reproducibility of our research.
 
 `One of our recent projects <https://github.com/decarsg/system_norm_koopman>`_
-involves modelling robotic systems from data using the Koopman operator. Our
-pipeline consists of many small tasks like preprocessing data, profiling
-algorithms, and generating plots, along with a few large regression problems
-that must be run overnight.
+involves modelling a soft robot arm from experimental data using the Koopman
+operator. Our pipeline consists of many small tasks like preprocessing data,
+profiling algorithms, and generating plots, along with a few large regression
+problems that must be run overnight.
 
 Organizing this pipeline was quite a challenge. First we tried ``Make``, which
 worked well in the beginning, but fell apart when we had to write our own
