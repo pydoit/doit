@@ -147,7 +147,7 @@ conducts fundamental and applied research on state estimation, guidance, and
 control. We use ``doit`` to improve the reproducibility of our research.
 
 `One of our recent projects <https://github.com/decarsg/system_norm_koopman>`_
-involves modelling of robotic systems from data using the Koopman operator. Our
+involves modelling robotic systems from data using the Koopman operator. Our
 pipeline consists of many small tasks like preprocessing data, profiling
 algorithms, and generating plots, along with a few large regression problems
 that must be run overnight.
@@ -156,8 +156,8 @@ Organizing this pipeline was quite a challenge. First we tried ``Make``, which
 worked well in the beginning, but fell apart when we had to write our own
 macros to generate rules. It was also becoming a burden to serialize and
 deserialize tons of intermediate files, as well as to maintain compatibility
-with Windows. As others here have said, just because you can make it work
-doesn't mean that you should. We considered using ``CMake``, but ultimately
+with Windows. As others here have said, just because you *can* make it work
+doesn't mean that you *should*. We considered using ``CMake``, but ultimately
 decided it was the wrong tool for the job. ``Snakemake`` was also an option,
 but the non-Python dependencies did not sit well with us.
 
@@ -169,7 +169,7 @@ files, and we no longer had to worry about Windows compatibility. Generating
 multiple tasks was as simple as a ``for`` loop and a ``yield``.
 
 Now, all you have to do is clone our repo, install the dependencies, and run
-``doit``, and you'll get all the plots, exactly as they appear in our paper!
+``doit`` to get all the plots, exactly as they appear in our paper!
 
 
 Build System
