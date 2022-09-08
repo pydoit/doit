@@ -87,7 +87,9 @@ CmdParse
 Config
 ConsoleReporter
 Ctrl
+DECAR
 DSL
+Dahdah
 Daniele
 DbmDB
 DelayedLoader
@@ -120,6 +122,7 @@ JSON
 JSONCodec
 KeyError
 KeyboardInterrupt
+Koopman
 Kubernetes
 L485
 Laperche
@@ -129,8 +132,10 @@ MD5
 MP3
 Makefile
 Makefiles
+McGill
 Metagenomics
 MetalK8s
+Modelling
 ModuleTaskLoader
 MyChecker
 MyCustomTask2
@@ -163,6 +168,7 @@ Segata
 SetupError
 SetupSample
 SkOink
+Snakemake
 Sorenson
 StackOverflow
 Subclassing
@@ -268,6 +274,7 @@ dir
 discoverable
 docstring
 dodoFile
+doesn
 doit
 dryrun
 dumbdbm
@@ -360,6 +367,7 @@ metavar
 microbiome
 minversion
 mkdir
+modelling
 modindex
 mortem
 msg
@@ -400,6 +408,7 @@ pos1
 pre
 preflight
 prem
+preprocessing
 prev
 printf
 procida
@@ -426,7 +435,9 @@ pythonic
 quickstart
 refactor
 regex
+repo
 repr
+reproducibility
 rst2s5
 runnable
 runtests
