@@ -137,6 +137,41 @@ for my needs:
   multiple `doit` pipelines.
 
 
+`Data-Driven Modelling of Robots <https://github.com/decarsg/system_norm_koopman>`_ / McGill University, Canada
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+by `Steven Dahdah <https://github.com/sdahdah>`_ (2022-09-06)
+
+The `DECAR Systems Group <https://www.decar.ca/>`_ at McGill University
+conducts fundamental and applied research on state estimation, guidance, and
+control. We use ``doit`` to improve the reproducibility of our research.
+
+`One of our recent projects <https://github.com/decarsg/system_norm_koopman>`_
+involves modelling a soft robot arm from experimental data using the Koopman
+operator. Our pipeline consists of many small tasks like preprocessing data,
+profiling algorithms, and generating plots, along with a few large regression
+problems that must be run overnight.
+
+Organizing this pipeline was quite a challenge. First we tried ``Make``, which
+worked well in the beginning, but fell apart when we had to write our own
+macros to generate rules. It was also becoming a burden to serialize and
+deserialize tons of intermediate files, as well as to maintain compatibility
+with Windows. As others here have said, just because you *can* make it work
+doesn't mean that you *should*. We considered using ``CMake``, but ultimately
+decided it was the wrong tool for the job. ``Snakemake`` was also an option,
+but the non-Python dependencies did not sit well with us.
+
+This is when we discovered ``doit``, which was a real life-saver. Instead of
+having a convoluted plotting script with a ton of command line arguments, we
+just placed our plotting functions directly in ``dodo.py``. Same with the
+preprocessing functions. We no longer needed to generate as many temporary
+files, and we no longer had to worry about Windows compatibility. Generating
+multiple tasks was as simple as a ``for`` loop and a ``yield``.
+
+Now, all you have to do is clone our repo, install the dependencies, and run
+``doit`` to get all the plots, exactly as they appear in our paper!
+
+
 Build System
 ------------
 
@@ -146,7 +181,7 @@ Build System
 by `Mike Pagel <https://github.com/moltob>`_ (2019-02-06)
 
 We are responsible for the development of the next generation instrument
-cluster software at BMW. While we use CMake for the actual build of libraries
+cluster software at BMW. While we use ``CMake`` for the actual build of libraries
 and applications, we have learned in the past that you *can* do almost everything
 with ``CMake``, but probably you *shouldn’t*.
 

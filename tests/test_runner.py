@@ -575,7 +575,7 @@ class TestMReporter(object):
         assert not hasattr(mp_reporter, 'no_existent_method')
 
 
-def clouldpickle_installed():
+def cloudpickle_installed():
     try:
         import cloudpickle
         cloudpickle
@@ -585,7 +585,7 @@ def clouldpickle_installed():
         return True
 
 class TestJobTask(object):
-    @pytest.mark.skipif('not clouldpickle_installed()')
+    @pytest.mark.skipif('not cloudpickle_installed()')
     def test_closure_is_picklable(self):
         # can pickle because we use cloudpickle
         def non_top_function(): return 4
@@ -758,7 +758,7 @@ def non_pickable_creator():
 class TestMRunner_parallel_run_tasks(object):
 
     @pytest.mark.skipif('not runner.MRunner.available()')
-    @pytest.mark.skipif('not clouldpickle_installed()')
+    @pytest.mark.skipif('not cloudpickle_installed()')
     def test_task_cloudpicklabe_multiprocess(self, reporter, dep_manager):
         t1 = Task("t1", [(my_print, ["out a"] )] )
         t2 = Task("t2", None, loader=DelayedLoader(
