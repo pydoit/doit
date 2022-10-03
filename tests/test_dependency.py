@@ -243,7 +243,7 @@ class TestSaveSuccess(object):
         pdep_manager.save_success(t1)
         assert pdep_manager._get("taskId_X", filePath) is not None
         assert pdep_manager._get("taskId_X", filePath2) is not None
-        assert set(pdep_manager._get("taskId_X", 'deps:')) == t1.file_dep
+        assert list(pdep_manager._get("taskId_X", 'deps:')) == t1.file_dep
 
     def test_save_values(self, pdep_manager):
         t1 = Task('t1', None)

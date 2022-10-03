@@ -679,10 +679,11 @@ class Dependency(object):
         # check for modified file_dep
         previous = self._get(task.name, 'deps:')
         previous_set = set(previous) if previous else None
-        if previous_set and previous_set != task.file_dep:
+        set_file_dep = set(task.file_dep)
+        if previous_set and previous_set != set_file_dep:
             if get_log:
-                added_files = sorted(list(task.file_dep - previous_set))
-                removed_files = sorted(list(previous_set - task.file_dep))
+                added_files = sorted(list(set_file_dep - previous_set))
+                removed_files = sorted(list(previous_set - set_file_dep))
                 result.set_reason('added_file_dep', added_files)
                 result.set_reason('removed_file_dep', removed_files)
             result.status = 'run'

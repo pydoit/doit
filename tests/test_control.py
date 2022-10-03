@@ -127,7 +127,7 @@ class TestTaskControlCmdOptions(object):
         assert len(selected) == 1
         assert selected[0] == '_regex_target_abc:taskY'
         sel_task = control.tasks['_regex_target_abc:taskY']
-        assert sel_task.file_dep == {'abc'}
+        assert sel_task.file_dep == ['abc']
         assert sel_task.loader.basename == 'taskY'
         assert sel_task.loader is t2.loader
 
@@ -159,8 +159,8 @@ class TestTaskControlCmdOptions(object):
         assert len(selected) == 2
         assert (sorted(selected) ==
                 ['_regex_target_abc:taskY', '_regex_target_abc:taskZ'])
-        assert control.tasks['_regex_target_abc:taskY'].file_dep == {'abc'}
-        assert control.tasks['_regex_target_abc:taskZ'].file_dep == {'abc'}
+        assert control.tasks['_regex_target_abc:taskY'].file_dep == ['abc']
+        assert control.tasks['_regex_target_abc:taskZ'].file_dep == ['abc']
         assert (control.tasks['_regex_target_abc:taskY'].loader.basename ==
                 t2.name)
         assert (control.tasks['_regex_target_abc:taskZ'].loader.basename ==
@@ -177,8 +177,8 @@ class TestTaskControlCmdOptions(object):
         assert len(selected) == 2
         assert (sorted(selected) ==
                 ['_regex_target_abc:taskY', '_regex_target_abc:taskZ'])
-        assert control.tasks['_regex_target_abc:taskY'].file_dep == {'abc'}
-        assert control.tasks['_regex_target_abc:taskZ'].file_dep == {'abc'}
+        assert control.tasks['_regex_target_abc:taskY'].file_dep == ['abc']
+        assert control.tasks['_regex_target_abc:taskZ'].file_dep == ['abc']
         assert (control.tasks['_regex_target_abc:taskY'].loader.basename ==
                 t2.name)
         assert (control.tasks['_regex_target_abc:taskZ'].loader.basename ==
@@ -586,7 +586,7 @@ class TestTaskDispatcher_add_task(object):
 
         # file_dep is removed because foo might not be task
         # that creates this task (support for multi regex matches)
-        assert n6.file_dep == {}
+        assert n6.file_dep == []
 
 
     def test_regex_group_already_created(self):

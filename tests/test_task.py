@@ -210,13 +210,13 @@ class TestTaskUpToDate(object):
 class TestTaskExpandFileDep(object):
 
     def test_dependencyStringIsFile(self):
-        my_task = task.Task("Task X", ["taskcmd"], file_dep=["123","456"])
-        assert set(["123","456"]) == my_task.file_dep
+        my_task = task.Task("Task X", ["taskcmd"], file_dep=["123", "456"])
+        assert ["123", "456"] == my_task.file_dep
 
     def test_file_dep_path(self):
         my_task = task.Task("Task X", ["taskcmd"],
                             file_dep=["123", Path("456"), PurePath("789")])
-        assert {"123", "456", "789"} == my_task.file_dep
+        assert ["123", "456", "789"] == my_task.file_dep
 
     def test_file_dep_str(self):
         pytest.raises(task.InvalidTask, task.Task, "Task X", ["taskcmd"],
@@ -248,7 +248,7 @@ class TestTaskDeps(object):
                              'uptodate': [True],
                              'to_be_ignored': 'asdf',
                              })
-        assert set(['fileX', 'fileY']) == my_task.file_dep
+        assert ['fileX', 'fileY'] == my_task.file_dep
         assert ['taskY'] == my_task.task_dep
         assert set(['calcX', 'calcY']) == my_task.calc_dep
         assert [(None, None, None), (True, None, None)] == my_task.uptodate

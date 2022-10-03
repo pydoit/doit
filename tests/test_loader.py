@@ -198,7 +198,7 @@ class TestLoadTasks(object):
         original.create_doit_tasks = creator
         task_list = load_tasks({'x': original})
         assert 1 == len(task_list)
-        assert set(['foox']) == task_list[0].file_dep
+        assert ['foox'] == task_list[0].file_dep
 
     def testUse_create_doit_tasks_class_method(self):
         class Foo(object):
@@ -209,7 +209,7 @@ class TestLoadTasks(object):
 
         task_list = load_tasks({'Foo':Foo, 'foo':Foo()})
         assert len(task_list) == 1
-        assert task_list[0].file_dep == set(['fooy'])
+        assert task_list[0].file_dep == ['fooy']
 
     def testUse_create_doit_tasks_basename_kwargs(self):
         class Foo(object):
