@@ -5,6 +5,7 @@ from doit.cmd_dumpdb import DumpDB
 class TestCmdDumpDB(object):
 
     def testDefault(self, capsys, dep_manager):
+        print(f'SAVED whichdb is {dep_manager.whichdb}')
         if dep_manager.whichdb in ('dbm', 'dbm.ndbm'): # pragma: no cover
             pytest.skip('%s not supported for this operation' % dep_manager.whichdb)
         # cmd_main(["help", "task"])

@@ -313,6 +313,7 @@ gmail
 google
 gprof2dot
 graphviz
+graphviz's
 gz
 hardcode
 hashbang
