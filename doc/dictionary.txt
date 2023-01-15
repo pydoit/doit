@@ -285,6 +285,8 @@ encodable
 env
 eq
 executables
+f'Argument
+f'When
 faq
 file'
 file0

@@ -27,10 +27,12 @@ jobs:
 
       # https://github.blog/changelog/2022-10-11-github-actions-deprecating-save-state-and-set-output-commands/
       - id: pip-cache-xnix
+        if: ${{ matrix.os != 'windows' }}
         shell: bash
         run: echo "dir=$(pip cache dir)" >> $GITHUB_OUTPUT
 
       - id: pip-cache-windows
+        if: ${{ matrix.os == 'windows' }}
         shell: pwsh
         run: echo "dir=$(pip cache dir)" >> ${env:$GITHUB_OUTPUT}
 
