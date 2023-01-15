@@ -29,8 +29,8 @@ which means it allows to be accessed during *all* task evaluation phases,
 in particular during:
 
 * Task creation, i.e. from the body of any ``task_*`` function.
-* Task execution, i.e. from the code executed by one of the task's actions.
-* Task cleanup, i.e. from the the code executed by one of the tasks's clean activities.
+* Task execution, i.e. from the code executed by one of the tasks' actions.
+* Task cleanup, i.e. from the the code executed by one of the tasks' clean activities.
 
 The `Dependency` class has members to access persistent doit data via its API:
 
