@@ -53,6 +53,16 @@ class TestCmdClean(object):
         # default enables --clean-dep
         assert ['t1', 't2'] == self.cleaned
 
+    def test_clean_all_ignores_degfault(self, tasks):
+        output = StringIO()
+        cmd_clean = CmdFactory(
+            Clean, outstream=output, task_list=tasks,
+            sel_tasks=['t1'], dep_manager=mock.MagicMock())
+        cmd_clean._execute(dryrun=False, cleandep=False, cleanall=True,
+                           cleanforget=False)
+        # default enables --clean-dep
+        assert ['t4', 't1', 't2', 't3', 't3:a'] == self.cleaned
+
     def test_clean_selected(self, tasks):
         output = StringIO()
         mock_dep_manager = mock.MagicMock()

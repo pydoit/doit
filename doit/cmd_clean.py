@@ -94,7 +94,10 @@ class Clean(DoitCmdBase):
         check_tasks_exist(tasks, selected_tasks, skip_wildcard=True)
 
         # get base list of tasks to be cleaned
-        if selected_tasks and not cleanall:  # from command line
+        if cleanall:
+            cleandep = True
+            clean_list = [t.name for t in self.task_list]
+        elif selected_tasks:  # from command line
             clean_list = self._expand(selected_tasks)
         else:
             # if not cleaning specific task enable clean_dep automatically
