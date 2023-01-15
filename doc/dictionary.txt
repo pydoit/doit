@@ -276,6 +276,7 @@ docstring
 dodoFile
 doesn
 doit
+doit's
 dryrun
 dumbdbm
 dumpdb
@@ -284,6 +285,8 @@ encodable
 env
 eq
 executables
+f'Argument
+f'When
 faq
 file'
 file0
@@ -313,6 +316,7 @@ gmail
 google
 gprof2dot
 graphviz
+graphviz's
 gz
 hardcode
 hashbang
