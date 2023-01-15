@@ -24,8 +24,16 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-      - id: pip-cache
+
+      # https://github.blog/changelog/2022-10-11-github-actions-deprecating-save-state-and-set-output-commands/
+      - id: pip-cache-xnix
+        shell: bash
         run: echo "dir=$(pip cache dir)" >> $GITHUB_OUTPUT
+
+      - id: pip-cache-windows
+        shell: pwsh
+        run: echo "dir=$(pip cache dir)" >> ${env:$GITHUB_OUTPUT}
+
       - uses: actions/cache@v3
         with:
           path: ${{ steps.pip-cache.outputs.dir }}

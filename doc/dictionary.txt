@@ -276,6 +276,7 @@ docstring
 dodoFile
 doesn
 doit
+doit's
 dryrun
 dumbdbm
 dumpdb
