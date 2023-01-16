@@ -51,14 +51,20 @@ class DoitConfig():
     _TOML_LIBS = ['tomllib', 'tomli', 'tomlkit']
     PLUGIN_TYPES = ['command', 'loader', 'backend', 'reporter']
 
-    def __init__(self):
+    def __init__(self, application_name):
         self._toml = None
         self.config = defaultdict(dict)
+        self._application_name = application_name
 
-    def loads(self, config_filenames):
+    def loads(self, config_filenames, toml_config_files_prefix):
         for config_filename in config_filenames:
             if str(config_filename).lower().endswith('.toml'):
-                prefix = 'tool.doit' if config_filename == 'pyproject.toml' else ''
+                if toml_config_files_prefix:
+                    prefix = toml_config_files_prefix
+                elif config_filename == 'pyproject.toml':
+                    prefix = f'tool.{self._application_name}'
+                else:
+                    prefix = ''
                 toml_config = self.load_config_toml(config_filename, prefix)
                 for section in toml_config:
                     self.config[section].update(toml_config[section].items())
@@ -158,7 +164,9 @@ class DoitMain(object):
 
     def __init__(self, task_loader=None,
                  config_filenames=('pyproject.toml', 'doit.cfg'),
-                 extra_config=None):
+                 extra_config=None,
+                 application_name='doit',
+                 toml_config_files_prefix=None):
         """
         :param extra_config: dict of extra argument values (by argument name)
                              This is parameter is only used by explicit API call.
@@ -178,8 +186,8 @@ class DoitMain(object):
                 self.config[section].update(items)
 
         # combine config option from INI/TOML files and API
-        config_in = DoitConfig()
-        config_in.loads(config_filenames)
+        config_in = DoitConfig(application_name)
+        config_in.loads(config_filenames, toml_config_files_prefix=toml_config_files_prefix)
         for section, vals in config_in.as_dict().items():
             self.config[section].update(vals)
 
