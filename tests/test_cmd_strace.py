@@ -40,7 +40,7 @@ class TestCmdStrace(object):
         assert 0 == result
         got = output.getvalue().split("\n")
         dep_path = os.path.abspath("tests/data/dependency1")
-        assert "R %s" % dep_path in got[0]
+        assert "R %s" % dep_path in got
 
 
     def test_opt_show_all(self, dependency1, depfile_name):
@@ -87,7 +87,7 @@ class TestCmdStrace(object):
         assert 0 == result
         got = output.getvalue().split("\n")
         tgt_path = os.path.abspath("tests/data/dependency1")
-        assert "W %s" % tgt_path in got[0]
+        assert "W %s" % tgt_path in got
 
     def test_ignore_python_actions(self, dependency1, depfile_name):
         output = StringIO()
