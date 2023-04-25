@@ -217,17 +217,19 @@ def load_tasks(namespace, command_names=(), allow_delayed=False, args=(),
                 creator_kwargs, _ = parser.parse('')
         else:
             creator_kwargs = {}
-
-        if not delayed:  # not a delayed task, just run creator
-            _process_gen(ref, creator_kwargs)
-        elif delayed.creates:  # delayed with explicit task basename
-            for tname in delayed.creates:
-                _add_delayed(tname, ref, delayed, creator_kwargs)
-        elif allow_delayed:  # delayed no explicit name, cmd run
-            _add_delayed(name, ref, delayed, creator_kwargs)
-        else:  # delayed no explicit name, cmd list (run creator)
-            _process_gen(ref, creator_kwargs)
-
+        try:
+            if not delayed:  # not a delayed task, just run creator
+                _process_gen(ref, creator_kwargs)
+            elif delayed.creates:  # delayed with explicit task basename
+                for tname in delayed.creates:
+                    _add_delayed(tname, ref, delayed, creator_kwargs)
+            elif allow_delayed:  # delayed no explicit name, cmd run
+                _add_delayed(name, ref, delayed, creator_kwargs)
+            else:  # delayed no explicit name, cmd list (run creator)
+                _process_gen(ref, creator_kwargs)
+        except Exception as e:
+            raise RuntimeError("Exception occurred while trying to create the task '"+name+"'") from e            
+            
     return task_list
 
 
