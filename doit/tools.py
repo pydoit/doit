@@ -79,6 +79,9 @@ class config_changed(object):
             return False
         return (last_success == self.config_digest)
 
+    def __repr__(self):
+        return "config_changed(%r)" % self.config
+
 
 
 # uptodate
