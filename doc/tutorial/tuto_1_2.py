@@ -12,7 +12,7 @@ def get_imports(module_path):
 
 def task_imports():
     """find imports from a python module"""
-    module_path = 'projects/requests/requests/models.py'
+    module_path = 'projects/requests/src/requests/models.py'
     return {
         'file_dep': [module_path],
         'actions': [(get_imports, [module_path])],

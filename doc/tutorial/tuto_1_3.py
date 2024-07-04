@@ -12,7 +12,7 @@ def get_imports(pkg_modules, module_path):
 
 def task_imports():
     """find imports from a python module"""
-    base_path = pathlib.Path('projects/requests/requests')
+    base_path = pathlib.Path('projects/requests/src/requests')
     pkg_modules = ModuleSet(base_path.glob('**/*.py'))
     for name, module in pkg_modules.by_name.items():
         yield {

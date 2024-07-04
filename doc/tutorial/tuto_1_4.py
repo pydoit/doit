@@ -9,7 +9,7 @@ DOIT_CONFIG = {
 }
 
 
-base_path = pathlib.Path('projects/requests/requests')
+base_path = pathlib.Path('projects/requests/src/requests')
 PKG_MODULES = ModuleSet(base_path.glob('**/*.py'))
 
 
