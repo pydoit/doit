@@ -77,7 +77,7 @@ For example:
 
 .. code-block:: console
 
-    $ python -m import_deps projects/requests/requests/models.py
+    $ python -m import_deps projects/requests/src/requests/models.py
     requests._internal_utils
     requests.auth
     requests.compat
@@ -107,7 +107,7 @@ For example, a trivial task to execute the script above and save its output into
     def task_imports():
         return {
             'actions': ['python -m import_deps '
-                        'projects/requests/requests/models.py > requests.models.deps'],
+                        'projects/requests/src/requests/models.py > requests.models.deps'],
         }
 
 
@@ -200,10 +200,10 @@ file_dep
 
 .. code-block:: console
 
-   $ touch projects/requests/requests/models.py
+   $ touch projects/requests/src/requests/models.py
    $ doit
    -- imports
-   $ echo "# comment" >> projects/requests/requests/models.py
+   $ echo "# comment" >> projects/requests/src/requests/models.py
    $ doit
    .  imports
 
@@ -355,7 +355,7 @@ metadata and state (whether it is up-to-date or not).
    status     : up-to-date
 
    file_dep   :
-     - projects/requests/requests/models.py
+     - projects/requests/src/requests/models.py
 
    targets    :
      - requests.models.deps
