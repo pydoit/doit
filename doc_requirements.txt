@@ -1,7 +1,0 @@
-# modules required to generate documentation
-# $ pip install --requirement doc_requirements.txt
-
-sphinx
-sphinx_press_theme
-sphinx-sitemap
-sphinx_reredirects

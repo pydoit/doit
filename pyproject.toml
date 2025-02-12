@@ -1,0 +1,177 @@
+[project]
+name = "doit"
+version = "0.37.dev0"
+description = "doit - Automation Tool"
+
+authors = [
+    {name = "Eduardo Naufel Schettino", email = "schettino72@gmail.com"},
+]
+
+dependencies = [
+    "importlib-metadata>=4.4",
+    "doit-py>=0.4.0",
+    "tomli",
+    "cloudpickle",
+    "pytest-coverage>=0.0",
+]
+
+requires-python = ">=3.8"
+readme = "README.rst"
+license = {text = "MIT"}
+keywords = [
+    "build make task automation pipeline task-runner",
+]
+
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Operating System :: POSIX",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Build Tools",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "http://pydoit.org"
+Documentation = "https://pydoit.org/"
+Source = "https://github.com/pydoit/doit/"
+Tracker = "https://github.com/pydoit/doit/issues"
+
+[project.optional-dependencies]
+dev = [
+    "setuptools>=75.8.0",
+    "pytest>=7.1.0",
+    "coverage>=6.0",
+    "ruff>=0.9.6",
+]
+doc = [
+    "sphinx",
+    "sphinx-press-theme",
+    "sphinx-sitemap",
+    "sphinx-reredirects",
+    ]
+
+[project.scripts]
+doit = "doit.__main__:main"
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[tool.pdm.version]
+source = "scm"
+
+[tool.pdm.scripts]
+test-cov.cmd = "pytest --cov=chipflow_lib --cov-report=html"
+test.cmd = "pytest"
+test-docs.cmd = "sphinx-build -b doctest doc/ docs/_build"
+lint.cmd = "ruff check"
+docs.cmd = "sphinx-build doc/ doc/_build/ -W --keep-going"
+
+[dependency-groups]
+docs = [
+    "sphinx-sitemap>=2.6.0",
+    "sphinx-reredirects>=0.1.5",
+    "sphinx-press-theme>=0.9.1",
+    "sphinx>=8.1.3",
+]
+
+[tool.ruff]
+exclude = ["doit/cmd_completion.py"]
+line-length = 90
+
+[tool.ruff.lint]
+ignore = [ "E266", "E301", "E302", "E303", "E305", "E306", "E731"]
+extend-select = [
+  "D419",  # empty-docstring
+  "E501",  # line-too-long
+  "W291",  # trailing-whitespace
+  "PLC0414",  # useless-import-alias
+  "PLC2401",  # non-ascii-name
+  "PLC2801",  # unnecessary-dunder-call
+  "PLC3002",  # unnecessary-direct-lambda-call
+  "PLE0101",  # return-in-init
+  "F706",  # return-outside-function
+  "F704",  # yield-outside-function
+  "PLE0115",  # nonlocal-and-global
+  "PLE0116",  # continue-in-finally
+  "PLE0117",  # nonlocal-without-binding
+  "PLE0241",  # duplicate-bases
+  "PLE0302",  # unexpected-special-method-signature
+  "PLE0604",  # invalid-all-object
+  "PLE0605",  # invalid-all-format
+  "PLE0643",  # potential-index-error
+  "PLE0704",  # misplaced-bare-raise
+  "PLE1141",  # dict-iter-missing-items
+  "PLE1142",  # await-outside-async
+  "PLE1205",  # logging-too-many-args
+  "PLE1206",  # logging-too-few-args
+  "PLE1307",  # bad-string-format-type
+  "PLE1310",  # bad-str-strip-call
+  "PLE1507",  # invalid-envvar-value
+  "PLE1519",  # singledispatch-method
+  "PLE1520",  # singledispatchmethod-function
+  "PLE2502",  # bidirectional-unicode
+  "PLE2510",  # invalid-character-backspace
+  "PLE2512",  # invalid-character-sub
+  "PLE2513",  # invalid-character-esc
+  "PLE2514",  # invalid-character-nul
+  "PLE2515",  # invalid-character-zero-width-space
+  "PLE4703",  # modified-iterating-set
+  "PLR0124",  # comparison-with-itself
+  "PLR0202",  # no-classmethod-decorator
+  "PLR0203",  # no-staticmethod-decorator
+  "UP004",  # useless-object-inheritance
+  "PLR0206",  # property-with-parameters
+  "PLR0904",  # too-many-public-methods
+  "PLR0911",  # too-many-return-statements
+  "PLR0912",  # too-many-branches
+  "PLR0913",  # too-many-arguments
+  "PLR0914",  # too-many-locals
+  "PLR0915",  # too-many-statements
+  "PLR0916",  # too-many-boolean-expressions
+  "PLR0917",  # too-many-positional-arguments
+  "PLR1702",  # too-many-nested-blocks
+  "PLR1704",  # redefined-argument-from-local
+  "PLR1711",  # useless-return
+  "C416",  # unnecessary-comprehension
+  "PLR1733",  # unnecessary-dict-index-lookup
+  "PLR1736",  # unnecessary-list-index-lookup
+  "PLW0108",  # unnecessary-lambda
+  "PLW0120",  # useless-else-on-loop
+  "PLW0127",  # self-assigning-variable
+  "PLW0128",  # redeclared-assigned-name
+  "PLW0129",  # assert-on-string-literal
+  "B033",  # duplicate-value
+  "PLW0131",  # named-expr-without-context
+  "PLW0177",  # nan-comparison
+  "PLW0211",  # bad-staticmethod-argument
+  "PLW0245",  # super-without-brackets
+  "PLW0406",  # import-self
+  "PLW0602",  # global-variable-not-assigned
+  "PLW0603",  # global-statement
+  "PLW0604",  # global-at-module-level
+  "F401",  # unused-import
+  "F841",  # unused-variable
+  "E722",  # bare-except
+  "PLW0711",  # binary-op-exception
+  "PLW1501",  # bad-open-mode
+  "PLW1507",  # shallow-copy-environ
+  "PLW1508",  # invalid-envvar-default
+  "PLW1509",  # subprocess-popen-preexec-fn
+  "PLW1514",  # unspecified-encoding
+  "PLW2101",  # useless-with-lock
+  "PLW3301",  # nested-min-max
+]
