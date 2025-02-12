@@ -5,7 +5,7 @@
 groups = ["default", "dev", "docs"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:b93c6dc3cb3981d9f4d3f6a9a85fdba3eb127c3938f712aad51bb3a19c410f93"
+content_hash = "sha256:bca4c93eac2a88f3cf0e6d6154f7e36195e7ad8431c7b196f57aa00b45f8187b"
 
 [[metadata.targets]]
 requires_python = "==3.11.*"
@@ -27,7 +27,7 @@ name = "astroid"
 version = "3.3.8"
 requires_python = ">=3.9.0"
 summary = "An abstract syntax tree for Python with inference support."
-groups = ["default"]
+groups = ["docs"]
 marker = "python_version == \"3.11\""
 dependencies = [
     "typing-extensions>=4.0.0; python_version < \"3.11\"",
@@ -35,6 +35,21 @@ dependencies = [
 files = [
     {file = "astroid-3.3.8-py3-none-any.whl", hash = "sha256:187ccc0c248bfbba564826c26f070494f7bc964fd286b6d9fff4420e55de828c"},
     {file = "astroid-3.3.8.tar.gz", hash = "sha256:a88c7994f914a4ea8572fac479459f4955eeccc877be3f2d959a33273b0cf40b"},
+]
+
+[[package]]
+name = "autodocsumm"
+version = "0.2.14"
+requires_python = ">=3.7"
+summary = "Extended sphinx autodoc including automatic autosummaries"
+groups = ["docs"]
+marker = "python_version == \"3.11\""
+dependencies = [
+    "Sphinx<9.0,>=4.0",
+]
+files = [
+    {file = "autodocsumm-0.2.14-py3-none-any.whl", hash = "sha256:3bad8717fc5190802c60392a7ab04b9f3c97aa9efa8b3780b3d81d615bfe5dc0"},
+    {file = "autodocsumm-0.2.14.tar.gz", hash = "sha256:2839a9d4facc3c4eccd306c08695540911042b46eeafcdc3203e6d0bab40bc77"},
 ]
 
 [[package]]
@@ -177,18 +192,6 @@ files = [
 ]
 
 [[package]]
-name = "dill"
-version = "0.3.9"
-requires_python = ">=3.8"
-summary = "serialize all of Python"
-groups = ["default"]
-marker = "python_version == \"3.11\""
-files = [
-    {file = "dill-0.3.9-py3-none-any.whl", hash = "sha256:468dff3b89520b474c0397703366b7b95eebe6303f108adf9b19da1f702be87a"},
-    {file = "dill-0.3.9.tar.gz", hash = "sha256:81aa267dddf68cbfe8029c42ca9ec6a4ab3b22371d1c450abc54422577b4512c"},
-]
-
-[[package]]
 name = "docutils"
 version = "0.21.2"
 requires_python = ">=3.9"
@@ -267,18 +270,6 @@ files = [
 ]
 
 [[package]]
-name = "isort"
-version = "6.0.0"
-requires_python = ">=3.9.0"
-summary = "A Python utility / library to sort Python imports."
-groups = ["default"]
-marker = "python_version == \"3.11\""
-files = [
-    {file = "isort-6.0.0-py3-none-any.whl", hash = "sha256:567954102bb47bb12e0fae62606570faacddd441e45683968c8d1734fb1af892"},
-    {file = "isort-6.0.0.tar.gz", hash = "sha256:75d9d8a1438a9432a7d7b54f2d3b45cad9a4a0fdba43617d9873379704a8bdf1"},
-]
-
-[[package]]
 name = "jinja2"
 version = "3.1.5"
 requires_python = ">=3.7"
@@ -315,18 +306,6 @@ files = [
 ]
 
 [[package]]
-name = "mccabe"
-version = "0.7.0"
-requires_python = ">=3.6"
-summary = "McCabe checker, plugin for flake8"
-groups = ["default"]
-marker = "python_version == \"3.11\""
-files = [
-    {file = "mccabe-0.7.0-py2.py3-none-any.whl", hash = "sha256:6c2d30ab6be0e4a46919781807b4f0d834ebdd6c6e3dca0bda5a15f863427b6e"},
-    {file = "mccabe-0.7.0.tar.gz", hash = "sha256:348e0240c33b60bbdf4e523192ef919f28cb2c3d7d5c7794f74009290f236325"},
-]
-
-[[package]]
 name = "mergedict"
 version = "1.0.0"
 requires_python = ">=3.4"
@@ -351,18 +330,6 @@ files = [
 ]
 
 [[package]]
-name = "platformdirs"
-version = "4.3.6"
-requires_python = ">=3.8"
-summary = "A small Python package for determining appropriate platform-specific dirs, e.g. a `user data dir`."
-groups = ["default"]
-marker = "python_version == \"3.11\""
-files = [
-    {file = "platformdirs-4.3.6-py3-none-any.whl", hash = "sha256:73e575e1408ab8103900836b97580d5307456908a03e92031bab39e4554cc3fb"},
-    {file = "platformdirs-4.3.6.tar.gz", hash = "sha256:357fb2acbc885b0419afd3ce3ed34564c13c9b95c89360cd9563f73aa5e2b907"},
-]
-
-[[package]]
 name = "pluggy"
 version = "1.5.0"
 requires_python = ">=3.8"
@@ -384,43 +351,6 @@ marker = "python_version == \"3.11\""
 files = [
     {file = "pygments-2.19.1-py3-none-any.whl", hash = "sha256:9ea1544ad55cecf4b8242fab6dd35a93bbce657034b0611ee383099054ab6d8c"},
     {file = "pygments-2.19.1.tar.gz", hash = "sha256:61c16d2a8576dc0649d9f39e089b5f02bcd27fba10d8fb4dcc28173f7a45151f"},
-]
-
-[[package]]
-name = "pylint"
-version = "3.3.4"
-requires_python = ">=3.9.0"
-summary = "python code static checker"
-groups = ["default"]
-marker = "python_version == \"3.11\""
-dependencies = [
-    "astroid<=3.4.0-dev0,>=3.3.8",
-    "colorama>=0.4.5; sys_platform == \"win32\"",
-    "dill>=0.2; python_version < \"3.11\"",
-    "dill>=0.3.6; python_version >= \"3.11\"",
-    "dill>=0.3.7; python_version >= \"3.12\"",
-    "isort!=5.13.0,<7,>=4.2.5",
-    "mccabe<0.8,>=0.6",
-    "platformdirs>=2.2.0",
-    "tomli>=1.1.0; python_version < \"3.11\"",
-    "tomlkit>=0.10.1",
-    "typing-extensions>=3.10.0; python_version < \"3.10\"",
-]
-files = [
-    {file = "pylint-3.3.4-py3-none-any.whl", hash = "sha256:289e6a1eb27b453b08436478391a48cd53bb0efb824873f949e709350f3de018"},
-    {file = "pylint-3.3.4.tar.gz", hash = "sha256:74ae7a38b177e69a9b525d0794bd8183820bfa7eb68cc1bee6e8ed22a42be4ce"},
-]
-
-[[package]]
-name = "pylint-to-ruff"
-version = "0.3.0"
-requires_python = ">=3.9"
-summary = "Introspect a Pylint configuration and convert it to Ruff"
-groups = ["dev"]
-marker = "python_version == \"3.11\""
-files = [
-    {file = "pylint_to_ruff-0.3.0-py3-none-any.whl", hash = "sha256:f0c92f98e625f16bb819736dac3967e3790f01a6b4e0b109c34273bd1c0d29be"},
-    {file = "pylint_to_ruff-0.3.0.tar.gz", hash = "sha256:d84f5fcc2eb55b6ba06c139584ca546d79ef1317def8780838bf6c1dc669f45d"},
 ]
 
 [[package]]
@@ -485,6 +415,26 @@ dependencies = [
 files = [
     {file = "pytest-coverage-0.0.tar.gz", hash = "sha256:db6af2cbd7e458c7c9fd2b4207cee75258243c8a81cad31a7ee8cfad5be93c05"},
     {file = "pytest_coverage-0.0-py2.py3-none-any.whl", hash = "sha256:dedd084c5e74d8e669355325916dc011539b190355021b037242514dee546368"},
+]
+
+[[package]]
+name = "pyyaml"
+version = "6.0.2"
+requires_python = ">=3.8"
+summary = "YAML parser and emitter for Python"
+groups = ["docs"]
+marker = "python_version == \"3.11\""
+files = [
+    {file = "PyYAML-6.0.2-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:cc1c1159b3d456576af7a3e4d1ba7e6924cb39de8f67111c735f6fc832082774"},
+    {file = "PyYAML-6.0.2-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:1e2120ef853f59c7419231f3bf4e7021f1b936f6ebd222406c3b60212205d2ee"},
+    {file = "PyYAML-6.0.2-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:5d225db5a45f21e78dd9358e58a98702a0302f2659a3c6cd320564b75b86f47c"},
+    {file = "PyYAML-6.0.2-cp311-cp311-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:5ac9328ec4831237bec75defaf839f7d4564be1e6b25ac710bd1a96321cc8317"},
+    {file = "PyYAML-6.0.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:3ad2a3decf9aaba3d29c8f537ac4b243e36bef957511b4766cb0057d32b0be85"},
+    {file = "PyYAML-6.0.2-cp311-cp311-musllinux_1_1_aarch64.whl", hash = "sha256:ff3824dc5261f50c9b0dfb3be22b4567a6f938ccce4587b38952d85fd9e9afe4"},
+    {file = "PyYAML-6.0.2-cp311-cp311-musllinux_1_1_x86_64.whl", hash = "sha256:797b4f722ffa07cc8d62053e4cff1486fa6dc094105d13fea7b1de7d8bf71c9e"},
+    {file = "PyYAML-6.0.2-cp311-cp311-win32.whl", hash = "sha256:11d8f3dd2b9c1207dcaf2ee0bbbfd5991f571186ec9cc78427ba5bd32afae4b5"},
+    {file = "PyYAML-6.0.2-cp311-cp311-win_amd64.whl", hash = "sha256:e10ce637b18caea04431ce14fabcf5c64a1c61ec9c56b071a4b7ca131ca52d44"},
+    {file = "pyyaml-6.0.2.tar.gz", hash = "sha256:d584d9ec91ad65861cc08d42e834324ef890a082e591037abe114850ff7bbc3e"},
 ]
 
 [[package]]
@@ -585,6 +535,26 @@ dependencies = [
 files = [
     {file = "sphinx-8.1.3-py3-none-any.whl", hash = "sha256:09719015511837b76bf6e03e42eb7595ac8c2e41eeb9c29c5b755c6b677992a2"},
     {file = "sphinx-8.1.3.tar.gz", hash = "sha256:43c1911eecb0d3e161ad78611bc905d1ad0e523e4ddc202a58a821773dc4c927"},
+]
+
+[[package]]
+name = "sphinx-autoapi"
+version = "3.5.0"
+requires_python = ">=3.8"
+summary = "Sphinx API documentation generator"
+groups = ["docs"]
+marker = "python_version == \"3.11\""
+dependencies = [
+    "Jinja2",
+    "PyYAML",
+    "astroid>=2.7; python_version < \"3.12\"",
+    "astroid>=3; python_version >= \"3.12\"",
+    "sphinx>=6.1.0",
+    "stdlib-list; python_version < \"3.10\"",
+]
+files = [
+    {file = "sphinx_autoapi-3.5.0-py3-none-any.whl", hash = "sha256:8676db32dded669dc6be9100696652640dc1e883e45b74710d74eb547a310114"},
+    {file = "sphinx_autoapi-3.5.0.tar.gz", hash = "sha256:10dcdf86e078ae1fb144f653341794459e86f5b23cf3e786a735def71f564089"},
 ]
 
 [[package]]
@@ -722,18 +692,6 @@ files = [
     {file = "tomli-2.2.1-cp311-cp311-win_amd64.whl", hash = "sha256:2d0f2fdd22b02c6d81637a3c95f8cd77f995846af7414c5c4b8d0545afa1bc4b"},
     {file = "tomli-2.2.1-py3-none-any.whl", hash = "sha256:cb55c73c5f4408779d0cf3eef9f762b9c9f147a77de7b258bef0a5628adc85cc"},
     {file = "tomli-2.2.1.tar.gz", hash = "sha256:cd45e1dc79c835ce60f7404ec8119f2eb06d38b1deba146f07ced3bbc44505ff"},
-]
-
-[[package]]
-name = "tomlkit"
-version = "0.13.2"
-requires_python = ">=3.8"
-summary = "Style preserving TOML library"
-groups = ["default"]
-marker = "python_version == \"3.11\""
-files = [
-    {file = "tomlkit-0.13.2-py3-none-any.whl", hash = "sha256:7a974427f6e119197f670fbbbeae7bef749a6c14e793db934baefc1b5f03efde"},
-    {file = "tomlkit-0.13.2.tar.gz", hash = "sha256:fff5fe59a87295b278abd31bec92c15d9bc4a06885ab12bcea52c71119392e79"},
 ]
 
 [[package]]

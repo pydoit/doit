@@ -15,7 +15,7 @@ from .exceptions import InvalidTask, TaskFailed, TaskError
 
 
 def normalize_callable(ref):
-    """return a list with (callable, *args, **kwargs)
+    """return a list with (``callable``, ``*args``, ``**kwargs``)
     ref can be a simple callable or a tuple
     """
     if isinstance(ref, tuple):
@@ -102,19 +102,19 @@ class CmdAction(BaseAction):
     """
     Command line action. Spawns a new process.
 
-    @ivar action(str,list,callable): subprocess command string or string list,
+    :ivar action(str,list,callable): subprocess command string or string list,
          see subprocess.Popen first argument.
          It may also be a callable that generates the command string.
          Strings may contain python mappings with the keys: dependencies,
          changed and targets. ie. "zip %(targets)s %(changed)s"
-    @ivar task(Task): reference to task that contains this action
-    @ivar save_out: (str) name used to save output in `values`
-    @ivar shell: use shell to execute command
-                 see subprocess.Popen `shell` attribute
-    @ivar encoding (str): encoding of the process output
-    @ivar decode_error (str): value for decode() `errors` param
+    :ivar task(Task): reference to task that contains this action
+    :ivar save_out: (str) name used to save output in ``values``
+    :ivar shell: use shell to execute command
+                 see subprocess.Popen ``shell`` attribute
+    :ivar encoding (str): encoding of the process output
+    :ivar decode_error (str): value for decode() ``errors`` param
                               while decoding process output
-    @ivar pkwargs: Popen arguments except 'stdout' and 'stderr'
+    :ivar pkwargs: Popen arguments except 'stdout' and 'stderr'
     """
 
     STRING_FORMAT = 'old'
@@ -181,22 +181,20 @@ class CmdAction(BaseAction):
                 realtime.write(line)
                 realtime.flush()  # required if on byte buffering mode
 
-
     def execute(self, out=None, err=None):
         """
         Execute command action
 
         both stdout and stderr from the command are captured and saved
         on self.out/err. Real time output is controlled by parameters
-        @param out: None - no real time output
-                    a file like object (has write method)
-        @param err: idem
-        @return failure:
-            - None: if successful
-            - TaskError: If subprocess return code is greater than 125
-            - TaskFailed: If subprocess return code isn't zero (and
-        not greater than 125)
+        :param out: None - no real time output
+        :type out: file like object (has write method)
+        :param err: idem
+        :return: None: if successful,
+        TaskError: If subprocess return code is greater than 125,
+        TaskFailed: If subprocess return code isn't zero (and not greater than 125)
         """
+
         try:
             action = self.expand_action()
         except Exception as exc:
@@ -272,7 +270,7 @@ class CmdAction(BaseAction):
 
     def expand_action(self):
         """Expand action using task meta informations if action is a string.
-        Convert `Path` elements to `str` if action is a list.
+        Convert ``Path`` elements to ``str`` if action is a list.
         @returns: string -> expanded string if action is a string
                   list - string -> expanded list of command elements
         """
@@ -300,8 +298,8 @@ class CmdAction(BaseAction):
         }
 
         # dep_changed is set on get_status()
-        # Some commands (like `clean` also uses expand_args but do not
-        # uses get_status, so `changed` is not available.
+        # Some commands (like ``clean`` also uses expand_args but do not
+        # uses get_status, so ``changed`` is not available.
         if self.task.dep_changed is not None:
             subs_dict['changed'] = " ".join(self.task.dep_changed)
 

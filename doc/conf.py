@@ -46,6 +46,9 @@ extensions = [
     'sphinx.ext.githubpages',
     'sphinx_sitemap',
     'sphinx_reredirects',
+    'autoapi.extension',
+    'autodocsumm',
+    'sphinx.ext.napoleon'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -75,14 +78,32 @@ exclude_patterns = ['_build', 'presentation.rst', 'old']
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = None
 
+# [Autoapi](https://sphinx-autoapi.readthedocs.io/) config
+autodoc_typehints = 'description'
+
+autodoc_default_options = {
+    'autosummary': True,
+}
+
+autoapi_dirs = ["../doit"]
+autoapi_options = [
+    'members',
+    'undoc-members',
+    'show-inheritance',
+    'show-module-summary',
+    'imported-members',
+]
+
+autoapi_keep_files = True
+
+# -- Options for HTML output -------------------------------------------------
+
 # non-default configuration for doit
 html_favicon = '_static/favico.ico'
 html_show_sourcelink = False
 html_extra_path = ['index.html', 'robots.txt', 'google726fc03ab55ebbfc.html']
 html_logo = '_static/doit-logo-small.png'
 
-
-# -- Options for HTML output -------------------------------------------------
 
 html_baseurl = 'https://pydoit.org'
 
