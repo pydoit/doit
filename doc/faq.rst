@@ -24,7 +24,7 @@ with an `L` instead of `I`. So I just set it as lowercase to avoid confusion.
 `doit` is designed to be extensible.
 A simple dictionary is actually the most flexible representation.
 It is possible to create different interfaces on top of it.
-Check this `blog post <http://blog.schettino72.net/posts/doit-task-creation.html>`_
+Check this `blog post <https://web.archive.org/web/20180311051939/https://blog.schettino72.net/posts/doit-task-creation.html>`_
 for some examples.
 
 
