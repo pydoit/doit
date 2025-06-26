@@ -125,6 +125,6 @@ The `project letsdoit <https://bitbucket.org/takluyver/letsdoit>`_
 has some real-world implementations.
 
 For simple examples to help you create your own check this
-`blog post <http://blog.schettino72.net/posts/doit-task-creation.html>`_.
+`blog post <https://web.archive.org/web/20180311051939/https://blog.schettino72.net/posts/doit-task-creation.html>`_.
 
 
