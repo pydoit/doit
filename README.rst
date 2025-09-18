@@ -26,7 +26,7 @@ doit - automation tool
 *doit* comes from the idea of bringing the power of build-tools to execute any
 kind of task
 
-*doit* can be uses as a simple **Task Runner** allowing you to easily define ad hoc
+*doit* can be used as a simple **Task Runner** allowing you to easily define ad hoc
 tasks, helping you to organize all your project related tasks in an unified
 easy-to-use & discoverable way.
 
