@@ -3,29 +3,60 @@
 This module provides a generator-based interface for running doit tasks
 programmatically, with full control over task execution.
 
-Example usage:
+Main classes:
+    DoitEngine: Context manager for task execution (recommended)
+    TaskIterator: Lower-level iterator for task dispatching
+    TaskWrapper: Wrapper providing control over individual task execution
+    TaskStatus: Enum of possible task states
 
-    from doit import create_task_iterator, DoitEngine
+Factory functions:
+    create_task_iterator: Create a TaskIterator from task definitions
+
+Basic usage:
+
+    from doit import DoitEngine
 
     tasks = [
         {'name': 'build', 'actions': ['make']},
         {'name': 'test', 'actions': ['pytest'], 'task_dep': ['build']},
     ]
 
-    # Option 1: Using context manager
     with DoitEngine(tasks) as engine:
         for wrapper in engine:
             if wrapper.should_run:
                 wrapper.execute_and_submit()
 
-    # Option 2: Manual iteration
+In-memory execution (no database persistence):
+
+    with DoitEngine(tasks, db_file=':memory:') as engine:
+        for wrapper in engine:
+            if wrapper.should_run:
+                wrapper.execute_and_submit()
+
+Dynamic task injection:
+
+    with DoitEngine(initial_tasks, db_file=':memory:') as engine:
+        for wrapper in engine:
+            if wrapper.should_run:
+                wrapper.execute_and_submit()
+
+            # Add new tasks based on results
+            if wrapper.name == 'discover':
+                for item in wrapper.values.get('discovered', []):
+                    engine.add_task({
+                        'name': f'process_{item}',
+                        'actions': [process_fn],
+                    })
+
+Manual iteration (without context manager):
+
     iterator = create_task_iterator(tasks)
     try:
         for wrapper in iterator:
             if wrapper.should_run:
                 wrapper.execute_and_submit()
     finally:
-        iterator.finish()
+        iterator.finish()  # Run teardowns and close DB
 """
 
 from .control import TaskControl
