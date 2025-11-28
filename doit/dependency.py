@@ -608,18 +608,29 @@ class Dependency(object):
     :ivar string name: filepath of the DB file
     :ivar bool _closed: DB was flushed to file
     """
-    def __init__(self, db_class, backend_name, checker_cls=MD5Checker,
+    def __init__(self, db_class, backend_name, checker_cls=None,
                  codec_cls=JSONCodec, module_name=None):
         self._closed = False
-        self.checker = checker_cls()
         self.db_class = db_class
 
         # Support ':memory:' for in-memory storage (useful for testing and
         # programmatic usage where persistence isn't needed)
         if backend_name == ':memory:':
             self.backend = InMemoryStateStore()
+            # For in-memory storage, default to TimestampChecker (Makefile-style).
+            # This is more appropriate because:
+            # 1. We don't have previous state to compare checksums against
+            # 2. Timestamp comparison is faster (no file reads for hashing)
+            # 3. It matches "run if dependencies are newer than targets" semantics
+            if checker_cls is None:
+                checker_cls = TimestampChecker
         else:
             self.backend = db_class(backend_name, codec=codec_cls(), module_name=module_name)
+            # File-based storage defaults to MD5Checker for accurate change detection
+            if checker_cls is None:
+                checker_cls = MD5Checker
+
+        self.checker = checker_cls()
 
         self._set = self.backend.set
         self._get = self.backend.get
