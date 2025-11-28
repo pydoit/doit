@@ -39,16 +39,18 @@ class TaskWrapper:
         values (dict): Task output values after execution
     """
 
-    def __init__(self, node, executor, tasks_dict):
+    def __init__(self, node, executor, tasks_dict, teardown_list=None):
         """Initialize TaskWrapper.
 
         @param node: ExecNode from TaskDispatcher
         @param executor: TaskExecutor instance
         @param tasks_dict: dict of all tasks (for getargs resolution)
+        @param teardown_list: optional list to append tasks with teardowns (for tracking)
         """
         self._node = node
         self._executor = executor
         self._tasks_dict = tasks_dict
+        self._teardown_list = teardown_list
         self._executed = False
         self._submitted = False
         self._execution_result = None
@@ -157,6 +159,10 @@ class TaskWrapper:
             self._execution_result = arg_error
             self._executed = True
             return arg_error
+
+        # Register for teardown if this task has teardown actions
+        if self._teardown_list is not None and self._node.task.teardown:
+            self._teardown_list.append(self._node.task)
 
         self._executed = True
         self._execution_result = self._executor.execute_task(self._node.task)
