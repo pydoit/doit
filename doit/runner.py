@@ -21,6 +21,109 @@ SUCCESS = 0
 FAILURE = 1
 ERROR = 2
 
+
+class TaskExecutor:
+    """Handles individual task execution, separated from orchestration and reporting.
+
+    This class encapsulates the pure execution logic:
+    - Checking if a task should run (up-to-date status)
+    - Preparing task arguments (getargs)
+    - Executing task actions
+    - Saving task results to the dependency manager
+
+    It does NOT handle reporting or orchestration decisions (like continue on failure).
+    """
+
+    def __init__(self, dep_manager, stream=None, always_execute=False):
+        """
+        @param dep_manager: DependencyBase for checking/saving task state
+        @param stream: (task.Stream) output verbosity control
+        @param always_execute: (bool) force execution even if up-to-date
+        """
+        self.dep_manager = dep_manager
+        self.stream = stream if stream else Stream(0)
+        self.always_execute = always_execute
+
+    def get_task_status(self, task, tasks_dict):
+        """Check if task is up-to-date.
+
+        Returns:
+            tuple: (status: str, error: BaseFail|None)
+                status is one of: 'run', 'up-to-date', 'error'
+                error is set only when status is 'error'
+        """
+        res = self.dep_manager.get_status(task, tasks_dict)
+        if res.status == 'error':
+            msg = "ERROR: Task '{}' checking dependencies: {}".format(
+                task.name, res.get_error_message())
+            return ('error', DependencyError(msg))
+
+        if self.always_execute:
+            return ('run', None)
+
+        return (res.status, None)
+
+    def prepare_task_args(self, task, tasks_dict):
+        """Prepare task options including getargs from other tasks.
+
+        Returns:
+            BaseFail|None: Error if argument preparation failed, None on success
+        """
+        task.init_options()
+
+        def get_value(task_id, key_name):
+            """get single value or dict from task's saved values"""
+            if key_name is None:
+                return self.dep_manager.get_values(task_id)
+            return self.dep_manager.get_value(task_id, key_name)
+
+        try:
+            for arg, value in task.getargs.items():
+                task_id, key_name = value
+
+                if tasks_dict[task_id].has_subtask:
+                    # if a group task, pass values from all sub-tasks
+                    arg_value = {}
+                    base_len = len(task_id) + 1  # length of base name string
+                    for sub_id in tasks_dict[task_id].task_dep:
+                        name = sub_id[base_len:]
+                        arg_value[name] = get_value(sub_id, key_name)
+                else:
+                    arg_value = get_value(task_id, key_name)
+                task.options[arg] = arg_value
+            return None
+        except Exception as exception:
+            msg = "ERROR getting value for argument\n" + str(exception)
+            return DependencyError(msg)
+
+    def execute_task(self, task):
+        """Execute task's actions.
+
+        Returns:
+            BaseFail|None: Error if execution failed, None on success
+        """
+        return task.execute(self.stream)
+
+    def save_task_result(self, task, base_fail):
+        """Save execution result to dependency manager.
+
+        Returns:
+            tuple: (success: bool, error: BaseFail|None)
+        """
+        if base_fail is None:
+            task.save_extra_values()
+            try:
+                self.dep_manager.save_success(task)
+                return (True, None)
+            except FileNotFoundError as exception:
+                msg = (f"ERROR: Task '{task.name}' saving success: "
+                       f"Dependent file '{exception.filename}' does not exist.")
+                return (False, DependencyError(msg))
+        else:
+            self.dep_manager.remove_success(task)
+            return (False, None)
+
+
 class Runner():
     """Task runner
 
@@ -32,6 +135,8 @@ class Runner():
             process_task_result()
       finish()
 
+    Uses TaskExecutor for pure execution logic (status checking, arg prep,
+    execution, result saving). Runner handles orchestration and reporting.
     """
     def __init__(self, dep_manager, reporter, continue_=False,
                  always_execute=False, stream=None):
@@ -47,6 +152,9 @@ class Runner():
         self.continue_ = continue_
         self.always_execute = always_execute
         self.stream = stream if stream else Stream(0)
+
+        # Create executor for pure execution logic
+        self._executor = TaskExecutor(dep_manager, self.stream, always_execute)
 
         self.teardown_list = []  # list of tasks to be teardown
         self.final_result = SUCCESS  # until something fails
@@ -73,29 +181,10 @@ class Runner():
 
 
     def _get_task_args(self, task, tasks_dict):
-        """get values from other tasks"""
-        task.init_options()
-
-        def get_value(task_id, key_name):
-            """get single value or dict from task's saved values"""
-            if key_name is None:
-                return self.dep_manager.get_values(task_id)
-            return self.dep_manager.get_value(task_id, key_name)
-
-        # selected just need to get values from other tasks
-        for arg, value in task.getargs.items():
-            task_id, key_name = value
-
-            if tasks_dict[task_id].has_subtask:
-                # if a group task, pass values from all sub-tasks
-                arg_value = {}
-                base_len = len(task_id) + 1  # length of base name string
-                for sub_id in tasks_dict[task_id].task_dep:
-                    name = sub_id[base_len:]
-                    arg_value[name] = get_value(sub_id, key_name)
-            else:
-                arg_value = get_value(task_id, key_name)
-            task.options[arg] = arg_value
+        """get values from other tasks - delegates to executor"""
+        error = self._executor.prepare_task_args(task, tasks_dict)
+        if error:
+            raise Exception(str(error))
 
 
     def select_task(self, node, tasks_dict):
@@ -130,19 +219,13 @@ class Runner():
                 self._handle_task_error(node, UnmetDependency(bad_str))
                 return False
 
-            # check if task is up-to-date
-            res = self.dep_manager.get_status(task, tasks_dict)
-            if res.status == 'error':
-                msg = "ERROR: Task '{}' checking dependencies: {}".format(
-                    task.name, res.get_error_message())
-                self._handle_task_error(node, DependencyError(msg))
+            # check if task is up-to-date using executor
+            status, error = self._executor.get_task_status(task, tasks_dict)
+            if error:
+                self._handle_task_error(node, error)
                 return False
 
-            # set node.run_status
-            if self.always_execute:
-                node.run_status = 'run'
-            else:
-                node.run_status = res.status
+            node.run_status = status
 
             # if task is up-to-date skip it
             if node.run_status == 'up-to-date':
@@ -159,11 +242,10 @@ class Runner():
                 "%s:%s" % (task.name, node.run_status)
             assert task.setup_tasks
 
-        try:
-            self._get_task_args(task, tasks_dict)
-        except Exception as exception:
-            msg = ("ERROR getting value for argument\n" + str(exception))
-            self._handle_task_error(node, DependencyError(msg))
+        # Prepare task args using executor
+        error = self._executor.prepare_task_args(task, tasks_dict)
+        if error:
+            self._handle_task_error(node, error)
             return False
 
         return True
@@ -177,27 +259,23 @@ class Runner():
 
         # finally execute it!
         self.reporter.execute_task(task)
-        return task.execute(self.stream)
+        return self._executor.execute_task(task)
 
 
     def process_task_result(self, node, base_fail):
         """handles result"""
         task = node.task
-        # save execution successful
-        if base_fail is None:
-            task.save_extra_values()
-            try:
-                self.dep_manager.save_success(task)
-            except FileNotFoundError as exception:
-                msg = (f"ERROR: Task '{task.name}' saving success: "
-                       f"Dependent file '{exception.filename}' does not exist.")
-                base_fail = DependencyError(msg)
-            else:
-                node.run_status = "successful"
-                self.reporter.add_success(task)
-                return
-        # task error
-        self._handle_task_error(node, base_fail)
+        success, save_error = self._executor.save_task_result(task, base_fail)
+
+        if success:
+            node.run_status = "successful"
+            self.reporter.add_success(task)
+        elif save_error:
+            # save_error means we had a FileNotFoundError during save
+            self._handle_task_error(node, save_error)
+        elif base_fail:
+            # Original execution error
+            self._handle_task_error(node, base_fail)
 
 
     def run_tasks(self, task_dispatcher):
@@ -361,13 +439,25 @@ class MRunner(Runner):
 
     def __getstate__(self):
         # multiprocessing on Windows will try to pickle self.
-        # These attributes are actually not used by spawend process so
+        # These attributes are actually not used by spawned process so
         # safe to be removed.
         pickle_dict = self.__dict__.copy()
         pickle_dict['reporter'] = None
         pickle_dict['task_dispatcher'] = None
         pickle_dict['dep_manager'] = None
+        # Executor references dep_manager, so exclude it too
+        pickle_dict['_executor'] = None
         return pickle_dict
+
+    def __setstate__(self, state):
+        # Restore state
+        self.__dict__.update(state)
+        # Reconstruct executor (with None dep_manager - will be set up in subprocess)
+        self._executor = TaskExecutor(
+            dep_manager=None,
+            stream=state.get('stream') or Stream(0),
+            always_execute=state.get('always_execute', False)
+        )
 
     def get_next_job(self, completed):
         """get next task to be dispatched to sub-process
