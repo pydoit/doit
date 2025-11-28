@@ -154,6 +154,39 @@ class TaskIterator:
         if node.run_status == 'up-to-date':
             task.values = self._dep_manager.get_values(task.name)
 
+    def add_task(self, task):
+        """Add a task dynamically and inject it for execution.
+
+        The task will be registered in the task control and scheduled
+        for execution in the current iteration.
+
+        @param task: Task instance or dict with task definition
+        @return: The added Task instance
+        @raise TypeError: If task is not a Task or dict
+        @raise InvalidTask: If task name already exists or has invalid deps
+        """
+        # Convert dict to Task if needed
+        if isinstance(task, dict):
+            task = dict_to_task(task)
+        elif not isinstance(task, Task):
+            raise TypeError(f"Expected Task or dict, got {type(task)}")
+
+        # Add to task control (validates deps and registers task)
+        self._task_control.add_task(task)
+
+        # Inject into dispatcher to be yielded
+        self._dispatcher.inject_task(task.name)
+
+        return task
+
+    def add_tasks(self, tasks):
+        """Add multiple tasks dynamically.
+
+        @param tasks: List of Task instances or dicts
+        @return: List of added Task instances
+        """
+        return [self.add_task(t) for t in tasks]
+
     def finish(self):
         """Finalize: run teardowns and close DB.
 

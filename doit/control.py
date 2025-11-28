@@ -137,6 +137,45 @@ class TaskControl(object):
         return wild_list
 
 
+    def add_task(self, task):
+        """Add a task dynamically after initial setup.
+
+        This allows adding new tasks during iteration/execution, useful for:
+        - Dynamic task discovery based on prior task results
+        - Building task graphs incrementally
+
+        @param task: Task instance to add
+        @return: The added task
+        @raise InvalidTask: If task name already exists or has invalid deps
+        """
+        if not isinstance(task, Task):
+            raise InvalidTask(f"Must be Task instance, got {type(task)}")
+        if task.name in self.tasks:
+            raise InvalidTask(f"Task '{task.name}' already exists")
+
+        # Add to tasks dict and definition order
+        self.tasks[task.name] = task
+        self._def_order.append(task.name)
+
+        # Expand wildcards
+        for pattern in task.wild_dep:
+            task.task_dep.extend(self._get_wild_tasks(pattern))
+
+        # Check dependencies exist
+        for dep in task.task_dep:
+            if dep not in self.tasks:
+                raise InvalidTask(f"Task '{task.name}' has unknown dependency '{dep}'")
+
+        for setup_task in task.setup_tasks:
+            if setup_task not in self.tasks:
+                raise InvalidTask(f"Task '{task.name}' has unknown setup task '{setup_task}'")
+
+        # Set implicit dependencies (target -> file_dep relationships)
+        self.set_implicit_deps(self.targets, [task])
+
+        return task
+
+
     def _process_filter(self, task_selection):
         """process cmd line task options
         [task_name [-task_opt [opt_value]] ...] ...
@@ -365,6 +404,24 @@ class TaskDispatcher(object):
         self.ready = deque()  # of ExecNode
 
         self.generator = self._dispatcher_generator(selected_tasks)
+
+
+    def inject_task(self, task_name):
+        """Inject a task to be executed during the current dispatch.
+
+        The task will be added to the ready queue and yielded in the
+        next iteration. Dependencies must already exist in the task graph.
+
+        @param task_name: Name of the task to inject (must already be in tasks dict)
+        @raise KeyError: If task_name not found in tasks
+        """
+        if task_name not in self.tasks:
+            raise KeyError(f"Task '{task_name}' not found in tasks")
+
+        # Create node if not exists, add to ready queue
+        node = self._gen_node(None, task_name)
+        if node is not None:  # node could be None if already created
+            self.ready.append(node)
 
 
     def _gen_node(self, parent, task_name):

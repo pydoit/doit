@@ -395,6 +395,159 @@ class TestTaskIteratorTeardown:
         assert marker_file.read_text() == 'teardown ran'
 
 
+# --- Tests for dynamic task injection ---
+
+class TestDynamicTaskInjection:
+
+    def test_add_task_during_iteration(self):
+        """Test adding a task during iteration."""
+        executed = []
+
+        def track(name):
+            def action():
+                executed.append(name)
+                return True
+            return action
+
+        tasks = [
+            {'name': 'task1', 'actions': [track('task1')]},
+        ]
+
+        with DoitEngine(tasks, db_file=':memory:') as engine:
+            for wrapper in engine:
+                if wrapper.should_run:
+                    wrapper.execute_and_submit()
+
+                # After executing task1, add task2
+                if wrapper.name == 'task1':
+                    engine.add_task({
+                        'name': 'task2',
+                        'actions': [track('task2')],
+                    })
+
+        assert 'task1' in executed
+        assert 'task2' in executed
+
+    def test_add_task_with_dependency_on_existing(self):
+        """Test adding a task that depends on an already-executed task."""
+        executed = []
+        received_value = [None]
+
+        def producer():
+            executed.append('producer')
+            return {'value': 42}
+
+        def consumer(value):
+            executed.append('consumer')
+            received_value[0] = value
+            return True
+
+        tasks = [
+            {'name': 'producer', 'actions': [producer]},
+        ]
+
+        with DoitEngine(tasks, db_file=':memory:') as engine:
+            for wrapper in engine:
+                if wrapper.should_run:
+                    wrapper.execute_and_submit()
+
+                # After executing producer, add consumer
+                if wrapper.name == 'producer':
+                    engine.add_task({
+                        'name': 'consumer',
+                        'actions': [(consumer,)],
+                        'getargs': {'value': ('producer', 'value')},
+                        'task_dep': ['producer'],
+                    })
+
+        assert executed == ['producer', 'consumer']
+        assert received_value[0] == 42
+
+    def test_add_multiple_tasks(self):
+        """Test adding multiple tasks at once."""
+        executed = []
+
+        def track(name):
+            def action():
+                executed.append(name)
+                return True
+            return action
+
+        tasks = [{'name': 'initial', 'actions': [track('initial')]}]
+
+        with DoitEngine(tasks, db_file=':memory:') as engine:
+            for wrapper in engine:
+                if wrapper.should_run:
+                    wrapper.execute_and_submit()
+
+                if wrapper.name == 'initial':
+                    engine.add_tasks([
+                        {'name': 'added1', 'actions': [track('added1')]},
+                        {'name': 'added2', 'actions': [track('added2')]},
+                    ])
+
+        assert 'initial' in executed
+        assert 'added1' in executed
+        assert 'added2' in executed
+
+    def test_add_task_with_Task_object(self):
+        """Test adding a Task object directly."""
+        from doit.task import Task
+        executed = []
+
+        def track(name):
+            def action():
+                executed.append(name)
+                return True
+            return action
+
+        tasks = [Task('task1', [track('task1')])]
+
+        with DoitEngine(tasks, db_file=':memory:') as engine:
+            for wrapper in engine:
+                if wrapper.should_run:
+                    wrapper.execute_and_submit()
+
+                if wrapper.name == 'task1':
+                    engine.add_task(Task('task2', [track('task2')]))
+
+        assert 'task1' in executed
+        assert 'task2' in executed
+
+    def test_add_task_invalid_dep_raises(self):
+        """Test that adding a task with invalid dependency raises error."""
+        from doit.exceptions import InvalidTask
+
+        tasks = [{'name': 'task1', 'actions': [action_success]}]
+
+        with DoitEngine(tasks, db_file=':memory:') as engine:
+            wrapper = next(engine)
+            wrapper.execute_and_submit()
+
+            with pytest.raises(InvalidTask, match="unknown dependency"):
+                engine.add_task({
+                    'name': 'task2',
+                    'actions': [action_success],
+                    'task_dep': ['nonexistent'],
+                })
+
+    def test_add_duplicate_task_raises(self):
+        """Test that adding a task with duplicate name raises error."""
+        from doit.exceptions import InvalidTask
+
+        tasks = [{'name': 'task1', 'actions': [action_success]}]
+
+        with DoitEngine(tasks, db_file=':memory:') as engine:
+            wrapper = next(engine)
+            wrapper.execute_and_submit()
+
+            with pytest.raises(InvalidTask, match="already exists"):
+                engine.add_task({
+                    'name': 'task1',
+                    'actions': [action_success],
+                })
+
+
 # --- Integration tests ---
 
 class TestProgrammaticIntegration:
