@@ -24,8 +24,12 @@ So far we have seen:
    reports (:ref:`more <reporter>`)
 
 
-Apart from those, `doit` also provides a plugin system and
-expose it's internal API so you can create new applications on top of `doit`.
+Apart from those, `doit` also provides:
+
+- A **programmatic interface** for running tasks with full execution control
+  (:ref:`more <programmatic>`)
+- A plugin system for extending core components
+- Internal APIs to build new applications on top of `doit`
 
 
 .. _custom_loader:
