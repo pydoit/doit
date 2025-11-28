@@ -35,8 +35,23 @@ from doit.api import run
 from doit.tools import load_ipython_extension
 from doit.globals import Globals
 
+# Programmatic interface for controlled task execution
+from doit.programmatic import (
+    TaskIterator,
+    create_task_iterator,
+    DoitEngine,
+    TaskWrapper,
+    TaskStatus,
+)
 
-__all__ = ['get_var', 'run', 'create_after', 'task_params', 'Globals']
+
+__all__ = [
+    # Existing API
+    'get_var', 'run', 'create_after', 'task_params', 'Globals',
+    # Programmatic interface
+    'TaskIterator', 'create_task_iterator', 'DoitEngine',
+    'TaskWrapper', 'TaskStatus',
+]
 
 def get_initial_workdir():
     """working-directory from where the doit command was invoked on shell"""
