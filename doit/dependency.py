@@ -5,6 +5,7 @@ import hashlib
 import subprocess
 import inspect
 import json
+from abc import ABC, abstractmethod
 from collections import defaultdict
 import importlib
 import dbm
@@ -54,8 +55,117 @@ class JSONCodec():
         return self.decoder.decode(data)
 
 
+class ProcessingStateStore(ABC):
+    """Abstract base class for task state persistence backends.
 
-class JsonDB(object):
+    Stores task execution state including:
+    - File dependency checksums
+    - Task result values
+    - Execution timestamps
+
+    All backends must implement this interface for storing and retrieving
+    task state. The state is organized by task_id, with each task having
+    multiple key-value pairs (e.g., file dependencies, result hashes).
+    """
+
+    @abstractmethod
+    def set(self, task_id, key, value):
+        """Store a value for a task.
+
+        @param task_id: (str) unique task identifier
+        @param key: (str) key within the task's data (e.g., file path, 'result:')
+        @param value: value to store (must be JSON-serializable)
+        """
+        pass
+
+    @abstractmethod
+    def get(self, task_id, key):
+        """Get a stored value.
+
+        @param task_id: (str) unique task identifier
+        @param key: (str) key within the task's data
+        @return: stored value, or None if not found
+        """
+        pass
+
+    @abstractmethod
+    def in_(self, task_id):
+        """Check if task has any stored state.
+
+        @param task_id: (str) unique task identifier
+        @return: (bool) True if task has stored state
+        """
+        pass
+
+    @abstractmethod
+    def remove(self, task_id):
+        """Remove all state for a task.
+
+        @param task_id: (str) unique task identifier
+        """
+        pass
+
+    @abstractmethod
+    def remove_all(self):
+        """Remove all stored state for all tasks."""
+        pass
+
+    @abstractmethod
+    def dump(self):
+        """Persist any pending changes and close resources.
+
+        Called when the dependency manager is closed. Should ensure all
+        data is written to persistent storage (if applicable) and release
+        any held resources.
+        """
+        pass
+
+
+class InMemoryStateStore(ProcessingStateStore):
+    """In-memory state store for testing and ephemeral execution.
+
+    This backend stores all state in memory only. State is lost when the
+    process exits. Useful for:
+    - Testing without file system side effects
+    - One-off task execution where persistence isn't needed
+    - Programmatic usage where the caller manages state
+    """
+
+    def __init__(self, name=None, codec=None, *, module_name=None):
+        """Initialize in-memory store.
+
+        @param name: ignored (for API compatibility with file-based stores)
+        @param codec: ignored (for API compatibility)
+        @param module_name: ignored (for API compatibility)
+        """
+        self._db = {}
+        self.name = name if name else ':memory:'
+
+    def set(self, task_id, key, value):
+        if task_id not in self._db:
+            self._db[task_id] = {}
+        self._db[task_id][key] = value
+
+    def get(self, task_id, key):
+        if task_id in self._db:
+            return self._db[task_id].get(key)
+        return None
+
+    def in_(self, task_id):
+        return task_id in self._db
+
+    def remove(self, task_id):
+        if task_id in self._db:
+            del self._db[task_id]
+
+    def remove_all(self):
+        self._db = {}
+
+    def dump(self):
+        pass  # Nothing to persist
+
+
+class JsonDB(ProcessingStateStore):
     """Backend using a single text file with JSON content"""
 
     def __init__(self, name, codec, *, module_name=None):
@@ -129,7 +239,7 @@ def get_dbm_module(mod_name):
     return importlib.import_module('dbm')  # use system default
 
 
-class DbmDB(object):
+class DbmDB(ProcessingStateStore):
     """Backend using a DBM file with individual values encoded in JSON
 
     On initialization all items are read from DBM file and loaded on ``_dbm``.
@@ -240,7 +350,7 @@ class DbmDB(object):
 
 
 
-class SqliteDB(object):
+class SqliteDB(ProcessingStateStore):
     """ sqlite3 json backend """
 
     def __init__(self, name, codec, *, module_name=None):
@@ -503,7 +613,14 @@ class Dependency(object):
         self._closed = False
         self.checker = checker_cls()
         self.db_class = db_class
-        self.backend = db_class(backend_name, codec=codec_cls(), module_name=module_name)
+
+        # Support ':memory:' for in-memory storage (useful for testing and
+        # programmatic usage where persistence isn't needed)
+        if backend_name == ':memory:':
+            self.backend = InMemoryStateStore()
+        else:
+            self.backend = db_class(backend_name, codec=codec_cls(), module_name=module_name)
+
         self._set = self.backend.set
         self._get = self.backend.get
         self.remove = self.backend.remove
