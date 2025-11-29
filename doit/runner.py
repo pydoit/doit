@@ -1,5 +1,6 @@
 """Task runner"""
 
+from enum import IntEnum
 from multiprocessing import Process, Queue as MQueue
 from threading import Thread
 import pickle
@@ -16,10 +17,21 @@ from .exceptions import TaskFailed, SetupError, DependencyError, UnmetDependency
 from .task import Stream, DelayedLoaded
 
 
-# execution result.
-SUCCESS = 0
-FAILURE = 1
-ERROR = 2
+class ResultCode(IntEnum):
+    """Execution result codes for task runs.
+
+    Used by Runner classes to indicate overall execution outcome.
+    IntEnum allows backward-compatible integer comparisons (e.g., if result == 0).
+    """
+    SUCCESS = 0   # All tasks completed successfully
+    FAILURE = 1   # One or more tasks failed
+    ERROR = 2     # Internal error (not a task failure)
+
+
+# Backward compatibility aliases
+SUCCESS = ResultCode.SUCCESS
+FAILURE = ResultCode.FAILURE
+ERROR = ResultCode.ERROR
 
 
 class TaskExecutor:

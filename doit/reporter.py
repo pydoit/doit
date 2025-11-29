@@ -189,7 +189,7 @@ class TaskResult(object):
     def to_dict(self):
         """convert result data to dictionary"""
         if self._started_on is not None:
-            started = datetime.datetime.utcfromtimestamp(self._started_on)
+            started = datetime.datetime.fromtimestamp(self._started_on, datetime.timezone.utc)
             self.started = str(started.strftime('%Y-%m-%d %H:%M:%S.%f'))
             self.elapsed = self._finished_on - self._started_on
         return {'name': self.task.name,
