@@ -223,6 +223,145 @@ class TestTaskIteratorUpToDate:
                 pass
 
 
+class TestTaskIteratorResubmit:
+    """Tests for re-running tasks after dependency changes."""
+
+    def test_unchanged_deps_stays_uptodate(self, tmp_path):
+        """Test that unchanged file deps result in up-to-date status."""
+        dep_file = tmp_path / 'input.txt'
+        dep_file.write_text('content')
+
+        execution_count = [0]
+
+        def track_execution():
+            execution_count[0] += 1
+            return True
+
+        db_path = str(tmp_path / 'test.db')
+        tasks = [{
+            'name': 'build',
+            'actions': [track_execution],
+            'file_dep': [str(dep_file)],
+        }]
+
+        # First run - should execute
+        dep_manager = Dependency(DbmDB, db_path)
+        with DoitEngine(tasks, dep_manager=dep_manager) as engine:
+            for task in engine:
+                assert task.should_run is True
+                task.execute_and_submit()
+
+        assert execution_count[0] == 1
+
+        # Second run - should be up-to-date (no execution)
+        dep_manager = Dependency(DbmDB, db_path)
+        with DoitEngine(tasks, dep_manager=dep_manager) as engine:
+            for task in engine:
+                assert task.should_run is False
+                assert task.skip_reason == 'up-to-date'
+
+        # Execution count should still be 1
+        assert execution_count[0] == 1
+
+    def test_changed_deps_triggers_rerun(self, tmp_path):
+        """Test that changed file deps trigger re-execution."""
+        import time
+
+        dep_file = tmp_path / 'input.txt'
+        dep_file.write_text('initial')
+
+        execution_count = [0]
+
+        def track_execution():
+            execution_count[0] += 1
+            return True
+
+        db_path = str(tmp_path / 'test.db')
+        tasks = [{
+            'name': 'build',
+            'actions': [track_execution],
+            'file_dep': [str(dep_file)],
+        }]
+
+        # First run
+        dep_manager = Dependency(DbmDB, db_path)
+        with DoitEngine(tasks, dep_manager=dep_manager) as engine:
+            for task in engine:
+                task.execute_and_submit()
+
+        assert execution_count[0] == 1
+
+        # Modify the dependency file
+        time.sleep(0.05)  # Ensure timestamp differs
+        dep_file.write_text('modified')
+
+        # Second run - should execute again
+        dep_manager = Dependency(DbmDB, db_path)
+        with DoitEngine(tasks, dep_manager=dep_manager) as engine:
+            for task in engine:
+                assert task.should_run is True
+                task.execute_and_submit()
+
+        assert execution_count[0] == 2
+
+    def test_multiple_reruns_track_correctly(self, tmp_path):
+        """Test that multiple runs with changes track state correctly."""
+        import time
+
+        dep_file = tmp_path / 'input.txt'
+        dep_file.write_text('v1')
+
+        execution_count = [0]
+        execution_values = []
+
+        def track_execution():
+            content = dep_file.read_text()
+            execution_count[0] += 1
+            execution_values.append(content)
+            return True
+
+        db_path = str(tmp_path / 'test.db')
+        tasks = [{
+            'name': 'build',
+            'actions': [track_execution],
+            'file_dep': [str(dep_file)],
+        }]
+
+        # Run 1
+        dep_manager = Dependency(DbmDB, db_path)
+        with DoitEngine(tasks, dep_manager=dep_manager) as engine:
+            for task in engine:
+                if task.should_run:
+                    task.execute_and_submit()
+
+        # Run 2 - no changes
+        dep_manager = Dependency(DbmDB, db_path)
+        with DoitEngine(tasks, dep_manager=dep_manager) as engine:
+            for task in engine:
+                if task.should_run:
+                    task.execute_and_submit()
+
+        # Run 3 - with change
+        time.sleep(0.05)
+        dep_file.write_text('v2')
+        dep_manager = Dependency(DbmDB, db_path)
+        with DoitEngine(tasks, dep_manager=dep_manager) as engine:
+            for task in engine:
+                if task.should_run:
+                    task.execute_and_submit()
+
+        # Run 4 - no changes
+        dep_manager = Dependency(DbmDB, db_path)
+        with DoitEngine(tasks, dep_manager=dep_manager) as engine:
+            for task in engine:
+                if task.should_run:
+                    task.execute_and_submit()
+
+        # Should have executed twice (run 1 and run 3)
+        assert execution_count[0] == 2
+        assert execution_values == ['v1', 'v2']
+
+
 class TestTaskIteratorWithFileDeps:
 
     def test_file_dep_change_triggers_run(self, tmp_path):
