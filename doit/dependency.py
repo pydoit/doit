@@ -583,27 +583,243 @@ class DependencyStatus(object):
         return self.error_reason
 
 
+class TaskState:
+    """Task state persistence - values, results, ignore status.
+
+    Handles saving and retrieving task execution results including:
+    - Task output values (returned by actions)
+    - Task result hash (for up-to-date checking)
+    - File dependency states
+    - Ignore status
+
+    This is a focused extraction from the Dependency class.
+    """
+
+    def __init__(self, store, checker):
+        """
+        @param store: ProcessingStateStore backend for persistence
+        @param checker: FileChangedChecker for computing file states
+        """
+        self.store = store
+        self.checker = checker
+
+    def save_success(self, task, result_hash=None):
+        """Save info after a task is successfully executed.
+
+        @param task: Task that completed successfully
+        @param result_hash: explicitly set result_hash (optional)
+        """
+        # save task values
+        self.store.set(task.name, "_values_:", task.values)
+
+        # save task result md5
+        if result_hash is not None:
+            self.store.set(task.name, "result:", result_hash)
+        elif task.result:
+            if isinstance(task.result, dict):
+                self.store.set(task.name, "result:", task.result)
+            else:
+                self.store.set(task.name, "result:", get_md5(task.result))
+
+        # file-dep
+        self.store.set(task.name, 'checker:', self.checker.__class__.__name__)
+        for dep in task.file_dep:
+            state = self.checker.get_state(dep, self.store.get(task.name, dep))
+            if state is not None:
+                self.store.set(task.name, dep, state)
+
+        # save list of file_deps
+        self.store.set(task.name, 'deps:', tuple(task.file_dep))
+
+    def get_values(self, task_name):
+        """Get all saved values from a task.
+
+        @param task_name: name of the task
+        @return: dict of task values
+        """
+        values = self.store.get(task_name, '_values_:')
+        return values or {}
+
+    def get_value(self, task_id, key_name):
+        """Get a specific saved value from task.
+
+        @param task_id: task name
+        @param key_name: key in the values dict
+        @return: the value
+        @raise Exception: if task has no values or key not found
+        """
+        if not self.store.in_(task_id):
+            raise Exception("taskid '%s' has no computed value!" % task_id)
+        values = self.get_values(task_id)
+        if key_name not in values:
+            msg = "Invalid arg name. Task '%s' has no value for '%s'."
+            raise Exception(msg % (task_id, key_name))
+        return values[key_name]
+
+    def get_result(self, task_name):
+        """Get the result saved from a task.
+
+        @return: dict or md5sum
+        """
+        return self.store.get(task_name, 'result:')
+
+    def remove_success(self, task):
+        """Remove saved info from task."""
+        self.store.remove(task.name)
+
+    def set_ignore(self, task):
+        """Mark task to be ignored."""
+        self.store.set(task.name, 'ignore:', '1')
+
+    def is_ignored(self, task):
+        """Check if task is marked to be ignored."""
+        return self.store.get(task.name, "ignore:")
+
+    def has_state(self, task_name):
+        """Check if task has any stored state."""
+        return self.store.in_(task_name)
+
+
+class UpToDateChecker:
+    """Check if a task needs to run.
+
+    Performs all up-to-date checks including:
+    - uptodate callables/values
+    - Target existence
+    - File dependency changes
+    - Checker class changes
+
+    This is a focused extraction from Dependency.get_status().
+    """
+
+    def __init__(self, store, checker):
+        """
+        @param store: ProcessingStateStore backend for state lookup
+        @param checker: FileChangedChecker for file state comparison
+        """
+        self.store = store
+        self.checker = checker
+
+    def check(self, task, tasks_dict, get_values_func, get_log=False):
+        """Check if task is up to date. Sets task.dep_changed.
+
+        If the checker class changed since the previous run, the task is
+        deleted, to be sure that its state is not re-used.
+
+        @param task: Task to check
+        @param tasks_dict: dict of all tasks (passed to uptodate callables)
+        @param get_values_func: function(task_name) -> dict of values
+        @param get_log: if True, adds all reasons to result object
+        @return: DependencyStatus with status 'up-to-date', 'run', or 'error'
+        """
+        result = DependencyStatus(get_log)
+        task.dep_changed = []
+
+        # check uptodate bool/callables
+        uptodate_result_list = []
+        for utd, utd_args, utd_kwargs in task.uptodate:
+            # if parameter is a callable
+            if hasattr(utd, '__call__'):
+                # 1) setup object with global info all tasks
+                if isinstance(utd, UptodateCalculator):
+                    utd.setup(self, tasks_dict)
+                # 2) add magic positional args for `task` and `values`
+                spec_args = list(inspect.signature(utd).parameters.keys())
+                magic_args = []
+                for i, name in enumerate(spec_args):
+                    if i == 0 and name == 'task':
+                        magic_args.append(task)
+                    elif i == 1 and name == 'values':
+                        magic_args.append(get_values_func(task.name))
+                args = magic_args + utd_args
+                # 3) call it and get result
+                uptodate_result = utd(*args, **utd_kwargs)
+            elif isinstance(utd, str):
+                uptodate_result = subprocess.call(
+                    utd, shell=True,
+                    stderr=subprocess.DEVNULL,
+                    stdout=subprocess.DEVNULL) == 0
+            # parameter is a value
+            else:
+                uptodate_result = utd
+
+            # None means uptodate was not really calculated
+            if uptodate_result is None:
+                continue
+            uptodate_result_list.append(uptodate_result)
+            if not uptodate_result:
+                result.add_reason('uptodate_false', (utd, utd_args, utd_kwargs))
+
+        # any uptodate check is false
+        if not get_log and result.status == 'run':
+            return result
+
+        # no dependencies means it is never up to date.
+        if not (task.file_dep or uptodate_result_list):
+            if result.set_reason('has_no_dependencies', True):
+                return result
+
+        # if target file is not there, task is not up to date
+        for targ in task.targets:
+            if not self.checker.exists(targ):
+                task.dep_changed = list(task.file_dep)
+                if result.add_reason('missing_target', targ):
+                    return result
+
+        # check for modified file_dep checker
+        previous = self.store.get(task.name, 'checker:')
+        checker_name = self.checker.__class__.__name__
+        if previous and previous != checker_name:
+            task.dep_changed = list(task.file_dep)
+            # remove all saved values otherwise they might be re-used
+            self.store.remove(task.name)
+            if result.set_reason('checker_changed', (previous, checker_name)):
+                return result
+
+        # check for modified file_dep
+        previous = self.store.get(task.name, 'deps:')
+        previous_set = set(previous) if previous else None
+        if previous_set and previous_set != task.file_dep:
+            if get_log:
+                added_files = sorted(list(task.file_dep - previous_set))
+                removed_files = sorted(list(previous_set - task.file_dep))
+                result.set_reason('added_file_dep', added_files)
+                result.set_reason('removed_file_dep', removed_files)
+            result.status = 'run'
+
+        # list of file_dep that changed
+        check_modified = self.checker.check_modified
+        changed = []
+        for dep in task.file_dep:
+            state = self.store.get(task.name, dep)
+            try:
+                file_stat = self.checker.info(dep)
+            except self.checker.CheckerError:
+                error_msg = "Dependent file '{}' does not exist.".format(dep)
+                result.error_reason = error_msg.format(dep)
+                if result.add_reason('missing_file_dep', dep, 'error'):
+                    return result
+            else:
+                if state is None or check_modified(dep, file_stat, state):
+                    changed.append(dep)
+        task.dep_changed = changed
+
+        if len(changed) > 0:
+            result.set_reason('changed_file_dep', changed)
+
+        return result
+
+
 
 class Dependency(object):
-    """Manage tasks dependencies.
+    """Facade for managing task dependencies.
+
+    Combines TaskState (persistence) and UpToDateChecker (status checking)
+    into a single interface for backward compatibility with existing code.
 
     Each dependency is saved in "db". There are several "db" backends.
     It uses a Key-Value format where the key is task-name
     and value is a dictionary.
-    Each task has a dictionary where keys are `dependency`'s (absolute file path),
-    and the value is the dependency signature.
-    Apart from dependencies other values are also saved on the task dictionary:
-
-    * ``_values_:`` task's values
-    * ``result:`` task result
-
-    And also some internal doit attributes:
-
-    * ``ignore:``
-    * ``deps:``
-    * ``checker:``
-
-    Those can be accessed with generic DB ``get()``, see below...
 
     :ivar string name: filepath of the DB file
     :ivar bool _closed: DB was flushed to file
@@ -642,10 +858,6 @@ class Dependency(object):
             self.db_class = type(backend_or_class)
 
             # For in-memory storage, default to TimestampChecker (Makefile-style).
-            # This is more appropriate because:
-            # 1. We don't have previous state to compare checksums against
-            # 2. Timestamp comparison is faster (no file reads for hashing)
-            # 3. It matches "run if dependencies are newer than targets" semantics
             if checker_cls is None:
                 if isinstance(backend_or_class, InMemoryStateStore):
                     checker_cls = TimestampChecker
@@ -667,8 +879,13 @@ class Dependency(object):
             if checker_cls is None:
                 checker_cls = MD5Checker
 
-        self.checker = checker_cls()
+        self._checker = checker_cls()
 
+        # Create the focused components
+        self._task_state = TaskState(self.backend, self._checker)
+        self._uptodate_checker = UpToDateChecker(self.backend, self._checker)
+
+        # Expose low-level backend access for backward compatibility
         self._set = self.backend.set
         self._get = self.backend.get
         self.remove = self.backend.remove
@@ -676,203 +893,67 @@ class Dependency(object):
         self._in = self.backend.in_
         self.name = self.backend.name
 
+    @property
+    def checker(self):
+        """Get the file change checker."""
+        return self._checker
+
+    @checker.setter
+    def checker(self, value):
+        """Set the file change checker and update internal components."""
+        self._checker = value
+        self._task_state.checker = value
+        self._uptodate_checker.checker = value
+
     def close(self):
         """Write DB in file"""
         if not self._closed:
             self.backend.dump()
             self._closed = True
 
-
-    ####### task specific
+    # --- Delegate to TaskState ---
 
     def save_success(self, task, result_hash=None):
-        """save info after a task is successfully executed
-
-        :param str result_hash: explicitly set result_hash
-        """
-        # save task values
-        self._set(task.name, "_values_:", task.values)
-
-        # save task result md5
-        if result_hash is not None:
-            self._set(task.name, "result:", result_hash)
-        elif task.result:
-            if isinstance(task.result, dict):
-                self._set(task.name, "result:", task.result)
-            else:
-                self._set(task.name, "result:", get_md5(task.result))
-
-        # file-dep
-        self._set(task.name, 'checker:', self.checker.__class__.__name__)
-        for dep in task.file_dep:
-            state = self.checker.get_state(dep, self._get(task.name, dep))
-            if state is not None:
-                self._set(task.name, dep, state)
-
-        # save list of file_deps
-        self._set(task.name, 'deps:', tuple(task.file_dep))
+        """Save info after a task is successfully executed."""
+        return self._task_state.save_success(task, result_hash)
 
     def get_values(self, task_name):
-        """get all saved values from a task
-
-        :return dict:
-        """
-        values = self._get(task_name, '_values_:')
-        return values or {}
+        """Get all saved values from a task."""
+        return self._task_state.get_values(task_name)
 
     def get_value(self, task_id, key_name):
-        """get saved value from task
-
-        :param str task_id:
-        :param str key_name: key result dict of the value
-        """
-        if not self._in(task_id):
-            # FIXME do not use generic exception
-            raise Exception("taskid '%s' has no computed value!" % task_id)
-        values = self.get_values(task_id)
-        if key_name not in values:
-            msg = "Invalid arg name. Task '%s' has no value for '%s'."
-            raise Exception(msg % (task_id, key_name))
-        return values[key_name]
+        """Get saved value from task."""
+        return self._task_state.get_value(task_id, key_name)
 
     def get_result(self, task_name):
-        """get the result saved from a task
-
-        :return (dict or md5sum):
-        """
-        return self._get(task_name, 'result:')
+        """Get the result saved from a task."""
+        return self._task_state.get_result(task_name)
 
     def remove_success(self, task):
-        """remove saved info from task"""
-        self.remove(task.name)
+        """Remove saved info from task."""
+        return self._task_state.remove_success(task)
 
     def ignore(self, task):
-        """mark task to be ignored"""
-        self._set(task.name, 'ignore:', '1')
+        """Mark task to be ignored."""
+        return self._task_state.set_ignore(task)
 
     def status_is_ignore(self, task):
-        """check if task is marked to be ignored"""
-        return self._get(task.name, "ignore:")
+        """Check if task is marked to be ignored."""
+        return self._task_state.is_ignored(task)
+
+    # --- Delegate to UpToDateChecker ---
 
     def get_status(self, task, tasks_dict, get_log=False):
-        """Check if task is up to date. set task.dep_changed
-
-        If the checker class changed since the previous run, the task is
-        deleted, to be sure that its state is not re-used.
+        """Check if task is up to date. Sets task.dep_changed.
 
         @param task: (Task)
         @param tasks_dict: (dict: Task) passed to objects used on uptodate
-        @param get_log: (bool) if True, adds all reasons to the return
-                               object why this file will be rebuild.
-        @return: (DependencyStatus) a status object with possible status
-                                    values up-to-date, run or error
-
-        task.dep_changed (list-strings): file-dependencies that are not
-        up-to-date if task not up-to-date because of a target, returned value
-        will contain all file-dependencies regardless they are up-to-date
-        or not.
+        @param get_log: (bool) if True, adds all reasons to the return object
+        @return: (DependencyStatus) with status 'up-to-date', 'run', or 'error'
         """
-        result = DependencyStatus(get_log)
-        task.dep_changed = []
-
-        # check uptodate bool/callables
-        uptodate_result_list = []
-        for utd, utd_args, utd_kwargs in task.uptodate:
-            # if parameter is a callable
-            if hasattr(utd, '__call__'):
-                # FIXME control verbosity, check error messages
-                # 1) setup object with global info all tasks
-                if isinstance(utd, UptodateCalculator):
-                    utd.setup(self, tasks_dict)
-                # 2) add magic positional args for `task` and `values`
-                # if present.
-                spec_args = list(inspect.signature(utd).parameters.keys())
-                magic_args = []
-                for i, name in enumerate(spec_args):
-                    if i == 0 and name == 'task':
-                        magic_args.append(task)
-                    elif i == 1 and name == 'values':
-                        magic_args.append(self.get_values(task.name))
-                args = magic_args + utd_args
-                # 3) call it and get result
-                uptodate_result = utd(*args, **utd_kwargs)
-            elif isinstance(utd, str):
-                uptodate_result = subprocess.call(
-                    utd, shell=True,
-                    stderr=subprocess.DEVNULL,
-                    stdout=subprocess.DEVNULL) == 0
-            # parameter is a value
-            else:
-                uptodate_result = utd
-
-            # None means uptodate was not really calculated and should be
-            # just ignored
-            if uptodate_result is None:
-                continue
-            uptodate_result_list.append(uptodate_result)
-            if not uptodate_result:
-                result.add_reason('uptodate_false', (utd, utd_args, utd_kwargs))
-
-        # any uptodate check is false
-        if not get_log and result.status == 'run':
-            return result
-
-        # no dependencies means it is never up to date.
-        if not (task.file_dep or uptodate_result_list):
-            if result.set_reason('has_no_dependencies', True):
-                return result
-
-
-        # if target file is not there, task is not up to date
-        for targ in task.targets:
-            if not self.checker.exists(targ):
-                task.dep_changed = list(task.file_dep)
-                if result.add_reason('missing_target', targ):
-                    return result
-
-        # check for modified file_dep checker
-        previous = self._get(task.name, 'checker:')
-        checker_name = self.checker.__class__.__name__
-        if previous and previous != checker_name:
-            task.dep_changed = list(task.file_dep)
-            # remove all saved values otherwise they might be re-used by
-            # some optimization on MD5Checker.get_state()
-            self.remove(task.name)
-            if result.set_reason('checker_changed', (previous, checker_name)):
-                return result
-
-        # check for modified file_dep
-        previous = self._get(task.name, 'deps:')
-        previous_set = set(previous) if previous else None
-        if previous_set and previous_set != task.file_dep:
-            if get_log:
-                added_files = sorted(list(task.file_dep - previous_set))
-                removed_files = sorted(list(previous_set - task.file_dep))
-                result.set_reason('added_file_dep', added_files)
-                result.set_reason('removed_file_dep', removed_files)
-            result.status = 'run'
-
-        # list of file_dep that changed
-        check_modified = self.checker.check_modified
-        changed = []
-        for dep in task.file_dep:
-            state = self._get(task.name, dep)
-            try:
-                file_stat = self.checker.info(dep)
-            except self.checker.CheckerError:
-                error_msg = "Dependent file '{}' does not exist.".format(dep)
-                result.error_reason = error_msg.format(dep)
-                if result.add_reason('missing_file_dep', dep, 'error'):
-                    return result
-            else:
-                if state is None or check_modified(dep, file_stat, state):
-                    changed.append(dep)
-        task.dep_changed = changed
-
-        if len(changed) > 0:
-            result.set_reason('changed_file_dep', changed)
-
-        return result
+        return self._uptodate_checker.check(
+            task, tasks_dict, self.get_values, get_log
+        )
 
 
 
@@ -882,12 +963,20 @@ class UptodateCalculator(object):
     """Base class for 'uptodate' that need access to all tasks
     """
     def __init__(self):
-        self.get_val = None  # Dependency._get
+        self.get_val = None  # store.get function
         self.tasks_dict = None  # dict with all tasks
 
-    def setup(self, dep_manager, tasks_dict):
-        """@param"""
-        self.get_val = dep_manager._get
+    def setup(self, checker_or_dep_manager, tasks_dict):
+        """Setup calculator with access to state and tasks.
+
+        @param checker_or_dep_manager: UpToDateChecker or Dependency instance
+        @param tasks_dict: dict of all tasks
+        """
+        # Support both UpToDateChecker (new) and Dependency (backward compat)
+        if hasattr(checker_or_dep_manager, 'store'):
+            self.get_val = checker_or_dep_manager.store.get
+        else:
+            self.get_val = checker_or_dep_manager._get
         self.tasks_dict = tasks_dict
 
 
