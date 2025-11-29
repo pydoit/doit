@@ -772,3 +772,152 @@ class TestProgrammaticIntegration:
         assert 'task1' in executed
         assert 'task2' not in executed
         assert 'task3' in executed
+
+
+# --- Tests for concurrent execution support ---
+
+class TestConcurrentExecution:
+
+    def test_has_pending_tasks_initial(self):
+        """Test has_pending_tasks is True initially with tasks."""
+        tasks = [
+            {'name': 'task1', 'actions': [action_success]},
+            {'name': 'task2', 'actions': [action_success]},
+        ]
+        with DoitEngine(tasks, store=in_memory_store()) as engine:
+            assert engine.has_pending_tasks is True
+
+    def test_has_pending_tasks_false_when_done(self):
+        """Test has_pending_tasks is False after all tasks complete."""
+        tasks = [{'name': 'task1', 'actions': [action_success]}]
+        with DoitEngine(tasks, store=in_memory_store()) as engine:
+            for task in engine:
+                if task.should_run:
+                    task.execute_and_submit()
+            assert engine.has_pending_tasks is False
+
+    def test_get_ready_tasks_returns_independent_tasks(self):
+        """Test get_ready_tasks returns tasks without dependencies."""
+        tasks = [
+            {'name': 'task1', 'actions': [action_success]},
+            {'name': 'task2', 'actions': [action_success]},
+            {'name': 'task3', 'actions': [action_success], 'task_dep': ['task1']},
+        ]
+        with DoitEngine(tasks, store=in_memory_store()) as engine:
+            ready = engine.get_ready_tasks()
+            ready_names = [t.name for t in ready]
+            # task1 and task2 should be ready (no deps)
+            assert 'task1' in ready_names
+            assert 'task2' in ready_names
+            # task3 should NOT be ready (depends on task1)
+            assert 'task3' not in ready_names
+
+    def test_notify_completed_unlocks_dependents(self):
+        """Test notify_completed makes dependent tasks ready."""
+        tasks = [
+            {'name': 'task1', 'actions': [action_success]},
+            {'name': 'task2', 'actions': [action_success], 'task_dep': ['task1']},
+        ]
+        with DoitEngine(tasks, store=in_memory_store()) as engine:
+            ready = engine.get_ready_tasks()
+            assert len(ready) == 1
+            assert ready[0].name == 'task1'
+
+            # Execute and submit task1
+            ready[0].execute_and_submit()
+            newly_ready = engine.notify_completed(ready[0])
+
+            # task2 should now be ready
+            ready_names = [t.name for t in newly_ready]
+            assert 'task2' in ready_names
+
+    def test_notify_completed_without_submit_raises(self):
+        """Test notify_completed raises if task not submitted."""
+        tasks = [{'name': 'task1', 'actions': [action_success]}]
+        with DoitEngine(tasks, store=in_memory_store()) as engine:
+            ready = engine.get_ready_tasks()
+            assert len(ready) == 1
+
+            # Don't call submit - should raise
+            with pytest.raises(RuntimeError, match="must be submitted"):
+                engine.notify_completed(ready[0])
+
+    def test_concurrent_loop_pattern(self):
+        """Test the concurrent execution loop pattern works correctly."""
+        executed = []
+
+        def track(name):
+            def action():
+                executed.append(name)
+                return True
+            return action
+
+        tasks = [
+            {'name': 'task1', 'actions': [track('task1')]},
+            {'name': 'task2', 'actions': [track('task2')]},
+            {'name': 'task3', 'actions': [track('task3')], 'task_dep': ['task1', 'task2']},
+        ]
+
+        with DoitEngine(tasks, store=in_memory_store()) as engine:
+            while engine.has_pending_tasks:
+                ready = engine.get_ready_tasks()
+                if not ready:
+                    break
+
+                for task in ready:
+                    if task.should_run:
+                        task.execute_and_submit()
+                    else:
+                        task.submit(None)
+                    engine.notify_completed(task)
+
+        # All tasks should have executed
+        assert 'task1' in executed
+        assert 'task2' in executed
+        assert 'task3' in executed
+
+    def test_concurrent_with_threadpool(self):
+        """Test concurrent execution with ThreadPoolExecutor."""
+        from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
+        import threading
+
+        executed = []
+        lock = threading.Lock()
+
+        def track(name):
+            def action():
+                with lock:
+                    executed.append(name)
+                return True
+            return action
+
+        tasks = [
+            {'name': 'task1', 'actions': [track('task1')]},
+            {'name': 'task2', 'actions': [track('task2')]},
+            {'name': 'task3', 'actions': [track('task3')], 'task_dep': ['task1', 'task2']},
+        ]
+
+        with DoitEngine(tasks, store=in_memory_store()) as engine:
+            with ThreadPoolExecutor(max_workers=2) as executor:
+                futures = {}
+
+                while engine.has_pending_tasks:
+                    for task in engine.get_ready_tasks():
+                        if task.should_run:
+                            future = executor.submit(task.execute)
+                            futures[future] = task
+                        else:
+                            task.submit(None)
+                            engine.notify_completed(task)
+
+                    if futures:
+                        done, _ = wait(futures, return_when=FIRST_COMPLETED)
+                        for future in done:
+                            task = futures.pop(future)
+                            task.submit(future.result())
+                            engine.notify_completed(task)
+
+        # All tasks should have executed
+        assert 'task1' in executed
+        assert 'task2' in executed
+        assert 'task3' in executed

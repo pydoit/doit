@@ -177,6 +177,72 @@ class DoitEngine:
         """Access all tasks dict."""
         return self._iterator.tasks
 
+    # --- Concurrent execution support ---
+
+    @property
+    def has_pending_tasks(self):
+        """Check if there are more tasks to process.
+
+        Returns True if there are tasks waiting to be yielded or executed.
+        Use this to control the loop in concurrent execution mode.
+
+        Example:
+            while engine.has_pending_tasks:
+                ready = engine.get_ready_tasks()
+                # ... process ready tasks
+        """
+        return self._iterator.has_pending_tasks
+
+    def get_ready_tasks(self):
+        """Get all currently ready tasks for concurrent execution.
+
+        Returns a list of TaskWrapper objects for all tasks that are
+        currently ready to execute (no pending dependencies).
+
+        This is useful for threadpool execution where you want to
+        dispatch multiple tasks in parallel.
+
+        Thread-safe: Uses internal locking.
+
+        Example with ThreadPoolExecutor:
+            from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
+            from doit import DoitEngine
+            from doit.state import MemoryStore
+
+            with DoitEngine(tasks, store=MemoryStore()) as engine:
+                with ThreadPoolExecutor(max_workers=4) as executor:
+                    futures = {}
+
+                    while engine.has_pending_tasks:
+                        for task in engine.get_ready_tasks():
+                            if task.should_run:
+                                future = executor.submit(task.execute)
+                                futures[future] = task
+
+                        if futures:
+                            done, _ = wait(futures, return_when=FIRST_COMPLETED)
+                            for future in done:
+                                task = futures.pop(future)
+                                task.submit(future.result())
+                                engine.notify_completed(task)
+
+        @return: List of TaskWrapper objects ready for execution
+        """
+        return self._iterator.get_ready_tasks()
+
+    def notify_completed(self, wrapper):
+        """Notify that a task has completed execution.
+
+        Call this after a task has been executed and submitted to update
+        the dispatcher. This may cause dependent tasks to become ready.
+
+        Thread-safe: Uses internal locking.
+
+        @param wrapper: The TaskWrapper that was executed and submitted
+        @return: List of TaskWrapper objects that became ready as a result
+        """
+        return self._iterator.notify_completed(wrapper)
+
     # Context manager support
     def __enter__(self):
         return self

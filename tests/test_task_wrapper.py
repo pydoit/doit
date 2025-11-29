@@ -5,7 +5,7 @@ from doit.task import Task
 from doit.control import ExecNode
 from doit.dependency import Dependency, DbmDB
 from doit.runner import TaskExecutor
-from doit.task_wrapper import TaskWrapper, TaskStatus
+from doit.engine import TaskWrapper, TaskStatus
 from doit.exceptions import DependencyError
 
 

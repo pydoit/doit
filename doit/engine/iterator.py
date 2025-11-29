@@ -4,6 +4,8 @@ Internal module providing the TaskIterator class which handles
 the low-level iteration over tasks in dependency order.
 """
 
+from threading import Lock
+
 from ..task import Task, dict_to_task, Stream
 from ..runner import TaskExecutor
 from .wrapper import TaskWrapper
@@ -17,8 +19,13 @@ class TaskIterator:
 
     This is an internal class. Users should use DoitEngine instead.
 
+    Supports two execution modes:
+    1. Sequential: Use as iterator with for-loop
+    2. Concurrent: Use has_pending_tasks, get_ready_tasks, notify_completed
+
     Attributes:
         tasks: dict of all tasks by name
+        has_pending_tasks: True if there are more tasks to process
     """
 
     def __init__(self, task_control, dep_manager, stream=None, always_execute=False):
@@ -44,6 +51,9 @@ class TaskIterator:
         self._finished = False
         self._cleaned_up = False
         self._teardown_list = []
+        self._lock = Lock()  # For thread-safe concurrent execution
+        self._iteration_started = False  # Track if we've started iterating
+        self._pending_ready = []  # Tasks returned by notify_completed, waiting for get_ready_tasks
 
     @property
     def tasks(self):
@@ -56,6 +66,8 @@ class TaskIterator:
     def __next__(self):
         if self._finished:
             raise StopIteration
+
+        self._iteration_started = True
 
         # Send back the last processed node
         node_to_send = None
@@ -172,3 +184,169 @@ class TaskIterator:
 
         # Close dependency manager
         self._dep_manager.close()
+
+    # --- Concurrent execution support ---
+
+    @property
+    def has_pending_tasks(self):
+        """Check if there are more tasks to process.
+
+        Returns True if there are tasks waiting to be yielded or executed.
+        Use this to control the loop in concurrent execution mode.
+
+        Example:
+            while engine.has_pending_tasks:
+                ready = engine.get_ready_tasks()
+                # ... process ready tasks
+        """
+        # Check for tasks waiting to be returned via get_ready_tasks
+        # This takes priority over _finished because the generator may have
+        # ended but we still have tasks that haven't been returned to the user
+        if self._pending_ready:
+            return True
+        if self._finished:
+            return False
+        # If iteration hasn't started yet, check if we have any selected tasks
+        if not self._iteration_started:
+            return bool(self._task_control.selected_tasks)
+        # Check if dispatcher has ready tasks or waiting tasks
+        dispatcher = self._dispatcher
+        return bool(dispatcher.ready or dispatcher.waiting)
+
+    def get_ready_tasks(self):
+        """Get all currently ready tasks for concurrent execution.
+
+        Returns a list of TaskWrapper objects for all tasks that are
+        currently ready to execute (no pending dependencies).
+
+        This is useful for threadpool execution where you want to
+        dispatch multiple tasks in parallel.
+
+        Thread-safe: Uses internal locking.
+
+        Example with ThreadPoolExecutor:
+            from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
+
+            with DoitEngine(tasks) as engine:
+                with ThreadPoolExecutor(max_workers=4) as executor:
+                    futures = {}
+
+                    while engine.has_pending_tasks:
+                        for task in engine.get_ready_tasks():
+                            if task.should_run:
+                                future = executor.submit(task.execute)
+                                futures[future] = task
+
+                        if futures:
+                            done, _ = wait(futures, return_when=FIRST_COMPLETED)
+                            for future in done:
+                                task = futures.pop(future)
+                                task.submit(future.result())
+                                engine.notify_completed(task)
+
+        @return: List of TaskWrapper objects ready for execution
+        """
+        with self._lock:
+            return self._get_ready_tasks_unlocked()
+
+    def _get_ready_tasks_unlocked(self):
+        """Get ready tasks without locking (internal use)."""
+        # First return any pending tasks from previous notify_completed calls
+        # This must be checked before _finished because the generator may have
+        # ended but we still have tasks that haven't been returned to the user
+        if self._pending_ready:
+            ready_wrappers = self._pending_ready
+            self._pending_ready = []
+            return ready_wrappers
+
+        if self._finished:
+            return []
+
+        # Collect all ready tasks
+        return self._collect_ready_tasks()
+
+    def _get_next_ready(self):
+        """Get next ready task without blocking on 'hold on'.
+
+        @return: TaskWrapper if a task is ready, None if no ready tasks
+        @raise StopIteration: If iteration is complete
+        """
+        self._iteration_started = True
+
+        # Send back last processed node if needed
+        node_to_send = None
+        if self._current_wrapper is not None:
+            node_to_send = self._current_wrapper._node
+
+        # Get next node from dispatcher
+        try:
+            node = self._dispatcher.generator.send(node_to_send)
+        except StopIteration:
+            raise
+
+        # If "hold on", no more ready tasks right now
+        if node == "hold on":
+            # Don't consume any more - we're waiting for completions
+            self._current_wrapper = None
+            return None
+
+        # Check task status
+        self._check_node_status(node)
+
+        # Create wrapper
+        self._current_wrapper = TaskWrapper(
+            node=node,
+            executor=self._executor,
+            tasks_dict=self._task_control.tasks,
+            teardown_list=self._teardown_list,
+        )
+
+        return self._current_wrapper
+
+    def notify_completed(self, wrapper):
+        """Notify that a task has completed execution.
+
+        Call this after a task has been executed and submitted to update
+        the dispatcher. This may cause dependent tasks to become ready.
+
+        Thread-safe: Uses internal locking.
+
+        @param wrapper: The TaskWrapper that was executed and submitted
+        @return: List of TaskWrapper objects that became ready as a result
+        """
+        if not wrapper.submitted:
+            raise RuntimeError(
+                f"Task '{wrapper.name}' must be submitted before calling "
+                "notify_completed. Call wrapper.submit() first."
+            )
+
+        with self._lock:
+            # Update dispatcher with completed node
+            self._dispatcher._update_waiting(wrapper._node)
+
+            # Collect newly ready tasks
+            newly_ready = self._collect_ready_tasks()
+
+            # Store for next get_ready_tasks call
+            self._pending_ready.extend(newly_ready)
+
+            return newly_ready
+
+    def _collect_ready_tasks(self):
+        """Collect ready tasks from dispatcher without storing in pending_ready."""
+        if self._finished:
+            return []
+
+        ready_wrappers = []
+
+        while True:
+            try:
+                wrapper = self._get_next_ready()
+                if wrapper is None:
+                    break
+                ready_wrappers.append(wrapper)
+            except StopIteration:
+                self._finished = True
+                break
+
+        return ready_wrappers
