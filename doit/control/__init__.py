@@ -22,9 +22,11 @@ from ._control import (
     TaskControl,
     TaskDispatcher,
     ExecNode,
-    RegexGroup,
     no_none,
 )
+
+# Task selection
+from .selector import TaskSelector, RegexGroup
 
 # New type-safe additions
 from .types import TaskRunStatus, DispatcherSignal
@@ -35,8 +37,11 @@ __all__ = [
     'TaskControl',
     'TaskDispatcher',
     'ExecNode',
-    'RegexGroup',
     'no_none',
+
+    # Selection
+    'TaskSelector',
+    'RegexGroup',
 
     # Types (new)
     'TaskRunStatus',

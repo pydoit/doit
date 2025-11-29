@@ -2,24 +2,11 @@
 import fnmatch
 from collections import deque
 from collections import OrderedDict
-import re
 
 from ..exceptions import InvalidTask, InvalidCommand, InvalidDodoFile
 from ..task import Task, DelayedLoaded
 from ..loader import generate_tasks
-
-
-class RegexGroup(object):
-    '''Helper to keep track of all delayed-tasks which regexp target
-    matches the target specified from command line.
-    '''
-    def __init__(self, target, tasks):
-        # target name specified in command line
-        self.target = target
-        # set of delayed-tasks names (string)
-        self.tasks = tasks
-        # keep track if the target was already found
-        self.found = False
+from .selector import TaskSelector, RegexGroup
 
 
 class TaskControl(object):
@@ -176,112 +163,14 @@ class TaskControl(object):
         return task
 
 
-    def _process_filter(self, task_selection):
-        """process cmd line task options
-        [task_name [-task_opt [opt_value]] ...] ...
-
-        @param task_selection: list of strings with task names/params or target
-        @return list of task names. Expanding glob and removed params
-        """
-        filter_list = []
-        def add_filtered_task(seq, f_name):
-            """add task to list `filter_list` and set task.options from params
-            @return list - str: of elements not yet
-            """
-            filter_list.append(f_name)
-            # only tasks specified by name can contain parameters
-            if f_name in self.tasks:
-                # parse task_selection
-                the_task = self.tasks[f_name]
-
-                # Initialize options for the task
-                seq = the_task.init_options(seq)
-
-                # if task takes positional parameters set all as pos_arg_val
-                if the_task.pos_arg is not None:
-                    # cehck value is not set yet
-                    # it could be set directly with api.run_tasks()
-                    #     -> NamespaceTaskLoader.load_tasks()
-                    if the_task.pos_arg_val is None:
-                        the_task.pos_arg_val = seq
-                        seq = []
-            return seq
-
-        # process...
-        seq = task_selection[:]
-        # process cmd_opts until nothing left
-        while seq:
-            f_name = seq.pop(0)  # always start with a task/target name
-            # select tasks by task-name pattern
-            if '*' in f_name:
-                for task_name in self._get_wild_tasks(f_name):
-                    add_filtered_task((), task_name)
-            else:
-                seq = add_filtered_task(seq, f_name)
-        return filter_list
-
-
     def _filter_tasks(self, task_selection):
         """Select tasks specified by filter.
 
         @param task_selection: list of strings with task names/params or target
         @return (list) of string. where elements are task name.
         """
-        selected_task = []
-
-        filter_list = self._process_filter(task_selection)
-        for filter_ in filter_list:
-            # by task name
-            if filter_ in self.tasks:
-                selected_task.append(filter_)
-                continue
-
-            # by target
-            if filter_ in self.targets:
-                selected_task.append(self.targets[filter_])
-                continue
-
-            # if can not find name check if it is a sub-task of a delayed
-            basename = filter_.split(':', 1)[0]
-            if basename in self.tasks:
-                loader = self.tasks[basename].loader
-                if not loader:
-                    raise InvalidCommand(not_found=filter_)
-                loader.basename = basename
-                self.tasks[filter_] = Task(filter_, None, loader=loader)
-                selected_task.append(filter_)
-                continue
-
-            # check if target matches any regex
-            delayed_matched = []  # list of Task
-            for task in list(self.tasks.values()):
-                if not task.loader:
-                    continue
-                if task.name.startswith('_regex_target'):
-                    continue
-                if task.loader.target_regex:
-                    if re.match(task.loader.target_regex, filter_):
-                        delayed_matched.append(task)
-                elif self.auto_delayed_regex:
-                    delayed_matched.append(task)
-            delayed_matched_names = [t.name for t in delayed_matched]
-            regex_group = RegexGroup(filter_, set(delayed_matched_names))
-
-            # create extra tasks to load delayed tasks matched by regex
-            for task in delayed_matched:
-                loader = task.loader
-                loader.basename = task.name
-                name = '{}_{}:{}'.format('_regex_target', filter_, task.name)
-                loader.regex_groups[name] = regex_group
-                self.tasks[name] = Task(name, None,
-                                        loader=loader,
-                                        file_dep=[filter_])
-                selected_task.append(name)
-
-            if not delayed_matched:
-                # not found
-                raise InvalidCommand(not_found=filter_)
-        return selected_task
+        selector = TaskSelector(self.tasks, self.targets, self.auto_delayed_regex)
+        return selector.select(task_selection)
 
 
     def process(self, task_selection):
