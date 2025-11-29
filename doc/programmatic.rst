@@ -78,9 +78,10 @@ manager (recommended) or with explicit ``finish()``.
 **Parameters:**
 
 - ``tasks`` - list of Task objects or task dicts
-- ``dep_manager`` - Dependency instance for state persistence.
-  If None, creates a default file-based database (``.doit.db``).
-  For in-memory execution, pass ``Dependency(InMemoryStateStore())``.
+- ``store`` - StateStore instance for custom storage (e.g., ``MemoryStore()``).
+  If None, uses file-based storage at ``db_path``.
+- ``db_path`` - path to database file (default: ``.doit.db``).
+  Ignored if ``store`` is provided.
 - ``selected`` - list of task names to run (default: all tasks)
 - ``always_execute`` - force execution even if up-to-date (default: False)
 - ``verbosity`` - output verbosity 0, 1, or 2 (default: 0)
@@ -90,6 +91,12 @@ manager (recommended) or with explicit ``finish()``.
 - ``finish()`` - run teardowns and close database (called automatically by context manager)
 - ``add_task(task)`` - add a single task dynamically
 - ``add_tasks(task_list)`` - add multiple tasks
+
+**Concurrent execution methods** (see :ref:`concurrent-execution`):
+
+- ``has_pending_tasks`` - property, True if more tasks to process
+- ``get_ready_tasks()`` - get all tasks ready for parallel execution
+- ``notify_completed(wrapper)`` - notify that a task completed
 
 
 TaskWrapper
@@ -153,14 +160,14 @@ Enum of possible task states:
 In-Memory Execution
 ===================
 
-For testing or one-off execution without persistence, use ``InMemoryStateStore``:
+For testing or one-off execution without persistence, use ``MemoryStore``:
 
 .. code-block:: python
 
     from doit import DoitEngine
-    from doit.dependency import InMemoryStateStore
+    from doit.state import MemoryStore
 
-    with DoitEngine(tasks, dep_manager=InMemoryStateStore()) as engine:
+    with DoitEngine(tasks, store=MemoryStore()) as engine:
         for task in engine:
             if task.should_run:
                 task.execute_and_submit()
@@ -172,16 +179,10 @@ For file-based persistence with a custom path:
 
 .. code-block:: python
 
-    from doit.dependency import Dependency, DbmDB
-
-    dep_manager = Dependency(DbmDB, '/path/to/custom.db')
-    engine = DoitEngine(tasks, dep_manager=dep_manager)
-
-The ``dep_manager`` parameter accepts:
-
-- ``None`` (default): Use file-based database (``.doit.db``)
-- ``InMemoryStateStore()`` or other ``ProcessingStateStore``: Automatically wrapped in ``Dependency``
-- ``Dependency`` instance: For custom checker configuration
+    with DoitEngine(tasks, db_path='/path/to/custom.db') as engine:
+        for task in engine:
+            if task.should_run:
+                task.execute_and_submit()
 
 
 Execution Control
@@ -254,6 +255,55 @@ Skip tasks based on your own criteria:
             task.execute_and_submit()
 
 
+.. _concurrent-execution:
+
+Concurrent Execution
+====================
+
+For parallel task execution, use the concurrent execution API with
+``ThreadPoolExecutor`` or similar:
+
+.. code-block:: python
+
+    from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
+    from doit import DoitEngine
+    from doit.state import MemoryStore
+
+    with DoitEngine(tasks, store=MemoryStore()) as engine:
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            futures = {}
+
+            while engine.has_pending_tasks:
+                # Get all tasks that are ready to run
+                for task in engine.get_ready_tasks():
+                    if task.should_run:
+                        future = executor.submit(task.execute)
+                        futures[future] = task
+                    else:
+                        task.submit(None)
+                        engine.notify_completed(task)
+
+                # Wait for at least one task to complete
+                if futures:
+                    done, _ = wait(futures, return_when=FIRST_COMPLETED)
+                    for future in done:
+                        task = futures.pop(future)
+                        task.submit(future.result())
+                        engine.notify_completed(task)
+
+**Key methods:**
+
+- ``has_pending_tasks`` - Returns True if there are more tasks to process
+- ``get_ready_tasks()`` - Returns list of TaskWrappers for all tasks currently
+  ready to execute (no pending dependencies)
+- ``notify_completed(wrapper)`` - Call after a task is executed and submitted.
+  This updates the dependency graph and may make new tasks ready.
+  Returns list of newly ready tasks.
+
+**Important:** You must call ``notify_completed()`` after each task completes
+to allow dependent tasks to become ready.
+
+
 Dynamic Task Injection
 ======================
 
@@ -262,7 +312,7 @@ Add new tasks during iteration based on results:
 .. code-block:: python
 
     from doit import DoitEngine
-    from doit.dependency import Dependency, InMemoryStateStore
+    from doit.state import MemoryStore
 
     def discover_files():
         import glob
@@ -276,8 +326,7 @@ Add new tasks during iteration based on results:
         {'name': 'discover', 'actions': [discover_files]},
     ]
 
-    dep_manager = Dependency(InMemoryStateStore())
-    with DoitEngine(initial_tasks, dep_manager=dep_manager) as engine:
+    with DoitEngine(initial_tasks, store=MemoryStore()) as engine:
         for task in engine:
             if task.should_run:
                 task.execute_and_submit()
@@ -340,7 +389,7 @@ For more control, use ``create_task_iterator`` directly:
 
     iterator = create_task_iterator(
         tasks,
-        db_file='.doit.db',
+        db_path='.doit.db',
         selected=['task1', 'task2'],
         always_execute=False,
         verbosity=1,
