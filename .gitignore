@@ -1,5 +1,6 @@
 *.pyc
 .doit.db
+:memory:.db
 doit.egg-info
 .coverage
 .cache
@@ -16,3 +17,7 @@ doc/samples/file*
 
 dev
 .vscode
+
+# Repomix output
+repomix-output.xml
+repomix.config.json

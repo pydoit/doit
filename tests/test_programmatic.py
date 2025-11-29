@@ -3,13 +3,20 @@ import os
 import pytest
 
 from doit.task import Task
-from doit.dependency import Dependency, DbmDB, TimestampChecker, MD5Checker
+from doit.dependency import (
+    Dependency, DbmDB, TimestampChecker, MD5Checker, InMemoryStateStore
+)
 from doit.programmatic import (
     TaskIterator, create_task_iterator, DoitEngine, TaskStatus
 )
 
 
 # --- Test helpers ---
+
+def in_memory_dep():
+    """Create an in-memory Dependency manager for testing."""
+    return Dependency(InMemoryStateStore())
+
 
 def action_success():
     """Simple successful action."""
@@ -41,7 +48,7 @@ class TestCreateTaskIterator:
             {'name': 'task1', 'actions': [action_success]},
             {'name': 'task2', 'actions': [action_success]},
         ]
-        iterator = create_task_iterator(tasks, db_file=':memory:')
+        iterator = create_task_iterator(tasks, dep_manager=in_memory_dep())
         try:
             task_names = [w.name for w in iterator]
             assert 'task1' in task_names
@@ -55,7 +62,7 @@ class TestCreateTaskIterator:
             Task('task1', [action_success]),
             Task('task2', [action_success]),
         ]
-        iterator = create_task_iterator(tasks, db_file=':memory:')
+        iterator = create_task_iterator(tasks, dep_manager=in_memory_dep())
         try:
             task_names = [w.name for w in iterator]
             assert 'task1' in task_names
@@ -69,7 +76,7 @@ class TestCreateTaskIterator:
             {'name': 'task1', 'actions': [action_success]},
             Task('task2', [action_success]),
         ]
-        iterator = create_task_iterator(tasks, db_file=':memory:')
+        iterator = create_task_iterator(tasks, dep_manager=in_memory_dep())
         try:
             task_names = [w.name for w in iterator]
             assert 'task1' in task_names
@@ -81,7 +88,7 @@ class TestCreateTaskIterator:
         """Test that invalid task types raise TypeError."""
         tasks = ["not a task"]
         with pytest.raises(TypeError, match="Expected Task or dict"):
-            create_task_iterator(tasks, db_file=':memory:')
+            create_task_iterator(tasks, dep_manager=in_memory_dep())
 
     def test_selected_tasks(self):
         """Test that selected parameter filters tasks."""
@@ -91,7 +98,7 @@ class TestCreateTaskIterator:
             {'name': 'task3', 'actions': [action_success]},
         ]
         iterator = create_task_iterator(
-            tasks, db_file=':memory:', selected=['task1', 'task3'])
+            tasks, dep_manager=in_memory_dep(), selected=['task1', 'task3'])
         try:
             task_names = [w.name for w in iterator]
             assert 'task1' in task_names
@@ -103,7 +110,7 @@ class TestCreateTaskIterator:
     def test_memory_uses_timestamp_checker(self):
         """Test that :memory: defaults to TimestampChecker."""
         tasks = [{'name': 'task1', 'actions': [action_success]}]
-        iterator = create_task_iterator(tasks, db_file=':memory:')
+        iterator = create_task_iterator(tasks, dep_manager=in_memory_dep())
         try:
             assert isinstance(iterator._dep_manager.checker, TimestampChecker)
         finally:
@@ -121,11 +128,11 @@ class TestTaskIterator:
             {'name': 'task2', 'actions': [action_success]},
         ]
         executed = []
-        with DoitEngine(tasks, db_file=':memory:') as engine:
-            for wrapper in engine:
-                if wrapper.should_run:
-                    wrapper.execute_and_submit()
-                    executed.append(wrapper.name)
+        with DoitEngine(tasks, dep_manager=in_memory_dep()) as engine:
+            for task in engine:
+                if task.should_run:
+                    task.execute_and_submit()
+                    executed.append(task.name)
 
         assert 'task1' in executed
         assert 'task2' in executed
@@ -147,10 +154,10 @@ class TestTaskIterator:
             {'name': 'task2', 'actions': [track_task2], 'task_dep': ['task1']},
         ]
 
-        with DoitEngine(tasks, db_file=':memory:', selected=['task2']) as engine:
-            for wrapper in engine:
-                if wrapper.should_run:
-                    wrapper.execute_and_submit()
+        with DoitEngine(tasks, dep_manager=in_memory_dep(), selected=['task2']) as engine:
+            for task in engine:
+                if task.should_run:
+                    task.execute_and_submit()
 
         # task1 should be executed before task2
         assert execution_order.index('task1') < execution_order.index('task2')
@@ -160,14 +167,14 @@ class TestTaskIterator:
         tasks = [{'name': 'task1', 'actions': [action_success]}]
 
         # First run - task should execute
-        with DoitEngine(tasks, db_file=':memory:') as engine:
-            for wrapper in engine:
-                assert wrapper.should_run is True
+        with DoitEngine(tasks, dep_manager=in_memory_dep()) as engine:
+            for task in engine:
+                assert task.should_run is True
 
         # With always_execute=True, task should still execute
-        with DoitEngine(tasks, db_file=':memory:', always_execute=True) as engine:
-            for wrapper in engine:
-                assert wrapper.should_run is True
+        with DoitEngine(tasks, dep_manager=in_memory_dep(), always_execute=True) as engine:
+            for task in engine:
+                assert task.should_run is True
 
     def test_tasks_property(self):
         """Test accessing tasks dict through iterator."""
@@ -175,40 +182,42 @@ class TestTaskIterator:
             {'name': 'task1', 'actions': [action_success]},
             {'name': 'task2', 'actions': [action_success]},
         ]
-        with DoitEngine(tasks, db_file=':memory:') as engine:
+        with DoitEngine(tasks, dep_manager=in_memory_dep()) as engine:
             assert 'task1' in engine.tasks
             assert 'task2' in engine.tasks
-            for wrapper in engine:
+            for task in engine:
                 pass  # consume iterator
 
     def test_task_failure(self):
         """Test handling task failure."""
         tasks = [{'name': 'failing_task', 'actions': [action_fail]}]
 
-        with DoitEngine(tasks, db_file=':memory:') as engine:
-            for wrapper in engine:
-                if wrapper.should_run:
-                    result = wrapper.execute_and_submit()
+        with DoitEngine(tasks, dep_manager=in_memory_dep()) as engine:
+            for task in engine:
+                if task.should_run:
+                    result = task.execute_and_submit()
                     assert result is not None
-                    assert wrapper.status == TaskStatus.FAILURE
+                    assert task.status == TaskStatus.FAILURE
 
 
 class TestTaskIteratorUpToDate:
 
     def test_up_to_date_detection(self, tmp_path):
         """Test that tasks are detected as up-to-date after successful run."""
-        db_file = str(tmp_path / 'test.db')
+        db_path = str(tmp_path / 'test.db')
         tasks = [{'name': 'task1', 'actions': [action_success]}]
 
         # First run - task should execute
-        with DoitEngine(tasks, db_file=db_file) as engine:
-            for wrapper in engine:
-                assert wrapper.should_run is True
-                wrapper.execute_and_submit()
+        dep_manager = Dependency(DbmDB, db_path)
+        with DoitEngine(tasks, dep_manager=dep_manager) as engine:
+            for task in engine:
+                assert task.should_run is True
+                task.execute_and_submit()
 
         # Second run - task should be up-to-date
-        with DoitEngine(tasks, db_file=db_file) as engine:
-            for wrapper in engine:
+        dep_manager = Dependency(DbmDB, db_path)
+        with DoitEngine(tasks, dep_manager=dep_manager) as engine:
+            for task in engine:
                 # Task has no file deps, so it's always 'run' status
                 # (no dependencies = not up-to-date)
                 pass
@@ -234,7 +243,7 @@ class TestTaskIteratorWithFileDeps:
             target_file.write_text('built')
             return True
 
-        db_file = str(test_dir / 'test.db')
+        db_path = str(test_dir / 'test.db')
         tasks = [{
             'name': 'build',
             'actions': [build_action],
@@ -243,10 +252,11 @@ class TestTaskIteratorWithFileDeps:
         }]
 
         # First run - task should execute
-        with DoitEngine(tasks, db_file=db_file) as engine:
-            for wrapper in engine:
-                if wrapper.should_run:
-                    wrapper.execute_and_submit()
+        dep_manager = Dependency(DbmDB, db_path)
+        with DoitEngine(tasks, dep_manager=dep_manager) as engine:
+            for task in engine:
+                if task.should_run:
+                    task.execute_and_submit()
 
         assert target_file.exists()
 
@@ -254,10 +264,11 @@ class TestTaskIteratorWithFileDeps:
         time.sleep(0.05)
 
         # Second run with same file - task should be up-to-date
-        with DoitEngine(tasks, db_file=db_file) as engine:
-            for wrapper in engine:
+        dep_manager = Dependency(DbmDB, db_path)
+        with DoitEngine(tasks, dep_manager=dep_manager) as engine:
+            for task in engine:
                 # Should be up-to-date (file deps unchanged, target exists)
-                assert wrapper.should_run is False
+                assert task.should_run is False
 
 
 # --- Tests for DoitEngine ---
@@ -269,26 +280,41 @@ class TestDoitEngine:
         tasks = [{'name': 'task1', 'actions': [action_success]}]
 
         engine_ref = None
-        with DoitEngine(tasks, db_file=':memory:') as engine:
+        with DoitEngine(tasks, dep_manager=in_memory_dep()) as engine:
             engine_ref = engine
             # consume but don't wait for full iteration to check mid-state
-            wrapper = next(engine)
-            wrapper.execute_and_submit()
+            task = next(engine)
+            task.execute_and_submit()
 
-        # After context exit, engine should be finished
-        assert engine_ref._finished is True
+        # After context exit, engine's iterator should be finished
+        assert engine_ref._iterator._finished is True
 
     def test_context_manager_cleanup_on_exception(self):
         """Test that DoitEngine cleans up even on exception."""
         tasks = [{'name': 'task1', 'actions': [action_success]}]
 
         try:
-            with DoitEngine(tasks, db_file=':memory:') as engine:
-                for wrapper in engine:
+            with DoitEngine(tasks, dep_manager=in_memory_dep()) as engine:
+                for task in engine:
                     raise ValueError("Test exception")
         except ValueError:
             pass
         # Should not raise - cleanup should have happened
+
+    def test_explicit_finish(self):
+        """Test that DoitEngine can be used without context manager."""
+        tasks = [{'name': 'task1', 'actions': [action_success]}]
+
+        engine = DoitEngine(tasks, dep_manager=in_memory_dep())
+        try:
+            for task in engine:
+                if task.should_run:
+                    task.execute_and_submit()
+        finally:
+            engine.finish()
+
+        # After explicit finish, engine's iterator should be finished
+        assert engine._iterator._finished is True
 
     def test_in_memory_execution(self):
         """Test complete in-memory execution."""
@@ -303,10 +329,10 @@ class TestDoitEngine:
             {'name': 'task2', 'actions': [counting_action]},
         ]
 
-        with DoitEngine(tasks, db_file=':memory:') as engine:
-            for wrapper in engine:
-                if wrapper.should_run:
-                    wrapper.execute_and_submit()
+        with DoitEngine(tasks, dep_manager=in_memory_dep()) as engine:
+            for task in engine:
+                if task.should_run:
+                    task.execute_and_submit()
 
         assert execution_count[0] == 2
 
@@ -335,10 +361,10 @@ class TestTaskIteratorGetargs:
             },
         ]
 
-        with DoitEngine(tasks, db_file=':memory:', selected=['consumer']) as engine:
-            for wrapper in engine:
-                if wrapper.should_run:
-                    wrapper.execute_and_submit()
+        with DoitEngine(tasks, dep_manager=in_memory_dep(), selected=['consumer']) as engine:
+            for task in engine:
+                if task.should_run:
+                    task.execute_and_submit()
 
         assert received_value[0] == 'produced_value'
 
@@ -359,11 +385,11 @@ class TestTaskIteratorSetupTasks:
             },
         ]
 
-        with DoitEngine(tasks, db_file=':memory:', selected=['main_task']) as engine:
-            for wrapper in engine:
-                yielded_tasks.append(wrapper.name)
-                if wrapper.should_run:
-                    wrapper.execute_and_submit()
+        with DoitEngine(tasks, dep_manager=in_memory_dep(), selected=['main_task']) as engine:
+            for task in engine:
+                yielded_tasks.append(task.name)
+                if task.should_run:
+                    task.execute_and_submit()
 
         # Main task should be yielded (setup tasks may or may not be depending on status)
         # The key test is that main_task was yielded
@@ -385,10 +411,10 @@ class TestTaskIteratorTeardown:
             'teardown': [create_teardown_marker],
         }]
 
-        with DoitEngine(tasks, db_file=':memory:') as engine:
-            for wrapper in engine:
-                if wrapper.should_run:
-                    wrapper.execute_and_submit()
+        with DoitEngine(tasks, dep_manager=in_memory_dep()) as engine:
+            for task in engine:
+                if task.should_run:
+                    task.execute_and_submit()
 
         # Teardown should have been executed
         assert marker_file.exists()
@@ -413,13 +439,13 @@ class TestDynamicTaskInjection:
             {'name': 'task1', 'actions': [track('task1')]},
         ]
 
-        with DoitEngine(tasks, db_file=':memory:') as engine:
-            for wrapper in engine:
-                if wrapper.should_run:
-                    wrapper.execute_and_submit()
+        with DoitEngine(tasks, dep_manager=in_memory_dep()) as engine:
+            for task in engine:
+                if task.should_run:
+                    task.execute_and_submit()
 
                 # After executing task1, add task2
-                if wrapper.name == 'task1':
+                if task.name == 'task1':
                     engine.add_task({
                         'name': 'task2',
                         'actions': [track('task2')],
@@ -446,13 +472,13 @@ class TestDynamicTaskInjection:
             {'name': 'producer', 'actions': [producer]},
         ]
 
-        with DoitEngine(tasks, db_file=':memory:') as engine:
-            for wrapper in engine:
-                if wrapper.should_run:
-                    wrapper.execute_and_submit()
+        with DoitEngine(tasks, dep_manager=in_memory_dep()) as engine:
+            for task in engine:
+                if task.should_run:
+                    task.execute_and_submit()
 
                 # After executing producer, add consumer
-                if wrapper.name == 'producer':
+                if task.name == 'producer':
                     engine.add_task({
                         'name': 'consumer',
                         'actions': [(consumer,)],
@@ -475,12 +501,12 @@ class TestDynamicTaskInjection:
 
         tasks = [{'name': 'initial', 'actions': [track('initial')]}]
 
-        with DoitEngine(tasks, db_file=':memory:') as engine:
-            for wrapper in engine:
-                if wrapper.should_run:
-                    wrapper.execute_and_submit()
+        with DoitEngine(tasks, dep_manager=in_memory_dep()) as engine:
+            for task in engine:
+                if task.should_run:
+                    task.execute_and_submit()
 
-                if wrapper.name == 'initial':
+                if task.name == 'initial':
                     engine.add_tasks([
                         {'name': 'added1', 'actions': [track('added1')]},
                         {'name': 'added2', 'actions': [track('added2')]},
@@ -503,12 +529,12 @@ class TestDynamicTaskInjection:
 
         tasks = [Task('task1', [track('task1')])]
 
-        with DoitEngine(tasks, db_file=':memory:') as engine:
-            for wrapper in engine:
-                if wrapper.should_run:
-                    wrapper.execute_and_submit()
+        with DoitEngine(tasks, dep_manager=in_memory_dep()) as engine:
+            for task in engine:
+                if task.should_run:
+                    task.execute_and_submit()
 
-                if wrapper.name == 'task1':
+                if task.name == 'task1':
                     engine.add_task(Task('task2', [track('task2')]))
 
         assert 'task1' in executed
@@ -520,9 +546,9 @@ class TestDynamicTaskInjection:
 
         tasks = [{'name': 'task1', 'actions': [action_success]}]
 
-        with DoitEngine(tasks, db_file=':memory:') as engine:
-            wrapper = next(engine)
-            wrapper.execute_and_submit()
+        with DoitEngine(tasks, dep_manager=in_memory_dep()) as engine:
+            task = next(engine)
+            task.execute_and_submit()
 
             with pytest.raises(InvalidTask, match="unknown dependency"):
                 engine.add_task({
@@ -537,9 +563,9 @@ class TestDynamicTaskInjection:
 
         tasks = [{'name': 'task1', 'actions': [action_success]}]
 
-        with DoitEngine(tasks, db_file=':memory:') as engine:
-            wrapper = next(engine)
-            wrapper.execute_and_submit()
+        with DoitEngine(tasks, dep_manager=in_memory_dep()) as engine:
+            task = next(engine)
+            task.execute_and_submit()
 
             with pytest.raises(InvalidTask, match="already exists"):
                 engine.add_task({
@@ -554,7 +580,6 @@ class TestProgrammaticIntegration:
 
     def test_full_workflow(self, tmp_path):
         """Test a complete workflow with multiple tasks and dependencies."""
-        db_file = str(tmp_path / 'test.db')
         input_file = tmp_path / 'input.txt'
         output_file = tmp_path / 'output.txt'
         input_file.write_text('test input')
@@ -587,10 +612,11 @@ class TestProgrammaticIntegration:
         ]
 
         # Run the workflow
-        with DoitEngine(tasks, db_file=db_file, selected=['process']) as engine:
-            for wrapper in engine:
-                if wrapper.should_run:
-                    wrapper.execute_and_submit()
+        dep_manager = Dependency(DbmDB, str(tmp_path / 'test.db'))
+        with DoitEngine(tasks, dep_manager=dep_manager, selected=['process']) as engine:
+            for task in engine:
+                if task.should_run:
+                    task.execute_and_submit()
 
         # Verify execution order
         assert execution_log == ['read', 'process']
@@ -615,11 +641,11 @@ class TestProgrammaticIntegration:
             {'name': 'task3', 'actions': [track('task3')]},
         ]
 
-        with DoitEngine(tasks, db_file=':memory:') as engine:
-            for wrapper in engine:
+        with DoitEngine(tasks, dep_manager=in_memory_dep()) as engine:
+            for task in engine:
                 # Only execute task1 and task3
-                if wrapper.name in ('task1', 'task3') and wrapper.should_run:
-                    wrapper.execute_and_submit()
+                if task.name in ('task1', 'task3') and task.should_run:
+                    task.execute_and_submit()
 
         assert 'task1' in executed
         assert 'task2' not in executed

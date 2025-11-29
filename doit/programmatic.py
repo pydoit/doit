@@ -22,27 +22,31 @@ Basic usage:
     ]
 
     with DoitEngine(tasks) as engine:
-        for wrapper in engine:
-            if wrapper.should_run:
-                wrapper.execute_and_submit()
+        for task in engine:
+            if task.should_run:
+                task.execute_and_submit()
 
 In-memory execution (no database persistence):
 
-    with DoitEngine(tasks, db_file=':memory:') as engine:
-        for wrapper in engine:
-            if wrapper.should_run:
-                wrapper.execute_and_submit()
+    from doit.dependency import Dependency, InMemoryStateStore
+
+    dep_manager = Dependency(InMemoryStateStore())
+
+    with DoitEngine(tasks, dep_manager=dep_manager) as engine:
+        for task in engine:
+            if task.should_run:
+                task.execute_and_submit()
 
 Dynamic task injection:
 
-    with DoitEngine(initial_tasks, db_file=':memory:') as engine:
-        for wrapper in engine:
-            if wrapper.should_run:
-                wrapper.execute_and_submit()
+    with DoitEngine(initial_tasks, dep_manager=dep_manager) as engine:
+        for task in engine:
+            if task.should_run:
+                task.execute_and_submit()
 
             # Add new tasks based on results
-            if wrapper.name == 'discover':
-                for item in wrapper.values.get('discovered', []):
+            if task.name == 'discover':
+                for item in task.values.get('discovered', []):
                     engine.add_task({
                         'name': f'process_{item}',
                         'actions': [process_fn],
@@ -50,17 +54,19 @@ Dynamic task injection:
 
 Manual iteration (without context manager):
 
-    iterator = create_task_iterator(tasks)
+    iterator = create_task_iterator(tasks, dep_manager=dep_manager)
     try:
-        for wrapper in iterator:
-            if wrapper.should_run:
-                wrapper.execute_and_submit()
+        for task in iterator:
+            if task.should_run:
+                task.execute_and_submit()
     finally:
         iterator.finish()  # Run teardowns and close DB
 """
 
 from .control import TaskControl
-from .dependency import Dependency, DbmDB, MD5Checker, TimestampChecker
+from .dependency import (
+    Dependency, DbmDB, MD5Checker, TimestampChecker, InMemoryStateStore
+)
 from .runner import TaskExecutor
 from .task import Task, dict_to_task, Stream
 from .task_wrapper import TaskWrapper, TaskStatus
@@ -237,19 +243,19 @@ class TaskIterator:
         self._dep_manager.close()
 
 
-def create_task_iterator(tasks, db_file='.doit.db', selected=None,
-                         always_execute=False, verbosity=0,
-                         db_backend=DbmDB, checker_cls=None):
+def create_task_iterator(tasks, dep_manager=None, selected=None,
+                         always_execute=False, verbosity=0):
     """Create a TaskIterator for programmatic task execution.
 
     Args:
         tasks: List of Task objects or task dicts (with 'name', 'actions', etc.)
-        db_file: Path to dependency database, or ':memory:' for in-memory
+        dep_manager: Dependency instance for state persistence.
+            If None, creates a default file-based database (.doit.db).
+            For in-memory execution, pass:
+                Dependency(InMemoryStateStore())
         selected: List of task names to run (None = all)
         always_execute: Force execution even if up-to-date
         verbosity: Output verbosity (0, 1, or 2)
-        db_backend: Database backend class (ignored if db_file is ':memory:')
-        checker_cls: File change checker class (defaults based on db_file)
 
     Returns:
         TaskIterator instance
@@ -260,12 +266,18 @@ def create_task_iterator(tasks, db_file='.doit.db', selected=None,
             {'name': 'test', 'actions': ['pytest'], 'task_dep': ['build']},
         ]
 
+        # File-based persistence (default)
         iterator = create_task_iterator(tasks)
-        for wrapper in iterator:
-            print(f"Task: {wrapper.name}, should_run: {wrapper.should_run}")
-            if wrapper.should_run:
-                result = wrapper.execute_and_submit()
+        for task in iterator:
+            print(f"Task: {task.name}, should_run: {task.should_run}")
+            if task.should_run:
+                result = task.execute_and_submit()
         iterator.finish()
+
+        # In-memory execution
+        from doit.dependency import Dependency, InMemoryStateStore
+        dep_manager = Dependency(InMemoryStateStore())
+        iterator = create_task_iterator(tasks, dep_manager=dep_manager)
     """
     # Convert dicts to Task objects
     task_list = []
@@ -281,8 +293,9 @@ def create_task_iterator(tasks, db_file='.doit.db', selected=None,
     task_control = TaskControl(task_list)
     task_control.process(selected)
 
-    # Create dependency manager
-    dep_manager = Dependency(db_backend, db_file, checker_cls=checker_cls)
+    # Create dependency manager if not provided
+    if dep_manager is None:
+        dep_manager = Dependency(DbmDB, '.doit.db')
     stream = Stream(verbosity)
 
     return TaskIterator(
@@ -294,52 +307,91 @@ def create_task_iterator(tasks, db_file='.doit.db', selected=None,
 
 
 class DoitEngine:
-    """Context manager for programmatic doit execution.
+    """Engine for programmatic doit execution.
 
-    Automatically handles cleanup (teardowns and DB close) when exiting
-    the context.
+    Can be used as a context manager (recommended) or with explicit finish().
 
-    Example:
+    Example (context manager):
         tasks = [
             {'name': 'build', 'actions': ['make']},
             {'name': 'test', 'actions': ['pytest'], 'task_dep': ['build']},
         ]
 
         with DoitEngine(tasks) as engine:
-            for wrapper in engine:
-                if wrapper.should_run:
-                    wrapper.execute_and_submit()
+            for task in engine:
+                if task.should_run:
+                    task.execute_and_submit()
+
+    Example (explicit finish):
+        engine = DoitEngine(tasks, dep_manager=dep_manager)
+        try:
+            for task in engine:
+                if task.should_run:
+                    task.execute_and_submit()
+        finally:
+            engine.finish()
 
     For in-memory execution (no persistence):
-        with DoitEngine(tasks, db_file=':memory:') as engine:
-            for wrapper in engine:
-                if wrapper.should_run:
-                    wrapper.execute_and_submit()
+        from doit.dependency import Dependency, InMemoryStateStore
+        dep_manager = Dependency(InMemoryStateStore())
+        engine = DoitEngine(tasks, dep_manager=dep_manager)
     """
 
-    def __init__(self, tasks, **kwargs):
-        """Initialize DoitEngine.
+    def __init__(self, tasks, dep_manager=None, selected=None,
+                 always_execute=False, verbosity=0):
+        """Initialize DoitEngine and create the task iterator.
 
         @param tasks: List of Task objects or task dicts
-        @param **kwargs: Arguments passed to create_task_iterator
-            - db_file: Path to dependency database (default: '.doit.db')
-            - selected: List of task names to run (None = all)
-            - always_execute: Force execution even if up-to-date
-            - verbosity: Output verbosity (0, 1, or 2)
-            - db_backend: Database backend class
-            - checker_cls: File change checker class
+        @param dep_manager: Dependency instance for state persistence.
+            If None, creates a default file-based database (.doit.db).
+            For in-memory execution, pass Dependency(InMemoryStateStore()).
+        @param selected: List of task names to run (None = all)
+        @param always_execute: Force execution even if up-to-date
+        @param verbosity: Output verbosity (0, 1, or 2)
         """
-        self._tasks = tasks
-        self._kwargs = kwargs
-        self._iterator = None
+        self._iterator = create_task_iterator(
+            tasks,
+            dep_manager=dep_manager,
+            selected=selected,
+            always_execute=always_execute,
+            verbosity=verbosity,
+        )
 
-    def __enter__(self):
-        self._iterator = create_task_iterator(self._tasks, **self._kwargs)
+    def __iter__(self):
+        """Iterate over tasks. Delegates to the underlying TaskIterator."""
         return self._iterator
 
+    def __next__(self):
+        """Get next task. Delegates to the underlying TaskIterator."""
+        return next(self._iterator)
+
+    def finish(self):
+        """Run teardowns and close the dependency database.
+
+        This must be called when you're done iterating, unless you're using
+        the context manager (which calls it automatically).
+        """
+        self._iterator.finish()
+
+    def add_task(self, task):
+        """Add a new task dynamically. Delegates to TaskIterator."""
+        return self._iterator.add_task(task)
+
+    def add_tasks(self, tasks):
+        """Add multiple tasks. Delegates to TaskIterator."""
+        return self._iterator.add_tasks(tasks)
+
+    @property
+    def tasks(self):
+        """Access all tasks dict. Delegates to TaskIterator."""
+        return self._iterator.tasks
+
+    # Context manager support
+    def __enter__(self):
+        return self
+
     def __exit__(self, exc_type, exc_val, exc_tb):
-        if self._iterator:
-            self._iterator.finish()
+        self.finish()
         return False  # Don't suppress exceptions
 
 

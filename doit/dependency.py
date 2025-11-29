@@ -607,25 +607,62 @@ class Dependency(object):
 
     :ivar string name: filepath of the DB file
     :ivar bool _closed: DB was flushed to file
-    """
-    def __init__(self, db_class, backend_name, checker_cls=None,
-                 codec_cls=JSONCodec, module_name=None):
-        self._closed = False
-        self.db_class = db_class
 
-        # Support ':memory:' for in-memory storage (useful for testing and
-        # programmatic usage where persistence isn't needed)
-        if backend_name == ':memory:':
-            self.backend = InMemoryStateStore()
+    Usage:
+        # File-based storage (traditional usage with factory pattern)
+        dep = Dependency(DbmDB, '/path/to/db')
+
+        # With a pre-configured backend instance
+        backend = InMemoryStateStore()
+        dep = Dependency(backend)
+
+        # With custom checker
+        dep = Dependency(backend, checker_cls=TimestampChecker)
+    """
+    def __init__(self, backend_or_class, backend_name=None, checker_cls=None,
+                 codec_cls=JSONCodec, module_name=None):
+        """Initialize the dependency manager.
+
+        @param backend_or_class: Either a ProcessingStateStore instance, or a
+            class (like DbmDB, JsonDB, SqliteDB) that will be instantiated.
+        @param backend_name: Path to the database file. Required if
+            backend_or_class is a class, ignored if it's an instance.
+        @param checker_cls: FileChangedChecker class to use (MD5Checker or
+            TimestampChecker). Defaults to MD5Checker for file-based backends,
+            TimestampChecker for InMemoryStateStore.
+        @param codec_cls: Codec class for serialization (default: JSONCodec)
+        @param module_name: DBM module name (for DbmDB backend only)
+        """
+        self._closed = False
+
+        # Determine if we received an instance or a class
+        if isinstance(backend_or_class, ProcessingStateStore):
+            # Received a pre-configured instance
+            self.backend = backend_or_class
+            self.db_class = type(backend_or_class)
+
             # For in-memory storage, default to TimestampChecker (Makefile-style).
             # This is more appropriate because:
             # 1. We don't have previous state to compare checksums against
             # 2. Timestamp comparison is faster (no file reads for hashing)
             # 3. It matches "run if dependencies are newer than targets" semantics
             if checker_cls is None:
-                checker_cls = TimestampChecker
+                if isinstance(backend_or_class, InMemoryStateStore):
+                    checker_cls = TimestampChecker
+                else:
+                    checker_cls = MD5Checker
         else:
-            self.backend = db_class(backend_name, codec=codec_cls(), module_name=module_name)
+            # Received a class - need to instantiate it
+            if backend_name is None:
+                raise ValueError(
+                    "backend_name is required when passing a backend class. "
+                    "Either pass a ProcessingStateStore instance, or pass a "
+                    "class with a backend_name path."
+                )
+            self.db_class = backend_or_class
+            self.backend = backend_or_class(
+                backend_name, codec=codec_cls(), module_name=module_name
+            )
             # File-based storage defaults to MD5Checker for accurate change detection
             if checker_cls is None:
                 checker_cls = MD5Checker
