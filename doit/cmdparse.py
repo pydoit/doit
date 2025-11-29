@@ -6,6 +6,8 @@ import os
 import getopt
 import copy
 from collections import OrderedDict
+from dataclasses import dataclass, field
+from typing import Any, Optional, Union
 
 
 
@@ -58,87 +60,139 @@ class CmdParseError(Exception):
     """Error parsing options """
 
 
-class CmdOption(object):
-    """a command line option
+@dataclass
+class CmdOption:
+    """A command line option.
 
-       - name (string) : variable name
-       - section (string): meta info used to group entries when generating help
-       - default (value from its type): default value
-       - type (type): type of the variable. must be able to be initialized
-                      taking a single string parameter.
-                      if type is bool. option is just a flag. and if present
-                      its value is set to True.
-       - short (string): argument short name
-       - long (string): argument long name
-       - inverse (string): argument long name to be the inverse of the default
-                           value (only used by boolean options)
-       - choices(list - 2-tuple str): sequence of 2-tuple of choice name,
-                                      choice description.
-       - help (string): option description
+    Can be created as a dataclass with keyword arguments, or from a dict
+    using CmdOption.from_dict() or normalize_option() for backward compatibility.
+
+    Attributes:
+        name: Variable name for this option
+        default: Default value (must match type)
+        type: Type of the variable (str, int, bool, list). For bool, the option
+              is a flag that sets the value to True when present.
+        short: Short option name (e.g., 'v' for -v). Field metadata documents meaning.
+        long: Long option name (e.g., 'verbosity' for --verbosity)
+        inverse: Long name for inverse boolean flag (e.g., 'no-continue')
+        choices: Dict of choice name -> description for valid values
+        help: Help text for the option
+        section: Meta info for grouping entries in help output
+        metavar: Placeholder shown in help (e.g., 'ARG' in --file=ARG)
+        env_var: Environment variable to read default from
+
+    Example usage with field metadata:
+        opt_verbosity = CmdOption(
+            name='verbosity',
+            default=None,
+            type=int,
+            short='v',   # v for verbosity level
+            long='verbosity',
+            help='0=capture all, 1=capture stdout, 2=print all',
+        )
     """
 
-    def __init__(self, opt_dict):
-        # options must contain 'name' and 'default' value
+    name: str = field(metadata={'doc': 'Variable name for this option'})
+    default: Any = field(metadata={'doc': 'Default value'})
+    type: type = field(default=str, metadata={'doc': 'Type (str, int, bool, list)'})
+    short: str = field(default='', metadata={'doc': 'Short option (e.g., "v" for -v)'})
+    long: str = field(default='', metadata={'doc': 'Long option (e.g., "verbosity")'})
+    inverse: str = field(default='', metadata={'doc': 'Inverse boolean flag name'})
+    choices: dict = field(default_factory=dict, metadata={'doc': 'Valid choices'})
+    help: str = field(default='', metadata={'doc': 'Help text'})
+    section: str = field(default='', metadata={'doc': 'Help section grouping'})
+    metavar: str = field(default='ARG', metadata={'doc': 'Argument placeholder'})
+    env_var: Optional[str] = field(default=None, metadata={'doc': 'Environment variable'})
+
+    def __post_init__(self):
+        """Handle list defaults and choice conversion."""
+        if self.type is list and self.default is not None:
+            self.default = copy.copy(self.default)
+        # Convert choices from list of tuples to dict if needed
+        if isinstance(self.choices, list):
+            self.choices = dict(self.choices)
+
+    @classmethod
+    def from_dict(cls, opt_dict: dict) -> 'CmdOption':
+        """Create CmdOption from a dictionary (backward compatibility).
+
+        @param opt_dict: Dictionary with option properties
+        @return: CmdOption instance
+        @raise CmdParseError: If required fields missing or unknown fields present
+        """
         opt_dict = opt_dict.copy()
-        for field in ('name', 'default',):
-            if field not in opt_dict:
+
+        # Validate required fields
+        for required in ('name', 'default'):
+            if required not in opt_dict:
                 msg = "CmdOption dict %r missing required property '%s'"
-                raise CmdParseError(msg % (opt_dict, field))
+                raise CmdParseError(msg % (opt_dict, required))
 
-        self.name = opt_dict.pop('name')
-        self.section = opt_dict.pop('section', '')
-        self.type = opt_dict.pop('type', str)
-        self.set_default(opt_dict.pop('default'))
-        self.short = opt_dict.pop('short', '')
-        self.long = opt_dict.pop('long', '')
-        self.inverse = opt_dict.pop('inverse', '')
-        self.choices = dict(opt_dict.pop('choices', []))
-        self.help = opt_dict.pop('help', '')
-        self.metavar = opt_dict.pop('metavar', 'ARG')
-        self.env_var = opt_dict.pop('env_var', None)
+        # Extract known fields with defaults
+        name = opt_dict.pop('name')
+        default = opt_dict.pop('default')
+        opt_type = opt_dict.pop('type', str)
+        short = opt_dict.pop('short', '')
+        long = opt_dict.pop('long', '')
+        inverse = opt_dict.pop('inverse', '')
+        choices = opt_dict.pop('choices', [])
+        help_text = opt_dict.pop('help', '')
+        section = opt_dict.pop('section', '')
+        metavar = opt_dict.pop('metavar', 'ARG')
+        env_var = opt_dict.pop('env_var', None)
 
-        # TODO add some hint for tab-completion scripts
-
-        # options can not contain any unrecognized field
+        # Reject unknown fields
         if opt_dict:
             msg = "CmdOption dict contains invalid property '%s'"
             raise CmdParseError(msg % list(opt_dict.keys()))
 
+        return cls(
+            name=name,
+            default=default,
+            type=opt_type,
+            short=short,
+            long=long,
+            inverse=inverse,
+            choices=choices if isinstance(choices, dict) else dict(choices),
+            help=help_text,
+            section=section,
+            metavar=metavar,
+            env_var=env_var,
+        )
+
     def __repr__(self):
-        tmpl = ("{0}({{'name':{1.name!r}, "
-                "'short':{1.short!r},"
-                "'long':{1.long!r} }})")
-        return tmpl.format(self.__class__.__name__, self)
+        return (f"{self.__class__.__name__}({{'name':{self.name!r}, "
+                f"'short':{self.short!r},'long':{self.long!r} }})")
 
     def set_default(self, val):
-        """set default value, value is already the expected type"""
+        """Set default value, value is already the expected type."""
         if self.type is list:
             self.default = copy.copy(val)
         else:
             self.default = val
 
     def validate_choice(self, given_value):
-        """raise error is value is not a valid choice"""
+        """Raise error if value is not a valid choice."""
         if given_value not in self.choices:
             msg = ("Error parsing parameter '{}'. "
                    "Provided '{}' but available choices are: {}.")
             choices = ", ".join(f"'{k}'" for k in self.choices.keys())
             raise CmdParseError(msg.format(self.name, given_value, choices))
 
-
     _boolean_states = {
         '1': True, 'yes': True, 'true': True, 'on': True,
         '0': False, 'no': False, 'false': False, 'off': False,
     }
+
     def str2boolean(self, str_val):
-        """convert string to boolean"""
+        """Convert string to boolean."""
         try:
             return self._boolean_states[str_val.lower()]
         except Exception:
             raise ValueError('Not a boolean: {}'.format(str_val))
 
     def str2type(self, str_val):
-        """convert string value to option type value"""
+        """Convert string value to option type value."""
         try:
             # no conversion if value is not a string
             if not isinstance(str_val, str):
@@ -230,6 +284,16 @@ class CmdOption(object):
             text.append(self._print_2_columns(opt_str, opt_help))
         return text
 
+
+def normalize_option(opt: Union[dict, 'CmdOption']) -> CmdOption:
+    """Convert option to CmdOption if it's a dict.
+
+    @param opt: Either a dict with option properties or a CmdOption instance
+    @return: CmdOption instance
+    """
+    if isinstance(opt, dict):
+        return CmdOption.from_dict(opt)
+    return opt
 
 
 class CmdParse(object):

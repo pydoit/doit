@@ -8,7 +8,7 @@ from collections import OrderedDict
 from collections.abc import Callable
 from pathlib import PurePath
 
-from .cmdparse import CmdOption, TaskParse
+from .cmdparse import CmdOption, TaskParse, normalize_option
 from .exceptions import BaseFail, InvalidTask
 from .action import create_action, PythonAction
 from .dependency import UptodateCalculator
@@ -383,7 +383,7 @@ class Task(object):
         if self.options is None:
             self.options = {}
             all_opts = list(self.params) + self.creator_params
-            taskcmd = TaskParse([CmdOption(opt) for opt in all_opts])
+            taskcmd = TaskParse([normalize_option(opt) for opt in all_opts])
             if self.cfg_values is not None:
                 taskcmd.overwrite_defaults(self.cfg_values)
 

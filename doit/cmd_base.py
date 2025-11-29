@@ -6,7 +6,7 @@ import textwrap
 
 from .globals import Globals
 from . import version
-from .cmdparse import CmdOption, CmdParse
+from .cmdparse import CmdOption, CmdParse, normalize_option
 from .exceptions import InvalidCommand, InvalidDodoFile
 from .dependency import CHECKERS, DbmDB, JsonDB, SqliteDB, Dependency, JSONCodec
 from .action import CmdAction
@@ -127,7 +127,7 @@ class Command(object):
     def get_options(self):
         """@reutrn list of CmdOption
         """
-        return [CmdOption(opt) for opt in self.cmd_options]
+        return [normalize_option(opt) for opt in self.cmd_options]
 
 
     def execute(self, opt_values, pos_args):  # pragma: no cover
@@ -452,7 +452,7 @@ class DoitCmdBase(Command):
         """from base class - merge base_options, loader_options and cmd_options
         """
         opt_list = (self.base_options + self.loader.cmd_options + self.cmd_options)
-        return [CmdOption(opt) for opt in opt_list]
+        return [normalize_option(opt) for opt in opt_list]
 
 
     def _execute(self):  # pragma: no cover

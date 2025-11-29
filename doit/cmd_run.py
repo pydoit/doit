@@ -8,137 +8,122 @@ from .task import Stream
 from .control import TaskControl
 from .runner import Runner, MRunner, MThreadRunner
 from .cmd_base import DoitCmdBase
+from .cmdparse import CmdOption
 from . import reporter
 
 
-# verbosity
-opt_verbosity = {
-    'name': 'verbosity',
-    'short': 'v',
-    'long': 'verbosity',
-    'type': int,
-    'default': None,
-    'help': """0 capture (do not print) stdout/stderr from task.
+# Run command options as dataclasses with documented short flags.
+# Each short option letter is documented in a comment explaining its meaning.
+
+opt_verbosity = CmdOption(
+    name='verbosity',
+    default=None,
+    type=int,
+    short='v',   # v for verbosity level
+    long='verbosity',
+    help="""0 capture (do not print) stdout/stderr from task.
 1 capture stdout only.
 2 do not capture anything (print everything immediately).
-[default: 1]"""
-}
+[default: 1]""",
+)
 
+opt_outfile = CmdOption(
+    name='outfile',
+    default=sys.stdout,
+    type=str,
+    short='o',   # o for output file
+    long='output-file',
+    help="write output into file [default: stdout]",
+)
 
-# select output file
-opt_outfile = {
-    'name': 'outfile',
-    'short': 'o',
-    'long': 'output-file',
-    'type': str,
-    'default': sys.stdout,
-    'help': "write output into file [default: stdout]"
-}
+opt_always = CmdOption(
+    name='always',
+    default=False,
+    type=bool,
+    short='a',   # a for always execute
+    long='always-execute',
+    help="always execute tasks even if up-to-date [default: %(default)s]",
+)
 
+opt_continue = CmdOption(
+    name='continue',
+    default=False,
+    type=bool,
+    short='c',   # c for continue on failure
+    long='continue',
+    inverse='no-continue',
+    help="continue executing tasks even after a failure [default: %(default)s]",
+)
 
-# always execute task
-opt_always = {
-    'name': 'always',
-    'short': 'a',
-    'long': 'always-execute',
-    'type': bool,
-    'default': False,
-    'help': "always execute tasks even if up-to-date [default: %(default)s]",
-}
+opt_single = CmdOption(
+    name='single',
+    default=False,
+    type=bool,
+    short='s',   # s for single (ignore task_dep)
+    long='single',
+    help="Execute only specified tasks ignoring their task_dep [default: %(default)s]",
+)
 
-# continue executing tasks even after a failure
-opt_continue = {
-    'name': 'continue',
-    'short': 'c',
-    'long': 'continue',
-    'inverse': 'no-continue',
-    'type': bool,
-    'default': False,
-    'help': ("continue executing tasks even after a failure "
-             "[default: %(default)s]"),
-}
+opt_num_process = CmdOption(
+    name='num_process',
+    default=0,
+    type=int,
+    short='n',   # n for number of processes
+    long='process',
+    help="number of subprocesses [default: %(default)s]",
+)
 
+opt_reporter = CmdOption(
+    name='reporter',
+    default='console',
+    type=str,
+    short='r',   # r for reporter
+    long='reporter',
+    help="Choose output reporter. [default: %(default)s]",
+)
 
-opt_single = {
-    'name': 'single',
-    'short': 's',
-    'long': 'single',
-    'type': bool,
-    'default': False,
-    'help': ("Execute only specified tasks ignoring their task_dep "
-             "[default: %(default)s]"),
-}
-
-
-opt_num_process = {
-    'name': 'num_process',
-    'short': 'n',
-    'long': 'process',
-    'type': int,
-    'default': 0,
-    'help': "number of subprocesses [default: %(default)s]"
-}
-
-
-# reporter
-opt_reporter = {
-    'name': 'reporter',
-    'short': 'r',
-    'long': 'reporter',
-    'type': str,
-    'default': 'console',
-    'help': """Choose output reporter.\n[default: %(default)s]"""
-}
-
-opt_parallel_type = {
-    'name': 'par_type',
-    'short': 'P',
-    'long': 'parallel-type',
-    'type': str,
-    'default': 'process',
-    'help': """Tasks can be executed in parallel in different ways:
+opt_parallel_type = CmdOption(
+    name='par_type',
+    default='process',
+    type=str,
+    short='P',   # P for parallel type (capitalized to avoid conflict)
+    long='parallel-type',
+    help="""Tasks can be executed in parallel in different ways:
 'process': uses python multiprocessing module
 'thread': uses threads
-[default: %(default)s]
-"""
-}
+[default: %(default)s]""",
+)
 
+opt_pdb = CmdOption(
+    name='pdb',
+    default=None,
+    type=bool,
+    short='',    # no short option
+    long='pdb',
+    help="get into PDB (python debugger) post-mortem in case of unhandled exception",
+)
 
-# pdb post-mortem
-opt_pdb = {
-    'name': 'pdb',
-    'short': '',
-    'long': 'pdb',
-    'type': bool,
-    'default': None,
-    'help': "get into PDB (python debugger) post-mortem in case of unhandled exception"
-}
+opt_auto_delayed_regex = CmdOption(
+    name='auto_delayed_regex',
+    default=False,
+    type=bool,
+    short='',    # no short option
+    long='auto-delayed-regex',
+    help='Uses the default regex ".*" for every delayed task loader for which no regex was explicitly defined',
+)
 
-
-# use ".*" as default regex for delayed tasks without explicitly specified regex
-opt_auto_delayed_regex = {
-    'name': 'auto_delayed_regex',
-    'short': '',
-    'long': 'auto-delayed-regex',
-    'type': bool,
-    'default': False,
-    'help': ("""Uses the default regex ".*" for every delayed task loader"""
-             """for which no regex was explicitly defined"""),
-}
-
-opt_report_failure_verbosity = {
-    'name': 'failure_verbosity',
-    'short': '',
-    'long': 'failure-verbosity',
-    'type': int,
-    'default': 0,
-    'help': """Control re-display stdout/stderr for failed tasks on report summary.
+opt_report_failure_verbosity = CmdOption(
+    name='failure_verbosity',
+    default=0,
+    type=int,
+    short='',    # no short option
+    long='failure-verbosity',
+    help="""Control re-display stdout/stderr for failed tasks on report summary.
 0 do not show re-display
 1 re-display stderr only
 2 re-display both stderr/stdout
-[default: 0]
-"""
-}
+[default: 0]""",
+)
 
 
 class Run(DoitCmdBase):

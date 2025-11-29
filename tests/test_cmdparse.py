@@ -3,7 +3,7 @@ import pickle
 
 import pytest
 
-from doit.cmdparse import DefaultUpdate, CmdParseError, CmdOption, CmdParse
+from doit.cmdparse import DefaultUpdate, CmdParseError, CmdOption, CmdParse, normalize_option
 
 
 
@@ -49,7 +49,7 @@ class TestDefaultUpdate(object):
 class TestCmdOption(object):
 
     def test_repr(self):
-        opt = CmdOption({'name':'opt1', 'default':'',
+        opt = normalize_option({'name':'opt1', 'default':'',
                          'short':'o', 'long':'other'})
         assert "CmdOption(" in repr(opt)
         assert "'name':'opt1'" in repr(opt)
@@ -57,21 +57,21 @@ class TestCmdOption(object):
         assert "'long':'other'" in repr(opt)
 
     def test_non_required_fields(self):
-        opt1 = CmdOption({'name':'op1', 'default':''})
+        opt1 = normalize_option({'name':'op1', 'default':''})
         assert '' == opt1.long
 
     def test_invalid_field(self):
         opt_dict = {'name':'op1', 'default':'', 'non_existent':''}
-        pytest.raises(CmdParseError, CmdOption, opt_dict)
+        pytest.raises(CmdParseError, normalize_option, opt_dict)
 
     def test_missing_field(self):
         opt_dict = {'name':'op1', 'long':'abc'}
-        pytest.raises(CmdParseError, CmdOption, opt_dict)
+        pytest.raises(CmdParseError, normalize_option, opt_dict)
 
 
 class TestCmdOption_str2val(object):
     def test_str2boolean(self):
-        opt = CmdOption({'name':'op1', 'default':'', 'type':bool,
+        opt = normalize_option({'name':'op1', 'default':'', 'type':bool,
                          'short':'b', 'long': 'bobo'})
         assert True == opt.str2boolean('1')
         assert True == opt.str2boolean('yes')
@@ -90,57 +90,57 @@ class TestCmdOption_str2val(object):
 
 
     def test_non_string_values_are_not_converted(self):
-        opt = CmdOption({'name':'op1', 'default':'', 'type':bool})
+        opt = normalize_option({'name':'op1', 'default':'', 'type':bool})
         assert False == opt.str2type(False)
         assert True == opt.str2type(True)
         assert None == opt.str2type(None)
 
     def test_str(self):
-        opt = CmdOption({'name':'op1', 'default':'', 'type':str})
+        opt = normalize_option({'name':'op1', 'default':'', 'type':str})
         assert 'foo' == opt.str2type('foo')
         assert 'bar' == opt.str2type('bar')
 
     def test_bool(self):
-        opt = CmdOption({'name':'op1', 'default':'', 'type':bool})
+        opt = normalize_option({'name':'op1', 'default':'', 'type':bool})
         assert False == opt.str2type('off')
         assert True == opt.str2type('on')
 
     def test_int(self):
-        opt = CmdOption({'name':'op1', 'default':'', 'type':int})
+        opt = normalize_option({'name':'op1', 'default':'', 'type':int})
         assert 2 == opt.str2type('2')
         assert -3 == opt.str2type('-3')
 
     def test_list(self):
-        opt = CmdOption({'name':'op1', 'default':'', 'type':list})
+        opt = normalize_option({'name':'op1', 'default':'', 'type':list})
         assert ['foo'] == opt.str2type('foo')
         assert [] == opt.str2type('')
         assert ['foo', 'bar'] == opt.str2type('foo , bar ')
 
     def test_invalid_value(self):
-        opt = CmdOption({'name':'op1', 'default':'', 'type':int})
+        opt = normalize_option({'name':'op1', 'default':'', 'type':int})
         pytest.raises(CmdParseError, opt.str2type, 'not a number')
 
 
 class TestCmdOption_help_param(object):
     def test_bool_param(self):
-        opt1 = CmdOption({'name':'op1', 'default':'', 'type':bool,
+        opt1 = normalize_option({'name':'op1', 'default':'', 'type':bool,
                           'short':'b', 'long': 'bobo'})
         assert '-b, --bobo' == opt1.help_param()
 
     def test_non_bool_param(self):
-        opt1 = CmdOption({'name':'op1', 'default':'', 'type':str,
+        opt1 = normalize_option({'name':'op1', 'default':'', 'type':str,
                           'short':'s', 'long': 'susu'})
         assert '-s ARG, --susu=ARG' == opt1.help_param()
 
 
     def test_metavar(self):
-        opt1 = CmdOption({'name':'op1', 'default':'', 'type':str, 'metavar':'VAL',
+        opt1 = normalize_option({'name':'op1', 'default':'', 'type':str, 'metavar':'VAL',
                           'short':'s', 'long': 'susu'})
         assert '-s VAL, --susu=VAL' == opt1.help_param()
 
 
     def test_no_long(self):
-        opt1 = CmdOption({'name':'op1', 'default':'', 'type':str,
+        opt1 = normalize_option({'name':'op1', 'default':'', 'type':str,
                           'short':'s'})
         assert '-s ARG' == opt1.help_param()
 
@@ -202,7 +202,7 @@ opt_choices_nodesc = {'name': 'choicesnodesc',
 
 class TestCmdOption_help_doc(object):
     def test_param(self):
-        opt1 = CmdOption(opt_bool)
+        opt1 = normalize_option(opt_bool)
         got = opt1.help_doc()
         assert '-f, --flag' in got[0]
         assert 'help for opt1' in got[0]
@@ -210,23 +210,23 @@ class TestCmdOption_help_doc(object):
         assert 2 == len(got)
 
     def test_no_doc_param(self):
-        opt1 = CmdOption(opt_no)
+        opt1 = normalize_option(opt_no)
         assert 0 == len(opt1.help_doc())
 
     def test_choices_desc_doc(self):
-        the_opt = CmdOption(opt_choices_desc)
+        the_opt = normalize_option(opt_choices_desc)
         doc = the_opt.help_doc()[0]
         assert 'choices:\n' in doc
         assert 'yes: signify affirmative' in doc
         assert 'no: signify negative' in doc
 
     def test_choices_nodesc_doc(self):
-        the_opt = CmdOption(opt_choices_nodesc)
+        the_opt = normalize_option(opt_choices_nodesc)
         doc = the_opt.help_doc()[0]
         assert "choices: no, yes" in doc
 
     def test_name_config_env(self):
-        opt1 = CmdOption(opt_rare)
+        opt1 = normalize_option(opt_rare)
         got = opt1.help_doc()
         assert 'config: rare_bool' in got[0]
         assert 'environ: RARE' in got[0]
@@ -239,7 +239,7 @@ class TestCommand(object):
     def cmd(self, request):
         opt_list = (opt_bool, opt_rare, opt_int, opt_no,
                     opt_append, opt_choices_desc, opt_choices_nodesc)
-        options = [CmdOption(o) for o in opt_list]
+        options = [normalize_option(o) for o in opt_list]
         cmd = CmdParse(options)
         return cmd
 
@@ -350,7 +350,7 @@ class TestCommand(object):
             'env_var': 'FOO',
             'default': 'zero'
         }
-        cmd = CmdParse([CmdOption(opt_foo)])
+        cmd = CmdParse([normalize_option(opt_foo)])
 
         # get default
         params, args = cmd.parse([])
@@ -374,7 +374,7 @@ class TestCommand(object):
             'env_var': 'FOO',
             'default': False,
         }
-        cmd = CmdParse([CmdOption(opt_foo)])
+        cmd = CmdParse([normalize_option(opt_foo)])
 
         # get from env
         os.environ['FOO'] = '1'

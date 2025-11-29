@@ -1,5 +1,5 @@
 from .exceptions import InvalidDodoFile
-from .cmdparse import TaskParse, CmdOption
+from .cmdparse import TaskParse, CmdOption, normalize_option
 from .cmd_base import DoitCmdBase
 
 
@@ -156,7 +156,7 @@ class Help(DoitCmdBase):
             return False
         print("%s  %s" % (task.name, task.doc))
         params = list(task.creator_params) + list(task.params)
-        taskcmd = TaskParse([CmdOption(opt) for opt in params])
+        taskcmd = TaskParse([normalize_option(opt) for opt in params])
         for opt in taskcmd.options:
             print("\n".join(opt.help_doc()))
         return True

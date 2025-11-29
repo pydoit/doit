@@ -2,7 +2,7 @@ from io import StringIO
 import pytest
 
 from doit.exceptions import InvalidCommand
-from doit.cmdparse import CmdOption
+from doit.cmdparse import CmdOption, normalize_option
 from doit.plugin import PluginDict
 from doit.task import Task
 from doit.cmd_base import Command, DodoTaskLoader, TaskLoader2
@@ -77,24 +77,24 @@ class TestCmdCompletionBash(object):
 class TestCmdCompletionZsh(object):
 
     def test_zsh_arg_line(self):
-        opt1 = CmdOption({'name':'o1', 'default':'', 'help':'my desc'})
+        opt1 = normalize_option({'name':'o1', 'default':'', 'help':'my desc'})
         assert '' == TabCompletion._zsh_arg_line(opt1)
 
-        opt2 = CmdOption({'name':'o2', 'default':'', 'help':'my desc',
+        opt2 = normalize_option({'name':'o2', 'default':'', 'help':'my desc',
                           'short':'s'})
         assert '"-s[my desc]" \\' == TabCompletion._zsh_arg_line(opt2)
 
-        opt3 = CmdOption({'name':'o3', 'default':'', 'help':'my desc',
+        opt3 = normalize_option({'name':'o3', 'default':'', 'help':'my desc',
                           'long':'lll'})
         assert '"--lll[my desc]" \\' == TabCompletion._zsh_arg_line(opt3)
 
-        opt4 = CmdOption({'name':'o4', 'default':'', 'help':'my desc [b]a',
+        opt4 = normalize_option({'name':'o4', 'default':'', 'help':'my desc [b]a',
                           'short':'s', 'long':'lll'})
         assert ('"(-s|--lll)"{-s,--lll}"[my desc [b\\]a]" \\' ==
                 TabCompletion._zsh_arg_line(opt4))
 
         # escaping `"` test
-        opt5 = CmdOption({'name':'o5', 'default':'',
+        opt5 = normalize_option({'name':'o5', 'default':'',
                           'help':'''my "des'c [b]a''',
                           'short':'s', 'long':'lll'})
         assert ('''"(-s|--lll)"{-s,--lll}"[my \\"des'c [b\\]a]" \\''' ==

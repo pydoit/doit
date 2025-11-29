@@ -9,7 +9,7 @@ from collections import OrderedDict
 
 from .exceptions import InvalidTask, InvalidCommand, InvalidDodoFile
 from .task import DelayedLoader, Task, dict_to_task
-from .cmdparse import TaskParse, CmdOption
+from .cmdparse import TaskParse, CmdOption, normalize_option
 
 
 # Directory path from where doit was executed.
@@ -200,7 +200,7 @@ def load_tasks(namespace, command_names=(), allow_delayed=False, args=(),
         # Parse command line arguments for task generator parameters
         creator_params = getattr(ref, '_task_creator_params', None)
         if creator_params is not None:
-            parser = TaskParse([CmdOption(opt) for opt in creator_params])
+            parser = TaskParse([normalize_option(opt) for opt in creator_params])
             # Add task options from config, if present
             if config:
                 task_stanza = 'task:' + name

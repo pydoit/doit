@@ -10,7 +10,7 @@ import importlib
 from .version import VERSION
 from .plugin import PluginDict
 from .exceptions import InvalidDodoFile, InvalidCommand, InvalidTask
-from .cmdparse import CmdOption, CmdParseError, CmdParse
+from .cmdparse import CmdOption, CmdParseError, CmdParse, normalize_option
 from .cmd_base import get_loader
 from .cmd_help import Help
 from .cmd_run import Run
@@ -263,7 +263,7 @@ class DoitMain(object):
         # loader command options might appear before command name
         try:
             loader_opt_parser = CmdParse(
-                [CmdOption(opt) for opt in task_loader.cmd_options])
+                [normalize_option(opt) for opt in task_loader.cmd_options])
             loader_params, cmd_args = loader_opt_parser.parse_only(all_args)
         except CmdParseError:
             # normal to fail parsing if RUN command is not explicit
