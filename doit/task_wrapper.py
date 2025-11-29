@@ -28,15 +28,34 @@ class TaskWrapper:
     - execute() + submit(): Run, then save separately
     - Manual: Access raw actions, run yourself, call submit()
 
-    Attributes:
+    Core attributes:
         name (str): Task name
         task (Task): Underlying Task object
         actions (list): Raw action objects
+
+    Task definition properties (delegated to underlying task):
+        file_dep (set): File dependencies
+        task_dep (list): Task dependencies
+        targets (list): Target files
+        uptodate (list): Up-to-date conditions
+        calc_dep (set): Calculated dependencies
+        setup_tasks (list): Setup task names
+        teardown (list): Teardown actions
+        doc (str|None): Task documentation
+        meta (dict|None): User/plugin metadata
+        getargs (dict): Values from other tasks
+        verbosity (int|None): Task verbosity level
+        subtask_of (str|None): Parent task name if subtask
+        has_subtask (bool): Whether task has subtasks
+
+    Execution state properties:
         should_run (bool): Whether task needs execution
         skip_reason (str|None): Why task was skipped, if applicable
         status (str): Current TaskStatus
         result: Execution result after execute()
         values (dict): Task output values after execution
+        executed (bool): Whether execute() has been called
+        submitted (bool): Whether submit() has been called
     """
 
     def __init__(self, node, executor, tasks_dict, teardown_list=None):
@@ -69,6 +88,75 @@ class TaskWrapper:
     def actions(self):
         """List of task actions."""
         return self._node.task.actions
+
+    # --- Task definition properties (delegated to underlying task) ---
+
+    @property
+    def file_dep(self):
+        """File dependencies (set of absolute paths)."""
+        return self._node.task.file_dep
+
+    @property
+    def task_dep(self):
+        """Task dependencies (list of task names)."""
+        return self._node.task.task_dep
+
+    @property
+    def targets(self):
+        """Target files (list of paths)."""
+        return self._node.task.targets
+
+    @property
+    def uptodate(self):
+        """Up-to-date conditions (list)."""
+        return self._node.task.uptodate
+
+    @property
+    def calc_dep(self):
+        """Calculated dependencies (set of task names)."""
+        return self._node.task.calc_dep
+
+    @property
+    def setup_tasks(self):
+        """Setup task names (list)."""
+        return self._node.task.setup_tasks
+
+    @property
+    def teardown(self):
+        """Teardown actions (list)."""
+        return self._node.task.teardown
+
+    @property
+    def doc(self):
+        """Task documentation string (or None)."""
+        return self._node.task.doc
+
+    @property
+    def meta(self):
+        """User/plugin metadata dict (or None)."""
+        return self._node.task.meta
+
+    @property
+    def getargs(self):
+        """Dict of values to get from other tasks."""
+        return self._node.task.getargs
+
+    @property
+    def verbosity(self):
+        """Task verbosity level (0, 1, 2, or None for default)."""
+        return self._node.task.verbosity
+
+    @property
+    def subtask_of(self):
+        """Parent task name if this is a subtask (or None)."""
+        return self._node.task.subtask_of
+
+    @property
+    def has_subtask(self):
+        """True if this task has subtasks."""
+        return self._node.task.has_subtask
+
+    # --- Execution state properties ---
 
     @property
     def should_run(self):

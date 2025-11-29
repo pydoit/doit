@@ -28,18 +28,18 @@ Basic usage:
 
 In-memory execution (no database persistence):
 
-    from doit.dependency import Dependency, InMemoryStateStore
+    from doit.dependency import InMemoryStateStore
 
-    dep_manager = Dependency(InMemoryStateStore())
-
-    with DoitEngine(tasks, dep_manager=dep_manager) as engine:
+    with DoitEngine(tasks, dep_manager=InMemoryStateStore()) as engine:
         for task in engine:
             if task.should_run:
                 task.execute_and_submit()
 
 Dynamic task injection:
 
-    with DoitEngine(initial_tasks, dep_manager=dep_manager) as engine:
+    from doit.dependency import InMemoryStateStore
+
+    with DoitEngine(initial_tasks, dep_manager=InMemoryStateStore()) as engine:
         for task in engine:
             if task.should_run:
                 task.execute_and_submit()
@@ -54,7 +54,9 @@ Dynamic task injection:
 
 Manual iteration (without context manager):
 
-    iterator = create_task_iterator(tasks, dep_manager=dep_manager)
+    from doit.dependency import InMemoryStateStore
+
+    iterator = create_task_iterator(tasks, dep_manager=InMemoryStateStore())
     try:
         for task in iterator:
             if task.should_run:
@@ -65,7 +67,8 @@ Manual iteration (without context manager):
 
 from .control import TaskControl
 from .dependency import (
-    Dependency, DbmDB, MD5Checker, TimestampChecker, InMemoryStateStore
+    Dependency, DbmDB, MD5Checker, TimestampChecker,
+    InMemoryStateStore, ProcessingStateStore
 )
 from .runner import TaskExecutor
 from .task import Task, dict_to_task, Stream
@@ -249,10 +252,10 @@ def create_task_iterator(tasks, dep_manager=None, selected=None,
 
     Args:
         tasks: List of Task objects or task dicts (with 'name', 'actions', etc.)
-        dep_manager: Dependency instance for state persistence.
-            If None, creates a default file-based database (.doit.db).
-            For in-memory execution, pass:
-                Dependency(InMemoryStateStore())
+        dep_manager: State storage backend. Can be:
+            - None: Use default file-based database (.doit.db)
+            - ProcessingStateStore instance: InMemoryStateStore() for no persistence
+            - Dependency instance: For custom checker configuration
         selected: List of task names to run (None = all)
         always_execute: Force execution even if up-to-date
         verbosity: Output verbosity (0, 1, or 2)
@@ -275,9 +278,8 @@ def create_task_iterator(tasks, dep_manager=None, selected=None,
         iterator.finish()
 
         # In-memory execution
-        from doit.dependency import Dependency, InMemoryStateStore
-        dep_manager = Dependency(InMemoryStateStore())
-        iterator = create_task_iterator(tasks, dep_manager=dep_manager)
+        from doit.dependency import InMemoryStateStore
+        iterator = create_task_iterator(tasks, dep_manager=InMemoryStateStore())
     """
     # Convert dicts to Task objects
     task_list = []
@@ -296,6 +298,9 @@ def create_task_iterator(tasks, dep_manager=None, selected=None,
     # Create dependency manager if not provided
     if dep_manager is None:
         dep_manager = Dependency(DbmDB, '.doit.db')
+    elif isinstance(dep_manager, ProcessingStateStore):
+        # Allow passing a backend directly (convenience)
+        dep_manager = Dependency(dep_manager)
     stream = Stream(verbosity)
 
     return TaskIterator(
@@ -332,9 +337,8 @@ class DoitEngine:
             engine.finish()
 
     For in-memory execution (no persistence):
-        from doit.dependency import Dependency, InMemoryStateStore
-        dep_manager = Dependency(InMemoryStateStore())
-        engine = DoitEngine(tasks, dep_manager=dep_manager)
+        from doit.dependency import InMemoryStateStore
+        engine = DoitEngine(tasks, dep_manager=InMemoryStateStore())
     """
 
     def __init__(self, tasks, dep_manager=None, selected=None,
@@ -342,9 +346,10 @@ class DoitEngine:
         """Initialize DoitEngine and create the task iterator.
 
         @param tasks: List of Task objects or task dicts
-        @param dep_manager: Dependency instance for state persistence.
-            If None, creates a default file-based database (.doit.db).
-            For in-memory execution, pass Dependency(InMemoryStateStore()).
+        @param dep_manager: State storage backend. Can be:
+            - None: Use default file-based database (.doit.db)
+            - ProcessingStateStore instance: InMemoryStateStore() for no persistence
+            - Dependency instance: For custom checker configuration
         @param selected: List of task names to run (None = all)
         @param always_execute: Force execution even if up-to-date
         @param verbosity: Output verbosity (0, 1, or 2)

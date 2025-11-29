@@ -36,9 +36,9 @@ The simplest way to run tasks programmatically is with ``DoitEngine``:
     ]
 
     with DoitEngine(tasks) as engine:
-        for wrapper in engine:
-            if wrapper.should_run:
-                wrapper.execute_and_submit()
+        for task in engine:
+            if task.should_run:
+                task.execute_and_submit()
 
 This will:
 
@@ -54,25 +54,42 @@ Key Classes
 DoitEngine
 ----------
 
-A context manager that sets up and tears down the task execution environment.
+The main entry point for programmatic execution. Can be used as a context
+manager (recommended) or with explicit ``finish()``.
 
 .. code-block:: python
 
     from doit import DoitEngine
 
-    with DoitEngine(tasks, db_file='.doit.db') as engine:
-        for wrapper in engine:
+    # As context manager (recommended)
+    with DoitEngine(tasks) as engine:
+        for task in engine:
             # process each task
             ...
+
+    # Or with explicit finish
+    engine = DoitEngine(tasks)
+    try:
+        for task in engine:
+            ...
+    finally:
+        engine.finish()
 
 **Parameters:**
 
 - ``tasks`` - list of Task objects or task dicts
-- ``db_file`` - path to dependency database (default: ``.doit.db``)
-  Use ``:memory:`` for in-memory execution without persistence.
+- ``dep_manager`` - Dependency instance for state persistence.
+  If None, creates a default file-based database (``.doit.db``).
+  For in-memory execution, pass ``Dependency(InMemoryStateStore())``.
 - ``selected`` - list of task names to run (default: all tasks)
 - ``always_execute`` - force execution even if up-to-date (default: False)
 - ``verbosity`` - output verbosity 0, 1, or 2 (default: 0)
+
+**Methods:**
+
+- ``finish()`` - run teardowns and close database (called automatically by context manager)
+- ``add_task(task)`` - add a single task dynamically
+- ``add_tasks(task_list)`` - add multiple tasks
 
 
 TaskWrapper
@@ -80,11 +97,30 @@ TaskWrapper
 
 Wraps each task, providing control over execution.
 
-**Properties:**
+**Core properties:**
 
 - ``name`` - task name
 - ``task`` - underlying Task object
 - ``actions`` - list of task actions
+
+**Task definition properties** (delegated to underlying task):
+
+- ``file_dep`` - file dependencies (set of paths)
+- ``task_dep`` - task dependencies (list of task names)
+- ``targets`` - target files (list of paths)
+- ``uptodate`` - up-to-date conditions (list)
+- ``calc_dep`` - calculated dependencies (set of task names)
+- ``setup_tasks`` - setup task names (list)
+- ``teardown`` - teardown actions (list)
+- ``doc`` - task documentation (str or None)
+- ``meta`` - user/plugin metadata (dict or None)
+- ``getargs`` - values from other tasks (dict)
+- ``verbosity`` - task verbosity level (0, 1, 2, or None)
+- ``subtask_of`` - parent task name if subtask (or None)
+- ``has_subtask`` - True if task has subtasks
+
+**Execution state properties:**
+
 - ``should_run`` - True if task needs execution
 - ``skip_reason`` - why task was skipped (``'up-to-date'`` or ``'ignore'``)
 - ``status`` - current TaskStatus
@@ -117,17 +153,35 @@ Enum of possible task states:
 In-Memory Execution
 ===================
 
-For testing or one-off execution without persistence, use ``:memory:``:
+For testing or one-off execution without persistence, use ``InMemoryStateStore``:
 
 .. code-block:: python
 
-    with DoitEngine(tasks, db_file=':memory:') as engine:
-        for wrapper in engine:
-            if wrapper.should_run:
-                wrapper.execute_and_submit()
+    from doit import DoitEngine
+    from doit.dependency import InMemoryStateStore
+
+    with DoitEngine(tasks, dep_manager=InMemoryStateStore()) as engine:
+        for task in engine:
+            if task.should_run:
+                task.execute_and_submit()
 
 This uses timestamp-based dependency checking (like Make) instead of
 checksums, which is faster and doesn't require previous state.
+
+For file-based persistence with a custom path:
+
+.. code-block:: python
+
+    from doit.dependency import Dependency, DbmDB
+
+    dep_manager = Dependency(DbmDB, '/path/to/custom.db')
+    engine = DoitEngine(tasks, dep_manager=dep_manager)
+
+The ``dep_manager`` parameter accepts:
+
+- ``None`` (default): Use file-based database (``.doit.db``)
+- ``InMemoryStateStore()`` or other ``ProcessingStateStore``: Automatically wrapped in ``Dependency``
+- ``Dependency`` instance: For custom checker configuration
 
 
 Execution Control
@@ -142,11 +196,11 @@ Run and save results in one call:
 
 .. code-block:: python
 
-    for wrapper in engine:
-        if wrapper.should_run:
-            result = wrapper.execute_and_submit()
+    for task in engine:
+        if task.should_run:
+            result = task.execute_and_submit()
             if result:
-                print(f"Task {wrapper.name} failed: {result}")
+                print(f"Task {task.name} failed: {result}")
 
 
 Separate (execute + submit)
@@ -156,17 +210,17 @@ Execute first, inspect results, then submit:
 
 .. code-block:: python
 
-    for wrapper in engine:
-        if wrapper.should_run:
-            result = wrapper.execute()
+    for task in engine:
+        if task.should_run:
+            result = task.execute()
 
             # Inspect before committing
             if result is None:
-                print(f"{wrapper.name} succeeded, values: {wrapper.values}")
+                print(f"{task.name} succeeded, values: {task.values}")
             else:
-                print(f"{wrapper.name} failed: {result}")
+                print(f"{task.name} failed: {result}")
 
-            wrapper.submit()
+            task.submit()
 
 
 Manual (access actions directly)
@@ -176,9 +230,9 @@ Access raw actions for custom execution:
 
 .. code-block:: python
 
-    for wrapper in engine:
-        if wrapper.should_run:
-            for action in wrapper.actions:
+    for task in engine:
+        if task.should_run:
+            for action in task.actions:
                 # Custom execution logic
                 print(f"Would run: {action}")
 
@@ -192,12 +246,12 @@ Skip tasks based on your own criteria:
 
     skip_tasks = {'slow_test', 'integration_test'}
 
-    for wrapper in engine:
-        if wrapper.name in skip_tasks:
+    for task in engine:
+        if task.name in skip_tasks:
             continue  # Skip without executing or submitting
 
-        if wrapper.should_run:
-            wrapper.execute_and_submit()
+        if task.should_run:
+            task.execute_and_submit()
 
 
 Dynamic Task Injection
@@ -206,6 +260,9 @@ Dynamic Task Injection
 Add new tasks during iteration based on results:
 
 .. code-block:: python
+
+    from doit import DoitEngine
+    from doit.dependency import Dependency, InMemoryStateStore
 
     def discover_files():
         import glob
@@ -219,24 +276,20 @@ Add new tasks during iteration based on results:
         {'name': 'discover', 'actions': [discover_files]},
     ]
 
-    with DoitEngine(initial_tasks, db_file=':memory:') as engine:
-        for wrapper in engine:
-            if wrapper.should_run:
-                wrapper.execute_and_submit()
+    dep_manager = Dependency(InMemoryStateStore())
+    with DoitEngine(initial_tasks, dep_manager=dep_manager) as engine:
+        for task in engine:
+            if task.should_run:
+                task.execute_and_submit()
 
             # Add tasks based on discovery results
-            if wrapper.name == 'discover':
-                for f in wrapper.values.get('files', []):
+            if task.name == 'discover':
+                for f in task.values.get('files', []):
                     engine.add_task({
                         'name': f'process_{f}',
                         'actions': [(process_file, [f])],
                         'task_dep': ['discover'],
                     })
-
-**Methods:**
-
-- ``engine.add_task(task)`` - add a single task (dict or Task object)
-- ``engine.add_tasks(task_list)`` - add multiple tasks
 
 
 Working with Values
@@ -265,15 +318,15 @@ Tasks can return values that are passed to dependent tasks:
         },
     ]
 
-After execution, access values via ``wrapper.values``:
+After execution, access values via ``task.values``:
 
 .. code-block:: python
 
-    for wrapper in engine:
-        if wrapper.should_run:
-            wrapper.execute_and_submit()
-            if wrapper.values:
-                print(f"{wrapper.name} returned: {wrapper.values}")
+    for task in engine:
+        if task.should_run:
+            task.execute_and_submit()
+            if task.values:
+                print(f"{task.name} returned: {task.values}")
 
 
 Manual Iteration
@@ -294,9 +347,9 @@ For more control, use ``create_task_iterator`` directly:
     )
 
     try:
-        for wrapper in iterator:
-            if wrapper.should_run:
-                wrapper.execute_and_submit()
+        for task in iterator:
+            if task.should_run:
+                task.execute_and_submit()
     finally:
         iterator.finish()  # Important: run teardowns and close DB
 
@@ -347,12 +400,12 @@ A build system that compiles source files:
 
     # Run the build
     with DoitEngine(tasks) as engine:
-        for wrapper in engine:
-            if wrapper.should_run:
-                print(f"Running: {wrapper.name}")
-                wrapper.execute_and_submit()
+        for task in engine:
+            if task.should_run:
+                print(f"Running: {task.name}")
+                task.execute_and_submit()
             else:
-                print(f"Up-to-date: {wrapper.name}")
+                print(f"Up-to-date: {task.name}")
 
 
 See Also
