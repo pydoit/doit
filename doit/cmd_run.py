@@ -6,7 +6,7 @@ from .plugin import PluginDict
 from .action import PythonAction
 from .task import Stream
 from .control import TaskControl
-from .runner import Runner, MRunner, MThreadRunner
+from .runner import Runner, MThreadRunner
 from .cmd_base import DoitCmdBase
 from .cmdparse import CmdOption
 from . import reporter
@@ -68,9 +68,9 @@ opt_num_process = CmdOption(
     name='num_process',
     default=0,
     type=int,
-    short='n',   # n for number of processes
+    short='n',   # n for number of threads
     long='process',
-    help="number of subprocesses [default: %(default)s]",
+    help="number of parallel threads [default: %(default)s]",
 )
 
 opt_reporter = CmdOption(
@@ -80,18 +80,6 @@ opt_reporter = CmdOption(
     short='r',   # r for reporter
     long='reporter',
     help="Choose output reporter. [default: %(default)s]",
-)
-
-opt_parallel_type = CmdOption(
-    name='par_type',
-    default='process',
-    type=str,
-    short='P',   # P for parallel type (capitalized to avoid conflict)
-    long='parallel-type',
-    help="""Tasks can be executed in parallel in different ways:
-'process': uses python multiprocessing module
-'thread': uses threads
-[default: %(default)s]""",
 )
 
 opt_pdb = CmdOption(
@@ -134,7 +122,7 @@ class Run(DoitCmdBase):
 
     cmd_options = (opt_always, opt_continue, opt_verbosity,
                    opt_reporter, opt_outfile, opt_num_process,
-                   opt_parallel_type, opt_pdb, opt_single,
+                   opt_pdb, opt_single,
                    opt_auto_delayed_regex, opt_report_failure_verbosity)
 
 
@@ -173,7 +161,7 @@ class Run(DoitCmdBase):
 
     def _execute(self, outfile,
                  verbosity=None, always=False, continue_=False,
-                 reporter='console', num_process=0, par_type='process',
+                 reporter='console', num_process=0,
                  single=False, auto_delayed_regex=False, force_verbosity=False,
                  failure_verbosity=0, pdb=False):
         """
@@ -232,22 +220,11 @@ class Run(DoitCmdBase):
             if num_process == 0:
                 RunnerClass = Runner
             else:
-                if par_type == 'process':
-                    RunnerClass = MRunner
-                    if not MRunner.available():
-                        RunnerClass = MThreadRunner
-                        sys.stderr.write(
-                            "WARNING: multiprocessing module not available, "
-                            "running in parallel using threads.")
-                elif par_type == 'thread':
-                    RunnerClass = MThreadRunner
-                else:
-                    msg = "Invalid parallel type %s"
-                    raise InvalidCommand(msg % par_type)
+                RunnerClass = MThreadRunner
                 run_args.append(num_process)
 
             runner = RunnerClass(*run_args)
-            return runner.run_all(self.control.task_dispatcher())
+            return runner.run_all(self.control)
         finally:
             if isinstance(outfile, str):
                 outstream.close()

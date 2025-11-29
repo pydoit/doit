@@ -44,7 +44,7 @@ from doit.engine import (
 )
 
 # State storage (for advanced usage)
-from doit.state import MemoryStore
+from doit.dependency import InMemoryStateStore
 
 
 __all__ = [
@@ -53,7 +53,7 @@ __all__ = [
     # Programmatic interface
     'DoitEngine', 'TaskWrapper', 'TaskStatus', 'create_task_iterator',
     # State storage
-    'MemoryStore',
+    'InMemoryStateStore',
 ]
 
 def get_initial_workdir():

@@ -3,7 +3,7 @@ import os
 import pytest
 
 from doit.task import Task
-from doit.state import MemoryStore, TimestampChecker
+from doit.dependency import InMemoryStateStore as MemoryStore, TimestampChecker
 from doit.engine import DoitEngine, TaskStatus, create_task_iterator
 
 

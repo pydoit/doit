@@ -8,6 +8,7 @@ from threading import Lock
 
 from ..task import Task, dict_to_task, Stream
 from ..runner import TaskExecutor
+from .callbacks import NullCallbacks
 from .wrapper import TaskWrapper
 
 
@@ -28,18 +29,21 @@ class TaskIterator:
         has_pending_tasks: True if there are more tasks to process
     """
 
-    def __init__(self, task_control, dep_manager, stream=None, always_execute=False):
+    def __init__(self, task_control, dep_manager, stream=None, always_execute=False,
+                 callbacks=None):
         """Initialize TaskIterator.
 
         @param task_control: TaskControl instance with processed tasks
         @param dep_manager: Dependency manager for state persistence
         @param stream: (optional) Stream for verbosity control
         @param always_execute: (bool) force execution even if up-to-date
+        @param callbacks: (optional) ExecutionCallbacks for lifecycle notifications
         """
         self._task_control = task_control
         self._dep_manager = dep_manager
         self._stream = stream if stream else Stream(0)
         self._dispatcher = task_control.task_dispatcher()
+        self._callbacks = callbacks if callbacks is not None else NullCallbacks()
 
         self._executor = TaskExecutor(
             dep_manager=dep_manager,
@@ -63,6 +67,29 @@ class TaskIterator:
     def __iter__(self):
         return self
 
+    def _get_next_node(self, node_to_send):
+        """Get the next node from the dispatcher, handling 'hold on' and 'wait'.
+
+        @param node_to_send: The node to send back to dispatcher (or None)
+        @return: The next task node
+        @raises StopIteration: When no more tasks
+        """
+        try:
+            node = self._dispatcher.generator.send(node_to_send)
+        except StopIteration:
+            self._finished = True
+            raise
+
+        # Handle "hold on" and "wait" - wait for dependencies
+        while node in ("hold on", "wait"):
+            try:
+                node = self._dispatcher.generator.send(None)
+            except StopIteration:
+                self._finished = True
+                raise
+
+        return node
+
     def __next__(self):
         if self._finished:
             raise StopIteration
@@ -75,23 +102,54 @@ class TaskIterator:
             node_to_send = self._current_wrapper._node
 
         # Get next node from dispatcher
-        try:
-            node = self._dispatcher.generator.send(node_to_send)
-        except StopIteration:
-            self._finished = True
-            raise
-
-        # Handle "hold on" - in single-threaded mode, this means we need to
-        # continue sending back processed nodes until we get a real task
-        while node == "hold on":
-            try:
-                node = self._dispatcher.generator.send(None)
-            except StopIteration:
-                self._finished = True
-                raise
+        node = self._get_next_node(node_to_send)
 
         # Check task status (up-to-date, should run, etc.)
         self._check_node_status(node)
+
+        # If task should run and has setup_tasks, the dispatcher will
+        # yield setup tasks when we send back this node. We need to
+        # process those before yielding this task.
+        # Track which tasks have had their setup processed to avoid re-processing.
+        task = node.task
+        if (node.run_status == 'run' and task.setup_tasks and
+                not getattr(node, '_setup_processed', False)):
+            # Mark that we've processed setup for this task
+            node._setup_processed = True
+            # Send this node back so dispatcher can yield setup tasks
+            try:
+                setup_result = self._dispatcher.generator.send(node)
+                while True:
+                    # Check what dispatcher returned
+                    if setup_result == "wait":
+                        # Dispatcher is telling us to wait for setup tasks
+                        setup_result = self._get_next_node(None)
+                    elif hasattr(setup_result, 'task'):
+                        # It's an ExecNode
+                        if setup_result.task.name == task.name:
+                            # Got the original task back - all setup done
+                            node = setup_result
+                            break
+                        # It's a setup task node - check status and yield it
+                        self._check_node_status(setup_result)
+                        self._current_wrapper = TaskWrapper(
+                            node=setup_result,
+                            executor=self._executor,
+                            tasks_dict=self._task_control.tasks,
+                            teardown_list=self._teardown_list,
+                            callbacks=self._callbacks,
+                        )
+                        return self._current_wrapper
+                    elif setup_result == task:
+                        # Got the Task object back (dispatcher re-yields the task)
+                        node = self._dispatcher.nodes[task.name]
+                        break
+                    else:
+                        # Some other signal from dispatcher
+                        setup_result = self._get_next_node(None)
+            except StopIteration:
+                self._finished = True
+                raise
 
         # Create wrapper, passing teardown_list so wrapper can register tasks
         self._current_wrapper = TaskWrapper(
@@ -99,6 +157,7 @@ class TaskIterator:
             executor=self._executor,
             tasks_dict=self._task_control.tasks,
             teardown_list=self._teardown_list,
+            callbacks=self._callbacks,
         )
 
         return self._current_wrapper
@@ -111,9 +170,13 @@ class TaskIterator:
         task = node.task
         task.overwrite_verbosity(self._stream)
 
+        # Notify callback that we're checking status
+        self._callbacks.on_status_check(task)
+
         # Check ignored
         if node.ignored_deps or self._dep_manager.status_is_ignore(task):
             node.run_status = 'ignore'
+            self._callbacks.on_skip_ignored(task)
             return
 
         # Check bad deps
@@ -126,6 +189,8 @@ class TaskIterator:
             task, self._task_control.tasks)
         if error:
             node.run_status = 'error'
+            node.status_error = error  # Store error for later access
+            self._callbacks.on_failure(task, error)
             return
 
         node.run_status = status
@@ -133,6 +198,7 @@ class TaskIterator:
         # Load cached values if up-to-date
         if node.run_status == 'up-to-date':
             task.values = self._dep_manager.get_values(task.name)
+            self._callbacks.on_skip_uptodate(task)
 
     def add_task(self, task):
         """Add a task dynamically and inject it for execution.
@@ -180,6 +246,7 @@ class TaskIterator:
 
         # Run teardowns in reverse order
         for task in reversed(self._teardown_list):
+            self._callbacks.on_teardown(task)
             task.execute_teardown(self._stream)
 
         # Close dependency manager
@@ -299,6 +366,7 @@ class TaskIterator:
             executor=self._executor,
             tasks_dict=self._task_control.tasks,
             teardown_list=self._teardown_list,
+            callbacks=self._callbacks,
         )
 
         return self._current_wrapper

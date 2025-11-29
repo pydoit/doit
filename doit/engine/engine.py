@@ -18,6 +18,7 @@ def create_task_iterator(
     selected=None,
     always_execute=False,
     verbosity=0,
+    callbacks=None,
 ):
     """Create a TaskIterator for programmatic task execution.
 
@@ -33,6 +34,7 @@ def create_task_iterator(
         selected: List of task names to run (None = all)
         always_execute: Force execution even if up-to-date
         verbosity: Output verbosity (0, 1, or 2)
+        callbacks: Optional ExecutionCallbacks for lifecycle notifications
 
     Returns:
         TaskIterator instance
@@ -71,6 +73,7 @@ def create_task_iterator(
         dep_manager=dep_manager,
         stream=stream,
         always_execute=always_execute,
+        callbacks=callbacks,
     )
 
 
@@ -102,9 +105,9 @@ class DoitEngine:
             engine.finish()
 
     For in-memory execution (no persistence):
-        from doit.state import MemoryStore
+        from doit.dependency import InMemoryStateStore
 
-        with DoitEngine(tasks, store=MemoryStore()) as engine:
+        with DoitEngine(tasks, store=InMemoryStateStore()) as engine:
             for task in engine:
                 if task.should_run:
                     task.execute_and_submit()
@@ -119,6 +122,7 @@ class DoitEngine:
         selected=None,
         always_execute=False,
         verbosity=0,
+        callbacks=None,
     ):
         """Initialize DoitEngine and create the task iterator.
 
@@ -130,6 +134,7 @@ class DoitEngine:
         @param selected: List of task names to run (None = all)
         @param always_execute: Force execution even if up-to-date
         @param verbosity: Output verbosity (0, 1, or 2)
+        @param callbacks: Optional ExecutionCallbacks for lifecycle notifications
         """
         self._iterator = create_task_iterator(
             tasks,
@@ -138,6 +143,7 @@ class DoitEngine:
             selected=selected,
             always_execute=always_execute,
             verbosity=verbosity,
+            callbacks=callbacks,
         )
 
     def __iter__(self):
@@ -207,9 +213,9 @@ class DoitEngine:
         Example with ThreadPoolExecutor:
             from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
             from doit import DoitEngine
-            from doit.state import MemoryStore
+            from doit.dependency import InMemoryStateStore
 
-            with DoitEngine(tasks, store=MemoryStore()) as engine:
+            with DoitEngine(tasks, store=InMemoryStateStore()) as engine:
                 with ThreadPoolExecutor(max_workers=4) as executor:
                     futures = {}
 

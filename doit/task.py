@@ -530,37 +530,6 @@ class Task(object):
     def __repr__(self):
         return f"<Task: {self.name}>"
 
-
-    def __getstate__(self):
-        """remove attributes that never used on process that only execute tasks
-        """
-        to_pickle = self.__dict__.copy()
-        # never executed in sub-process
-        to_pickle['uptodate'] = None
-        to_pickle['value_savers'] = None
-        # can be re-recreated on demand
-        to_pickle['_action_instances'] = None
-        return to_pickle
-
-    # when using multiprocessing Tasks are pickled.
-    def pickle_safe_dict(self):
-        """remove attributes that might contain unpickleble content
-        mostly probably closures
-        """
-        to_pickle = self.__dict__.copy()
-        del to_pickle['_actions']
-        del to_pickle['_action_instances']
-        del to_pickle['clean_actions']
-        del to_pickle['teardown']
-        del to_pickle['custom_title']
-        del to_pickle['value_savers']
-        del to_pickle['uptodate']
-        return to_pickle
-
-    def update_from_pickle(self, pickle_obj):
-        """update self with data from pickled Task"""
-        self.__dict__.update(pickle_obj)
-
     def __eq__(self, other):
         return self.name == other.name
 

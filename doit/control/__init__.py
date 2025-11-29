@@ -17,7 +17,6 @@ Registries (new):
     ExecNodeRegistry: Task name → ExecNode mapping
 """
 
-# Re-export existing classes for backward compatibility
 from ._control import (
     TaskControl,
     TaskDispatcher,
@@ -33,7 +32,7 @@ from .types import TaskRunStatus, DispatcherSignal
 from .registries import TaskRegistry, TargetRegistry, ExecNodeRegistry
 
 __all__ = [
-    # Main classes (backward compat)
+    # Main classes
     'TaskControl',
     'TaskDispatcher',
     'ExecNode',

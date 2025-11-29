@@ -595,32 +595,6 @@ class TestTaskDoc(object):
         t = task.Task("name", ["action"], doc="  \n  \n\n")
         assert "" == t.doc
 
-class TestTaskPickle(object):
-    def test_geststate(self):
-        t = task.Task("my_name", ["action"])
-        pd = t.__getstate__()
-        assert None == pd['uptodate']
-        assert None == pd['_action_instances']
-
-    def test_safedict(self):
-        t = task.Task("my_name", ["action"])
-        pd = t.pickle_safe_dict()
-        assert 'uptodate' not in pd
-        assert '_action_instances' not in pd
-        assert 'value_savers' not in pd
-        assert 'clean_actions' not in pd
-
-
-class TestTaskUpdateFromPickle(object):
-    def test_change_value(self):
-        t = task.Task("my_name", ["action"])
-        assert {} == t.values
-        class FakePickle():
-            def __init__(self):
-                self.values = [1,2,3]
-        t.update_from_pickle(FakePickle().__dict__)
-        assert [1,2,3] == t.values
-        assert 'my_name' == t.name
 
 class TestDictToTask(object):
     def testDictOkMinimum(self):

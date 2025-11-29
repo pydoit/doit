@@ -5,6 +5,7 @@ individual task execution in programmatic mode. It wraps a task node and
 executor, providing methods for executing and submitting task results.
 """
 
+from .callbacks import NullCallbacks
 from .status import TaskStatus
 
 
@@ -46,18 +47,20 @@ class TaskWrapper:
         submitted (bool): Whether submit() has been called
     """
 
-    def __init__(self, node, executor, tasks_dict, teardown_list=None):
+    def __init__(self, node, executor, tasks_dict, teardown_list=None, callbacks=None):
         """Initialize TaskWrapper.
 
         @param node: ExecNode from TaskDispatcher
         @param executor: TaskExecutor instance
         @param tasks_dict: dict of all tasks (for getargs resolution)
         @param teardown_list: optional list to append tasks with teardowns
+        @param callbacks: optional ExecutionCallbacks for lifecycle notifications
         """
         self._node = node
         self._executor = executor
         self._tasks_dict = tasks_dict
         self._teardown_list = teardown_list
+        self._callbacks = callbacks if callbacks is not None else NullCallbacks()
         self._executed = False
         self._submitted = False
         self._execution_result = None
@@ -243,6 +246,9 @@ class TaskWrapper:
         if self._teardown_list is not None and self._node.task.teardown:
             self._teardown_list.append(self._node.task)
 
+        # Notify callback before execution
+        self._callbacks.on_execute(self._node.task)
+
         self._executed = True
         self._execution_result = self._executor.execute_task(self._node.task)
         return self._execution_result
@@ -274,16 +280,19 @@ class TaskWrapper:
                 self._node.task, None)
             if success:
                 self._node.run_status = 'successful'
+                self._callbacks.on_success(self._node.task)
                 return True
             else:
                 self._node.run_status = 'failure'
                 self._execution_result = error
+                self._callbacks.on_failure(self._node.task, error)
                 return False
         else:
             # Failure path
             self._executor.save_task_result(
                 self._node.task, self._execution_result)
             self._node.run_status = 'failure'
+            self._callbacks.on_failure(self._node.task, self._execution_result)
             return False
 
     def execute_and_submit(self):
