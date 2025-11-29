@@ -4,9 +4,9 @@ from collections import deque
 from collections import OrderedDict
 import re
 
-from .exceptions import InvalidTask, InvalidCommand, InvalidDodoFile
-from .task import Task, DelayedLoaded
-from .loader import generate_tasks
+from ..exceptions import InvalidTask, InvalidCommand, InvalidDodoFile
+from ..task import Task, DelayedLoaded
+from ..loader import generate_tasks
 
 
 class RegexGroup(object):
