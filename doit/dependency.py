@@ -9,9 +9,52 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 import importlib
 import dbm
+from enum import Enum
 
 # note: to check which DBM backend is being used:
 #   >>> doit dumpdb
+
+
+class DependencyReason(Enum):
+    """Reasons why a task is not up-to-date.
+
+    These are used as keys in DependencyStatus.reasons dict to explain
+    why a task needs to be executed.
+    """
+    # Uptodate callable returned False
+    UPTODATE_FALSE = 'uptodate_false'
+    # Task has no dependencies (always runs)
+    HAS_NO_DEPENDENCIES = 'has_no_dependencies'
+    # Target file doesn't exist
+    MISSING_TARGET = 'missing_target'
+    # File checker class changed
+    CHECKER_CHANGED = 'checker_changed'
+    # New file dependencies added
+    ADDED_FILE_DEP = 'added_file_dep'
+    # File dependencies removed
+    REMOVED_FILE_DEP = 'removed_file_dep'
+    # File dependency doesn't exist
+    MISSING_FILE_DEP = 'missing_file_dep'
+    # File dependency content changed
+    CHANGED_FILE_DEP = 'changed_file_dep'
+
+
+class StorageKey:
+    """Constants for special storage keys used in task state persistence.
+
+    These keys are used in the key-value store to identify different types
+    of task metadata. Regular file dependency keys are file paths.
+    """
+    # Task values dict (returned by actions)
+    VALUES = '_values_:'
+    # Task result hash for up-to-date checking
+    RESULT = 'result:'
+    # File checker class name
+    CHECKER = 'checker:'
+    # List of file dependencies
+    DEPS = 'deps:'
+    # Task ignore flag
+    IGNORE = 'ignore:'
 
 
 class DatabaseException(Exception):
@@ -610,26 +653,26 @@ class TaskState:
         @param result_hash: explicitly set result_hash (optional)
         """
         # save task values
-        self.store.set(task.name, "_values_:", task.values)
+        self.store.set(task.name, StorageKey.VALUES, task.values)
 
         # save task result md5
         if result_hash is not None:
-            self.store.set(task.name, "result:", result_hash)
+            self.store.set(task.name, StorageKey.RESULT, result_hash)
         elif task.result:
             if isinstance(task.result, dict):
-                self.store.set(task.name, "result:", task.result)
+                self.store.set(task.name, StorageKey.RESULT, task.result)
             else:
-                self.store.set(task.name, "result:", get_md5(task.result))
+                self.store.set(task.name, StorageKey.RESULT, get_md5(task.result))
 
         # file-dep
-        self.store.set(task.name, 'checker:', self.checker.__class__.__name__)
+        self.store.set(task.name, StorageKey.CHECKER, self.checker.__class__.__name__)
         for dep in task.file_dep:
             state = self.checker.get_state(dep, self.store.get(task.name, dep))
             if state is not None:
                 self.store.set(task.name, dep, state)
 
         # save list of file_deps
-        self.store.set(task.name, 'deps:', tuple(task.file_dep))
+        self.store.set(task.name, StorageKey.DEPS, tuple(task.file_dep))
 
     def get_values(self, task_name):
         """Get all saved values from a task.
@@ -637,7 +680,7 @@ class TaskState:
         @param task_name: name of the task
         @return: dict of task values
         """
-        values = self.store.get(task_name, '_values_:')
+        values = self.store.get(task_name, StorageKey.VALUES)
         return values or {}
 
     def get_value(self, task_id, key_name):
@@ -661,7 +704,7 @@ class TaskState:
 
         @return: dict or md5sum
         """
-        return self.store.get(task_name, 'result:')
+        return self.store.get(task_name, StorageKey.RESULT)
 
     def remove_success(self, task):
         """Remove saved info from task."""
@@ -669,11 +712,11 @@ class TaskState:
 
     def set_ignore(self, task):
         """Mark task to be ignored."""
-        self.store.set(task.name, 'ignore:', '1')
+        self.store.set(task.name, StorageKey.IGNORE, '1')
 
     def is_ignored(self, task):
         """Check if task is marked to be ignored."""
-        return self.store.get(task.name, "ignore:")
+        return self.store.get(task.name, StorageKey.IGNORE)
 
     def has_state(self, task_name):
         """Check if task has any stored state."""
@@ -748,7 +791,7 @@ class UpToDateChecker:
                 continue
             uptodate_result_list.append(uptodate_result)
             if not uptodate_result:
-                result.add_reason('uptodate_false', (utd, utd_args, utd_kwargs))
+                result.add_reason(DependencyReason.UPTODATE_FALSE, (utd, utd_args, utd_kwargs))
 
         # any uptodate check is false
         if not get_log and result.status == 'run':
@@ -756,35 +799,35 @@ class UpToDateChecker:
 
         # no dependencies means it is never up to date.
         if not (task.file_dep or uptodate_result_list):
-            if result.set_reason('has_no_dependencies', True):
+            if result.set_reason(DependencyReason.HAS_NO_DEPENDENCIES, True):
                 return result
 
         # if target file is not there, task is not up to date
         for targ in task.targets:
             if not self.checker.exists(targ):
                 task.dep_changed = list(task.file_dep)
-                if result.add_reason('missing_target', targ):
+                if result.add_reason(DependencyReason.MISSING_TARGET, targ):
                     return result
 
         # check for modified file_dep checker
-        previous = self.store.get(task.name, 'checker:')
+        previous = self.store.get(task.name, StorageKey.CHECKER)
         checker_name = self.checker.__class__.__name__
         if previous and previous != checker_name:
             task.dep_changed = list(task.file_dep)
             # remove all saved values otherwise they might be re-used
             self.store.remove(task.name)
-            if result.set_reason('checker_changed', (previous, checker_name)):
+            if result.set_reason(DependencyReason.CHECKER_CHANGED, (previous, checker_name)):
                 return result
 
         # check for modified file_dep
-        previous = self.store.get(task.name, 'deps:')
+        previous = self.store.get(task.name, StorageKey.DEPS)
         previous_set = set(previous) if previous else None
         if previous_set and previous_set != task.file_dep:
             if get_log:
                 added_files = sorted(list(task.file_dep - previous_set))
                 removed_files = sorted(list(previous_set - task.file_dep))
-                result.set_reason('added_file_dep', added_files)
-                result.set_reason('removed_file_dep', removed_files)
+                result.set_reason(DependencyReason.ADDED_FILE_DEP, added_files)
+                result.set_reason(DependencyReason.REMOVED_FILE_DEP, removed_files)
             result.status = 'run'
 
         # list of file_dep that changed
@@ -797,7 +840,7 @@ class UpToDateChecker:
             except self.checker.CheckerError:
                 error_msg = "Dependent file '{}' does not exist.".format(dep)
                 result.error_reason = error_msg.format(dep)
-                if result.add_reason('missing_file_dep', dep, 'error'):
+                if result.add_reason(DependencyReason.MISSING_FILE_DEP, dep, 'error'):
                     return result
             else:
                 if state is None or check_modified(dep, file_stat, state):
@@ -805,7 +848,7 @@ class UpToDateChecker:
         task.dep_changed = changed
 
         if len(changed) > 0:
-            result.set_reason('changed_file_dep', changed)
+            result.set_reason(DependencyReason.CHANGED_FILE_DEP, changed)
 
         return result
 

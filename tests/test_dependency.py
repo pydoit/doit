@@ -9,7 +9,7 @@ from doit.dependency import get_md5, get_file_md5
 from doit.dependency import DbmDB, Dependency
 from doit.dependency import DatabaseException, UptodateCalculator
 from doit.dependency import FileChangedChecker, MD5Checker, TimestampChecker
-from doit.dependency import DependencyStatus
+from doit.dependency import DependencyStatus, DependencyReason
 from .conftest import get_abspath, dep_manager_fixture
 
 # path to test folder
@@ -355,29 +355,29 @@ class TestDependencyStatus(object):
     def test_add_reason(self):
         result = DependencyStatus(True)
         assert 'up-to-date' == result.status
-        assert not result.add_reason('changed_file_dep', 'f1')
+        assert not result.add_reason(DependencyReason.CHANGED_FILE_DEP, 'f1')
         assert 'run' == result.status
-        assert not result.add_reason('changed_file_dep', 'f2')
-        assert ['f1', 'f2'] == result.reasons['changed_file_dep']
+        assert not result.add_reason(DependencyReason.CHANGED_FILE_DEP, 'f2')
+        assert ['f1', 'f2'] == result.reasons[DependencyReason.CHANGED_FILE_DEP]
 
     def test_add_reason_error(self):
         result = DependencyStatus(True)
         assert 'up-to-date' == result.status
-        assert not result.add_reason('missing_file_dep', 'f1', 'error')
+        assert not result.add_reason(DependencyReason.MISSING_FILE_DEP, 'f1', 'error')
         assert 'error' == result.status
-        assert ['f1'] == result.reasons['missing_file_dep']
+        assert ['f1'] == result.reasons[DependencyReason.MISSING_FILE_DEP]
 
     def test_set_reason(self):
         result = DependencyStatus(True)
         assert 'up-to-date' == result.status
-        assert not result.set_reason('has_no_dependencies', True)
+        assert not result.set_reason(DependencyReason.HAS_NO_DEPENDENCIES, True)
         assert 'run' == result.status
-        assert True == result.reasons['has_no_dependencies']
+        assert True == result.reasons[DependencyReason.HAS_NO_DEPENDENCIES]
 
     def test_no_log(self):
         result = DependencyStatus(False)
         assert 'up-to-date' == result.status
-        assert result.set_reason('has_no_dependencies', True)
+        assert result.set_reason(DependencyReason.HAS_NO_DEPENDENCIES, True)
         assert 'run' == result.status
 
     def test_get_error_message(self):
@@ -482,8 +482,8 @@ class TestGetStatus(object):
         result = pdep_manager.get_status(t1b, {}, get_log=True)
         assert 'run' == result.status
         assert [filePath2] == t1b.dep_changed
-        assert [filePath] == result.reasons['removed_file_dep']
-        assert [filePath2] == result.reasons['added_file_dep']
+        assert [filePath] == result.reasons[DependencyReason.REMOVED_FILE_DEP]
+        assert [filePath2] == result.reasons[DependencyReason.ADDED_FILE_DEP]
 
 
     def test_file_dependency_not_exist(self, pdep_manager):

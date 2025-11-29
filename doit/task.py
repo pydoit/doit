@@ -11,7 +11,7 @@ from pathlib import PurePath
 from .cmdparse import CmdOption, TaskParse, normalize_option
 from .exceptions import BaseFail, InvalidTask
 from .action import create_action, PythonAction
-from .dependency import UptodateCalculator
+from .dependency import UptodateCalculator, StorageKey
 
 
 def first_line(doc):
@@ -606,7 +606,7 @@ class result_dep(UptodateCalculator):
 
     def _result_single(self):
         """get result from a single task"""
-        return self.get_val(self.dep_name, 'result:')
+        return self.get_val(self.dep_name, StorageKey.RESULT)
 
     def _result_group(self, dep_task):
         """get result from a group task
@@ -616,7 +616,7 @@ class result_dep(UptodateCalculator):
         sub_tasks = {}
         for sub in dep_task.task_dep:
             if sub.startswith(prefix):
-                sub_tasks[sub] = self.get_val(sub, 'result:')
+                sub_tasks[sub] = self.get_val(sub, StorageKey.RESULT)
         return sub_tasks
 
     def _get_dep_result(self, dep_task):

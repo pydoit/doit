@@ -3,6 +3,7 @@
 import pprint
 
 from .cmd_base import DoitCmdBase
+from .dependency import DependencyReason
 from .exceptions import InvalidCommand
 
 
@@ -87,25 +88,25 @@ class Info(DoitCmdBase):
     def get_reasons(reasons):
         '''return string with description of reason task is not up-to-date'''
         lines = []
-        if reasons['has_no_dependencies']:
+        if reasons[DependencyReason.HAS_NO_DEPENDENCIES]:
             lines.append(' * The task has no dependencies.')
 
-        if reasons['uptodate_false']:
+        if reasons[DependencyReason.UPTODATE_FALSE]:
             lines.append(' * The following uptodate objects evaluate to false:')
-            for utd, utd_args, utd_kwargs in reasons['uptodate_false']:
+            for utd, utd_args, utd_kwargs in reasons[DependencyReason.UPTODATE_FALSE]:
                 msg = '    - {} (args={}, kwargs={})'
                 lines.append(msg.format(utd, utd_args, utd_kwargs))
 
-        if reasons['checker_changed']:
+        if reasons[DependencyReason.CHECKER_CHANGED]:
             msg = ' * The file_dep checker changed from {0} to {1}.'
-            lines.append(msg.format(*reasons['checker_changed']))
+            lines.append(msg.format(*reasons[DependencyReason.CHECKER_CHANGED]))
 
         sentences = {
-            'missing_target': 'The following targets do not exist:',
-            'changed_file_dep': 'The following file dependencies have changed:',
-            'missing_file_dep': 'The following file dependencies are missing:',
-            'removed_file_dep': 'The following file dependencies were removed:',
-            'added_file_dep': 'The following file dependencies were added:',
+            DependencyReason.MISSING_TARGET: 'The following targets do not exist:',
+            DependencyReason.CHANGED_FILE_DEP: 'The following file dependencies have changed:',
+            DependencyReason.MISSING_FILE_DEP: 'The following file dependencies are missing:',
+            DependencyReason.REMOVED_FILE_DEP: 'The following file dependencies were removed:',
+            DependencyReason.ADDED_FILE_DEP: 'The following file dependencies were added:',
         }
         for reason, sentence in sentences.items():
             entries = reasons.get(reason)

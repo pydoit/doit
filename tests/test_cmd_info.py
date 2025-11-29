@@ -5,6 +5,7 @@ import pytest
 from doit.exceptions import InvalidCommand
 from doit.task import Task
 from doit.cmd_info import Info
+from doit.dependency import DependencyReason
 from .conftest import CmdFactory
 
 
@@ -72,10 +73,10 @@ class TestCmdInfo(object):
 
     def test_get_reasons_str(self):
         reasons = {
-            'has_no_dependencies': True,
-            'uptodate_false': [('func', 'arg', 'kwarg')],
-            'checker_changed': ['foo', 'bar'],
-            'missing_target': ['f1', 'f2'],
+            DependencyReason.HAS_NO_DEPENDENCIES: True,
+            DependencyReason.UPTODATE_FALSE: [('func', 'arg', 'kwarg')],
+            DependencyReason.CHECKER_CHANGED: ['foo', 'bar'],
+            DependencyReason.MISSING_TARGET: ['f1', 'f2'],
         }
 
         got = Info.get_reasons(reasons).splitlines()
