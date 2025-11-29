@@ -3,19 +3,15 @@ import os
 import pytest
 
 from doit.task import Task
-from doit.dependency import (
-    Dependency, DbmDB, TimestampChecker, MD5Checker, InMemoryStateStore
-)
-from doit.programmatic import (
-    TaskIterator, create_task_iterator, DoitEngine, TaskStatus
-)
+from doit.state import MemoryStore, TimestampChecker
+from doit.engine import DoitEngine, TaskStatus, create_task_iterator
 
 
 # --- Test helpers ---
 
-def in_memory_dep():
-    """Create an in-memory Dependency manager for testing."""
-    return Dependency(InMemoryStateStore())
+def in_memory_store():
+    """Create an in-memory store for testing."""
+    return MemoryStore()
 
 
 def action_success():
@@ -48,7 +44,7 @@ class TestCreateTaskIterator:
             {'name': 'task1', 'actions': [action_success]},
             {'name': 'task2', 'actions': [action_success]},
         ]
-        iterator = create_task_iterator(tasks, dep_manager=in_memory_dep())
+        iterator = create_task_iterator(tasks, store=in_memory_store())
         try:
             task_names = [w.name for w in iterator]
             assert 'task1' in task_names
@@ -62,7 +58,7 @@ class TestCreateTaskIterator:
             Task('task1', [action_success]),
             Task('task2', [action_success]),
         ]
-        iterator = create_task_iterator(tasks, dep_manager=in_memory_dep())
+        iterator = create_task_iterator(tasks, store=in_memory_store())
         try:
             task_names = [w.name for w in iterator]
             assert 'task1' in task_names
@@ -76,7 +72,7 @@ class TestCreateTaskIterator:
             {'name': 'task1', 'actions': [action_success]},
             Task('task2', [action_success]),
         ]
-        iterator = create_task_iterator(tasks, dep_manager=in_memory_dep())
+        iterator = create_task_iterator(tasks, store=in_memory_store())
         try:
             task_names = [w.name for w in iterator]
             assert 'task1' in task_names
@@ -88,7 +84,7 @@ class TestCreateTaskIterator:
         """Test that invalid task types raise TypeError."""
         tasks = ["not a task"]
         with pytest.raises(TypeError, match="Expected Task or dict"):
-            create_task_iterator(tasks, dep_manager=in_memory_dep())
+            create_task_iterator(tasks, store=in_memory_store())
 
     def test_selected_tasks(self):
         """Test that selected parameter filters tasks."""
@@ -98,7 +94,7 @@ class TestCreateTaskIterator:
             {'name': 'task3', 'actions': [action_success]},
         ]
         iterator = create_task_iterator(
-            tasks, dep_manager=in_memory_dep(), selected=['task1', 'task3'])
+            tasks, store=in_memory_store(), selected=['task1', 'task3'])
         try:
             task_names = [w.name for w in iterator]
             assert 'task1' in task_names
@@ -110,7 +106,7 @@ class TestCreateTaskIterator:
     def test_memory_uses_timestamp_checker(self):
         """Test that :memory: defaults to TimestampChecker."""
         tasks = [{'name': 'task1', 'actions': [action_success]}]
-        iterator = create_task_iterator(tasks, dep_manager=in_memory_dep())
+        iterator = create_task_iterator(tasks, store=in_memory_store())
         try:
             assert isinstance(iterator._dep_manager.checker, TimestampChecker)
         finally:
@@ -128,7 +124,7 @@ class TestTaskIterator:
             {'name': 'task2', 'actions': [action_success]},
         ]
         executed = []
-        with DoitEngine(tasks, dep_manager=in_memory_dep()) as engine:
+        with DoitEngine(tasks, store=in_memory_store()) as engine:
             for task in engine:
                 if task.should_run:
                     task.execute_and_submit()
@@ -154,7 +150,7 @@ class TestTaskIterator:
             {'name': 'task2', 'actions': [track_task2], 'task_dep': ['task1']},
         ]
 
-        with DoitEngine(tasks, dep_manager=in_memory_dep(), selected=['task2']) as engine:
+        with DoitEngine(tasks, store=in_memory_store(), selected=['task2']) as engine:
             for task in engine:
                 if task.should_run:
                     task.execute_and_submit()
@@ -167,12 +163,12 @@ class TestTaskIterator:
         tasks = [{'name': 'task1', 'actions': [action_success]}]
 
         # First run - task should execute
-        with DoitEngine(tasks, dep_manager=in_memory_dep()) as engine:
+        with DoitEngine(tasks, store=in_memory_store()) as engine:
             for task in engine:
                 assert task.should_run is True
 
         # With always_execute=True, task should still execute
-        with DoitEngine(tasks, dep_manager=in_memory_dep(), always_execute=True) as engine:
+        with DoitEngine(tasks, store=in_memory_store(), always_execute=True) as engine:
             for task in engine:
                 assert task.should_run is True
 
@@ -182,7 +178,7 @@ class TestTaskIterator:
             {'name': 'task1', 'actions': [action_success]},
             {'name': 'task2', 'actions': [action_success]},
         ]
-        with DoitEngine(tasks, dep_manager=in_memory_dep()) as engine:
+        with DoitEngine(tasks, store=in_memory_store()) as engine:
             assert 'task1' in engine.tasks
             assert 'task2' in engine.tasks
             for task in engine:
@@ -192,7 +188,7 @@ class TestTaskIterator:
         """Test handling task failure."""
         tasks = [{'name': 'failing_task', 'actions': [action_fail]}]
 
-        with DoitEngine(tasks, dep_manager=in_memory_dep()) as engine:
+        with DoitEngine(tasks, store=in_memory_store()) as engine:
             for task in engine:
                 if task.should_run:
                     result = task.execute_and_submit()
@@ -208,15 +204,13 @@ class TestTaskIteratorUpToDate:
         tasks = [{'name': 'task1', 'actions': [action_success]}]
 
         # First run - task should execute
-        dep_manager = Dependency(DbmDB, db_path)
-        with DoitEngine(tasks, dep_manager=dep_manager) as engine:
+        with DoitEngine(tasks, db_path=db_path) as engine:
             for task in engine:
                 assert task.should_run is True
                 task.execute_and_submit()
 
         # Second run - task should be up-to-date
-        dep_manager = Dependency(DbmDB, db_path)
-        with DoitEngine(tasks, dep_manager=dep_manager) as engine:
+        with DoitEngine(tasks, db_path=db_path) as engine:
             for task in engine:
                 # Task has no file deps, so it's always 'run' status
                 # (no dependencies = not up-to-date)
@@ -245,8 +239,7 @@ class TestTaskIteratorResubmit:
         }]
 
         # First run - should execute
-        dep_manager = Dependency(DbmDB, db_path)
-        with DoitEngine(tasks, dep_manager=dep_manager) as engine:
+        with DoitEngine(tasks, db_path=db_path) as engine:
             for task in engine:
                 assert task.should_run is True
                 task.execute_and_submit()
@@ -254,8 +247,7 @@ class TestTaskIteratorResubmit:
         assert execution_count[0] == 1
 
         # Second run - should be up-to-date (no execution)
-        dep_manager = Dependency(DbmDB, db_path)
-        with DoitEngine(tasks, dep_manager=dep_manager) as engine:
+        with DoitEngine(tasks, db_path=db_path) as engine:
             for task in engine:
                 assert task.should_run is False
                 assert task.skip_reason == 'up-to-date'
@@ -284,8 +276,7 @@ class TestTaskIteratorResubmit:
         }]
 
         # First run
-        dep_manager = Dependency(DbmDB, db_path)
-        with DoitEngine(tasks, dep_manager=dep_manager) as engine:
+        with DoitEngine(tasks, db_path=db_path) as engine:
             for task in engine:
                 task.execute_and_submit()
 
@@ -296,8 +287,7 @@ class TestTaskIteratorResubmit:
         dep_file.write_text('modified')
 
         # Second run - should execute again
-        dep_manager = Dependency(DbmDB, db_path)
-        with DoitEngine(tasks, dep_manager=dep_manager) as engine:
+        with DoitEngine(tasks, db_path=db_path) as engine:
             for task in engine:
                 assert task.should_run is True
                 task.execute_and_submit()
@@ -328,15 +318,13 @@ class TestTaskIteratorResubmit:
         }]
 
         # Run 1
-        dep_manager = Dependency(DbmDB, db_path)
-        with DoitEngine(tasks, dep_manager=dep_manager) as engine:
+        with DoitEngine(tasks, db_path=db_path) as engine:
             for task in engine:
                 if task.should_run:
                     task.execute_and_submit()
 
         # Run 2 - no changes
-        dep_manager = Dependency(DbmDB, db_path)
-        with DoitEngine(tasks, dep_manager=dep_manager) as engine:
+        with DoitEngine(tasks, db_path=db_path) as engine:
             for task in engine:
                 if task.should_run:
                     task.execute_and_submit()
@@ -344,15 +332,13 @@ class TestTaskIteratorResubmit:
         # Run 3 - with change
         time.sleep(0.05)
         dep_file.write_text('v2')
-        dep_manager = Dependency(DbmDB, db_path)
-        with DoitEngine(tasks, dep_manager=dep_manager) as engine:
+        with DoitEngine(tasks, db_path=db_path) as engine:
             for task in engine:
                 if task.should_run:
                     task.execute_and_submit()
 
         # Run 4 - no changes
-        dep_manager = Dependency(DbmDB, db_path)
-        with DoitEngine(tasks, dep_manager=dep_manager) as engine:
+        with DoitEngine(tasks, db_path=db_path) as engine:
             for task in engine:
                 if task.should_run:
                     task.execute_and_submit()
@@ -391,8 +377,7 @@ class TestTaskIteratorWithFileDeps:
         }]
 
         # First run - task should execute
-        dep_manager = Dependency(DbmDB, db_path)
-        with DoitEngine(tasks, dep_manager=dep_manager) as engine:
+        with DoitEngine(tasks, db_path=db_path) as engine:
             for task in engine:
                 if task.should_run:
                     task.execute_and_submit()
@@ -403,8 +388,7 @@ class TestTaskIteratorWithFileDeps:
         time.sleep(0.05)
 
         # Second run with same file - task should be up-to-date
-        dep_manager = Dependency(DbmDB, db_path)
-        with DoitEngine(tasks, dep_manager=dep_manager) as engine:
+        with DoitEngine(tasks, db_path=db_path) as engine:
             for task in engine:
                 # Should be up-to-date (file deps unchanged, target exists)
                 assert task.should_run is False
@@ -419,7 +403,7 @@ class TestDoitEngine:
         tasks = [{'name': 'task1', 'actions': [action_success]}]
 
         engine_ref = None
-        with DoitEngine(tasks, dep_manager=in_memory_dep()) as engine:
+        with DoitEngine(tasks, store=in_memory_store()) as engine:
             engine_ref = engine
             # consume but don't wait for full iteration to check mid-state
             task = next(engine)
@@ -433,7 +417,7 @@ class TestDoitEngine:
         tasks = [{'name': 'task1', 'actions': [action_success]}]
 
         try:
-            with DoitEngine(tasks, dep_manager=in_memory_dep()) as engine:
+            with DoitEngine(tasks, store=in_memory_store()) as engine:
                 for task in engine:
                     raise ValueError("Test exception")
         except ValueError:
@@ -444,7 +428,7 @@ class TestDoitEngine:
         """Test that DoitEngine can be used without context manager."""
         tasks = [{'name': 'task1', 'actions': [action_success]}]
 
-        engine = DoitEngine(tasks, dep_manager=in_memory_dep())
+        engine = DoitEngine(tasks, store=in_memory_store())
         try:
             for task in engine:
                 if task.should_run:
@@ -468,7 +452,7 @@ class TestDoitEngine:
             {'name': 'task2', 'actions': [counting_action]},
         ]
 
-        with DoitEngine(tasks, dep_manager=in_memory_dep()) as engine:
+        with DoitEngine(tasks, store=in_memory_store()) as engine:
             for task in engine:
                 if task.should_run:
                     task.execute_and_submit()
@@ -500,7 +484,7 @@ class TestTaskIteratorGetargs:
             },
         ]
 
-        with DoitEngine(tasks, dep_manager=in_memory_dep(), selected=['consumer']) as engine:
+        with DoitEngine(tasks, store=in_memory_store(), selected=['consumer']) as engine:
             for task in engine:
                 if task.should_run:
                     task.execute_and_submit()
@@ -524,7 +508,7 @@ class TestTaskIteratorSetupTasks:
             },
         ]
 
-        with DoitEngine(tasks, dep_manager=in_memory_dep(), selected=['main_task']) as engine:
+        with DoitEngine(tasks, store=in_memory_store(), selected=['main_task']) as engine:
             for task in engine:
                 yielded_tasks.append(task.name)
                 if task.should_run:
@@ -550,7 +534,7 @@ class TestTaskIteratorTeardown:
             'teardown': [create_teardown_marker],
         }]
 
-        with DoitEngine(tasks, dep_manager=in_memory_dep()) as engine:
+        with DoitEngine(tasks, store=in_memory_store()) as engine:
             for task in engine:
                 if task.should_run:
                     task.execute_and_submit()
@@ -578,7 +562,7 @@ class TestDynamicTaskInjection:
             {'name': 'task1', 'actions': [track('task1')]},
         ]
 
-        with DoitEngine(tasks, dep_manager=in_memory_dep()) as engine:
+        with DoitEngine(tasks, store=in_memory_store()) as engine:
             for task in engine:
                 if task.should_run:
                     task.execute_and_submit()
@@ -611,7 +595,7 @@ class TestDynamicTaskInjection:
             {'name': 'producer', 'actions': [producer]},
         ]
 
-        with DoitEngine(tasks, dep_manager=in_memory_dep()) as engine:
+        with DoitEngine(tasks, store=in_memory_store()) as engine:
             for task in engine:
                 if task.should_run:
                     task.execute_and_submit()
@@ -640,7 +624,7 @@ class TestDynamicTaskInjection:
 
         tasks = [{'name': 'initial', 'actions': [track('initial')]}]
 
-        with DoitEngine(tasks, dep_manager=in_memory_dep()) as engine:
+        with DoitEngine(tasks, store=in_memory_store()) as engine:
             for task in engine:
                 if task.should_run:
                     task.execute_and_submit()
@@ -668,7 +652,7 @@ class TestDynamicTaskInjection:
 
         tasks = [Task('task1', [track('task1')])]
 
-        with DoitEngine(tasks, dep_manager=in_memory_dep()) as engine:
+        with DoitEngine(tasks, store=in_memory_store()) as engine:
             for task in engine:
                 if task.should_run:
                     task.execute_and_submit()
@@ -685,7 +669,7 @@ class TestDynamicTaskInjection:
 
         tasks = [{'name': 'task1', 'actions': [action_success]}]
 
-        with DoitEngine(tasks, dep_manager=in_memory_dep()) as engine:
+        with DoitEngine(tasks, store=in_memory_store()) as engine:
             task = next(engine)
             task.execute_and_submit()
 
@@ -702,7 +686,7 @@ class TestDynamicTaskInjection:
 
         tasks = [{'name': 'task1', 'actions': [action_success]}]
 
-        with DoitEngine(tasks, dep_manager=in_memory_dep()) as engine:
+        with DoitEngine(tasks, store=in_memory_store()) as engine:
             task = next(engine)
             task.execute_and_submit()
 
@@ -751,8 +735,7 @@ class TestProgrammaticIntegration:
         ]
 
         # Run the workflow
-        dep_manager = Dependency(DbmDB, str(tmp_path / 'test.db'))
-        with DoitEngine(tasks, dep_manager=dep_manager, selected=['process']) as engine:
+        with DoitEngine(tasks, db_path=str(tmp_path / 'test.db'), selected=['process']) as engine:
             for task in engine:
                 if task.should_run:
                     task.execute_and_submit()
@@ -780,7 +763,7 @@ class TestProgrammaticIntegration:
             {'name': 'task3', 'actions': [track('task3')]},
         ]
 
-        with DoitEngine(tasks, dep_manager=in_memory_dep()) as engine:
+        with DoitEngine(tasks, store=in_memory_store()) as engine:
             for task in engine:
                 # Only execute task1 and task3
                 if task.name in ('task1', 'task3') and task.should_run:

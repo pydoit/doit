@@ -36,21 +36,24 @@ from doit.tools import load_ipython_extension
 from doit.globals import Globals
 
 # Programmatic interface for controlled task execution
-from doit.programmatic import (
-    TaskIterator,
-    create_task_iterator,
+from doit.engine import (
     DoitEngine,
     TaskWrapper,
     TaskStatus,
+    create_task_iterator,
 )
+
+# State storage (for advanced usage)
+from doit.state import MemoryStore
 
 
 __all__ = [
     # Existing API
     'get_var', 'run', 'create_after', 'task_params', 'Globals',
     # Programmatic interface
-    'TaskIterator', 'create_task_iterator', 'DoitEngine',
-    'TaskWrapper', 'TaskStatus',
+    'DoitEngine', 'TaskWrapper', 'TaskStatus', 'create_task_iterator',
+    # State storage
+    'MemoryStore',
 ]
 
 def get_initial_workdir():
