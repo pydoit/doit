@@ -4,14 +4,14 @@ from collections import deque
 from collections import defaultdict
 import textwrap
 
-from .globals import Globals
-from . import version
-from .cmdparse import CmdOption, CmdParse, normalize_option
-from .exceptions import InvalidCommand, InvalidDodoFile
-from .dependency import CHECKERS, DbmDB, JsonDB, SqliteDB, Dependency, JSONCodec
-from .action import CmdAction
-from .plugin import PluginDict
-from . import loader
+from ..globals import Globals
+from .. import version
+from ..cmdparse import CmdOption, CmdParse, normalize_option
+from ..exceptions import InvalidCommand, InvalidDodoFile
+from ..dependency import CHECKERS, DbmDB, JsonDB, SqliteDB, Dependency, JSONCodec
+from ..action import CmdAction
+from ..plugin import PluginDict
+from .. import loader
 
 
 def version_tuple(ver_in):

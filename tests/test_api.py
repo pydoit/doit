@@ -1,6 +1,6 @@
 import sys
 
-from doit.cmd_base import ModuleTaskLoader
+from doit.cmd.base import ModuleTaskLoader
 from doit.api import run, run_tasks
 
 

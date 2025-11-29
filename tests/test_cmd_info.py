@@ -4,7 +4,7 @@ import pytest
 
 from doit.exceptions import InvalidCommand
 from doit.task import Task
-from doit.cmd_info import Info
+from doit.cmd.info import Info
 from doit.dependency import DependencyReason
 from .conftest import CmdFactory
 

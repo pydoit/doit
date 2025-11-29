@@ -5,7 +5,7 @@ import pytest
 from doit.exceptions import InvalidCommand
 from doit.task import Task
 from doit.tools import result_dep
-from doit.cmd_list import List
+from doit.cmd.list import List
 from tests.conftest import tasks_sample, tasks_bad_sample, CmdFactory
 
 

@@ -1,4 +1,4 @@
-from .cmd_base import DoitCmdBase, check_tasks_exist, subtasks_iter
+from .base import DoitCmdBase, check_tasks_exist, subtasks_iter
 
 
 class Ignore(DoitCmdBase):

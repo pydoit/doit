@@ -5,7 +5,7 @@ import pytest
 
 from doit.exceptions import InvalidCommand
 from doit.task import Task
-from doit.cmd_clean import Clean
+from doit.cmd.clean import Clean
 from .conftest import CmdFactory
 
 class TestCmdClean(object):

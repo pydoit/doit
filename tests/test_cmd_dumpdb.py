@@ -2,7 +2,7 @@ from dbm import whichdb
 
 import pytest
 
-from doit.cmd_dumpdb import DumpDB
+from doit.cmd.dumpdb import DumpDB
 
 class TestCmdDumpDB(object):
 

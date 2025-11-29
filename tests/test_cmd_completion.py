@@ -5,9 +5,9 @@ from doit.exceptions import InvalidCommand
 from doit.cmdparse import CmdOption, normalize_option
 from doit.plugin import PluginDict
 from doit.task import Task
-from doit.cmd_base import Command, DodoTaskLoader, TaskLoader2
-from doit.cmd_completion import TabCompletion
-from doit.cmd_help import Help
+from doit.cmd.base import Command, DodoTaskLoader, TaskLoader2
+from doit.cmd.completion import TabCompletion
+from doit.cmd.help import Help
 from .conftest import CmdFactory
 
 # doesnt test the shell scripts. just test its creation!

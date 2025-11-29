@@ -1,4 +1,4 @@
-from doit.cmd_base import Command
+from doit.cmd.base import Command
 
 class MyCmd(Command):
     name = 'mycmd'
@@ -13,7 +13,7 @@ class MyCmd(Command):
 ##############
 
 from doit.task import dict_to_task
-from doit.cmd_base import TaskLoader2
+from doit.cmd.base import TaskLoader2
 
 my_builtin_task = {
     'name': 'sample_task',

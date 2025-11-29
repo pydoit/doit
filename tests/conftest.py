@@ -8,7 +8,7 @@ import pytest
 from doit.dependency import Dependency, MD5Checker
 from doit.dependency import DbmDB, JsonDB, SqliteDB
 from doit.task import Task
-from doit.cmd_base import get_loader
+from doit.cmd.base import get_loader
 
 
 # compatibility to run tests even if xdist is not installed

@@ -3,12 +3,12 @@ from io import StringIO
 
 import pytest
 
-from doit.cmd_base import TaskLoader2
+from doit.cmd.base import TaskLoader2
 from doit.exceptions import InvalidCommand
 from doit.cmdparse import DefaultUpdate
 from doit.dependency import JSONCodec
 from doit.task import Task
-from doit.cmd_strace import Strace
+from doit.cmd.strace import Strace
 from .conftest import CmdFactory
 
 @pytest.mark.skipif(

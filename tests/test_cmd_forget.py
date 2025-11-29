@@ -4,7 +4,7 @@ import pytest
 
 from doit.exceptions import InvalidCommand
 from doit.dependency import DbmDB, Dependency
-from doit.cmd_forget import Forget
+from doit.cmd.forget import Forget
 from .conftest import tasks_sample, CmdFactory
 
 

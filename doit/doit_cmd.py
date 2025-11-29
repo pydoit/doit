@@ -11,18 +11,18 @@ from .version import VERSION
 from .plugin import PluginDict
 from .exceptions import InvalidDodoFile, InvalidCommand, InvalidTask
 from .cmdparse import CmdOption, CmdParseError, CmdParse, normalize_option
-from .cmd_base import get_loader
-from .cmd_help import Help
-from .cmd_run import Run
-from .cmd_clean import Clean
-from .cmd_list import List
-from .cmd_info import Info
-from .cmd_forget import Forget
-from .cmd_ignore import Ignore
-from .cmd_dumpdb import DumpDB
-from .cmd_strace import Strace
-from .cmd_completion import TabCompletion
-from .cmd_resetdep import ResetDep
+from .cmd.base import get_loader
+from .cmd.help import Help
+from .cmd.run import Run
+from .cmd.clean import Clean
+from .cmd.list import List
+from .cmd.info import Info
+from .cmd.forget import Forget
+from .cmd.ignore import Ignore
+from .cmd.dumpdb import DumpDB
+from .cmd.strace import Strace
+from .cmd.completion import TabCompletion
+from .cmd.resetdep import ResetDep
 
 
 # used to save variable values passed from command line

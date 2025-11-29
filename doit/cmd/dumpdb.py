@@ -4,8 +4,8 @@ import dbm
 from dbm import whichdb
 
 
-from .exceptions import InvalidCommand
-from .cmd_base import Command, opt_depfile
+from ..exceptions import InvalidCommand
+from .base import Command, opt_depfile
 
 
 def dbm_iter(db):

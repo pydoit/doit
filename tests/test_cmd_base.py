@@ -9,9 +9,9 @@ from doit.exceptions import InvalidCommand, InvalidDodoFile
 from doit.dependency import FileChangedChecker, JSONCodec
 from doit.task import Task
 from doit.loader import task_params
-from doit.cmd_base import version_tuple, Command, DoitCmdBase
-from doit.cmd_base import get_loader, ModuleTaskLoader, DodoTaskLoader
-from doit.cmd_base import check_tasks_exist, tasks_and_deps_iter, subtasks_iter
+from doit.cmd.base import version_tuple, Command, DoitCmdBase
+from doit.cmd.base import get_loader, ModuleTaskLoader, DodoTaskLoader
+from doit.cmd.base import check_tasks_exist, tasks_and_deps_iter, subtasks_iter
 from .conftest import CmdFactory
 
 
@@ -268,7 +268,7 @@ class TestDoitCmdBase(object):
             '--mine', 'min'])
 
 
-    @mock.patch('doit.cmd_base.Globals')
+    @mock.patch('doit.cmd.base.Globals')
     def test_execute_provides_dep_manager(self, mock_globals, depfile_name):
         mock_globals.dep_manager = None
         members = {'task_xxx1': lambda: {'actions': []}}

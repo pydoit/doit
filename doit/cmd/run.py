@@ -1,15 +1,15 @@
 import sys
 import codecs
 
-from .exceptions import InvalidCommand
-from .plugin import PluginDict
-from .action import PythonAction
-from .task import Stream
-from .control import TaskControl
-from .runner import Runner, MThreadRunner
-from .cmd_base import DoitCmdBase
-from .cmdparse import CmdOption
-from . import reporter
+from ..exceptions import InvalidCommand
+from ..plugin import PluginDict
+from ..action import PythonAction
+from ..task import Stream
+from ..control import TaskControl
+from ..runner import Runner, MThreadRunner
+from .base import DoitCmdBase
+from ..cmdparse import CmdOption
+from .. import reporter
 
 
 # Run command options as dataclasses with documented short flags.

@@ -1,5 +1,5 @@
-from .cmd_base import DoitCmdBase, check_tasks_exist
-from .cmd_base import tasks_and_deps_iter, subtasks_iter
+from .base import DoitCmdBase, check_tasks_exist
+from .base import tasks_and_deps_iter, subtasks_iter
 
 
 opt_forget_taskdep = {

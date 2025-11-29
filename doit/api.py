@@ -9,7 +9,7 @@ import sys
 
 from doit.cmdparse import CmdParseError
 from doit.exceptions import InvalidDodoFile, InvalidCommand, InvalidTask
-from doit.cmd_base import ModuleTaskLoader, get_loader
+from doit.cmd.base import ModuleTaskLoader, get_loader
 from doit.doit_cmd import DoitMain
 
 

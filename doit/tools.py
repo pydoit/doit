@@ -264,7 +264,7 @@ def load_ipython_extension(ip=None):  # pragma: no cover
     from IPython.core.getipython import get_ipython
     from IPython.core.magic import register_line_magic
 
-    from doit.cmd_base import ModuleTaskLoader
+    from doit.cmd.base import ModuleTaskLoader
     from doit.doit_cmd import DoitMain
 
     # Only (re)load_ext provides the ip context.

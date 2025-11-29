@@ -1,6 +1,6 @@
-from .cmd_base import DoitCmdBase, check_tasks_exist
-from .cmd_base import subtasks_iter
 import os
+
+from .base import DoitCmdBase, check_tasks_exist, subtasks_iter
 
 
 class ResetDep(DoitCmdBase):

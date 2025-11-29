@@ -1,6 +1,6 @@
-from .exceptions import InvalidDodoFile
-from .cmdparse import TaskParse, CmdOption, normalize_option
-from .cmd_base import DoitCmdBase
+from ..exceptions import InvalidDodoFile
+from ..cmdparse import TaskParse, CmdOption, normalize_option
+from .base import DoitCmdBase
 
 
 HELP_TASK = """

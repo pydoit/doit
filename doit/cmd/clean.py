@@ -1,9 +1,8 @@
 import fnmatch
 from collections import OrderedDict
 
-from .control import TaskControl
-from .cmd_base import DoitCmdBase
-from .cmd_base import check_tasks_exist
+from ..control import TaskControl
+from .base import DoitCmdBase, check_tasks_exist
 
 
 opt_clean_dryrun = {

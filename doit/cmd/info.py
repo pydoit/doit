@@ -2,9 +2,9 @@
 
 import pprint
 
-from .cmd_base import DoitCmdBase
-from .dependency import DependencyReason
-from .exceptions import InvalidCommand
+from .base import DoitCmdBase
+from ..dependency import DependencyReason
+from ..exceptions import InvalidCommand
 
 
 opt_hide_status = {

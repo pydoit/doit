@@ -4,8 +4,8 @@ import os
 import sys
 from string import Template
 
-from .exceptions import InvalidCommand
-from .cmd_base import DoitCmdBase
+from ..exceptions import InvalidCommand
+from .base import DoitCmdBase
 
 opt_shell = {
     'name': 'shell',

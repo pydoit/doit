@@ -2,7 +2,7 @@ from io import StringIO
 
 import pytest
 
-from doit.cmd_resetdep import ResetDep
+from doit.cmd.resetdep import ResetDep
 from doit.dependency import TimestampChecker, get_md5, get_file_md5
 from doit.exceptions import InvalidCommand
 from doit.task import Task

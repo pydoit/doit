@@ -6,8 +6,8 @@ import shutil
 import pytest
 
 from doit.exceptions import InvalidCommand
-from doit.cmd_run import Run
-from doit.cmd_list import List
+from doit.cmd.run import Run
+from doit.cmd.list import List
 from doit import doit_cmd
 
 

@@ -4,7 +4,7 @@ import pytest
 
 from doit.exceptions import InvalidCommand
 from doit.dependency import DbmDB, Dependency
-from doit.cmd_ignore import Ignore
+from doit.cmd.ignore import Ignore
 from .conftest import tasks_sample, CmdFactory
 
 

@@ -6,7 +6,7 @@ import pytest
 
 from doit.exceptions import InvalidCommand
 from doit import reporter, runner
-from doit.cmd_run import Run
+from doit.cmd.run import Run
 from tests.conftest import tasks_sample, CmdFactory
 
 class TestCmdRun(object):
