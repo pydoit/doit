@@ -5,6 +5,7 @@ individual task execution in programmatic mode. It wraps a task node and
 executor, providing methods for executing and submitting task results.
 """
 
+from ..control.types import TaskRunStatus
 from .callbacks import NullCallbacks
 from .status import TaskStatus
 
@@ -152,7 +153,7 @@ class TaskWrapper:
     @property
     def should_run(self):
         """Whether this task needs to be executed."""
-        return self._node.run_status == 'run'
+        return self._node.run_status == TaskRunStatus.RUN
 
     @property
     def is_setup_task(self):
@@ -169,8 +170,8 @@ class TaskWrapper:
     @property
     def skip_reason(self):
         """Reason task was skipped, or None if not skipped."""
-        if self._node.run_status in ('up-to-date', 'ignore'):
-            return self._node.run_status
+        if self._node.run_status in (TaskRunStatus.UPTODATE, TaskRunStatus.IGNORE):
+            return self._node.run_status.value
         return None
 
     @property
@@ -183,17 +184,17 @@ class TaskWrapper:
         if self._executed:
             return TaskStatus.RUNNING  # executed but not submitted
         rs = self._node.run_status
-        if rs is None:
+        if rs is None or rs == TaskRunStatus.PENDING:
             return TaskStatus.PENDING
-        if rs == 'up-to-date':
+        if rs == TaskRunStatus.UPTODATE:
             return TaskStatus.SKIPPED_UPTODATE
-        if rs == 'ignore':
+        if rs == TaskRunStatus.IGNORE:
             return TaskStatus.SKIPPED_IGNORED
-        if rs == 'run':
+        if rs == TaskRunStatus.RUN:
             return TaskStatus.READY
-        if rs == 'failure':
+        if rs == TaskRunStatus.FAILURE:
             return TaskStatus.FAILURE
-        if rs == 'error':
+        if rs == TaskRunStatus.ERROR:
             return TaskStatus.ERROR
         return rs
 
@@ -279,11 +280,11 @@ class TaskWrapper:
             success, error = self._executor.save_task_result(
                 self._node.task, None)
             if success:
-                self._node.run_status = 'successful'
+                self._node.run_status = TaskRunStatus.SUCCESSFUL
                 self._callbacks.on_success(self._node.task)
                 return True
             else:
-                self._node.run_status = 'failure'
+                self._node.run_status = TaskRunStatus.FAILURE
                 self._execution_result = error
                 self._callbacks.on_failure(self._node.task, error)
                 return False
@@ -291,7 +292,7 @@ class TaskWrapper:
             # Failure path
             self._executor.save_task_result(
                 self._node.task, self._execution_result)
-            self._node.run_status = 'failure'
+            self._node.run_status = TaskRunStatus.FAILURE
             self._callbacks.on_failure(self._node.task, self._execution_result)
             return False
 

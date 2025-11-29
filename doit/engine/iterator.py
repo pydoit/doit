@@ -7,6 +7,7 @@ the low-level iteration over tasks in dependency order.
 from threading import Lock
 
 from ..task import Task, dict_to_task, Stream
+from ..control.types import TaskRunStatus
 from ..runner import TaskExecutor
 from .callbacks import NullCallbacks
 from .wrapper import TaskWrapper
@@ -112,7 +113,7 @@ class TaskIterator:
         # process those before yielding this task.
         # Track which tasks have had their setup processed to avoid re-processing.
         task = node.task
-        if (node.run_status == 'run' and task.setup_tasks and
+        if (node.run_status == TaskRunStatus.RUN and task.setup_tasks and
                 not getattr(node, '_setup_processed', False)):
             # Mark that we've processed setup for this task
             node._setup_processed = True
@@ -175,20 +176,20 @@ class TaskIterator:
 
         # Check ignored
         if node.ignored_deps or self._dep_manager.status_is_ignore(task):
-            node.run_status = 'ignore'
+            node.run_status = TaskRunStatus.IGNORE
             self._callbacks.on_skip_ignored(task)
             return
 
         # Check bad deps
         if node.bad_deps:
-            node.run_status = 'failure'
+            node.run_status = TaskRunStatus.FAILURE
             return
 
         # Check up-to-date
         status, error = self._executor.get_task_status(
             task, self._task_control.tasks)
         if error:
-            node.run_status = 'error'
+            node.run_status = TaskRunStatus.ERROR
             node.status_error = error  # Store error for later access
             self._callbacks.on_failure(task, error)
             return
@@ -196,7 +197,7 @@ class TaskIterator:
         node.run_status = status
 
         # Load cached values if up-to-date
-        if node.run_status == 'up-to-date':
+        if node.run_status == TaskRunStatus.UPTODATE:
             task.values = self._dep_manager.get_values(task.name)
             self._callbacks.on_skip_uptodate(task)
 

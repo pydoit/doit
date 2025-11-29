@@ -3,6 +3,7 @@ import pytest
 
 from doit.task import Task
 from doit.control import ExecNode
+from doit.control.types import TaskRunStatus
 from doit.dependency import Dependency, DbmDB
 from doit.runner import TaskExecutor
 from doit.engine import TaskWrapper, TaskStatus
@@ -31,13 +32,13 @@ def action_with_result():
     return {'key': 'value', 'count': 42}
 
 
-def make_wrapper(task, dep_manager, tasks_dict=None, run_status='run'):
+def make_wrapper(task, dep_manager, tasks_dict=None, run_status=TaskRunStatus.RUN):
     """Create a TaskWrapper for testing.
 
     @param task: Task object
     @param dep_manager: Dependency manager
     @param tasks_dict: dict of all tasks (defaults to just this task)
-    @param run_status: initial run_status for the node
+    @param run_status: initial run_status for the node (TaskRunStatus enum)
     """
     if tasks_dict is None:
         tasks_dict = {task.name: task}
@@ -94,32 +95,32 @@ class TestTaskWrapperProperties:
 
     def test_should_run_true(self, dep_manager):
         task = Task("my_task", [action_success])
-        wrapper = make_wrapper(task, dep_manager, run_status='run')
+        wrapper = make_wrapper(task, dep_manager, run_status=TaskRunStatus.RUN)
         assert wrapper.should_run is True
 
     def test_should_run_false_uptodate(self, dep_manager):
         task = Task("my_task", [action_success])
-        wrapper = make_wrapper(task, dep_manager, run_status='up-to-date')
+        wrapper = make_wrapper(task, dep_manager, run_status=TaskRunStatus.UPTODATE)
         assert wrapper.should_run is False
 
     def test_should_run_false_ignore(self, dep_manager):
         task = Task("my_task", [action_success])
-        wrapper = make_wrapper(task, dep_manager, run_status='ignore')
+        wrapper = make_wrapper(task, dep_manager, run_status=TaskRunStatus.IGNORE)
         assert wrapper.should_run is False
 
     def test_skip_reason_uptodate(self, dep_manager):
         task = Task("my_task", [action_success])
-        wrapper = make_wrapper(task, dep_manager, run_status='up-to-date')
+        wrapper = make_wrapper(task, dep_manager, run_status=TaskRunStatus.UPTODATE)
         assert wrapper.skip_reason == 'up-to-date'
 
     def test_skip_reason_ignore(self, dep_manager):
         task = Task("my_task", [action_success])
-        wrapper = make_wrapper(task, dep_manager, run_status='ignore')
+        wrapper = make_wrapper(task, dep_manager, run_status=TaskRunStatus.IGNORE)
         assert wrapper.skip_reason == 'ignore'
 
     def test_skip_reason_none_when_runnable(self, dep_manager):
         task = Task("my_task", [action_success])
-        wrapper = make_wrapper(task, dep_manager, run_status='run')
+        wrapper = make_wrapper(task, dep_manager, run_status=TaskRunStatus.RUN)
         assert wrapper.skip_reason is None
 
 
@@ -132,35 +133,35 @@ class TestTaskWrapperStatus:
 
     def test_status_ready(self, dep_manager):
         task = Task("my_task", [action_success])
-        wrapper = make_wrapper(task, dep_manager, run_status='run')
+        wrapper = make_wrapper(task, dep_manager, run_status=TaskRunStatus.RUN)
         assert wrapper.status == TaskStatus.READY
 
     def test_status_skipped_uptodate(self, dep_manager):
         task = Task("my_task", [action_success])
-        wrapper = make_wrapper(task, dep_manager, run_status='up-to-date')
+        wrapper = make_wrapper(task, dep_manager, run_status=TaskRunStatus.UPTODATE)
         assert wrapper.status == TaskStatus.SKIPPED_UPTODATE
 
     def test_status_skipped_ignored(self, dep_manager):
         task = Task("my_task", [action_success])
-        wrapper = make_wrapper(task, dep_manager, run_status='ignore')
+        wrapper = make_wrapper(task, dep_manager, run_status=TaskRunStatus.IGNORE)
         assert wrapper.status == TaskStatus.SKIPPED_IGNORED
 
     def test_status_after_execute_before_submit(self, dep_manager):
         task = Task("my_task", [action_success])
-        wrapper = make_wrapper(task, dep_manager, run_status='run')
+        wrapper = make_wrapper(task, dep_manager, run_status=TaskRunStatus.RUN)
         wrapper.execute()
         assert wrapper.status == TaskStatus.RUNNING
 
     def test_status_success_after_submit(self, dep_manager):
         task = Task("my_task", [action_success])
-        wrapper = make_wrapper(task, dep_manager, run_status='run')
+        wrapper = make_wrapper(task, dep_manager, run_status=TaskRunStatus.RUN)
         wrapper.execute()
         wrapper.submit()
         assert wrapper.status == TaskStatus.SUCCESS
 
     def test_status_failure_after_submit(self, dep_manager):
         task = Task("my_task", [action_fail])
-        wrapper = make_wrapper(task, dep_manager, run_status='run')
+        wrapper = make_wrapper(task, dep_manager, run_status=TaskRunStatus.RUN)
         wrapper.execute()
         wrapper.submit()
         assert wrapper.status == TaskStatus.FAILURE
@@ -172,7 +173,7 @@ class TestTaskWrapperExecute:
 
     def test_execute_success(self, dep_manager):
         task = Task("my_task", [action_success])
-        wrapper = make_wrapper(task, dep_manager, run_status='run')
+        wrapper = make_wrapper(task, dep_manager, run_status=TaskRunStatus.RUN)
         result = wrapper.execute()
         assert result is None
         assert wrapper.executed is True
@@ -180,7 +181,7 @@ class TestTaskWrapperExecute:
 
     def test_execute_failure(self, dep_manager):
         task = Task("my_task", [action_fail])
-        wrapper = make_wrapper(task, dep_manager, run_status='run')
+        wrapper = make_wrapper(task, dep_manager, run_status=TaskRunStatus.RUN)
         result = wrapper.execute()
         assert result is not None  # BaseFail
         assert wrapper.executed is True
@@ -188,7 +189,7 @@ class TestTaskWrapperExecute:
 
     def test_execute_error(self, dep_manager):
         task = Task("my_task", [action_error])
-        wrapper = make_wrapper(task, dep_manager, run_status='run')
+        wrapper = make_wrapper(task, dep_manager, run_status=TaskRunStatus.RUN)
         result = wrapper.execute()
         assert result is not None  # BaseFail
         assert wrapper.executed is True
@@ -196,14 +197,14 @@ class TestTaskWrapperExecute:
 
     def test_execute_raises_if_already_executed(self, dep_manager):
         task = Task("my_task", [action_success])
-        wrapper = make_wrapper(task, dep_manager, run_status='run')
+        wrapper = make_wrapper(task, dep_manager, run_status=TaskRunStatus.RUN)
         wrapper.execute()
         with pytest.raises(RuntimeError, match="already executed"):
             wrapper.execute()
 
     def test_execute_raises_if_should_not_run(self, dep_manager):
         task = Task("my_task", [action_success])
-        wrapper = make_wrapper(task, dep_manager, run_status='up-to-date')
+        wrapper = make_wrapper(task, dep_manager, run_status=TaskRunStatus.UPTODATE)
         with pytest.raises(RuntimeError, match="should not run"):
             wrapper.execute()
 
@@ -214,7 +215,7 @@ class TestTaskWrapperSubmit:
 
     def test_submit_success(self, dep_manager):
         task = Task("my_task", [action_success])
-        wrapper = make_wrapper(task, dep_manager, run_status='run')
+        wrapper = make_wrapper(task, dep_manager, run_status=TaskRunStatus.RUN)
         wrapper.execute()
         success = wrapper.submit()
         assert success is True
@@ -224,7 +225,7 @@ class TestTaskWrapperSubmit:
 
     def test_submit_failure(self, dep_manager):
         task = Task("my_task", [action_fail])
-        wrapper = make_wrapper(task, dep_manager, run_status='run')
+        wrapper = make_wrapper(task, dep_manager, run_status=TaskRunStatus.RUN)
         wrapper.execute()
         success = wrapper.submit()
         assert success is False
@@ -232,7 +233,7 @@ class TestTaskWrapperSubmit:
 
     def test_submit_raises_if_already_submitted(self, dep_manager):
         task = Task("my_task", [action_success])
-        wrapper = make_wrapper(task, dep_manager, run_status='run')
+        wrapper = make_wrapper(task, dep_manager, run_status=TaskRunStatus.RUN)
         wrapper.execute()
         wrapper.submit()
         with pytest.raises(RuntimeError, match="already submitted"):
@@ -240,7 +241,7 @@ class TestTaskWrapperSubmit:
 
     def test_submit_with_override_result(self, dep_manager):
         task = Task("my_task", [action_success])
-        wrapper = make_wrapper(task, dep_manager, run_status='run')
+        wrapper = make_wrapper(task, dep_manager, run_status=TaskRunStatus.RUN)
         wrapper.execute()
         # Override successful execution with failure
         error = DependencyError("forced failure")
@@ -255,7 +256,7 @@ class TestTaskWrapperExecuteAndSubmit:
 
     def test_execute_and_submit_success(self, dep_manager):
         task = Task("my_task", [action_success])
-        wrapper = make_wrapper(task, dep_manager, run_status='run')
+        wrapper = make_wrapper(task, dep_manager, run_status=TaskRunStatus.RUN)
         result = wrapper.execute_and_submit()
         assert result is None
         assert wrapper.executed is True
@@ -264,7 +265,7 @@ class TestTaskWrapperExecuteAndSubmit:
 
     def test_execute_and_submit_failure(self, dep_manager):
         task = Task("my_task", [action_fail])
-        wrapper = make_wrapper(task, dep_manager, run_status='run')
+        wrapper = make_wrapper(task, dep_manager, run_status=TaskRunStatus.RUN)
         result = wrapper.execute_and_submit()
         assert result is not None
         assert wrapper.executed is True
@@ -290,7 +291,7 @@ class TestTaskWrapperGetargs:
                         getargs={'input': ('producer', 'key')})
 
         tasks_dict = {producer.name: producer, consumer.name: consumer}
-        wrapper = make_wrapper(consumer, dep_manager, tasks_dict, run_status='run')
+        wrapper = make_wrapper(consumer, dep_manager, tasks_dict, run_status=TaskRunStatus.RUN)
 
         # Execute - this should resolve getargs
         wrapper.execute()
@@ -305,7 +306,7 @@ class TestTaskWrapperRepr:
 
     def test_repr(self, dep_manager):
         task = Task("my_task", [action_success])
-        wrapper = make_wrapper(task, dep_manager, run_status='run')
+        wrapper = make_wrapper(task, dep_manager, run_status=TaskRunStatus.RUN)
         assert "my_task" in repr(wrapper)
         assert "ready" in repr(wrapper)
 
@@ -317,7 +318,7 @@ class TestTaskWrapperInMemory:
 
     def test_basic_workflow(self, memory_dep_manager):
         task = Task("my_task", [action_success])
-        wrapper = make_wrapper(task, memory_dep_manager, run_status='run')
+        wrapper = make_wrapper(task, memory_dep_manager, run_status=TaskRunStatus.RUN)
 
         assert wrapper.should_run is True
         assert wrapper.status == TaskStatus.READY
@@ -338,11 +339,11 @@ class TestTaskWrapperInMemory:
         tasks_dict = {t1.name: t1, t2.name: t2}
 
         # Execute task1
-        w1 = make_wrapper(t1, memory_dep_manager, tasks_dict, run_status='run')
+        w1 = make_wrapper(t1, memory_dep_manager, tasks_dict, run_status=TaskRunStatus.RUN)
         w1.execute_and_submit()
         assert w1.status == TaskStatus.SUCCESS
 
         # Execute task2
-        w2 = make_wrapper(t2, memory_dep_manager, tasks_dict, run_status='run')
+        w2 = make_wrapper(t2, memory_dep_manager, tasks_dict, run_status=TaskRunStatus.RUN)
         w2.execute_and_submit()
         assert w2.status == TaskStatus.SUCCESS

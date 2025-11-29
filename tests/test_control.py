@@ -6,6 +6,7 @@ from doit.exceptions import InvalidDodoFile, InvalidCommand
 from doit.task import Stream, InvalidTask, Task, DelayedLoader
 from doit.control import TaskControl, TaskDispatcher, ExecNode
 from doit.control import no_none
+from doit.control.types import TaskRunStatus
 
 
 
@@ -229,7 +230,7 @@ class TestExecNode(object):
     def test_parent_status_failure(self):
         n1 = ExecNode(Task('t1', None), None)
         n2 = ExecNode(Task('t2', None), None)
-        n1.run_status = 'failure'
+        n1.run_status = TaskRunStatus.FAILURE
         n2.parent_status(n1)
         assert [n1] == n2.bad_deps
         assert [] == n2.ignored_deps
@@ -237,7 +238,7 @@ class TestExecNode(object):
     def test_parent_status_ignore(self):
         n1 = ExecNode(Task('t1', None), None)
         n2 = ExecNode(Task('t2', None), None)
-        n1.run_status = 'ignore'
+        n1.run_status = TaskRunStatus.IGNORE
         n2.parent_status(n1)
         assert [] == n2.bad_deps
         assert [n1] == n2.ignored_deps
@@ -315,7 +316,7 @@ class TestTaskDispatcher_node_add_wait_run(object):
         td = TaskDispatcher(tasks, [], None)
         n1 = td._gen_node(None, 't1')
         n2 = td._gen_node(None, 't2')
-        n2.run_status = 'done'
+        n2.run_status = TaskRunStatus.DONE
         td._node_add_wait_run(n1, ['t2'])
         assert not n1.wait_run
 
@@ -326,7 +327,7 @@ class TestTaskDispatcher_node_add_wait_run(object):
         td = TaskDispatcher(tasks, [], None)
         n1 = td._gen_node(None, 't1')
         n2 = td._gen_node(None, 't2')
-        n2.run_status = 'failure'
+        n2.run_status = TaskRunStatus.FAILURE
         td._node_add_wait_run(n1, ['t2'])
         assert n1.bad_deps
 
@@ -337,7 +338,7 @@ class TestTaskDispatcher_node_add_wait_run(object):
         td = TaskDispatcher(tasks, [], None)
         n1 = td._gen_node(None, 't1')
         n2 = td._gen_node(None, 't2')
-        n2.run_status = 'done'
+        n2.run_status = TaskRunStatus.DONE
         n2.task.values = {'calc_dep': ['t3'], 'task_dep':['t5']}
         td._node_add_wait_run(n1, ['t2'], calc=True)
         # n1 is updated with results from t2
@@ -368,9 +369,9 @@ class TestTaskDispatcher_add_task(object):
         n3 = next(gen)
         assert tasks['t3'] == n3.task
         assert 'wait' == next(gen)
-        tasks['t2'].run_status = 'done'
+        tasks['t2'].run_status = TaskRunStatus.DONE
         td._update_waiting(n2)
-        tasks['t3'].run_status = 'done'
+        tasks['t3'].run_status = TaskRunStatus.DONE
         td._update_waiting(n3)
         assert tasks['t1'] == next(gen)
 
@@ -383,7 +384,7 @@ class TestTaskDispatcher_add_task(object):
         n2 = td._gen_node(None, 't2')
         assert 'wait' == n1.step()
         assert 'wait' == n1.step()
-        #tasks['t2'].run_status = 'done'
+        #tasks['t2'].run_status = TaskRunStatus.DONE
         td._update_waiting(n2)
         assert tasks['t1'] == n1.step()
 
@@ -394,7 +395,7 @@ class TestTaskDispatcher_add_task(object):
         td = TaskDispatcher(tasks, [], None)
         n1 = td._gen_node(None, 't1')
         n2 = td._gen_node(None, 't2')
-        n2.run_status = 'done'
+        n2.run_status = TaskRunStatus.DONE
         gen = td._add_task(n1)
         assert tasks['t1'] == next(gen)
 
@@ -412,7 +413,7 @@ class TestTaskDispatcher_add_task(object):
         assert 'wait' == n1.step()
         # execute t2 to process calc_dep
         tasks['t2'].execute(Stream(0))
-        td.nodes['t2'].run_status = 'done'
+        td.nodes['t2'].run_status = TaskRunStatus.DONE
         td._update_waiting(n2)
         n3 = n1.step()
         assert tasks['t3'] == n3.task
@@ -421,7 +422,7 @@ class TestTaskDispatcher_add_task(object):
 
         # t3 was added by calc dep
         assert 'wait' == n1.step()
-        n3.run_status = 'done'
+        n3.run_status = TaskRunStatus.DONE
         td._update_waiting(n3)
         assert tasks['t1'] == n1.step()
 
@@ -434,7 +435,7 @@ class TestTaskDispatcher_add_task(object):
         td = TaskDispatcher(tasks, {'intermediate': 't3'}, None)
         n1 = td._gen_node(None, 't1')
         n2 = td._gen_node(None, 't2')
-        n2.run_status = 'done'
+        n2.run_status = TaskRunStatus.DONE
         n2.task.values = {'calc_dep': ['t3']}
         assert 't3' == n1.step().task.name
         assert set() == n1.wait_run
@@ -451,7 +452,7 @@ class TestTaskDispatcher_add_task(object):
         gen = td._add_task(n1)
         assert tasks['t1'] == next(gen) # first time (just select)
         assert 'wait' == next(gen)      # wait for select result
-        n1.run_status = 'run'
+        n1.run_status = TaskRunStatus.RUN
         assert tasks['t2'] == next(gen).task # send setup task
         assert 'wait' == next(gen)
         assert tasks['t1'] == next(gen)  # second time
@@ -516,7 +517,7 @@ class TestTaskDispatcher_add_task(object):
         assert n1c == 'wait'
 
         # after t2 is done, generator is reseted
-        n1b.run_status = 'successful'
+        n1b.run_status = TaskRunStatus.SUCCESSFUL
         td._update_waiting(n1b)
         n1d = next(gen)
         assert n1d == "reset generator"
@@ -564,7 +565,7 @@ class TestTaskDispatcher_add_task(object):
         assert n3 == 'wait'
 
         # after t2 is done, generator is reseted
-        n2.run_status = 'done'
+        n2.run_status = TaskRunStatus.DONE
         td._update_waiting(n2)
         n4 = next(gen)
         assert n4 == "reset generator"
@@ -579,7 +580,7 @@ class TestTaskDispatcher_add_task(object):
         assert n5.task.name == 'foo'
 
         # get internal created task
-        n5.run_status = 'done'
+        n5.run_status = TaskRunStatus.DONE
         td._update_waiting(n5)
         n6 = next(gen2)
         assert n6.name == '_regex_target_tgt1:t1'
@@ -624,7 +625,7 @@ class TestTaskDispatcher_add_task(object):
         assert n1c.task.name == 'foo1'
 
         # get internal created task
-        n1c.run_status = 'done'
+        n1c.run_status = TaskRunStatus.DONE
         td._update_waiting(n1c)
         n1d = next(gen1b)
         assert n1d.name == '_regex_target_tgt1:t1'
@@ -704,7 +705,7 @@ class TestTaskDispatcher_update_waiting(object):
         td = TaskDispatcher(tasks, [], None)
         n2 = td._gen_node(None, 't2')
         n2.wait_select = True
-        n2.run_status = 'run'
+        n2.run_status = TaskRunStatus.RUN
         td.waiting.add(n2)
         td._update_waiting(n2)
         assert False == n2.wait_select
@@ -718,7 +719,7 @@ class TestTaskDispatcher_update_waiting(object):
         n1 = td._gen_node(None, 't1')
         n2 = td._gen_node(None, 't2')
         td._node_add_wait_run(n1, ['t2'])
-        n2.run_status = 'done'
+        n2.run_status = TaskRunStatus.DONE
         td.waiting.add(n1)
         td._update_waiting(n2)
         assert not n1.bad_deps
@@ -733,7 +734,7 @@ class TestTaskDispatcher_update_waiting(object):
         n1 = td._gen_node(None, 't1')
         n2 = td._gen_node(None, 't2')
         td._node_add_wait_run(n1, ['t2'])
-        n2.run_status = 'failure'
+        n2.run_status = TaskRunStatus.FAILURE
         td.waiting.add(n1)
         td._update_waiting(n2)
         assert n1.bad_deps
@@ -756,7 +757,7 @@ class TestTaskDispatcher_update_waiting(object):
         assert set() == n1.calc_dep
         assert td.waiting == set()
 
-        n2.run_status = 'done'
+        n2.run_status = TaskRunStatus.DONE
         n2.task.values = {'calc_dep': ['t2', 't3'], 'task_dep':['t5']}
         assert n1.calc_dep == set()
         assert n1.task_dep == []

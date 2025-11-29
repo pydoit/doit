@@ -9,6 +9,7 @@ TaskExecutor handles the pure execution of individual tasks:
 This is separate from orchestration (Runner) and reporting concerns.
 """
 
+from ..control.types import TaskRunStatus
 from ..exceptions import DependencyError
 from ..task import Stream
 
@@ -39,20 +40,23 @@ class TaskExecutor:
         """Check if task is up-to-date.
 
         Returns:
-            tuple: (status: str, error: BaseFail|None)
-                status is one of: 'run', 'up-to-date', 'error'
-                error is set only when status is 'error'
+            tuple: (status: TaskRunStatus, error: BaseFail|None)
+                status is one of: RUN, UPTODATE, ERROR
+                error is set only when status is ERROR
         """
         res = self.dep_manager.get_status(task, tasks_dict)
         if res.status == 'error':
             msg = "ERROR: Task '{}' checking dependencies: {}".format(
                 task.name, res.get_error_message())
-            return ('error', DependencyError(msg))
+            return (TaskRunStatus.ERROR, DependencyError(msg))
 
         if self.always_execute:
-            return ('run', None)
+            return (TaskRunStatus.RUN, None)
 
-        return (res.status, None)
+        # Map dependency status string to TaskRunStatus enum
+        if res.status == 'up-to-date':
+            return (TaskRunStatus.UPTODATE, None)
+        return (TaskRunStatus.RUN, None)
 
     def prepare_task_args(self, task, tasks_dict):
         """Prepare task options including getargs from other tasks.

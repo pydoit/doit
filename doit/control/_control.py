@@ -7,6 +7,7 @@ from ..exceptions import InvalidTask, InvalidCommand, InvalidDodoFile
 from ..task import Task, DelayedLoaded
 from ..loader import generate_tasks
 from .selector import TaskSelector, RegexGroup
+from .types import TaskRunStatus
 
 
 class TaskControl(object):
@@ -250,9 +251,9 @@ class ExecNode(object):
         self.generator = generator
 
     def parent_status(self, parent_node):
-        if parent_node.run_status == 'failure':
+        if parent_node.run_status == TaskRunStatus.FAILURE:
             self.bad_deps.append(parent_node)
-        elif parent_node.run_status == 'ignore':
+        elif parent_node.run_status == TaskRunStatus.IGNORE:
             self.ignored_deps.append(parent_node)
 
     def __repr__(self):
@@ -342,7 +343,7 @@ class TaskDispatcher(object):
         wait_for = set()
         for name in task_list:
             dep_node = self.nodes[name]
-            if (not dep_node) or dep_node.run_status in (None, 'run'):
+            if (not dep_node) or dep_node.run_status in (None, TaskRunStatus.RUN):
                 wait_for.add(name)
             else:
                 # if dep task was already executed:
@@ -461,7 +462,7 @@ class TaskDispatcher(object):
                 yield "wait"
 
             # if this task should run, so schedule setup-tasks before itself
-            if node.run_status == 'run':
+            if node.run_status == TaskRunStatus.RUN:
                 for setup_task in this_task.setup_tasks:
                     yield self._gen_node(node, setup_task)
                 self._node_add_wait_run(node, this_task.setup_tasks)
@@ -504,7 +505,7 @@ class TaskDispatcher(object):
             node.wait_select = False
 
         # status == run means this was not just select completed
-        if node.run_status == 'run':
+        if node.run_status == TaskRunStatus.RUN:
             return
 
         for waiting_node in node.waiting_me:

@@ -11,13 +11,20 @@ class TaskRunStatus(Enum):
     """Status of a task's execution decision.
 
     Used by ExecNode.run_status to track whether a task should run.
+
+    Status flow:
+        PENDING -> RUN/UPTODATE/IGNORE/ERROR/FAILURE
+        RUN -> SUCCESSFUL/FAILURE (after execution)
+        SUCCESSFUL/FAILURE -> DONE (internal, for dispatcher)
     """
     PENDING = None           # Not yet determined
     RUN = 'run'              # Task needs to execute
     UPTODATE = 'up-to-date'  # Task is up-to-date, skip
     IGNORE = 'ignore'        # Task marked as ignored
-    DONE = 'done'            # Task completed (used internally)
+    ERROR = 'error'          # Error checking status (e.g., missing file_dep)
     FAILURE = 'failure'      # Task or dependency failed
+    SUCCESSFUL = 'successful'  # Task executed successfully
+    DONE = 'done'            # Task completed (used internally by dispatcher)
 
 
 class DispatcherSignal(Enum):
