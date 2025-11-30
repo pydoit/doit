@@ -16,7 +16,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from doit import DoitEngine
+from doit import DoitEngine, InMemoryStateStore
 
 
 def discover_items():
@@ -58,7 +58,7 @@ def run_dynamic_demo():
 
     discovered_items = []
 
-    with DoitEngine(initial_tasks, db_file=":memory:") as engine:
+    with DoitEngine(initial_tasks, store=InMemoryStateStore()) as engine:
         for wrapper in engine:
             print(f"Task: {wrapper.name}")
 

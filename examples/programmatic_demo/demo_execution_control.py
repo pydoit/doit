@@ -15,7 +15,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from doit import DoitEngine, TaskStatus
+from doit import DoitEngine, TaskStatus, InMemoryStateStore
 
 
 def task_a():
@@ -59,7 +59,7 @@ def run_control_demo():
     print("Pattern 1: execute_and_submit() - Simple all-in-one")
     print("-" * 40)
 
-    with DoitEngine(tasks, db_file=":memory:") as engine:
+    with DoitEngine(tasks, store=InMemoryStateStore()) as engine:
         for wrapper in engine:
             if not wrapper.should_run:
                 print(f"  {wrapper.name}: skipped ({wrapper.skip_reason})")
@@ -77,7 +77,7 @@ def run_control_demo():
     print("Pattern 2: execute() then submit() - Inspect before saving")
     print("-" * 40)
 
-    with DoitEngine(tasks, db_file=":memory:") as engine:
+    with DoitEngine(tasks, store=InMemoryStateStore()) as engine:
         for wrapper in engine:
             if not wrapper.should_run:
                 print(f"  {wrapper.name}: skipped")
@@ -102,7 +102,7 @@ def run_control_demo():
     # Skip tasks based on custom criteria
     tasks_to_skip = {"task_b"}  # Pretend we want to skip task_b
 
-    with DoitEngine(tasks, db_file=":memory:") as engine:
+    with DoitEngine(tasks, store=InMemoryStateStore()) as engine:
         for wrapper in engine:
             if wrapper.name in tasks_to_skip:
                 print(f"  {wrapper.name}: CUSTOM SKIP (user choice)")

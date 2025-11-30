@@ -78,7 +78,7 @@ manager (recommended) or with explicit ``finish()``.
 **Parameters:**
 
 - ``tasks`` - list of Task objects or task dicts
-- ``store`` - StateStore instance for custom storage (e.g., ``MemoryStore()``).
+- ``store`` - StateStore instance for custom storage (e.g., ``InMemoryStateStore()``).
   If None, uses file-based storage at ``db_path``.
 - ``db_path`` - path to database file (default: ``.doit.db``).
   Ignored if ``store`` is provided.
@@ -160,14 +160,13 @@ Enum of possible task states:
 In-Memory Execution
 ===================
 
-For testing or one-off execution without persistence, use ``MemoryStore``:
+For testing or one-off execution without persistence, use ``InMemoryStateStore``:
 
 .. code-block:: python
 
-    from doit import DoitEngine
-    from doit.state import MemoryStore
+    from doit import DoitEngine, InMemoryStateStore
 
-    with DoitEngine(tasks, store=MemoryStore()) as engine:
+    with DoitEngine(tasks, store=InMemoryStateStore()) as engine:
         for task in engine:
             if task.should_run:
                 task.execute_and_submit()
@@ -266,10 +265,9 @@ For parallel task execution, use the concurrent execution API with
 .. code-block:: python
 
     from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
-    from doit import DoitEngine
-    from doit.state import MemoryStore
+    from doit import DoitEngine, InMemoryStateStore
 
-    with DoitEngine(tasks, store=MemoryStore()) as engine:
+    with DoitEngine(tasks, store=InMemoryStateStore()) as engine:
         with ThreadPoolExecutor(max_workers=4) as executor:
             futures = {}
 
@@ -304,6 +302,77 @@ For parallel task execution, use the concurrent execution API with
 to allow dependent tasks to become ready.
 
 
+Execution Callbacks
+===================
+
+For custom reporting or integration with external systems, you can provide
+callbacks that are notified during task execution. Import from ``doit.engine``:
+
+.. code-block:: python
+
+    from doit.engine import ExecutionCallbacks, NullCallbacks
+
+**ExecutionCallbacks Protocol:**
+
+The ``ExecutionCallbacks`` protocol defines these optional methods:
+
+- ``on_status_check(task)`` - Called when checking if a task should run
+- ``on_skip_uptodate(task)`` - Called when task is skipped (up-to-date)
+- ``on_skip_ignored(task)`` - Called when task is skipped (ignored)
+- ``on_execute(task)`` - Called immediately before task execution
+- ``on_success(task)`` - Called after successful execution
+- ``on_failure(task, error)`` - Called after failed execution
+- ``on_teardown(task)`` - Called before running teardown
+
+**Example:**
+
+.. code-block:: python
+
+    from doit import DoitEngine, InMemoryStateStore
+    from doit.engine import ExecutionCallbacks
+
+    class ProgressCallbacks:
+        def __init__(self):
+            self.executed = 0
+            self.skipped = 0
+
+        def on_status_check(self, task):
+            pass  # Called for every task
+
+        def on_execute(self, task):
+            print(f"Starting: {task.name}")
+
+        def on_success(self, task):
+            self.executed += 1
+            print(f"Completed: {task.name}")
+
+        def on_failure(self, task, error):
+            print(f"Failed: {task.name}: {error}")
+
+        def on_skip_uptodate(self, task):
+            self.skipped += 1
+
+        def on_skip_ignored(self, task):
+            self.skipped += 1
+
+        def on_teardown(self, task):
+            pass
+
+    callbacks = ProgressCallbacks()
+    with DoitEngine(tasks, store=InMemoryStateStore(),
+                   callbacks=callbacks) as engine:
+        for task in engine:
+            if task.should_run:
+                task.execute_and_submit()
+
+    print(f"Executed {callbacks.executed}, skipped {callbacks.skipped}")
+
+**NullCallbacks:**
+
+Use ``NullCallbacks`` as a base class or when no callbacks are needed.
+All methods are no-ops by default.
+
+
 Dynamic Task Injection
 ======================
 
@@ -311,8 +380,7 @@ Add new tasks during iteration based on results:
 
 .. code-block:: python
 
-    from doit import DoitEngine
-    from doit.state import MemoryStore
+    from doit import DoitEngine, InMemoryStateStore
 
     def discover_files():
         import glob
@@ -326,7 +394,7 @@ Add new tasks during iteration based on results:
         {'name': 'discover', 'actions': [discover_files]},
     ]
 
-    with DoitEngine(initial_tasks, store=MemoryStore()) as engine:
+    with DoitEngine(initial_tasks, store=InMemoryStateStore()) as engine:
         for task in engine:
             if task.should_run:
                 task.execute_and_submit()

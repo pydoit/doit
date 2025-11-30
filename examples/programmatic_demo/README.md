@@ -78,16 +78,20 @@ with DoitEngine(tasks) as engine:
 ```
 
 ### In-Memory Execution
-Use `:memory:` for no database persistence:
+Use `InMemoryStateStore` for no database persistence:
 ```python
-with DoitEngine(tasks, db_file=':memory:') as engine:
+from doit import DoitEngine, InMemoryStateStore
+
+with DoitEngine(tasks, store=InMemoryStateStore()) as engine:
     ...
 ```
 
 ### Dynamic Task Injection
 Add tasks based on results of previous tasks:
 ```python
-with DoitEngine(initial_tasks, db_file=':memory:') as engine:
+from doit import DoitEngine, InMemoryStateStore
+
+with DoitEngine(initial_tasks, store=InMemoryStateStore()) as engine:
     for wrapper in engine:
         if wrapper.should_run:
             wrapper.execute_and_submit()

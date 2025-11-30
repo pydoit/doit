@@ -129,3 +129,59 @@ Run tests: `python -m pytest`
 - **Reporters**: Implement reporter interface in `reporter.py`
 - **File checkers**: Subclass `FileChangedChecker` in `dependency.py`
 - **Uptodate callables**: Subclass `UptodateCalculator` in `dependency.py`
+
+## Documentation Structure
+
+Documentation is in `doc/` using Sphinx:
+
+```
+doc/
+├── contents.rst          # Master TOC
+├── install.rst           # Installation instructions
+├── usecases.rst          # Use case examples
+├── tutorial-1.rst        # Getting started tutorial
+├── tasks.rst             # Task concepts and terminology
+├── task-creation.rst     # How to create tasks
+├── task-args.rst         # Task arguments and parameters
+├── dependencies.rst      # Dependency tracking (file deps, task deps)
+├── uptodate.rst          # Up-to-date checking
+├── globals.rst           # Global state utilities
+├── tools.rst             # Helper tools for task authors
+├── cmd-run.rst           # `doit run` command reference
+├── cmd-other.rst         # Other CLI commands reference
+├── configuration.rst     # Configuration options (doit.cfg, pyproject.toml)
+├── extending.rst         # Extending doit (commands, reporters, loaders)
+├── programmatic.rst      # Programmatic API (DoitEngine, TaskIterator)
+├── faq.rst               # Frequently asked questions
+├── related.rst           # Related tools and projects
+├── support.rst           # Getting help
+├── stories.rst           # Success stories
+├── samples/              # 64 example dodo.py files
+│   ├── hello.py          # Simple hello world
+│   ├── subtasks.py       # Subtask generation
+│   ├── getargs.py        # Value passing between tasks
+│   └── ...               # Many more examples
+└── tutorial/             # Tutorial files
+```
+
+### Key Documentation Files
+
+| File | Content |
+|------|---------|
+| `programmatic.rst` | DoitEngine API, TaskWrapper, callbacks, concurrent execution |
+| `tasks.rst` | Task attributes (actions, deps, targets, uptodate) |
+| `dependencies.rst` | File deps, task deps, calculated deps, getargs |
+| `extending.rst` | Custom commands, reporters, loaders, plugins |
+| `configuration.rst` | doit.cfg format, pyproject.toml integration |
+
+### Examples
+
+- `doc/samples/` - 64 example dodo.py files demonstrating features
+- `examples/programmatic_demo/` - Programmatic API demo scripts
+- `doc/tutorial/` - Step-by-step tutorial files
+
+### Documentation Tests
+
+Tests validate documentation examples work correctly:
+- `tests/test_doc_examples.py` - Programmatic API examples
+- `tests/test_doc_samples.py` - All 64 doc/samples files

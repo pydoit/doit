@@ -95,7 +95,7 @@ def run_build():
     executed = []
     skipped = []
 
-    with DoitEngine(tasks, db_file=DB_FILE) as engine:
+    with DoitEngine(tasks, db_path=DB_FILE) as engine:
         for wrapper in engine:
             task_name = wrapper.name
             status = wrapper.status
