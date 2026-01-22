@@ -66,6 +66,13 @@ Project
    related
 
 
+API Reference
+-------------
+
+.. toctree::
+   :maxdepth: 2
+
+   autoapi/index
 
 .. Indices and tables
    ==================
