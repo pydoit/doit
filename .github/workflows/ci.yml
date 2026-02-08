@@ -38,6 +38,9 @@ jobs:
             ${{ runner.os }}-pip-${{ matrix.python-version }}-
             ${{ runner.os }}-pip-
       - run: pip install . -r dev_requirements.txt
+      # PyPy bundles cffi which declares pycparser as dependency but doesn't ship it
+      - if: ${{ startsWith(matrix.python-version, 'pypy') }}
+        run: pip install pycparser
       - run: pip freeze
       - run: pip check
       - run: doit pyflakes
