@@ -672,3 +672,6 @@ class result_dep(UptodateCalculator):
         if last_success is None:
             return False
         return last_success == dep_result
+
+    def __repr__(self):
+        return 'result_dep("%s")' % self.dep_name
