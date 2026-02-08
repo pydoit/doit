@@ -17,6 +17,7 @@ Changes
 - fix: make sure `io.capture` respects out/err option.
 - fix #444: `clean --clean-all` cleans all even if default tasks are specified.
 - fix #426: strace tests fails on latest strace version.
+- migrate to pyproject.toml (from setup.py)
 
 
 

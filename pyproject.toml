@@ -1,0 +1,68 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "doit"
+version = "0.37.dev0"
+description = "doit - Automation Tool"
+license = {text = "MIT"}
+readme = "pypi_long_description.rst"
+requires-python = ">=3.8"
+authors = [
+    {name = "Eduardo Naufel Schettino", email = "schettino72@gmail.com"},
+]
+keywords = ["build", "make", "task", "automation", "pipeline", "task-runner"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Operating System :: POSIX",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: System Administrators",
+    "Topic :: Software Development :: Build Tools",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = ["importlib-metadata>=4.4"]
+
+[project.urls]
+Homepage = "https://pydoit.org"
+Documentation = "https://pydoit.org/"
+Source = "https://github.com/pydoit/doit/"
+Tracker = "https://github.com/pydoit/doit/issues"
+
+[project.scripts]
+doit = "doit.__main__:main"
+
+[project.optional-dependencies]
+toml = ["tomli; python_version < '3.11'"]
+cloudpickle = ["cloudpickle; platform_python_implementation != 'PyPy'"]
+
+
+[tool.setuptools]
+packages = ["doit"]
+
+
+[tool.pycodestyle]
+# E266 too many leading '#' for block comment
+# E301 expected 1 blank line
+# E302 expected 2 blank lines
+# E303 too many blank lines
+# E305 expected 2 blank lines after class or function definition
+# E306 expected 1 blank line before a nested definition
+# E731 do not assign lambda
+# W503 line break before binary operator
+ignore = ["E266", "E301", "E302", "E303", "E305", "E306", "E731", "W503"]
+max-line-length = 90
+exclude = ["doit/cmd_completion.py"]

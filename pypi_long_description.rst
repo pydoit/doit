@@ -1,11 +1,3 @@
-#! /usr/bin/env python3
-
-import sys
-
-from setuptools import setup
-
-
-long_description = '''
 *doit* comes from the idea of bringing the power of build-tools to execute any
 kind of task
 
@@ -101,53 +93,3 @@ license
 
 The MIT License
 Copyright (c) 2008-2022 Eduardo Naufel Schettino
-'''
-
-setup(name = 'doit',
-      description = 'doit - Automation Tool',
-      version = '0.37.dev0',
-      license = 'MIT',
-      author = 'Eduardo Naufel Schettino',
-      author_email = 'schettino72@gmail.com',
-      url = 'http://pydoit.org',
-      classifiers = [
-        'Development Status :: 5 - Production/Stable',
-        'Environment :: Console',
-        'License :: OSI Approved :: MIT License',
-        'Natural Language :: English',
-        'Operating System :: OS Independent',
-        'Operating System :: POSIX',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
-        'Programming Language :: Python :: 3.10',
-        'Intended Audience :: Developers',
-        'Intended Audience :: Information Technology',
-        'Intended Audience :: Science/Research',
-        'Intended Audience :: System Administrators',
-        'Topic :: Software Development :: Build Tools',
-        'Topic :: Software Development :: Testing',
-        'Topic :: Software Development :: Quality Assurance',
-        'Topic :: Scientific/Engineering',
-        ],
-      keywords = "build make task automation pipeline task-runner",
-      project_urls = {
-          'Documentation': 'https://pydoit.org/',
-          'Source': 'https://github.com/pydoit/doit/',
-          'Tracker': 'https://github.com/pydoit/doit/issues',
-      },
-      packages = ['doit'],
-      python_requires='>=3.8',
-      install_requires = ['importlib-metadata>=4.4'],
-      extras_require={
-          'toml': ['tomli; python_version<"3.11"'],
-          # cloudpickle broken on pypy, see #409
-          'cloudpickle': ['cloudpickle; platform_python_implementation!="pypy"'],
-      },
-      long_description = long_description,
-      entry_points = {
-          'console_scripts': [
-              'doit = doit.__main__:main'
-          ]
-      },
-      )
