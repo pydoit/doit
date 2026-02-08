@@ -1,15 +1,9 @@
-import sys
+from importlib.metadata import EntryPoint
 from unittest.mock import Mock
 
 import pytest
 
 from doit.plugin import PluginEntry, PluginDict
-
-
-if sys.version_info < (3, 10):
-    from importlib_metadata import EntryPoint
-else:
-    from importlib.metadata import EntryPoint
 
 
 class TestPluginEntry(object):

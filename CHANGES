@@ -18,6 +18,8 @@ Changes
 - fix #444: `clean --clean-all` cleans all even if default tasks are specified.
 - fix #426: strace tests fails on latest strace version.
 - migrate to pyproject.toml (from setup.py)
+- BACKWARD INCOMPATIBLE: drop Python 3.8 and 3.9 support. Minimum is 3.10.
+- add support for Python 3.11, 3.12, 3.13.
 
 
 
