@@ -252,6 +252,13 @@ task name (whatever comes after ``task_`` on the function name) in the
   *task-dependencies* are **not** used to determine if a task is up-to-date or
   not. If a task defines only *task-dependency* it will always be executed.
 
+.. tip::
+
+  If you want a task to be considered not up-to-date when a dependency task's
+  result changes, use :ref:`result_dep <result_dep>` instead.
+  ``result_dep`` implies a ``task_dep`` (execution order)
+  and also checks if the dependency's result has changed.
+
 
 This example we make sure we include a file with the latest revision number of
 the mercurial repository on the tar file.
