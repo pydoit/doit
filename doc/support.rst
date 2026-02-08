@@ -15,7 +15,7 @@ Support
 Feedback & Ideas
 ----------------
 
-`Discussion forum <http://groups.google.co.in/group/python-doit>`_
+`Discussion forum <https://groups.google.com/forum/#!forum/python-doit>`_
 
 It is always nice to receive feedback.
 If you use *doit* please drop us line sharing your experience.
@@ -30,7 +30,7 @@ Questions
 ---------
 
 Question can be asked in the
-`discussion forum <http://groups.google.co.in/group/python-doit>`_
+`discussion forum <https://groups.google.com/forum/#!forum/python-doit>`_
 or on `StackOverflow using tag doit <https://stackoverflow.com/questions/tagged/doit>`_.
 
 Please, do not use the github issue tracker to ask questions!

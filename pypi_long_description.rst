@@ -32,7 +32,7 @@ Sample Code
 
 Define functions returning python dict with task's meta-data.
 
-Snippet from `tutorial <http://pydoit.org/tutorial-1.html>`_:
+Snippet from `tutorial <https://pydoit.org/tutorial-1.html>`_:
 
 .. code:: python
 
@@ -82,10 +82,10 @@ Run from terminal::
 Project Details
 ===============
 
- - Website & docs - `http://pydoit.org <http://pydoit.org>`_
+ - Website & docs - `https://pydoit.org <https://pydoit.org>`_
  - Project management on github - `https://github.com/pydoit/doit <https://github.com/pydoit/doit>`_
  - Discussion group - `https://groups.google.com/forum/#!forum/python-doit <https://groups.google.com/forum/#!forum/python-doit>`_
- - News/twitter - `https://twitter.com/pydoit <https://twitter.com/pydoit>`_
+ - X/twitter - `https://x.com/pydoit <https://x.com/pydoit>`_
  - Plugins, extensions and projects based on doit - `https://github.com/pydoit/doit/wiki/powered-by-doit <https://github.com/pydoit/doit/wiki/powered-by-doit>`_
 
 license

@@ -57,7 +57,7 @@ Sample Code
 
 Define functions returning python dict with task's meta-data.
 
-Snippet from `tutorial <http://pydoit.org/tutorial-1.html>`_:
+Snippet from `tutorial <https://pydoit.org/tutorial-1.html>`_:
 
 .. code:: python
 
@@ -107,10 +107,10 @@ Run from terminal::
 Project Details
 ===============
 
- - Website & docs - http://pydoit.org
+ - Website & docs - https://pydoit.org
  - Project management on github - https://github.com/pydoit/doit
  - Discussion group - https://groups.google.com/forum/#!forum/python-doit
- - News/twitter - https://twitter.com/pydoit
+ - X/twitter - https://x.com/pydoit
  - Plugins, extensions and projects based on doit - https://github.com/pydoit/doit/wiki/powered-by-doit
 
 license

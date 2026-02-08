@@ -125,7 +125,7 @@ class Help(DoitCmdBase):
         :var cmds: dict name -> Command class
         """
         print("doit -- automation tool")
-        print("http://pydoit.org")
+        print("https://pydoit.org")
         print('')
         print("Commands")
         for cmd_name in sorted(cmds.keys()):
