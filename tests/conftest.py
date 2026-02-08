@@ -78,7 +78,11 @@ def remove_all_db(filename):
     """remove db file from anydbm"""
     for ext in itertools.chain.from_iterable(db_ext.values()):
         if os.path.exists(filename + ext):
-            os.remove(filename + ext)
+            try:
+                os.remove(filename + ext)
+            except PermissionError:
+                # On Windows the file may still be locked by the db backend
+                pass
 
 backend_map = {
     'dbm': DbmDB,
