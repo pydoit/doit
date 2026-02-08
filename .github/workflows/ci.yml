@@ -20,8 +20,8 @@ jobs:
     steps:
       - if: ${{ matrix.os == 'ubuntu' }}
         run: sudo apt-get install strace
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -30,10 +30,10 @@ jobs:
         shell: bash
         run: echo "dir=$(pip cache dir)" >> $GITHUB_OUTPUT
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
-          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('setup.py', 'dev_requirements.txt') }}
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml', 'dev_requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-${{ matrix.python-version }}-
             ${{ runner.os }}-pip-
@@ -43,8 +43,9 @@ jobs:
       - run: doit pyflakes
       - run: doit codestyle
       - run: py.test -vv ${{ matrix.pytest-args }}
-      - if: ${{ matrix.os == 'ubuntu' && matrix.python-version == '3.8' }}
-        run: |
-          pip install codecov
-          doit coverage
-          codecov
+      - if: ${{ matrix.os == 'ubuntu' && matrix.python-version == '3.11' }}
+        run: doit coverage
+      - if: ${{ matrix.os == 'ubuntu' && matrix.python-version == '3.11' }}
+        uses: codecov/codecov-action@v4
+        with:
+          fail_ci_if_error: false

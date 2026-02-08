@@ -115,7 +115,7 @@ def task_params(param_def=None):
     """Annotate a task-creator function with definition of parameters
     to get arguments from cmd line
     """
-    if param_def is None or type(param_def) != list:
+    if param_def is None or not isinstance(param_def, list):
         raise ValueError('task_params must be called with a valid parameter definition.')
     def decorated(func):
         func._task_creator_params = param_def
