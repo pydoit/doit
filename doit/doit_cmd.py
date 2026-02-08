@@ -150,7 +150,7 @@ class DoitConfig():
         return toml_config
 
 
-class DoitMain(object):
+class DoitMain:
     # core doit commands
     BIN_NAME = os.path.split(sys.argv[0])[-1]
     DOIT_CMDS = (Help, Run, List, Info, Clean, Forget, Ignore, DumpDB,

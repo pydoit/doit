@@ -6,14 +6,14 @@ def entry_points_impl():
     return entry_points
 
 
-class PluginEntry(object):
+class PluginEntry:
     """A Plugin entry point
 
     The entry-point is not loaded/imported on creation.
     Use the method `get()` to import the module and get the attribute.
     """
 
-    class Sentinel(object):
+    class Sentinel:
         pass
 
     # indicate the entry-point object is not loaded yet

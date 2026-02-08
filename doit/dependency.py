@@ -55,7 +55,7 @@ class JSONCodec():
 
 
 
-class JsonDB(object):
+class JsonDB:
     """Backend using a single text file with JSON content"""
 
     def __init__(self, name, codec, *, module_name=None):
@@ -129,7 +129,7 @@ def get_dbm_module(mod_name):
     return importlib.import_module('dbm')  # use system default
 
 
-class DbmDB(object):
+class DbmDB:
     """Backend using a DBM file with individual values encoded in JSON
 
     On initialization all items are read from DBM file and loaded on ``_dbm``.
@@ -240,7 +240,7 @@ class DbmDB(object):
 
 
 
-class SqliteDB(object):
+class SqliteDB:
     """ sqlite3 json backend """
 
     def __init__(self, name, codec, *, module_name=None):
@@ -346,7 +346,7 @@ class SqliteDB(object):
         self._dirty = set()
 
 
-class FileChangedChecker(object):
+class FileChangedChecker:
     """Base checker for dependencies, must be inherited."""
 
     CheckerError = os.error
@@ -437,7 +437,7 @@ CHECKERS = {'md5': MD5Checker,
             'timestamp': TimestampChecker}
 
 
-class DependencyStatus(object):
+class DependencyStatus:
     """Result object for Dependency.get_status.
 
     @ivar status: (str) one of "run", "up-to-date" or "error"
@@ -474,7 +474,7 @@ class DependencyStatus(object):
 
 
 
-class Dependency(object):
+class Dependency:
     """Manage tasks dependencies.
 
     Each dependency is saved in "db". There are several "db" backends.
@@ -713,7 +713,7 @@ class Dependency(object):
 
 #############
 
-class UptodateCalculator(object):
+class UptodateCalculator:
     """Base class for 'uptodate' that need access to all tasks
     """
     def __init__(self):

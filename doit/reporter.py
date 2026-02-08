@@ -9,7 +9,7 @@ from io import StringIO
 from .exceptions import BaseFail
 
 
-class ConsoleReporter(object):
+class ConsoleReporter:
     """Default reporter. print results on console/terminal (stdout/stderr)
 
     @ivar failure_verbosity: (int) include captured stdout/stderr on failure
@@ -159,7 +159,7 @@ class ErrorOnlyReporter(ZeroReporter):
         self.write("\n")
 
 
-class TaskResult(object):
+class TaskResult:
     """result object used by JsonReporter"""
     # FIXME what about returned value from python-actions ?
     def __init__(self, task):
@@ -189,7 +189,8 @@ class TaskResult(object):
     def to_dict(self):
         """convert result data to dictionary"""
         if self._started_on is not None:
-            started = datetime.datetime.fromtimestamp(self._started_on, datetime.timezone.utc)
+            started = datetime.datetime.fromtimestamp(
+                self._started_on, datetime.timezone.utc)
             self.started = str(started.strftime('%Y-%m-%d %H:%M:%S.%f'))
             self.elapsed = self._finished_on - self._started_on
         return {'name': self.task.name,
@@ -201,7 +202,7 @@ class TaskResult(object):
                 'elapsed': self.elapsed}
 
 
-class JsonReporter(object):
+class JsonReporter:
     """output results in JSON format
 
     - out (str)

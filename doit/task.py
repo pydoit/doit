@@ -24,7 +24,7 @@ def first_line(doc):
     return ''
 
 
-class DelayedLoader(object):
+class DelayedLoader:
     """contains info for delayed creation of tasks from a task-creator
 
     :ivar creator: reference to task-creator function
@@ -104,7 +104,7 @@ class IOConfig:
         return f'IOConfig(capture={self.capture})'
 
 
-class Task(object):
+class Task:
     """Task
 
     @ivar name string

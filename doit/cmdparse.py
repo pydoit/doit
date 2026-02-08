@@ -58,7 +58,7 @@ class CmdParseError(Exception):
     """Error parsing options """
 
 
-class CmdOption(object):
+class CmdOption:
     """a command line option
 
        - name (string) : variable name
@@ -232,7 +232,7 @@ class CmdOption(object):
 
 
 
-class CmdParse(object):
+class CmdParse:
     """Process string with command options
 
     @ivar options: (list - CmdOption)

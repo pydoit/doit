@@ -9,7 +9,7 @@ from .task import Task, DelayedLoaded
 from .loader import generate_tasks
 
 
-class RegexGroup(object):
+class RegexGroup:
     '''Helper to keep track of all delayed-tasks which regexp target
     matches the target specified from command line.
     '''
@@ -22,7 +22,7 @@ class RegexGroup(object):
         self.found = False
 
 
-class TaskControl(object):
+class TaskControl:
     """Manages tasks inter-relationship
 
     There are 3 phases
@@ -269,7 +269,7 @@ class TaskControl(object):
 
 
 
-class ExecNode(object):
+class ExecNode:
     """Each task will have an instance of this.
     This used to keep track of waiting events and the generator for dep nodes
 
@@ -349,7 +349,7 @@ def no_none(decorated):
 
 
 
-class TaskDispatcher(object):
+class TaskDispatcher:
     """Dispatch another task to be selected/executed, mostly handle with MP
 
     Note that a dispatched task might not be ready to be executed.

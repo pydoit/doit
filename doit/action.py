@@ -24,7 +24,7 @@ def normalize_callable(ref):
 
 
 # Actions
-class BaseAction(object):
+class BaseAction:
     """Base class for all actions"""
 
     # must implement:
@@ -332,7 +332,7 @@ class CmdAction(BaseAction):
 
 
 
-class Writer(object):
+class Writer:
     """Write to N streams.
 
     This is used on python-actions to allow the stream to be output to terminal

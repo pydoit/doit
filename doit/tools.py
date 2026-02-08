@@ -46,7 +46,7 @@ def run_once(task, values):
 
 
 # uptodate
-class config_changed(object):
+class config_changed:
     """check if passed config was modified
     @var config (str) or (dict)
     @var encoder (json.JSONEncoder) Encoder used to convert non-default values.
@@ -85,7 +85,7 @@ class config_changed(object):
 
 
 # uptodate
-class timeout(object):
+class timeout:
     """add timeout to task
 
     @param timeout_limit: (datetime.timedelta, int) in seconds
@@ -116,7 +116,7 @@ class timeout(object):
 
 
 # uptodate
-class check_timestamp_unchanged(object):
+class check_timestamp_unchanged:
     """check if timestamp of a given file/dir is unchanged since last run.
 
     The C{cmp_op} parameter can be used to customize when timestamps are

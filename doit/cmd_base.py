@@ -48,7 +48,7 @@ def _wrap(content, indent_level):
     return lines
 
 
-class Command(object):
+class Command:
     """third-party should subclass this for commands that do no use tasks
 
     :cvar name: (str) name of sub-cmd to be use from cmdline

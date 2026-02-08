@@ -266,11 +266,11 @@ class Runner():
 
 
 # JobXXX objects send from main process to sub-process for execution
-class JobHold(object):
+class JobHold:
     """Indicates there is no task ready to be executed"""
     type = object()
 
-class JobTask(object):
+class JobTask:
     """Contains a Task object"""
     type = object()
     def __init__(self, task):
@@ -289,7 +289,7 @@ Original exception {}: {}
 """
             raise InvalidTask(msg.format(self.name, excp.__class__, excp))
 
-class JobTaskPickle(object):
+class JobTaskPickle:
     """dict of Task object excluding attributes that might be unpicklable"""
     type = object()
     def __init__(self, task):
@@ -300,7 +300,7 @@ class JobTaskPickle(object):
         return self.task_dict['name']
 
 
-class MReporter(object):
+class MReporter:
     """send reported messages to master process
 
     puts a dictionary {'name': <task-name>,
