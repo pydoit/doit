@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 from sys import executable
 
@@ -99,6 +100,9 @@ class TestDependencyDb(object):
         if pdep_manager.whichdb == 'dbm.ndbm':
             # TODO: ndbm raises no Exception, but it writes an error on STDERR.
             pytest.skip('dbm.ndbm does not raise Exception')
+        if pdep_manager.whichdb == 'dbm.dumb' and sys.version_info >= (3, 13):
+            # Python 3.13 dbm.dumb silently recovers from corrupted files
+            pytest.skip('dbm.dumb does not raise Exception on 3.13+')
 
         # create some corrupted files
         for name_ext in pdep_manager.name_ext:
@@ -116,6 +120,8 @@ class TestDependencyDb(object):
         if pdep_manager.whichdb == 'dbm.ndbm':
             # TODO: ndbm raises no Exception, but it writes an error on STDERR.
             pytest.skip('dbm.ndbm does not raise Exception')
+        if pdep_manager.whichdb == 'dbm.dumb' and sys.version_info >= (3, 13):
+            pytest.skip('dbm.dumb does not raise Exception on 3.13+')
 
         # create some corrupted files
         for name_ext in pdep_manager.name_ext:
