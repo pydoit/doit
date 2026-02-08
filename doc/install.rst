@@ -43,7 +43,7 @@ OS package
 ^^^^^^^^^^
 
 Several distributions include native `doit` packages.
-`Repology.org <https://repology.org/metapackage/doit/badges>`_
+`Repology.org <https://repology.org/project/doit/versions>`_
 provides up-to-date information about available packages and
 `doit` versions on each distribution.
 
