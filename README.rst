@@ -27,7 +27,7 @@ doit - automation tool
 kind of task
 
 *doit* can be used as a simple **Task Runner** allowing you to easily define ad hoc
-tasks, helping you to organize all your project related tasks in an unified
+tasks, helping you to organize all your project related tasks in a unified
 easy-to-use & discoverable way.
 
 *doit* scales-up with an efficient execution model like a **build-tool**.
@@ -36,13 +36,13 @@ It ensures that only required tasks will be executed and in the correct order
 (aka incremental-builds).
 
 The *up-to-date* check to cache task results is not restricted to looking for
-file modification on dependencies.  Nor it requires "target" files.
+file modification on dependencies. Nor does it require "target" files.
 So it is also suitable to handle **workflows** not handled by traditional build-tools.
 
-Tasks' dependencies and creation can be done dynamically during it is execution
+Tasks' dependencies and creation can be done dynamically during their execution,
 making it suitable to drive complex workflows and **pipelines**.
 
-*doit* is build with a plugin architecture allowing extensible commands, custom
+*doit* is built with a plugin architecture allowing extensible commands, custom
 output, storage backend and "task loader". It also provides an API allowing
 users to create new applications/tools leveraging *doit* functionality like a framework.
 
