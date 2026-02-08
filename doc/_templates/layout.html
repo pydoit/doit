@@ -1,4 +1,4 @@
-{% extends "!layout.html" %}
+{% extends "furo/base.html" %}
 
 {% block footer_scripts %}
   {{ super() }}
@@ -16,14 +16,3 @@
     {% endif %}
   {% endblock %}
 {% endblock %}
-
-
-{# FIXME show version #}
-  {# <div style="color:rgba(1,1,1,0.3); text-align:left; margin:10px;"> #}
-  {#   {% if theme_display_version %} #}
-  {#     {%- set nav_version = version %} #}
-  {#     {% if nav_version %} #}
-  {#       <span>{{ nav_version }}</span> #}
-  {#     {% endif %} #}
-  {#   {% endif %} #}
-  {# </div> #}

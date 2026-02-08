@@ -20,13 +20,12 @@
 # -- Project information -----------------------------------------------------
 
 project = 'doit'
-copyright = '2008-2020, Eduardo Schettino'
+copyright = '2008-2026, Eduardo Schettino'
 author = 'Eduardo Schettino (schettino72)'
 
 # The short X.Y version
-version = '0.36'
-# The full version, including alpha/beta/rc tags
-release = '0.36.0'
+version = '0.37'
+release = '0.37'
 
 
 # -- General configuration ---------------------------------------------------
@@ -65,7 +64,7 @@ master_doc = 'contents'
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = 'en'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -89,7 +88,7 @@ html_baseurl = 'https://pydoit.org'
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 
-html_theme = 'press' #'sphinx_rtd_theme'
+html_theme = 'furo'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -110,20 +109,10 @@ html_static_path = ['_static']
 # default: ``['localtoc.html', 'relations.html', 'sourcelink.html',
 # 'searchbox.html']``.
 #
-html_sidebars = {
-    '**': [
-        'util/searchbox.html',
-        'util/sidetoc.html',
-        'donate.html'
-    ]
-}
-
-
 html_theme_options = {
-    "external_links": [
-        ("Twitter", "https://twitter.com/pydoit"),
-        ("Github", "https://github.com/pydoit/doit"),
-    ],
+    "source_repository": "https://github.com/pydoit/doit/",
+    "source_branch": "master",
+    "source_directory": "doc/",
 }
 
 
