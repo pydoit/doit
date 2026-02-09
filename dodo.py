@@ -2,12 +2,10 @@
 
 import glob
 import os
+import subprocess
 
 import pytest
-from doitpy.pyflakes import Pyflakes
-from doitpy.coverage import Config, Coverage, PythonPackage
-from doitpy import docs
-from doitpy.package import Package
+from pyflakes.api import checkPath
 
 
 DOIT_CONFIG = {
@@ -23,15 +21,20 @@ TESTING_FILES = glob.glob("tests/*.py")
 PY_FILES = CODE_FILES + TESTING_FILES
 
 
+def _check_pyflakes(py_file):
+    return not bool(checkPath(py_file))
+
 def task_pyflakes():
-    flaker = Pyflakes()
-    yield flaker('dodo.py')
-    yield flaker.tasks('doit/*.py')
-    yield flaker.tasks('tests/*.py')
+    for pattern in ['dodo.py', 'doit/*.py', 'tests/*.py']:
+        for py_file in sorted(glob.glob(pattern)):
+            yield {
+                'name': py_file,
+                'actions': [(_check_pyflakes, [py_file])],
+                'file_dep': [py_file],
+            }
 
 def run_test(test):
     return not bool(pytest.main([test]))
-    #return not bool(pytest.main("-v " + test))
 def task_ut():
     """run unit-tests"""
     for test in TEST_FILES:
@@ -41,14 +44,42 @@ def task_ut():
                'verbosity': 0}
 
 
+def _coverage_actions(modules, test=None):
+    """build coverage run/combine/report commands"""
+    omit = ['tests/myecho.py', 'tests/sample_process.py']
+    actions = [
+        'coverage run --parallel-mode --concurrency multiprocessing'
+        ' `which py.test`' + (' ' + test if test else ''),
+        'coverage combine',
+        'coverage report --show-missing --omit {} {}'.format(
+            ','.join(omit), ' '.join(modules)),
+    ]
+    return actions
+
 def task_coverage():
     """show coverage for all modules including tests"""
-    config = Config(branch=False, parallel=True, concurrency='multiprocessing',
-                    omit=['tests/myecho.py', 'tests/sample_process.py'])
-    cov = Coverage([PythonPackage('doit', 'tests')], config=config)
-    yield cov.all()
-    yield cov.src()
-    yield cov.by_module()
+    src = glob.glob('doit/*.py')
+    tests = glob.glob('tests/*.py')
+    all_modules = src + tests
+
+    yield {
+        'basename': 'coverage',
+        'actions': _coverage_actions(all_modules),
+        'verbosity': 2,
+    }
+    yield {
+        'basename': 'coverage_src',
+        'actions': _coverage_actions(src),
+        'verbosity': 2,
+    }
+    for test in glob.glob('tests/test_*.py'):
+        source = 'doit/' + test[len('tests/test_'):]
+        yield {
+            'basename': 'coverage_module',
+            'name': test,
+            'actions': _coverage_actions([source, test], test),
+            'verbosity': 2,
+        }
 
 
 
@@ -66,14 +97,38 @@ def task_rm_index():
         'file_dep': ['doc/index.html'],
     }
 
+def _check_spelling(doc_file, dictionary):
+    """run spell checker, return False if misspelled words found"""
+    cmd = 'hunspell -l -d en_US -p {} {}'.format(dictionary, doc_file)
+    output = subprocess.check_output(cmd, shell=True,
+                                     universal_newlines=True)
+    if output:
+        print(output)
+        return False
+
 def task_docs():
     doc_files = glob.glob('doc/*.rst')
     doc_files += ['README.rst', 'CONTRIBUTING.md',
                   'doc/open_collective.md']
-    yield docs.spell(doc_files, 'doc/dictionary.txt')
+    dictionary = 'doc/dictionary.txt'
+    for doc_file in doc_files:
+        yield {
+            'basename': 'spell',
+            'name': doc_file,
+            'actions': [(_check_spelling, (doc_file, dictionary))],
+            'file_dep': [dictionary, doc_file],
+            'verbosity': 2,
+        }
     sphinx_opts = "-A include_analytics=1 -A include_donate=1"
-    yield docs.sphinx(DOC_ROOT, DOC_BUILD_PATH, sphinx_opts=sphinx_opts,
-                      task_dep=['spell', 'rm_index'])
+    yield {
+        'basename': 'sphinx',
+        'actions': [
+            'sphinx-build -b html {} -d {}doctrees {} {}'.format(
+                sphinx_opts, DOC_ROOT + '_build/', DOC_ROOT, DOC_BUILD_PATH),
+        ],
+        'task_dep': ['spell', 'rm_index'],
+        'verbosity': 2,
+    }
 
 def task_samples_check():
     """check samples are at least runnuable without error"""
@@ -123,15 +178,6 @@ def task_website_update():
         'task_dep': ['website'],
         }
 
-
-
-def task_package():
-    """create/upload package to pypi"""
-    pkg = Package()
-    yield pkg.revision_git()
-    yield pkg.manifest_git()
-    yield pkg.sdist()
-    # yield pkg.sdist_upload()
 
 
 def task_codestyle():

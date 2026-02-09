@@ -2,9 +2,11 @@
 # $ pip install --requirement dev_requirements.txt
 
 setuptools>=68.0 # for plugins
+build
+twine
 pyflakes>=3.0
 pycodestyle>=2.10
 pytest>=8.0
 coverage>=7.0
-doit-py>=0.5.0
+
 tomli; python_version<"3.11"

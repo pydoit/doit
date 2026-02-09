@@ -34,11 +34,7 @@ modules just by importing them into your *dodo* file.
    your task definitions in different modules.
 
    The best way to create re-usable tasks that can be used in several projects
-   is to call functions that return task dict's.
-   For example take a look at a reusable *pyflakes*
-   `task generator <https://github.com/pydoit/doit-py/blob/master/doitpy/pyflakes.py>`_.
-   Check the project `doit-py <https://github.com/pydoit/doit-py>`_
-   for more examples.
+   is to write functions that return task dict's or generators that yield them.
 
 
 .. _delayed-task-creation:
