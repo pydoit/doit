@@ -11,8 +11,8 @@ Related Projects
 doit extensions & plugins
 --------------------------
 
-Backend Extensions
-^^^^^^^^^^^^^^^^^^
+Backend & Reporting Extensions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
  - `doit-redis <https://github.com/saimn/doit-redis>`_ - Redis backend for doit
  - `doit-report <https://github.com/saimn/doit-report>`_ - Custom reporters for doit
