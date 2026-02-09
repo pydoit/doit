@@ -60,7 +60,7 @@ This flag is valid for all sub-commands.
 
 .. option:: --seek-file
 
-   Seek for dodo file on parent directories
+   Seek for dodo file in parent directories
 
 .. note::
    The ``--seek-file`` option can also be set via the :envvar:`DOIT_SEEK_FILE`
