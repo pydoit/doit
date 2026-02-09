@@ -42,7 +42,7 @@ dodo file
 ----------
 
 By default all commands are relative to ``dodo.py`` in the current folder.
-You can specify a different *dodo* file containing task with the ``-f`` flag.
+You can specify a different *dodo* file containing tasks with the ``-f`` flag.
 This flag is valid for all sub-commands.
 
 .. option:: -f FILE, --file FILE

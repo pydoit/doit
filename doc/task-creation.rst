@@ -117,7 +117,7 @@ callable from any object that contains this attribute.
 
 .. literalinclude:: samples/custom_task_def.py
 
-The `project letsdoit <https://bitbucket.org/takluyver/letsdoit>`_
+The projects `letsdoit <https://bitbucket.org/takluyver/letsdoit>`_
 and `doit-api <https://smarie.github.io/python-doit-api/>`_
 have some real-world implementations.
 
