@@ -4,8 +4,8 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>pydoit - Task Runner - Python CLI Tool</title>
-    <meta name="description" content="doit comes from the idea of bringing the power of build-tools to execute any kind of task">
-    <meta name="keywords" content="python, pydoit, doit, task runner, build tool, task management, python workflow automation, task management python, open source, make, data pipeline, python tool, python automation, ad-hoc command, python rake, python grunt, DAG, incremental build, incremental task, python tool">
+    <meta name="description" content="doit - Define tasks in Python. Run only what changed. A task management & automation tool with DAG execution, dependency tracking, and incremental builds.">
+    <meta name="keywords" content="python, pydoit, doit, task runner, build tool, task management, python workflow automation, task management python, open source, make, just, invoke, data pipeline, python tool, python automation, DAG, incremental build, dependency tracking, python tool">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="all,follow">
     <link rel="canonical" href="https://pydoit.org" />
@@ -26,9 +26,6 @@
     <link rel="stylesheet" href="_static/universal/custom.css">
     <!-- Favicon and apple touch icons-->
     <link rel="shortcut icon" href="_static/favico.ico" type="image/x-icon">
-    <!-- Tweaks for older IEs--><!--[if lt IE 9]>
-        <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-        <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script><![endif]-->
 
   </head>
   <body>
@@ -63,15 +60,15 @@
         <div class="container">
           <div class="row">
             <div class="col-md-6" style="padding: 40px;">
-              <h1 style="font-family: BlinkMacSystemFont; font-weight: normal;"><b>doit</b> comes from the idea of bringing the power of <b>build-tools</b> to execute any kind of <b>task</b>
-              </h1><br/>
+              <h1 style="font-family: BlinkMacSystemFont; font-weight: normal;"><b>Define tasks in Python.</b> Run only what changed.
+              </h1>
+              <p style="font-size: 1.15em;">A task management &amp; automation tool like <code>make</code>, but in pure Python. Tracks file dependencies, caches results, and skips tasks that are already up-to-date.</p>
               <div class="text-center">
                 <img src="_static/python-powered-w-100x40.png" alt="python logo" style="margin-right:30px;">
                 <iframe src="https://ghbtns.com/github-btn.html?user=pydoit&repo=doit&type=star&count=true&size=large" frameborder="0" scrolling="0" width="160px" height="30px" style="vertical-align: middle"></iframe>
               </div>
               <pre style="background: #242424; border-radius: 5px; color: white; display: -webkit-box; display: -ms-flexbox; display: flex; font-size: 15px; -webkit-box-pack: justify; -ms-flex-pack: justify; justify-content: space-between; line-height: 20px; padding: 15px 25px; position: relative; margin: 30px;"><code>pip install doit</code></pre>
-              <p>People often compare <b>doit</b> to tools like <em>make</em>, <em>grunt</em>, <em>rake</em>, <em>scons</em>, <em>snakemake</em>.</p>
-              <p>They appreciate <b>doit</b> strong features, flexibility, simplicity of authoring and ease of use.</p>
+              <p>Often compared to <em>make</em>, <em>just</em>, <em>invoke</em>, and <em>snakemake</em> &mdash; but with DAG execution and incremental builds built in.</p>
             </div>
 
           <!-- Carousel Start-->
@@ -120,55 +117,44 @@
           <!-- sample -->
           <div class="row text-left">
             <div class="col-12 heading text-center">
-              <h2>Sample Code</h2>
-              <p>Define functions returning python <em>dict</em> with task's meta-data.</p>
+              <h2>Quick Example</h2>
+              <p>Create a <code>dodo.py</code> &mdash; tasks are plain Python dicts.</p>
             </div>
-            <p class="col-lg-12 col-md-12">Snippet from <a href="/tutorial-1.html">tutorial</a>.</p>
 
             <div class="col-lg-6 col-md-12">
-              <!-- pygmentize -f html sample.py -->
+              <!-- pygmentize -f html -->
               <div class="pycode highlight" style="border-radius: 5px; color: white; display: -webkit-box; display: -ms-flexbox; display: flex; font-size: 14px; -webkit-box-pack: justify; -ms-flex-pack: justify; justify-content: space-between; line-height: 20px; margin: 20px 0px; padding: 5px 7px; position: relative;">
-                <pre><span></span><span class="k">def</span> <span class="nf">task_imports</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;find imports from a python module&quot;&quot;&quot;</span>
-    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">module</span> <span class="ow">in</span> <span class="n">PKG_MODULES</span><span class="o">.</span><span class="n">by_name</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="k">yield</span> <span class="p">{</span>
-            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
-            <span class="s1">&#39;file_dep&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">module</span><span class="o">.</span><span class="n">path</span><span class="p">],</span>
-            <span class="s1">&#39;actions&#39;</span><span class="p">:</span> <span class="p">[(</span><span class="n">get_imports</span><span class="p">,</span> <span class="p">(</span><span class="n">PKG_MODULES</span><span class="p">,</span> <span class="n">module</span><span class="o">.</span><span class="n">path</span><span class="p">))],</span>
-        <span class="p">}</span>
-
-<span class="k">def</span> <span class="nf">task_dot</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;generate a graphviz&#39;s dot graph from module imports&quot;&quot;&quot;</span>
+                <pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">task_hello</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;create a greeting file&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="p">{</span>
-        <span class="s1">&#39;targets&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;requests.dot&#39;</span><span class="p">],</span>
-        <span class="s1">&#39;actions&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">module_to_dot</span><span class="p">],</span>
-        <span class="s1">&#39;getargs&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;imports&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;imports&#39;</span><span class="p">,</span> <span class="s1">&#39;modules&#39;</span><span class="p">)},</span>
-        <span class="s1">&#39;clean&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="s1">&#39;actions&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;echo &quot;Hello from doit&quot; &gt; hello.txt&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;targets&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;hello.txt&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;clean&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">}</span>
 
-<span class="k">def</span> <span class="nf">task_draw</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;generate image from a dot file&quot;&quot;&quot;</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">task_shout</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;convert greeting to uppercase&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="p">{</span>
-        <span class="s1">&#39;file_dep&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;requests.dot&#39;</span><span class="p">],</span>
-        <span class="s1">&#39;targets&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;requests.png&#39;</span><span class="p">],</span>
-        <span class="s1">&#39;actions&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;dot -Tpng </span><span class="si">%(dependencies)s</span><span class="s1"> -o </span><span class="si">%(targets)s</span><span class="s1">&#39;</span><span class="p">],</span>
-        <span class="s1">&#39;clean&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="s1">&#39;actions&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;tr a-z A-Z &lt; hello.txt &gt; shout.txt&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;file_dep&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;hello.txt&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;targets&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;shout.txt&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;clean&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">}</span>
 </pre></div>
             </div>
 
             <div class="col-lg-6 col-md-12">
-              <div class="pycode highlight" style="border-radius: 5px; color: white; display: -webkit-box; display: -ms-flexbox; display: flex; font-size: 14px; -webkit-box-pack: justify; -ms-flex-pack: justify; justify-content: space-between; line-height: 20px; margin: 20px 0px; padding: 5px 7px; position: relative;"><pre><span></span><span class="gp">$</span> doit list
-<span class="go">dot       generate a graphviz&#39;s dot graph from module imports</span>
-<span class="go">draw      generate image from a dot file</span>
-<span class="go">imports   find imports from a python module</span>
-<span class="gp">$</span> doit
-<span class="go">.  imports:requests.models</span>
-<span class="go">.  imports:requests.__init__</span>
-<span class="go">.  imports:requests.help</span>
-<span class="go">(...)</span>
-<span class="go">.  dot</span>
-<span class="go">.  draw</span>
+              <div class="pycode highlight" style="border-radius: 5px; color: white; display: -webkit-box; display: -ms-flexbox; display: flex; font-size: 14px; -webkit-box-pack: justify; -ms-flex-pack: justify; justify-content: space-between; line-height: 20px; margin: 20px 0px; padding: 5px 7px; position: relative;"><pre><span></span><span class="gp">$ </span>pip<span class="w"> </span>install<span class="w"> </span>doit
+<span class="gp">$ </span>doit
+<span class="go">.  hello</span>
+<span class="go">.  shout</span>
+<span class="gp">$ </span>doit<span class="w">            </span><span class="c1"># nothing to do - already up-to-date</span>
+<span class="go">-- hello</span>
+<span class="go">-- shout</span>
+<span class="gp">$ </span>doit<span class="w"> </span>clean<span class="w">      </span><span class="c1"># remove generated files</span>
+<span class="gp">$ </span>doit<span class="w">            </span><span class="c1"># runs again</span>
+<span class="go">.  hello</span>
+<span class="go">.  shout</span>
 </pre></div>
             </div>
           </div>
@@ -177,34 +163,28 @@
 
           <div class="row">
             <div class="col-12 heading text-center">
-              <h2>Task Runner</h2>
-              <p><em>doit</em> allows you to easily define ad-hoc tasks,
-                helping you to organize all your project related tasks in an unified easy-to-use & discoverable way.
-              </p>
+              <h2>Python-Native Task Runner</h2>
+              <p>No DSL, no YAML &mdash; tasks are plain Python dicts and functions.</p>
             </div>
             <div class="col-lg-4 col-md-6">
               <div class="box-simple">
                 <div class="icon-outlined"><i class="fa fa-rocket"></i></div>
-                <h3 class="h4">python powered</h3>
-                <p><em>doit</em> uses plain python to define tasks.</p>
-                <p>Task's meta-data are better described in a declarative way,
-                but often you want to create this meta-data programmatically.</p>
+                <h3 class="h4">Pure Python</h3>
+                <p>Tasks are Python dicts. Use any library, generate tasks programmatically, debug with <em>pdb</em>.</p>
               </div>
             </div>
             <div class="col-lg-4 col-md-6">
               <div class="box-simple">
                 <div class="icon-outlined"><i class="fa fa-gears"></i></div>
-                <h3 class="h4">easy authoring</h3>
-                <p><em>NO API</em>: Tasks are described by a python <em>dict</em> (can also be easily customized)</p>
-                <p>Tasks can execute external process (shell commands) or python code</p>
+                <h3 class="h4">Shell or Python actions</h3>
+                <p>Run shell commands, call Python functions, or mix both in a single task.</p>
               </div>
             </div>
             <div class="col-lg-4 col-md-6">
               <div class="box-simple">
                 <div class="icon-outlined"><i class="fa fa-life-bouy"></i></div>
-                <h3 class="h4">debugger & self documented</h3>
-                <p>Since plain python is used to define your tasks the python debugger <em>pdb</em> is available</p>
-                <p><em>doit</em> command allows you to list and obtain help/documentation for tasks</p>
+                <h3 class="h4">Self-documenting</h3>
+                <p><code>doit list</code> shows all tasks with docstrings. <code>doit help &lt;task&gt;</code> for details.</p>
               </div>
             </div>
           </div>
@@ -212,35 +192,29 @@
           <br>
           <div class="row">
             <div class="col-12 heading text-center">
-              <h2>Build tool & Pipelines</h2>
-              <p>Simple task runners simply do not scale-up. <em>doit</em> as other build-tools can be much more efficient at repeateadly running tasks.</p>
+              <h2>Incremental Builds &amp; Pipelines</h2>
+              <p>DAG execution with dependency tracking &mdash; run only what changed.</p>
             </div>
 
             <div class="col-lg-4 col-md-6">
               <div class="box-simple">
                 <div class="icon-outlined"><i class="fa fa-bolt"></i></div>
-                <h3 class="h4">cache task results <br><small>aka incremental-builds</small></h3>
-                <p><em>doit</em> creates a DAG and ensures that only required tasks will be executed and in the correct order.</p>
-                <p><em>doit</em> checks if the task is <em>up-to-date</em> and skips its execution if the task would produce the same result of a previous execution.</p>
+                <h3 class="h4">Incremental builds</h3>
+                <p>Tracks file dependencies and targets (MD5 or timestamp). Skips tasks that are already up-to-date.</p>
               </div>
             </div>
             <div class="col-lg-4 col-md-6">
               <div class="box-simple">
                 <div class="icon-outlined"><i class="fa fa-sliders"></i></div>
-                <h3 class="h4">up-to-date check</h3>
-                <p><em>dependencies</em> can be dynamically calculated by other tasks</p>
-                <p>the <em>up-to-date</em> check to cache task results is not restricted to looking for file modification on dependencies.
-                  Nor requires <em>target</em> files.
-                </p>
+                <h3 class="h4">Flexible up-to-date checks</h3>
+                <p>Not limited to file timestamps. Computed dependencies (<code>calc_dep</code>), custom checkers, and result-based checks.</p>
               </div>
             </div>
             <div class="col-lg-4 col-md-6">
               <div class="box-simple">
                 <div class="icon-outlined"><i class="fa fa-exchange"></i></div>
                 <h3 class="h4">Pipelines</h3>
-                <p>Traditional build-tools were created mainly to deal with compile/link process of source code.
-                  <em>doit</em> was designed to solve a broader range of workflows.</p>
-                <p>results from a task can be used by another task without resorting to the creation of intermediate files</p>
+                <p>Pass results between tasks without intermediate files. Dynamic task creation via <code>yield</code> for complex workflows.</p>
               </div>
             </div>
           </div>
@@ -254,9 +228,8 @@
               <div class="box-simple">
                 <div class="icon-outlined"><i class="fa fa-plug"></i></div>
                 <h3 class="h4">Extensible</h3>
-                <p><b>Custom output</b><br> Command line output can be completely customized through <em>reporters</em></p>
-                <p><b>Plugins</b><br> allow you to create/modify sub-commands, storage backend, task loader, and output reporter</p>
-                <p><b>Framework</b><br> API is exposed so you can create new applications/tools leveraging <em>doit</em> functionality</p>
+                <p><b>Plugin architecture</b> &mdash; custom commands, storage backends, task loaders, and output reporters</p>
+                <p><b>Framework API</b> &mdash; build your own tools on top of <em>doit</em></p>
               </div>
             </div>
 
@@ -264,12 +237,10 @@
               <div class="box-simple">
                 <div class="icon-outlined"><i class="fa fa-tachometer"></i></div>
                 <h3 class="h4">Batteries included</h3>
-                <p><b>parallel execution</b><br> built-in support for parallel (threaded or multi-process) task execution</p>
-                <p><b>watch/auto execution</b><br> built-in support watching for file changes and automatically re-execute tasks based on file changes by external process [linux/mac only]</p>
-                <p><b>tab-completion</b><br>built-in support tab-completion for commands/task (supports <em>bash</em> and <em>zsh</em>)</p>
-                <p><b>DAG Visualisation</b><br>create task's dependency-graph image using <em>graphviz</em></p>
-                <p><b>IPython</b><br>IPython integration provide <code>%doit</code> magic function that loads tasks defined directly in IPython's global namespace</p>
-                <p><b>strace</b><br>Integration with <em>strace</em> helps you understand effects of third-part commands</p>
+                <p><b>Parallel execution</b> &mdash; threaded or multi-process</p>
+                <p><b>Auto execution</b> &mdash; watch for file changes and re-run tasks [linux/mac]</p>
+                <p><b>Shell tab-completion</b> &mdash; bash and zsh</p>
+                <p><b>DAG visualisation</b> &mdash; graphviz integration</p>
               </div>
             </div>
           </div>
@@ -392,12 +363,9 @@
           <div class="heading text-center">
             <h2>Status</h2>
           </div>
-          <p class="lead"><code>doit</code> is under active development. Version 0.36.0 released on 2022-04.</p>
-          <p><em>doit</em> runs on Python 3.8 through 3.10 (including PyPy).
-            For python 2 support please use <em>doit</em> version <code>0.29</code>.
-          <p>This <a href="http://schettino72.wordpress.com/2008/04/14/doit-a-build-tool-tale">blog post</a> explains how everything started in 2008.</p>
-          <p><em>doit</em> core features are quite stable. If there is no recent development, it does NOT mean the project is not being maintained... The project has 100% unit-test code coverage.</p>
-          <p>Development is done based on real world use cases. It is well designed and has a small code base, so adding new features is not hard. Contributions are welcome.</p>
+          <p class="lead"><code>doit</code> is a mature project actively maintained since <a href="http://schettino72.wordpress.com/2008/04/14/doit-a-build-tool-tale">2008</a>. Current version: 0.36.0.</p>
+          <p><em>doit</em> runs on Python 3.10+. 100% unit-test code coverage.</p>
+          <p>Contributions are welcome. Development is driven by real-world use cases.</p>
         </div>
       </section>
 

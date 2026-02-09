@@ -22,7 +22,7 @@ conventions.
 .. note::
 
     You should be comfortable with python basics. If you don't know python yet
-    check `Python tutorial <http://docs.python.org/tut/>`_.
+    check `Python tutorial <https://docs.python.org/3/tutorial/>`_.
 
 
 A function that starts with the name `task_` defines a *task-creator* recognized

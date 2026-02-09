@@ -12,21 +12,15 @@ Installing
 pip
 ^^^
 
-`package <https://pip.pypa.io/>`_::
+`package <https://pip.pypa.io/>`_ (requires Python 3.10+)::
 
    $ pip install doit
-
-Latest version of `doit` supports only python 3.
-If you are using python 2::
-
-  $ pip install "doit<0.30"
-
 
 
 Source
 ^^^^^^
 
-Download `source <http://pypi.python.org/pypi/doit>`_::
+Download `source <https://pypi.python.org/pypi/doit>`_::
 
   $ pip install -e .
 

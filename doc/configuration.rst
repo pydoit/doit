@@ -33,9 +33,9 @@ This is the preferred configuration source, and may gain features not available 
 
 .. note::
 
-   A TOML parser (`tomllib <https://docs.python.org/3.11/library/tomllib.html>`_)
+   A TOML parser (`tomllib <https://docs.python.org/3/library/tomllib.html>`_)
    is part of the standard library since Python 3.11.
-   For earlier Python versions, a third-party package is required, one of:
+   On Python 3.10, a third-party package is required, one of:
 
    - `tomli <https://pypi.org/project/tomli/>`_
    - `tomlkit <https://pypi.org/project/tomlkit/>`_
@@ -82,7 +82,7 @@ the command name under `tool.doit.commands`:
 
 .. code-block:: toml
 
-   [tools.doit.commands.list]
+   [tool.doit.commands.list]
    status = true
    subtasks = true
 

@@ -64,6 +64,5 @@ How to make a dependency on all files in a folder?
 ----------------------------------------------------
 
 ``file_dep`` does NOT support folders.
-If you want to specify all files from a folder you can use a third
-party library like `pathlib <https://pypi.python.org/pypi/pathlib>`_ (
-`pathlib` was add on python's 3.4 stdlib).
+If you want to specify all files from a folder you can use
+`pathlib <https://docs.python.org/3/library/pathlib.html>`_.

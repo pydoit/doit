@@ -1,82 +1,61 @@
-*doit* comes from the idea of bringing the power of build-tools to execute any
-kind of task
+**Define tasks in Python. Run only what changed.**
 
-*doit* can be uses as a simple **Task Runner** allowing you to easily define ad hoc
-tasks, helping you to organize all your project related tasks in an unified
-easy-to-use & discoverable way.
-
-*doit* scales-up with an efficient execution model like a **build-tool**.
-*doit* creates a DAG (direct acyclic graph) and is able to cache task results.
-It ensures that only required tasks will be executed and in the correct order
-(aka incremental-builds).
-
-The *up-to-date* check to cache task results is not restricted to looking for
-file modification on dependencies.  Nor it requires "target" files.
-So it is also suitable to handle **workflows** not handled by traditional build-tools.
-
-Tasks' dependencies and creation can be done dynamically during it is execution
-making it suitable to drive complex workflows and **pipelines**.
-
-*doit* is build with a plugin architecture allowing extensible commands, custom
-output, storage backend and "task loader". It also provides an API allowing
-users to create new applications/tools leveraging *doit* functionality like a framework.
-
-*doit* is a mature project being actively developed for more than 10 years.
-It includes several extras like: parallel execution, auto execution (watch for file
-changes), shell tab-completion, DAG visualisation, IPython integration, and more.
+*doit* is a task management & automation tool like ``make``, but in pure Python.
+It tracks file dependencies, caches results, and skips tasks that are already
+up-to-date. No DSL, no YAML - just Python functions.
 
 
+Quick Example
+=============
 
-Sample Code
-===========
-
-Define functions returning python dict with task's meta-data.
-
-Snippet from `tutorial <https://pydoit.org/tutorial-1.html>`_:
+Create a ``dodo.py``:
 
 .. code:: python
 
-  def task_imports():
-      """find imports from a python module"""
-      for name, module in PKG_MODULES.by_name.items():
-          yield {
-              'name': name,
-              'file_dep': [module.path],
-              'actions': [(get_imports, (PKG_MODULES, module.path))],
-          }
-
-  def task_dot():
-      """generate a graphviz's dot graph from module imports"""
+  def task_hello():
+      """create a greeting file"""
       return {
-          'targets': ['requests.dot'],
-          'actions': [module_to_dot],
-          'getargs': {'imports': ('imports', 'modules')},
+          'actions': ['echo "Hello from doit" > hello.txt'],
+          'targets': ['hello.txt'],
           'clean': True,
       }
 
-  def task_draw():
-      """generate image from a dot file"""
+  def task_shout():
+      """convert greeting to uppercase"""
       return {
-          'file_dep': ['requests.dot'],
-          'targets': ['requests.png'],
-          'actions': ['dot -Tpng %(dependencies)s -o %(targets)s'],
+          'actions': ['tr a-z A-Z < hello.txt > shout.txt'],
+          'file_dep': ['hello.txt'],
+          'targets': ['shout.txt'],
           'clean': True,
       }
 
+Run it:
 
-Run from terminal::
+.. code:: console
 
-  $ doit list
-  dot       generate a graphviz's dot graph from module imports
-  draw      generate image from a dot file
-  imports   find imports from a python module
+  $ pip install doit
   $ doit
-  .  imports:requests.models
-  .  imports:requests.__init__
-  .  imports:requests.help
-  (...)
-  .  dot
-  .  draw
+  .  hello
+  .  shout
+  $ doit            # nothing to do - already up-to-date
+  -- hello
+  -- shout
+
+
+Key Features
+============
+
+- **Incremental builds** - tracks file dependencies and targets,
+  re-runs only what changed
+- **DAG execution** - tasks run in correct dependency order
+- **Python-native** - tasks are plain Python dicts and functions,
+  use any library
+- **Parallel execution** - run independent tasks concurrently
+  (multiprocessing or threading)
+- **Subtask generation** - ``yield`` multiple tasks from a single function
+- **Computed dependencies** - ``calc_dep`` for dynamic dependency graphs
+- **Plugin architecture** - extensible commands, reporters, backends,
+  and task loaders
 
 
 Project Details
@@ -86,10 +65,9 @@ Project Details
  - Project management on github - `https://github.com/pydoit/doit <https://github.com/pydoit/doit>`_
  - Discussion group - `https://groups.google.com/forum/#!forum/python-doit <https://groups.google.com/forum/#!forum/python-doit>`_
  - X/twitter - `https://x.com/pydoit <https://x.com/pydoit>`_
- - Plugins, extensions and projects based on doit - `https://github.com/pydoit/doit/wiki/powered-by-doit <https://github.com/pydoit/doit/wiki/powered-by-doit>`_
 
 license
 =======
 
 The MIT License
-Copyright (c) 2008-2022 Eduardo Naufel Schettino
+Copyright (c) 2008-2026 Eduardo Naufel Schettino
