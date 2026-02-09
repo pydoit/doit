@@ -89,14 +89,6 @@ def task_coverage():
 DOC_ROOT = 'doc/'
 DOC_BUILD_PATH = DOC_ROOT + '_build/html/'
 
-def task_rm_index():
-    """remove/clean copied index.html if source changed"""
-    # work around https://github.com/sphinx-doc/sphinx/issues/1649
-    return {
-        'actions': ['cd doc && make clean'],
-        'file_dep': ['doc/index.html'],
-    }
-
 def _check_spelling(doc_file, dictionary):
     """run spell checker, return False if misspelled words found"""
     cmd = 'hunspell -l -d en_US -p {} {}'.format(dictionary, doc_file)
@@ -107,7 +99,7 @@ def _check_spelling(doc_file, dictionary):
         return False
 
 def task_docs():
-    doc_files = glob.glob('doc/*.rst')
+    doc_files = [f for f in glob.glob('doc/*.rst') if f != 'doc/index.rst']
     doc_files += ['README.rst', 'CONTRIBUTING.md',
                   'doc/open_collective.md']
     dictionary = 'doc/dictionary.txt'
@@ -126,7 +118,7 @@ def task_docs():
             'sphinx-build -b html {} -d {}doctrees {} {}'.format(
                 sphinx_opts, DOC_ROOT + '_build/', DOC_ROOT, DOC_BUILD_PATH),
         ],
-        'task_dep': ['spell', 'rm_index'],
+        'task_dep': ['spell'],
         'verbosity': 2,
     }
 

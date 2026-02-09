@@ -1,0 +1,240 @@
+/* ==========================================================================
+   pydoit landing page
+   ========================================================================== */
+
+/* --- Index page: full-width layout --- */
+/* Target pages containing the landing hero (only index.html) */
+body:has(.landing-hero) .sidebar-drawer,
+body:has(.landing-hero) .sidebar-toggle,
+body:has(.landing-hero) .nav-overlay-icon {
+    display: none !important;
+}
+body:has(.landing-hero) .main {
+    margin-left: 0 !important;
+}
+body:has(.landing-hero) .content {
+    width: auto !important;
+    max-width: 76rem;
+    margin: 0 auto;
+    padding: 0 3rem;
+}
+body:has(.landing-hero) .article-container {
+    max-width: none;
+}
+body:has(.landing-hero) .body-content {
+    max-width: none;
+}
+/* Code blocks: horizontal scroll instead of overflow */
+body:has(.landing-hero) .highlight pre {
+    overflow-x: auto;
+    white-space: pre;
+    font-size: 0.9rem;
+}
+
+/* --- Hero --- */
+.landing-hero {
+    text-align: center;
+    padding: 3rem 1rem 2rem;
+    margin-bottom: 1rem;
+}
+.hero-logo {
+    height: 80px;
+    margin-bottom: 1.5rem;
+}
+@media (prefers-color-scheme: dark) {
+    body[data-theme="auto"] .hero-logo {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 8px;
+        padding: 8px 12px;
+    }
+}
+body[data-theme="dark"] .hero-logo {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    padding: 8px 12px;
+}
+.landing-hero h1 {
+    font-size: 2.4rem;
+    font-weight: 400;
+    line-height: 1.35;
+    margin-bottom: 1.2rem;
+    letter-spacing: -0.01em;
+}
+.landing-hero h1 strong {
+    font-weight: 700;
+}
+.hero-subtitle {
+    font-size: 1.15rem;
+    max-width: 38rem;
+    margin: 0 auto 1.8rem;
+    line-height: 1.6;
+    color: var(--color-foreground-secondary);
+}
+.hero-code {
+    background: var(--color-background-secondary);
+    padding: 0.15em 0.4em;
+    border-radius: 3px;
+    font-size: 0.95em;
+}
+.hero-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+}
+.install-cmd {
+    display: inline-block;
+    background: #1a1a2e;
+    color: #e0e0e0;
+    border-radius: 6px;
+    padding: 0.55rem 1.4rem;
+    font-size: 1rem;
+    margin: 0;
+    border: 1px solid #2a2a4a;
+}
+.install-cmd code {
+    color: #e0e0e0;
+    background: none;
+    padding: 0;
+}
+.hero-btn {
+    display: inline-block;
+    padding: 0.55rem 1.4rem;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    text-decoration: none;
+    background: var(--color-brand-primary);
+    color: var(--color-background-primary) !important;
+    border: 1px solid var(--color-brand-primary);
+    transition: opacity 0.15s;
+}
+.hero-btn:hover {
+    opacity: 0.85;
+    text-decoration: none;
+}
+.hero-btn-outline {
+    background: transparent;
+    color: var(--color-foreground-primary) !important;
+    border-color: var(--color-foreground-border);
+}
+.hero-btn-outline:hover {
+    border-color: var(--color-foreground-secondary);
+}
+.hero-compare {
+    font-size: 0.9rem;
+    color: var(--color-foreground-muted);
+    margin: 0;
+}
+
+/* --- Section headings --- */
+.section-lead {
+    font-size: 1.05rem;
+    color: var(--color-foreground-secondary);
+    margin-bottom: 1rem;
+}
+
+/* --- Dark code blocks on landing page --- */
+body:has(.landing-hero) .highlight pre {
+    background: #1e1e2e !important;
+    color: #cdd6f4 !important;
+    border-radius: 6px;
+    padding: 1rem;
+}
+body:has(.landing-hero) .highlight {
+    background: #1e1e2e !important;
+    border-radius: 6px;
+}
+/* Catppuccin-style token colors for dark code blocks */
+body:has(.landing-hero) .highlight .k,
+body:has(.landing-hero) .highlight .kn { color: #cba6f7 !important; }
+body:has(.landing-hero) .highlight .s1,
+body:has(.landing-hero) .highlight .s2,
+body:has(.landing-hero) .highlight .sd { color: #a6e3a1 !important; }
+body:has(.landing-hero) .highlight .nf { color: #89b4fa !important; }
+body:has(.landing-hero) .highlight .kc { color: #fab387 !important; }
+body:has(.landing-hero) .highlight .c1,
+body:has(.landing-hero) .highlight .go { color: #6c7086 !important; }
+body:has(.landing-hero) .highlight .gp { color: #a6e3a1 !important; }
+body:has(.landing-hero) .highlight .nb { color: #89dceb !important; }
+body:has(.landing-hero) .highlight .p { color: #cdd6f4 !important; }
+body:has(.landing-hero) .highlight .w { color: #cdd6f4 !important; }
+
+/* --- Feature definition lists --- */
+.feature-list {
+    margin: 0.5rem 0 1rem;
+}
+.feature-list dt {
+    font-weight: 600;
+    font-size: 1rem;
+    margin-top: 0.8rem;
+}
+.feature-list dd {
+    margin-left: 0;
+    padding-left: 0;
+    color: var(--color-foreground-secondary);
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+/* --- Use-case asides --- */
+.use-case {
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    border-left: 3px solid var(--color-brand-primary);
+    background: var(--color-background-secondary);
+    border-radius: 0 4px 4px 0;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--color-foreground-secondary);
+}
+.use-case strong {
+    color: var(--color-foreground-primary);
+}
+.use-case a {
+    color: var(--color-brand-primary);
+}
+
+/* --- Testimonials --- */
+.testimonials-heading {
+    text-align: center;
+    margin-bottom: 0.5rem;
+}
+.testimonial-card {
+    border-left: 3px solid var(--color-brand-primary) !important;
+    border-top: none !important;
+    border-right: none !important;
+    border-bottom: none !important;
+    background: var(--color-background-secondary) !important;
+}
+.testimonial-card .sd-card-body {
+    font-size: 0.92rem;
+    line-height: 1.65;
+}
+.testimonial-author {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-foreground-secondary);
+    margin-top: 0.5rem;
+    margin-bottom: 0;
+}
+
+/* --- Status footer --- */
+.status-section {
+    text-align: center;
+    padding: 1rem 0 0.5rem;
+    font-size: 0.95rem;
+    color: var(--color-foreground-secondary);
+}
+.status-section a {
+    color: var(--color-brand-primary);
+}
+
+/* --- Dividers --- */
+hr.docutils {
+    border: none;
+    border-top: 1px solid var(--color-background-border);
+    margin: 2.5rem 0;
+}
