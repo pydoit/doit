@@ -169,6 +169,7 @@ SetupError
 SetupSample
 SkOink
 Snakemake
+snakemake
 Sorenson
 StackOverflow
 Subclassing
@@ -191,6 +192,7 @@ UptodateCalculator
 Uz
 VCS
 WORDBREAKS
+YAML
 Waf
 ZeroReporter
 a2
@@ -269,6 +271,7 @@ dev0
 devops
 dict
 dict's
+dicts
 didn
 dir
 discoverable

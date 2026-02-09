@@ -10,7 +10,7 @@ Changes
 =======
 
 
-0.37.0 (*unreleased*)
+0.37.0 (2026-02-09)
 ======================
 
 - Ref #409: make cloudpickle optional, and not installed by default on PyPy.
