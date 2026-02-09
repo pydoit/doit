@@ -118,7 +118,8 @@ callable from any object that contains this attribute.
 .. literalinclude:: samples/custom_task_def.py
 
 The `project letsdoit <https://bitbucket.org/takluyver/letsdoit>`_
-has some real-world implementations.
+and `doit-api <https://smarie.github.io/python-doit-api/>`_
+have some real-world implementations.
 
 For simple examples to help you create your own check this
 `blog post <http://blog.schettino72.net/posts/doit-task-creation.html>`_.

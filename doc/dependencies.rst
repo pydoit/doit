@@ -397,6 +397,12 @@ the calculation of dependencies to another task.
 The task calculating dependencies must have a python-action returning a
 dictionary with `file_dep`, `task_dep`, `uptodate` or another `calc_dep`.
 
+.. warning::
+   The returned values must be JSON-encodable since `doit` uses
+   :ref:`saved values <result_dep>` to pass the result of the calculation task.
+   For example, returning ``pathlib.Path`` objects in ``file_dep`` will cause failures.
+   Convert such objects to strings before returning them.
+
 .. note::
    An alternative way (and often easier) to have task attributes that
    rely on other tasks execution is to use :ref:`delayed tasks <delayed-task-creation>`.

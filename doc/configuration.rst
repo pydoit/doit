@@ -108,6 +108,8 @@ the task name under `tool.doit.tasks`:
    duration = 12
 
 
+.. _doit.cfg:
+
 doit.cfg
 --------
 
@@ -115,7 +117,7 @@ doit.cfg
 (see `configparser <https://docs.python.org/3/library/configparser.html>`_).
 Note: key/value entries can be separated only by the equal sign `=`.
 
-If a file name `doit.cfg` is present in the current working directory,
+If a file name :file:`doit.cfg` is present in the current working directory,
 it is processed. It supports 4 kind of sections:
 
 - a `GLOBAL` section

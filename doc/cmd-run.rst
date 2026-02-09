@@ -42,8 +42,12 @@ dodo file
 ----------
 
 By default all commands are relative to ``dodo.py`` in the current folder.
-You can specify a different *dodo* file containing task with the flag ``-f``.
+You can specify a different *dodo* file containing task with the ``-f`` flag.
 This flag is valid for all sub-commands.
+
+.. option:: -f <file>, --file <file>
+
+   Specify the dodo file (default: ``dodo.py``)
 
 
 .. code-block:: console
@@ -51,8 +55,16 @@ This flag is valid for all sub-commands.
     $ doit -f release.py
 
 
-*doit* can seek for the ``dodo.py`` file on parent folders if the option
-``--seek-file`` is specified.
+*doit* can seek for the ``dodo.py`` file on parent folders if the
+``--seek-file`` option is specified.
+
+.. option:: --seek-file
+
+   Seek for dodo file on parent directories
+
+.. note::
+   The ``--seek-file`` option can also be set via the :envvar:`DOIT_SEEK_FILE`
+   environment variable.
 
 
 as an executable file

@@ -8,7 +8,24 @@
 Related Projects
 ================
 
-Build tools & task runners:
+doit Extensions & Plugins
+==========================
+
+Backend Extensions
+------------------
+
+ - `doit-redis <https://github.com/saimn/doit-redis>`_ - Redis backend for doit
+ - `doit-report <https://github.com/saimn/doit-report>`_ - Custom reporters for doit
+
+Task Creation Helpers
+---------------------
+
+ - `doit-api <https://smarie.github.io/python-doit-api/>`_ - Explicit API with IDE autocompletion and documentation for easier task creation
+ - `letsdoit <https://bitbucket.org/takluyver/letsdoit>`_ - Custom task definition framework
+
+
+Build tools & task runners
+===========================
 
  - `make <https://www.gnu.org/software/make/>`_
  - `just <https://github.com/casey/just>`_ - command runner (no dependency tracking)
