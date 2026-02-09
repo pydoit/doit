@@ -8,7 +8,7 @@
 Related Projects
 ================
 
-doit Extensions & Plugins
+doit extensions & plugins
 --------------------------
 
 Backend Extensions

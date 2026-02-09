@@ -55,7 +55,7 @@ This flag is valid for all sub-commands.
     $ doit -f release.py
 
 
-*doit* can seek for the ``dodo.py`` file on parent folders if the
+*doit* can seek for the ``dodo.py`` file in parent folders if the
 ``--seek-file`` option is specified.
 
 .. option:: --seek-file
