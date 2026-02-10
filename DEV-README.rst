@@ -58,6 +58,34 @@ To create it (after installing *doit*):
  $ doit website
 
 
+website deployment
+------------------
+
+The website (pydoit.org) is served by GitHub Pages from a **separate repo**:
+`schettino72/doit-website <https://github.com/schettino72/doit-website>`_
+(``gh-pages`` branch, default ``pages-build-deployment`` workflow).
+
+The CI workflow in this repo (``.github/workflows/website.yml``) builds
+the site and uploads it as an artifact — it does **not** deploy.
+Deployment is manual:
+
+.. code:: bash
+
+  # 1. Build the website and copy to ../doit-website
+  $ doit website_update
+
+  # 2. Commit and push from the website repo
+  $ cd ../doit-website
+  $ git add -A && git commit -m "update site"
+  $ git push
+
+The ``website_update`` task builds the site, rsyncs to ``../doit-website``,
+and writes ``CNAME`` and ``.nojekyll`` files.
+
+This keeps deployment intentionally decoupled from doc changes,
+allowing work-in-progress docs without publishing them.
+
+
 
 spell checking
 --------------
@@ -93,7 +121,6 @@ Update version number at:
 - doit/version.py
 - pyproject.toml
 - doc/conf.py
-- doc/index.html
 
 .. code:: bash
 

@@ -129,6 +129,12 @@ body[data-theme="dark"] .hero-logo {
     margin: 0;
 }
 
+/* --- GitHub stars badge --- */
+.github-stars img {
+    height: 2.1rem;
+    vertical-align: middle;
+}
+
 /* --- Section headings --- */
 .section-lead {
     font-size: 1.05rem;
@@ -230,6 +236,11 @@ body:has(.landing-hero) .highlight .w { color: #cdd6f4 !important; }
 }
 .status-section a {
     color: var(--color-brand-primary);
+}
+
+/* --- Sidebar: hide redundant brand text (logo already says "doit") --- */
+.sidebar-brand-text {
+    display: none;
 }
 
 /* --- Dividers --- */

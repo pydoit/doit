@@ -28,7 +28,7 @@
      <div class="hero-actions">
        <pre class="install-cmd"><code>pip install doit</code></pre>
        <a class="hero-btn" href="contents.html">Documentation</a>
-       <a class="hero-btn hero-btn-outline" href="https://github.com/pydoit/doit">GitHub</a>
+       <a class="github-stars" href="https://github.com/pydoit/doit"><img src="https://img.shields.io/github/stars/pydoit/doit?style=social" alt="GitHub stars"></a>
      </div>
      <p class="hero-compare">
        Often compared to <em>make</em>, <em>just</em>, <em>invoke</em>,
@@ -266,3 +266,37 @@ Advanced Features
    :hidden:
 
    contents
+
+.. toctree::
+   :hidden:
+   :caption: Getting Started
+
+   usecases
+   tutorial-1
+
+.. toctree::
+   :hidden:
+   :caption: Reference
+
+   install
+   tasks
+   dependencies
+   task-creation
+   cmd-run
+   cmd-other
+   configuration
+   task-args
+   globals
+   uptodate
+   tools
+   extending
+
+.. toctree::
+   :hidden:
+   :caption: Project
+
+   support
+   changes
+   stories
+   faq
+   related
