@@ -1,32 +1,30 @@
 import os
 import pickle
-
-import pytest
+import unittest
 
 from doit.cmdparse import DefaultUpdate, CmdParseError, CmdOption, CmdParse
 
 
-
-class TestDefaultUpdate(object):
+class TestDefaultUpdate(unittest.TestCase):
     def test(self):
         du = DefaultUpdate()
 
         du.set_default('a', 0)
         du.set_default('b', 0)
 
-        assert 0 == du['a']
-        assert 0 == du['b']
+        self.assertEqual(0, du['a'])
+        self.assertEqual(0, du['b'])
 
         # set b with non-default value
         du['b'] = 1
         # only a is update
         du.update_defaults({'a':2, 'b':2})
-        assert 2 == du['a']
-        assert 1 == du['b']
+        self.assertEqual(2, du['a'])
+        self.assertEqual(1, du['b'])
 
         # default for `a` can be updated again
         du.update_defaults({'a':3})
-        assert 3 == du['a']
+        self.assertEqual(3, du['a'])
 
 
     def test_add_defaults(self):
@@ -34,115 +32,113 @@ class TestDefaultUpdate(object):
         du.add_defaults({'a': 0, 'b':1})
         du['c'] = 5
         du.add_defaults({'a':2, 'c':2})
-        assert 0 == du['a']
-        assert 1 == du['b']
-        assert 5 == du['c']
+        self.assertEqual(0, du['a'])
+        self.assertEqual(1, du['b'])
+        self.assertEqual(5, du['c'])
 
     # http://bugs.python.org/issue826897
     def test_pickle(self):
         du = DefaultUpdate()
         du.set_default('x', 0)
-        dump = pickle.dumps(du,2)
+        dump = pickle.dumps(du, 2)
         pickle.loads(dump)
 
 
-class TestCmdOption(object):
+class TestCmdOption(unittest.TestCase):
 
     def test_repr(self):
         opt = CmdOption({'name':'opt1', 'default':'',
                          'short':'o', 'long':'other'})
-        assert "CmdOption(" in repr(opt)
-        assert "'name':'opt1'" in repr(opt)
-        assert "'short':'o'" in repr(opt)
-        assert "'long':'other'" in repr(opt)
+        self.assertIn("CmdOption(", repr(opt))
+        self.assertIn("'name':'opt1'", repr(opt))
+        self.assertIn("'short':'o'", repr(opt))
+        self.assertIn("'long':'other'", repr(opt))
 
     def test_non_required_fields(self):
         opt1 = CmdOption({'name':'op1', 'default':''})
-        assert '' == opt1.long
+        self.assertEqual('', opt1.long)
 
     def test_invalid_field(self):
         opt_dict = {'name':'op1', 'default':'', 'non_existent':''}
-        pytest.raises(CmdParseError, CmdOption, opt_dict)
+        self.assertRaises(CmdParseError, CmdOption, opt_dict)
 
     def test_missing_field(self):
         opt_dict = {'name':'op1', 'long':'abc'}
-        pytest.raises(CmdParseError, CmdOption, opt_dict)
+        self.assertRaises(CmdParseError, CmdOption, opt_dict)
 
 
-class TestCmdOption_str2val(object):
+class TestCmdOption_str2val(unittest.TestCase):
     def test_str2boolean(self):
         opt = CmdOption({'name':'op1', 'default':'', 'type':bool,
                          'short':'b', 'long': 'bobo'})
-        assert True == opt.str2boolean('1')
-        assert True == opt.str2boolean('yes')
-        assert True == opt.str2boolean('Yes')
-        assert True == opt.str2boolean('YES')
-        assert True == opt.str2boolean('true')
-        assert True == opt.str2boolean('on')
-        assert False == opt.str2boolean('0')
-        assert False == opt.str2boolean('false')
-        assert False == opt.str2boolean('no')
-        assert False == opt.str2boolean('off')
-        assert False == opt.str2boolean('OFF')
-        pytest.raises(ValueError, opt.str2boolean, '2')
-        pytest.raises(ValueError, opt.str2boolean, None)
-        pytest.raises(ValueError, opt.str2boolean, 'other')
+        self.assertTrue(opt.str2boolean('1'))
+        self.assertTrue(opt.str2boolean('yes'))
+        self.assertTrue(opt.str2boolean('Yes'))
+        self.assertTrue(opt.str2boolean('YES'))
+        self.assertTrue(opt.str2boolean('true'))
+        self.assertTrue(opt.str2boolean('on'))
+        self.assertFalse(opt.str2boolean('0'))
+        self.assertFalse(opt.str2boolean('false'))
+        self.assertFalse(opt.str2boolean('no'))
+        self.assertFalse(opt.str2boolean('off'))
+        self.assertFalse(opt.str2boolean('OFF'))
+        self.assertRaises(ValueError, opt.str2boolean, '2')
+        self.assertRaises(ValueError, opt.str2boolean, None)
+        self.assertRaises(ValueError, opt.str2boolean, 'other')
 
 
     def test_non_string_values_are_not_converted(self):
         opt = CmdOption({'name':'op1', 'default':'', 'type':bool})
-        assert False == opt.str2type(False)
-        assert True == opt.str2type(True)
-        assert None == opt.str2type(None)
+        self.assertFalse(opt.str2type(False))
+        self.assertTrue(opt.str2type(True))
+        self.assertIsNone(opt.str2type(None))
 
     def test_str(self):
         opt = CmdOption({'name':'op1', 'default':'', 'type':str})
-        assert 'foo' == opt.str2type('foo')
-        assert 'bar' == opt.str2type('bar')
+        self.assertEqual('foo', opt.str2type('foo'))
+        self.assertEqual('bar', opt.str2type('bar'))
 
     def test_bool(self):
         opt = CmdOption({'name':'op1', 'default':'', 'type':bool})
-        assert False == opt.str2type('off')
-        assert True == opt.str2type('on')
+        self.assertFalse(opt.str2type('off'))
+        self.assertTrue(opt.str2type('on'))
 
     def test_int(self):
         opt = CmdOption({'name':'op1', 'default':'', 'type':int})
-        assert 2 == opt.str2type('2')
-        assert -3 == opt.str2type('-3')
+        self.assertEqual(2, opt.str2type('2'))
+        self.assertEqual(-3, opt.str2type('-3'))
 
     def test_list(self):
         opt = CmdOption({'name':'op1', 'default':'', 'type':list})
-        assert ['foo'] == opt.str2type('foo')
-        assert [] == opt.str2type('')
-        assert ['foo', 'bar'] == opt.str2type('foo , bar ')
+        self.assertEqual(['foo'], opt.str2type('foo'))
+        self.assertEqual([], opt.str2type(''))
+        self.assertEqual(['foo', 'bar'], opt.str2type('foo , bar '))
 
     def test_invalid_value(self):
         opt = CmdOption({'name':'op1', 'default':'', 'type':int})
-        pytest.raises(CmdParseError, opt.str2type, 'not a number')
+        self.assertRaises(CmdParseError, opt.str2type, 'not a number')
 
 
-class TestCmdOption_help_param(object):
+class TestCmdOption_help_param(unittest.TestCase):
     def test_bool_param(self):
         opt1 = CmdOption({'name':'op1', 'default':'', 'type':bool,
                           'short':'b', 'long': 'bobo'})
-        assert '-b, --bobo' == opt1.help_param()
+        self.assertEqual('-b, --bobo', opt1.help_param())
 
     def test_non_bool_param(self):
         opt1 = CmdOption({'name':'op1', 'default':'', 'type':str,
                           'short':'s', 'long': 'susu'})
-        assert '-s ARG, --susu=ARG' == opt1.help_param()
-
+        self.assertEqual('-s ARG, --susu=ARG', opt1.help_param())
 
     def test_metavar(self):
         opt1 = CmdOption({'name':'op1', 'default':'', 'type':str, 'metavar':'VAL',
                           'short':'s', 'long': 'susu'})
-        assert '-s VAL, --susu=VAL' == opt1.help_param()
-
+        self.assertEqual('-s VAL, --susu=VAL', opt1.help_param())
 
     def test_no_long(self):
         opt1 = CmdOption({'name':'op1', 'default':'', 'type':str,
                           'short':'s'})
-        assert '-s ARG' == opt1.help_param()
+        self.assertEqual('-s ARG', opt1.help_param())
 
 
 opt_bool = {'name': 'flag',
@@ -200,147 +196,148 @@ opt_choices_nodesc = {'name': 'choicesnodesc',
                       'help': 'User chooses [default %(default)s]'}
 
 
-class TestCmdOption_help_doc(object):
+class TestCmdOption_help_doc(unittest.TestCase):
     def test_param(self):
         opt1 = CmdOption(opt_bool)
         got = opt1.help_doc()
-        assert '-f, --flag' in got[0]
-        assert 'help for opt1' in got[0]
-        assert '--no-flag' in got[1]
-        assert 2 == len(got)
+        self.assertIn('-f, --flag', got[0])
+        self.assertIn('help for opt1', got[0])
+        self.assertIn('--no-flag', got[1])
+        self.assertEqual(2, len(got))
 
     def test_no_doc_param(self):
         opt1 = CmdOption(opt_no)
-        assert 0 == len(opt1.help_doc())
+        self.assertEqual(0, len(opt1.help_doc()))
 
     def test_choices_desc_doc(self):
         the_opt = CmdOption(opt_choices_desc)
         doc = the_opt.help_doc()[0]
-        assert 'choices:\n' in doc
-        assert 'yes: signify affirmative' in doc
-        assert 'no: signify negative' in doc
+        self.assertIn('choices:\n', doc)
+        self.assertIn('yes: signify affirmative', doc)
+        self.assertIn('no: signify negative', doc)
 
     def test_choices_nodesc_doc(self):
         the_opt = CmdOption(opt_choices_nodesc)
         doc = the_opt.help_doc()[0]
-        assert "choices: no, yes" in doc
+        self.assertIn("choices: no, yes", doc)
 
     def test_name_config_env(self):
         opt1 = CmdOption(opt_rare)
         got = opt1.help_doc()
-        assert 'config: rare_bool' in got[0]
-        assert 'environ: RARE' in got[0]
+        self.assertIn('config: rare_bool', got[0])
+        self.assertIn('environ: RARE', got[0])
 
 
+class TestCommand(unittest.TestCase):
 
-class TestCommand(object):
-
-    @pytest.fixture
-    def cmd(self, request):
+    def _make_cmd(self):
         opt_list = (opt_bool, opt_rare, opt_int, opt_no,
                     opt_append, opt_choices_desc, opt_choices_nodesc)
         options = [CmdOption(o) for o in opt_list]
-        cmd = CmdParse(options)
-        return cmd
+        return CmdParse(options)
 
-    def test_contains(self, cmd):
-        assert 'flag' in cmd
-        assert 'num' in cmd
-        assert 'xxx' not in cmd
+    def setUp(self):
+        super().setUp()
+        self.cmd = self._make_cmd()
 
-    def test_getitem(self, cmd):
-        assert cmd['flag'].short == 'f'
-        assert cmd['num'].default == 5
+    def test_contains(self):
+        self.assertIn('flag', self.cmd)
+        self.assertIn('num', self.cmd)
+        self.assertNotIn('xxx', self.cmd)
 
-    def test_option_list(self, cmd):
-        opt_names = [o.name for o in cmd.options]
-        assert  ['flag', 'rare_bool', 'num', 'no', 'list', 'choices',
-                 'choicesnodesc']== opt_names
+    def test_getitem(self):
+        self.assertEqual(self.cmd['flag'].short, 'f')
+        self.assertEqual(self.cmd['num'].default, 5)
 
-    def test_short(self, cmd):
-        assert "fn:l:c:C:" == cmd.get_short(), cmd.get_short()
+    def test_option_list(self):
+        opt_names = [o.name for o in self.cmd.options]
+        self.assertEqual(['flag', 'rare_bool', 'num', 'no', 'list', 'choices',
+                          'choicesnodesc'], opt_names)
 
-    def test_long(self, cmd):
+    def test_short(self):
+        self.assertEqual("fn:l:c:C:", self.cmd.get_short())
+
+    def test_long(self):
         longs = ["flag", "no-flag", "rare-bool", "number=",
                  "list=", "choice=", "achoice="]
-        assert longs == cmd.get_long()
+        self.assertEqual(longs, self.cmd.get_long())
 
-    def test_getOption(self, cmd):
+    def test_getOption(self):
+        cmd = self.cmd
         # short
         opt, is_inverse = cmd.get_option('-f')
-        assert (opt_bool['name'], False) == (opt.name, is_inverse)
+        self.assertEqual((opt_bool['name'], False), (opt.name, is_inverse))
         # long
         opt, is_inverse = cmd.get_option('--rare-bool')
-        assert (opt_rare['name'], False) == (opt.name, is_inverse)
+        self.assertEqual((opt_rare['name'], False), (opt.name, is_inverse))
         # inverse
         opt, is_inverse = cmd.get_option('--no-flag')
-        assert (opt_bool['name'], True) == (opt.name, is_inverse)
+        self.assertEqual((opt_bool['name'], True), (opt.name, is_inverse))
         # not found
         opt, is_inverse = cmd.get_option('not-there')
-        assert (None, None) == (opt, is_inverse)
+        self.assertEqual((None, None), (opt, is_inverse))
 
         opt, is_inverse = cmd.get_option('--list')
-        assert (opt_append['name'], False) == (opt.name, is_inverse)
+        self.assertEqual((opt_append['name'], False), (opt.name, is_inverse))
 
         opt, is_inverse = cmd.get_option('--choice')
-        assert (opt_choices_desc['name'], False) == (opt.name, is_inverse)
+        self.assertEqual((opt_choices_desc['name'], False), (opt.name, is_inverse))
 
         opt, is_inverse = cmd.get_option('--achoice')
-        assert (opt_choices_nodesc['name'], False) == (opt.name, is_inverse)
+        self.assertEqual((opt_choices_nodesc['name'], False), (opt.name, is_inverse))
 
+    def test_parseDefaults(self):
+        params, args = self.cmd.parse([])
+        self.assertFalse(params['flag'])
+        self.assertEqual(5, params['num'])
+        self.assertEqual([], params['list'])
+        self.assertEqual("yes", params['choices'])
+        self.assertEqual("no", params['choicesnodesc'])
 
-    def test_parseDefaults(self, cmd):
-        params, args = cmd.parse([])
-        assert False == params['flag']
-        assert 5 == params['num']
-        assert [] == params['list']
-        assert "yes" == params['choices']
-        assert "no" == params['choicesnodesc']
+    def test_overwrite_defaults(self):
+        self.cmd.overwrite_defaults({'num': 9, 'i_dont_exist': 1})
+        params, args = self.cmd.parse([])
+        self.assertEqual(9, params['num'])
 
-    def test_overwrite_defaults(self, cmd):
-        cmd.overwrite_defaults({'num': 9, 'i_dont_exist': 1})
-        params, args = cmd.parse([])
-        assert 9 == params['num']
+    def test_overwrite_defaults_convert_type(self):
+        self.cmd.overwrite_defaults({'num': '9', 'list': 'foo, bar', 'flag':'on'})
+        params, args = self.cmd.parse([])
+        self.assertEqual(9, params['num'])
+        self.assertEqual(['foo', 'bar'], params['list'])
+        self.assertTrue(params['flag'])
 
-    def test_overwrite_defaults_convert_type(self, cmd):
-        cmd.overwrite_defaults({'num': '9', 'list': 'foo, bar', 'flag':'on'})
-        params, args = cmd.parse([])
-        assert 9 == params['num']
-        assert ['foo', 'bar'] == params['list']
-        assert True == params['flag']
+    def test_parseShortValues(self):
+        params, args = self.cmd.parse(['-n','89','-f', '-l', 'foo', '-l', 'bar',
+                                       '-c', 'no', '-C', 'yes'])
+        self.assertTrue(params['flag'])
+        self.assertEqual(89, params['num'])
+        self.assertEqual(['foo', 'bar'], params['list'])
+        self.assertEqual("no", params['choices'])
+        self.assertEqual("yes", params['choicesnodesc'])
 
-    def test_parseShortValues(self, cmd):
-        params, args = cmd.parse(['-n','89','-f', '-l', 'foo', '-l', 'bar',
-                                  '-c', 'no', '-C', 'yes'])
-        assert True == params['flag']
-        assert 89 == params['num']
-        assert ['foo', 'bar'] == params['list']
-        assert "no" == params['choices']
-        assert "yes" == params['choicesnodesc']
+    def test_parseLongValues(self):
+        params, args = self.cmd.parse(['--rare-bool','--num','89', '--no-flag',
+                                       '--list', 'flip', '--list', 'flop',
+                                       '--choice', 'no', '--achoice', 'yes'])
+        self.assertTrue(params['rare_bool'])
+        self.assertFalse(params['flag'])
+        self.assertEqual(89, params['num'])
+        self.assertEqual(['flip', 'flop'], params['list'])
+        self.assertEqual("no", params['choices'])
+        self.assertEqual("yes", params['choicesnodesc'])
 
-    def test_parseLongValues(self, cmd):
-        params, args = cmd.parse(['--rare-bool','--num','89', '--no-flag',
-                                  '--list', 'flip', '--list', 'flop',
-                                  '--choice', 'no', '--achoice', 'yes'])
-        assert True == params['rare_bool']
-        assert False == params['flag']
-        assert 89 == params['num']
-        assert ['flip', 'flop'] == params['list']
-        assert "no" == params['choices']
-        assert "yes" == params['choicesnodesc']
+    def test_parsePositionalArgs(self):
+        params, args = self.cmd.parse(['-f','p1','p2', '--sub-arg'])
+        self.assertEqual(['p1','p2', '--sub-arg'], args)
 
-    def test_parsePositionalArgs(self, cmd):
-        params, args = cmd.parse(['-f','p1','p2', '--sub-arg'])
-        assert ['p1','p2', '--sub-arg'] == args
+    def test_parseError(self):
+        self.assertRaises(CmdParseError, self.cmd.parse, ['--not-exist-param'])
 
-    def test_parseError(self, cmd):
-        pytest.raises(CmdParseError, cmd.parse, ['--not-exist-param'])
+    def test_parseWrongType(self):
+        self.assertRaises(CmdParseError, self.cmd.parse, ['--num','oi'])
 
-    def test_parseWrongType(self, cmd):
-        pytest.raises(CmdParseError, cmd.parse, ['--num','oi'])
-
-    def test_parseWrongChoice(self, cmd):
-        pytest.raises(CmdParseError, cmd.parse, ['--choice', 'maybe'])
+    def test_parseWrongChoice(self):
+        self.assertRaises(CmdParseError, self.cmd.parse, ['--choice', 'maybe'])
 
     def test_env_val(self):
         opt_foo = {
@@ -354,17 +351,17 @@ class TestCommand(object):
 
         # get default
         params, args = cmd.parse([])
-        assert params['foo'] == 'zero'
+        self.assertEqual('zero', params['foo'])
 
         # get from env
         os.environ['FOO'] = 'bar'
+        self.addCleanup(os.environ.pop, 'FOO', None)
         params2, args2 = cmd.parse([])
-        assert params2['foo'] == 'bar'
+        self.assertEqual('bar', params2['foo'])
 
         # command line has precedence
         params2, args2 = cmd.parse(['--foo', 'XXX'])
-        assert params2['foo'] == 'XXX'
-
+        self.assertEqual('XXX', params2['foo'])
 
     def test_env_val_bool(self):
         opt_foo = {
@@ -378,10 +375,11 @@ class TestCommand(object):
 
         # get from env
         os.environ['FOO'] = '1'
+        self.addCleanup(os.environ.pop, 'FOO', None)
         params, args = cmd.parse([])
-        assert params['foo'] == True
+        self.assertTrue(params['foo'])
 
         # get from env
         os.environ['FOO'] = '0'
         params, args = cmd.parse([])
-        assert params['foo'] == False
+        self.assertFalse(params['foo'])

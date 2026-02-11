@@ -1,7 +1,11 @@
 import subprocess
+import unittest
 from sys import executable
 
+from tests.support import DepfileNameMixin
 
-def test_execute(depfile_name):
-    assert 0 == subprocess.call([executable, '-m', 'doit', 'list',
-                                 '--db-file', depfile_name])
+
+class TestMain(DepfileNameMixin, unittest.TestCase):
+    def test_execute(self):
+        self.assertEqual(0, subprocess.call(
+            [executable, '-m', 'doit', 'list', '--db-file', self.depfile_name]))

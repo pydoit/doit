@@ -1,67 +1,65 @@
+import unittest
 from io import StringIO
-
-import pytest
 
 from doit.exceptions import InvalidCommand
 from doit.dependency import DbmDB, Dependency
 from doit.cmd_ignore import Ignore
-from .conftest import tasks_sample, CmdFactory
+from tests.support import tasks_sample, CmdFactory, DepManagerMixin
 
 
-class TestCmdIgnore(object):
+class TestCmdIgnore(DepManagerMixin, unittest.TestCase):
 
-    @pytest.fixture
-    def tasks(self, request):
-        return tasks_sample()
+    def setUp(self):
+        super().setUp()
+        self.tasks = tasks_sample()
 
-    def testIgnoreAll(self, tasks, dep_manager):
+    def testIgnoreAll(self):
         output = StringIO()
-        cmd = CmdFactory(Ignore, outstream=output, dep_manager=dep_manager,
-                         task_list=tasks)
+        cmd = CmdFactory(Ignore, outstream=output, dep_manager=self.dep_manager,
+                         task_list=self.tasks)
         cmd._execute([])
         got = output.getvalue().split("\n")[:-1]
-        assert ["You cant ignore all tasks! Please select a task."] == got, got
-        for task in tasks:
-            assert None == dep_manager._get(task.name, "ignore:")
+        self.assertEqual(["You cant ignore all tasks! Please select a task."], got)
+        for task in self.tasks:
+            self.assertIsNone(self.dep_manager._get(task.name, "ignore:"))
 
-    def testIgnoreOne(self, tasks, dep_manager):
+    def testIgnoreOne(self):
         output = StringIO()
-        cmd = CmdFactory(Ignore, outstream=output, dep_manager=dep_manager,
-                         task_list=tasks)
+        cmd = CmdFactory(Ignore, outstream=output, dep_manager=self.dep_manager,
+                         task_list=self.tasks)
         cmd._execute(["t2", "t1"])
         got = output.getvalue().split("\n")[:-1]
-        assert ["ignoring t2", "ignoring t1"] == got
-        dep = Dependency(DbmDB, dep_manager.name)
-        assert '1' == dep._get("t1", "ignore:")
-        assert '1' == dep._get("t2", "ignore:")
-        assert None == dep._get("t3", "ignore:")
+        self.assertEqual(["ignoring t2", "ignoring t1"], got)
+        dep = Dependency(DbmDB, self.dep_manager.name)
+        self.assertEqual('1', dep._get("t1", "ignore:"))
+        self.assertEqual('1', dep._get("t2", "ignore:"))
+        self.assertIsNone(dep._get("t3", "ignore:"))
 
-    def testIgnoreGroup(self, tasks, dep_manager):
+    def testIgnoreGroup(self):
         output = StringIO()
-        cmd = CmdFactory(Ignore, outstream=output, dep_manager=dep_manager,
-                         task_list=tasks)
+        cmd = CmdFactory(Ignore, outstream=output, dep_manager=self.dep_manager,
+                         task_list=self.tasks)
         cmd._execute(["g1"])
-        got = output.getvalue().split("\n")[:-1]
 
-        dep = Dependency(DbmDB, dep_manager.name)
-        assert None == dep._get("t1", "ignore:"), got
-        assert None == dep._get("t2", "ignore:")
-        assert '1' == dep._get("g1", "ignore:")
-        assert '1' == dep._get("g1.a", "ignore:")
-        assert '1' == dep._get("g1.b", "ignore:")
+        dep = Dependency(DbmDB, self.dep_manager.name)
+        self.assertIsNone(dep._get("t1", "ignore:"))
+        self.assertIsNone(dep._get("t2", "ignore:"))
+        self.assertEqual('1', dep._get("g1", "ignore:"))
+        self.assertEqual('1', dep._get("g1.a", "ignore:"))
+        self.assertEqual('1', dep._get("g1.b", "ignore:"))
 
     # if task dependency not from a group dont ignore it
-    def testDontIgnoreTaskDependency(self, tasks, dep_manager):
+    def testDontIgnoreTaskDependency(self):
         output = StringIO()
-        cmd = CmdFactory(Ignore, outstream=output, dep_manager=dep_manager,
-                         task_list=tasks)
+        cmd = CmdFactory(Ignore, outstream=output, dep_manager=self.dep_manager,
+                         task_list=self.tasks)
         cmd._execute(["t3"])
-        dep = Dependency(DbmDB, dep_manager.name)
-        assert '1' == dep._get("t3", "ignore:")
-        assert None == dep._get("t1", "ignore:")
+        dep = Dependency(DbmDB, self.dep_manager.name)
+        self.assertEqual('1', dep._get("t3", "ignore:"))
+        self.assertIsNone(dep._get("t1", "ignore:"))
 
-    def testIgnoreInvalid(self, tasks, dep_manager):
+    def testIgnoreInvalid(self):
         output = StringIO()
-        cmd = CmdFactory(Ignore, outstream=output, dep_manager=dep_manager,
-                         task_list=tasks)
-        pytest.raises(InvalidCommand, cmd._execute, ["XXX"])
+        cmd = CmdFactory(Ignore, outstream=output, dep_manager=self.dep_manager,
+                         task_list=self.tasks)
+        self.assertRaises(InvalidCommand, cmd._execute, ["XXX"])

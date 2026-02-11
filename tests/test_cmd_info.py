@@ -1,74 +1,77 @@
+import unittest
 from io import StringIO
-
-import pytest
 
 from doit.exceptions import InvalidCommand
 from doit.task import Task
 from doit.cmd_info import Info
-from .conftest import CmdFactory
+from tests.support import CmdFactory, DepManagerMixin, DependencyFileMixin
 
 
-class TestCmdInfo(object):
+class TestCmdInfo(DepManagerMixin, unittest.TestCase):
 
-    def test_info_basic_attrs(self, dep_manager):
+    def test_info_basic_attrs(self):
         output = StringIO()
         task = Task("t1", [], file_dep=['tests/data/dependency1'],
                     doc="task doc", getargs={'a': ('x', 'y')}, verbosity=2,
                     meta={'a': ['b', 'c']})
         cmd = CmdFactory(Info, outstream=output,
-                         dep_file=dep_manager.name, task_list=[task])
+                         dep_file=self.dep_manager.name, task_list=[task])
         cmd._execute(['t1'], hide_status=True)
-        assert "t1" in output.getvalue()
-        assert "task doc" in output.getvalue()
-        assert "- tests/data/dependency1" in output.getvalue()
-        assert "verbosity  : 2" in output.getvalue()
-        assert "getargs    : {'a': ('x', 'y')}" in output.getvalue()
-        assert "meta       : {'a': ['b', 'c']}" in output.getvalue()
+        self.assertIn("t1", output.getvalue())
+        self.assertIn("task doc", output.getvalue())
+        self.assertIn("- tests/data/dependency1", output.getvalue())
+        self.assertIn("verbosity  : 2", output.getvalue())
+        self.assertIn("getargs    : {'a': ('x', 'y')}", output.getvalue())
+        self.assertIn("meta       : {'a': ['b', 'c']}", output.getvalue())
 
-    def test_invalid_command_args(self, dep_manager):
+    def test_invalid_command_args(self):
         output = StringIO()
         task = Task("t1", [], file_dep=['tests/data/dependency1'])
         cmd = CmdFactory(Info, outstream=output,
-                         dep_file=dep_manager.name, task_list=[task])
-        # fails if number of args != 1
-        pytest.raises(InvalidCommand, cmd._execute, [])
-        pytest.raises(InvalidCommand, cmd._execute, ['t1', 't2'])
+                         dep_file=self.dep_manager.name, task_list=[task])
+        self.assertRaises(InvalidCommand, cmd._execute, [])
+        self.assertRaises(InvalidCommand, cmd._execute, ['t1', 't2'])
 
-    def test_execute_status_run(self, dep_manager, dependency1):
+
+class TestCmdInfoStatus(DependencyFileMixin, DepManagerMixin, unittest.TestCase):
+
+    def test_execute_status_run(self):
         output = StringIO()
         task = Task("t1", [], file_dep=['tests/data/dependency1'])
         cmd = CmdFactory(Info, outstream=output,
-                         dep_file=dep_manager.name, task_list=[task],
-                         dep_manager=dep_manager)
+                         dep_file=self.dep_manager.name, task_list=[task],
+                         dep_manager=self.dep_manager)
         return_val = cmd._execute(['t1'])
-        assert "t1" in output.getvalue()
-        assert return_val == 1  # indicates task is not up-to-date
-        assert "status" in output.getvalue()
-        assert ": run" in output.getvalue()
-        assert " - tests/data/dependency1" in output.getvalue()
+        self.assertIn("t1", output.getvalue())
+        self.assertEqual(1, return_val)
+        self.assertIn("status", output.getvalue())
+        self.assertIn(": run", output.getvalue())
+        self.assertIn(" - tests/data/dependency1", output.getvalue())
 
-    def test_hide_execute_status(self, dep_manager, dependency1):
+    def test_hide_execute_status(self):
         output = StringIO()
         task = Task("t1", [], file_dep=['tests/data/dependency1'])
         cmd = CmdFactory(Info, outstream=output,
-                         dep_manager=dep_manager, task_list=[task])
+                         dep_manager=self.dep_manager, task_list=[task])
         return_val = cmd._execute(['t1'], hide_status=True)
-        assert "t1" in output.getvalue()
-        assert return_val == 0  # always zero if not showing status
-        assert "status" not in output.getvalue()
-        assert ": run" not in output.getvalue()
+        self.assertIn("t1", output.getvalue())
+        self.assertEqual(0, return_val)
+        self.assertNotIn("status", output.getvalue())
+        self.assertNotIn(": run", output.getvalue())
 
-    def test_execute_status_uptodate(self, dep_manager, dependency1):
+    def test_execute_status_uptodate(self):
         output = StringIO()
         task = Task("t1", [], file_dep=['tests/data/dependency1'])
         cmd = CmdFactory(Info, outstream=output,
-                         dep_manager=dep_manager, task_list=[task])
+                         dep_manager=self.dep_manager, task_list=[task])
         cmd.dep_manager.save_success(task)
         return_val = cmd._execute(['t1'])
-        assert "t1" in output.getvalue()
-        assert return_val == 0  # indicates task is not up-to-date
-        assert ": up-to-date" in output.getvalue()
+        self.assertIn("t1", output.getvalue())
+        self.assertEqual(0, return_val)
+        self.assertIn(": up-to-date", output.getvalue())
 
+
+class TestGetReasons(unittest.TestCase):
 
     def test_get_reasons_str(self):
         reasons = {
@@ -77,13 +80,12 @@ class TestCmdInfo(object):
             'checker_changed': ['foo', 'bar'],
             'missing_target': ['f1', 'f2'],
         }
-
         got = Info.get_reasons(reasons).splitlines()
-        assert len(got) == 7
-        assert got[0] == ' * The task has no dependencies.'
-        assert got[1] == ' * The following uptodate objects evaluate to false:'
-        assert got[2] == '    - func (args=arg, kwargs=kwarg)'
-        assert got[3] == ' * The file_dep checker changed from foo to bar.'
-        assert got[4] == ' * The following targets do not exist:'
-        assert got[5] == '    - f1'
-        assert got[6] == '    - f2'
+        self.assertEqual(7, len(got))
+        self.assertEqual(' * The task has no dependencies.', got[0])
+        self.assertEqual(' * The following uptodate objects evaluate to false:', got[1])
+        self.assertEqual('    - func (args=arg, kwargs=kwarg)', got[2])
+        self.assertEqual(' * The file_dep checker changed from foo to bar.', got[3])
+        self.assertEqual(' * The following targets do not exist:', got[4])
+        self.assertEqual('    - f1', got[5])
+        self.assertEqual('    - f2', got[6])

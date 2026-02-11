@@ -3,6 +3,7 @@
 doit.egg-info
 .coverage
 .cache
+.rut_cache
 dist
 MANIFEST.in
 revision.txt
@@ -16,3 +17,7 @@ doc/samples/file*
 
 dev
 .vscode
+.venv
+.claude
+CLAUDE.md
+AGENTS.md

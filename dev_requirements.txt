@@ -6,7 +6,7 @@ build
 twine
 pyflakes>=3.0
 pycodestyle>=2.10
-pytest>=8.0
+rut>=3.0
 coverage>=7.0
 
 tomli; python_version<"3.11"

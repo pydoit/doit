@@ -51,5 +51,8 @@ toml = ["tomli; python_version < '3.11'"]
 cloudpickle = ["cloudpickle; platform_python_implementation != 'PyPy'"]
 
 
+[tool.rut]
+source_dirs = ["doit", "tests"]
+
 [tool.setuptools]
 packages = ["doit"]

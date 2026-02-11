@@ -1,5 +1,8 @@
+import io
 import sys
 import json
+import unittest
+import contextlib
 from io import StringIO
 
 from doit import reporter
@@ -7,26 +10,26 @@ from doit.task import Stream, Task
 from doit.exceptions import BaseFail, TaskFailed
 
 
-class TestConsoleReporter(object):
+class TestConsoleReporter(unittest.TestCase):
 
     def test_initialize(self):
         rep = reporter.ConsoleReporter(StringIO(), {})
         rep.initialize([Task("t_name", None)], ["t_name"])
         # no output on initialize
-        assert "" in rep.outstream.getvalue()
+        self.assertIn("", rep.outstream.getvalue())
 
     def test_startTask(self):
         rep = reporter.ConsoleReporter(StringIO(), {})
         rep.get_status(Task("t_name", None))
         # no output on start task
-        assert "" in rep.outstream.getvalue()
+        self.assertIn("", rep.outstream.getvalue())
 
     def test_executeTask(self):
         rep = reporter.ConsoleReporter(StringIO(), {})
         def do_nothing():pass
         t1 = Task("with_action",[(do_nothing,)])
         rep.execute_task(t1)
-        assert ".  with_action\n" == rep.outstream.getvalue()
+        self.assertEqual(".  with_action\n", rep.outstream.getvalue())
 
     def test_executeTask_unicode(self):
         rep = reporter.ConsoleReporter(StringIO(), {})
@@ -34,57 +37,56 @@ class TestConsoleReporter(object):
         task_name = "中文 with_action"
         t1 = Task(task_name, [(do_nothing,)])
         rep.execute_task(t1)
-        assert ".  中文 with_action\n" == rep.outstream.getvalue()
-
+        self.assertEqual(".  中文 with_action\n", rep.outstream.getvalue())
 
     def test_executeHidden(self):
         rep = reporter.ConsoleReporter(StringIO(), {})
         def do_nothing():pass
         t1 = Task("_hidden",[(do_nothing,)])
         rep.execute_task(t1)
-        assert "" == rep.outstream.getvalue()
+        self.assertEqual("", rep.outstream.getvalue())
 
     def test_executeGroupTask(self):
         rep = reporter.ConsoleReporter(StringIO(), {})
         rep.execute_task(Task("t_name", None))
-        assert "" == rep.outstream.getvalue()
+        self.assertEqual("", rep.outstream.getvalue())
 
     def test_skipUptodate(self):
         rep = reporter.ConsoleReporter(StringIO(), {})
         rep.skip_uptodate(Task("t_name", None))
-        assert "-- " in rep.outstream.getvalue()
-        assert "t_name" in rep.outstream.getvalue()
+        self.assertIn("-- ", rep.outstream.getvalue())
+        self.assertIn("t_name", rep.outstream.getvalue())
 
     def test_skipUptodate_hidden(self):
         rep = reporter.ConsoleReporter(StringIO(), {})
         rep.skip_uptodate(Task("_name", None))
-        assert "" == rep.outstream.getvalue()
+        self.assertEqual("", rep.outstream.getvalue())
 
     def test_skipIgnore(self):
         rep = reporter.ConsoleReporter(StringIO(), {})
         rep.skip_ignore(Task("t_name", None))
-        assert "!! " in rep.outstream.getvalue()
-        assert "t_name" in rep.outstream.getvalue()
+        self.assertIn("!! ", rep.outstream.getvalue())
+        self.assertIn("t_name", rep.outstream.getvalue())
 
-
-    def test_cleanupError(self, capsys):
+    def test_cleanupError(self):
         rep = reporter.ConsoleReporter(StringIO(), {})
         fail = TaskFailed("I got you")
-        rep.cleanup_error(fail)
-        err = capsys.readouterr()[1]
-        assert "I got you" in err
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            rep.cleanup_error(fail)
+        self.assertIn("I got you", err.getvalue())
 
     def test_teardownTask(self):
         rep = reporter.ConsoleReporter(StringIO(), {})
         rep.teardown_task(Task("t_name", None))
         # no output on teardown task
-        assert "" in rep.outstream.getvalue()
+        self.assertIn("", rep.outstream.getvalue())
 
     def test_addSuccess(self):
         rep = reporter.ConsoleReporter(StringIO(), {})
         rep.add_success(Task("t_name", None))
         # no output on success task
-        assert "" in rep.outstream.getvalue()
+        self.assertIn("", rep.outstream.getvalue())
 
     def test_addFailure(self):
         rep = reporter.ConsoleReporter(StringIO(), {})
@@ -96,11 +98,11 @@ class TestConsoleReporter(object):
         rep.complete_run()
         got = rep.outstream.getvalue()
         # description
-        assert "Exception: original 中文 exception message here" in got, got
+        self.assertIn("Exception: original 中文 exception message here", got)
         # traceback
-        assert """raise Exception("original 中文 exception message here")""" in got
+        self.assertIn('raise Exception("original 中文 exception message here")', got)
         # caught message
-        assert "caught exception there" in got
+        self.assertIn("caught exception there", got)
 
     def test_failure_no_report(self):
         rep = reporter.ConsoleReporter(StringIO(), {})
@@ -108,141 +110,131 @@ class TestConsoleReporter(object):
         rep.add_failure(Task("t_name", None, verbosity=1), failure)
         rep.complete_run()
         got = rep.outstream.getvalue()
-        assert "ExceptionKind" not in got
-        assert "caught exception there" not in got
+        self.assertNotIn("ExceptionKind", got)
+        self.assertNotIn("caught exception there", got)
 
     def test_runtime_error(self):
         msg = "runtime error"
         rep = reporter.ConsoleReporter(StringIO(), {})
-        assert [] == rep.runtime_errors
+        self.assertEqual([], rep.runtime_errors)
         # no imediate output
         rep.runtime_error(msg)
-        assert 1 == len(rep.runtime_errors)
-        assert msg == rep.runtime_errors[0]
-        assert "" in rep.outstream.getvalue()
+        self.assertEqual(1, len(rep.runtime_errors))
+        self.assertEqual(msg, rep.runtime_errors[0])
+        self.assertIn("", rep.outstream.getvalue())
         # runtime errors abort execution
         rep.complete_run()
         got = rep.outstream.getvalue()
-        assert msg in got
-        assert "Execution aborted" in got
-
+        self.assertIn(msg, got)
+        self.assertIn("Execution aborted", got)
 
     def test_complete_run_verbosity0(self):
         rep = reporter.ConsoleReporter(StringIO(), {})
         caught = TaskFailed("caught exception there", Exception("foo"))
-
         task = Task("t_name", None, verbosity=0)
         task.executed = True
         rep.add_failure(task, caught)
-
         # assign new StringIO so output is only from complete_run()
         rep.outstream = StringIO()
         rep.complete_run()
         got = rep.outstream.getvalue()
-        assert "<stdout>" in got
-        assert "<stderr>" in got
+        self.assertIn("<stdout>", got)
+        self.assertIn("<stderr>", got)
 
     def test_complete_run_verbosity0_not_executed(self):
         rep = reporter.ConsoleReporter(StringIO(), {})
         caught = TaskFailed("caught exception there", Exception("foo"))
-
         task = Task("t_name", None, verbosity=0)
         task.executed = False
         rep.add_failure(task, caught)
-
         # assign new StringIO so output is only from complete_run()
         rep.outstream = StringIO()
         rep.complete_run()
         got = rep.outstream.getvalue()
-        assert "<stdout>" not in got
-        assert "<stderr>" not in got
+        self.assertNotIn("<stdout>", got)
+        self.assertNotIn("<stderr>", got)
 
     def test_complete_run_verbosity1(self):
         rep = reporter.ConsoleReporter(StringIO(), {})
         caught = TaskFailed("caught exception there", Exception("foo"))
-
         task = Task("t_name", None, verbosity=1)
         task.executed = True
         rep.add_failure(task, caught)
-
         # assign new StringIO so output is only from complete_run()
         rep.outstream = StringIO()
         rep.complete_run()
         got = rep.outstream.getvalue()
-        assert "<stdout>" in got
-        assert "<stderr>" not in got
+        self.assertIn("<stdout>", got)
+        self.assertNotIn("<stderr>", got)
 
     def test_complete_run_verbosity2(self):
         rep = reporter.ConsoleReporter(StringIO(), {})
         caught = TaskFailed("caught exception there", Exception("foo"))
         rep.add_failure(Task("t_name", None, verbosity=2), caught)
-
         # assign new StringIO so output is only from complete_run()
         rep.outstream = StringIO()
         rep.complete_run()
         got = rep.outstream.getvalue()
-        assert "<stdout>" not in got
-        assert "<stderr>" not in got
-
+        self.assertNotIn("<stdout>", got)
+        self.assertNotIn("<stderr>", got)
 
     def test_complete_run_verbosity2_redisplay(self):
         rep = reporter.ConsoleReporter(StringIO(), {'failure_verbosity': 2})
         caught = TaskFailed("caught exception there", Exception("foo"))
-
         task = Task("t_name", None, verbosity=2)
         task.executed = True
         rep.add_failure(task, caught)
-
         # assign new StringIO so output is only from complete_run()
         rep.outstream = StringIO()
         rep.complete_run()
         got = rep.outstream.getvalue()
-        assert "<stdout>" in got
-        assert "<stderr>" in got
+        self.assertIn("<stdout>", got)
+        self.assertIn("<stderr>", got)
 
 
-
-class TestExecutedOnlyReporter(object):
+class TestExecutedOnlyReporter(unittest.TestCase):
     def test_skipUptodate(self):
         rep = reporter.ExecutedOnlyReporter(StringIO(), {})
         rep.skip_uptodate(Task("t_name", None))
-        assert "" == rep.outstream.getvalue()
+        self.assertEqual("", rep.outstream.getvalue())
 
     def test_skipIgnore(self):
         rep = reporter.ExecutedOnlyReporter(StringIO(), {})
         rep.skip_ignore(Task("t_name", None))
-        assert "" == rep.outstream.getvalue()
+        self.assertEqual("", rep.outstream.getvalue())
 
 
-class TestZeroReporter(object):
+class TestZeroReporter(unittest.TestCase):
     def test_executeTask(self):
         rep = reporter.ZeroReporter(StringIO(), {})
         def do_nothing():pass
         t1 = Task("with_action",[(do_nothing,)])
         rep.execute_task(t1)
-        assert "" == rep.outstream.getvalue()
+        self.assertEqual("", rep.outstream.getvalue())
 
-    def test_runtime_error(self, capsys):
+    def test_runtime_error(self):
         msg = "zero runtime error"
         rep = reporter.ZeroReporter(StringIO(), {})
         # imediate output
-        rep.runtime_error(msg)
-        assert msg in capsys.readouterr()[1]
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            rep.runtime_error(msg)
+        self.assertIn(msg, err.getvalue())
 
 
-class TestErrorOnlyReporter(object):
+class TestErrorOnlyReporter(unittest.TestCase):
     def test_executeTask(self):
         rep = reporter.ErrorOnlyReporter(StringIO(), {})
         def do_nothing():pass
         t1 = Task("with_action", [(do_nothing,)])
         rep.execute_task(t1)
-        assert "" == rep.outstream.getvalue()
+        self.assertEqual("", rep.outstream.getvalue())
 
     def test_faile_no_report(self):
         rep = reporter.ErrorOnlyReporter(StringIO(), {})
         failure = TaskFailed("An error here", report=False)
         rep.add_failure(Task("t_name", None, verbosity=1), failure)
-        assert "" == rep.outstream.getvalue()
+        self.assertEqual("", rep.outstream.getvalue())
 
     def test_error_report(self):
         class UnknownException(BaseFail):
@@ -251,12 +243,11 @@ class TestErrorOnlyReporter(object):
         exception = Exception("Error message here")
         failure = UnknownException("Something unexpected", exception)
         rep.add_failure(Task("t_name", None, verbosity=1), failure)
-        assert "Error message here" in rep.outstream.getvalue()
-        assert "Something unexpected" in rep.outstream.getvalue()
+        self.assertIn("Error message here", rep.outstream.getvalue())
+        self.assertIn("Something unexpected", rep.outstream.getvalue())
 
 
-
-class TestTaskResult(object):
+class TestTaskResult(unittest.TestCase):
     def test(self):
         def sample():
             print("this is printed")
@@ -266,15 +257,15 @@ class TestTaskResult(object):
         t1.execute(Stream(0))
         result.set_result('success')
         got = result.to_dict()
-        assert t1.name == got['name'], got
-        assert 'success' == got['result'], got
-        assert "this is printed\n" == got['out'], got
-        assert "" == got['err'], got
-        assert got['started']
-        assert 'elapsed' in got
+        self.assertEqual(t1.name, got['name'])
+        self.assertEqual('success', got['result'])
+        self.assertEqual("this is printed\n", got['out'])
+        self.assertEqual("", got['err'])
+        self.assertTrue(got['started'])
+        self.assertIn('elapsed', got)
 
 
-class TestJsonReporter(object):
+class TestJsonReporter(unittest.TestCase):
 
     def test_normal(self):
         output = StringIO()
@@ -299,49 +290,49 @@ class TestJsonReporter(object):
         # t4 ignore
         rep.get_status(t4)
         rep.skip_ignore(t4)
-
         rep.teardown_task(t4)
-
         rep.complete_run()
         got = json.loads(output.getvalue())
         for task_result in got['tasks']:
-            assert expected[task_result['name']] == task_result['result'], got
+            self.assertEqual(expected[task_result['name']], task_result['result'])
             if task_result['name'] == 't1':
-                assert 't1 failed!' in task_result['error']
+                self.assertIn('t1 failed!', task_result['error'])
 
-    def test_cleanup_error(self, capsys):
+    def test_cleanup_error(self):
         output = StringIO()
         rep = reporter.JsonReporter(output)
         t1 = Task("t1", None)
         msg = "cleanup error"
         fail = TaskFailed(msg)
-        assert [] == rep.errors
+        self.assertEqual([], rep.errors)
         rep.get_status(t1)
         rep.execute_task(t1)
         rep.add_success(t1)
-        rep.cleanup_error(fail)
-        assert [msg+'\n'] == rep.errors
-        assert "" in rep.outstream.getvalue()
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            rep.cleanup_error(fail)
+        self.assertEqual([msg+'\n'], rep.errors)
+        self.assertIn("", rep.outstream.getvalue())
         rep.complete_run()
         got = json.loads(output.getvalue())
-        assert msg in got['err']
+        self.assertIn(msg, got['err'])
 
     def test_runtime_error(self):
         output = StringIO()
         rep = reporter.JsonReporter(output)
         t1 = Task("t1", None)
         msg = "runtime error"
-        assert [] == rep.errors
+        self.assertEqual([], rep.errors)
         rep.get_status(t1)
         rep.execute_task(t1)
         rep.add_success(t1)
         rep.runtime_error(msg)
-        assert [msg] == rep.errors
-        assert "" in rep.outstream.getvalue()
+        self.assertEqual([msg], rep.errors)
+        self.assertIn("", rep.outstream.getvalue())
         # runtime errors abort execution
         rep.complete_run()
         got = json.loads(output.getvalue())
-        assert msg in got['err']
+        self.assertIn(msg, got['err'])
 
     def test_ignore_stdout(self):
         output = StringIO()
@@ -355,6 +346,6 @@ class TestJsonReporter(object):
         rep.add_success(t1)
         rep.complete_run()
         got = json.loads(output.getvalue())
-        assert expected[got['tasks'][0]['name']] == got['tasks'][0]['result']
-        assert "info that doesnt belong to any task..." == got['out']
-        assert "something on err" == got['err']
+        self.assertEqual(expected[got['tasks'][0]['name']], got['tasks'][0]['result'])
+        self.assertEqual("info that doesnt belong to any task...", got['out'])
+        self.assertEqual("something on err", got['err'])
