@@ -21,3 +21,5 @@ dev
 .claude
 CLAUDE.md
 AGENTS.md
+uv.toml
+uv.lock

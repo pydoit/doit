@@ -37,6 +37,27 @@ classifiers = [
 ]
 dependencies = []
 
+# uv sync --group dev --group docs
+# pip install --dependency-groups dev,docs -e .
+[dependency-groups]
+dev = [
+    "setuptools>=68.0",
+    "build",
+    "twine",
+    "pyflakes>=3.0",
+    "pycodestyle>=2.10",
+    "rut>=3.0",
+    "coverage>=7.0",
+    "tomli; python_version < '3.11'",
+]
+docs = [
+    "sphinx>=9,<10",
+    "furo>=2025,<2027",
+    "sphinx-sitemap",
+    "sphinx_reredirects",
+    "sphinx-design",
+]
+
 [project.urls]
 Homepage = "https://pydoit.org"
 Documentation = "https://pydoit.org/"

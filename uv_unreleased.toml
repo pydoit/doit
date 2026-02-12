@@ -1,0 +1,12 @@
+# Override uv sources to use local (unreleased) checkouts of dependencies.
+# This file is NOT tracked in git.
+#
+# Usage: symlink as uv.toml so uv picks it up automatically:
+#   ln -s uv_unreleased.toml uv.toml
+#
+# This avoids installing from PyPI and instead uses editable installs
+# from sibling directories (equivalent to: pip install -e ../rut).
+# Remove or adjust entries if you don't have the local checkouts.
+
+[sources]
+rut = { path = "../rut", editable = true }
