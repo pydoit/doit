@@ -21,33 +21,19 @@ jobs:
       - if: ${{ matrix.os == 'ubuntu' }}
         run: sudo apt-get install strace
       - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-
-      # https://github.blog/changelog/2022-10-11-github-actions-deprecating-save-state-and-set-output-commands/
-      - id: pip-cache
-        shell: bash
-        run: echo "dir=$(pip cache dir)" >> $GITHUB_OUTPUT
-
-      - uses: actions/cache@v4
-        with:
-          path: ${{ steps.pip-cache.outputs.dir }}
-          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml', 'dev_requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-${{ matrix.python-version }}-
-            ${{ runner.os }}-pip-
-      - run: pip install . -r dev_requirements.txt
+      - run: uv sync --group dev
       # PyPy bundles cffi which declares pycparser as dependency but doesn't ship it
       - if: ${{ startsWith(matrix.python-version, 'pypy') }}
-        run: pip install pycparser
-      - run: pip freeze
-      - run: pip check
-      - run: doit pyflakes
-      - run: doit codestyle
-      - run: py.test -vv ${{ matrix.pytest-args }}
+        run: uv pip install pycparser
+      - run: uv run doit pyflakes
+      - run: uv run doit codestyle
+      - run: uv run rut -vv
       - if: ${{ matrix.os == 'ubuntu' && matrix.python-version == '3.11' }}
-        run: doit coverage
+        run: uv run doit coverage
       - if: ${{ matrix.os == 'ubuntu' && matrix.python-version == '3.11' }}
         uses: codecov/codecov-action@v4
         with:

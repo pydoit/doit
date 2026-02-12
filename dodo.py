@@ -4,7 +4,6 @@ import glob
 import os
 import subprocess
 
-import pytest
 from pyflakes.api import checkPath
 
 
@@ -33,15 +32,13 @@ def task_pyflakes():
                 'file_dep': [py_file],
             }
 
-def run_test(test):
-    return not bool(pytest.main([test]))
 def task_ut():
     """run unit-tests"""
-    for test in TEST_FILES:
-        yield {'name': test,
-               'actions': [(run_test, (test,))],
-               'file_dep': PY_FILES,
-               'verbosity': 0}
+    return {
+        'actions': ['rut -c'],
+        'file_dep': PY_FILES,
+        'verbosity': 2,
+    }
 
 
 def _coverage_actions(modules, test=None):
@@ -49,7 +46,7 @@ def _coverage_actions(modules, test=None):
     omit = ['tests/myecho.py', 'tests/sample_process.py']
     actions = [
         'coverage run --parallel-mode --concurrency multiprocessing'
-        ' `which py.test`' + (' ' + test if test else ''),
+        ' `which rut`' + (' ' + test if test else ''),
         'coverage combine',
         'coverage report --show-missing --omit {} {}'.format(
             ','.join(omit), ' '.join(modules)),

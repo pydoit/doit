@@ -12,12 +12,12 @@ jobs:
     steps:
       - run: sudo apt-get install hunspell hunspell-en-us
       - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install . -r doc_requirements.txt -r dev_requirements.txt
-      - run: pip freeze
-      - run: doit -v2 website
+      - run: uv sync --group dev --group docs
+      - run: uv run doit -v2 website
       - uses: actions/upload-artifact@v4
         with:
           name: Website
