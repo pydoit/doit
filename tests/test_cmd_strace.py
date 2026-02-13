@@ -1,5 +1,6 @@
 import os
 import os.path
+import subprocess
 import sys
 import unittest
 from io import StringIO
@@ -14,7 +15,8 @@ from tests.support import CmdFactory, DepfileNameMixin, DependencyFileMixin
 
 
 @unittest.skipIf(
-    os.system('strace -V') != 0 or sys.platform in ['win32', 'cygwin'],
+    subprocess.run(['strace', '-V'], capture_output=True).returncode != 0
+    or sys.platform in ['win32', 'cygwin'],
     'strace not available or Windows platform')
 class TestCmdStrace(DependencyFileMixin, DepfileNameMixin, unittest.TestCase):
 
