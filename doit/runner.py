@@ -219,6 +219,7 @@ class Runner():
                 break
 
             if not self.select_task(node, task_dispatcher.tasks):
+                self.dep_manager.update_deps(node.task, ignore_missing=True)
                 continue
 
             base_fail = self.execute_task(node.task)
