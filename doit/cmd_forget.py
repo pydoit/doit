@@ -52,6 +52,8 @@ class Forget(DoitCmdBase):
         # forget tasks from list
         else:
             tasks = dict([(t.name, t) for t in self.task_list])
+            if self.sel_tasks is None:
+                self.sel_tasks = list(tasks.keys())
             check_tasks_exist(tasks, self.sel_tasks)
             forget_list = self.sel_tasks
 
