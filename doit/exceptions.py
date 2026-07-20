@@ -10,7 +10,7 @@ class InvalidCommand(Exception):
         self.not_found = kwargs.pop('not_found', None)
         super(InvalidCommand, self).__init__(*args, **kwargs)
         self.cmd_used = None
-        self.bin_name = 'doit'  # default but might be overwriten
+        self.bin_name = 'doit'  # default but might be overwritten
 
     def __str__(self):
         if self.not_found is None:
