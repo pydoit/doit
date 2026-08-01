@@ -268,6 +268,22 @@ class TestCmdExpandAction(unittest.TestCase):
         got = my_action.out.strip()
         self.assertEqual("3 - abc def", got)
 
+    def test_callable_called_once_per_expand(self):
+        # Regression test for #437: callable action should only be invoked
+        # once per expand_action() call, not multiple times.
+        call_count = 0
+        def counting_action():
+            nonlocal call_count
+            call_count += 1
+            return 'echo hello'
+        task = Task('Fake', [action.CmdAction(counting_action)])
+        task.options = {}
+        my_action = task.actions[0]
+        _ = my_action.expand_action()
+        _ = my_action.expand_action()
+        self.assertEqual(2, call_count,
+            "callable should be called once per expand_action() invocation")
+
     def test_callable_tuple_return_command_str(self):
         def get_cmd(opt1, opt2):
             cmd = "%s %s/myecho.py" % (executable, TEST_PATH)
