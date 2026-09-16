@@ -190,7 +190,7 @@ class TabCompletion(DoitCmdBase):
             cmds_args.append(self._zsh_cmd_args(cmd))
 
         template_vars = {
-            'pt_bin_name': sys.argv[0].split('/')[-1],
+            'pt_bin_name': os.path.split(sys.argv[0])[1],
             'pt_cmds': '\n    '.join(cmds_desc),
             'pt_cmds_args': '\n'.join(cmds_args),
         }
