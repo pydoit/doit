@@ -32,10 +32,10 @@ def scroll_start(total, cursor, height, start=0):
 class Navigator:
     """focus, cursor and column contents of the DAG navigator.
 
-    The cursor is in one of three columns; the focus column has a single
-    task and is selected by default. Without a focus (`focus` None) the focus
-    column lists all tasks and the other columns are empty until one is
-    chosen with `enter`.
+    The cursor is in one of three columns. The focus column always lists all
+    tasks, and the cursor starts on the focus task. Without a focus (`focus`
+    None) the cursor starts on the first task and the other columns are empty
+    until a task is chosen with `enter`.
     """
 
     def __init__(self, parents, children, states, reasons, focus):
@@ -49,16 +49,20 @@ class Navigator:
         self.states = dict(states)
         self.reasons = dict(reasons)
 
+    def focus_index(self):
+        """row of the focus task in the focus column (0 without focus)"""
+        if self.focus is None:
+            return 0
+        return self.column_items(FOCUS).index(self.focus)
+
     def _refocus(self, name):
         self.focus = name
         self.column = FOCUS
-        self.cursor = 0
+        self.cursor = self.focus_index()
 
     def column_items(self, column):
         if column == FOCUS:
-            if self.focus is None:
-                return sorted(self.states)
-            return [self.focus]
+            return sorted(self.states)
         if self.focus is None:
             return []
         adj = self.parents if column == PARENTS else self.children
@@ -76,7 +80,7 @@ class Navigator:
         index = ORDER.index(self.column) + step
         if 0 <= index < len(ORDER) and self.column_items(ORDER[index]):
             self.column = ORDER[index]
-            self.cursor = 0
+            self.cursor = self.focus_index() if self.column == FOCUS else 0
 
     def left(self):
         self._move(-1)
@@ -108,9 +112,9 @@ ASCII_HINTS = 'arrows move  Enter refocus  r reasons  R reload  q quit'
 
 def build_frame(nav, style, width=0, height=None, show_reasons=True,
                 cursor=False, starts=None):
-    """layout of the navigator screen: parents, focus and children in
-    columns, then status and reasons of the selected task (the focus task
-    unless the cursor moved). Used by the full-screen
+    """layout of the navigator screen: parents, all tasks (the focus task in
+    brackets) and children in columns, then status and reasons of the
+    selected task (the focus task unless the cursor moved). Used by the full-screen
     display (`height` = screen rows) and by the static output (`height` None:
     as many rows as needed).
 
@@ -123,8 +127,7 @@ def build_frame(nav, style, width=0, height=None, show_reasons=True,
     def label(name):
         return '%s %s' % (style.markers[nav.states[name]], name)
 
-    listing = nav.focus is None  # focus column lists all tasks
-    titles = ('parents', 'tasks' if listing else 'focus', 'children')
+    titles = ('parents', 'tasks', 'children')
     columns = [nav.column_items(column) for column in ORDER]
     need = max(max(len(title) for title in titles),
                *(len(label(n)) + 2 for names in columns for n in names)) + 3
@@ -132,7 +135,7 @@ def build_frame(nav, style, width=0, height=None, show_reasons=True,
     chosen = nav.selected()
     reasons = nav.selected_lines() if show_reasons else []
     if height is None:
-        rows = max(len(columns[0]), len(columns[2]), 1)
+        rows = max(len(names) for names in columns) or 1
     else:
         reasons = reasons[:max(0, height // 3)]
         rows = max(1, height - 4 - len(reasons))
@@ -141,23 +144,25 @@ def build_frame(nav, style, width=0, height=None, show_reasons=True,
              for i, title in enumerate(titles)]
     starts = {} if starts is None else starts
     for i, names in enumerate(columns):
-        if i == 1 and not listing:
-            flags = ('bold', 'cursor') if cursor and nav.column == FOCUS \
-                else ('bold',)
-            spans.append(Span(1 + rows // 2, col_w, '[%s]' % label(nav.focus),
-                              nav.states[nav.focus], flags, col_w - 1))
-            continue
         key = ORDER[i]
         selected = nav.cursor if cursor and key == nav.column else -1
+        # the focus column keeps the focus task in view when the cursor is
+        # elsewhere
+        anchor = nav.focus_index() if key == FOCUS and selected < 0 \
+            else max(selected, 0)
         start = 0
         if height is not None:
-            start = scroll_start(len(names), max(selected, 0), rows,
+            start = scroll_start(len(names), anchor, rows,
                                  starts.get(key, 0))
             starts[key] = start
         for row, name in enumerate(names[start:start + rows]):
             flags = ('cursor',) if start + row == selected else ()
-            spans.append(Span(1 + row, i * col_w, label(name),
-                              nav.states[name], flags, col_w - 1))
+            text = label(name)
+            if name == nav.focus:
+                flags = ('bold',) + flags
+                text = '[%s]' % text
+            spans.append(Span(1 + row, i * col_w, text, nav.states[name],
+                              flags, col_w - 1))
 
     rule = rows + 1
     spans.append(Span(rule, 0, style.glyphs['rule'] * (3 * col_w), None,

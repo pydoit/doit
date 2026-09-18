@@ -44,6 +44,11 @@ class TestNavigatorNoFocus(unittest.TestCase):
         n.left()
         self.assertEqual(n.column, 'focus')
 
+    def test_cursor_starts_on_first_task(self):
+        n = nav(None)
+        self.assertEqual((n.column, n.cursor, n.selected()),
+                         ('focus', 0, 'a'))
+
     def test_frame_shows_all_tasks(self):
         style = Style(color=False, ascii_only=True)
         spans, _, _ = build_frame(nav(None), style, 90, 12, cursor=True)
@@ -70,6 +75,19 @@ class TestScrollStart(unittest.TestCase):
 
 
 class TestNavigator(unittest.TestCase):
+
+    def test_focus_column_lists_all_tasks_cursor_on_focus(self):
+        n = nav('c')
+        self.assertEqual(n.column_items('focus'), ['a', 'b', 'c', 'd', 'e'])
+        self.assertEqual((n.column, n.cursor, n.selected()),
+                         ('focus', 2, 'c'))
+
+    def test_moving_back_to_focus_column_returns_to_focus(self):
+        n = nav('c')
+        n.down()
+        n.right()
+        n.left()
+        self.assertEqual(n.selected(), 'c')
 
     def test_focus_selected_by_default(self):
         n = nav('b')
@@ -111,8 +129,20 @@ class TestNavigator(unittest.TestCase):
     def test_up_down_in_focus_column(self):
         n = nav('a')
         n.down()
+        self.assertEqual(n.selected(), 'b')
+        n.up()
         n.up()
         self.assertEqual(n.selected(), 'a')
+        n = nav('e')
+        n.down()
+        self.assertEqual(n.selected(), 'e')
+
+    def test_enter_in_focus_column_refocuses(self):
+        n = nav('a')
+        n.down()
+        n.enter()
+        self.assertEqual((n.focus, n.selected()), ('b', 'b'))
+        self.assertEqual(n.column_items('parents'), ['a'])
 
     def test_column_change_resets_cursor(self):
         n = nav('d')
@@ -129,7 +159,7 @@ class TestNavigator(unittest.TestCase):
         n.down()
         n.enter()
         self.assertEqual(n.focus, 'c')
-        self.assertEqual((n.column, n.cursor, n.selected()), ('focus', 0, 'c'))
+        self.assertEqual((n.column, n.cursor, n.selected()), ('focus', 2, 'c'))
 
     def test_enter_on_focus_is_noop(self):
         n = nav('e')
@@ -159,18 +189,24 @@ class TestFrameLines(unittest.TestCase):
 
     def test_columns_and_footer(self):
         self.assertEqual(frame_lines(nav('d'), Style()), [
-            'parents    focus      children',
-            '~ b',
-            '~ c        [~ d]',
+            'parents    tasks      children',
+            '~ b        ● a',
+            '~ c        ~ b',
+            '           ~ c',
+            '           [~ d]',
+            '           ✓ e',
             RULE,
             'd  may-rerun',
         ])
 
     def test_reasons(self):
         self.assertEqual(frame_lines(nav('a'), Style()), [
-            'parents    focus      children',
-            '                      ~ b',
-            '           [● a]      ~ c',
+            'parents    tasks      children',
+            '           [● a]      ~ b',
+            '           ~ b        ~ c',
+            '           ~ c',
+            '           ~ d',
+            '           ✓ e',
             RULE,
             'a  run',
             ' * changed',
@@ -186,7 +222,7 @@ class TestFrameLines(unittest.TestCase):
 
     def test_columns_use_a_third_of_the_width(self):
         got = frame_lines(nav('a'), Style(), width=60)
-        self.assertEqual(got[0], 'parents'.ljust(20) + 'focus'.ljust(20)
+        self.assertEqual(got[0], 'parents'.ljust(20) + 'tasks'.ljust(20)
                          + 'children')
 
     def test_color_does_not_change_alignment(self):
@@ -225,10 +261,23 @@ class TestBuildFrame(unittest.TestCase):
         spans, _, _ = build_frame(n, Style(), 60, 12)
         self.assertIn(' * changed', [s.text for s in spans])
 
-    def test_focus_in_middle_row(self):
-        spans, _, _ = self.frame('a', height=13, show_reasons=False)
-        focus = [s for s in spans if s.text == '[● a]'][0]
-        self.assertEqual(focus.row, 1 + (13 - 4) // 2)
+    def test_focus_column_lists_all_tasks_focus_in_brackets(self):
+        spans, _, _ = self.frame('c', height=12)
+        column = [s.text for s in sorted(spans, key=lambda s: s.row)
+                  if s.x == 20 and 0 < s.row < 7]
+        self.assertEqual(column,
+                         ['● a', '~ b', '[~ c]', '~ d', '✓ e'])
+
+    def test_focus_stays_in_view_when_cursor_is_elsewhere(self):
+        names = ['t%02d' % i for i in range(30)]
+        parents = {n: [] for n in names}
+        parents['t29'] = ['t00']
+        children = {n: [] for n in names}
+        children['t00'] = ['t29']
+        n = Navigator(parents, children, {k: 'run' for k in names}, {}, 't29')
+        n.left()  # cursor in parents column
+        spans, _, _ = build_frame(n, Style(), 60, 10, True, True, {})
+        self.assertIn('[● t29]', [s.text for s in spans])
 
     def test_cursor_flag_only_in_active_column(self):
         n = nav('a')
@@ -306,8 +355,8 @@ class TestDraw(unittest.TestCase):
         out = term.writes[0]
         self.assertTrue(out.startswith('\x1b[H\x1b[2J'))
         self.assertIn('\x1b[1;1H\x1b[2mparents', out)
-        # focus at column 21 (0-based 20), middle row
-        self.assertIn('\x1b[5;21H\x1b[1;7m[● a]\x1b[0m', out)
+        # focus at column 21 (0-based 20), first row
+        self.assertIn('\x1b[2;21H\x1b[1;7m[● a]\x1b[0m', out)
         self.assertIn(HINTS, out)
 
     def test_color_and_no_color(self):

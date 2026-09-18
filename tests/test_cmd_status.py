@@ -1,8 +1,7 @@
 import unittest
 
 from doit.cmd_status import (
-    Node, build_edges, collapse_subtasks, splice_hidden, build_adjacency,
-    compute_roots)
+    Node, build_edges, collapse_subtasks, splice_hidden, build_adjacency)
 
 
 class TestBuildEdges(unittest.TestCase):
@@ -62,16 +61,14 @@ class TestSpliceHidden(unittest.TestCase):
 
 class TestAdjacency(unittest.TestCase):
 
-    def test_children_parents_roots(self):
+    def test_children_parents(self):
         edges = {('a', 'c'): {'file'}, ('a', 'b'): {'order'}}
         children, parents = build_adjacency({'a', 'b', 'c'}, edges)
         self.assertEqual(children, {'a': ['b', 'c'], 'b': [], 'c': []})
         self.assertEqual(parents, {'a': [], 'b': ['a'], 'c': ['a']})
-        self.assertEqual(compute_roots({'a', 'b', 'c'}, parents), ['a'])
 
 from doit.cmd_status import (
-    aggregate_group_status, resolve_missing_inputs, compute_may_rerun,
-    compute_min_depth, filter_stale_only)
+    aggregate_group_status, resolve_missing_inputs, compute_may_rerun)
 
 
 class TestAggregate(unittest.TestCase):
@@ -144,33 +141,6 @@ class TestMayRerun(unittest.TestCase):
         self.assertEqual(compute_may_rerun(set(states), edges, states), set())
 
 
-class TestMinDepth(unittest.TestCase):
-
-    def test_shallowest(self):
-        children = {'a': ['x'], 'x': ['c'], 'b': ['c'], 'c': []}
-        self.assertEqual(compute_min_depth(['a', 'b'], children),
-                         {'a': 0, 'b': 0, 'x': 1, 'c': 1})
-
-
-class TestFilterStaleOnly(unittest.TestCase):
-
-    def test_keeps_path_to_stale_node(self):
-        children = {'a': ['b', 'c'], 'b': ['d'], 'c': [], 'd': []}
-        states = {'a': 'up-to-date', 'b': 'up-to-date', 'c': 'up-to-date',
-                  'd': 'run'}
-        roots, kids = filter_stale_only(['a'], children, states)
-        self.assertEqual(roots, ['a'])
-        self.assertEqual(kids, {'a': ['b'], 'b': ['d'], 'c': [], 'd': []})
-
-    def test_all_quiet_gives_no_roots(self):
-        children = {'a': ['b'], 'b': []}
-        states = {'a': 'up-to-date', 'b': 'ignore'}
-        roots, kids = filter_stale_only(['a'], children, states)
-        self.assertEqual(roots, [])
-
-from doit.cmd_status import Style, make_style, render_forest
-
-
 class FakeStream:
     def __init__(self, encoding=None, tty=False):
         self.encoding = encoding
@@ -182,27 +152,23 @@ class FakeStream:
 
 class TestStyle(unittest.TestCase):
 
-    def test_plain_unicode(self):
-        style = Style()
-        self.assertEqual(style.node('a', 'run'), '● a')
-        self.assertEqual(style.node('a', 'up-to-date'), '✓ a')
-        self.assertEqual(style.cut('a', 'run'), '● a …')
+    def test_markers(self):
+        self.assertEqual(Style().markers['run'], '●')
+        self.assertEqual(Style().markers['up-to-date'], '✓')
+        self.assertEqual(Style(ascii_only=True).markers['run'], '*')
+        self.assertEqual(Style(ascii_only=True).markers['up-to-date'], '+')
 
-    def test_ascii(self):
-        style = Style(ascii_only=True)
-        self.assertEqual(style.node('a', 'up-to-date'), '+ a')
-        self.assertEqual(style.node('a', 'run'), '* a')
-        self.assertEqual(style.cut('a', 'run'), '* a ...')
+    def test_span_plain(self):
+        self.assertEqual(Style().span('a', 'run', ('bold',)), 'a')
 
-    def test_color(self):
+    def test_span_color(self):
         style = Style(color=True)
-        self.assertEqual(style.node('a', 'run'), '\033[31m● a\033[0m')
-        self.assertEqual(style.node('a', 'up-to-date'), '\033[32m✓ a\033[0m')
+        self.assertEqual(style.span('a', 'run'), '\033[31ma\033[0m')
+        self.assertEqual(style.span('a', 'up-to-date', ('bold',)),
+                         '\033[32;1ma\033[0m')
 
     def test_make_style_not_tty(self):
-        style = make_style(FakeStream(), {})
-        self.assertFalse(style.color)
-        self.assertEqual(style.node('a', 'run'), '● a')
+        self.assertFalse(make_style(FakeStream(), {}).color)
 
     def test_make_style_tty_color(self):
         self.assertTrue(make_style(FakeStream(tty=True), {}).color)
@@ -213,74 +179,7 @@ class TestStyle(unittest.TestCase):
 
     def test_make_style_ascii_encoding(self):
         style = make_style(FakeStream(encoding='ascii'), {})
-        self.assertEqual(style.node('a', 'run'), '* a')
-
-
-class TestRenderForest(unittest.TestCase):
-
-    def render(self, roots, children, states, **kw):
-        md = kw.pop('min_depth', None) or compute_min_depth(roots, children)
-        style = kw.pop('style', Style())
-        return render_forest(roots, children, states, style, md, **kw)
-
-    def test_chain(self):
-        children = {'a': ['b'], 'b': ['c'], 'c': []}
-        states = {'a': 'run', 'b': 'may-rerun', 'c': 'may-rerun'}
-        self.assertEqual(self.render(['a'], children, states),
-                         ['● a', '└── ~ b', '    └── ~ c'])
-
-    def test_siblings_use_pipe(self):
-        children = {'a': ['b', 'c'], 'b': ['d'], 'c': [], 'd': []}
-        states = {n: 'up-to-date' for n in children}
-        self.assertEqual(self.render(['a'], children, states),
-                         ['✓ a', '├── ✓ b', '│   └── ✓ d', '└── ✓ c'])
-
-    def test_ascii_lines(self):
-        children = {'a': ['b', 'c'], 'b': [], 'c': []}
-        states = {n: 'up-to-date' for n in children}
-        got = self.render(['a'], children, states,
-                          style=Style(ascii_only=True))
-        self.assertEqual(got, ['+ a', '|-- + b', '`-- + c'])
-
-    def test_expand_once(self):
-        children = {'a': ['c'], 'b': ['c'], 'c': []}
-        states = {n: 'up-to-date' for n in children}
-        self.assertEqual(self.render(['a', 'b'], children, states),
-                         ['✓ a', '└── ✓ c (also after: b)', '✓ b'])
-
-    def test_expand_at_shallowest_depth(self):
-        children = {'a': ['x'], 'x': ['c'], 'b': ['c'], 'c': []}
-        states = {n: 'up-to-date' for n in children}
-        self.assertEqual(
-            self.render(['a', 'b'], children, states),
-            ['✓ a', '└── ✓ x', '✓ b', '└── ✓ c (also after: x)'])
-
-    def test_depth_cut(self):
-        children = {'a': ['b'], 'b': ['c'], 'c': []}
-        states = {n: 'up-to-date' for n in children}
-        self.assertEqual(self.render(['a'], children, states, max_depth=1),
-                         ['✓ a', '└── ✓ b …'])
-
-    def test_depth_leaf_at_limit_not_cut(self):
-        children = {'a': ['b'], 'b': []}
-        states = {n: 'up-to-date' for n in children}
-        self.assertEqual(self.render(['a'], children, states, max_depth=1),
-                         ['✓ a', '└── ✓ b'])
-
-    def test_cut_at_every_occurrence(self):
-        children = {'a': ['c'], 'b': ['c'], 'c': ['d'], 'd': []}
-        states = {n: 'up-to-date' for n in children}
-        self.assertEqual(
-            self.render(['a', 'b'], children, states, max_depth=1),
-            ['✓ a', '└── ✓ c … (also after: b)', '✓ b'])
-
-    def test_reasons(self):
-        children = {'a': ['b'], 'b': []}
-        states = {'a': 'run', 'b': 'run'}
-        reasons = {'a': [' * file missing'], 'b': [' * other']}
-        self.assertEqual(
-            self.render(['a'], children, states, reasons=reasons),
-            ['● a', ' * file missing', '└── ● b', '     * other'])
+        self.assertEqual(style.markers['run'], '*')
 
 
 import os
@@ -288,7 +187,7 @@ import types
 from io import StringIO
 from unittest import mock
 
-from doit.cmd_status import Status
+from doit.cmd_status import Status, Style, make_style
 from doit.exceptions import InvalidCommand
 from doit.status_term import TuiUnavailable
 from doit.task import Task
@@ -306,6 +205,7 @@ class StatusTestBase(DependencyFileMixin, DepManagerMixin, unittest.TestCase):
 
 
 class TestCmdStatus(StatusTestBase):
+    """no TASK: the screen of the navigator, nothing focused"""
 
     def test_no_tasks(self):
         self.assertEqual(self.status([]), [])
@@ -316,26 +216,34 @@ class TestCmdStatus(StatusTestBase):
                          dep_manager=self.dep_manager)
         self.assertRaises(InvalidCommand, cmd._execute, pos_args=['nope'])
 
+    def test_lists_all_tasks_nothing_focused(self):
+        a = Task('a', [''], targets=['gen/a.out'])
+        b = Task('b', [''], file_dep=['gen/a.out'])
+        self.assertEqual(self.status([a, b]), [
+            'parents    tasks      children',
+            '           ● a',
+            '           ● b',
+            '─────────────────────────────────',
+            'a  run',
+            ' * The task has no dependencies.',
+            ' * The following targets do not exist:',
+            '    - gen/a.out',
+        ])
+
     def test_up_to_date(self):
         task = Task('t', [''], file_dep=[self.dependency1])
         self.dep_manager.save_success(task)
-        self.assertEqual(self.status([task]), ['✓ t'])
+        self.assertEqual(self.status([task])[1], '           ✓ t')
 
     def test_missing_input_made_upstream_is_run(self):
         a = Task('a', [''], targets=['gen/a.out'])
         b = Task('b', [''], file_dep=['gen/a.out'])
-        self.assertEqual(self.status([a, b], reasons=True), [
-            '● a',
-            ' * The task has no dependencies.',
-            ' * The following targets do not exist:',
-            '    - gen/a.out',
-            '└── ● b',
-            '     * input produced by task a',
-        ])
+        self.assertEqual(self.status([a, b], pos_args=['b'])[-2:],
+                         ['b  run', ' * input produced by task a'])
 
     def test_missing_input_nobody_produces_is_error(self):
         b = Task('b', [''], file_dep=['nowhere.txt'])
-        self.assertEqual(self.status([b]), ['! b'])
+        self.assertEqual(self.status([b])[1], '           ! b')
 
     def test_may_rerun_through_file_edge(self):
         path = os.path.join(self._dep_tmpdir, 'a.out')
@@ -344,27 +252,26 @@ class TestCmdStatus(StatusTestBase):
         a = Task('a', [''], targets=[path])
         b = Task('b', [''], file_dep=[path])
         self.dep_manager.save_success(b)
-        self.assertEqual(self.status([a, b]), ['● a', '└── ~ b'])
+        self.assertEqual(self.status([a, b])[1:3],
+                         ['           ● a', '           ~ b'])
 
     def test_order_edge_is_not_may_rerun(self):
         a = Task('a', [''])
         c = Task('c', [''], file_dep=[self.dependency1], task_dep=['a'])
         self.dep_manager.save_success(c)
-        self.assertEqual(self.status([a, c]), ['● a', '└── ✓ c'])
-
-    def test_stale_only(self):
-        t = Task('t', [''], file_dep=[self.dependency1])
-        self.dep_manager.save_success(t)
-        u = Task('u', [''])
-        self.assertEqual(self.status([t, u], stale_only=True), ['● u'])
+        self.assertEqual(self.status([a, c])[1:3],
+                         ['           ● a', '           ✓ c'])
 
     def test_private_hidden_and_spliced(self):
         a = Task('a', [''], targets=['gen/a.out'])
         x = Task('_x', [''], file_dep=['gen/a.out'], targets=['gen/x.out'])
         b = Task('b', [''], file_dep=['gen/x.out'])
-        self.assertEqual(self.status([a, x, b]), ['● a', '└── ● b'])
-        self.assertEqual(self.status([a, x, b], private=True),
-                         ['● a', '└── ● _x', '    └── ● b'])
+        got = self.status([a, x, b], pos_args=['a'])
+        self.assertEqual(got[1], '           [● a]      ● b')
+        self.assertEqual(len(got[1:got.index(RULE)]), 2)
+        got = self.status([a, x, b], private=True, pos_args=['a'])
+        self.assertEqual(got[1], '           ● _x       ● _x')
+        self.assertEqual(len(got[1:got.index(RULE)]), 3)
 
     def test_group_collapsed_and_aggregate(self):
         group = Task('g', None, has_subtask=True)
@@ -372,35 +279,29 @@ class TestCmdStatus(StatusTestBase):
         ga = Task('g.a', [''], subtask_of='g')
         gb = Task('g.b', [''], subtask_of='g')
         tasks = [group, ga, gb]
-        self.assertEqual(self.status(tasks), ['● g'])
-        self.assertEqual(self.status(tasks, subtasks=True),
-                         ['● g.a', '└── ● g (also after: g.b)', '● g.b'])
+        self.assertEqual(self.status(tasks)[1:2], ['           ● g'])
+        self.assertEqual(self.status(tasks)[2], RULE)
+        got = self.status(tasks, subtasks=True)
+        self.assertEqual(got[1:4], ['           ● g', '           ● g.a',
+                                    '           ● g.b'])
 
     def test_group_reasons_name_subtasks(self):
         group = Task('g', None, has_subtask=True)
         group.task_dep = ['g.a']
         ga = Task('g.a', [''], subtask_of='g')
-        got = self.status([group, ga], reasons=True)
-        self.assertEqual(got[0], '● g')
-        self.assertIn(' * subtask g.a: run', got)
+        got = self.status([group, ga])
+        self.assertEqual(got[-2:], ['g  run', ' * subtask g.a: run'])
 
     def test_delayed_task_is_unknown(self):
         a = Task('a', [''])
         late = Task('late', None,
                     loader=types.SimpleNamespace(task_dep='a'))
-        self.assertEqual(self.status([a, late], reasons=True), [
-            '● a',
-            ' * The task has no dependencies.',
-            '└── ? late',
-            '     * created at run time (create_after)',
-        ])
+        got = self.status([a, late], pos_args=['late'])
+        self.assertEqual(got[-2:], ['late  unknown',
+                                    ' * created at run time (create_after)'])
 
-    def test_depth(self):
-        a = Task('a', [''], targets=['gen/a.out'])
-        b = Task('b', [''], file_dep=['gen/a.out'], targets=['gen/b.out'])
-        c = Task('c', [''], file_dep=['gen/b.out'])
-        self.assertEqual(self.status([a, b, c], depth=1),
-                         ['● a', '└── ● b …'])
+
+RULE = '─' * 33
 
 
 class TestCmdStatusFocus(StatusTestBase):
@@ -413,9 +314,11 @@ class TestCmdStatusFocus(StatusTestBase):
 
     def test_focus_frame_with_reasons(self):
         self.assertEqual(self.status(self.chain(), pos_args=['b']), [
-            'parents    focus      children',
-            '● a        [● b]      ● c',
-            '─────────────────────────────────',
+            'parents    tasks      children',
+            '● a        ● a        ● c',
+            '           [● b]',
+            '           ● c',
+            RULE,
             'b  run',
             ' * input produced by task a',
         ])
@@ -434,7 +337,8 @@ class TestCmdStatusFocus(StatusTestBase):
         group = Task('g', None, has_subtask=True)
         group.task_dep = ['g.a']
         ga = Task('g.a', [''], subtask_of='g')
-        self.assertIn('[● g.a]', self.status([group, ga], pos_args=['g.a'])[1])
+        self.assertIn('[● g.a]',
+                      '\n'.join(self.status([group, ga], pos_args=['g.a'])))
 
 
 class TestCmdStatusReadOnly(StatusTestBase):
@@ -444,7 +348,7 @@ class TestCmdStatusReadOnly(StatusTestBase):
                  Task('b', [''], file_dep=['gen/a.out'])]
         with mock.patch.object(self.dep_manager, 'close') as close, \
                 mock.patch.object(self.dep_manager.backend, 'dump') as dump:
-            self.status(tasks, reasons=True)
+            self.status(tasks)
         close.assert_not_called()
         dump.assert_not_called()
 

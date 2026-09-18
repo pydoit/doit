@@ -7,12 +7,13 @@ backend dump(), so no task state is persisted.
 import fnmatch
 import os
 import shutil
-from collections import defaultdict, deque, namedtuple
+from collections import defaultdict, namedtuple
 
 from .cmd_base import DoitCmdBase, check_tasks_exist
 from .cmd_info import Info
 from .cmd_list import opt_listall, opt_list_private
 from .control import TaskControl
+from .status_tui import Navigator, frame_lines
 
 FILE = 'file'
 ORDER = 'order'
@@ -93,11 +94,6 @@ def build_adjacency(names, edges):
     return children, parents
 
 
-def compute_roots(names, parents):
-    """sources of the graph: names without any dependency"""
-    return sorted(name for name in names if not parents[name])
-
-
 QUIET_STATES = ('up-to-date', 'ignore')
 _STALE_STATES = ('run', 'error')
 _RANK = {'ignore': -1, 'up-to-date': 0, 'unknown': 1, 'may-rerun': 2,
@@ -148,44 +144,6 @@ def compute_may_rerun(names, edges, states):
             if states[name] == 'up-to-date' and stale_above(name)}
 
 
-def compute_min_depth(roots, children):
-    """shallowest depth of every node reachable from roots (roots = 0)"""
-    depth = {}
-    queue = deque()
-    for root in roots:
-        depth[root] = 0
-        queue.append(root)
-    while queue:
-        name = queue.popleft()
-        for kid in children.get(name, ()):
-            if kid not in depth:
-                depth[kid] = depth[name] + 1
-                queue.append(kid)
-    return depth
-
-
-def filter_stale_only(roots, children, states):
-    """drop nodes in QUIET_STATES unless a kept node is below them.
-
-    @return: (roots, children) with only kept nodes
-    """
-    keep = {}
-
-    def visit(name):
-        if name in keep:
-            return keep[name]
-        keep[name] = False  # guard against cycles
-        below = [visit(kid) for kid in children.get(name, ())]
-        keep[name] = states[name] not in QUIET_STATES or any(below)
-        return keep[name]
-
-    for root in roots:
-        visit(root)
-    new_children = {name: [kid for kid in kids if keep.get(kid)]
-                    for name, kids in children.items()}
-    return [root for root in roots if keep.get(root)], new_children
-
-
 _MARKERS = {'up-to-date': '✓', 'run': '●', 'may-rerun': '~', 'error': '!',
             'ignore': '-', 'unknown': '?'}
 _ASCII_MARKERS = {'up-to-date': '+', 'run': '*', 'may-rerun': '~',
@@ -193,14 +151,12 @@ _ASCII_MARKERS = {'up-to-date': '+', 'run': '*', 'may-rerun': '~',
 _COLORS = {'up-to-date': '32', 'run': '31', 'may-rerun': '33', 'error': '31',
            'ignore': '2', 'unknown': '33'}
 _DIM = '2'
-_GLYPHS = {'branch': '├── ', 'last': '└── ', 'pipe': '│   ',
-           'blank': '    ', 'cut': '…', 'rule': '─'}
-_ASCII_GLYPHS = {'branch': '|-- ', 'last': '`-- ', 'pipe': '|   ',
-                 'blank': '    ', 'cut': '...', 'rule': '-'}
+_GLYPHS = {'rule': '─'}
+_ASCII_GLYPHS = {'rule': '-'}
 
 
 class Style:
-    """colors, markers and tree glyphs"""
+    """colors, markers and glyphs"""
 
     def __init__(self, color=False, ascii_only=False):
         self.color = color
@@ -212,13 +168,6 @@ class Style:
         if not self.color:
             return text
         return '\033[%sm%s\033[0m' % (code, text)
-
-    def node(self, name, state):
-        return self._paint('%s %s' % (self.markers[state], name),
-                           _COLORS[state])
-
-    def dim(self, text):
-        return self._paint(text, _DIM)
 
     def codes(self, state=None, flags=()):
         """SGR codes: color of a state (only if color is on), plus the
@@ -233,15 +182,6 @@ class Style:
         return self._paint(text, self.codes(state, flags)) \
             if self.color and self.codes(state, flags) else text
 
-    def also(self, label, names):
-        """note listing the other parents of a task shown once"""
-        return self._paint('(%s: %s)' % (label, ', '.join(names)), _DIM)
-
-    def cut(self, name, state):
-        """task whose children are hidden by --depth"""
-        return '%s %s' % (self.node(name, state), self.glyphs['cut'])
-
-
 def make_style(stream, environ):
     """color if stream is a TTY and NO_COLOR is unset. ASCII glyphs if the
     stream encoding can not encode the default ones."""
@@ -255,102 +195,6 @@ def make_style(stream, environ):
         ascii_only = True
     return Style(color, ascii_only)
 
-
-def render_forest(roots, children, states, style, min_depth, reasons=None,
-                  max_depth=None, start_depth=0, indent='',
-                  also_label='also after'):
-    """render trees below `roots` as a list of lines.
-
-    Every task is shown once: at the first occurrence (sorted DFS) at its
-    shallowest depth. Its line ends with a note naming its other parents.
-    A task with children at `max_depth` is shown cut off.
-
-    @param min_depth: dict name -> shallowest depth (see compute_min_depth),
-                      in the same depth scale as `start_depth`
-    @param reasons: dict name -> lines printed verbatim under the task
-    @param also_label: prefix of the note listing the other parents
-    """
-    reasons = reasons or {}
-    lines = []
-    shown = set()
-    glyphs = style.glyphs
-
-    # parents of every task reachable from roots, by name
-    others = {}
-    todo = list(roots)
-    seen = set(todo)
-    while todo:
-        name = todo.pop()
-        for kid in children.get(name, ()):
-            others.setdefault(kid, set()).add(name)
-            if kid not in seen:
-                seen.add(kid)
-                todo.append(kid)
-
-    def line(name, parent, text):
-        extra = sorted(others.get(name, set()) - {parent})
-        if extra:
-            text += ' ' + style.also(also_label, extra)
-        return text
-
-    def emit(name, depth, lead, child_lead, parent):
-        shown.add(name)
-        kids = children.get(name, ())
-        if max_depth is not None and depth == max_depth and kids:
-            lines.append(lead + line(name, parent,
-                                     style.cut(name, states[name])))
-            return
-        lines.append(lead + line(name, parent, style.node(name, states[name])))
-        for text in reasons.get(name, ()):
-            lines.append(child_lead + text)
-        # kids shown elsewhere leave no line, so no dangling branch glyph
-        # (they are marked as shown when emitted, so filter lazily)
-        for i, kid in enumerate(kids):
-            rest = [k for k in kids[i:] if wanted(k, depth + 1)]
-            if kid not in rest:
-                continue
-            last = len(rest) == 1
-            emit(kid, depth + 1,
-                 child_lead + glyphs['last' if last else 'branch'],
-                 child_lead + glyphs['blank' if last else 'pipe'], name)
-
-    def wanted(name, depth):
-        return depth <= min_depth[name] and name not in shown
-
-    for root in roots:
-        if wanted(root, start_depth):
-            emit(root, start_depth, indent, indent, None)
-    return lines
-
-
-opt_stale_only = {
-    'name': 'stale_only',
-    'short': '',
-    'long': 'stale-only',
-    'type': bool,
-    'default': False,
-    'help': "hide up-to-date and ignored tasks (keeps tasks needed to "
-            "reach a shown one; ignored with TASK)"
-}
-
-opt_depth = {
-    'name': 'depth',
-    'short': '',
-    'long': 'depth',
-    'type': int,
-    'default': None,
-    'help': "limit tree depth to N levels below the roots (ignored with "
-            "TASK)"
-}
-
-opt_reasons = {
-    'name': 'reasons',
-    'short': '',
-    'long': 'reasons',
-    'type': bool,
-    'default': False,
-    'help': "print why a task is not up-to-date"
-}
 
 DELAYED_REASON = ' * created at run time (create_after)'
 
@@ -367,7 +211,7 @@ opt_interactive = {
     'type': bool,
     'default': False,
     'help': "browse the graph in a full-screen navigator, starting at the "
-            "first TASK (required)"
+            "first TASK (default: all tasks listed, none focused)"
 }
 
 
@@ -379,8 +223,7 @@ class Status(DoitCmdBase):
         "Markers: ✓ up-to-date, ● run, ~ may rerun (an input is produced "
         "by a stale task), ! error, - ignored, ? unknown.")
 
-    cmd_options = (opt_stale_only, opt_depth, opt_reasons,
-                   opt_list_private, opt_listall, opt_interactive)
+    cmd_options = (opt_list_private, opt_listall, opt_interactive)
 
     def _build_nodes(self, tasks):
         """@return: (nodes, owners), owners: dict target path -> task name"""
@@ -440,9 +283,8 @@ class Status(DoitCmdBase):
                 lines.append(' * %s' % result.error_reason)
         return state, lines
 
-    def _execute(self, stale_only=False, depth=None,
-                 reasons=False, private=False, subtasks=False,
-                 interactive=False, pos_args=None):
+    def _execute(self, private=False, subtasks=False, interactive=False,
+                 pos_args=None):
         focus_names = list(pos_args or [])
         tasks = {t.name: t for t in self.task_list}
         if not tasks:
@@ -481,17 +323,15 @@ class Status(DoitCmdBase):
             return states, {name: lines[name] for name in visible
                             if lines.get(name)}
 
+        if not visible:
+            return 0
         states, lines = compute()
         style = make_style(self.outstream, os.environ)
-        roots = compute_roots(visible, parents)
 
         if interactive:
-            if not visible:
-                return 0
             from . import status_tui
-            nav = status_tui.Navigator(parents, children, states, lines,
-                                       focus_names[0] if focus_names
-                                       else None)
+            nav = Navigator(parents, children, states, lines,
+                            focus_names[0] if focus_names else None)
             # snapshot: hold no DB handle while the user navigates
             self.dep_manager.release()
 
@@ -510,26 +350,14 @@ class Status(DoitCmdBase):
                 return 1
             return 0
 
-        shown = {name: lines[name] for name in lines
-                 if name in focus_names
-                 or (reasons and states[name] not in QUIET_STATES)}
         out = []
-        if focus_names:
-            from .status_tui import Navigator, frame_lines
-            width = 0  # columns as narrow as their content when piped
-            if self.outstream.isatty():
-                width = shutil.get_terminal_size().columns
-            for focus in focus_names:
-                if out:
-                    out.append('')
-                nav = Navigator(parents, children, states, lines, focus)
-                out.extend(frame_lines(nav, style, width))
-        else:
-            if stale_only:
-                roots, children = filter_stale_only(roots, children, states)
-            out = render_forest(
-                roots, children, states, style,
-                compute_min_depth(roots, children), shown, depth)
-        if out:
-            self.outstream.write('\n'.join(out) + '\n')
+        width = 0  # columns as narrow as their content when piped
+        if self.outstream.isatty():
+            width = shutil.get_terminal_size().columns
+        for focus in focus_names or [None]:
+            if out:
+                out.append('')
+            nav = Navigator(parents, children, states, lines, focus)
+            out.extend(frame_lines(nav, style, width))
+        self.outstream.write('\n'.join(out) + '\n')
         return 0
