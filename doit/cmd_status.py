@@ -6,6 +6,7 @@ backend dump(), so no task state is persisted.
 
 import fnmatch
 import os
+import shutil
 from collections import defaultdict, deque, namedtuple
 
 from .cmd_base import DoitCmdBase, check_tasks_exist
@@ -194,9 +195,9 @@ _COLORS = {'up-to-date': '32', 'run': '31', 'may-rerun': '33', 'error': '31',
            'ignore': '2', 'unknown': '33'}
 _DIM = '2'
 _GLYPHS = {'branch': '├── ', 'last': '└── ', 'pipe': '│   ',
-           'blank': '    ', 'cut': '…'}
+           'blank': '    ', 'cut': '…', 'rule': '─'}
 _ASCII_GLYPHS = {'branch': '|-- ', 'last': '`-- ', 'pipe': '|   ',
-                 'blank': '    ', 'cut': '...'}
+                 'blank': '    ', 'cut': '...', 'rule': '-'}
 
 
 class Style:
@@ -218,6 +219,13 @@ class Style:
 
     def dim(self, text):
         return self._paint(text, _DIM)
+
+    def span(self, text, state=None, flags=()):
+        """text painted with the color of a state, plus dim/bold flags"""
+        codes = [_COLORS[state]] if state else []
+        codes += [code for flag, code in (('dim', _DIM), ('bold', '1'))
+                  if flag in flags]
+        return self._paint(text, ';'.join(codes)) if codes else text
 
     def also(self, label, names):
         """note listing the other parents of a task shown once"""
@@ -496,7 +504,7 @@ class Status(DoitCmdBase):
                 finally:
                     self.dep_manager.release()
 
-            status_tui.run(nav, style.markers, reload)
+            status_tui.run(nav, style, reload)
             return 0
 
         shown = {name: lines[name] for name in lines
@@ -505,11 +513,14 @@ class Status(DoitCmdBase):
         out = []
         if focus_names:
             from .status_tui import Navigator, frame_lines
+            width = 0  # columns as narrow as their content when piped
+            if self.outstream.isatty():
+                width = shutil.get_terminal_size().columns
             for focus in focus_names:
                 if out:
                     out.append('')
                 nav = Navigator(parents, children, states, lines, focus)
-                out.extend(frame_lines(nav, style))
+                out.extend(frame_lines(nav, style, width))
         else:
             if stale_only:
                 roots, children = filter_stale_only(roots, children, states)

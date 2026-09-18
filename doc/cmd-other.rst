@@ -282,7 +282,8 @@ Options must be given before ``TASK``:
 
 * ``TASK ...``: show the parents (tasks it depends on) and the children (tasks
   that depend on it) of each ``TASK``, with the status and reasons of ``TASK``.
-  This is the screen of the interactive navigator (*-i*), printed once.
+  This is the screen of the interactive navigator (*-i*), printed once: same
+  layout code, the columns use a third of the terminal width.
   ``--stale-only``, ``--depth`` and ``--reasons`` do not apply.
 * ``--stale-only``: hide up-to-date and ignored tasks.
 * ``--depth N``: limit the tree to N levels. Cut-off tasks end with ``…``.

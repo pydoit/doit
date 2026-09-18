@@ -412,9 +412,9 @@ class TestCmdStatusFocus(StatusTestBase):
 
     def test_focus_frame_with_reasons(self):
         self.assertEqual(self.status(self.chain(), pos_args=['b']), [
-            'parents   focus   children',
-            '● a       [● b]   ● c',
-            '',
+            'parents    focus      children',
+            '● a        [● b]      ● c',
+            '─────────────────────────────────',
             'b  run',
             ' * input produced by task a',
         ])

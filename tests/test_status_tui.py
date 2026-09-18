@@ -1,7 +1,10 @@
 import unittest
 
 from doit.cmd_status import Style
-from doit.status_tui import Navigator, frame_lines, scroll_start
+import re
+
+from doit.status_tui import (
+    HINTS, Navigator, build_frame, frame_lines, scroll_start)
 
 # a -> b -> d, a -> c -> d, e alone
 PARENTS = {'a': [], 'b': ['a'], 'c': ['a'], 'd': ['b', 'c'], 'e': []}
@@ -81,34 +84,92 @@ class TestNavigator(unittest.TestCase):
         self.assertEqual(nav('a').focus_lines(), [' * changed'])
 
 
+RULE = '─' * 33
+
+
 class TestFrameLines(unittest.TestCase):
 
     def test_columns_and_footer(self):
-        got = frame_lines(nav('d'), Style())
-        self.assertEqual(got, [
-            'parents   focus   children',
-            '~ b       [~ d]',
-            '~ c',
-            '',
+        self.assertEqual(frame_lines(nav('d'), Style()), [
+            'parents    focus      children',
+            '~ b',
+            '~ c        [~ d]',
+            RULE,
             'd  may-rerun',
         ])
 
-    def test_focus_centered_and_reasons(self):
-        got = frame_lines(nav('a'), Style())
-        self.assertEqual(got, [
-            'parents   focus   children',
-            '          [● a]   ~ b',
-            '                  ~ c',
-            '',
+    def test_reasons(self):
+        self.assertEqual(frame_lines(nav('a'), Style()), [
+            'parents    focus      children',
+            '                      ~ b',
+            '           [● a]      ~ c',
+            RULE,
             'a  run',
             ' * changed',
         ])
 
     def test_reasons_hidden(self):
-        self.assertEqual(frame_lines(nav('a'), Style(), False)[-1], 'a  run')
+        self.assertEqual(frame_lines(nav('a'), Style(), show_reasons=False)[-1],
+                         'a  run')
+
+    def test_columns_use_a_third_of_the_width(self):
+        got = frame_lines(nav('a'), Style(), width=60)
+        self.assertEqual(got[0], 'parents'.ljust(20) + 'focus'.ljust(20)
+                         + 'children')
 
     def test_color_does_not_change_alignment(self):
         plain = frame_lines(nav('d'), Style())
         colored = frame_lines(nav('d'), Style(color=True))
-        strip = lambda line: __import__('re').sub(r'\x1b\[[0-9;]*m', '', line)
+        strip = lambda line: re.sub(r'\x1b\[[0-9;]*m', '', line)
         self.assertEqual([strip(x).rstrip() for x in colored], plain)
+
+
+class TestBuildFrame(unittest.TestCase):
+
+    def frame(self, focus, **kw):
+        kw.setdefault('width', 60)
+        return build_frame(nav(focus), Style(), **kw)
+
+    def texts(self, spans, row):
+        return [s.text for s in sorted(spans, key=lambda s: s.x)
+                if s.row == row]
+
+    def test_full_screen_pins_footer_and_hints(self):
+        spans, total, col_w = self.frame('a', height=12)
+        self.assertEqual(total, 12)
+        self.assertEqual(col_w, 20)
+        rule = 12 - 4 - 1 + 1  # rows below title + reasons line
+        self.assertEqual(self.texts(spans, rule)[0][0], '─')
+        self.assertEqual(self.texts(spans, 11), [HINTS])
+
+    def test_focus_in_middle_row(self):
+        spans, _, _ = self.frame('a', height=13, show_reasons=False)
+        focus = [s for s in spans if s.text == '[● a]'][0]
+        self.assertEqual(focus.row, 1 + (13 - 4) // 2)
+
+    def test_cursor_flag_only_in_active_column(self):
+        spans, _, _ = self.frame('a', cursor=True, height=12)
+        self.assertEqual([s.text for s in spans if 'cursor' in s.flags],
+                         ['~ b'])
+        spans, _, _ = self.frame('a', height=12)
+        self.assertFalse([s for s in spans if 'cursor' in s.flags])
+
+    def test_scrolls_long_column(self):
+        many = {'f': [], **{'k%02d' % i: ['f'] for i in range(20)}}
+        kids = {'f': sorted(k for k in many if k != 'f')}
+        kids.update({k: [] for k in many if k != 'f'})
+        states = {k: 'up-to-date' for k in many}
+        n = Navigator(many, kids, states, {}, 'f')
+        for _ in range(15):
+            n.down()
+        starts = {}
+        spans, _, _ = build_frame(n, Style(), 60, 10, True, True, starts)
+        shown = [s.text for s in spans if s.x == 40 and s.row > 0
+                 and s.row <= 6]
+        self.assertIn('✓ k15', shown)
+        self.assertEqual(starts['children'], 15 - 6 + 1)
+
+    def test_column_text_is_cut_to_column(self):
+        spans, _, col_w = self.frame('a', height=12)
+        cols = [s for s in spans if s.text == '~ b'][0]
+        self.assertEqual(cols.maxw, col_w - 1)

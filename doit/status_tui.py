@@ -4,6 +4,8 @@
 `run` is the thin curses front end.
 """
 
+from collections import namedtuple
+
 PARENTS = 'parents'
 CHILDREN = 'children'
 
@@ -87,104 +89,115 @@ class Navigator:
         return self.reasons.get(self.focus, [])
 
 
-def frame_lines(nav, style, show_reasons=True):
-    """the navigator screen as plain lines: parents, focus and children in
-    columns, then status and reasons of the focus task. Same content as
-    `draw`, without cursor. Needs no curses."""
-    def plain(name):
+# maxw: text is cut to this width when drawn (None: to the screen edge)
+Span = namedtuple('Span', 'row x text state flags maxw')
+
+HINTS = ('←→ column  ↑↓ move  Enter focus  r reasons  R reload  q quit')
+
+
+def build_frame(nav, style, width=0, height=None, show_reasons=True,
+                cursor=False, starts=None):
+    """layout of the navigator screen: parents, focus and children in
+    columns, then status and reasons of the focus task. Used by the curses
+    screen (`height` = screen rows) and by the static output (`height` None:
+    as many rows as needed).
+
+    Columns are a third of `width`, or wider if a name needs it.
+
+    @param cursor: mark the selected row (flag 'cursor'), scroll columns
+    @param starts: dict column -> first visible row, updated when scrolling
+    @return: (list of Span, number of rows, column width)
+    """
+    def label(name):
         return '%s %s' % (style.markers[nav.states[name]], name)
 
-    parents, children = nav.column_items(PARENTS), nav.column_items(CHILDREN)
-    rows = max(len(parents), len(children), 1)
-    focus_row = (rows - 1) // 2
     titles = ('parents', 'focus', 'children')
+    columns = (nav.column_items(PARENTS), [nav.focus],
+               nav.column_items(CHILDREN))
+    need = max(max(len(title) for title in titles),
+               *(len(label(n)) + 2 for names in columns for n in names)) + 3
+    col_w = max(width // 3, need)
+    reasons = nav.focus_lines() if show_reasons else []
+    if height is None:
+        rows = max(len(columns[0]), len(columns[2]), 1)
+    else:
+        reasons = reasons[:max(0, height // 3)]
+        rows = max(1, height - 4 - len(reasons))
 
-    def cell(name, focused=False):
-        """@return: (painted text, visible length)"""
-        if name is None:
-            return '', 0
-        text = style.node(name, nav.states[name])
-        length = len(plain(name))
-        return ('[%s]' % text, length + 2) if focused else (text, length)
+    spans = [Span(0, i * col_w, title, None, ('dim',), col_w - 1)
+             for i, title in enumerate(titles)]
+    starts = {} if starts is None else starts
+    for i, names in enumerate(columns):
+        if i == 1:
+            spans.append(Span(1 + rows // 2, col_w, '[%s]' % label(nav.focus),
+                              nav.states[nav.focus], ('bold',), col_w - 1))
+            continue
+        key = PARENTS if i == 0 else CHILDREN
+        selected = nav.cursor if cursor and key == nav.column else -1
+        start = 0
+        if height is not None:
+            start = scroll_start(len(names), max(selected, 0), rows,
+                                 starts.get(key, 0))
+            starts[key] = start
+        for row, name in enumerate(names[start:start + rows]):
+            flags = ('cursor',) if start + row == selected else ()
+            spans.append(Span(1 + row, i * col_w, label(name),
+                              nav.states[name], flags, col_w - 1))
 
-    table = []
-    for row in range(rows):
-        table.append([
-            cell(parents[row] if row < len(parents) else None),
-            cell(nav.focus if row == focus_row else None, focused=True),
-            cell(children[row] if row < len(children) else None)])
-    widths = [max([len(title)] + [line[col][1] for line in table]) + 3
-              for col, title in enumerate(titles)]
+    rule = rows + 1
+    spans.append(Span(rule, 0, style.glyphs['rule'] * (3 * col_w), None,
+                      ('dim',), None))
+    spans.append(Span(rule + 1, 0, '%s  %s' % (nav.focus,
+                                               nav.states[nav.focus]),
+                      nav.states[nav.focus], ('bold',), None))
+    for n, line in enumerate(reasons):
+        spans.append(Span(rule + 2 + n, 0, line, None, (), None))
+    total = rule + 2 + len(reasons)
+    if height is not None:
+        spans.append(Span(height - 1, 0, HINTS, None, ('dim',), None))
+        total = height
+    return spans, total, col_w
 
-    lines = [''.join(style.dim(title.ljust(width))
-                     for title, width in zip(titles, widths)).rstrip()]
-    for line in table:
-        lines.append(''.join(text + ' ' * (width - length)
-                             for (text, length), width in zip(line, widths))
-                     .rstrip())
-    lines.append('')
-    lines.append('%s  %s' % (nav.focus, nav.states[nav.focus]))
-    if show_reasons:
-        lines.extend(nav.focus_lines())
+
+def frame_lines(nav, style, width=0, show_reasons=True):
+    """the navigator screen as text lines (no curses needed)"""
+    spans, total, _ = build_frame(nav, style, width,
+                                  show_reasons=show_reasons)
+    lines = []
+    for row in range(total):
+        line = ''
+        used = 0
+        for span in sorted((s for s in spans if s.row == row),
+                           key=lambda s: s.x):
+            line += ' ' * (span.x - used) + style.span(
+                span.text, span.state, span.flags)
+            used = span.x + len(span.text)
+        lines.append(line)
     return lines
 
 
-def _label(nav, name, markers):
-    return '%s %s' % (markers[nav.states[name]], name)
-
-
-def draw(stdscr, curses, nav, markers, show_reasons, pairs, starts):
+def draw(stdscr, curses, nav, style, show_reasons, pairs, starts):
     stdscr.erase()
     height, width = stdscr.getmaxyx()
-    col_w = max(10, width // 3)
-    footer = 3
-    if show_reasons:
-        footer += min(len(nav.focus_lines()), max(0, height // 3))
-    rows = max(1, height - footer)
-
-    def put(y, x, text, attr=0):
+    spans, _, col_w = build_frame(nav, style, width, height, show_reasons,
+                                  True, starts)
+    for span in spans:
+        attr = curses.color_pair(pairs.get(span.state, 0))
+        for flag, extra in (('dim', curses.A_DIM), ('bold', curses.A_BOLD),
+                            ('cursor', curses.A_REVERSE)):
+            if flag in span.flags:
+                attr |= extra
+        room = width - span.x - 1
+        if span.maxw is not None:
+            room = min(room, span.maxw)
         try:
-            stdscr.addnstr(y, x, text, max(0, min(col_w - 1, width - x - 1)),
-                           attr)
+            stdscr.addnstr(span.row, span.x, span.text, max(0, room), attr)
         except curses.error:  # pragma: no cover
             pass
-
-    def state_attr(name):
-        return curses.color_pair(pairs.get(nav.states[name], 0))
-
-    for i, (title, column) in enumerate(
-            (('parents', PARENTS), ('focus', None), ('children', CHILDREN))):
-        put(0, i * col_w, title, curses.A_DIM)
-        if column is None:
-            put(rows // 2 + 1, i * col_w,
-                '[%s]' % _label(nav, nav.focus, markers),
-                curses.A_BOLD | state_attr(nav.focus))
-            continue
-        items = nav.column_items(column)
-        active = column == nav.column
-        cursor = nav.cursor if active else -1
-        start = scroll_start(len(items), max(cursor, 0), rows,
-                             starts.get(column, 0))
-        starts[column] = start
-        for row, name in enumerate(items[start:start + rows]):
-            attr = state_attr(name)
-            if start + row == cursor:
-                attr |= curses.A_REVERSE
-            put(row + 1, i * col_w, _label(nav, name, markers), attr)
-
-    y = height - footer
-    stdscr.hline(y, 0, curses.ACS_HLINE, width)
-    put(y + 1, 0, '%s  %s' % (nav.focus, nav.states[nav.focus]),
-        curses.A_BOLD | state_attr(nav.focus))
-    if show_reasons:
-        for n, line in enumerate(nav.focus_lines()[:height - y - 3]):
-            put(y + 2 + n, 0, line)
-    put(height - 1, 0, '←→ column  ↑↓ move  Enter focus  r reasons  '
-        'R reload  q quit', curses.A_DIM)
     stdscr.refresh()
 
 
-def run(nav, markers, reload, show_reasons=True):
+def run(nav, style, reload, show_reasons=True):
     """run the navigator until quit.
 
     @param reload: callable returning new (states, reasons)
@@ -211,7 +224,7 @@ def run(nav, markers, reload, show_reasons=True):
                 curses.KEY_UP: nav.up, curses.KEY_DOWN: nav.down,
                 curses.KEY_ENTER: nav.enter, 10: nav.enter, 13: nav.enter}
         while True:
-            draw(stdscr, curses, nav, markers, reasons_on, pairs, starts)
+            draw(stdscr, curses, nav, style, reasons_on, pairs, starts)
             key = stdscr.getch()
             if key in (ord('q'), 27):
                 return
