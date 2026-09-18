@@ -176,3 +176,122 @@ def filter_stale_only(roots, children, states):
     new_children = {name: [kid for kid in kids if keep.get(kid)]
                     for name, kids in children.items()}
     return [root for root in roots if keep.get(root)], new_children
+
+
+_MARKERS = {'up-to-date': '✓', 'run': '●', 'may-rerun': '~', 'error': '!',
+            'ignore': '-', 'unknown': '?'}
+_ASCII_MARKERS = {'up-to-date': '+', 'run': '*', 'may-rerun': '~',
+                  'error': '!', 'ignore': '-', 'unknown': '?'}
+_COLORS = {'up-to-date': '32', 'run': '31', 'may-rerun': '33', 'error': '31',
+           'ignore': '2', 'unknown': '33'}
+_DIM = '2'
+_GLYPHS = {'branch': '├── ', 'last': '└── ', 'pipe': '│   ',
+           'blank': '    ', 'ref': '↑', 'cut': '…'}
+_ASCII_GLYPHS = {'branch': '|-- ', 'last': '`-- ', 'pipe': '|   ',
+                 'blank': '    ', 'ref': '^', 'cut': '...'}
+
+
+class Style:
+    """colors, markers and tree glyphs"""
+
+    def __init__(self, color=False, ascii_only=False):
+        self.color = color
+        self.markers = _ASCII_MARKERS if ascii_only else _MARKERS
+        self.glyphs = _ASCII_GLYPHS if ascii_only else _GLYPHS
+
+    def _paint(self, text, code):
+        if not self.color:
+            return text
+        return '\033[%sm%s\033[0m' % (code, text)
+
+    def node(self, name, state):
+        return self._paint('%s %s' % (self.markers[state], name),
+                           _COLORS[state])
+
+    def ref(self, name):
+        """back-reference to a task that is expanded elsewhere"""
+        return self._paint('%s %s' % (name, self.glyphs['ref']), _DIM)
+
+    def cut(self, name, state):
+        """task whose children are hidden by --depth"""
+        return '%s %s' % (self.node(name, state), self.glyphs['cut'])
+
+
+def make_style(stream, environ):
+    """color if stream is a TTY and NO_COLOR is unset. ASCII glyphs if the
+    stream encoding can not encode the default ones."""
+    color = bool(stream.isatty()) and 'NO_COLOR' not in environ
+    encoding = getattr(stream, 'encoding', None) or 'utf-8'
+    try:
+        for text in list(_MARKERS.values()) + list(_GLYPHS.values()):
+            text.encode(encoding)
+        ascii_only = False
+    except (UnicodeEncodeError, LookupError):
+        ascii_only = True
+    return Style(color, ascii_only)
+
+
+def render_forest(roots, children, states, style, min_depth, reasons=None,
+                  max_depth=None, start_depth=0, indent=''):
+    """render trees below `roots` as a list of lines.
+
+    Every task is expanded once: at the first occurrence (sorted DFS) at its
+    shallowest depth. Other occurrences are a one-line back-reference.
+    A task with children at `max_depth` is shown cut off (at every
+    occurrence at its shallowest depth).
+
+    @param min_depth: dict name -> shallowest depth (see compute_min_depth),
+                      in the same depth scale as `start_depth`
+    @param reasons: dict name -> lines printed verbatim under the task
+    """
+    reasons = reasons or {}
+    lines = []
+    expanded = set()
+    glyphs = style.glyphs
+
+    def emit(name, depth, lead, child_lead):
+        kids = children.get(name, ())
+        if depth > min_depth[name] or name in expanded:
+            lines.append(lead + style.ref(name))
+            return
+        if max_depth is not None and depth == max_depth and kids:
+            lines.append(lead + style.cut(name, states[name]))
+            return
+        expanded.add(name)
+        lines.append(lead + style.node(name, states[name]))
+        for text in reasons.get(name, ()):
+            lines.append(child_lead + text)
+        for i, kid in enumerate(kids):
+            last = i == len(kids) - 1
+            emit(kid, depth + 1,
+                 child_lead + glyphs['last' if last else 'branch'],
+                 child_lead + glyphs['blank' if last else 'pipe'])
+
+    for root in roots:
+        emit(root, start_depth, indent, indent)
+    return lines
+
+
+def render_focus(focus, parents, children, states, style, reasons=None,
+                 downstream=False, stale_only=False, max_depth=None):
+    """focus task, its upstream tree and (optionally) its downstream tree"""
+    reasons = reasons or {}
+    lines = [style.node(focus, states[focus])]
+    lines.extend(reasons.get(focus, ()))
+    sections = [('upstream', parents)]
+    if downstream:
+        sections.append(('downstream', children))
+    for label, adj in sections:
+        roots = adj[focus]
+        if stale_only:
+            roots, adj = filter_stale_only(roots, adj, states)
+        if not roots:
+            continue
+        # depth counted from the focus task (depth 0)
+        min_depth = {name: depth + 1
+                     for name, depth in compute_min_depth(roots, adj).items()}
+        lines.append(label + ':')
+        lines.extend(render_forest(roots, adj, states, style, min_depth,
+                                   reasons, max_depth, start_depth=1,
+                                   indent='  '))
+    return lines
