@@ -248,6 +248,56 @@ Note the ``!!``, it means that task was ignored. To reverse the `ignore` use
 
 
 
+.. _cmd-status:
+
+status (task graph)
+-------------------
+
+*status* shows the task dependency graph as a tree, with the
+up-to-date status of every task. It never executes tasks and never saves
+any state, so it is safe to run while a pipeline is being developed.
+
+.. code-block:: console
+
+   $ doit status
+   ● fetch
+   └── ~ build
+       ├── ~ publish
+       └── ~ report
+
+Roots are tasks without dependencies. The children of a task are the tasks
+that depend on it. A task that appears below several parents is expanded once;
+other occurrences are shown as ``task ↑``.
+
+==  ===============================================================
+ ✓  up-to-date
+ ●  will run
+ ~  up-to-date itself, but an input file is produced by a task that will run
+ !  error, for example an input file that no task produces
+ -  ignored
+ ?  unknown: task is created at run time (``create_after``)
+==  ===============================================================
+
+Options must be given before ``TASK``:
+
+* ``TASK ...``: show only these tasks, with everything they depend on
+  (*upstream*). The reasons for the status of ``TASK`` are always printed.
+* ``--downstream``: with ``TASK``, also show the tasks that depend on it.
+* ``--stale-only``: hide up-to-date and ignored tasks.
+* ``--depth N``: limit the tree to N levels. Cut-off tasks end with ``…``.
+* ``--reasons``: print why each task is not up-to-date.
+* *-p*/*--private*: also show tasks that start with an underscore.
+* *--all*: show sub-tasks as separate tasks. By default a group task shows the
+  worst status of its sub-tasks.
+
+Like ``doit list --status`` and ``doit info``, *status* evaluates ``uptodate``
+entries of tasks (callables run, strings run as shell commands). File
+dependencies computed by a ``calc_dep`` task are not part of the graph. Output
+uses color when writing to a terminal (disabled by ``NO_COLOR``), and ASCII
+symbols when the terminal encoding can not show the default ones.
+
+
+
 .. _cmd-auto:
 
 auto (watch)
