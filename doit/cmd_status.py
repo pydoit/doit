@@ -10,7 +10,6 @@ import shutil
 from collections import defaultdict, deque, namedtuple
 
 from .cmd_base import DoitCmdBase, check_tasks_exist
-from .exceptions import InvalidCommand
 from .cmd_info import Info
 from .cmd_list import opt_listall, opt_list_private
 from .control import TaskControl
@@ -445,10 +444,6 @@ class Status(DoitCmdBase):
                  reasons=False, private=False, subtasks=False,
                  interactive=False, pos_args=None):
         focus_names = list(pos_args or [])
-        if interactive and not focus_names:
-            raise InvalidCommand(
-                '`status --interactive` failed, must select a task.'
-                '\nCheck `{} help status`.'.format(self.bin_name))
         tasks = {t.name: t for t in self.task_list}
         if not tasks:
             return 0
@@ -491,9 +486,12 @@ class Status(DoitCmdBase):
         roots = compute_roots(visible, parents)
 
         if interactive:
+            if not visible:
+                return 0
             from . import status_tui
             nav = status_tui.Navigator(parents, children, states, lines,
-                                       focus_names[0])
+                                       focus_names[0] if focus_names
+                                       else None)
             # snapshot: hold no DB handle while the user navigates
             self.dep_manager.release()
 

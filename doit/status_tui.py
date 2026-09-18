@@ -33,7 +33,9 @@ class Navigator:
     """focus, cursor and column contents of the DAG navigator.
 
     The cursor is in one of three columns; the focus column has a single
-    task and is selected by default.
+    task and is selected by default. Without a focus (`focus` None) the focus
+    column lists all tasks and the other columns are empty until one is
+    chosen with `enter`.
     """
 
     def __init__(self, parents, children, states, reasons, focus):
@@ -54,7 +56,11 @@ class Navigator:
 
     def column_items(self, column):
         if column == FOCUS:
+            if self.focus is None:
+                return sorted(self.states)
             return [self.focus]
+        if self.focus is None:
+            return []
         adj = self.parents if column == PARENTS else self.children
         return list(adj[self.focus])
 
@@ -117,9 +123,9 @@ def build_frame(nav, style, width=0, height=None, show_reasons=True,
     def label(name):
         return '%s %s' % (style.markers[nav.states[name]], name)
 
-    titles = ('parents', 'focus', 'children')
-    columns = (nav.column_items(PARENTS), [nav.focus],
-               nav.column_items(CHILDREN))
+    listing = nav.focus is None  # focus column lists all tasks
+    titles = ('parents', 'tasks' if listing else 'focus', 'children')
+    columns = [nav.column_items(column) for column in ORDER]
     need = max(max(len(title) for title in titles),
                *(len(label(n)) + 2 for names in columns for n in names)) + 3
     col_w = max(width // 3, need)
@@ -135,13 +141,13 @@ def build_frame(nav, style, width=0, height=None, show_reasons=True,
              for i, title in enumerate(titles)]
     starts = {} if starts is None else starts
     for i, names in enumerate(columns):
-        if i == 1:
+        if i == 1 and not listing:
             flags = ('bold', 'cursor') if cursor and nav.column == FOCUS \
                 else ('bold',)
             spans.append(Span(1 + rows // 2, col_w, '[%s]' % label(nav.focus),
                               nav.states[nav.focus], flags, col_w - 1))
             continue
-        key = PARENTS if i == 0 else CHILDREN
+        key = ORDER[i]
         selected = nav.cursor if cursor and key == nav.column else -1
         start = 0
         if height is not None:

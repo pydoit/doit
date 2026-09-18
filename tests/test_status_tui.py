@@ -20,6 +20,39 @@ def nav(focus):
     return Navigator(PARENTS, CHILDREN, STATES, {'a': [' * changed']}, focus)
 
 
+class TestNavigatorNoFocus(unittest.TestCase):
+
+    def test_focus_column_lists_all_tasks(self):
+        n = nav(None)
+        self.assertEqual(n.column_items('focus'), ['a', 'b', 'c', 'd', 'e'])
+        self.assertEqual(n.column_items('parents'), [])
+        self.assertEqual(n.column_items('children'), [])
+        self.assertEqual(n.selected(), 'a')
+
+    def test_up_down_then_enter_focuses_task(self):
+        n = nav(None)
+        n.down()
+        n.down()
+        n.enter()
+        self.assertEqual(n.focus, 'c')
+        self.assertEqual(n.column_items('parents'), ['a'])
+        self.assertEqual(n.column_items('children'), ['d'])
+
+    def test_left_right_stay_in_list(self):
+        n = nav(None)
+        n.right()
+        n.left()
+        self.assertEqual(n.column, 'focus')
+
+    def test_frame_shows_all_tasks(self):
+        style = Style(color=False, ascii_only=True)
+        spans, _, _ = build_frame(nav(None), style, 90, 12, cursor=True)
+        texts = [s.text for s in spans if s.x == 30]
+        for name in 'abcde':
+            self.assertTrue(any(t.endswith(name) for t in texts), name)
+        self.assertIn('tasks', texts)
+
+
 class TestScrollStart(unittest.TestCase):
 
     def test_fits(self):

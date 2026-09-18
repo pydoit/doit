@@ -492,11 +492,11 @@ class TestCmdStatusInteractive(StatusTestBase):
         self.assertEqual(nav.focus, 'a')
         self.assertEqual(nav.column_items('children'), ['b'])
 
-    def test_task_required(self):
-        cmd = CmdFactory(Status, outstream=StringIO(), task_list=self.tasks(),
-                         dep_manager=self.dep_manager)
-        self.assertRaises(InvalidCommand, cmd._execute, interactive=True)
-        self.assertFalse(self.dep_manager._closed)
+    def test_no_task_lists_all_tasks_in_focus_column(self):
+        nav = self.interactive(self.tasks(), pos_args=[])['nav']
+        self.assertIsNone(nav.focus)
+        self.assertEqual(nav.column_items('focus'), ['a', 'b'])
+        self.assertEqual(nav.column, 'focus')
 
     def test_navigator_focus_task(self):
         nav = self.interactive(self.tasks(), pos_args=['b'])['nav']

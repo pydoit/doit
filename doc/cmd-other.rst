@@ -292,8 +292,8 @@ Options must be given before ``TASK``:
 * *--all*: show sub-tasks as separate tasks. By default a group task shows the
   worst status of its sub-tasks.
 * *-i*/*--interactive*: browse the graph in a full-screen navigator (see
-  below). Needs a ``TASK`` to start at. Same layout as the static output
-  with ``TASK``.
+  below). Starts at ``TASK``, or with all tasks listed in the focus column
+  when no ``TASK`` is given. Same layout as the static output with ``TASK``.
 
 Interactive mode
 ^^^^^^^^^^^^^^^^
@@ -302,6 +302,8 @@ The graph is laid out left to right: the parents of the focus task on the left,
 the focus task in the middle, its children on the right. The cursor
 can be on any of them and starts on the focus task. A footer shows the status
 and the reasons of the task under the cursor. The navigator starts at ``TASK``.
+Without ``TASK`` the middle column lists all tasks (parents and children are
+empty); pick one with ↑ ↓ and Enter to make it the focus.
 
 =========  ==========================================
  ←  →      move the cursor one column left / right
