@@ -299,13 +299,14 @@ Interactive mode
 ^^^^^^^^^^^^^^^^
 
 The graph is laid out left to right: the parents of the focus task on the left,
-the focus task in the middle, its children on the right. A footer shows the
-status and the reasons of the focus task. The navigator starts at ``TASK``.
+the focus task in the middle, its children on the right. The cursor
+can be on any of them and starts on the focus task. A footer shows the status
+and the reasons of the task under the cursor. The navigator starts at ``TASK``.
 
 =========  ==========================================
- ←  →      move the cursor to the parents / children column
+ ←  →      move the cursor one column left / right
  ↑  ↓      move the cursor inside the column
- Enter     make the task under the cursor the focus
+ Enter     make the task under the cursor the focus (cursor returns to it)
  r         show / hide reasons
  R         reload the statuses
  q         quit

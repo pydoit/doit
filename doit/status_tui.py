@@ -7,7 +7,9 @@
 from collections import namedtuple
 
 PARENTS = 'parents'
+FOCUS = 'focus'
 CHILDREN = 'children'
+ORDER = (PARENTS, FOCUS, CHILDREN)  # left to right
 
 
 def scroll_start(total, cursor, height, start=0):
@@ -25,23 +27,31 @@ def scroll_start(total, cursor, height, start=0):
 
 
 class Navigator:
-    """focus, cursor and column contents of the DAG navigator"""
+    """focus, cursor and column contents of the DAG navigator.
+
+    The cursor is in one of three columns; the focus column has a single
+    task and is selected by default.
+    """
 
     def __init__(self, parents, children, states, reasons, focus):
         self.parents = parents
         self.children = children
-        self.column = CHILDREN
-        self.cursor = 0
         self.update(states, reasons)
-        self.focus = focus
-        self._fix_column()
+        self._refocus(focus)
 
     def update(self, states, reasons):
         """replace statuses and reasons (reload), keep the focus"""
         self.states = dict(states)
         self.reasons = dict(reasons)
 
+    def _refocus(self, name):
+        self.focus = name
+        self.column = FOCUS
+        self.cursor = 0
+
     def column_items(self, column):
+        if column == FOCUS:
+            return [self.focus]
         adj = self.parents if column == PARENTS else self.children
         return list(adj[self.focus])
 
@@ -49,56 +59,48 @@ class Navigator:
         return self.column_items(self.column)
 
     def selected(self):
-        """name under the cursor, None if the column is empty"""
-        items = self.items()
-        return items[self.cursor] if items else None
+        """name under the cursor"""
+        return self.items()[self.cursor]
 
-    def _fix_column(self):
-        if not self.items():
-            other = PARENTS if self.column == CHILDREN else CHILDREN
-            if self.column_items(other):
-                self.column = other
-        self.cursor = 0
+    def _move(self, step):
+        """cursor to the next column, if it exists and has tasks"""
+        index = ORDER.index(self.column) + step
+        if 0 <= index < len(ORDER) and self.column_items(ORDER[index]):
+            self.column = ORDER[index]
+            self.cursor = 0
 
     def left(self):
-        if self.column_items(PARENTS):
-            self.column = PARENTS
-            self.cursor = 0
+        self._move(-1)
 
     def right(self):
-        if self.column_items(CHILDREN):
-            self.column = CHILDREN
-            self.cursor = 0
+        self._move(1)
 
     def up(self):
         self.cursor = max(0, self.cursor - 1)
 
     def down(self):
-        self.cursor = min(max(0, len(self.items()) - 1), self.cursor + 1)
+        self.cursor = min(len(self.items()) - 1, self.cursor + 1)
 
     def enter(self):
         """refocus on the task under the cursor"""
-        name = self.selected()
-        if name is None:
-            return
-        self.focus = name
-        self._fix_column()
+        self._refocus(self.selected())
 
-    def focus_lines(self):
-        """reason lines of the focus task"""
-        return self.reasons.get(self.focus, [])
+    def selected_lines(self):
+        """reason lines of the selected task"""
+        return self.reasons.get(self.selected(), [])
 
 
 # maxw: text is cut to this width when drawn (None: to the screen edge)
 Span = namedtuple('Span', 'row x text state flags maxw')
 
-HINTS = ('←→ column  ↑↓ move  Enter focus  r reasons  R reload  q quit')
+HINTS = '←→ column  ↑↓ move  Enter refocus  r reasons  R reload  q quit'
 
 
 def build_frame(nav, style, width=0, height=None, show_reasons=True,
                 cursor=False, starts=None):
     """layout of the navigator screen: parents, focus and children in
-    columns, then status and reasons of the focus task. Used by the curses
+    columns, then status and reasons of the selected task (the focus task
+    unless the cursor moved). Used by the curses
     screen (`height` = screen rows) and by the static output (`height` None:
     as many rows as needed).
 
@@ -117,7 +119,8 @@ def build_frame(nav, style, width=0, height=None, show_reasons=True,
     need = max(max(len(title) for title in titles),
                *(len(label(n)) + 2 for names in columns for n in names)) + 3
     col_w = max(width // 3, need)
-    reasons = nav.focus_lines() if show_reasons else []
+    chosen = nav.selected()
+    reasons = nav.selected_lines() if show_reasons else []
     if height is None:
         rows = max(len(columns[0]), len(columns[2]), 1)
     else:
@@ -129,8 +132,10 @@ def build_frame(nav, style, width=0, height=None, show_reasons=True,
     starts = {} if starts is None else starts
     for i, names in enumerate(columns):
         if i == 1:
+            flags = ('bold', 'cursor') if cursor and nav.column == FOCUS \
+                else ('bold',)
             spans.append(Span(1 + rows // 2, col_w, '[%s]' % label(nav.focus),
-                              nav.states[nav.focus], ('bold',), col_w - 1))
+                              nav.states[nav.focus], flags, col_w - 1))
             continue
         key = PARENTS if i == 0 else CHILDREN
         selected = nav.cursor if cursor and key == nav.column else -1
@@ -147,9 +152,8 @@ def build_frame(nav, style, width=0, height=None, show_reasons=True,
     rule = rows + 1
     spans.append(Span(rule, 0, style.glyphs['rule'] * (3 * col_w), None,
                       ('dim',), None))
-    spans.append(Span(rule + 1, 0, '%s  %s' % (nav.focus,
-                                               nav.states[nav.focus]),
-                      nav.states[nav.focus], ('bold',), None))
+    spans.append(Span(rule + 1, 0, '%s  %s' % (chosen, nav.states[chosen]),
+                      nav.states[chosen], ('bold',), None))
     for n, line in enumerate(reasons):
         spans.append(Span(rule + 2 + n, 0, line, None, (), None))
     total = rule + 2 + len(reasons)
