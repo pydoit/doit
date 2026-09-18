@@ -488,3 +488,66 @@ class TestCmdStatusReadOnly(StatusTestBase):
             self.status(tasks, reasons=True)
         close.assert_not_called()
         dump.assert_not_called()
+
+
+class TestCmdStatusInteractive(StatusTestBase):
+
+    def tasks(self):
+        return [Task('a', [''], targets=['gen/a.out']),
+                Task('b', [''], file_dep=['gen/a.out'])]
+
+    def interactive(self, tasks, **kw):
+        """run -i with a fake curses front end. @return: (nav, calls)"""
+        calls = {}
+
+        def fake_run(nav, markers, reload):
+            calls['nav'] = nav
+            calls['closed_at_run'] = self.dep_manager._closed
+            calls['reload'] = reload()
+            calls['closed_after_reload'] = self.dep_manager._closed
+
+        output = StringIO()
+        cmd = CmdFactory(Status, outstream=output, task_list=tasks,
+                         dep_manager=self.dep_manager)
+        with mock.patch('doit.status_tui.run', fake_run):
+            self.assertEqual(cmd._execute(interactive=True, **kw), 0)
+        self.assertEqual(output.getvalue(), '')
+        return calls
+
+    def test_handle_released_after_load_and_after_reload(self):
+        calls = self.interactive(self.tasks())
+        self.assertTrue(calls['closed_at_run'])
+        self.assertTrue(calls['closed_after_reload'])
+
+    def test_reload_reopens_and_recomputes(self):
+        with mock.patch.object(self.dep_manager, 'reopen',
+                               wraps=self.dep_manager.reopen) as reopen:
+            calls = self.interactive(self.tasks())
+        reopen.assert_called_once_with()
+        states, _ = calls['reload']
+        self.assertEqual(states, {'a': 'run', 'b': 'run'})
+
+    def test_navigator_focus_and_roots(self):
+        nav = self.interactive(self.tasks())['nav']
+        self.assertEqual(nav.focus, 'pipeline')
+        self.assertEqual(nav.column_items('children'), ['a'])
+
+    def test_navigator_focus_task(self):
+        nav = self.interactive(self.tasks(), pos_args=['b'])['nav']
+        self.assertEqual(nav.focus, 'b')
+        self.assertEqual(nav.column_items('parents'), ['a'])
+
+    def test_reload_twice_keeps_graph(self):
+        # implicit edges added by TaskControl must not become order edges
+        calls = self.interactive(self.tasks())
+        self.assertEqual(calls['nav'].column_items('children'), ['a'])
+
+    def test_no_curses(self):
+        output = StringIO()
+        cmd = CmdFactory(Status, outstream=output, task_list=self.tasks(),
+                         dep_manager=self.dep_manager)
+        with mock.patch.dict('sys.modules', {'curses': None}):
+            self.assertEqual(cmd._execute(interactive=True), 1)
+        self.assertEqual(output.getvalue(),
+                         'interactive mode unavailable on this platform\n')
+        self.assertFalse(self.dep_manager._closed)

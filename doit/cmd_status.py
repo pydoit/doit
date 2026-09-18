@@ -375,6 +375,17 @@ def _is_delayed(task):
     return task.loader is not None and not task.actions and not task.file_dep
 
 
+opt_interactive = {
+    'name': 'interactive',
+    'short': 'i',
+    'long': 'interactive',
+    'type': bool,
+    'default': False,
+    'help': "browse the graph in a curses navigator (with TASK, start at "
+            "the first TASK)"
+}
+
+
 class Status(DoitCmdBase):
     doc_purpose = "show task graph with up-to-date status (read-only)"
     doc_usage = "[TASK ...]"
@@ -384,10 +395,10 @@ class Status(DoitCmdBase):
         "by a stale task), ! error, - ignored, ? unknown.")
 
     cmd_options = (opt_downstream, opt_stale_only, opt_depth, opt_reasons,
-                   opt_list_private, opt_listall)
+                   opt_list_private, opt_listall, opt_interactive)
 
-    def _collect(self, tasks):
-        """@return: (nodes, local states, reason lines, group of subtask)"""
+    def _build_nodes(self, tasks):
+        """@return: (nodes, owners), owners: dict target path -> task name"""
         # explicit deps must be read before TaskControl adds implicit ones
         explicit = {name: set(task.task_dep) | set(task.setup_tasks)
                     for name, task in tasks.items()}
@@ -403,7 +414,10 @@ class Status(DoitCmdBase):
             nodes.append(Node(name, file_deps,
                               sorted(explicit[name] | wild),
                               task.subtask_of, _is_delayed(task)))
+        return nodes, owners
 
+    def _statuses(self, tasks, owners):
+        """@return: (local states, reason lines) by task name"""
         local = {}
         lines = {}
         for name, task in tasks.items():
@@ -420,7 +434,7 @@ class Status(DoitCmdBase):
                 ' * subtask %s: %s' % (sub, state)
                 for sub, state in sorted(sub_states.items())
                 if state == worst and state not in QUIET_STATES]
-        return nodes, local, lines
+        return local, lines
 
     def _task_status(self, task, tasks, owners):
         """@return: (status, list of reason lines)"""
@@ -443,14 +457,21 @@ class Status(DoitCmdBase):
 
     def _execute(self, downstream=False, stale_only=False, depth=None,
                  reasons=False, private=False, subtasks=False,
-                 pos_args=None):
+                 interactive=False, pos_args=None):
         tasks = {t.name: t for t in self.task_list}
         if not tasks:
             return 0
         focus_names = list(pos_args or [])
         check_tasks_exist(tasks, focus_names)
+        if interactive:
+            try:
+                import curses  # noqa: F401
+            except ImportError:
+                self.outstream.write(
+                    "interactive mode unavailable on this platform\n")
+                return 1
 
-        nodes, local, lines = self._collect(tasks)
+        nodes, owners = self._build_nodes(tasks)
         names = {node.name for node in nodes}
         edges = build_edges(nodes)
 
@@ -462,26 +483,53 @@ class Status(DoitCmdBase):
             edges = collapse_subtasks(edges, group_of)
             names -= set(group_of)
 
-        # may-rerun is computed before hidden tasks are spliced out, so a
-        # stale private task still marks its dependents
-        may_rerun = compute_may_rerun(names, edges, local)
-        states = {name: 'may-rerun' if name in may_rerun else local[name]
-                  for name in names}
-
         hidden = set()
         if not private:
             hidden = {n for n in names
                       if n.startswith('_') and n not in focus_names}
-        edges = splice_hidden(edges, hidden)
         visible = names - hidden
-        children, parents = build_adjacency(visible, edges)
+        # may-rerun is computed before hidden tasks are spliced out, so a
+        # stale private task still marks its dependents
+        full_edges = edges
+        children, parents = build_adjacency(
+            visible, splice_hidden(edges, hidden))
 
-        shown = {name: lines[name] for name in visible
-                 if lines.get(name)
-                 and (name in focus_names
-                      or (reasons and states[name] not in QUIET_STATES))}
+        def compute():
+            """@return: (states, reason lines) of the visible tasks"""
+            local, lines = self._statuses(tasks, owners)
+            may_rerun = compute_may_rerun(names, full_edges, local)
+            states = {name: 'may-rerun' if name in may_rerun else local[name]
+                      for name in visible}
+            return states, {name: lines[name] for name in visible
+                            if lines.get(name)}
 
+        states, lines = compute()
         style = make_style(self.outstream, os.environ)
+        roots = compute_roots(visible, parents)
+
+        if interactive:
+            from . import status_tui
+            focus = None
+            if focus_names:
+                focus = focus_names[0]
+            nav = status_tui.Navigator(parents, children, roots, states,
+                                       lines, focus)
+            # snapshot: hold no DB handle while the user navigates
+            self.dep_manager.release()
+
+            def reload():
+                self.dep_manager.reopen()
+                try:
+                    return compute()
+                finally:
+                    self.dep_manager.release()
+
+            status_tui.run(nav, style.markers, reload)
+            return 0
+
+        shown = {name: lines[name] for name in lines
+                 if name in focus_names
+                 or (reasons and states[name] not in QUIET_STATES)}
         out = []
         if focus_names:
             for focus in focus_names:
@@ -492,7 +540,6 @@ class Status(DoitCmdBase):
                     downstream=downstream, stale_only=stale_only,
                     max_depth=depth))
         else:
-            roots = compute_roots(visible, parents)
             if stale_only:
                 roots, children = filter_stale_only(roots, children, states)
             out = render_forest(

@@ -290,6 +290,31 @@ Options must be given before ``TASK``:
 * *--all*: show sub-tasks as separate tasks. By default a group task shows the
   worst status of its sub-tasks.
 
+* *-i*/*--interactive*: browse the graph in a full-screen navigator (see
+  below). With ``TASK``, start at the first ``TASK``.
+
+Interactive mode
+^^^^^^^^^^^^^^^^
+
+The graph is laid out left to right: the parents of the focus task on the left,
+the focus task in the middle, its children on the right. A footer shows the
+status and the reasons of the focus task. Without ``TASK`` the focus is a
+virtual ``pipeline`` task whose children are the roots.
+
+=========  ==========================================
+ ←  →      move the cursor to the parents / children column
+ ↑  ↓      move the cursor inside the column
+ Enter     make the task under the cursor the focus
+ r         show / hide reasons
+ R         reload the statuses
+ q         quit
+=========  ==========================================
+
+Statuses are computed once and the dependency DB file is closed (without saving)
+while you navigate, so a ``doit run`` in another terminal is not blocked. ``R``
+reads the DB again. Interactive mode needs the standard library ``curses``
+module, which is not available on Windows; the static output works everywhere.
+
 Like ``doit list --status`` and ``doit info``, *status* evaluates ``uptodate``
 entries of tasks (callables run, strings run as shell commands). File
 dependencies computed by a ``calc_dep`` task are not part of the graph. Output
