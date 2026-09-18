@@ -168,7 +168,7 @@ class TestFilterStaleOnly(unittest.TestCase):
         roots, kids = filter_stale_only(['a'], children, states)
         self.assertEqual(roots, [])
 
-from doit.cmd_status import Style, make_style, render_forest, render_focus
+from doit.cmd_status import Style, make_style, render_forest
 
 
 class FakeStream:
@@ -281,42 +281,6 @@ class TestRenderForest(unittest.TestCase):
         self.assertEqual(
             self.render(['a'], children, states, reasons=reasons),
             ['● a', ' * file missing', '└── ● b', '     * other'])
-
-
-class TestRenderFocus(unittest.TestCase):
-
-    parents = {'a': [], 'b': ['a'], 'c': ['b']}
-    children = {'a': ['b'], 'b': ['c'], 'c': []}
-    states = {'a': 'run', 'b': 'may-rerun', 'c': 'may-rerun'}
-
-    def test_parents_focus_children(self):
-        got = render_focus('b', self.parents, self.children, self.states,
-                           Style())
-        self.assertEqual(got, ['parents:', '  ● a', '~ b',
-                               'children:', '  ~ c'])
-
-    def test_focus_reasons_and_no_parents(self):
-        got = render_focus('a', self.parents, self.children, self.states,
-                           Style(), reasons={'a': [' * no deps']})
-        self.assertEqual(got, ['● a', ' * no deps', 'children:', '  ~ b …'])
-
-    def test_no_neighbors(self):
-        got = render_focus('a', {'a': []}, {'a': []}, {'a': 'run'}, Style())
-        self.assertEqual(got, ['● a'])
-
-    def test_stale_only_prunes_parents(self):
-        parents = {'a': [], 'q': [], 'b': ['a', 'q']}
-        children = {'a': ['b'], 'q': ['b'], 'b': []}
-        states = {'a': 'run', 'q': 'up-to-date', 'b': 'may-rerun'}
-        got = render_focus('b', parents, children, states, Style(),
-                           stale_only=True)
-        self.assertEqual(got, ['parents:', '  ● a', '~ b'])
-
-    def test_deeper_levels(self):
-        states = {n: 'up-to-date' for n in self.parents}
-        got = render_focus('c', self.parents, self.children, states, Style(),
-                           max_depth=2)
-        self.assertEqual(got, ['parents:', '  ✓ b', '  └── ✓ a', '✓ c'])
 
 
 import os
@@ -446,33 +410,30 @@ class TestCmdStatusFocus(StatusTestBase):
         c = Task('c', [''], file_dep=['gen/b.out'])
         return [a, b, c]
 
-    def test_focus_parents_and_children_with_reasons(self):
+    def test_focus_frame_with_reasons(self):
         self.assertEqual(self.status(self.chain(), pos_args=['b']), [
-            'parents:',
-            '  ● a',
-            '● b',
+            'parents   focus   children',
+            '● a       [● b]   ● c',
+            '',
+            'b  run',
             ' * input produced by task a',
-            'children:',
-            '  ● c',
         ])
-
-    def test_focus_depth(self):
-        got = self.status(self.chain(), pos_args=['c'], depth=2)
-        self.assertEqual(got[:3], ['parents:', '  ● b', '  └── ● a'])
 
     def test_multiple_focus_in_argument_order(self):
         got = self.status(self.chain(), pos_args=['c', 'a'])
-        self.assertLess(got.index('● c'), got.index('● a'))
+        focus_rows = [i for i, line in enumerate(got) if '[● ' in line]
+        self.assertIn('[● c]', got[focus_rows[0]])
+        self.assertIn('[● a]', got[focus_rows[1]])
 
     def test_focus_private_task_shown_without_flag(self):
         x = Task('_x', [''])
-        self.assertEqual(self.status([x], pos_args=['_x'])[0], '● _x')
+        self.assertIn('[● _x]', self.status([x], pos_args=['_x'])[1])
 
     def test_focus_subtask_shown_without_all(self):
         group = Task('g', None, has_subtask=True)
         group.task_dep = ['g.a']
         ga = Task('g.a', [''], subtask_of='g')
-        self.assertIn('● g.a', self.status([group, ga], pos_args=['g.a']))
+        self.assertIn('[● g.a]', self.status([group, ga], pos_args=['g.a'])[1])
 
 
 class TestCmdStatusReadOnly(StatusTestBase):

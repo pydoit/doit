@@ -216,6 +216,9 @@ class Style:
         return self._paint('%s %s' % (self.markers[state], name),
                            _COLORS[state])
 
+    def dim(self, text):
+        return self._paint(text, _DIM)
+
     def also(self, label, names):
         """note listing the other parents of a task shown once"""
         return self._paint('(%s: %s)' % (label, ', '.join(names)), _DIM)
@@ -306,38 +309,6 @@ def render_forest(roots, children, states, style, min_depth, reasons=None,
     return lines
 
 
-def render_focus(focus, parents, children, states, style, reasons=None,
-                 stale_only=False, max_depth=1):
-    """parents of the focus task, the focus task and its children, in the
-    order of the interactive navigator. A parent (child) with further
-    parents (children) below `max_depth` is shown cut off.
-
-    @param max_depth: levels shown on each side of the focus task
-    """
-    reasons = reasons or {}
-    lines = []
-    focus_lines = [style.node(focus, states[focus])]
-    focus_lines.extend(reasons.get(focus, ()))
-    for label, adj, also_label in (('parents', parents, 'also needed by'),
-                                   ('children', children, 'also after')):
-        roots = adj[focus]
-        if stale_only:
-            roots, adj = filter_stale_only(roots, adj, states)
-        section = []
-        if roots:
-            # depth counted from the focus task (depth 0)
-            min_depth = {name: depth + 1 for name, depth
-                         in compute_min_depth(roots, adj).items()}
-            section = [label + ':']
-            section.extend(render_forest(
-                roots, adj, states, style, min_depth, reasons, max_depth,
-                start_depth=1, indent='  ', also_label=also_label))
-        if label == 'children':
-            lines.extend(focus_lines)
-        lines.extend(section)
-    return lines
-
-
 opt_stale_only = {
     'name': 'stale_only',
     'short': '',
@@ -345,7 +316,7 @@ opt_stale_only = {
     'type': bool,
     'default': False,
     'help': "hide up-to-date and ignored tasks (keeps tasks needed to "
-            "reach a shown one)"
+            "reach a shown one; ignored with TASK)"
 }
 
 opt_depth = {
@@ -354,8 +325,8 @@ opt_depth = {
     'long': 'depth',
     'type': int,
     'default': None,
-    'help': "limit tree depth to N levels below the roots (with TASK: "
-            "levels of parents and children, default 1)"
+    'help': "limit tree depth to N levels below the roots (ignored with "
+            "TASK)"
 }
 
 opt_reasons = {
@@ -533,13 +504,12 @@ class Status(DoitCmdBase):
                  or (reasons and states[name] not in QUIET_STATES)}
         out = []
         if focus_names:
+            from .status_tui import Navigator, frame_lines
             for focus in focus_names:
                 if out:
                     out.append('')
-                out.extend(render_focus(
-                    focus, parents, children, states, style, shown,
-                    stale_only=stale_only,
-                    max_depth=1 if depth is None else depth))
+                nav = Navigator(parents, children, states, lines, focus)
+                out.extend(frame_lines(nav, style))
         else:
             if stale_only:
                 roots, children = filter_stale_only(roots, children, states)

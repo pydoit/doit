@@ -87,6 +87,48 @@ class Navigator:
         return self.reasons.get(self.focus, [])
 
 
+def frame_lines(nav, style, show_reasons=True):
+    """the navigator screen as plain lines: parents, focus and children in
+    columns, then status and reasons of the focus task. Same content as
+    `draw`, without cursor. Needs no curses."""
+    def plain(name):
+        return '%s %s' % (style.markers[nav.states[name]], name)
+
+    parents, children = nav.column_items(PARENTS), nav.column_items(CHILDREN)
+    rows = max(len(parents), len(children), 1)
+    focus_row = (rows - 1) // 2
+    titles = ('parents', 'focus', 'children')
+
+    def cell(name, focused=False):
+        """@return: (painted text, visible length)"""
+        if name is None:
+            return '', 0
+        text = style.node(name, nav.states[name])
+        length = len(plain(name))
+        return ('[%s]' % text, length + 2) if focused else (text, length)
+
+    table = []
+    for row in range(rows):
+        table.append([
+            cell(parents[row] if row < len(parents) else None),
+            cell(nav.focus if row == focus_row else None, focused=True),
+            cell(children[row] if row < len(children) else None)])
+    widths = [max([len(title)] + [line[col][1] for line in table]) + 3
+              for col, title in enumerate(titles)]
+
+    lines = [''.join(style.dim(title.ljust(width))
+                     for title, width in zip(titles, widths)).rstrip()]
+    for line in table:
+        lines.append(''.join(text + ' ' * (width - length)
+                             for (text, length), width in zip(line, widths))
+                     .rstrip())
+    lines.append('')
+    lines.append('%s  %s' % (nav.focus, nav.states[nav.focus]))
+    if show_reasons:
+        lines.extend(nav.focus_lines())
+    return lines
+
+
 def _label(nav, name, markers):
     return '%s %s' % (markers[nav.states[name]], name)
 

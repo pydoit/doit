@@ -1,6 +1,7 @@
 import unittest
 
-from doit.status_tui import Navigator, scroll_start
+from doit.cmd_status import Style
+from doit.status_tui import Navigator, frame_lines, scroll_start
 
 # a -> b -> d, a -> c -> d, e alone
 PARENTS = {'a': [], 'b': ['a'], 'c': ['a'], 'd': ['b', 'c'], 'e': []}
@@ -78,3 +79,36 @@ class TestNavigator(unittest.TestCase):
 
     def test_focus_lines(self):
         self.assertEqual(nav('a').focus_lines(), [' * changed'])
+
+
+class TestFrameLines(unittest.TestCase):
+
+    def test_columns_and_footer(self):
+        got = frame_lines(nav('d'), Style())
+        self.assertEqual(got, [
+            'parents   focus   children',
+            '~ b       [~ d]',
+            '~ c',
+            '',
+            'd  may-rerun',
+        ])
+
+    def test_focus_centered_and_reasons(self):
+        got = frame_lines(nav('a'), Style())
+        self.assertEqual(got, [
+            'parents   focus   children',
+            '          [● a]   ~ b',
+            '                  ~ c',
+            '',
+            'a  run',
+            ' * changed',
+        ])
+
+    def test_reasons_hidden(self):
+        self.assertEqual(frame_lines(nav('a'), Style(), False)[-1], 'a  run')
+
+    def test_color_does_not_change_alignment(self):
+        plain = frame_lines(nav('d'), Style())
+        colored = frame_lines(nav('d'), Style(color=True))
+        strip = lambda line: __import__('re').sub(r'\x1b\[[0-9;]*m', '', line)
+        self.assertEqual([strip(x).rstrip() for x in colored], plain)
