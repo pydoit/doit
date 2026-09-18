@@ -96,7 +96,7 @@ class Navigator:
 # maxw: text is cut to this width when drawn (None: to the screen edge)
 Span = namedtuple('Span', 'row x text state flags maxw')
 
-HINTS = '←→↑↓ move  Enter refocus  r reasons  R reload  q quit'
+HINTS = '←↑↓→ move  Enter refocus  r reasons  R reload  q quit'
 ASCII_HINTS = 'arrows move  Enter refocus  r reasons  R reload  q quit'
 
 
