@@ -4,9 +4,6 @@
 `run` is the thin curses front end.
 """
 
-from .cmd_status import aggregate_group_status
-
-PIPELINE = 'pipeline'
 PARENTS = 'parents'
 CHILDREN = 'children'
 
@@ -26,45 +23,25 @@ def scroll_start(total, cursor, height, start=0):
 
 
 class Navigator:
-    """focus, cursor and column contents of the DAG navigator.
+    """focus, cursor and column contents of the DAG navigator"""
 
-    Without a focus task, the focus is a virtual `pipeline` node: its
-    children are the roots and it is the only parent of every root.
-    """
-
-    def __init__(self, parents, children, roots, states, reasons, focus=None):
+    def __init__(self, parents, children, states, reasons, focus):
         self.parents = parents
         self.children = children
-        self.roots = list(roots)
-        self.virtual = focus is None
         self.column = CHILDREN
         self.cursor = 0
-        self.reasons = {}
-        self.states = {}
         self.update(states, reasons)
-        self.focus = PIPELINE if focus is None else focus
+        self.focus = focus
         self._fix_column()
 
     def update(self, states, reasons):
         """replace statuses and reasons (reload), keep the focus"""
         self.states = dict(states)
         self.reasons = dict(reasons)
-        if self.virtual:
-            self.states[PIPELINE] = (
-                aggregate_group_status([states[r] for r in self.roots])
-                if self.roots else 'up-to-date')
 
     def column_items(self, column):
-        if column == PARENTS:
-            if self.focus == PIPELINE:
-                return []
-            found = list(self.parents.get(self.focus, ()))
-            if self.virtual and self.focus in self.roots:
-                found.append(PIPELINE)
-            return found
-        if self.focus == PIPELINE:
-            return list(self.roots)
-        return list(self.children.get(self.focus, ()))
+        adj = self.parents if column == PARENTS else self.children
+        return list(adj[self.focus])
 
     def items(self):
         return self.column_items(self.column)

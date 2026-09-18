@@ -527,20 +527,16 @@ class TestCmdStatusInteractive(StatusTestBase):
         states, _ = calls['reload']
         self.assertEqual(states, {'a': 'run', 'b': 'run'})
 
-    def test_navigator_focus_and_roots(self):
+    def test_navigator_default_focus_is_first_root(self):
         nav = self.interactive(self.tasks())['nav']
-        self.assertEqual(nav.focus, 'pipeline')
-        self.assertEqual(nav.column_items('children'), ['a'])
+        self.assertEqual(nav.focus, 'a')
+        self.assertEqual(nav.column_items('children'), ['b'])
 
     def test_navigator_focus_task(self):
         nav = self.interactive(self.tasks(), pos_args=['b'])['nav']
         self.assertEqual(nav.focus, 'b')
         self.assertEqual(nav.column_items('parents'), ['a'])
 
-    def test_reload_twice_keeps_graph(self):
-        # implicit edges added by TaskControl must not become order edges
-        calls = self.interactive(self.tasks())
-        self.assertEqual(calls['nav'].column_items('children'), ['a'])
 
     def test_no_curses(self):
         output = StringIO()

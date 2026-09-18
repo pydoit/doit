@@ -1,6 +1,6 @@
 import unittest
 
-from doit.status_tui import Navigator, PIPELINE, scroll_start
+from doit.status_tui import Navigator, scroll_start
 
 # a -> b -> d, a -> c -> d, e alone
 PARENTS = {'a': [], 'b': ['a'], 'c': ['a'], 'd': ['b', 'c'], 'e': []}
@@ -9,9 +9,8 @@ STATES = {'a': 'run', 'b': 'may-rerun', 'c': 'may-rerun', 'd': 'may-rerun',
           'e': 'up-to-date'}
 
 
-def nav(focus=None):
-    return Navigator(PARENTS, CHILDREN, ['a', 'e'], STATES,
-                     {'a': [' * changed']}, focus)
+def nav(focus):
+    return Navigator(PARENTS, CHILDREN, STATES, {'a': [' * changed']}, focus)
 
 
 class TestScrollStart(unittest.TestCase):
@@ -37,25 +36,6 @@ class TestNavigator(unittest.TestCase):
         self.assertEqual(n.column_items('parents'), ['a'])
         self.assertEqual(n.column_items('children'), ['d'])
         self.assertEqual(n.column, 'children')
-
-    def test_pipeline_focus_children_are_roots(self):
-        n = nav()
-        self.assertEqual(n.focus, PIPELINE)
-        self.assertEqual(n.column_items('parents'), [])
-        self.assertEqual(n.column_items('children'), ['a', 'e'])
-        self.assertEqual(n.states[PIPELINE], 'run')
-
-    def test_root_has_pipeline_as_parent(self):
-        n = nav()
-        n.enter()
-        self.assertEqual(n.focus, 'a')
-        self.assertEqual(n.column_items('parents'), [PIPELINE])
-        n.left()
-        n.enter()
-        self.assertEqual(n.focus, PIPELINE)
-
-    def test_task_focus_has_no_pipeline_parent(self):
-        self.assertEqual(nav('a').column_items('parents'), [])
 
     def test_up_down_clamped(self):
         n = nav('a')

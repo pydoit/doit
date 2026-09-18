@@ -381,8 +381,8 @@ opt_interactive = {
     'long': 'interactive',
     'type': bool,
     'default': False,
-    'help': "browse the graph in a curses navigator (with TASK, start at "
-            "the first TASK)"
+    'help': "browse the graph in a curses navigator, starting at the "
+            "first TASK (default: first task without dependencies)"
 }
 
 
@@ -506,14 +506,15 @@ class Status(DoitCmdBase):
         states, lines = compute()
         style = make_style(self.outstream, os.environ)
         roots = compute_roots(visible, parents)
+        if not visible:
+            return 0
 
         if interactive:
             from . import status_tui
-            focus = None
-            if focus_names:
-                focus = focus_names[0]
-            nav = status_tui.Navigator(parents, children, roots, states,
-                                       lines, focus)
+            # without TASK start at the first source of the graph
+            focus = focus_names[0] if focus_names else roots[0]
+            nav = status_tui.Navigator(parents, children, states, lines,
+                                       focus)
             # snapshot: hold no DB handle while the user navigates
             self.dep_manager.release()
 
