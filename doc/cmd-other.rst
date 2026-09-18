@@ -291,15 +291,14 @@ Options must be given before ``TASK``:
   worst status of its sub-tasks.
 
 * *-i*/*--interactive*: browse the graph in a full-screen navigator (see
-  below). Starts at the first ``TASK``.
+  below). ``TASK`` is required: the navigator starts at the first one.
 
 Interactive mode
 ^^^^^^^^^^^^^^^^
 
 The graph is laid out left to right: the parents of the focus task on the left,
 the focus task in the middle, its children on the right. A footer shows the
-status and the reasons of the focus task. Without ``TASK`` the focus starts at
-the first task (by name) that has no dependencies.
+status and the reasons of the focus task. The navigator starts at ``TASK``.
 
 =========  ==========================================
  ←  →      move the cursor to the parents / children column

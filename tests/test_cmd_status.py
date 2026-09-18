@@ -509,6 +509,7 @@ class TestCmdStatusInteractive(StatusTestBase):
         output = StringIO()
         cmd = CmdFactory(Status, outstream=output, task_list=tasks,
                          dep_manager=self.dep_manager)
+        kw.setdefault('pos_args', ['a'])
         with mock.patch('doit.status_tui.run', fake_run):
             self.assertEqual(cmd._execute(interactive=True, **kw), 0)
         self.assertEqual(output.getvalue(), '')
@@ -527,10 +528,16 @@ class TestCmdStatusInteractive(StatusTestBase):
         states, _ = calls['reload']
         self.assertEqual(states, {'a': 'run', 'b': 'run'})
 
-    def test_navigator_default_focus_is_first_root(self):
+    def test_navigator_starts_at_task(self):
         nav = self.interactive(self.tasks())['nav']
         self.assertEqual(nav.focus, 'a')
         self.assertEqual(nav.column_items('children'), ['b'])
+
+    def test_task_required(self):
+        cmd = CmdFactory(Status, outstream=StringIO(), task_list=self.tasks(),
+                         dep_manager=self.dep_manager)
+        self.assertRaises(InvalidCommand, cmd._execute, interactive=True)
+        self.assertFalse(self.dep_manager._closed)
 
     def test_navigator_focus_task(self):
         nav = self.interactive(self.tasks(), pos_args=['b'])['nav']
@@ -543,7 +550,7 @@ class TestCmdStatusInteractive(StatusTestBase):
         cmd = CmdFactory(Status, outstream=output, task_list=self.tasks(),
                          dep_manager=self.dep_manager)
         with mock.patch.dict('sys.modules', {'curses': None}):
-            self.assertEqual(cmd._execute(interactive=True), 1)
+            self.assertEqual(cmd._execute(interactive=True, pos_args=['a']), 1)
         self.assertEqual(output.getvalue(),
                          'interactive mode unavailable on this platform\n')
         self.assertFalse(self.dep_manager._closed)

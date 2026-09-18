@@ -9,6 +9,7 @@ import os
 from collections import defaultdict, deque, namedtuple
 
 from .cmd_base import DoitCmdBase, check_tasks_exist
+from .exceptions import InvalidCommand
 from .cmd_info import Info
 from .cmd_list import opt_listall, opt_list_private
 from .control import TaskControl
@@ -382,7 +383,7 @@ opt_interactive = {
     'type': bool,
     'default': False,
     'help': "browse the graph in a curses navigator, starting at the "
-            "first TASK (default: first task without dependencies)"
+            "first TASK (required)"
 }
 
 
@@ -458,10 +459,12 @@ class Status(DoitCmdBase):
     def _execute(self, downstream=False, stale_only=False, depth=None,
                  reasons=False, private=False, subtasks=False,
                  interactive=False, pos_args=None):
+        focus_names = list(pos_args or [])
+        if interactive and not focus_names:
+            raise InvalidCommand("interactive mode needs a TASK to start at")
         tasks = {t.name: t for t in self.task_list}
         if not tasks:
             return 0
-        focus_names = list(pos_args or [])
         check_tasks_exist(tasks, focus_names)
         if interactive:
             try:
@@ -506,15 +509,11 @@ class Status(DoitCmdBase):
         states, lines = compute()
         style = make_style(self.outstream, os.environ)
         roots = compute_roots(visible, parents)
-        if not visible:
-            return 0
 
         if interactive:
             from . import status_tui
-            # without TASK start at the first source of the graph
-            focus = focus_names[0] if focus_names else roots[0]
             nav = status_tui.Navigator(parents, children, states, lines,
-                                       focus)
+                                       focus_names[0])
             # snapshot: hold no DB handle while the user navigates
             self.dep_manager.release()
 
