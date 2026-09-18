@@ -280,16 +280,16 @@ other occurrences are shown as ``task ↑``.
 
 Options must be given before ``TASK``:
 
-* ``TASK ...``: show only these tasks, with everything they depend on
-  (*upstream*). The reasons for the status of ``TASK`` are always printed.
-* ``--downstream``: with ``TASK``, also show the tasks that depend on it.
+* ``TASK ...``: show the parents (tasks it depends on) and children (tasks
+  that depend on it) of each ``TASK``, like the interactive navigator. The
+  reasons for the status of ``TASK`` are always printed.
 * ``--stale-only``: hide up-to-date and ignored tasks.
 * ``--depth N``: limit the tree to N levels. Cut-off tasks end with ``…``.
+  With ``TASK``, N levels of parents and of children (default 1).
 * ``--reasons``: print why each task is not up-to-date.
 * *-p*/*--private*: also show tasks that start with an underscore.
 * *--all*: show sub-tasks as separate tasks. By default a group task shows the
   worst status of its sub-tasks.
-
 * *-i*/*--interactive*: browse the graph in a full-screen navigator (see
   below). ``TASK`` is required: the navigator starts at the first one.
 

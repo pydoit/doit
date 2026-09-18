@@ -289,37 +289,35 @@ class TestRenderFocus(unittest.TestCase):
     children = {'a': ['b'], 'b': ['c'], 'c': []}
     states = {'a': 'run', 'b': 'may-rerun', 'c': 'may-rerun'}
 
-    def test_upstream_only(self):
+    def test_parents_focus_children(self):
         got = render_focus('b', self.parents, self.children, self.states,
                            Style())
-        self.assertEqual(got, ['~ b', 'upstream:', '  ● a'])
+        self.assertEqual(got, ['parents:', '  ● a', '~ b',
+                               'children:', '  ~ c'])
 
-    def test_downstream(self):
-        got = render_focus('b', self.parents, self.children, self.states,
-                           Style(), downstream=True)
-        self.assertEqual(got, ['~ b', 'upstream:', '  ● a',
-                               'downstream:', '  ~ c'])
-
-    def test_focus_reasons_and_no_upstream(self):
+    def test_focus_reasons_and_no_parents(self):
         got = render_focus('a', self.parents, self.children, self.states,
                            Style(), reasons={'a': [' * no deps']})
-        self.assertEqual(got, ['● a', ' * no deps'])
+        self.assertEqual(got, ['● a', ' * no deps', 'children:', '  ~ b …'])
 
-    def test_stale_only_prunes_upstream(self):
+    def test_no_neighbors(self):
+        got = render_focus('a', {'a': []}, {'a': []}, {'a': 'run'}, Style())
+        self.assertEqual(got, ['● a'])
+
+    def test_stale_only_prunes_parents(self):
         parents = {'a': [], 'q': [], 'b': ['a', 'q']}
         children = {'a': ['b'], 'q': ['b'], 'b': []}
         states = {'a': 'run', 'q': 'up-to-date', 'b': 'may-rerun'}
         got = render_focus('b', parents, children, states, Style(),
                            stale_only=True)
-        self.assertEqual(got, ['~ b', 'upstream:', '  ● a'])
+        self.assertEqual(got, ['parents:', '  ● a', '~ b'])
 
-    def test_depth_from_focus(self):
-        parents = {'a': [], 'b': ['a'], 'c': ['b']}
-        children = {'a': ['b'], 'b': ['c'], 'c': []}
-        states = {n: 'up-to-date' for n in parents}
-        got = render_focus('c', parents, children, states, Style(),
-                           max_depth=1)
-        self.assertEqual(got, ['✓ c', 'upstream:', '  ✓ b …'])
+    def test_deeper_levels(self):
+        states = {n: 'up-to-date' for n in self.parents}
+        got = render_focus('c', self.parents, self.children, states, Style(),
+                           max_depth=2)
+        self.assertEqual(got, ['parents:', '  ✓ b', '  └── ✓ a', '✓ c'])
+
 
 import os
 import types
@@ -448,22 +446,22 @@ class TestCmdStatusFocus(StatusTestBase):
         c = Task('c', [''], file_dep=['gen/b.out'])
         return [a, b, c]
 
-    def test_focus_upstream_with_reasons(self):
+    def test_focus_parents_and_children_with_reasons(self):
         self.assertEqual(self.status(self.chain(), pos_args=['b']), [
+            'parents:',
+            '  ● a',
             '● b',
             ' * input produced by task a',
-            'upstream:',
-            '  ● a',
+            'children:',
+            '  ● c',
         ])
 
-    def test_focus_downstream(self):
-        got = self.status(self.chain(), pos_args=['b'], downstream=True)
-        self.assertEqual(got[-2:], ['downstream:', '  ● c'])
+    def test_focus_depth(self):
+        got = self.status(self.chain(), pos_args=['c'], depth=2)
+        self.assertEqual(got[:3], ['parents:', '  ● b', '  └── ● a'])
 
     def test_multiple_focus_in_argument_order(self):
         got = self.status(self.chain(), pos_args=['c', 'a'])
-        self.assertEqual(got[0], '● c')
-        self.assertIn('● a', got)
         self.assertLess(got.index('● c'), got.index('● a'))
 
     def test_focus_private_task_shown_without_flag(self):
@@ -474,8 +472,7 @@ class TestCmdStatusFocus(StatusTestBase):
         group = Task('g', None, has_subtask=True)
         group.task_dep = ['g.a']
         ga = Task('g.a', [''], subtask_of='g')
-        self.assertEqual(self.status([group, ga], pos_args=['g.a'])[0],
-                         '● g.a')
+        self.assertIn('● g.a', self.status([group, ga], pos_args=['g.a']))
 
 
 class TestCmdStatusReadOnly(StatusTestBase):

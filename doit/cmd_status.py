@@ -307,38 +307,36 @@ def render_forest(roots, children, states, style, min_depth, reasons=None,
 
 
 def render_focus(focus, parents, children, states, style, reasons=None,
-                 downstream=False, stale_only=False, max_depth=None):
-    """focus task, its upstream tree and (optionally) its downstream tree"""
+                 stale_only=False, max_depth=1):
+    """parents of the focus task, the focus task and its children, in the
+    order of the interactive navigator. A parent (child) with further
+    parents (children) below `max_depth` is shown cut off.
+
+    @param max_depth: levels shown on each side of the focus task
+    """
     reasons = reasons or {}
-    lines = [style.node(focus, states[focus])]
-    lines.extend(reasons.get(focus, ()))
-    sections = [('upstream', parents, 'also needed by')]
-    if downstream:
-        sections.append(('downstream', children, 'also after'))
-    for label, adj, also_label in sections:
+    lines = []
+    focus_lines = [style.node(focus, states[focus])]
+    focus_lines.extend(reasons.get(focus, ()))
+    for label, adj, also_label in (('parents', parents, 'also needed by'),
+                                   ('children', children, 'also after')):
         roots = adj[focus]
         if stale_only:
             roots, adj = filter_stale_only(roots, adj, states)
-        if not roots:
-            continue
-        # depth counted from the focus task (depth 0)
-        min_depth = {name: depth + 1
-                     for name, depth in compute_min_depth(roots, adj).items()}
-        lines.append(label + ':')
-        lines.extend(render_forest(roots, adj, states, style, min_depth,
-                                   reasons, max_depth, start_depth=1,
-                                   indent='  ', also_label=also_label))
+        section = []
+        if roots:
+            # depth counted from the focus task (depth 0)
+            min_depth = {name: depth + 1 for name, depth
+                         in compute_min_depth(roots, adj).items()}
+            section = [label + ':']
+            section.extend(render_forest(
+                roots, adj, states, style, min_depth, reasons, max_depth,
+                start_depth=1, indent='  ', also_label=also_label))
+        if label == 'children':
+            lines.extend(focus_lines)
+        lines.extend(section)
     return lines
 
-
-opt_downstream = {
-    'name': 'downstream',
-    'short': '',  # -d is already --dir
-    'long': 'downstream',
-    'type': bool,
-    'default': False,
-    'help': "with TASK, also show tasks that depend on it"
-}
 
 opt_stale_only = {
     'name': 'stale_only',
@@ -356,7 +354,8 @@ opt_depth = {
     'long': 'depth',
     'type': int,
     'default': None,
-    'help': "limit tree depth to N levels below the roots (or TASK)"
+    'help': "limit tree depth to N levels below the roots (with TASK: "
+            "levels of parents and children, default 1)"
 }
 
 opt_reasons = {
@@ -395,7 +394,7 @@ class Status(DoitCmdBase):
         "Markers: ✓ up-to-date, ● run, ~ may rerun (an input is produced "
         "by a stale task), ! error, - ignored, ? unknown.")
 
-    cmd_options = (opt_downstream, opt_stale_only, opt_depth, opt_reasons,
+    cmd_options = (opt_stale_only, opt_depth, opt_reasons,
                    opt_list_private, opt_listall, opt_interactive)
 
     def _build_nodes(self, tasks):
@@ -456,7 +455,7 @@ class Status(DoitCmdBase):
                 lines.append(' * %s' % result.error_reason)
         return state, lines
 
-    def _execute(self, downstream=False, stale_only=False, depth=None,
+    def _execute(self, stale_only=False, depth=None,
                  reasons=False, private=False, subtasks=False,
                  interactive=False, pos_args=None):
         focus_names = list(pos_args or [])
@@ -539,8 +538,8 @@ class Status(DoitCmdBase):
                     out.append('')
                 out.extend(render_focus(
                     focus, parents, children, states, style, shown,
-                    downstream=downstream, stale_only=stale_only,
-                    max_depth=depth))
+                    stale_only=stale_only,
+                    max_depth=1 if depth is None else depth))
         else:
             if stale_only:
                 roots, children = filter_stale_only(roots, children, states)
