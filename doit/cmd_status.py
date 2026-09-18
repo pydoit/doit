@@ -461,7 +461,9 @@ class Status(DoitCmdBase):
                  interactive=False, pos_args=None):
         focus_names = list(pos_args or [])
         if interactive and not focus_names:
-            raise InvalidCommand("interactive mode needs a TASK to start at")
+            raise InvalidCommand(
+                '`status --interactive` failed, must select a task.'
+                '\nCheck `{} help status`.'.format(self.bin_name))
         tasks = {t.name: t for t in self.task_list}
         if not tasks:
             return 0
