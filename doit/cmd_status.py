@@ -193,9 +193,9 @@ _COLORS = {'up-to-date': '32', 'run': '31', 'may-rerun': '33', 'error': '31',
            'ignore': '2', 'unknown': '33'}
 _DIM = '2'
 _GLYPHS = {'branch': '├── ', 'last': '└── ', 'pipe': '│   ',
-           'blank': '    ', 'ref': '↑', 'cut': '…'}
+           'blank': '    ', 'cut': '…'}
 _ASCII_GLYPHS = {'branch': '|-- ', 'last': '`-- ', 'pipe': '|   ',
-                 'blank': '    ', 'ref': '^', 'cut': '...'}
+                 'blank': '    ', 'cut': '...'}
 
 
 class Style:
@@ -215,9 +215,9 @@ class Style:
         return self._paint('%s %s' % (self.markers[state], name),
                            _COLORS[state])
 
-    def ref(self, name):
-        """back-reference to a task that is expanded elsewhere"""
-        return self._paint('%s %s' % (name, self.glyphs['ref']), _DIM)
+    def also(self, label, names):
+        """note listing the other parents of a task shown once"""
+        return self._paint('(%s: %s)' % (label, ', '.join(names)), _DIM)
 
     def cut(self, name, state):
         """task whose children are hidden by --depth"""
@@ -239,43 +239,69 @@ def make_style(stream, environ):
 
 
 def render_forest(roots, children, states, style, min_depth, reasons=None,
-                  max_depth=None, start_depth=0, indent=''):
+                  max_depth=None, start_depth=0, indent='',
+                  also_label='also after'):
     """render trees below `roots` as a list of lines.
 
-    Every task is expanded once: at the first occurrence (sorted DFS) at its
-    shallowest depth. Other occurrences are a one-line back-reference.
-    A task with children at `max_depth` is shown cut off (at every
-    occurrence at its shallowest depth).
+    Every task is shown once: at the first occurrence (sorted DFS) at its
+    shallowest depth. Its line ends with a note naming its other parents.
+    A task with children at `max_depth` is shown cut off.
 
     @param min_depth: dict name -> shallowest depth (see compute_min_depth),
                       in the same depth scale as `start_depth`
     @param reasons: dict name -> lines printed verbatim under the task
+    @param also_label: prefix of the note listing the other parents
     """
     reasons = reasons or {}
     lines = []
-    expanded = set()
+    shown = set()
     glyphs = style.glyphs
 
-    def emit(name, depth, lead, child_lead):
+    # parents of every task reachable from roots, by name
+    others = {}
+    todo = list(roots)
+    seen = set(todo)
+    while todo:
+        name = todo.pop()
+        for kid in children.get(name, ()):
+            others.setdefault(kid, set()).add(name)
+            if kid not in seen:
+                seen.add(kid)
+                todo.append(kid)
+
+    def line(name, parent, text):
+        extra = sorted(others.get(name, set()) - {parent})
+        if extra:
+            text += ' ' + style.also(also_label, extra)
+        return text
+
+    def emit(name, depth, lead, child_lead, parent):
+        shown.add(name)
         kids = children.get(name, ())
-        if depth > min_depth[name] or name in expanded:
-            lines.append(lead + style.ref(name))
-            return
         if max_depth is not None and depth == max_depth and kids:
-            lines.append(lead + style.cut(name, states[name]))
+            lines.append(lead + line(name, parent,
+                                     style.cut(name, states[name])))
             return
-        expanded.add(name)
-        lines.append(lead + style.node(name, states[name]))
+        lines.append(lead + line(name, parent, style.node(name, states[name])))
         for text in reasons.get(name, ()):
             lines.append(child_lead + text)
+        # kids shown elsewhere leave no line, so no dangling branch glyph
+        # (they are marked as shown when emitted, so filter lazily)
         for i, kid in enumerate(kids):
-            last = i == len(kids) - 1
+            rest = [k for k in kids[i:] if wanted(k, depth + 1)]
+            if kid not in rest:
+                continue
+            last = len(rest) == 1
             emit(kid, depth + 1,
                  child_lead + glyphs['last' if last else 'branch'],
-                 child_lead + glyphs['blank' if last else 'pipe'])
+                 child_lead + glyphs['blank' if last else 'pipe'], name)
+
+    def wanted(name, depth):
+        return depth <= min_depth[name] and name not in shown
 
     for root in roots:
-        emit(root, start_depth, indent, indent)
+        if wanted(root, start_depth):
+            emit(root, start_depth, indent, indent, None)
     return lines
 
 
@@ -285,10 +311,10 @@ def render_focus(focus, parents, children, states, style, reasons=None,
     reasons = reasons or {}
     lines = [style.node(focus, states[focus])]
     lines.extend(reasons.get(focus, ()))
-    sections = [('upstream', parents)]
+    sections = [('upstream', parents, 'also needed by')]
     if downstream:
-        sections.append(('downstream', children))
-    for label, adj in sections:
+        sections.append(('downstream', children, 'also after'))
+    for label, adj, also_label in sections:
         roots = adj[focus]
         if stale_only:
             roots, adj = filter_stale_only(roots, adj, states)
@@ -300,7 +326,7 @@ def render_focus(focus, parents, children, states, style, reasons=None,
         lines.append(label + ':')
         lines.extend(render_forest(roots, adj, states, style, min_depth,
                                    reasons, max_depth, start_depth=1,
-                                   indent='  '))
+                                   indent='  ', also_label=also_label))
     return lines
 
 

@@ -186,14 +186,12 @@ class TestStyle(unittest.TestCase):
         style = Style()
         self.assertEqual(style.node('a', 'run'), '● a')
         self.assertEqual(style.node('a', 'up-to-date'), '✓ a')
-        self.assertEqual(style.ref('a'), 'a ↑')
         self.assertEqual(style.cut('a', 'run'), '● a …')
 
     def test_ascii(self):
         style = Style(ascii_only=True)
         self.assertEqual(style.node('a', 'up-to-date'), '+ a')
         self.assertEqual(style.node('a', 'run'), '* a')
-        self.assertEqual(style.ref('a'), 'a ^')
         self.assertEqual(style.cut('a', 'run'), '* a ...')
 
     def test_color(self):
@@ -248,14 +246,14 @@ class TestRenderForest(unittest.TestCase):
         children = {'a': ['c'], 'b': ['c'], 'c': []}
         states = {n: 'up-to-date' for n in children}
         self.assertEqual(self.render(['a', 'b'], children, states),
-                         ['✓ a', '└── ✓ c', '✓ b', '└── c ↑'])
+                         ['✓ a', '└── ✓ c (also after: b)', '✓ b'])
 
     def test_expand_at_shallowest_depth(self):
         children = {'a': ['x'], 'x': ['c'], 'b': ['c'], 'c': []}
         states = {n: 'up-to-date' for n in children}
         self.assertEqual(
             self.render(['a', 'b'], children, states),
-            ['✓ a', '└── ✓ x', '    └── c ↑', '✓ b', '└── ✓ c'])
+            ['✓ a', '└── ✓ x', '✓ b', '└── ✓ c (also after: x)'])
 
     def test_depth_cut(self):
         children = {'a': ['b'], 'b': ['c'], 'c': []}
@@ -274,7 +272,7 @@ class TestRenderForest(unittest.TestCase):
         states = {n: 'up-to-date' for n in children}
         self.assertEqual(
             self.render(['a', 'b'], children, states, max_depth=1),
-            ['✓ a', '└── ✓ c …', '✓ b', '└── ✓ c …'])
+            ['✓ a', '└── ✓ c … (also after: b)', '✓ b'])
 
     def test_reasons(self):
         children = {'a': ['b'], 'b': []}
@@ -413,7 +411,7 @@ class TestCmdStatus(StatusTestBase):
         tasks = [group, ga, gb]
         self.assertEqual(self.status(tasks), ['● g'])
         self.assertEqual(self.status(tasks, subtasks=True),
-                         ['● g.a', '└── ● g', '● g.b', '└── g ↑'])
+                         ['● g.a', '└── ● g (also after: g.b)', '● g.b'])
 
     def test_group_reasons_name_subtasks(self):
         group = Task('g', None, has_subtask=True)
