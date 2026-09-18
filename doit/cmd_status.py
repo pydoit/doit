@@ -4,7 +4,14 @@ Read-only: never executes actions, never calls dep_manager.close() or
 backend dump(), so no task state is persisted.
 """
 
-from collections import deque, namedtuple
+import fnmatch
+import os
+from collections import defaultdict, deque, namedtuple
+
+from .cmd_base import DoitCmdBase, check_tasks_exist
+from .cmd_info import Info
+from .cmd_list import opt_listall, opt_list_private
+from .control import TaskControl
 
 FILE = 'file'
 ORDER = 'order'
@@ -295,3 +302,176 @@ def render_focus(focus, parents, children, states, style, reasons=None,
                                    reasons, max_depth, start_depth=1,
                                    indent='  '))
     return lines
+
+
+opt_downstream = {
+    'name': 'downstream',
+    'short': '',  # -d is already --dir
+    'long': 'downstream',
+    'type': bool,
+    'default': False,
+    'help': "with TASK, also show tasks that depend on it"
+}
+
+opt_stale_only = {
+    'name': 'stale_only',
+    'short': '',
+    'long': 'stale-only',
+    'type': bool,
+    'default': False,
+    'help': "hide up-to-date and ignored tasks (keeps tasks needed to "
+            "reach a shown one)"
+}
+
+opt_depth = {
+    'name': 'depth',
+    'short': '',
+    'long': 'depth',
+    'type': int,
+    'default': None,
+    'help': "limit tree depth to N levels below the roots (or TASK)"
+}
+
+opt_reasons = {
+    'name': 'reasons',
+    'short': '',
+    'long': 'reasons',
+    'type': bool,
+    'default': False,
+    'help': "print why a task is not up-to-date"
+}
+
+DELAYED_REASON = ' * created at run time (create_after)'
+
+
+def _is_delayed(task):
+    """placeholder created by create_after: real task not known yet"""
+    return task.loader is not None and not task.actions and not task.file_dep
+
+
+class Status(DoitCmdBase):
+    doc_purpose = "show task graph with up-to-date status (read-only)"
+    doc_usage = "[TASK ...]"
+    doc_description = (
+        "Never executes tasks and never saves state.\n"
+        "Markers: ✓ up-to-date, ● run, ~ may rerun (an input is produced "
+        "by a stale task), ! error, - ignored, ? unknown.")
+
+    cmd_options = (opt_downstream, opt_stale_only, opt_depth, opt_reasons,
+                   opt_list_private, opt_listall)
+
+    def _collect(self, tasks):
+        """@return: (nodes, local states, reason lines, group of subtask)"""
+        # explicit deps must be read before TaskControl adds implicit ones
+        explicit = {name: set(task.task_dep) | set(task.setup_tasks)
+                    for name, task in tasks.items()}
+        owners = TaskControl(self.task_list).targets
+
+        nodes = []
+        for name, task in tasks.items():
+            wild = {dep for dep in task.task_dep
+                    if any(fnmatch.fnmatch(dep, pat)
+                           for pat in task.wild_dep)}
+            file_deps = sorted({owners[f] for f in task.file_dep
+                                if f in owners})
+            nodes.append(Node(name, file_deps,
+                              sorted(explicit[name] | wild),
+                              task.subtask_of, _is_delayed(task)))
+
+        local = {}
+        lines = {}
+        for name, task in tasks.items():
+            local[name], lines[name] = self._task_status(task, tasks, owners)
+
+        subs = defaultdict(dict)
+        for name, task in tasks.items():
+            if task.subtask_of in tasks:
+                subs[task.subtask_of][name] = local[name]
+        for group, sub_states in subs.items():
+            worst = aggregate_group_status(sub_states.values())
+            local[group] = worst
+            lines[group] = [
+                ' * subtask %s: %s' % (sub, state)
+                for sub, state in sorted(sub_states.items())
+                if state == worst and state not in QUIET_STATES]
+        return nodes, local, lines
+
+    def _task_status(self, task, tasks, owners):
+        """@return: (status, list of reason lines)"""
+        if _is_delayed(task):
+            return 'unknown', [DELAYED_REASON]
+        if self.dep_manager.status_is_ignore(task):
+            return 'ignore', []
+        result = self.dep_manager.get_status(task, tasks, get_log=True)
+        state = result.status
+        lines = Info.get_reasons(result.reasons).splitlines()
+        if state == 'error':
+            missing = result.reasons.get('missing_file_dep', [])
+            state, producers = resolve_missing_inputs(state, missing, owners)
+            if state == 'run':
+                return state, [' * input produced by task %s' % name
+                               for name in producers]
+            if result.error_reason:
+                lines.append(' * %s' % result.error_reason)
+        return state, lines
+
+    def _execute(self, downstream=False, stale_only=False, depth=None,
+                 reasons=False, private=False, subtasks=False,
+                 pos_args=None):
+        tasks = {t.name: t for t in self.task_list}
+        if not tasks:
+            return 0
+        focus_names = list(pos_args or [])
+        check_tasks_exist(tasks, focus_names)
+
+        nodes, local, lines = self._collect(tasks)
+        names = {node.name for node in nodes}
+        edges = build_edges(nodes)
+
+        if not subtasks:
+            # a focus subtask stays a node so it can be shown
+            group_of = {node.name: node.subtask_of for node in nodes
+                        if node.subtask_of in tasks
+                        and node.name not in focus_names}
+            edges = collapse_subtasks(edges, group_of)
+            names -= set(group_of)
+
+        # may-rerun is computed before hidden tasks are spliced out, so a
+        # stale private task still marks its dependents
+        may_rerun = compute_may_rerun(names, edges, local)
+        states = {name: 'may-rerun' if name in may_rerun else local[name]
+                  for name in names}
+
+        hidden = set()
+        if not private:
+            hidden = {n for n in names
+                      if n.startswith('_') and n not in focus_names}
+        edges = splice_hidden(edges, hidden)
+        visible = names - hidden
+        children, parents = build_adjacency(visible, edges)
+
+        shown = {name: lines[name] for name in visible
+                 if lines.get(name)
+                 and (name in focus_names
+                      or (reasons and states[name] not in QUIET_STATES))}
+
+        style = make_style(self.outstream, os.environ)
+        out = []
+        if focus_names:
+            for focus in focus_names:
+                if out:
+                    out.append('')
+                out.extend(render_focus(
+                    focus, parents, children, states, style, shown,
+                    downstream=downstream, stale_only=stale_only,
+                    max_depth=depth))
+        else:
+            roots = compute_roots(visible, parents)
+            if stale_only:
+                roots, children = filter_stale_only(roots, children, states)
+            out = render_forest(
+                roots, children, states, style,
+                compute_min_depth(roots, children), shown, depth)
+        if out:
+            self.outstream.write('\n'.join(out) + '\n')
+        return 0

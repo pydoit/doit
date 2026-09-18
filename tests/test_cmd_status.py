@@ -322,3 +322,171 @@ class TestRenderFocus(unittest.TestCase):
         got = render_focus('c', parents, children, states, Style(),
                            max_depth=1)
         self.assertEqual(got, ['✓ c', 'upstream:', '  ✓ b …'])
+
+import os
+import types
+from io import StringIO
+from unittest import mock
+
+from doit.cmd_status import Status
+from doit.exceptions import InvalidCommand
+from doit.task import Task
+from tests.support import CmdFactory, DepManagerMixin, DependencyFileMixin
+
+
+class StatusTestBase(DependencyFileMixin, DepManagerMixin, unittest.TestCase):
+
+    def status(self, tasks, **kw):
+        output = StringIO()
+        cmd = CmdFactory(Status, outstream=output, task_list=tasks,
+                         dep_manager=self.dep_manager)
+        self.assertEqual(cmd._execute(**kw), 0)
+        return output.getvalue().splitlines()
+
+
+class TestCmdStatus(StatusTestBase):
+
+    def test_no_tasks(self):
+        self.assertEqual(self.status([]), [])
+
+    def test_unknown_task(self):
+        cmd = CmdFactory(Status, outstream=StringIO(),
+                         task_list=[Task('a', [''])],
+                         dep_manager=self.dep_manager)
+        self.assertRaises(InvalidCommand, cmd._execute, pos_args=['nope'])
+
+    def test_up_to_date(self):
+        task = Task('t', [''], file_dep=[self.dependency1])
+        self.dep_manager.save_success(task)
+        self.assertEqual(self.status([task]), ['✓ t'])
+
+    def test_missing_input_made_upstream_is_run(self):
+        a = Task('a', [''], targets=['gen/a.out'])
+        b = Task('b', [''], file_dep=['gen/a.out'])
+        self.assertEqual(self.status([a, b], reasons=True), [
+            '● a',
+            ' * The task has no dependencies.',
+            ' * The following targets do not exist:',
+            '    - gen/a.out',
+            '└── ● b',
+            '     * input produced by task a',
+        ])
+
+    def test_missing_input_nobody_produces_is_error(self):
+        b = Task('b', [''], file_dep=['nowhere.txt'])
+        self.assertEqual(self.status([b]), ['! b'])
+
+    def test_may_rerun_through_file_edge(self):
+        path = os.path.join(self._dep_tmpdir, 'a.out')
+        with open(path, 'w') as fp:
+            fp.write('x')
+        a = Task('a', [''], targets=[path])
+        b = Task('b', [''], file_dep=[path])
+        self.dep_manager.save_success(b)
+        self.assertEqual(self.status([a, b]), ['● a', '└── ~ b'])
+
+    def test_order_edge_is_not_may_rerun(self):
+        a = Task('a', [''])
+        c = Task('c', [''], file_dep=[self.dependency1], task_dep=['a'])
+        self.dep_manager.save_success(c)
+        self.assertEqual(self.status([a, c]), ['● a', '└── ✓ c'])
+
+    def test_stale_only(self):
+        t = Task('t', [''], file_dep=[self.dependency1])
+        self.dep_manager.save_success(t)
+        u = Task('u', [''])
+        self.assertEqual(self.status([t, u], stale_only=True), ['● u'])
+
+    def test_private_hidden_and_spliced(self):
+        a = Task('a', [''], targets=['gen/a.out'])
+        x = Task('_x', [''], file_dep=['gen/a.out'], targets=['gen/x.out'])
+        b = Task('b', [''], file_dep=['gen/x.out'])
+        self.assertEqual(self.status([a, x, b]), ['● a', '└── ● b'])
+        self.assertEqual(self.status([a, x, b], private=True),
+                         ['● a', '└── ● _x', '    └── ● b'])
+
+    def test_group_collapsed_and_aggregate(self):
+        group = Task('g', None, has_subtask=True)
+        group.task_dep = ['g.a', 'g.b']
+        ga = Task('g.a', [''], subtask_of='g')
+        gb = Task('g.b', [''], subtask_of='g')
+        tasks = [group, ga, gb]
+        self.assertEqual(self.status(tasks), ['● g'])
+        self.assertEqual(self.status(tasks, subtasks=True),
+                         ['● g.a', '└── ● g', '● g.b', '└── g ↑'])
+
+    def test_group_reasons_name_subtasks(self):
+        group = Task('g', None, has_subtask=True)
+        group.task_dep = ['g.a']
+        ga = Task('g.a', [''], subtask_of='g')
+        got = self.status([group, ga], reasons=True)
+        self.assertEqual(got[0], '● g')
+        self.assertIn(' * subtask g.a: run', got)
+
+    def test_delayed_task_is_unknown(self):
+        a = Task('a', [''])
+        late = Task('late', None,
+                    loader=types.SimpleNamespace(task_dep='a'))
+        self.assertEqual(self.status([a, late], reasons=True), [
+            '● a',
+            ' * The task has no dependencies.',
+            '└── ? late',
+            '     * created at run time (create_after)',
+        ])
+
+    def test_depth(self):
+        a = Task('a', [''], targets=['gen/a.out'])
+        b = Task('b', [''], file_dep=['gen/a.out'], targets=['gen/b.out'])
+        c = Task('c', [''], file_dep=['gen/b.out'])
+        self.assertEqual(self.status([a, b, c], depth=1),
+                         ['● a', '└── ● b …'])
+
+
+class TestCmdStatusFocus(StatusTestBase):
+
+    def chain(self):
+        a = Task('a', [''], targets=['gen/a.out'])
+        b = Task('b', [''], file_dep=['gen/a.out'], targets=['gen/b.out'])
+        c = Task('c', [''], file_dep=['gen/b.out'])
+        return [a, b, c]
+
+    def test_focus_upstream_with_reasons(self):
+        self.assertEqual(self.status(self.chain(), pos_args=['b']), [
+            '● b',
+            ' * input produced by task a',
+            'upstream:',
+            '  ● a',
+        ])
+
+    def test_focus_downstream(self):
+        got = self.status(self.chain(), pos_args=['b'], downstream=True)
+        self.assertEqual(got[-2:], ['downstream:', '  ● c'])
+
+    def test_multiple_focus_in_argument_order(self):
+        got = self.status(self.chain(), pos_args=['c', 'a'])
+        self.assertEqual(got[0], '● c')
+        self.assertIn('● a', got)
+        self.assertLess(got.index('● c'), got.index('● a'))
+
+    def test_focus_private_task_shown_without_flag(self):
+        x = Task('_x', [''])
+        self.assertEqual(self.status([x], pos_args=['_x'])[0], '● _x')
+
+    def test_focus_subtask_shown_without_all(self):
+        group = Task('g', None, has_subtask=True)
+        group.task_dep = ['g.a']
+        ga = Task('g.a', [''], subtask_of='g')
+        self.assertEqual(self.status([group, ga], pos_args=['g.a'])[0],
+                         '● g.a')
+
+
+class TestCmdStatusReadOnly(StatusTestBase):
+
+    def test_never_closes_or_dumps(self):
+        tasks = [Task('a', [''], targets=['gen/a.out']),
+                 Task('b', [''], file_dep=['gen/a.out'])]
+        with mock.patch.object(self.dep_manager, 'close') as close, \
+                mock.patch.object(self.dep_manager.backend, 'dump') as dump:
+            self.status(tasks, reasons=True)
+        close.assert_not_called()
+        dump.assert_not_called()
