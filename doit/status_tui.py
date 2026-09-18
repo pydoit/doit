@@ -1,10 +1,13 @@
-"""curses navigator for doit status (interactive mode)
+"""full-screen navigator for doit status (interactive mode)
 
-`Navigator` holds all navigation state and is independent of curses.
-`run` is the thin curses front end.
+`Navigator` holds all navigation state. `build_frame` lays out the screen and
+is shared with the static output. `run` draws it with ANSI escape sequences
+(see `status_term` for keys and terminal control).
 """
 
 from collections import namedtuple
+
+from .status_term import CLEAR, TuiUnavailable, open_terminal  # noqa: F401
 
 PARENTS = 'parents'
 FOCUS = 'focus'
@@ -93,15 +96,16 @@ class Navigator:
 # maxw: text is cut to this width when drawn (None: to the screen edge)
 Span = namedtuple('Span', 'row x text state flags maxw')
 
-HINTS = '←→ column  ↑↓ move  Enter refocus  r reasons  R reload  q quit'
+HINTS = '←→↑↓ move  Enter refocus  r reasons  R reload  q quit'
+ASCII_HINTS = 'arrows move  Enter refocus  r reasons  R reload  q quit'
 
 
 def build_frame(nav, style, width=0, height=None, show_reasons=True,
                 cursor=False, starts=None):
     """layout of the navigator screen: parents, focus and children in
     columns, then status and reasons of the selected task (the focus task
-    unless the cursor moved). Used by the curses
-    screen (`height` = screen rows) and by the static output (`height` None:
+    unless the cursor moved). Used by the full-screen
+    display (`height` = screen rows) and by the static output (`height` None:
     as many rows as needed).
 
     Columns are a third of `width`, or wider if a name needs it.
@@ -158,13 +162,14 @@ def build_frame(nav, style, width=0, height=None, show_reasons=True,
         spans.append(Span(rule + 2 + n, 0, line, None, (), None))
     total = rule + 2 + len(reasons)
     if height is not None:
-        spans.append(Span(height - 1, 0, HINTS, None, ('dim',), None))
+        hints = ASCII_HINTS if style.ascii_only else HINTS
+        spans.append(Span(height - 1, 0, hints, None, ('dim',), None))
         total = height
     return spans, total, col_w
 
 
 def frame_lines(nav, style, width=0, show_reasons=True):
-    """the navigator screen as text lines (no curses needed)"""
+    """the navigator screen as text lines (no terminal needed)"""
     spans, total, _ = build_frame(nav, style, width,
                                   show_reasons=show_reasons)
     lines = []
@@ -180,63 +185,48 @@ def frame_lines(nav, style, width=0, show_reasons=True):
     return lines
 
 
-def draw(stdscr, curses, nav, style, show_reasons, pairs, starts):
-    stdscr.erase()
-    height, width = stdscr.getmaxyx()
-    spans, _, col_w = build_frame(nav, style, width, height, show_reasons,
-                                  True, starts)
+def draw(terminal, nav, style, show_reasons, starts):
+    """paint the whole screen in one write"""
+    width, height = terminal.size()
+    spans, _, _ = build_frame(nav, style, width, height, show_reasons, True,
+                              starts)
+    out = [CLEAR]
     for span in spans:
-        attr = curses.color_pair(pairs.get(span.state, 0))
-        for flag, extra in (('dim', curses.A_DIM), ('bold', curses.A_BOLD),
-                            ('cursor', curses.A_REVERSE)):
-            if flag in span.flags:
-                attr |= extra
         room = width - span.x - 1
         if span.maxw is not None:
             room = min(room, span.maxw)
-        try:
-            stdscr.addnstr(span.row, span.x, span.text, max(0, room), attr)
-        except curses.error:  # pragma: no cover
-            pass
-    stdscr.refresh()
+        if room <= 0 or span.row >= height:
+            continue
+        codes = style.codes(span.state, span.flags)
+        text = span.text[:room]
+        if codes:
+            text = '\x1b[%sm%s\x1b[0m' % (codes, text)
+        out.append('\x1b[%d;%dH%s' % (span.row + 1, span.x + 1, text))
+    terminal.write(''.join(out))
 
 
-def run(nav, style, reload, show_reasons=True):
+def run(nav, style, reload, terminal=None, show_reasons=True):
     """run the navigator until quit.
 
     @param reload: callable returning new (states, reasons)
+    @param terminal: see `status_term.Terminal`, default: the real terminal
+    @raise TuiUnavailable: no terminal, or it can not show the screen
     """
-    import curses
-
-    def main(stdscr):
-        curses.curs_set(0)
-        pairs = {}
-        if curses.has_colors():
-            curses.start_color()
-            curses.use_default_colors()
-            for i, (state, color) in enumerate(
-                    (('up-to-date', curses.COLOR_GREEN),
-                     ('run', curses.COLOR_RED),
-                     ('may-rerun', curses.COLOR_YELLOW),
-                     ('error', curses.COLOR_RED),
-                     ('unknown', curses.COLOR_YELLOW)), 1):
-                curses.init_pair(i, color, -1)
-                pairs[state] = i
-        starts = {}
-        reasons_on = show_reasons
-        keys = {curses.KEY_LEFT: nav.left, curses.KEY_RIGHT: nav.right,
-                curses.KEY_UP: nav.up, curses.KEY_DOWN: nav.down,
-                curses.KEY_ENTER: nav.enter, 10: nav.enter, 13: nav.enter}
-        while True:
-            draw(stdscr, curses, nav, style, reasons_on, pairs, starts)
-            key = stdscr.getch()
-            if key in (ord('q'), 27):
-                return
-            if key == ord('r'):
-                reasons_on = not reasons_on
-            elif key == ord('R'):
+    moves = {'left': nav.left, 'right': nav.right, 'up': nav.up,
+             'down': nav.down, 'enter': nav.enter}
+    starts = {}
+    with (terminal or open_terminal()) as term:
+        last_size = None
+        key = 'redraw'
+        while key not in ('q', 'esc'):
+            if key == 'r':
+                show_reasons = not show_reasons
+            elif key == 'R':
                 nav.update(*reload())
-            elif key in keys:
-                keys[key]()
-
-    curses.wrapper(main)
+            elif key in moves:
+                moves[key]()
+            size = term.size()
+            if key is not None or size != last_size:
+                draw(term, nav, style, show_reasons, starts)
+                last_size = size
+            key = term.read_key(0.2)

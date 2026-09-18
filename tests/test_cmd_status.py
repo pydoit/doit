@@ -290,6 +290,7 @@ from unittest import mock
 
 from doit.cmd_status import Status
 from doit.exceptions import InvalidCommand
+from doit.status_term import TuiUnavailable
 from doit.task import Task
 from tests.support import CmdFactory, DepManagerMixin, DependencyFileMixin
 
@@ -455,7 +456,7 @@ class TestCmdStatusInteractive(StatusTestBase):
                 Task('b', [''], file_dep=['gen/a.out'])]
 
     def interactive(self, tasks, **kw):
-        """run -i with a fake curses front end. @return: (nav, calls)"""
+        """run -i with a fake front end. @return: (nav, calls)"""
         calls = {}
 
         def fake_run(nav, markers, reload):
@@ -503,12 +504,13 @@ class TestCmdStatusInteractive(StatusTestBase):
         self.assertEqual(nav.column_items('parents'), ['a'])
 
 
-    def test_no_curses(self):
+    def test_terminal_unavailable(self):
         output = StringIO()
         cmd = CmdFactory(Status, outstream=output, task_list=self.tasks(),
                          dep_manager=self.dep_manager)
-        with mock.patch.dict('sys.modules', {'curses': None}):
-            self.assertEqual(cmd._execute(interactive=True, pos_args=['a']), 1)
+        with mock.patch('doit.status_tui.run',
+                        side_effect=TuiUnavailable('no way')):
+            self.assertEqual(cmd._execute(interactive=True, pos_args=['a']),
+                             1)
         self.assertEqual(output.getvalue(),
-                         'interactive mode unavailable on this platform\n')
-        self.assertFalse(self.dep_manager._closed)
+                         'interactive mode unavailable: no way\n')

@@ -205,6 +205,7 @@ class Style:
 
     def __init__(self, color=False, ascii_only=False):
         self.color = color
+        self.ascii_only = ascii_only
         self.markers = _ASCII_MARKERS if ascii_only else _MARKERS
         self.glyphs = _ASCII_GLYPHS if ascii_only else _GLYPHS
 
@@ -220,12 +221,18 @@ class Style:
     def dim(self, text):
         return self._paint(text, _DIM)
 
+    def codes(self, state=None, flags=()):
+        """SGR codes: color of a state (only if color is on), plus the
+        attributes of the flags dim, bold and cursor (reverse video)"""
+        codes = [_COLORS[state]] if state and self.color else []
+        codes += [code for flag, code in (('dim', _DIM), ('bold', '1'),
+                                          ('cursor', '7')) if flag in flags]
+        return ';'.join(codes)
+
     def span(self, text, state=None, flags=()):
         """text painted with the color of a state, plus dim/bold flags"""
-        codes = [_COLORS[state]] if state else []
-        codes += [code for flag, code in (('dim', _DIM), ('bold', '1'))
-                  if flag in flags]
-        return self._paint(text, ';'.join(codes)) if codes else text
+        return self._paint(text, self.codes(state, flags)) \
+            if self.color and self.codes(state, flags) else text
 
     def also(self, label, names):
         """note listing the other parents of a task shown once"""
@@ -360,7 +367,7 @@ opt_interactive = {
     'long': 'interactive',
     'type': bool,
     'default': False,
-    'help': "browse the graph in a curses navigator, starting at the "
+    'help': "browse the graph in a full-screen navigator, starting at the "
             "first TASK (required)"
 }
 
@@ -446,13 +453,6 @@ class Status(DoitCmdBase):
         if not tasks:
             return 0
         check_tasks_exist(tasks, focus_names)
-        if interactive:
-            try:
-                import curses  # noqa: F401
-            except ImportError:
-                self.outstream.write(
-                    "interactive mode unavailable on this platform\n")
-                return 1
 
         nodes, owners = self._build_nodes(tasks)
         names = {node.name for node in nodes}
@@ -504,7 +504,12 @@ class Status(DoitCmdBase):
                 finally:
                     self.dep_manager.release()
 
-            status_tui.run(nav, style, reload)
+            try:
+                status_tui.run(nav, style, reload)
+            except status_tui.TuiUnavailable as exception:
+                self.outstream.write(
+                    'interactive mode unavailable: %s\n' % exception)
+                return 1
             return 0
 
         shown = {name: lines[name] for name in lines

@@ -1,10 +1,13 @@
 import unittest
 
 from doit.cmd_status import Style
+from doit.status_term import TuiUnavailable, open_terminal, parse_key
+import io
 import re
 
 from doit.status_tui import (
-    HINTS, Navigator, build_frame, frame_lines, scroll_start)
+    HINTS, ASCII_HINTS, Navigator, build_frame, draw, frame_lines, run,
+    scroll_start)
 
 # a -> b -> d, a -> c -> d, e alone
 PARENTS = {'a': [], 'b': ['a'], 'c': ['a'], 'd': ['b', 'c'], 'e': []}
@@ -226,3 +229,155 @@ class TestBuildFrame(unittest.TestCase):
         spans, _, col_w = self.frame('a', height=12)
         cols = [s for s in spans if s.text == '~ b'][0]
         self.assertEqual(cols.maxw, col_w - 1)
+
+
+class FakeTerminal:
+    """scripted keys, records what is written"""
+
+    def __init__(self, keys, size=(60, 12)):
+        self.keys = list(keys)
+        self._size = size
+        self.writes = []
+        self.entered = self.left = False
+
+    def __enter__(self):
+        self.entered = True
+        return self
+
+    def __exit__(self, *exc):
+        self.left = True
+
+    def size(self):
+        return self._size
+
+    def write(self, text):
+        self.writes.append(text)
+
+    def read_key(self, timeout):
+        key = self.keys.pop(0)
+        if key == 'resize':
+            self._size = (70, 12)
+            return None
+        return key
+
+
+def plain(text):
+    return re.sub(r'\x1b\[[0-9;?]*[A-Za-z]', '', text)
+
+
+class TestDraw(unittest.TestCase):
+
+    def test_positions_and_clears(self):
+        term = FakeTerminal([])
+        draw(term, nav('a'), Style(color=False), True, {})
+        out = term.writes[0]
+        self.assertTrue(out.startswith('\x1b[H\x1b[2J'))
+        self.assertIn('\x1b[1;1H\x1b[2mparents', out)
+        # focus at column 21 (0-based 20), middle row
+        self.assertIn('\x1b[5;21H\x1b[1;7m[● a]\x1b[0m', out)
+        self.assertIn(HINTS, out)
+
+    def test_color_and_no_color(self):
+        colored = FakeTerminal([])
+        draw(colored, nav('a'), Style(color=True), True, {})
+        self.assertIn('\x1b[31;1;7m[● a]', colored.writes[0])
+        mono = FakeTerminal([])
+        draw(mono, nav('a'), Style(color=False), True, {})
+        self.assertNotIn('31;', mono.writes[0])
+        self.assertIn('\x1b[1;7m[● a]', mono.writes[0])  # cursor still shows
+
+    def test_ascii_hints(self):
+        term = FakeTerminal([])
+        draw(term, nav('a'), Style(ascii_only=True), True, {})
+        self.assertIn(ASCII_HINTS, term.writes[0])
+        self.assertNotIn('←', term.writes[0])
+
+    def test_text_cut_to_screen_and_column(self):
+        term = FakeTerminal([], size=(30, 12))
+        draw(term, nav('a'), Style(), True, {})
+        text = plain(term.writes[0].replace('\x1b[', '|\x1b['))
+        self.assertIn('parents', text)
+        # nothing is written outside the screen
+        for match in re.finditer(r'\x1b\[(\d+);(\d+)H([^\x1b]*)',
+                                 term.writes[0]):
+            row, col, body = int(match[1]), int(match[2]), match[3]
+            self.assertLessEqual(row, 12)
+            self.assertLessEqual(col - 1 + len(body), 29)
+
+
+class TestRun(unittest.TestCase):
+
+    def run_keys(self, keys, focus='b', reload=None, **kw):
+        n = nav(focus)
+        term = FakeTerminal(keys, **kw)
+        run(n, Style(), reload or (lambda: (STATES, {})), term)
+        return n, term
+
+    def test_quit_restores_terminal(self):
+        n, term = self.run_keys(['q'])
+        self.assertTrue(term.entered and term.left)
+        self.assertEqual(len(term.writes), 1)
+
+    def test_esc_quits(self):
+        _, term = self.run_keys(['esc'])
+        self.assertEqual(len(term.writes), 1)
+
+    def test_keys_navigate(self):
+        n, _ = self.run_keys(['right', 'enter', 'left', 'q'])
+        self.assertEqual(n.focus, 'd')
+        self.assertEqual(n.selected(), 'b')
+
+    def test_r_toggles_reasons(self):
+        n, term = self.run_keys(['left', 'r', 'q'], focus='b')
+        self.assertIn('changed', term.writes[1])
+        self.assertNotIn('changed', term.writes[2])
+
+    def test_R_reloads(self):
+        calls = []
+
+        def reload():
+            calls.append(1)
+            return dict(STATES, b='up-to-date'), {}
+
+        n, term = self.run_keys(['R', 'q'], reload=reload)
+        self.assertEqual(calls, [1])
+        self.assertEqual(n.states['b'], 'up-to-date')
+        self.assertIn('✓ b', plain(term.writes[1]))
+
+    def test_redraw_only_on_key_or_resize(self):
+        n = nav('b')
+        term = FakeTerminal([None, None, 'q'])
+        run(n, Style(), lambda: (STATES, {}), term)
+        self.assertEqual(len(term.writes), 1)  # idle polls do not redraw
+        term = FakeTerminal([None, 'resize', None, 'q'])
+        run(n, Style(), lambda: (STATES, {}), term)
+        self.assertEqual(len(term.writes), 2)  # first draw, resize
+
+    def test_restores_terminal_on_error(self):
+        term = FakeTerminal(['R'])
+        with self.assertRaises(RuntimeError):
+            run(nav('b'), Style(), self.boom, term)
+        self.assertTrue(term.left)
+
+    @staticmethod
+    def boom():
+        raise RuntimeError('boom')
+
+
+class TestParseKey(unittest.TestCase):
+
+    def test_keys(self):
+        for data, key in [('\x1b[A', 'up'), ('\x1b[B', 'down'),
+                          ('\x1b[C', 'right'), ('\x1b[D', 'left'),
+                          ('\x1bOA', 'up'), ('\r', 'enter'),
+                          ('\n', 'enter'), ('q', 'q'), ('R', 'R'),
+                          ('\x1b', 'esc'), ('\x03', 'esc'),
+                          ('\x1b[Z', 'other')]:
+            self.assertEqual(parse_key(data), key, data)
+
+
+class TestOpenTerminal(unittest.TestCase):
+
+    def test_needs_a_terminal(self):
+        with self.assertRaises(TuiUnavailable):
+            open_terminal(io.StringIO())  # not a tty

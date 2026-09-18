@@ -314,8 +314,8 @@ and the reasons of the task under the cursor. The navigator starts at ``TASK``.
 
 Statuses are computed once and the dependency DB file is closed (without saving)
 while you navigate, so a ``doit run`` in another terminal is not blocked. ``R``
-reads the DB again. Interactive mode needs the standard library ``curses``
-module, which is not available on Windows; the static output works everywhere.
+reads the DB again. Interactive mode needs a terminal for input and output. It draws
+with ANSI escape sequences (Windows 10 or later); no extra package is needed.
 
 Like ``doit list --status`` and ``doit info``, *status* evaluates ``uptodate``
 entries of tasks (callables run, strings run as shell commands). File
