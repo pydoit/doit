@@ -14,7 +14,8 @@ from .cmd_info import Info
 from .cmd_list import opt_listall, opt_list_private
 from .control import TaskControl
 from .exceptions import InvalidCommand
-from .status_tui import Navigator, TuiUnavailable, frame_lines, run
+from .status_term import TuiUnavailable
+from .status_tui import Navigator, frame_lines, run
 
 FILE = 'file'
 ORDER = 'order'

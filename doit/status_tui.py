@@ -7,7 +7,7 @@ is shared with the static output. `run` draws it with ANSI escape sequences
 
 from collections import namedtuple
 
-from .status_term import CLEAR, TuiUnavailable, open_terminal  # noqa: F401
+from .status_term import CLEAR, open_terminal
 
 PARENTS = 'parents'
 FOCUS = 'focus'
