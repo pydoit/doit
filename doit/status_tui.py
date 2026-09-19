@@ -142,9 +142,9 @@ def build_frame(nav, style, width=0, height=None, show_reasons=True,
                 cursor=False, footer=True):
     """layout of the navigator screen: parents, all tasks (the focus task in
     brackets) and children in columns, then status and reasons of the
-    selected task (the focus task unless the cursor moved). Used by the full-screen
-    display (`height` = screen rows) and by the static output (`height` None:
-    as many rows as needed).
+    selected task (the focus task unless the cursor moved). Used by the
+    full-screen display (`height` = screen rows) and by the static output
+    (`height` None: as many rows as needed).
 
     Columns are a third of `width`, or wider if a name needs it.
 

@@ -13,7 +13,7 @@ from .cmd_base import DoitCmdBase, check_tasks_exist
 from .cmd_info import Info
 from .cmd_list import opt_listall, opt_list_private
 from .control import TaskControl
-from .status_tui import Navigator, frame_lines
+from .status_tui import Navigator, TuiUnavailable, frame_lines, run
 
 FILE = 'file'
 ORDER = 'order'
@@ -182,6 +182,7 @@ class Style:
         return self._paint(text, self.codes(state, flags)) \
             if self.color and self.codes(state, flags) else text
 
+
 def make_style(stream, environ):
     """color if stream is a TTY and NO_COLOR is unset. ASCII glyphs if the
     stream encoding can not encode the default ones."""
@@ -329,7 +330,6 @@ class Status(DoitCmdBase):
         style = make_style(self.outstream, os.environ)
 
         if interactive:
-            from . import status_tui
             nav = Navigator(parents, children, states, lines,
                             focus_names[0] if focus_names else None,
                             live=True)
@@ -344,8 +344,8 @@ class Status(DoitCmdBase):
                     self.dep_manager.release()
 
             try:
-                status_tui.run(nav, style, reload)
-            except status_tui.TuiUnavailable as exception:
+                run(nav, style, reload)
+            except TuiUnavailable as exception:
                 self.outstream.write(
                     'interactive mode unavailable: %s\n' % exception)
                 return 1

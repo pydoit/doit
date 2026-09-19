@@ -1,10 +1,9 @@
+import io
+import re
 import unittest
 
 from doit.cmd_status import Style
 from doit.status_term import TuiUnavailable, open_terminal, parse_key
-import io
-import re
-
 from doit.status_tui import (
     HINTS, ASCII_HINTS, Navigator, build_frame, draw, frame_lines, run,
     task_window, window_start)
@@ -259,8 +258,9 @@ class TestFrameLines(unittest.TestCase):
     def test_color_does_not_change_alignment(self):
         plain = frame_lines(nav('d'), Style())
         colored = frame_lines(nav('d'), Style(color=True))
-        strip = lambda line: re.sub(r'\x1b\[[0-9;]*m', '', line)
-        self.assertEqual([strip(x).rstrip() for x in colored], plain)
+        self.assertEqual(
+            [re.sub(r'\x1b\[[0-9;]*m', '', x).rstrip() for x in colored],
+            plain)
 
 
 class TestBuildFrame(unittest.TestCase):

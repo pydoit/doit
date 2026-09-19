@@ -1,7 +1,16 @@
+import types
 import unittest
+from io import StringIO
+from unittest import mock
 
 from doit.cmd_status import (
-    Node, build_edges, collapse_subtasks, splice_hidden, build_adjacency)
+    Node, Status, Style, make_style, build_edges, collapse_subtasks,
+    splice_hidden, build_adjacency, aggregate_group_status,
+    resolve_missing_inputs, compute_may_rerun)
+from doit.exceptions import InvalidCommand
+from doit.status_term import TuiUnavailable
+from doit.task import Task
+from tests.support import CmdFactory, DepManagerMixin, DependencyFileMixin
 
 
 class TestBuildEdges(unittest.TestCase):
@@ -66,10 +75,6 @@ class TestAdjacency(unittest.TestCase):
         children, parents = build_adjacency({'a', 'b', 'c'}, edges)
         self.assertEqual(children, {'a': ['b', 'c'], 'b': [], 'c': []})
         self.assertEqual(parents, {'a': [], 'b': ['a'], 'c': ['a']})
-
-from doit.cmd_status import (
-    aggregate_group_status, resolve_missing_inputs, compute_may_rerun)
-
 
 class TestAggregate(unittest.TestCase):
 
@@ -180,18 +185,6 @@ class TestStyle(unittest.TestCase):
     def test_make_style_ascii_encoding(self):
         style = make_style(FakeStream(encoding='ascii'), {})
         self.assertEqual(style.markers['run'], '*')
-
-
-import os
-import types
-from io import StringIO
-from unittest import mock
-
-from doit.cmd_status import Status, Style, make_style
-from doit.exceptions import InvalidCommand
-from doit.status_term import TuiUnavailable
-from doit.task import Task
-from tests.support import CmdFactory, DepManagerMixin, DependencyFileMixin
 
 
 class StatusTestBase(DependencyFileMixin, DepManagerMixin, unittest.TestCase):
@@ -366,7 +359,7 @@ class TestCmdStatusInteractive(StatusTestBase):
         cmd = CmdFactory(Status, outstream=output, task_list=tasks,
                          dep_manager=self.dep_manager)
         kw.setdefault('pos_args', ['a'])
-        with mock.patch('doit.status_tui.run', fake_run):
+        with mock.patch('doit.cmd_status.run', fake_run):
             self.assertEqual(cmd._execute(interactive=True, **kw), 0)
         self.assertEqual(output.getvalue(), '')
         return calls
@@ -405,7 +398,7 @@ class TestCmdStatusInteractive(StatusTestBase):
         output = StringIO()
         cmd = CmdFactory(Status, outstream=output, task_list=self.tasks(),
                          dep_manager=self.dep_manager)
-        with mock.patch('doit.status_tui.run',
+        with mock.patch('doit.cmd_status.run',
                         side_effect=TuiUnavailable('no way')):
             self.assertEqual(cmd._execute(interactive=True, pos_args=['a']),
                              1)
