@@ -5,7 +5,7 @@ import unittest
 from doit.cmd_status import Style
 from doit.status_term import TuiUnavailable, open_terminal, parse_key
 from doit.status_tui import (
-    HINTS, ASCII_HINTS, Navigator, build_frame, draw, frame_lines, run,
+    Navigator, build_frame, draw, frame_lines, hint_line, run,
     task_window, window_start)
 
 # a -> b -> d, a -> c -> d, e alone
@@ -279,7 +279,7 @@ class TestBuildFrame(unittest.TestCase):
         self.assertEqual(col_w, 20)
         rule = 12 - 4 - 1 + 1  # rows below title + reasons line
         self.assertEqual(self.texts(spans, rule)[0][0], '─')
-        self.assertEqual(self.texts(spans, 11), [HINTS])
+        self.assertEqual(self.texts(spans, 11), [hint_line(Style(), True)])
 
     def test_footer_shows_selected_task(self):
         n = nav('b')
@@ -426,7 +426,7 @@ class TestDraw(unittest.TestCase):
         self.assertIn('\x1b[1;1H\x1b[2mparents', out)
         # focus at column 21 (0-based 20), first row
         self.assertIn('\x1b[2;21H\x1b[1;7m[● a]\x1b[0m', out)
-        self.assertIn(HINTS, out)
+        self.assertIn(hint_line(Style(), True), out)
 
     def test_color_and_no_color(self):
         colored = FakeTerminal([])
@@ -440,7 +440,8 @@ class TestDraw(unittest.TestCase):
     def test_ascii_hints(self):
         term = FakeTerminal([])
         draw(term, nav('a'), Style(ascii_only=True), True)
-        self.assertIn(ASCII_HINTS, term.writes[0])
+        self.assertIn(hint_line(Style(ascii_only=True), True),
+                      term.writes[0])
         self.assertNotIn('←', term.writes[0])
 
     def test_text_cut_to_screen_and_column(self):
@@ -482,6 +483,12 @@ class TestRun(unittest.TestCase):
         n, term = self.run_keys(['left', 'r', 'q'], focus='b')
         self.assertIn('changed', term.writes[1])
         self.assertNotIn('changed', term.writes[2])
+
+    def test_hints_show_reasons_state(self):
+        n, term = self.run_keys(['r', 'r', 'q'], focus='b')
+        self.assertIn('reasons: on', term.writes[0])
+        self.assertIn('reasons: off', term.writes[1])
+        self.assertIn('reasons: on', term.writes[2])
 
     def test_R_reloads(self):
         calls = []

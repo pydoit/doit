@@ -129,8 +129,14 @@ class Navigator:
 # maxw: text is cut to this width when drawn (None: to the screen edge)
 Span = namedtuple('Span', 'row x text state flags maxw')
 
-HINTS = '←→ move  Enter refocus  r reasons  R reload  q quit'
-ASCII_HINTS = 'arrows move  Enter refocus  r reasons  R reload  q quit'
+HINTS = '←→ move  Enter refocus  r reasons: %s  R reload  q quit'
+ASCII_HINTS = 'arrows move  Enter refocus  r reasons: %s  R reload  q quit'
+
+
+def hint_line(style, show_reasons):
+    """key hints, telling whether the reasons are shown"""
+    return (ASCII_HINTS if style.ascii_only else HINTS) % (
+        'on' if show_reasons else 'off')
 
 
 def hidden(glyph, count):
@@ -219,8 +225,8 @@ def build_frame(nav, style, width=0, height=None, show_reasons=True,
         spans.append(Span(rule + 2 + n, 0, line, None, (), None))
     total = rule + 2 + len(reasons)
     if height is not None:
-        hints = ASCII_HINTS if style.ascii_only else HINTS
-        spans.append(Span(height - 1, 0, hints, None, ('dim',), None))
+        spans.append(Span(height - 1, 0, hint_line(style, show_reasons),
+                          None, ('dim',), None))
         total = height
     return spans, total, col_w
 
