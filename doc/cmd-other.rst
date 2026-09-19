@@ -277,9 +277,9 @@ Below the columns come the status and the reasons of the focus task.
    build  run
     * input produced by task fetch
 
-Without ``TASK`` no task is focused: the first 9 tasks are listed, the
-parents and children columns are empty and there is no status footer. In the
-interactive navigator the window follows the cursor.
+Exactly one ``TASK`` is required, except with *-i*. In the interactive
+navigator without ``TASK`` no task is focused: the first 9 tasks are listed,
+the parents and children columns are empty and there is no status footer.
 
 ==  ===============================================================
  ✓  up-to-date
@@ -292,9 +292,9 @@ interactive navigator the window follows the cursor.
 
 Options must be given before ``TASK``:
 
-* ``TASK ...``: focus each ``TASK`` in turn and print one screen per ``TASK``.
-  This is the screen of the interactive navigator (*-i*), printed once: same
-  layout code, the columns use a third of the terminal width.
+* ``TASK``: exactly one task must be given. Its screen is printed: the screen
+  of the interactive navigator (*-i*), printed once with the same layout code,
+  the columns use a third of the terminal width.
 * *-p*/*--private*: also show tasks that start with an underscore.
 * *--all*: show sub-tasks as separate tasks. By default a group task shows the
   worst status of its sub-tasks.

@@ -198,31 +198,31 @@ class StatusTestBase(DependencyFileMixin, DepManagerMixin, unittest.TestCase):
 
 
 class TestCmdStatus(StatusTestBase):
-    """no TASK: the screen of the navigator, nothing focused"""
+    """TASK given: the screen of the navigator, printed once"""
 
     def test_no_tasks(self):
-        self.assertEqual(self.status([]), [])
+        self.assertEqual(self.status([], pos_args=['a']), [])
+
+    def test_task_required(self):
+        cmd = CmdFactory(Status, outstream=StringIO(),
+                         task_list=[Task('a', [''])],
+                         dep_manager=self.dep_manager)
+        for args in ([], ['a', 'b']):
+            with self.assertRaisesRegex(InvalidCommand, r'\*one\* task.*-i'):
+                cmd._execute(pos_args=args)
+
+    def test_interactive_at_most_one_task(self):
+        cmd = CmdFactory(Status, outstream=StringIO(),
+                         task_list=[Task('a', ['']), Task('b', [''])],
+                         dep_manager=self.dep_manager)
+        with self.assertRaisesRegex(InvalidCommand, 'at most'):
+            cmd._execute(interactive=True, pos_args=['a', 'b'])
 
     def test_unknown_task(self):
         cmd = CmdFactory(Status, outstream=StringIO(),
                          task_list=[Task('a', [''])],
                          dep_manager=self.dep_manager)
         self.assertRaises(InvalidCommand, cmd._execute, pos_args=['nope'])
-
-    def test_lists_all_tasks_nothing_focused(self):
-        a = Task('a', [''], targets=['gen/a.out'])
-        b = Task('b', [''], file_dep=['gen/a.out'])
-        self.assertEqual(self.status([a, b]), [
-            'parents    tasks      children',
-            '           ● a',
-            '           ● b',
-        ])
-
-    def test_at_most_nine_tasks_first_nine_without_focus(self):
-        tasks = [Task('t%02d' % i, ['']) for i in range(12)]
-        got = self.status(tasks)
-        self.assertEqual([x.strip() for x in got[1:]],
-                         ['● t%02d' % i for i in range(9)] + ['↓ 3 more'])
 
     def test_at_most_nine_tasks_around_focus(self):
         tasks = [Task('t%02d' % i, ['']) for i in range(20)]
@@ -236,18 +236,20 @@ class TestCmdStatus(StatusTestBase):
 
     def test_window_cut_off_at_start_and_end(self):
         tasks = [Task('t%02d' % i, ['']) for i in range(20)]
-        got = self.status(tasks, pos_args=['t01', 't19'])
+        got = self.status(tasks, pos_args=['t01'])
         first = [x.strip() for x in got[1:11]]
         self.assertEqual(first[0], '● t00')
         self.assertEqual(first[-1], '↓ 11 more')
         self.assertEqual(len(first), 10)  # 9 tasks and the marker
+        got = self.status(tasks, pos_args=['t19'])
         last = [x.strip() for x in got[-13:-3]]
         self.assertEqual(last[0], '↑ 11 more')
         self.assertEqual(last[-1], '[● t19]')
 
     def test_no_marker_when_everything_fits(self):
         tasks = [Task('t%02d' % i, ['']) for i in range(9)]
-        self.assertFalse([x for x in self.status(tasks) if 'more' in x])
+        self.assertFalse([x for x in self.status(tasks, pos_args=['t00'])
+                          if 'more' in x])
 
     def test_private_hidden_and_spliced(self):
         a = Task('a', [''], targets=['gen/a.out'])
@@ -266,9 +268,10 @@ class TestCmdStatus(StatusTestBase):
         ga = Task('g.a', [''], subtask_of='g')
         gb = Task('g.b', [''], subtask_of='g')
         tasks = [group, ga, gb]
-        self.assertEqual(self.status(tasks)[1:], ['           ● g'])
-        got = self.status(tasks, subtasks=True)
-        self.assertEqual(got[1:4], ['           ● g', '           ● g.a',
+        got = self.status(tasks, pos_args=['g'])
+        self.assertEqual(got[1:got.index(RULE)], ['           [● g]'])
+        got = self.status(tasks, subtasks=True, pos_args=['g'])
+        self.assertEqual(got[1:4], ['● g.a      [● g]', '● g.b      ● g.a',
                                     '           ● g.b'])
 
     def test_group_reasons_name_subtasks(self):
@@ -309,12 +312,6 @@ class TestCmdStatusFocus(StatusTestBase):
             ' * input produced by task a',
         ])
 
-    def test_multiple_focus_in_argument_order(self):
-        got = self.status(self.chain(), pos_args=['c', 'a'])
-        focus_rows = [i for i, line in enumerate(got) if '[● ' in line]
-        self.assertIn('[● c]', got[focus_rows[0]])
-        self.assertIn('[● a]', got[focus_rows[1]])
-
     def test_focus_private_task_shown_without_flag(self):
         x = Task('_x', [''])
         self.assertIn('[● _x]', self.status([x], pos_args=['_x'])[1])
@@ -334,7 +331,7 @@ class TestCmdStatusReadOnly(StatusTestBase):
                  Task('b', [''], file_dep=['gen/a.out'])]
         with mock.patch.object(self.dep_manager, 'close') as close, \
                 mock.patch.object(self.dep_manager.backend, 'dump') as dump:
-            self.status(tasks)
+            self.status(tasks, pos_args=['a'])
         close.assert_not_called()
         dump.assert_not_called()
 

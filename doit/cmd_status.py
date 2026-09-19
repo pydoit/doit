@@ -13,6 +13,7 @@ from .cmd_base import DoitCmdBase, check_tasks_exist
 from .cmd_info import Info
 from .cmd_list import opt_listall, opt_list_private
 from .control import TaskControl
+from .exceptions import InvalidCommand
 from .status_tui import Navigator, TuiUnavailable, frame_lines, run
 
 FILE = 'file'
@@ -212,13 +213,13 @@ opt_interactive = {
     'type': bool,
     'default': False,
     'help': "browse the graph in a full-screen navigator, starting at the "
-            "first TASK (default: all tasks listed, none focused)"
+            "TASK (default: all tasks listed, none focused)"
 }
 
 
 class Status(DoitCmdBase):
     doc_purpose = "show task graph with up-to-date status (read-only)"
-    doc_usage = "[TASK ...]"
+    doc_usage = "[TASK]"
     doc_description = (
         "Never executes tasks and never saves state.\n"
         "Markers: ✓ up-to-date, ● run, ~ may rerun (an input is produced "
@@ -287,6 +288,15 @@ class Status(DoitCmdBase):
     def _execute(self, private=False, subtasks=False, interactive=False,
                  pos_args=None):
         focus_names = list(pos_args or [])
+        if interactive and len(focus_names) > 1:
+            raise InvalidCommand(
+                '`status -i` failed, must select at most *one* task.'
+                '\nCheck `{} help status`.'.format(self.bin_name))
+        if not interactive and len(focus_names) != 1:
+            raise InvalidCommand(
+                '`status` failed, must select *one* task, '
+                'or use -i to browse.'
+                '\nCheck `{} help status`.'.format(self.bin_name))
         tasks = {t.name: t for t in self.task_list}
         if not tasks:
             return 0
@@ -351,16 +361,10 @@ class Status(DoitCmdBase):
                 return 1
             return 0
 
-        out = []
         width = 0  # columns as narrow as their content when piped
         if self.outstream.isatty():
             width = shutil.get_terminal_size().columns
-        for focus in focus_names or [None]:
-            if out:
-                out.append('')
-            nav = Navigator(parents, children, states, lines, focus)
-            # without a focus there is no task to describe below
-            out.extend(frame_lines(nav, style, width,
-                                   footer=focus is not None))
+        nav = Navigator(parents, children, states, lines, focus_names[0])
+        out = frame_lines(nav, style, width)
         self.outstream.write('\n'.join(out) + '\n')
         return 0
