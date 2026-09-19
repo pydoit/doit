@@ -151,8 +151,8 @@ _ASCII_MARKERS = {'up-to-date': '+', 'run': '*', 'may-rerun': '~',
 _COLORS = {'up-to-date': '32', 'run': '31', 'may-rerun': '33', 'error': '31',
            'ignore': '2', 'unknown': '33'}
 _DIM = '2'
-_GLYPHS = {'rule': '─'}
-_ASCII_GLYPHS = {'rule': '-'}
+_GLYPHS = {'rule': '─', 'up': '↑', 'down': '↓'}
+_ASCII_GLYPHS = {'rule': '-', 'up': '^', 'down': 'v'}
 
 
 class Style:
@@ -358,6 +358,8 @@ class Status(DoitCmdBase):
             if out:
                 out.append('')
             nav = Navigator(parents, children, states, lines, focus)
-            out.extend(frame_lines(nav, style, width))
+            # without a focus there is no task to describe below
+            out.extend(frame_lines(nav, style, width,
+                                   footer=focus is not None))
         self.outstream.write('\n'.join(out) + '\n')
         return 0

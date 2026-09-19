@@ -7,7 +7,7 @@ import re
 
 from doit.status_tui import (
     HINTS, ASCII_HINTS, Navigator, build_frame, draw, frame_lines, run,
-    scroll_start)
+    task_window, window_start)
 
 # a -> b -> d, a -> c -> d, e alone
 PARENTS = {'a': [], 'b': ['a'], 'c': ['a'], 'd': ['b', 'c'], 'e': []}
@@ -58,20 +58,23 @@ class TestNavigatorNoFocus(unittest.TestCase):
         self.assertIn('tasks', texts)
 
 
-class TestScrollStart(unittest.TestCase):
+class TestTaskWindow(unittest.TestCase):
 
     def test_fits(self):
-        self.assertEqual(scroll_start(3, 2, 5), 0)
+        self.assertEqual(task_window(5, 2, 20), (0, 5, 0, 0))
 
-    def test_follows_cursor_down_and_up(self):
-        self.assertEqual(scroll_start(12, 7, 5, 0), 3)
-        self.assertEqual(scroll_start(12, 2, 5, 3), 2)
+    def test_centered_and_cut_off(self):
+        self.assertEqual(task_window(30, 15, 20), (11, 9, 11, 10))
+        self.assertEqual(task_window(30, 0, 20), (0, 9, 0, 21))
+        self.assertEqual(task_window(30, 29, 20), (21, 9, 21, 0))
 
-    def test_cursor_visible_keeps_start(self):
-        self.assertEqual(scroll_start(12, 4, 5, 3), 3)
+    def test_markers_take_rows(self):
+        start, size, above, below = task_window(30, 15, 6)
+        self.assertLessEqual(size + bool(above) + bool(below), 6)
+        self.assertLessEqual(start, 15 < start + size and 15)
 
-    def test_clamped_to_end(self):
-        self.assertEqual(scroll_start(12, 11, 5, 9), 7)
+    def test_window_start(self):
+        self.assertEqual(window_start(30, 15, 9), 11)
 
 
 class TestNavigator(unittest.TestCase):
@@ -268,6 +271,43 @@ class TestBuildFrame(unittest.TestCase):
         self.assertEqual(column,
                          ['● a', '~ b', '[~ c]', '~ d', '✓ e'])
 
+    def test_window_follows_cursor_in_focus_column(self):
+        names = ['t%02d' % i for i in range(30)]
+        empty = {n: [] for n in names}
+        n = Navigator(empty, empty, {k: 'run' for k in names}, {}, 't00')
+        for _ in range(15):
+            n.down()
+        spans, _, _ = build_frame(n, Style(), 60, 20, True, True)
+        shown = [s.text for s in sorted(spans, key=lambda s: s.row)
+                 if s.x == 20 and 0 < s.row <= 11]
+        self.assertEqual(shown, ['↑ 11 more']
+                         + ['● t%02d' % i for i in range(11, 20)]
+                         + ['↓ 10 more'])
+
+    def test_markers_fit_short_screen(self):
+        names = ['t%02d' % i for i in range(30)]
+        empty = {n: [] for n in names}
+        n = Navigator(empty, empty, {k: 'run' for k in names}, {}, 't15')
+        spans, total, _ = build_frame(n, Style(), 60, 9, True, True)
+        col = [s for s in spans if s.x == 20 and s.row > 0]
+        self.assertTrue(all(s.row < 9 - 4 + 1 for s in col))
+        self.assertIn('[● t15]', [s.text for s in col])
+        self.assertTrue(any('more' in s.text for s in col))
+
+    def test_ascii_markers(self):
+        names = ['t%02d' % i for i in range(30)]
+        empty = {n: [] for n in names}
+        n = Navigator(empty, empty, {k: 'run' for k in names}, {}, 't15')
+        spans, _, _ = build_frame(n, Style(ascii_only=True), 60, 20)
+        texts = [s.text for s in spans]
+        self.assertIn('^ 11 more', texts)
+        self.assertIn('v 10 more', texts)
+
+    def test_no_footer(self):
+        spans, total, _ = build_frame(nav(None), Style(), 60, footer=False)
+        self.assertEqual(total, 6)
+        self.assertFalse([s for s in spans if s.row >= 6])
+
     def test_focus_stays_in_view_when_cursor_is_elsewhere(self):
         names = ['t%02d' % i for i in range(30)]
         parents = {n: [] for n in names}
@@ -276,7 +316,7 @@ class TestBuildFrame(unittest.TestCase):
         children['t00'] = ['t29']
         n = Navigator(parents, children, {k: 'run' for k in names}, {}, 't29')
         n.left()  # cursor in parents column
-        spans, _, _ = build_frame(n, Style(), 60, 10, True, True, {})
+        spans, _, _ = build_frame(n, Style(), 60, 10, True, True)
         self.assertIn('[● t29]', [s.text for s in spans])
 
     def test_cursor_flag_only_in_active_column(self):
@@ -291,21 +331,22 @@ class TestBuildFrame(unittest.TestCase):
         spans, _, _ = self.frame('a', height=12)
         self.assertFalse([s for s in spans if 'cursor' in s.flags])
 
-    def test_scrolls_long_column(self):
+    def test_children_column_scrolls_with_marker(self):
         many = {'f': [], **{'k%02d' % i: ['f'] for i in range(20)}}
         kids = {'f': sorted(k for k in many if k != 'f')}
         kids.update({k: [] for k in many if k != 'f'})
         states = {k: 'up-to-date' for k in many}
         n = Navigator(many, kids, states, {}, 'f')
         n.right()
-        for _ in range(15):
+        for _ in range(10):
             n.down()
-        starts = {}
-        spans, _, _ = build_frame(n, Style(), 60, 10, True, True, starts)
-        shown = [s.text for s in spans if s.x == 40 and s.row > 0
-                 and s.row <= 6]
-        self.assertIn('✓ k15', shown)
-        self.assertEqual(starts['children'], 15 - 6 + 1)
+        spans, _, _ = build_frame(n, Style(), 60, 16, True, True)
+        shown = [s.text for s in sorted(spans, key=lambda s: s.row)
+                 if s.x == 40 and s.row > 0]
+        self.assertEqual(shown[0], '↑ 6 more')
+        self.assertIn('✓ k10', shown)
+        self.assertEqual(shown[-1], '↓ 5 more')
+        self.assertEqual(len(shown) - 2, 9)
 
     def test_column_text_is_cut_to_column(self):
         spans, _, col_w = self.frame('a', height=12)
@@ -351,7 +392,7 @@ class TestDraw(unittest.TestCase):
 
     def test_positions_and_clears(self):
         term = FakeTerminal([])
-        draw(term, nav('a'), Style(color=False), True, {})
+        draw(term, nav('a'), Style(color=False), True)
         out = term.writes[0]
         self.assertTrue(out.startswith('\x1b[H\x1b[2J'))
         self.assertIn('\x1b[1;1H\x1b[2mparents', out)
@@ -361,22 +402,22 @@ class TestDraw(unittest.TestCase):
 
     def test_color_and_no_color(self):
         colored = FakeTerminal([])
-        draw(colored, nav('a'), Style(color=True), True, {})
+        draw(colored, nav('a'), Style(color=True), True)
         self.assertIn('\x1b[31;1;7m[● a]', colored.writes[0])
         mono = FakeTerminal([])
-        draw(mono, nav('a'), Style(color=False), True, {})
+        draw(mono, nav('a'), Style(color=False), True)
         self.assertNotIn('31;', mono.writes[0])
         self.assertIn('\x1b[1;7m[● a]', mono.writes[0])  # cursor still shows
 
     def test_ascii_hints(self):
         term = FakeTerminal([])
-        draw(term, nav('a'), Style(ascii_only=True), True, {})
+        draw(term, nav('a'), Style(ascii_only=True), True)
         self.assertIn(ASCII_HINTS, term.writes[0])
         self.assertNotIn('←', term.writes[0])
 
     def test_text_cut_to_screen_and_column(self):
         term = FakeTerminal([], size=(30, 12))
-        draw(term, nav('a'), Style(), True, {})
+        draw(term, nav('a'), Style(), True)
         text = plain(term.writes[0].replace('\x1b[', '|\x1b['))
         self.assertIn('parents', text)
         # nothing is written outside the screen

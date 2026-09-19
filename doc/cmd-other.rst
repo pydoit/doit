@@ -257,11 +257,14 @@ status (task graph)
 task. It never executes tasks and never saves any state, so it is safe to run
 while a pipeline is being developed.
 
-The screen has three columns. The middle column (*tasks*) always lists all
-tasks. The left column (*parents*) lists the tasks the focus task depends on,
-the right column (*children*) the tasks that depend on it. The focus task is
-shown in brackets. Below the columns come the status and the reasons of the
-focus task.
+The screen has three columns: the left column (*parents*) lists the tasks the
+focus task depends on, the middle column (*tasks*) lists all tasks, the right
+column (*children*) lists the tasks that depend on the focus task. Each column
+shows at most 9 tasks at once: a window around the focus task (in the
+interactive navigator: around the cursor), cut off at the start and the end of
+the list. A row ``↓ N more`` / ``↑ N more`` tells how many tasks are hidden
+below / above (``v`` and ``^`` in ASCII). The focus task is shown in brackets.
+Below the columns come the status and the reasons of the focus task.
 
 .. code-block:: console
 
@@ -274,8 +277,9 @@ focus task.
    build  run
     * input produced by task fetch
 
-Without ``TASK`` no task is focused: the parents and children columns are
-empty and the footer shows the first task.
+Without ``TASK`` no task is focused: the first 9 tasks are listed, the
+parents and children columns are empty and there is no status footer. In the
+interactive navigator the window follows the cursor.
 
 ==  ===============================================================
  ✓  up-to-date

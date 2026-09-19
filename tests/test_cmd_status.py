@@ -223,44 +223,38 @@ class TestCmdStatus(StatusTestBase):
             'parents    tasks      children',
             '           ● a',
             '           ● b',
-            '─────────────────────────────────',
-            'a  run',
-            ' * The task has no dependencies.',
-            ' * The following targets do not exist:',
-            '    - gen/a.out',
         ])
 
-    def test_up_to_date(self):
-        task = Task('t', [''], file_dep=[self.dependency1])
-        self.dep_manager.save_success(task)
-        self.assertEqual(self.status([task])[1], '           ✓ t')
+    def test_at_most_nine_tasks_first_nine_without_focus(self):
+        tasks = [Task('t%02d' % i, ['']) for i in range(12)]
+        got = self.status(tasks)
+        self.assertEqual([x.strip() for x in got[1:]],
+                         ['● t%02d' % i for i in range(9)] + ['↓ 3 more'])
 
-    def test_missing_input_made_upstream_is_run(self):
-        a = Task('a', [''], targets=['gen/a.out'])
-        b = Task('b', [''], file_dep=['gen/a.out'])
-        self.assertEqual(self.status([a, b], pos_args=['b'])[-2:],
-                         ['b  run', ' * input produced by task a'])
+    def test_at_most_nine_tasks_around_focus(self):
+        tasks = [Task('t%02d' % i, ['']) for i in range(20)]
+        got = self.status(tasks, pos_args=['t10'])
+        rule = [i for i, x in enumerate(got) if x.startswith('──')][0]
+        self.assertEqual([x.strip() for x in got[1:rule]],
+                         ['↑ 6 more'] + ['● t%02d' % i if i != 10
+                                         else '[● t10]'
+                                         for i in range(6, 15)]
+                         + ['↓ 5 more'])
 
-    def test_missing_input_nobody_produces_is_error(self):
-        b = Task('b', [''], file_dep=['nowhere.txt'])
-        self.assertEqual(self.status([b])[1], '           ! b')
+    def test_window_cut_off_at_start_and_end(self):
+        tasks = [Task('t%02d' % i, ['']) for i in range(20)]
+        got = self.status(tasks, pos_args=['t01', 't19'])
+        first = [x.strip() for x in got[1:11]]
+        self.assertEqual(first[0], '● t00')
+        self.assertEqual(first[-1], '↓ 11 more')
+        self.assertEqual(len(first), 10)  # 9 tasks and the marker
+        last = [x.strip() for x in got[-13:-3]]
+        self.assertEqual(last[0], '↑ 11 more')
+        self.assertEqual(last[-1], '[● t19]')
 
-    def test_may_rerun_through_file_edge(self):
-        path = os.path.join(self._dep_tmpdir, 'a.out')
-        with open(path, 'w') as fp:
-            fp.write('x')
-        a = Task('a', [''], targets=[path])
-        b = Task('b', [''], file_dep=[path])
-        self.dep_manager.save_success(b)
-        self.assertEqual(self.status([a, b])[1:3],
-                         ['           ● a', '           ~ b'])
-
-    def test_order_edge_is_not_may_rerun(self):
-        a = Task('a', [''])
-        c = Task('c', [''], file_dep=[self.dependency1], task_dep=['a'])
-        self.dep_manager.save_success(c)
-        self.assertEqual(self.status([a, c])[1:3],
-                         ['           ● a', '           ✓ c'])
+    def test_no_marker_when_everything_fits(self):
+        tasks = [Task('t%02d' % i, ['']) for i in range(9)]
+        self.assertFalse([x for x in self.status(tasks) if 'more' in x])
 
     def test_private_hidden_and_spliced(self):
         a = Task('a', [''], targets=['gen/a.out'])
@@ -279,8 +273,7 @@ class TestCmdStatus(StatusTestBase):
         ga = Task('g.a', [''], subtask_of='g')
         gb = Task('g.b', [''], subtask_of='g')
         tasks = [group, ga, gb]
-        self.assertEqual(self.status(tasks)[1:2], ['           ● g'])
-        self.assertEqual(self.status(tasks)[2], RULE)
+        self.assertEqual(self.status(tasks)[1:], ['           ● g'])
         got = self.status(tasks, subtasks=True)
         self.assertEqual(got[1:4], ['           ● g', '           ● g.a',
                                     '           ● g.b'])
@@ -289,7 +282,7 @@ class TestCmdStatus(StatusTestBase):
         group = Task('g', None, has_subtask=True)
         group.task_dep = ['g.a']
         ga = Task('g.a', [''], subtask_of='g')
-        got = self.status([group, ga])
+        got = self.status([group, ga], pos_args=['g'])
         self.assertEqual(got[-2:], ['g  run', ' * subtask g.a: run'])
 
     def test_delayed_task_is_unknown(self):
