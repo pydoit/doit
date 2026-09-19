@@ -92,6 +92,9 @@ class JsonDB:
         finally:
             db_file.close()
 
+    def release(self):
+        """nothing to release, content is in memory"""
+
     def set(self, task_id, dependency, value):
         """Store value in the DB."""
         if task_id not in self._db:
@@ -177,6 +180,10 @@ class DbmDB:
         """save/close DBM file"""
         for task_id in self.dirty:
             self._dbm[task_id] = self.codec.encode(self._db[task_id])
+        self._dbm.close()
+
+    def release(self):
+        """close DBM file without saving"""
         self._dbm.close()
 
 
@@ -330,6 +337,10 @@ class SqliteDB:
         self._conn.commit()
         self._conn.close()
         self._dirty = set()
+
+    def release(self):
+        """close sqlite3 DB file without saving"""
+        self._conn.close()
 
     def remove(self, task_id):
         """remove saved dependencies from DB for taskId"""
@@ -500,10 +511,17 @@ class Dependency:
     """
     def __init__(self, db_class, backend_name, checker_cls=MD5Checker,
                  codec_cls=JSONCodec, module_name=None):
-        self._closed = False
+        self._codec_cls = codec_cls
+        self._module_name = module_name
         self.checker = checker_cls()
         self.db_class = db_class
-        self.backend = db_class(backend_name, codec=codec_cls(), module_name=module_name)
+        self._open(backend_name)
+
+    def _open(self, backend_name):
+        self._closed = False
+        self.backend = self.db_class(
+            backend_name, codec=self._codec_cls(),
+            module_name=self._module_name)
         self._set = self.backend.set
         self._get = self.backend.get
         self.remove = self.backend.remove
@@ -516,6 +534,23 @@ class Dependency:
         if not self._closed:
             self.backend.dump()
             self._closed = True
+
+    def release(self):
+        """Release the DB file handle without saving.
+
+        Nothing can be read after this, until `reopen()`. A backend without
+        `release()` (plugin) keeps its handle.
+        """
+        if not self._closed:
+            release = getattr(self.backend, 'release', None)
+            if release is not None:
+                release()
+            self._closed = True
+
+    def reopen(self):
+        """Read the DB file again, discarding unsaved changes."""
+        self.release()
+        self._open(self.name)
 
 
     ####### task specific

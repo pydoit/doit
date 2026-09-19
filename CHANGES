@@ -13,6 +13,7 @@ Changes
 0.38.0 (*unreleased*)
 ======================
 
+- Add ``doit status`` command: read-only task graph with up-to-date status.
 
 
 0.37.0 (*2026-02-09*)

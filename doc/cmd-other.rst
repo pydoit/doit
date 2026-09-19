@@ -248,6 +248,95 @@ Note the ``!!``, it means that task was ignored. To reverse the `ignore` use
 
 
 
+.. _cmd-status:
+
+status (task graph)
+-------------------
+
+*status* shows the task dependency graph with the up-to-date status of every
+task. It never executes tasks and never saves any state, so it is safe to run
+while a pipeline is being developed.
+
+The screen has three columns: the left column (*parents*) lists the tasks the
+focus task depends on, the middle column (*tasks*) lists all tasks, the right
+column (*children*) lists the tasks that depend on the focus task. Each column
+shows at most 9 tasks at once: a window around the focus task (in the
+interactive navigator: around the cursor), cut off at the start and the end of
+the list. A row ``↓ N more`` / ``↑ N more`` tells how many tasks are hidden
+below / above (``v`` and ``^`` in ASCII). The focus task is shown in brackets.
+Below the columns come the status and the reasons of the focus task.
+
+.. code-block:: console
+
+   $ doit status build
+   parents      tasks        children
+   ● fetch      [● build]    ● report
+                ● fetch
+                ● report
+   ───────────────────────────────────────
+   build  run
+    * input produced by task fetch
+
+Exactly one ``TASK`` is required, except with *-i*. In the interactive
+navigator without ``TASK`` no task is focused: the first 9 tasks are listed,
+the parents and children columns are empty and there is no status footer.
+
+==  ===============================================================
+ ✓  up-to-date
+ ●  will run
+ ~  up-to-date itself, but an input file is produced by a task that will run
+ !  error, for example an input file that no task produces
+ -  ignored
+ ?  unknown: task is created at run time (``create_after``)
+==  ===============================================================
+
+For a ``~`` task the reasons name the parents that make it stale, with their
+status, for example ``input produced by task fetch (may-rerun)``.
+
+Options must be given before ``TASK``:
+
+* ``TASK``: exactly one task must be given. Its screen is printed: the screen
+  of the interactive navigator (*-i*), printed once with the same layout code,
+  the columns use a third of the terminal width.
+* *-p*/*--private*: also show tasks that start with an underscore.
+* *--all*: show sub-tasks as separate tasks. By default a group task shows the
+  worst status of its sub-tasks.
+* *-i*/*--interactive*: browse the graph in a full-screen navigator (see
+  below). Starts at ``TASK``, or with no task focused when no ``TASK`` is
+  given.
+
+Interactive mode
+^^^^^^^^^^^^^^^^
+
+The layout is the one described above: the parents of the focus task on the
+left, all tasks in the middle, its children on the right. The cursor can be in
+any column and starts on the focus task. A footer shows the status and the
+reasons of the task under the cursor. The navigator starts at ``TASK``.
+While the cursor is in the middle column, the focus follows it, so parents and
+children update live. Without ``TASK`` the focus is set by the first ↑ or ↓.
+
+=========  ==========================================
+ ←  →      move the cursor one column left / right
+ ↑  ↓      move the cursor inside the column
+ Enter     make the task under the cursor the focus (cursor returns to it)
+ r         show / hide reasons
+ R         reload the statuses
+ q         quit
+=========  ==========================================
+
+Statuses are computed once and the dependency DB file is closed (without saving)
+while you navigate, so a ``doit run`` in another terminal is not blocked. ``R``
+reads the DB again. Interactive mode needs a terminal for input and output. It draws
+with ANSI escape sequences (Windows 10 or later); no extra package is needed.
+
+Like ``doit list --status`` and ``doit info``, *status* evaluates ``uptodate``
+entries of tasks (callables run, strings run as shell commands). File
+dependencies computed by a ``calc_dep`` task are not part of the graph. Output
+uses color when writing to a terminal (disabled by ``NO_COLOR``), and ASCII
+symbols when the terminal encoding can not show the default ones.
+
+
+
 .. _cmd-auto:
 
 auto (watch)
