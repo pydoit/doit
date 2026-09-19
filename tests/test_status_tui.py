@@ -77,6 +77,34 @@ class TestTaskWindow(unittest.TestCase):
         self.assertEqual(window_start(30, 15, 9), 11)
 
 
+class TestNavigatorLive(unittest.TestCase):
+
+    def live(self, focus):
+        return Navigator(PARENTS, CHILDREN, STATES, {}, focus, live=True)
+
+    def test_focus_follows_cursor_in_focus_column(self):
+        n = self.live('a')
+        n.down()  # b
+        self.assertEqual(n.focus, 'b')
+        self.assertEqual(n.column_items('parents'), ['a'])
+        self.assertEqual(n.column_items('children'), ['d'])
+        n.up()
+        self.assertEqual(n.focus, 'a')
+
+    def test_no_focus_until_cursor_moves(self):
+        n = self.live(None)
+        self.assertIsNone(n.focus)
+        n.down()
+        self.assertEqual(n.focus, 'b')
+
+    def test_other_columns_keep_focus(self):
+        n = self.live('d')
+        n.left()
+        n.down()
+        self.assertEqual(n.focus, 'd')
+        self.assertEqual(n.column_items('parents'), ['b', 'c'])
+
+
 class TestNavigator(unittest.TestCase):
 
     def test_focus_column_lists_all_tasks_cursor_on_focus(self):

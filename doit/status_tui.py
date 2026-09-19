@@ -47,11 +47,16 @@ class Navigator:
     tasks, and the cursor starts on the focus task. Without a focus (`focus`
     None) the cursor starts on the first task and the other columns are empty
     until a task is chosen with `enter`.
+
+    With `live`, the parents and children columns follow the cursor while it
+    is in the focus column: the focus (highlighted in brackets) moves with the
+    cursor (without a focus, from the first move on).
     """
 
-    def __init__(self, parents, children, states, reasons, focus):
+    def __init__(self, parents, children, states, reasons, focus, live=False):
         self.parents = parents
         self.children = children
+        self.live = live
         self.update(states, reasons)
         self._refocus(focus)
 
@@ -99,11 +104,18 @@ class Navigator:
     def right(self):
         self._move(1)
 
+    def _follow(self):
+        """live: the focus moves with the cursor in the focus column"""
+        if self.live and self.column == FOCUS:
+            self.focus = self.selected()
+
     def up(self):
         self.cursor = max(0, self.cursor - 1)
+        self._follow()
 
     def down(self):
         self.cursor = min(len(self.items()) - 1, self.cursor + 1)
+        self._follow()
 
     def enter(self):
         """refocus on the task under the cursor"""

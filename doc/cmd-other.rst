@@ -309,8 +309,8 @@ The layout is the one described above: the parents of the focus task on the
 left, all tasks in the middle, its children on the right. The cursor can be in
 any column and starts on the focus task. A footer shows the status and the
 reasons of the task under the cursor. The navigator starts at ``TASK``.
-Without ``TASK`` no task is focused (parents and children are empty); pick one
-with ↑ ↓ and Enter to make it the focus.
+While the cursor is in the middle column, the focus follows it, so parents and
+children update live. Without ``TASK`` the focus is set by the first ↑ or ↓.
 
 =========  ==========================================
  ←  →      move the cursor one column left / right

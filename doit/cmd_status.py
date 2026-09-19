@@ -331,7 +331,8 @@ class Status(DoitCmdBase):
         if interactive:
             from . import status_tui
             nav = Navigator(parents, children, states, lines,
-                            focus_names[0] if focus_names else None)
+                            focus_names[0] if focus_names else None,
+                            live=True)
             # snapshot: hold no DB handle while the user navigates
             self.dep_manager.release()
 
