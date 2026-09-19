@@ -290,6 +290,9 @@ the parents and children columns are empty and there is no status footer.
  ?  unknown: task is created at run time (``create_after``)
 ==  ===============================================================
 
+For a ``~`` task the reasons name the parents that make it stale, with their
+status, for example ``input produced by task fetch (may-rerun)``.
+
 Options must be given before ``TASK``:
 
 * ``TASK``: exactly one task must be given. Its screen is printed: the screen

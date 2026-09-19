@@ -114,7 +114,7 @@ class TestMayRerun(unittest.TestCase):
     def test_multi_level(self):
         edges = {('a', 'b'): {'file'}, ('b', 'c'): {'file'}}
         states = {'a': 'run', 'b': 'up-to-date', 'c': 'up-to-date'}
-        self.assertEqual(compute_may_rerun(set(states), edges, states),
+        self.assertEqual(set(compute_may_rerun(set(states), edges, states)),
                          {'b', 'c'})
 
     def test_diamond(self):
@@ -122,28 +122,40 @@ class TestMayRerun(unittest.TestCase):
                  ('b', 'd'): {'file'}, ('c', 'd'): {'file'}}
         states = {n: 'up-to-date' for n in 'bcd'}
         states['a'] = 'run'
-        self.assertEqual(compute_may_rerun(set(states), edges, states),
+        self.assertEqual(set(compute_may_rerun(set(states), edges, states)),
                          {'b', 'c', 'd'})
 
     def test_error_ancestor(self):
         edges = {('a', 'b'): {'file'}}
         states = {'a': 'error', 'b': 'up-to-date'}
-        self.assertEqual(compute_may_rerun(set(states), edges, states), {'b'})
+        self.assertEqual(set(compute_may_rerun(set(states), edges, states)),
+                         {'b'})
+
+    def test_causes_are_stale_or_may_rerun_parents(self):
+        edges = {('a', 'b'): {'file'}, ('b', 'c'): {'file'},
+                 ('x', 'c'): {'file'}, ('y', 'c'): {'order'}}
+        states = {'a': 'run', 'b': 'up-to-date', 'c': 'up-to-date',
+                  'x': 'up-to-date', 'y': 'run'}
+        self.assertEqual(compute_may_rerun(set(states), edges, states),
+                         {'b': ['a'], 'c': ['b']})
 
     def test_order_edge_does_not_propagate(self):
         edges = {('a', 'b'): {'order'}, ('b', 'c'): {'file'}}
         states = {'a': 'run', 'b': 'up-to-date', 'c': 'up-to-date'}
-        self.assertEqual(compute_may_rerun(set(states), edges, states), set())
+        self.assertEqual(set(compute_may_rerun(set(states), edges, states)),
+                         set())
 
     def test_edge_with_both_kinds_propagates(self):
         edges = {('a', 'b'): {'file', 'order'}}
         states = {'a': 'run', 'b': 'up-to-date'}
-        self.assertEqual(compute_may_rerun(set(states), edges, states), {'b'})
+        self.assertEqual(set(compute_may_rerun(set(states), edges, states)),
+                         {'b'})
 
     def test_only_up_to_date_becomes_may_rerun(self):
         edges = {('a', 'b'): {'file'}}
         states = {'a': 'run', 'b': 'run'}
-        self.assertEqual(compute_may_rerun(set(states), edges, states), set())
+        self.assertEqual(set(compute_may_rerun(set(states), edges, states)),
+                         set())
 
 
 class FakeStream:
@@ -300,6 +312,23 @@ class TestCmdStatusFocus(StatusTestBase):
         b = Task('b', [''], file_dep=['gen/a.out'], targets=['gen/b.out'])
         c = Task('c', [''], file_dep=['gen/b.out'])
         return [a, b, c]
+
+    def test_may_rerun_reason_names_stale_parent(self):
+        a = Task('a', [''], targets=[self.dependency1])
+        b = Task('b', [''], file_dep=[self.dependency1],
+                 targets=[self.dependency2])
+        c = Task('c', [''], file_dep=[self.dependency2])
+        for task in (b, c):
+            self.dep_manager.save_success(task)
+        tasks = [a, b, c]
+        got = self.status(tasks, pos_args=['b'])
+        self.assertEqual(got[got.index(RULE) + 1:],
+                         ['b  may-rerun',
+                          ' * input produced by task a (run)'])
+        got = self.status(tasks, pos_args=['c'])
+        self.assertEqual(got[got.index(RULE) + 1:],
+                         ['c  may-rerun',
+                          ' * input produced by task b (may-rerun)'])
 
     def test_focus_frame_with_reasons(self):
         self.assertEqual(self.status(self.chain(), pos_args=['b']), [

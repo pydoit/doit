@@ -121,10 +121,13 @@ def resolve_missing_inputs(status, missing, owners):
 
 
 def compute_may_rerun(names, edges, states):
-    """names of tasks that are locally up-to-date but have an ancestor with
-    status run/error, reached only through FILE edges.
+    """tasks that are locally up-to-date but have an ancestor with status
+    run/error, reached only through FILE edges.
 
     ORDER edges do not propagate: an explicit task_dep only controls order.
+
+    @return: dict task name -> sorted names of its parents (through FILE
+             edges) that are stale or have a stale ancestor themselves
     """
     file_parents = {name: [] for name in names}
     for (dep, name), kinds in edges.items():
@@ -141,7 +144,9 @@ def compute_may_rerun(names, edges, states):
                          for dep in file_parents[name])
         return memo[name]
 
-    return {name for name in names
+    return {name: sorted(dep for dep in file_parents[name]
+                         if states[dep] in _STALE_STATES or stale_above(dep))
+            for name in names
             if states[name] == 'up-to-date' and stale_above(name)}
 
 
@@ -331,6 +336,11 @@ class Status(DoitCmdBase):
             may_rerun = compute_may_rerun(names, full_edges, local)
             states = {name: 'may-rerun' if name in may_rerun else local[name]
                       for name in visible}
+            for name in visible & set(may_rerun):
+                lines[name] = [
+                    ' * input produced by task %s (%s)'
+                    % (dep, 'may-rerun' if dep in may_rerun else local[dep])
+                    for dep in may_rerun[name]]
             return states, {name: lines[name] for name in visible
                             if lines.get(name)}
 
