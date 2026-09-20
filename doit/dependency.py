@@ -518,10 +518,12 @@ class Dependency:
         self._open(backend_name)
 
     def _open(self, backend_name):
-        self._closed = False
-        self.backend = self.db_class(
+        # build the backend first, it may raise. only then mark as open.
+        backend = self.db_class(
             backend_name, codec=self._codec_cls(),
             module_name=self._module_name)
+        self._closed = False
+        self.backend = backend
         self._set = self.backend.set
         self._get = self.backend.get
         self.remove = self.backend.remove

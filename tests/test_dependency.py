@@ -142,6 +142,18 @@ class _DependencyDbTests:
         self.dep_manager.reopen()
         self.assertEqual("da_md5", self.dep_manager._get("taskId_X", "dependency_A"))
 
+    def test_reopen_failure_stays_closed(self):
+        self.dep_manager.close()
+
+        def failing_db(*args, **kwargs):
+            raise DatabaseException('cannot open')
+        self.dep_manager.db_class = failing_db
+        with self.assertRaises(DatabaseException):
+            self.dep_manager.reopen()
+        # a failed reopen must not look open, close() must be a no-op
+        self.assertTrue(self.dep_manager._closed)
+        self.dep_manager.close()
+
     def test_corrupted_file(self):
         if self.dep_manager.whichdb == 'sqlite3':
             self.skipTest('close() does not release fp on windows')
