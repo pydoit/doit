@@ -159,12 +159,17 @@ class DbmDB:
     If an item is modified ``_db`` is update and the `id` is added
     to the `dirty` set. Only on ``dump`` all dirty items values are encoded
     in json into ``_dbm`` and the DBM file is saved.
+    Removals are buffered the same way: ``remove`` and ``remove_all`` never
+    touch the file, they are applied on ``dump`` before the dirty values.
 
     :ivar str name: file name/path
     :ivar module: DBM implementation name one of: 'dbm.gun', 'dbm.ndbm', 'dbm.dumb'.
     :ivar dbm _dbm: items with json encoded values
     :ivar dict _db: items with python-dict as value
     :ivar set dirty: id of modified tasks
+    :ivar set _removed: id of tasks to delete from the file on ``dump``
+    :ivar bool _truncate: ``remove_all`` was called, file is emptied on ``dump``
+    :ivar bool _changed: there are changes not written to the file
     """
     DBM_CONTENT_ERROR_MSG = 'db type could not be determined'
 
@@ -194,12 +199,28 @@ class DbmDB:
         self._db = {}
         self.dirty = set()
         self._changed = False
+        self._removed = set()
+        self._truncate = False
 
     def dump(self):
-        """save/close DBM file"""
+        """apply removals, save dirty values, close DBM file"""
+        if self._truncate:
+            self._dbm.close()
+            del self._dbm
+            self._dbm = self.module.open(self.name, 'n')
+        else:
+            for task_id in self._removed:
+                try:
+                    del self._dbm[task_id]
+                except KeyError:
+                    # another process may have removed it meanwhile
+                    pass
         for task_id in self.dirty:
             self._dbm[task_id] = self.codec.encode(self._db[task_id])
         self._dbm.close()
+        self.dirty = set()
+        self._removed = set()
+        self._truncate = False
         self._changed = False
 
     def has_changes(self):
@@ -238,42 +259,42 @@ class DbmDB:
         # optimization, just try to get it without checking it exists
         if task_id in self._db:
             return self._db[task_id].get(dependency, None)
-        else:
-            try:
-                task_data = self._dbm[task_id]
-            except KeyError:
-                return
-            self._db[task_id] = self.codec.decode(task_data.decode('utf-8'))
-            return self._db[task_id].get(dependency, None)
-
+        if self._truncate or task_id in self._removed:
+            return None
+        try:
+            task_data = self._dbm[task_id]
+        except KeyError:
+            return
+        self._db[task_id] = self.codec.decode(task_data.decode('utf-8'))
+        return self._db[task_id].get(dependency, None)
 
     def in_(self, task_id):
         """@return bool if task_id is in DB"""
-        return self._in_dbm(task_id) or task_id in self.dirty
-
+        if task_id in self.dirty:
+            return True
+        if self._truncate or task_id in self._removed:
+            return False
+        return self._in_dbm(task_id)
 
     def remove(self, task_id):
-        """remove saved dependencies from DB for taskId"""
-        in_file = self._in_dbm(task_id)
+        """remove saved dependencies from DB for taskId (applied on dump)"""
+        in_file = (not self._truncate) and self._in_dbm(task_id)
         if in_file or task_id in self.dirty:
             self._changed = True
         if task_id in self._db:
             del self._db[task_id]
-        if in_file:
-            del self._dbm[task_id]
         if task_id in self.dirty:
             self.dirty.remove(task_id)
-
+        if in_file:
+            self._removed.add(task_id)
 
     def remove_all(self):
-        """remove saved dependencies from DB for all tasks"""
+        """remove saved dependencies from DB for all tasks (applied on dump)"""
         self._db = {}
-        self._dbm.close()
-        del self._dbm
-        self._dbm = self.module.open(self.name, 'n')
         self.dirty = set()
+        self._removed = set()
+        self._truncate = True
         self._changed = True
-
 
 
 class SqliteDB:

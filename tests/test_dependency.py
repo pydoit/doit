@@ -1167,3 +1167,113 @@ class TestReleaseGuardDbmNdbm(DependencyTestBase, _ReleaseGuardTests, unittest.T
 
 class TestReleaseGuardDbmDumb(DependencyTestBase, _ReleaseGuardTests, unittest.TestCase):
     backend_name = 'dbm.dumb'
+
+
+# ---------------------------------------------------------------------------
+# deferred removals
+# ---------------------------------------------------------------------------
+
+class _DeferredRemovalTests:
+    """remove()/remove_all() change the file only in dump()."""
+
+    def _two_saved_tasks(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.dep_manager._set("t2", "dep", "2")
+        self.dep_manager.close()
+        self.dep_manager.reopen()
+
+    def test_removed_id_is_gone_in_memory_before_dump(self):
+        self._two_saved_tasks()
+        self.dep_manager.remove("t1")
+        self.assertIsNone(self.dep_manager._get("t1", "dep"))
+        self.assertFalse(self.dep_manager._in("t1"))
+        self.assertEqual("2", self.dep_manager._get("t2", "dep"))
+
+    def test_remove_is_discarded_by_release(self):
+        self._two_saved_tasks()
+        self.dep_manager.remove("t1")
+        self.dep_manager.release(discard=True)
+        self.dep_manager.reopen()
+        self.assertEqual("1", self.dep_manager._get("t1", "dep"))
+        self.assertEqual("2", self.dep_manager._get("t2", "dep"))
+
+    def test_remove_all_is_discarded_by_release(self):
+        self._two_saved_tasks()
+        self.dep_manager.remove_all()
+        self.dep_manager.release(discard=True)
+        self.dep_manager.reopen()
+        self.assertEqual("1", self.dep_manager._get("t1", "dep"))
+        self.assertEqual("2", self.dep_manager._get("t2", "dep"))
+
+    def test_remove_is_saved_by_close(self):
+        self._two_saved_tasks()
+        self.dep_manager.remove("t1")
+        self.dep_manager.close()
+        self.dep_manager.reopen()
+        self.assertFalse(self.dep_manager._in("t1"))
+        self.assertEqual("2", self.dep_manager._get("t2", "dep"))
+
+    def test_remove_all_is_saved_by_close(self):
+        self._two_saved_tasks()
+        self.dep_manager.remove_all()
+        self.dep_manager.close()
+        self.dep_manager.reopen()
+        self.assertFalse(self.dep_manager._in("t1"))
+        self.assertFalse(self.dep_manager._in("t2"))
+
+    def test_remove_all_then_set_keeps_the_new_entry(self):
+        self._two_saved_tasks()
+        self.dep_manager.remove_all()
+        self.dep_manager._set("t3", "dep", "3")
+        self.dep_manager.close()
+        self.dep_manager.reopen()
+        self.assertFalse(self.dep_manager._in("t1"))
+        self.assertFalse(self.dep_manager._in("t2"))
+        self.assertEqual("3", self.dep_manager._get("t3", "dep"))
+
+    def test_remove_of_memory_only_id_is_not_deferred(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.dep_manager.remove("t1")
+        backend = self.dep_manager.backend
+        self.assertEqual(set(), getattr(backend, '_removed', set()))
+
+
+class TestDeferredRemovalJson(DependencyTestBase, _DeferredRemovalTests,
+                              unittest.TestCase):
+    backend_name = 'json'
+
+class TestDeferredRemovalDbmGnu(DependencyTestBase, _DeferredRemovalTests,
+                                unittest.TestCase):
+    backend_name = 'dbm.gnu'
+
+class TestDeferredRemovalDbmNdbm(DependencyTestBase, _DeferredRemovalTests,
+                                 unittest.TestCase):
+    backend_name = 'dbm.ndbm'
+
+class TestDeferredRemovalDbmDumb(DependencyTestBase, _DeferredRemovalTests,
+                                 unittest.TestCase):
+    backend_name = 'dbm.dumb'
+
+
+class _DbmDumpTests:
+    """dump() survives ids another process already removed."""
+
+    def test_dump_tolerates_key_already_gone(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.dep_manager.close()
+        self.dep_manager.reopen()
+        # as if another process removed it between remove() and dump()
+        self.dep_manager.backend._removed.add("gone")
+        self.dep_manager.close()  # must not raise
+        self.dep_manager.reopen()
+        self.assertEqual("1", self.dep_manager._get("t1", "dep"))
+
+
+class TestDbmDumpGnu(DependencyTestBase, _DbmDumpTests, unittest.TestCase):
+    backend_name = 'dbm.gnu'
+
+class TestDbmDumpNdbm(DependencyTestBase, _DbmDumpTests, unittest.TestCase):
+    backend_name = 'dbm.ndbm'
+
+class TestDbmDumpDumb(DependencyTestBase, _DbmDumpTests, unittest.TestCase):
+    backend_name = 'dbm.dumb'
