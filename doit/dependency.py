@@ -18,6 +18,15 @@ class DatabaseException(Exception):
     pass
 
 
+class UnsavedChangesError(DatabaseException):
+    """release() was asked to drop changes that were never saved.
+
+    Subclass of DatabaseException so existing handlers keep working, while
+    a caller that means it can catch this one on its own.
+    """
+    pass
+
+
 def get_md5(input_data):
     """return md5 from string or unicode"""
     byte_data = input_data.encode("utf-8")
@@ -574,21 +583,50 @@ class Dependency:
             self.backend.dump()
             self._closed = True
 
-    def release(self):
+    def has_changes(self):
+        """@return bool: the backend holds changes not written to the file.
+
+        False when already closed. A backend without `has_changes()`
+        (plugin) reports no changes.
+        """
+        if self._closed:
+            return False
+        has_changes = getattr(self.backend, 'has_changes', None)
+        if has_changes is None:
+            return False
+        return has_changes()
+
+    def release(self, discard=False):
         """Release the DB file handle without saving.
 
-        Nothing can be read after this, until `reopen()`. A backend without
-        `release()` (plugin) keeps its handle.
-        """
-        if not self._closed:
-            release = getattr(self.backend, 'release', None)
-            if release is not None:
-                release()
-            self._closed = True
+        Nothing can be read after this, until `reopen()`.
 
-    def reopen(self):
-        """Read the DB file again, discarding unsaved changes."""
-        self.release()
+        :param bool discard: drop unsaved changes on purpose. Without it,
+            unsaved changes raise `UnsavedChangesError` and nothing changes:
+            the DB stays open and the caller can still `close()` it.
+
+        A backend without `release()` (plugin) keeps its handle. A backend
+        without `has_changes()` (plugin) reports no changes, so its unsaved
+        changes are dropped here without warning.
+        """
+        if self._closed:
+            return
+        if not discard and self.has_changes():
+            raise UnsavedChangesError(
+                f"DB '{self.name}' has unsaved changes. "
+                "Use close() to save them, "
+                "or release(discard=True) to drop them.")
+        release = getattr(self.backend, 'release', None)
+        if release is not None:
+            release()
+        self._closed = True
+
+    def reopen(self, discard=False):
+        """Read the DB file again.
+
+        :param bool discard: drop unsaved changes on purpose, see `release()`.
+        """
+        self.release(discard=discard)
         self._open(self.name)
 
 

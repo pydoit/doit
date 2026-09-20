@@ -13,6 +13,7 @@ from doit.task import Task
 from doit.dependency import get_md5, get_file_md5
 from doit.dependency import DbmDB, JsonDB, SqliteDB, Dependency
 from doit.dependency import DatabaseException, UptodateCalculator
+from doit.dependency import UnsavedChangesError
 from doit.dependency import FileChangedChecker, MD5Checker, TimestampChecker
 from doit.dependency import DependencyStatus
 from tests.support import get_abspath, backend_map, db_ext
@@ -138,7 +139,7 @@ class _DependencyDbTests:
         self.dep_manager.reopen()
         self.assertEqual("da_md5", self.dep_manager._get("taskId_X", "dependency_A"))
         self.dep_manager._set("taskId_X", "dependency_A", "changed")
-        self.dep_manager.release()
+        self.dep_manager.release(discard=True)
         self.dep_manager.reopen()
         self.assertEqual("da_md5", self.dep_manager._get("taskId_X", "dependency_A"))
 
@@ -950,6 +951,43 @@ class TestReleasePluginBackend(unittest.TestCase):
         finally:
             shutil.rmtree(tmp, ignore_errors=True)
 
+    def test_backend_without_has_changes_releases(self):
+        # a plugin backend that genuinely lacks has_changes(): not a JsonDB
+        # subclass, so it inherits nothing.
+        class PluginDB:
+            def __init__(self, name, codec, *, module_name=None):
+                self.name = name
+                self.codec = codec
+                self.data = {}
+
+            def dump(self):
+                pass
+
+            def set(self, task_id, dependency, value):
+                self.data.setdefault(task_id, {})[dependency] = value
+
+            def get(self, task_id, dependency):
+                return self.data.get(task_id, {}).get(dependency, None)
+
+            def in_(self, task_id):
+                return task_id in self.data
+
+            def remove(self, task_id):
+                self.data.pop(task_id, None)
+
+            def remove_all(self):
+                self.data = {}
+
+        tmp = tempfile.mkdtemp(prefix='doit-test-dep-')
+        try:
+            dep = Dependency(PluginDB, os.path.join(tmp, 'db'))
+            dep._set("t1", "dep", "1")
+            self.assertFalse(dep.has_changes())
+            dep.release()  # no guard, nothing to ask the backend
+            self.assertTrue(dep._closed)
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
 
 # ---------------------------------------------------------------------------
 # has_changes() - backend level
@@ -1027,4 +1065,105 @@ class TestHasChangesDbmNdbm(DependencyTestBase, _HasChangesTests, unittest.TestC
     backend_name = 'dbm.ndbm'
 
 class TestHasChangesDbmDumb(DependencyTestBase, _HasChangesTests, unittest.TestCase):
+    backend_name = 'dbm.dumb'
+
+
+# ---------------------------------------------------------------------------
+# release() guard
+# ---------------------------------------------------------------------------
+
+class _ReleaseGuardTests:
+    """release() refuses to drop unsaved changes unless asked to."""
+
+    def test_release_of_clean_db_is_allowed(self):
+        self.dep_manager.release()
+        self.assertTrue(self.dep_manager._closed)
+
+    def test_set_blocks_release(self):
+        self.dep_manager._set("t1", "dep", "1")
+        with self.assertRaises(UnsavedChangesError) as ctx:
+            self.dep_manager.release()
+        message = str(ctx.exception)
+        self.assertIn('close()', message)
+        self.assertIn('discard=True', message)
+
+    def test_unsaved_changes_error_is_a_database_exception(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.assertRaises(DatabaseException, self.dep_manager.release)
+
+    def test_remove_blocks_release(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.dep_manager.close()
+        self.dep_manager.reopen()
+        self.dep_manager.remove("t1")
+        self.assertRaises(UnsavedChangesError, self.dep_manager.release)
+
+    def test_remove_all_on_empty_db_blocks_release(self):
+        self.dep_manager.remove_all()
+        self.assertRaises(UnsavedChangesError, self.dep_manager.release)
+
+    def test_reads_do_not_block_release(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.dep_manager.close()
+        self.dep_manager.reopen()
+        self.assertEqual("1", self.dep_manager._get("t1", "dep"))
+        self.assertTrue(self.dep_manager._in("t1"))
+        self.assertIsNone(self.dep_manager._get("nosuch", "dep"))
+        self.dep_manager.remove("nosuch")  # no-op removal
+        self.assertFalse(self.dep_manager.has_changes())
+        self.dep_manager.release()
+        self.assertTrue(self.dep_manager._closed)
+
+    def test_object_stays_open_when_guard_raises(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.assertRaises(UnsavedChangesError, self.dep_manager.release)
+        self.assertFalse(self.dep_manager._closed)
+        self.assertTrue(self.dep_manager.has_changes())
+        # close() still saves
+        self.dep_manager.close()
+        self.dep_manager.reopen()
+        self.assertEqual("1", self.dep_manager._get("t1", "dep"))
+
+    def test_discard_after_guard_raised(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.assertRaises(UnsavedChangesError, self.dep_manager.release)
+        self.dep_manager.release(discard=True)
+        self.assertTrue(self.dep_manager._closed)
+        self.assertFalse(self.dep_manager.has_changes())
+        self.dep_manager.release()  # second release does nothing
+        self.assertTrue(self.dep_manager._closed)
+        self.dep_manager.reopen()
+        self.assertIsNone(self.dep_manager._get("t1", "dep"))
+
+    def test_reopen_guard_and_discard(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.dep_manager.close()
+        self.dep_manager.reopen()
+        self.dep_manager._set("t1", "dep", "changed")
+        self.assertRaises(UnsavedChangesError, self.dep_manager.reopen)
+        self.assertFalse(self.dep_manager._closed)
+        self.dep_manager.reopen(discard=True)
+        self.assertEqual("1", self.dep_manager._get("t1", "dep"))
+
+    def test_close_then_reopen_keeps_changes(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.dep_manager.close()
+        self.dep_manager.reopen()
+        self.assertEqual("1", self.dep_manager._get("t1", "dep"))
+        self.assertFalse(self.dep_manager.has_changes())
+
+
+class TestReleaseGuardJson(DependencyTestBase, _ReleaseGuardTests, unittest.TestCase):
+    backend_name = 'json'
+
+class TestReleaseGuardSqlite(DependencyTestBase, _ReleaseGuardTests, unittest.TestCase):
+    backend_name = 'sqlite3'
+
+class TestReleaseGuardDbmGnu(DependencyTestBase, _ReleaseGuardTests, unittest.TestCase):
+    backend_name = 'dbm.gnu'
+
+class TestReleaseGuardDbmNdbm(DependencyTestBase, _ReleaseGuardTests, unittest.TestCase):
+    backend_name = 'dbm.ndbm'
+
+class TestReleaseGuardDbmDumb(DependencyTestBase, _ReleaseGuardTests, unittest.TestCase):
     backend_name = 'dbm.dumb'
