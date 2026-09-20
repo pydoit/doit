@@ -307,6 +307,7 @@ formatter
 formatters
 fpath
 functools
+furo
 gdbm
 genindex
 genstandalone
@@ -445,6 +446,7 @@ regex
 repo
 repr
 reproducibility
+rst
 rst2s5
 runnable
 runtests
@@ -528,6 +530,7 @@ ut
 utf8
 utils
 utm
+vendored
 virtualenv
 visualisation
 waf
