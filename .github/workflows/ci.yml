@@ -22,7 +22,8 @@ jobs:
         run: sudo apt-get install strace
       - uses: actions/checkout@v7
       # uv.lock is not committed, cache is keyed on pyproject.toml instead
-      - uses: astral-sh/setup-uv@v10
+      # v7 is the last floating major tag published, newer ones are full pins only
+      - uses: astral-sh/setup-uv@v7
         with:
           cache-dependency-glob: "pyproject.toml"
       - uses: actions/setup-python@v7
