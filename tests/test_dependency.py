@@ -391,6 +391,16 @@ class _GetValueTests:
         self.dep_manager.save_success(t1)
         self.assertRaises(Exception, self.dep_manager.get_value, 'nonono', 'x')
 
+    def test_invalid_taskid_after_reading_it(self):
+        t1 = Task('t1', None)
+        t1.values = {'x': 5}
+        self.dep_manager.save_success(t1)
+        # reading a task that is not in the DB must not make it "exist"
+        self.assertIsNone(self.dep_manager._get('nonono', '_values_:'))
+        with self.assertRaises(Exception) as ctx:
+            self.dep_manager.get_value('nonono', 'x')
+        self.assertIn('has no computed value', str(ctx.exception))
+
     def test_invalid_key(self):
         t1 = Task('t1', None)
         t1.values = {'x': 5, 'y': 10}
@@ -1242,6 +1252,10 @@ class TestDeferredRemovalJson(DependencyTestBase, _DeferredRemovalTests,
                               unittest.TestCase):
     backend_name = 'json'
 
+class TestDeferredRemovalSqlite(DependencyTestBase, _DeferredRemovalTests,
+                                unittest.TestCase):
+    backend_name = 'sqlite3'
+
 class TestDeferredRemovalDbmGnu(DependencyTestBase, _DeferredRemovalTests,
                                 unittest.TestCase):
     backend_name = 'dbm.gnu'
@@ -1277,3 +1291,88 @@ class TestDbmDumpNdbm(DependencyTestBase, _DbmDumpTests, unittest.TestCase):
 
 class TestDbmDumpDumb(DependencyTestBase, _DbmDumpTests, unittest.TestCase):
     backend_name = 'dbm.dumb'
+
+
+# ---------------------------------------------------------------------------
+# in_() must not report an id as present because it was read
+# ---------------------------------------------------------------------------
+
+class _InAfterReadTests:
+
+    def test_in_is_false_for_unknown_id(self):
+        self.assertFalse(self.dep_manager._in("nosuch"))
+
+    def test_in_is_false_after_get_of_unknown_id(self):
+        self.assertIsNone(self.dep_manager._get("nosuch", "dep"))
+        self.assertFalse(self.dep_manager._in("nosuch"))
+
+    def test_in_is_true_before_and_after_get_of_stored_id(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.dep_manager.close()
+        self.dep_manager.reopen()
+        self.assertTrue(self.dep_manager._in("t1"))
+        self.assertEqual("1", self.dep_manager._get("t1", "dep"))
+        self.assertTrue(self.dep_manager._in("t1"))
+
+    def test_in_is_false_after_get_of_removed_id(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.dep_manager.close()
+        self.dep_manager.reopen()
+        self.dep_manager.remove("t1")
+        self.assertIsNone(self.dep_manager._get("t1", "dep"))
+        self.assertFalse(self.dep_manager._in("t1"))
+
+
+class TestInAfterReadJson(DependencyTestBase, _InAfterReadTests, unittest.TestCase):
+    backend_name = 'json'
+
+class TestInAfterReadSqlite(DependencyTestBase, _InAfterReadTests, unittest.TestCase):
+    backend_name = 'sqlite3'
+
+class TestInAfterReadDbmGnu(DependencyTestBase, _InAfterReadTests, unittest.TestCase):
+    backend_name = 'dbm.gnu'
+
+class TestInAfterReadDbmNdbm(DependencyTestBase, _InAfterReadTests, unittest.TestCase):
+    backend_name = 'dbm.ndbm'
+
+class TestInAfterReadDbmDumb(DependencyTestBase, _InAfterReadTests, unittest.TestCase):
+    backend_name = 'dbm.dumb'
+
+
+# ---------------------------------------------------------------------------
+# sqlite must not take a write lock outside dump()
+# ---------------------------------------------------------------------------
+
+class TestSqliteNoWriteLock(DependencyTestBase, unittest.TestCase):
+    backend_name = 'sqlite3'
+
+    def _second_connection_writes(self, task_id):
+        """write from another connection, with no patience for locks"""
+        import sqlite3
+        conn = sqlite3.connect(self.dep_manager.name, timeout=0)
+        try:
+            conn.execute('insert or replace into doit values (?,?)',
+                         (task_id, '{}'))
+            conn.commit()
+        finally:
+            conn.close()
+
+    def _saved_task(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.dep_manager.close()
+        self.dep_manager.reopen()
+
+    def test_second_connection_writes_after_read(self):
+        self._saved_task()
+        self.assertEqual("1", self.dep_manager._get("t1", "dep"))
+        self._second_connection_writes("other")
+
+    def test_second_connection_writes_after_remove(self):
+        self._saved_task()
+        self.dep_manager.remove("t1")
+        self._second_connection_writes("other")
+
+    def test_second_connection_writes_after_remove_all(self):
+        self._saved_task()
+        self.dep_manager.remove_all()
+        self._second_connection_writes("other")

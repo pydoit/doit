@@ -307,6 +307,8 @@ class SqliteDB:
         self._cache = {}
         self._dirty = set()
         self._changed = False
+        self._removed = set()
+        self._truncate = False
 
     def _sqlite3(self, name):
         """Open/create a sqlite3 DB file"""
@@ -355,9 +357,13 @@ class SqliteDB:
         """
         if task_id in self._cache:
             return self._cache[task_id].get(dependency, None)
-        else:
-            data = self._cache[task_id] = self._get_task_data(task_id)
-            return data.get(dependency, None)
+        if self._truncate or task_id in self._removed:
+            return None
+        data = self._get_task_data(task_id)
+        # a missing row is never cached: _cache membership means "exists"
+        if data:
+            self._cache[task_id] = data
+        return data.get(dependency, None)
 
     def _get_task_data(self, task_id):
         data = self._conn.execute('select task_data from doit where task_id=?',
@@ -384,21 +390,30 @@ class SqliteDB:
 
 
     def in_(self, task_id):
+        if task_id in self._dirty:
+            return True
+        if self._truncate or task_id in self._removed:
+            return False
         if task_id in self._cache:
             return True
-        if self._conn.execute('select task_id from doit where task_id=?',
-                              (task_id,)).fetchone():
-            return True
-        return False
+        return self._row_exists(task_id)
 
     def dump(self):
-        """save/close sqlite3 DB file"""
+        """apply removals, save dirty values, close sqlite3 DB file"""
+        if self._truncate:
+            self._conn.execute('delete from doit')
+        else:
+            for task_id in self._removed:
+                self._conn.execute('delete from doit where task_id=?',
+                                   (task_id,))
         for task_id in self._dirty:
             self._conn.execute('insert or replace into doit values (?,?)',
                                (task_id, self.codec.encode(self._cache[task_id])))
         self._conn.commit()
         self._conn.close()
         self._dirty = set()
+        self._removed = set()
+        self._truncate = False
         self._changed = False
 
     def release(self):
@@ -406,21 +421,23 @@ class SqliteDB:
         self._conn.close()
 
     def remove(self, task_id):
-        """remove saved dependencies from DB for taskId"""
-        in_file = self._row_exists(task_id)
+        """remove saved dependencies from DB for taskId (applied on dump)"""
+        in_file = (not self._truncate) and self._row_exists(task_id)
         if in_file or task_id in self._dirty:
             self._changed = True
         if task_id in self._cache:
             del self._cache[task_id]
         if task_id in self._dirty:
             self._dirty.remove(task_id)
-        self._conn.execute('delete from doit where task_id=?', (task_id,))
+        if in_file:
+            self._removed.add(task_id)
 
     def remove_all(self):
-        """remove saved dependencies from DB for all task"""
-        self._conn.execute('delete from doit')
+        """remove saved dependencies from DB for all task (applied on dump)"""
         self._cache = {}
         self._dirty = set()
+        self._removed = set()
+        self._truncate = True
         self._changed = True
 
 
