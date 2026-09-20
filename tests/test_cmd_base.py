@@ -6,6 +6,7 @@ from unittest.mock import patch
 from doit import version
 from doit.cmdparse import CmdParseError, CmdParse
 from doit.exceptions import InvalidCommand, InvalidDodoFile
+from doit.action import CmdAction
 from doit.dependency import FileChangedChecker, JSONCodec
 from doit.task import Task
 from doit.loader import task_params
@@ -239,6 +240,21 @@ class TestDoitCmdBase(DepfileNameMixin, unittest.TestCase):
         mycmd = self.MyCmd(task_loader=loader)
         self.assertEqual('min', mycmd.parse_execute([
             '--db-file', self.depfile_name, '--mine', 'min']))
+
+    def test_execute_config_value_not_a_cmd_option(self):
+        # config values that are not a command option are still
+        # taken into account, i.e. `action_string_formatting`
+        class MyConfigCmd(self.MyCmd):
+            def _execute(self, action_string_formatting):
+                return action_string_formatting
+
+        members = {'task_xxx1': lambda: {'actions': []}}
+        config = {'GLOBAL': {'action_string_formatting': 'new'}}
+        loader = get_loader(config, task_loader=ModuleTaskLoader(members))
+        mycmd = MyConfigCmd(task_loader=loader, config=config)
+        with patch.object(CmdAction, 'STRING_FORMAT', 'old'):
+            self.assertEqual('new', mycmd.parse_execute(
+                ['--db-file', self.depfile_name]))
 
     @mock.patch('doit.cmd_base.Globals')
     def test_execute_provides_dep_manager(self, mock_globals):
