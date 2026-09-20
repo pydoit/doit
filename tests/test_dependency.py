@@ -132,6 +132,16 @@ class _DependencyDbTests:
         self.assertEqual("da_md5", value)
         d2.close()
 
+    def test_release_does_not_save(self):
+        self.dep_manager._set("taskId_X", "dependency_A", "da_md5")
+        self.dep_manager.close()
+        self.dep_manager.reopen()
+        self.assertEqual("da_md5", self.dep_manager._get("taskId_X", "dependency_A"))
+        self.dep_manager._set("taskId_X", "dependency_A", "changed")
+        self.dep_manager.release()
+        self.dep_manager.reopen()
+        self.assertEqual("da_md5", self.dep_manager._get("taskId_X", "dependency_A"))
+
     def test_corrupted_file(self):
         if self.dep_manager.whichdb == 'sqlite3':
             self.skipTest('close() does not release fp on windows')
@@ -912,3 +922,18 @@ class TestGetStatusDbmNdbm(DependencyTestBase, _GetStatusTests, unittest.TestCas
 
 class TestGetStatusDbmDumb(DependencyTestBase, _GetStatusTests, unittest.TestCase):
     backend_name = 'dbm.dumb'
+
+
+class TestReleasePluginBackend(unittest.TestCase):
+
+    def test_backend_without_release_keeps_handle(self):
+        class PluginDB(JsonDB):
+            release = None
+
+        tmp = tempfile.mkdtemp(prefix='doit-test-dep-')
+        try:
+            dep = Dependency(PluginDB, os.path.join(tmp, 'db'))
+            dep.release()
+            self.assertTrue(dep._closed)
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
