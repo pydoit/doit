@@ -949,3 +949,82 @@ class TestReleasePluginBackend(unittest.TestCase):
             self.assertTrue(dep._closed)
         finally:
             shutil.rmtree(tmp, ignore_errors=True)
+
+
+# ---------------------------------------------------------------------------
+# has_changes() - backend level
+# ---------------------------------------------------------------------------
+
+class _HasChangesTests:
+    """Backends report unsaved changes, and only for real mutations."""
+
+    def has_changes(self):
+        return self.dep_manager.backend.has_changes()
+
+    def test_fresh_db_has_no_changes(self):
+        self.assertFalse(self.has_changes())
+
+    def test_set_marks_changes(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.assertTrue(self.has_changes())
+
+    def test_dump_resets_changes(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.dep_manager.close()
+        self.assertFalse(self.has_changes())
+
+    def test_get_does_not_mark_changes(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.dep_manager.close()
+        self.dep_manager.reopen()
+        self.assertEqual("1", self.dep_manager._get("t1", "dep"))
+        self.assertIsNone(self.dep_manager._get("nosuch", "dep"))
+        self.assertFalse(self.has_changes())
+
+    def test_in_does_not_mark_changes(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.dep_manager.close()
+        self.dep_manager.reopen()
+        self.assertTrue(self.dep_manager._in("t1"))
+        self.dep_manager._in("nosuch")
+        self.assertFalse(self.has_changes())
+
+    def test_remove_of_stored_id_marks_changes(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.dep_manager.close()
+        self.dep_manager.reopen()
+        self.dep_manager.remove("t1")
+        self.assertTrue(self.has_changes())
+
+    def test_remove_of_unknown_id_does_not_mark_changes(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.dep_manager.close()
+        self.dep_manager.reopen()
+        self.dep_manager._get("nosuch", "dep")
+        self.dep_manager.remove("nosuch")
+        self.assertFalse(self.has_changes())
+
+    def test_set_then_remove_marks_changes(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.dep_manager.remove("t1")
+        self.assertTrue(self.has_changes())
+
+    def test_remove_all_on_empty_db_marks_changes(self):
+        self.dep_manager.remove_all()
+        self.assertTrue(self.has_changes())
+
+
+class TestHasChangesJson(DependencyTestBase, _HasChangesTests, unittest.TestCase):
+    backend_name = 'json'
+
+class TestHasChangesSqlite(DependencyTestBase, _HasChangesTests, unittest.TestCase):
+    backend_name = 'sqlite3'
+
+class TestHasChangesDbmGnu(DependencyTestBase, _HasChangesTests, unittest.TestCase):
+    backend_name = 'dbm.gnu'
+
+class TestHasChangesDbmNdbm(DependencyTestBase, _HasChangesTests, unittest.TestCase):
+    backend_name = 'dbm.ndbm'
+
+class TestHasChangesDbmDumb(DependencyTestBase, _HasChangesTests, unittest.TestCase):
+    backend_name = 'dbm.dumb'

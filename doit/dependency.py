@@ -66,6 +66,7 @@ class JsonDB:
             self._db = {}
         else:
             self._db = self._load()
+        self._changed = False
 
     def _load(self):
         """load db content from file"""
@@ -91,6 +92,11 @@ class JsonDB:
             db_file.write(self.codec.encode(self._db))
         finally:
             db_file.close()
+        self._changed = False
+
+    def has_changes(self):
+        """@return bool: there are changes not written to the file"""
+        return self._changed
 
     def release(self):
         """nothing to release, content is in memory"""
@@ -100,6 +106,7 @@ class JsonDB:
         if task_id not in self._db:
             self._db[task_id] = {}
         self._db[task_id][dependency] = value
+        self._changed = True
 
 
     def get(self, task_id, dependency):
@@ -120,10 +127,12 @@ class JsonDB:
         """remove saved dependencies from DB for taskId"""
         if task_id in self._db:
             del self._db[task_id]
+            self._changed = True
 
     def remove_all(self):
         """remove saved dependencies from DB for all tasks"""
         self._db = {}
+        self._changed = True
 
 
 def get_dbm_module(mod_name):
@@ -175,12 +184,18 @@ class DbmDB:
 
         self._db = {}
         self.dirty = set()
+        self._changed = False
 
     def dump(self):
         """save/close DBM file"""
         for task_id in self.dirty:
             self._dbm[task_id] = self.codec.encode(self._db[task_id])
         self._dbm.close()
+        self._changed = False
+
+    def has_changes(self):
+        """@return bool: there are changes not written to the file"""
+        return self._changed
 
     def release(self):
         """close DBM file without saving"""
@@ -193,6 +208,7 @@ class DbmDB:
             self._db[task_id] = {}
         self._db[task_id][dependency] = value
         self.dirty.add(task_id)
+        self._changed = True
 
 
     def _in_dbm(self, key):
@@ -229,9 +245,12 @@ class DbmDB:
 
     def remove(self, task_id):
         """remove saved dependencies from DB for taskId"""
+        in_file = self._in_dbm(task_id)
+        if in_file or task_id in self.dirty:
+            self._changed = True
         if task_id in self._db:
             del self._db[task_id]
-        if self._in_dbm(task_id):
+        if in_file:
             del self._dbm[task_id]
         if task_id in self.dirty:
             self.dirty.remove(task_id)
@@ -244,6 +263,7 @@ class DbmDB:
         del self._dbm
         self._dbm = self.module.open(self.name, 'n')
         self.dirty = set()
+        self._changed = True
 
 
 
@@ -256,6 +276,7 @@ class SqliteDB:
         self._conn = self._sqlite3(self.name)
         self._cache = {}
         self._dirty = set()
+        self._changed = False
 
     def _sqlite3(self, name):
         """Open/create a sqlite3 DB file"""
@@ -313,12 +334,23 @@ class SqliteDB:
                                   (task_id,)).fetchone()
         return data['task_data'] if data else {}
 
+    def _row_exists(self, task_id):
+        """@return bool: task_id has a row in the file (read only, no lock)"""
+        row = self._conn.execute('select task_id from doit where task_id=?',
+                                 (task_id,)).fetchone()
+        return row is not None
+
+    def has_changes(self):
+        """@return bool: there are changes not written to the file"""
+        return self._changed
+
     def set(self, task_id, dependency, value):
         """Store value in the DB."""
         if task_id not in self._cache:
             self._cache[task_id] = {}
         self._cache[task_id][dependency] = value
         self._dirty.add(task_id)
+        self._changed = True
 
 
     def in_(self, task_id):
@@ -337,6 +369,7 @@ class SqliteDB:
         self._conn.commit()
         self._conn.close()
         self._dirty = set()
+        self._changed = False
 
     def release(self):
         """close sqlite3 DB file without saving"""
@@ -344,6 +377,9 @@ class SqliteDB:
 
     def remove(self, task_id):
         """remove saved dependencies from DB for taskId"""
+        in_file = self._row_exists(task_id)
+        if in_file or task_id in self._dirty:
+            self._changed = True
         if task_id in self._cache:
             del self._cache[task_id]
         if task_id in self._dirty:
@@ -355,6 +391,7 @@ class SqliteDB:
         self._conn.execute('delete from doit')
         self._cache = {}
         self._dirty = set()
+        self._changed = True
 
 
 class FileChangedChecker:
