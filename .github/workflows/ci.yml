@@ -20,9 +20,12 @@ jobs:
     steps:
       - if: ${{ matrix.os == 'ubuntu' }}
         run: sudo apt-get install strace
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      # uv.lock is not committed, cache is keyed on pyproject.toml instead
+      - uses: astral-sh/setup-uv@v10
+        with:
+          cache-dependency-glob: "pyproject.toml"
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
       - run: uv sync --group dev
@@ -35,6 +38,6 @@ jobs:
       - if: ${{ matrix.os == 'ubuntu' && matrix.python-version == '3.11' }}
         run: uv run doit coverage
       - if: ${{ matrix.os == 'ubuntu' && matrix.python-version == '3.11' }}
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v7
         with:
           fail_ci_if_error: false
