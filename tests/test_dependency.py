@@ -595,6 +595,29 @@ class TestDependencyStatus(unittest.TestCase):
 class _GetStatusTests:
     """Tests for Dependency.get_status."""
 
+    def test_checker_changed_removal_is_discarded_by_release(self):
+        filePath = get_abspath("data/dependency1")
+        with open(filePath, "w") as ff:
+            ff.write("part1")
+        t1 = Task("t1", None, [filePath])
+        self.dep_manager.save_success(t1)
+        # pretend the previous run used another checker
+        self.dep_manager._set("t1", "checker:", "TimestampChecker")
+        self.dep_manager.close()
+        self.dep_manager.reopen()
+
+        # get_status() removes the task, so a "read-only" status run dirties
+        # the DB
+        self.assertEqual('run', self.dep_manager.get_status(t1, {}).status)
+        self.assertTrue(self.dep_manager.has_changes())
+        self.dep_manager.release(discard=True)
+
+        # the file is untouched
+        self.dep_manager.reopen()
+        self.assertTrue(self.dep_manager._in("t1"))
+        self.assertEqual("TimestampChecker",
+                         self.dep_manager._get("t1", "checker:"))
+
     def test_ignore(self):
         t1 = Task("t1", None)
         # before ignore
