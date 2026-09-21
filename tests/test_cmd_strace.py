@@ -1,7 +1,6 @@
 import os
 import os.path
-import subprocess
-import sys
+import shutil
 import unittest
 from io import StringIO
 
@@ -14,10 +13,7 @@ from doit.cmd_strace import Strace
 from tests.support import CmdFactory, DepfileNameMixin, DependencyFileMixin
 
 
-@unittest.skipIf(
-    subprocess.run(['strace', '-V'], capture_output=True).returncode != 0
-    or sys.platform in ['win32', 'cygwin'],
-    'strace not available or Windows platform')
+@unittest.skipUnless(shutil.which('strace'), 'strace not available')
 class TestCmdStrace(DependencyFileMixin, DepfileNameMixin, unittest.TestCase):
 
     @staticmethod
