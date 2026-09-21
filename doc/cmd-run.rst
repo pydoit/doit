@@ -253,6 +253,12 @@ So the same restrictions also apply to the use of multiprocessing in `doit`.
 
     $ doit -n 3
 
+Use ``cpu`` to run one subprocess per available CPU.
+
+.. code-block:: console
+
+    $ doit -n cpu
+
 You can also execute in parallel using threads by specifying the option
 `--parallel-type/-P`.
 
