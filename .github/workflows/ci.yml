@@ -35,7 +35,12 @@ jobs:
         run: uv pip install pycparser
       - run: uv run doit pyflakes
       - run: uv run doit codestyle
+      # rut writes unicode through a wrapper over a dup of stdout, which picks
+      # locale.getpreferredencoding() (cp1252 on Windows) -> UnicodeEncodeError.
+      # PYTHONIOENCODING does not affect that, only UTF-8 mode does.
       - run: uv run rut -vv
+        env:
+          PYTHONUTF8: "1"
       - if: ${{ matrix.os == 'ubuntu' && matrix.python-version == '3.11' }}
         run: uv run doit coverage
       - if: ${{ matrix.os == 'ubuntu' && matrix.python-version == '3.11' }}
