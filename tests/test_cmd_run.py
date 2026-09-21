@@ -5,6 +5,7 @@ import unittest
 from io import StringIO
 from unittest.mock import Mock, patch
 
+from doit.cmdparse import CmdParseError
 from doit.exceptions import InvalidCommand
 from doit import reporter, runner
 from doit.cmd_run import Run
@@ -151,6 +152,15 @@ class TestCmdRunReporter(DepfileNameMixin, unittest.TestCase):
 
 
 class TestCmdRunOptions(DepfileNameMixin, unittest.TestCase):
+
+    def test_num_process(self):
+        cmd_run = CmdFactory(Run, backend='dbm', dep_file=self.depfile_name,
+                             task_list=tasks_sample())
+        opt = cmd_run.cmdparser['num_process']
+        self.assertEqual(0, opt.default)
+        self.assertEqual(3, opt.str2type('3'))
+        self.assertEqual(os.cpu_count(), opt.str2type('cpu'))
+        self.assertRaises(CmdParseError, opt.str2type, 'xyz')
 
     def test_outfile(self):
         cmd_run = CmdFactory(Run, backend='dbm', dep_file=self.depfile_name,
