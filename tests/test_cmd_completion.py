@@ -1,5 +1,7 @@
+import sys
 import unittest
 from io import StringIO
+from unittest import mock
 
 from doit.exceptions import InvalidCommand
 from doit.cmdparse import CmdOption
@@ -131,6 +133,17 @@ class TestCmdCompletionZsh(unittest.TestCase):
         cmd.execute({'shell':'zsh', 'hardcode_tasks': False}, [])
         got = output.getvalue()
         self.assertIn("tabcompletion: generate script", got)
+
+    def test_zsh_bin_name_windows_path(self):
+        commands = _make_commands()
+        output = StringIO()
+        cmd = CmdFactory(TabCompletion, task_loader=DodoTaskLoader(),
+                         outstream=output, cmds=commands)
+        with mock.patch.object(sys, 'argv', [r'C:\Python\Scripts\doit.exe']):
+            cmd.execute({'shell': 'zsh', 'hardcode_tasks': False}, [])
+        got = output.getvalue()
+        self.assertIn('doit.exe', got)
+        self.assertNotIn('C:', got)
 
     def test_hardcoded_tasks(self):
         for loader_class in [FakeLoader2]:
