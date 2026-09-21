@@ -1,5 +1,6 @@
 import os
 import os.path
+import shutil
 import sys
 import unittest
 from io import StringIO
@@ -13,9 +14,10 @@ from doit.cmd_strace import Strace
 from tests.support import CmdFactory, DepfileNameMixin, DependencyFileMixin
 
 
-@unittest.skipIf(
-    os.system('strace -V') != 0 or sys.platform in ['win32', 'cygwin'],
-    'strace not available or Windows platform')
+# windows/cygwin ship an MSYS strace that does not support `-e trace=file`,
+# so finding it on PATH is not enough
+@unittest.skipUnless(sys.platform not in ('win32', 'cygwin') and shutil.which('strace'),
+                     'strace not available')
 class TestCmdStrace(DependencyFileMixin, DepfileNameMixin, unittest.TestCase):
 
     @staticmethod

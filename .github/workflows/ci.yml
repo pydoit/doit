@@ -20,9 +20,13 @@ jobs:
     steps:
       - if: ${{ matrix.os == 'ubuntu' }}
         run: sudo apt-get install strace
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      # uv.lock is not committed, cache is keyed on pyproject.toml instead
+      # v7 is the last floating major tag published, newer ones are full pins only
+      - uses: astral-sh/setup-uv@v7
+        with:
+          cache-dependency-glob: "pyproject.toml"
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
       - run: uv sync --group dev
@@ -31,10 +35,15 @@ jobs:
         run: uv pip install pycparser
       - run: uv run doit pyflakes
       - run: uv run doit codestyle
+      # rut writes unicode through a wrapper over a dup of stdout, which picks
+      # locale.getpreferredencoding() (cp1252 on Windows) -> UnicodeEncodeError.
+      # PYTHONIOENCODING does not affect that, only UTF-8 mode does.
       - run: uv run rut -vv
+        env:
+          PYTHONUTF8: "1"
       - if: ${{ matrix.os == 'ubuntu' && matrix.python-version == '3.11' }}
         run: uv run doit coverage
       - if: ${{ matrix.os == 'ubuntu' && matrix.python-version == '3.11' }}
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v7
         with:
           fail_ci_if_error: false

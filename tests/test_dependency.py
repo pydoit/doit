@@ -11,13 +11,13 @@ import unittest
 
 from doit.task import Task
 from doit.dependency import get_md5, get_file_md5
-from doit.dependency import DbmDB, JsonDB, SqliteDB, Dependency
+from doit.dependency import DbmDB, Dependency
 from doit.dependency import DatabaseException, UptodateCalculator
 from doit.dependency import UnsavedChangesError
 from doit.dependency import FileChangedChecker, MD5Checker, TimestampChecker
 from doit.dependency import DependencyStatus
 from tests.support import get_abspath, backend_map, db_ext
-from tests.support import remove_all_db, DependencyFileMixin
+from tests.support import DependencyFileMixin
 
 # path to test folder (the original tests/ dir, where sample files live)
 TEST_PATH = os.path.join(os.path.dirname(__file__), '..', 'tests')

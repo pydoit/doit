@@ -171,7 +171,6 @@ class TestLoadTasks(unittest.TestCase):
 
     def testCreateAfterDecoratorOnMethodWithParams(self):
         'Check that class-defined tasks support the creates argument of @create_after'
-        dodo = self._make_dodo()
         class Tasks:
             @create_after('yyy2', creates=['foo', 'bar'])
             def task_zzz3():  # pragma: no cover

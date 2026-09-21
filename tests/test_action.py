@@ -83,7 +83,9 @@ class TestCmdAction(unittest.TestCase):
 
 class TestCmdActionParams(unittest.TestCase):
     def setUp(self):
-        self.tmpdir = tempfile.mkdtemp()
+        # macos $TMPDIR lives under /var, a symlink to /private/var, while the
+        # child's os.getcwd() reports the resolved path
+        self.tmpdir = os.path.realpath(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.tmpdir)
 
     def test_invalid_param_stdout(self):
