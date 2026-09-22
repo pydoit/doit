@@ -11,7 +11,7 @@ import unittest
 
 from doit.task import Task
 from doit.dependency import get_md5, get_file_md5
-from doit.dependency import DbmDB, Dependency
+from doit.dependency import DbmDB, JsonDB, Dependency
 from doit.dependency import DatabaseException, UptodateCalculator
 from doit.dependency import UnsavedChangesError
 from doit.dependency import FileChangedChecker, MD5Checker, TimestampChecker
