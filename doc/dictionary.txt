@@ -188,6 +188,7 @@ Trento
 USD
 UTF
 UnmetDependency
+UnsavedChangesError
 UptodateCalculator
 Uz
 VCS
