@@ -276,23 +276,26 @@ class CmdAction(BaseAction):
         @returns: string -> expanded string if action is a string
                   list - string -> expanded list of command elements
         """
+        # Resolve the action once and reuse the result to avoid calling
+        # callable actions multiple times (fixes #437).
+        action = self.action
         if not self.task:
-            return self.action
+            return action
 
         # cant expand keywords if action is a list of strings
-        if isinstance(self.action, list):
-            action = []
-            for element in self.action:
+        if isinstance(action, list):
+            expanded = []
+            for element in action:
                 if isinstance(element, str):
-                    action.append(element)
+                    expanded.append(element)
                 elif isinstance(element, PurePath):
-                    action.append(str(element))
+                    expanded.append(str(element))
                 else:
                     msg = ("%s. CmdAction element must be a str "
                            "or Path from pathlib. Got '%r' (%s)")
                     raise InvalidTask(
                         msg % (self.task.name, element, type(element)))
-            return action
+            return expanded
 
         subs_dict = {
             'targets': " ".join(self.task.targets),
@@ -316,12 +319,12 @@ class CmdAction(BaseAction):
             subs_dict[self.task.pos_arg] = pos_val
 
         if self.STRING_FORMAT == 'old':
-            return self.action % subs_dict
+            return action % subs_dict
         elif self.STRING_FORMAT == 'new':
-            return self.action.format(**subs_dict)
+            return action.format(**subs_dict)
         else:
             assert self.STRING_FORMAT == 'both'
-            return self.action.format(**subs_dict) % subs_dict
+            return action.format(**subs_dict) % subs_dict
 
     def __str__(self):
         return "Cmd: %s" % self._action
