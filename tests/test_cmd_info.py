@@ -15,7 +15,7 @@ class TestCmdInfo(DepManagerMixin, unittest.TestCase):
                     doc="task doc", getargs={'a': ('x', 'y')}, verbosity=2,
                     meta={'a': ['b', 'c']})
         cmd = CmdFactory(Info, outstream=output,
-                         dep_file=self.dep_manager.name, task_list=[task])
+                         dep_manager=self.dep_manager, task_list=[task])
         cmd._execute(['t1'], hide_status=True)
         self.assertIn("t1", output.getvalue())
         self.assertIn("task doc", output.getvalue())
@@ -23,6 +23,16 @@ class TestCmdInfo(DepManagerMixin, unittest.TestCase):
         self.assertIn("verbosity  : 2", output.getvalue())
         self.assertIn("getargs    : {'a': ('x', 'y')}", output.getvalue())
         self.assertIn("meta       : {'a': ['b', 'c']}", output.getvalue())
+
+    def test_info_saved_values(self):
+        output = StringIO()
+        task = Task("t1", [])
+        task.values = {'x': 5, 'y': 10}
+        self.dep_manager.save_success(task)
+        cmd = CmdFactory(Info, outstream=output,
+                         dep_manager=self.dep_manager, task_list=[task])
+        cmd._execute(['t1'], hide_status=True)
+        self.assertIn("values     : {'x': 5, 'y': 10}", output.getvalue())
 
     def test_invalid_command_args(self):
         output = StringIO()
