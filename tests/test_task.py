@@ -487,8 +487,21 @@ class TestTaskClean(unittest.TestCase):
         self.assertEqual(1, len(t.clean_actions))
         err = StringIO()
         with contextlib.redirect_stderr(err):
-            t.clean(StringIO(), dryrun=False)
+            result = t.clean(StringIO(), dryrun=False)
+        self.assertIsInstance(result, TaskError)
         self.assertIn("PythonAction Error", err.getvalue())
+
+    def test_clean_continues_actions_after_failure(self):
+        cleaned = []
+        def fail_clean():
+            return False
+        def later_clean():
+            cleaned.append(True)
+        t = task.Task("xxx", None, clean=[fail_clean, later_clean])
+        with contextlib.redirect_stderr(StringIO()):
+            result = t.clean(StringIO(), dryrun=False)
+        self.assertIsInstance(result, BaseFail)
+        self.assertEqual([True], cleaned)
 
     def test_clean_action_kwargs(self):
         def fail_clean(dryrun):

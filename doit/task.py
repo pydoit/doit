@@ -500,6 +500,7 @@ class Task:
             clean_targets(self, dryrun)
         else:
             # clean contains a list of actions...
+            failure = None
             for action in self.clean_actions:
                 msg = "%s - executing '%s'\n"
                 outstream.write(msg % (self.name, action))
@@ -516,6 +517,9 @@ class Task:
                     result = action.execute(out=outstream)
                     if isinstance(result, BaseFail):
                         sys.stderr.write(str(result))
+                        if failure is None:
+                            failure = result
+            return failure
 
     def title(self):
         """String representation on output.
