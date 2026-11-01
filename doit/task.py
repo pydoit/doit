@@ -145,7 +145,7 @@ class Task:
     DEFAULT_VERBOSITY = 1
     string_types = (str, )
     # list of valid types/values for each task attribute.
-    valid_attr = {'basename': (string_types, ()),
+    valid_attr = {'basename': (string_types, (None,)),
                   'name': (string_types, ()),
                   'actions': ((list, tuple), (None,)),
                   'file_dep': ((list, tuple), ()),
@@ -174,7 +174,7 @@ class Task:
                  subtask_of=None, has_subtask=False,
                  doc=None, params=(), pos_arg=None,
                  verbosity=None, io=None, title=None, getargs=None,
-                 watch=(), meta=None, loader=None):
+                 watch=(), meta=None, loader=None, basename=None):
         """sanity checks and initialization
 
         @param params: (list of dict for parameters) see cmdparse.CmdOption
@@ -200,11 +200,13 @@ class Task:
         self.check_attr(name, 'title', title, self.valid_attr['title'])
         self.check_attr(name, 'watch', watch, self.valid_attr['watch'])
         self.check_attr(name, 'meta', meta, self.valid_attr['meta'])
+        self.check_attr(name, 'basename', basename, self.valid_attr['basename'])
 
         if '=' in name:
             msg = "Task '{}': name must not use the char '=' (equal sign)."
             raise InvalidTask(msg.format(name))
         self.name = name
+        self.basename = basename
         self.params = params  # save just for use on command `info`
         self.creator_params = []  # add through task_params decorator
         self.options = None
