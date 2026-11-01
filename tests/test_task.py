@@ -629,6 +629,21 @@ class TestDictToTask(unittest.TestCase):
                           {'name': 'xpto 14'})
 
 
+    def testDictBasename(self):
+        dict_ = {'basename': 'group', 'name': 'sub', 'actions': ['xpto 14']}
+        created = task.dict_to_task(dict_)
+        self.assertIsInstance(created, task.Task)
+        self.assertEqual('sub', created.name)
+        self.assertEqual('group', created.basename)
+
+    def testDictBasenameInvalidType(self):
+        dict_ = {'basename': 3, 'name': 'sub', 'actions': ['xpto 14']}
+        self.assertRaises(action.InvalidTask, task.dict_to_task, dict_)
+
+    def testBasenameDefaultNone(self):
+        t = task.Task("t", None)
+        self.assertIsNone(t.basename)
+
 class TestResultDep(DepManagerMixin, unittest.TestCase):
     def test_single(self):
         tasks = {
