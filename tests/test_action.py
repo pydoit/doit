@@ -412,6 +412,41 @@ class TestCmd_print_process_output_line(unittest.TestCase):
         my_action._print_process_output(
             Mock(), unicode_in, Mock(), self.tmpfile)
 
+    def test_realtime_unencodable_char(self):
+        my_action = action.CmdAction("")
+        unicode_in = BytesIO('\ufeffa\nb\n'.encode('utf-8'))
+        capture = StringIO()
+        raw = BytesIO()
+        realtime = io.TextIOWrapper(raw, encoding='ascii')
+        my_action._print_process_output(
+            Mock(), unicode_in, capture, realtime)
+        self.assertEqual('\ufeffa\nb\n', capture.getvalue())
+        self.assertEqual(b'\\ufeffa\nb\n', raw.getvalue().replace(b'\r', b''))
+
+    def test_realtime_write_error_keeps_reading(self):
+        my_action = action.CmdAction("")
+        realtime = Mock()
+        realtime.write.side_effect = BlockingIOError
+        capture = StringIO()
+        self.assertRaises(BlockingIOError,
+                          my_action._print_process_output,
+                          Mock(), BytesIO(b'a\nb\n'), capture, realtime)
+        self.assertEqual('a\nb\n', capture.getvalue())
+        self.assertEqual(1, realtime.write.call_count)
+
+    def test_realtime_unencodable_char_does_not_block_process(self):
+        # more output than a pipe buffer holds, after the unencodable char
+        code = ("import sys; "
+                "sys.stdout.buffer.write('\\ufeff'.encode() + b'x\\n' * 100000)")
+        my_action = action.CmdAction([executable, '-c', code])
+        realtime = io.TextIOWrapper(BytesIO(), encoding='ascii')
+        thread = Thread(target=my_action.execute, args=(realtime,),
+                        daemon=True)
+        thread.start()
+        thread.join(30)
+        self.assertFalse(thread.is_alive())
+        self.assertEqual(100000, my_action.out.count('x\n'))
+
     def test_line_buffered_output(self):
         my_action = action.CmdAction("")
         out, inp = os.pipe()

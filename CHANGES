@@ -18,6 +18,9 @@ Changes
   bootstrap / font-awesome / owl-carousel assets.
 - tests: replace ``pytest`` with `rut <https://github.com/schettino72/rut>`_ as test runner.
 - packaging: drop ``*requirements.txt`` files, use ``pyproject.toml`` dependency-groups.
+- Ref #364: ``CmdAction`` keeps reading process output after a real-time write error,
+  so the process no longer hangs on a full pipe. Characters the stream cannot encode
+  are written with ``backslashreplace``.
 
 
 0.37.0 (*2026-02-09*)
