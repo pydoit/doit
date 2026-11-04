@@ -51,6 +51,8 @@ class Runner():
         self.teardown_list = []  # list of tasks to be teardown
         self.final_result = SUCCESS  # until something fails
         self._stop_running = False
+        # file_dep states recorded before a task is executed, by task name
+        self._dep_states = {}
 
 
     def _handle_task_error(self, node, base_fail):
@@ -166,6 +168,12 @@ class Runner():
             self._handle_task_error(node, DependencyError(msg))
             return False
 
+        # Record the state of task's file_dep *before* it is executed.
+        # If a file_dep is modified while the task is being executed,
+        # process_task_result() saves these states (not the state after
+        # execution), otherwise the modified content would wrongly be
+        # considered as the content the task was executed with (#119).
+        self._dep_states[task.name] = self.dep_manager.get_dep_states(task)
         return True
 
 
@@ -183,11 +191,13 @@ class Runner():
     def process_task_result(self, node, base_fail):
         """handles result"""
         task = node.task
+        # file_dep states recorded before execution (see select_task)
+        dep_states = self._dep_states.pop(task.name, None)
         # save execution successful
         if base_fail is None:
             task.save_extra_values()
             try:
-                self.dep_manager.save_success(task)
+                self.dep_manager.save_success(task, dep_states=dep_states)
             except FileNotFoundError as exception:
                 msg = (f"ERROR: Task '{task.name}' saving success: "
                        f"Dependent file '{exception.filename}' does not exist.")
