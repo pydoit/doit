@@ -402,7 +402,6 @@ parametrize
 parametrizing
 params
 pathlib
-paypal
 pdb
 perl
 picklable

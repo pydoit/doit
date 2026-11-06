@@ -103,7 +103,16 @@ Copyright (c) 2008-2026 Eduardo Naufel Schettino
 see LICENSE file
 
 
-Financial contributions on `Open Collective <https://opencollective.com/doit/tiers>`_
+Funding
+=======
+
+*doit* is maintained by a single person in spare time since 2008.
+Pull requests often wait for review because maintainer time is limited.
+Sponsorships pay for PR reviews, issue triage and releases.
+
+- `GitHub Sponsors <https://github.com/sponsors/schettino72>`_
+- `Open Collective <https://opencollective.com/doit>`_
+- Paid PR reviews, features & commercial support - see https://pydoit.org/support.html
 
 .. image:: https://opencollective.com/doit/tiers/backers.svg?avatarHeight=50
     :target: https://opencollective.com/doit/tiers

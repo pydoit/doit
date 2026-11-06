@@ -13,7 +13,7 @@ the used command line to reproduce the problem.
 ## questions
 
 Please ask question in the discussion
-[forum](http://groups.google.co.in/group/python-doit)
+[forum](https://groups.google.com/forum/#!forum/python-doit)
 or on StackOverflow using tag `doit`.
 
 Do not use the github issue tracker to ask questions!
@@ -38,3 +38,13 @@ to spend your time on it, probably nobody else will...
 
 Before you start implementing anything it is a good idea to discuss its
 implementation in the discussion forum.
+
+
+## pull requests & reviews
+
+`doit` is maintained by a single person in spare time,
+so pull requests may wait a while before being reviewed.
+
+If a change is important to your company, consider funding maintainer time.
+You can sponsor maintenance or pay for the review of a specific pull request,
+see [support](https://pydoit.org/support.html).

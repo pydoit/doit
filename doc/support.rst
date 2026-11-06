@@ -58,21 +58,47 @@ You will be expected provide a real world / example of why and how this feature 
 Users are expected to implement new features themselves.
 If you are not willing to spend your time on it, probably nobody else will...
 
-You might sponsor a feature by contacting the maintainer directly.
+You might sponsor a feature by contacting the maintainer directly
+(see `Paid reviews, features & commercial support`_).
 
 
-Donations
----------
+Fund maintenance & pull request reviews
+---------------------------------------
 
-If you consider **doit** to be a useful project, and would like to see it continue to be maintained and developed, please consider helping cover the development cost. Thriving project requires a maintainer to keep list of issues and list of pull requests short.
+*doit* has been developed since 2008 and is maintained by a single person,
+in spare time, without any company backing it.
 
-**doit** is 100% open-source and maintained by individuals without any company backing it... financial help is appreciated.
+Most of the maintenance work is not writing code.
+It is reviewing pull requests, giving feedback to contributors,
+testing changes on all supported platforms,
+issue triage, keeping compatibility with new Python versions,
+and making releases.
+Community contributions are welcome,
+but every pull request needs maintainer time before it can be merged.
+Today there are more pull requests waiting for review than spare time to review them.
 
-The project receives donation through `OpenCollective <https://opencollective.com>`_ or Paypal.
+Financial contributions are used to pay for that time.
+The goal is **500 USD per month**,
+which would allow the maintainer to dedicate time every week to
+PR reviews, issue triage, community questions and documentation.
+
+If you or your company use *doit*, please consider a recurring sponsorship:
+
+- `GitHub Sponsors <https://github.com/sponsors/schettino72>`_ (preferred)
+- `Open Collective <https://opencollective.com/doit>`_ -
+  if your organization needs invoices or a transparent budget
 
 
-Commercial Support
-------------------
+Paid reviews, features & commercial support
+-------------------------------------------
 
-For commercial support as well as consulting on computational pipelines
-by `doit` creator & maintainer, please contact: *schettino72* at gmail.com.
+If your company needs a specific pull request reviewed,
+a bug fixed or a feature implemented, you can pay for maintainer time
+to work on it.
+This buys review and development time, not a guaranteed merge:
+changes still need to fit the project's design and quality standards.
+
+Commercial support and consulting on computational pipelines
+by *doit* creator & maintainer is also available.
+
+Contact: *schettino72* at gmail.com.
