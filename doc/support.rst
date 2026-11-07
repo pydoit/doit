@@ -15,7 +15,7 @@ Support
 Feedback & Ideas
 ----------------
 
-`Discussion forum <https://groups.google.com/forum/#!forum/python-doit>`_
+`GitHub Discussions <https://github.com/pydoit/doit/discussions>`_
 
 It is always nice to receive feedback.
 If you use *doit* please drop us line sharing your experience.
@@ -29,9 +29,8 @@ so new ideas are welcome too.
 Questions
 ---------
 
-Question can be asked in the
-`discussion forum <https://groups.google.com/forum/#!forum/python-doit>`_
-or on `StackOverflow using tag doit <https://stackoverflow.com/questions/tagged/doit>`_.
+Questions can be asked on
+`GitHub Discussions (Q&A) <https://github.com/pydoit/doit/discussions/categories/q-a>`_.
 
 Please, do not use the github issue tracker to ask questions!
 Nor send private emails to project maintainer.
@@ -51,7 +50,7 @@ the used command line to reproduce the problem.
 Feature requests
 ----------------
 
-Feature requests should also be raised on `github <https://github.com/pydoit/doit/issues>`_, sometimes it is a good idea to have an initial discussion of a new feature in the discussion forum.
+Feature requests should also be raised on `github <https://github.com/pydoit/doit/issues>`_, sometimes it is a good idea to have an initial discussion of a new feature on `GitHub Discussions <https://github.com/pydoit/doit/discussions/categories/ideas>`_.
 
 You will be expected provide a real world / example of why and how this feature would be used (if not obvious).
 

@@ -89,7 +89,7 @@ Links
 
  - Website & docs - https://pydoit.org
  - Project management on github - https://github.com/pydoit/doit
- - Discussion group - https://groups.google.com/forum/#!forum/python-doit
+ - Discussions - https://github.com/pydoit/doit/discussions
  - X/twitter - https://x.com/pydoit
 
 

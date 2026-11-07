@@ -97,8 +97,7 @@ def _check_spelling(doc_file, dictionary):
 
 def task_docs():
     doc_files = [f for f in glob.glob('doc/*.rst') if f != 'doc/index.rst']
-    doc_files += ['README.rst', 'CONTRIBUTING.md',
-                  'doc/open_collective.md']
+    doc_files += ['README.rst', 'CONTRIBUTING.md']
     dictionary = 'doc/dictionary.txt'
     for doc_file in doc_files:
         yield {

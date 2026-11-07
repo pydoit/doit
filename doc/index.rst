@@ -257,6 +257,7 @@ Advanced Features
        <a href="https://pypi.python.org/pypi/doit">PyPI</a> ·
        <a href="https://github.com/pydoit/doit">GitHub</a> ·
        <a href="support.html">Support</a> ·
+       <a href="https://github.com/sponsors/schettino72">Sponsor</a> ·
        <a href="contents.html">Documentation</a>
      </p>
    </div>

@@ -12,9 +12,8 @@ the used command line to reproduce the problem.
 
 ## questions
 
-Please ask question in the discussion
-[forum](https://groups.google.com/forum/#!forum/python-doit)
-or on StackOverflow using tag `doit`.
+Please ask questions on
+[GitHub Discussions (Q&A)](https://github.com/pydoit/doit/discussions/categories/q-a).
 
 Do not use the github issue tracker to ask questions!
 
@@ -37,7 +36,7 @@ You are welcome to add a request on github tracker but if you are not willing
 to spend your time on it, probably nobody else will...
 
 Before you start implementing anything it is a good idea to discuss its
-implementation in the discussion forum.
+implementation on [GitHub Discussions](https://github.com/pydoit/doit/discussions/categories/ideas).
 
 
 ## pull requests & reviews

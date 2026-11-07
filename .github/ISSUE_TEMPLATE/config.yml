@@ -1,0 +1,10 @@
+contact_links:
+  - name: Question
+    url: https://github.com/pydoit/doit/discussions/categories/q-a
+    about: Ask questions on GitHub Discussions, not on the issue tracker.
+  - name: Idea / feedback
+    url: https://github.com/pydoit/doit/discussions/categories/ideas
+    about: Discuss new ideas before opening a feature request.
+  - name: Sponsor / paid work
+    url: https://pydoit.org/support.html#fund-maintenance-pull-request-reviews
+    about: Fund maintenance, paid PR reviews, features and commercial support.

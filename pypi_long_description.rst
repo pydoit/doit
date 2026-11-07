@@ -63,7 +63,7 @@ Project Details
 
  - Website & docs - `https://pydoit.org <https://pydoit.org>`_
  - Project management on github - `https://github.com/pydoit/doit <https://github.com/pydoit/doit>`_
- - Discussion group - `https://groups.google.com/forum/#!forum/python-doit <https://groups.google.com/forum/#!forum/python-doit>`_
+ - Discussions - `https://github.com/pydoit/doit/discussions <https://github.com/pydoit/doit/discussions>`_
  - X/twitter - `https://x.com/pydoit <https://x.com/pydoit>`_
 
 license

@@ -1,18 +1,7 @@
-{% block extranav %}
-
-  {% if include_donate %}
-    <div style="margin-bottom: 0px; padding:1rem; background-color: #2980B9; color:#fcfcfc;">
-      <h3>Donate</h3>
-      <p>If you find <em>doit</em> useful, please consider supporting the maintainer with a donation.</p>
-      <p><em>doit</em> is 100% open-source and maintained by individuals without any company backing it... Your donation keeps the project healthy and maintained.</p>
-    </div>
-
-    <div style="text-align:center; padding:1rem; color:black;background-color:#fcfcfc; margin-bottom:2rem;">
-      <h4 style="margin-bottom:5px;margin-top:5px;">OpenCollective</h4>
-      <div>
-        <object type="image/svg+xml" data="https://opencollective.com/doit/tiers/backers.svg?avatarHeight=60&width=200"></object>
-      </div>
-    </div>
-    <br>
-  {% endif %}
-{% endblock %}
+<div class="page-donate">
+  <p><em>doit</em> is maintained by one person in spare time. Sponsorship pays for PR reviews.</p>
+  <div class="page-donate-links">
+    <a class="page-donate-button" href="https://github.com/sponsors/schettino72">&#9829; Sponsor</a>
+    <a href="{{ pathto('support') }}#fund-maintenance-pull-request-reviews">more options</a>
+  </div>
+</div>

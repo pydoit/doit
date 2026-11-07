@@ -249,3 +249,47 @@ hr.docutils {
     border-top: 1px solid var(--color-background-border);
     margin: 2.5rem 0;
 }
+
+/* --- Right sidebar (page TOC): sponsor box --- */
+.page-donate {
+    --donate-bg: #fdf2f8;
+    --donate-border: #f5c6e0;
+    flex-shrink: 0;
+    margin: 0.5rem var(--toc-spacing-horizontal) 1rem;
+    padding: 0.6rem 0.75rem;
+    background: var(--donate-bg);
+    border: 1px solid var(--donate-border);
+    border-radius: 6px;
+    font-size: var(--toc-font-size);
+    color: var(--color-foreground-secondary);
+}
+@media (prefers-color-scheme: dark) {
+    body[data-theme="auto"] .page-donate {
+        --donate-bg: rgba(191, 57, 137, 0.12);
+        --donate-border: rgba(191, 57, 137, 0.35);
+    }
+}
+body[data-theme="dark"] .page-donate {
+    --donate-bg: rgba(191, 57, 137, 0.12);
+    --donate-border: rgba(191, 57, 137, 0.35);
+}
+.page-donate p {
+    margin: 0 0 0.6rem;
+}
+.page-donate-links {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+.page-donate-button {
+    padding: 0.25rem 0.8rem;
+    border-radius: 6px;
+    background: #bf3989;
+    color: #fff !important;
+    text-decoration: none;
+}
+.page-donate-button:hover {
+    opacity: 0.85;
+    text-decoration: none;
+}

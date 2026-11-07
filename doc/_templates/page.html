@@ -1,0 +1,24 @@
+{% extends "furo/page.html" %}
+
+{# same as furo right_sidebar, plus sponsor box pinned below the scrolling page TOC #}
+{% block right_sidebar %}
+{% if not furo_hide_toc %}
+<div class="toc-sticky">
+  <div class="toc-scroll">
+    <div class="toc-title-container">
+      <span class="toc-title">
+        {{ _("On this page") }}
+      </span>
+    </div>
+    <div class="toc-tree-container">
+      <div class="toc-tree">
+        {{ toc }}
+      </div>
+    </div>
+  </div>
+  {% if include_donate and pagename != 'support' %}
+    {% include "donate.html" %}
+  {% endif %}
+</div>
+{% endif %}
+{% endblock right_sidebar %}
