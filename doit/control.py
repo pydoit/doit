@@ -9,6 +9,38 @@ from .task import Task, DelayedLoaded
 from .loader import generate_tasks
 
 
+def resolve_inherits(tasks):
+    """apply the `inherits` attribute of every task in `tasks`
+
+    @param tasks: (dict - name: L{Task}) all tasks that can be referenced
+    @raise InvalidTask: an inherited task does not exist
+    @raise InvalidDodoFile: tasks inherit from each other in a cycle
+    """
+    for task in list(tasks.values()):
+        _resolve_task_inherits(tasks, task, ())
+
+
+def _resolve_task_inherits(tasks, task, chain):
+    if task.inherits_resolved:
+        return
+    if task.name in chain:
+        cycle = chain[chain.index(task.name):] + (task.name,)
+        msg = "Cyclic task inheritance: [%s]"
+        raise InvalidDodoFile(msg % " -> ".join(cycle))
+    parents = []
+    for parent_name in task.inherits:
+        parent = tasks.get(parent_name)
+        if parent is None:
+            msg = f"Task '{task.name}' inherits from '{parent_name}' that does not exist."
+            raise InvalidTask(msg)
+        _resolve_task_inherits(tasks, parent, chain + (task.name,))
+        if parent not in parents:
+            parents.append(parent)
+    for parent in parents:
+        task.inherit_from(parent)
+    task.inherits_resolved = True
+
+
 class RegexGroup:
     '''Helper to keep track of all delayed-tasks which regexp target
     matches the target specified from command line.
@@ -65,6 +97,8 @@ class TaskControl:
 
             self.tasks[task.name] = task
             self._def_order.append(task.name)
+
+        resolve_inherits(self.tasks)
 
         # expand wild-card task-dependencies
         for task in self.tasks.values():
@@ -471,6 +505,9 @@ class TaskDispatcher:
             if this_loader and not this_loader.created:
                 task_gen = ref(**this_loader.kwargs) if this_loader.kwargs else ref()
                 new_tasks = generate_tasks(to_load, task_gen, ref.__doc__)
+                known_tasks = dict(self.tasks)
+                known_tasks.update((nt.name, nt) for nt in new_tasks)
+                resolve_inherits(known_tasks)
                 TaskControl.set_implicit_deps(self.targets, new_tasks)
                 for nt in new_tasks:
                     if not nt.loader:

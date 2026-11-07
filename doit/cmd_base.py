@@ -12,6 +12,7 @@ from .dependency import CHECKERS, DbmDB, JsonDB, SqliteDB, Dependency, JSONCodec
 from .action import CmdAction
 from .plugin import PluginDict
 from . import loader
+from .control import resolve_inherits
 
 
 def version_tuple(ver_in):
@@ -554,6 +555,7 @@ class DoitCmdBase(Command):
         Globals.dep_manager = self.dep_manager
         # load tasks
         self.task_list = self.loader.load_tasks(cmd=self, pos_args=args)
+        resolve_inherits(dict((task.name, task) for task in self.task_list))
 
         # hack to pass parameter into _execute() calls that are not part
         # of command line options

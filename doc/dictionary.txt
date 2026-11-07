@@ -118,6 +118,8 @@ IPython
 IPython's
 InteractiveAction
 InvalidCommand
+InvalidDodoFile
+InvalidTask
 JSON
 JSONCodec
 KeyError

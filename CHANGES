@@ -18,6 +18,8 @@ Changes
   bootstrap / font-awesome / owl-carousel assets.
 - tests: replace ``pytest`` with `rut <https://github.com/schettino72/rut>`_ as test runner.
 - packaging: drop ``*requirements.txt`` files, use ``pyproject.toml`` dependency-groups.
+- add task attribute ``inherits`` to take over the declarations of other tasks
+  (``file_dep``, ``task_dep``, ``uptodate``, ``params`` ...).
 
 
 0.37.0 (*2026-02-09*)

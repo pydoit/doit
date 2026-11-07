@@ -652,6 +652,42 @@ This could be used by custom commands or plugins.
 .. literalinclude:: samples/metadata.py
 
 
+inherits
+--------
+
+Tasks that share dependencies, options or up-to-date checks do not have to
+repeat them. A task can list the names of other tasks in the **inherits**
+attribute (a list or tuple) and it will take on their declarations.
+
+.. literalinclude:: samples/inherits.py
+
+The task `test` above depends on the files of `deps` and `lint`, and accepts
+the option ``--level`` of `lint`, as if it had declared them itself.
+
+A task keeps its own declarations and adds the ones from its parents, in the
+order they are listed. A parent that itself inherits passes on everything it
+resolved to, and a task reached through more than one parent is used only once.
+A name can be any task, including a sub-task (``basename:name``) and a group
+task.
+
+* `file_dep` and `calc_dep` are combined.
+* `task_dep` and `setup` have the task's own entries first, then the parents'
+  entries, each name only once.
+* `uptodate` has the task's own checks followed by the parents' checks.
+  The task is up-to-date only if all of them are.
+  An inherited check works as if the task had declared it.
+* `params`, `getargs` and `meta` are merged by name. The task's own entry wins,
+  otherwise the entry from the first parent that has one is used.
+* `doc` and `verbosity` come from the first parent that has one, but only if
+  the task does not define its own.
+* `actions`, `targets`, `clean`, `teardown`, `title`, `io`, `watch` and
+  `pos_arg` are never inherited.
+
+The parent tasks are not modified. A name in **inherits** that is not a task
+raises ``InvalidTask``, and a task that inherits from itself, directly or
+through other tasks, raises ``InvalidDodoFile``.
+
+
 pathlib
 --------
 

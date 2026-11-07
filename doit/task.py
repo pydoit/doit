@@ -132,6 +132,8 @@ class Task:
     @ivar getargs: (dict) values from other tasks
     @ivar doc: (string) task documentation
     @ivar meta: (dict) extra info from user/plugin not directly used by doit
+    @ivar inherits: (list - string) names of tasks whose declarations are
+                    added to this task, see L{inherit_from}
 
     @ivar options: (dict) calculated params values (from getargs and taskopt)
     @ivar taskopt: (cmdparse.CmdParse)
@@ -164,7 +166,8 @@ class Task:
                   'getargs': ((dict,), ()),
                   'title': ((Callable,), (None,)),
                   'watch': ((list, tuple), ()),
-                  'meta': ((dict,), (None,))
+                  'meta': ((dict,), (None,)),
+                  'inherits': ((list, tuple), ()),
                   }
 
 
@@ -174,7 +177,7 @@ class Task:
                  subtask_of=None, has_subtask=False,
                  doc=None, params=(), pos_arg=None,
                  verbosity=None, io=None, title=None, getargs=None,
-                 watch=(), meta=None, loader=None):
+                 watch=(), meta=None, loader=None, inherits=()):
         """sanity checks and initialization
 
         @param params: (list of dict for parameters) see cmdparse.CmdOption
@@ -200,6 +203,11 @@ class Task:
         self.check_attr(name, 'title', title, self.valid_attr['title'])
         self.check_attr(name, 'watch', watch, self.valid_attr['watch'])
         self.check_attr(name, 'meta', meta, self.valid_attr['meta'])
+        self.check_attr(name, 'inherits', inherits, self.valid_attr['inherits'])
+        for parent in inherits:
+            if not isinstance(parent, str):
+                msg = "Task '{}': 'inherits' must list task names, got {!r}."
+                raise InvalidTask(msg.format(name, parent))
 
         if '=' in name:
             msg = "Task '{}': name must not use the char '=' (equal sign)."
@@ -211,6 +219,9 @@ class Task:
         self.pos_arg = pos_arg
         self.pos_arg_val = None  # to be set when parsing command line
         self.setup_tasks = list(setup)
+        self.inherits = list(inherits)
+        self.inherits_resolved = False
+        self._uptodate_items = list(uptodate)
 
         # actions
         self.io = IOConfig(io or {})
@@ -370,6 +381,56 @@ class Task:
             if dep not in self._expand_map:
                 continue
             self._expand_map[dep](self, dep_values)
+
+
+    def inherit_from(self, parent):
+        """add the declarations of `parent` to this task
+
+        `parent` must already have its own `inherits` resolved.
+        Values declared by this task take precedence.
+        """
+        self._expand_file_dep(parent.file_dep)
+        self._expand_task_dep(
+            [dep for dep in parent.task_dep + parent.wild_dep
+             if dep not in self.task_dep and dep not in self.wild_dep])
+        self._expand_calc_dep(parent.calc_dep)
+        getargs = dict(self.getargs)
+        sources = set(desc[0] for desc in getargs.values())
+        new_sources = []
+        for arg_name, desc in parent.getargs.items():
+            if arg_name in getargs:
+                continue
+            getargs[arg_name] = desc
+            if (desc[0] not in sources and desc[0] not in new_sources
+                    and desc[0] not in self.setup_tasks):
+                new_sources.append(desc[0])
+        self.getargs = getargs
+
+        new_uptodate = [
+            item for item in parent._uptodate_items
+            if not any(item is own for own in self._uptodate_items)]
+        self._extend_uptodate(new_uptodate)
+        self._extend_uptodate(
+            [result_dep(dep, setup_dep=True) for dep in new_sources])
+        self._uptodate_items.extend(new_uptodate)
+        self.setup_tasks.extend(
+            [dep for dep in parent.setup_tasks if dep not in self.setup_tasks])
+
+        own_params = set(opt['name'] for opt in self.params)
+        own_params.update(opt['name'] for opt in self.creator_params)
+        self.params = list(self.params) + [
+            opt for opt in list(parent.params) + list(parent.creator_params)
+            if opt['name'] not in own_params]
+
+        if parent.meta:
+            meta = dict(self.meta or {})
+            for key, value in parent.meta.items():
+                meta.setdefault(key, value)
+            self.meta = meta
+        if not self.doc:
+            self.doc = parent.doc
+        if self.verbosity is None:
+            self.verbosity = parent.verbosity
 
 
     def init_options(self, args=None):
@@ -538,6 +599,7 @@ class Task:
         # never executed in sub-process
         to_pickle['uptodate'] = None
         to_pickle['value_savers'] = None
+        to_pickle['_uptodate_items'] = None
         # can be re-recreated on demand
         to_pickle['_action_instances'] = None
         return to_pickle
@@ -555,6 +617,7 @@ class Task:
         del to_pickle['custom_title']
         del to_pickle['value_savers']
         del to_pickle['uptodate']
+        del to_pickle['_uptodate_items']
         return to_pickle
 
     def update_from_pickle(self, pickle_obj):
