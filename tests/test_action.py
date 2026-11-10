@@ -547,6 +547,24 @@ class TestPythonAction(unittest.TestCase):
         # nothing raised it was successful
         my_action.execute()
 
+    def test_success_path(self):
+        for result in (Path('output'), PurePath('output')):
+            with self.subTest(result=result):
+                my_action = action.PythonAction(lambda: result)
+                self.assertIsNone(my_action.execute())
+                self.assertEqual(str(result), my_action.result)
+                self.assertIsInstance(my_action.result, str)
+
+    def test_shutil_copy_path_result(self):
+        with tempfile.TemporaryDirectory() as folder:
+            source = Path(folder) / 'input.txt'
+            destination = Path(folder) / 'output.txt'
+            source.write_text('copied content')
+            my_action = action.PythonAction(shutil.copy, [source, destination])
+            self.assertIsNone(my_action.execute())
+            self.assertEqual('copied content', destination.read_text())
+            self.assertEqual(str(destination), my_action.result)
+
     def test_success_dict(self):
         def success_sample():
             return {}
