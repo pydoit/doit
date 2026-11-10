@@ -1,3 +1,5 @@
+import fnmatch
+
 from .cmd_base import DoitCmdBase, check_tasks_exist, subtasks_iter
 
 opt_listall = {
@@ -104,15 +106,27 @@ class List(DoitCmdBase):
     @staticmethod
     def _list_filtered(tasks, filter_tasks, include_subtasks):
         """return list of task based on selected 'filter_tasks' """
-        check_tasks_exist(tasks, filter_tasks)
+        check_tasks_exist(tasks, filter_tasks, skip_wildcard=True)
 
-        # get task by name
-        print_list = []
+        # Expand patterns in definition order, as task execution does.
+        selected = []
         for name in filter_tasks:
+            if '*' in name:
+                selected.extend(fnmatch.filter(tasks, name))
+            else:
+                selected.append(name)
+
+        print_list = []
+        seen = set()
+        for name in selected:
             task = tasks[name]
-            print_list.append(task)
+            candidates = [task]
             if include_subtasks:
-                print_list.extend(subtasks_iter(tasks, task))
+                candidates.extend(subtasks_iter(tasks, task))
+            for candidate in candidates:
+                if candidate.name not in seen:
+                    print_list.append(candidate)
+                    seen.add(candidate.name)
         return print_list
 
 

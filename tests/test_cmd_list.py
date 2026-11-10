@@ -67,6 +67,33 @@ class TestCmdList(unittest.TestCase):
         got = [line.strip() for line in output.getvalue().split('\n') if line]
         self.assertEqual(['g1', 't2'], got)
 
+    def testFilterWildcard(self):
+        output = StringIO()
+        cmd_list = CmdFactory(List, outstream=output, task_list=tasks_sample())
+        cmd_list._execute(pos_args=['t*'], sort='definition')
+        self.assertEqual(['t1', 't2', 't3'], output.getvalue().split())
+
+    def testFilterWildcardSubtasks(self):
+        output = StringIO()
+        cmd_list = CmdFactory(List, outstream=output, task_list=tasks_sample())
+        cmd_list._execute(subtasks=True, pos_args=['g*', 'g1.a'])
+        self.assertEqual(['g1', 'g1.a', 'g1.b'], output.getvalue().split())
+
+    def testFilterWildcardNoMatches(self):
+        output = StringIO()
+        cmd_list = CmdFactory(List, outstream=output, task_list=tasks_sample())
+        cmd_list._execute(pos_args=['missing*'])
+        self.assertEqual('', output.getvalue())
+
+    def testFilterWildcardPrivate(self):
+        task_list = list(tasks_sample()) + [Task('_hidden', [])]
+        for private, expected in [(False, []), (True, ['_hidden'])]:
+            with self.subTest(private=private):
+                output = StringIO()
+                cmd_list = CmdFactory(List, outstream=output, task_list=task_list)
+                cmd_list._execute(private=private, pos_args=['_h*'])
+                self.assertEqual(expected, output.getvalue().split())
+
     def testFilterSubtask(self):
         output = StringIO()
         cmd_list = CmdFactory(List, outstream=output, task_list=tasks_sample())
