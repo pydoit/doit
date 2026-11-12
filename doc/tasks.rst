@@ -115,6 +115,8 @@ file is loaded.
 .. literalinclude:: samples/task_kwargs.py
 
 
+.. _cmd-action:
+
 cmd-action
 ^^^^^^^^^^^
 
@@ -136,7 +138,7 @@ python code from the `dodo` file. Let's take a look at another example:
   so in this example the line `msg = 3 * "hi! "` will always be executed.
 
 
-If `action` is a list of strings and instances of any Path class from
+When an action is specified directly as a list of strings and instances of any Path class from
 `pathlib <https://docs.python.org/3/library/pathlib.html>`_, by default it will
 be executed **without the shell** (Popen argument shell=False).
 
@@ -156,9 +158,15 @@ All keyword parameter from ``Popen`` can be used on ``CmdAction`` (except
 
 .. note::
 
-  Different from `subprocess.Popen`, `CmdAction` `shell` argument defaults to
-  `True`. All other `Popen` arguments can also be passed in `CmdAction` except
-  `stdout` and `stderr`
+  An explicitly constructed ``CmdAction`` does not infer ``shell`` from its
+  command type: ``shell`` defaults to ``True``, even for a list command.
+  Pass ``shell=False`` when wrapping a list, for example
+  ``CmdAction(["program", "argument with spaces"], shell=False)``.
+  This differs from supplying the list directly as a task action, where
+  ``doit`` selects ``shell=False`` automatically, and from
+  ``subprocess.Popen``, whose default is ``shell=False``.
+  Other ``Popen`` arguments can also be passed to ``CmdAction``, except
+  ``stdout`` and ``stderr``.
 
 
 
