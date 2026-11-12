@@ -1,6 +1,6 @@
 """Task runner"""
 
-from multiprocessing import Process, Queue as MQueue
+import multiprocessing
 from threading import Thread
 import pickle
 import queue
@@ -14,6 +14,16 @@ except ImportError:
 from .exceptions import InvalidTask, BaseFail
 from .exceptions import TaskFailed, SetupError, DependencyError, UnmetDependency
 from .task import Stream, DelayedLoaded
+
+# Python 3.14 made forkserver the default on Linux. It pickles the runner with
+# every task, so a dodo.py with a lambda or nested function fails with -n.
+# Keep fork there, as before 3.14 (see #480).
+if multiprocessing.get_all_start_methods()[0] == 'forkserver':
+    _mp_context = multiprocessing.get_context('fork')
+else:
+    _mp_context = multiprocessing.get_context()
+Process = _mp_context.Process
+MQueue = _mp_context.Queue
 
 
 # execution result.

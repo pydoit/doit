@@ -20,6 +20,7 @@ Changes
 - packaging: drop ``*requirements.txt`` files, use ``pyproject.toml`` dependency-groups.
 - BACKWARD INCOMPATIBLE: drop Python 3.10 support. Minimum is 3.11.
 - add support for Python 3.14.
+- fix: ``-n`` with the process runner failed on Python 3.14 when ``dodo.py`` has a lambda or nested function (keep ``fork`` where the default became ``forkserver``, ref #480).
 
 
 0.37.0 (*2026-02-09*)
