@@ -106,6 +106,36 @@ class TestCmdRun(DependencyFileMixin, DepfileNameMixin, unittest.TestCase):
         got = output.getvalue().split("\n")[:-1]
         self.assertEqual([".  t1"], got)
 
+    def testProcessRunSingleMultiple(self):
+        output = StringIO()
+        cmd_run = CmdFactory(Run, backend='dbm', dep_file=self.depfile_name,
+                             task_list=tasks_sample(self.dependency1),
+                             sel_tasks=["t3", "t2"])
+        self.assertEqual(0, cmd_run._execute(output, single=True))
+        # Both selected tasks run in order, without t3's dependency t1.
+        self.assertEqual([".  t3", ".  t2"], output.getvalue().splitlines())
+
+    def testProcessRunSingleMultipleWithArgs(self):
+        output = StringIO()
+        task_list = tasks_sample(self.dependency1)
+        cmd_run = CmdFactory(Run, backend='dbm', dep_file=self.depfile_name,
+                             task_list=task_list,
+                             sel_tasks=["t1", "--arg1", "ABC", "t3"])
+        self.assertEqual(0, cmd_run._execute(output, single=True))
+        self.assertEqual([".  t1", ".  t3"], output.getvalue().splitlines())
+        self.assertEqual("ABC", task_list[0].options['arg1'])
+
+    def testProcessRunSingleGroupAndTask(self):
+        output = StringIO()
+        task_list = tasks_sample(self.dependency1)
+        task_list[4].task_dep = ['t2']
+        cmd_run = CmdFactory(Run, backend='dbm', dep_file=self.depfile_name,
+                             task_list=task_list, sel_tasks=["g1", "t3"])
+        self.assertEqual(0, cmd_run._execute(output, single=True))
+        # Neither the group's nor t3's dependencies should be included.
+        self.assertEqual([".  g1.a", ".  g1.b", ".  t3"],
+                         output.getvalue().splitlines())
+
     def testProcessRunEmptyFilter(self):
         output = StringIO()
         cmd_run = CmdFactory(Run, backend='dbm', dep_file=self.depfile_name,
