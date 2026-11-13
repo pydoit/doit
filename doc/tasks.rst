@@ -57,9 +57,12 @@ It can optionally define other attributes like `targets`, `file_dep`,
 
 `actions` define what the task actually does.
 `actions` is always a list that can have any number of elements.
-The actions of a task are always run sequentially.
+The actions of a task are always run sequentially, in the order listed.
 There are 2 basic kinds of `actions`: *cmd-action* and *python-action*.
-The action "result" is used to determine if task execution was successful or not.
+Each action must succeed for the task to succeed. If any action fails or
+raises an error, the task stops and its remaining actions are not executed.
+For a successful task, the last action supplies the task result used for
+result-based dependencies.
 
 
 python-action
@@ -123,6 +126,12 @@ CmdAction's are executed in a subprocess (using python
 
 If `action` is a string, the command will be executed through the shell.
 (Popen argument shell=True).
+
+Each cmd-action starts a separate subprocess. Changes to the environment or
+working directory made inside one shell action (for example, ``export`` or
+``cd``) do not carry over to the next action. Combine commands in one shell
+action when they need to share that shell state, or pass ``env`` and ``cwd``
+explicitly through ``CmdAction``.
 
 It is easy to include dynamic (on-the-fly) behavior to your tasks with
 python code from the `dodo` file. Let's take a look at another example:
