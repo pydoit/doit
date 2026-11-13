@@ -11,8 +11,9 @@ import unittest
 
 from doit.task import Task
 from doit.dependency import get_md5, get_file_md5
-from doit.dependency import DbmDB, Dependency
+from doit.dependency import DbmDB, JsonDB, Dependency
 from doit.dependency import DatabaseException, UptodateCalculator
+from doit.dependency import UnsavedChangesError
 from doit.dependency import FileChangedChecker, MD5Checker, TimestampChecker
 from doit.dependency import DependencyStatus
 from tests.support import get_abspath, backend_map, db_ext
@@ -131,6 +132,28 @@ class _DependencyDbTests:
         value = d2._get("taskId_X", "dependency_A")
         self.assertEqual("da_md5", value)
         d2.close()
+
+    def test_release_does_not_save(self):
+        self.dep_manager._set("taskId_X", "dependency_A", "da_md5")
+        self.dep_manager.close()
+        self.dep_manager.reopen()
+        self.assertEqual("da_md5", self.dep_manager._get("taskId_X", "dependency_A"))
+        self.dep_manager._set("taskId_X", "dependency_A", "changed")
+        self.dep_manager.release(discard=True)
+        self.dep_manager.reopen()
+        self.assertEqual("da_md5", self.dep_manager._get("taskId_X", "dependency_A"))
+
+    def test_reopen_failure_stays_closed(self):
+        self.dep_manager.close()
+
+        def failing_db(*args, **kwargs):
+            raise DatabaseException('cannot open')
+        self.dep_manager.db_class = failing_db
+        with self.assertRaises(DatabaseException):
+            self.dep_manager.reopen()
+        # a failed reopen must not look open, close() must be a no-op
+        self.assertTrue(self.dep_manager._closed)
+        self.dep_manager.close()
 
     def test_corrupted_file(self):
         if self.dep_manager.whichdb == 'sqlite3':
@@ -368,6 +391,16 @@ class _GetValueTests:
         self.dep_manager.save_success(t1)
         self.assertRaises(Exception, self.dep_manager.get_value, 'nonono', 'x')
 
+    def test_invalid_taskid_after_reading_it(self):
+        t1 = Task('t1', None)
+        t1.values = {'x': 5}
+        self.dep_manager.save_success(t1)
+        # reading a task that is not in the DB must not make it "exist"
+        self.assertIsNone(self.dep_manager._get('nonono', '_values_:'))
+        with self.assertRaises(Exception) as ctx:
+            self.dep_manager.get_value('nonono', 'x')
+        self.assertIn('has no computed value', str(ctx.exception))
+
     def test_invalid_key(self):
         t1 = Task('t1', None)
         t1.values = {'x': 5, 'y': 10}
@@ -561,6 +594,29 @@ class TestDependencyStatus(unittest.TestCase):
 
 class _GetStatusTests:
     """Tests for Dependency.get_status."""
+
+    def test_checker_changed_removal_is_discarded_by_release(self):
+        filePath = get_abspath("data/dependency1")
+        with open(filePath, "w") as ff:
+            ff.write("part1")
+        t1 = Task("t1", None, [filePath])
+        self.dep_manager.save_success(t1)
+        # pretend the previous run used another checker
+        self.dep_manager._set("t1", "checker:", "TimestampChecker")
+        self.dep_manager.close()
+        self.dep_manager.reopen()
+
+        # get_status() removes the task, so a "read-only" status run dirties
+        # the DB
+        self.assertEqual('run', self.dep_manager.get_status(t1, {}).status)
+        self.assertTrue(self.dep_manager.has_changes())
+        self.dep_manager.release(discard=True)
+
+        # the file is untouched
+        self.dep_manager.reopen()
+        self.assertTrue(self.dep_manager._in("t1"))
+        self.assertEqual("TimestampChecker",
+                         self.dep_manager._get("t1", "checker:"))
 
     def test_ignore(self):
         t1 = Task("t1", None)
@@ -912,3 +968,434 @@ class TestGetStatusDbmNdbm(DependencyTestBase, _GetStatusTests, unittest.TestCas
 
 class TestGetStatusDbmDumb(DependencyTestBase, _GetStatusTests, unittest.TestCase):
     backend_name = 'dbm.dumb'
+
+
+class TestReleasePluginBackend(unittest.TestCase):
+
+    def test_backend_without_release_keeps_handle(self):
+        class PluginDB(JsonDB):
+            release = None
+
+        tmp = tempfile.mkdtemp(prefix='doit-test-dep-')
+        try:
+            dep = Dependency(PluginDB, os.path.join(tmp, 'db'))
+            dep.release()
+            self.assertTrue(dep._closed)
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_backend_without_has_changes_releases(self):
+        # a plugin backend that genuinely lacks has_changes(): not a JsonDB
+        # subclass, so it inherits nothing.
+        class PluginDB:
+            def __init__(self, name, codec, *, module_name=None):
+                self.name = name
+                self.codec = codec
+                self.data = {}
+
+            def dump(self):
+                pass
+
+            def set(self, task_id, dependency, value):
+                self.data.setdefault(task_id, {})[dependency] = value
+
+            def get(self, task_id, dependency):
+                return self.data.get(task_id, {}).get(dependency, None)
+
+            def in_(self, task_id):
+                return task_id in self.data
+
+            def remove(self, task_id):
+                self.data.pop(task_id, None)
+
+            def remove_all(self):
+                self.data = {}
+
+        tmp = tempfile.mkdtemp(prefix='doit-test-dep-')
+        try:
+            dep = Dependency(PluginDB, os.path.join(tmp, 'db'))
+            dep._set("t1", "dep", "1")
+            self.assertFalse(dep.has_changes())
+            dep.release()  # no guard, nothing to ask the backend
+            self.assertTrue(dep._closed)
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+
+# ---------------------------------------------------------------------------
+# has_changes() - backend level
+# ---------------------------------------------------------------------------
+
+class _HasChangesTests:
+    """Backends report unsaved changes, and only for real mutations."""
+
+    def has_changes(self):
+        return self.dep_manager.backend.has_changes()
+
+    def test_fresh_db_has_no_changes(self):
+        self.assertFalse(self.has_changes())
+
+    def test_set_marks_changes(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.assertTrue(self.has_changes())
+
+    def test_dump_resets_changes(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.dep_manager.close()
+        self.assertFalse(self.has_changes())
+
+    def test_get_does_not_mark_changes(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.dep_manager.close()
+        self.dep_manager.reopen()
+        self.assertEqual("1", self.dep_manager._get("t1", "dep"))
+        self.assertIsNone(self.dep_manager._get("nosuch", "dep"))
+        self.assertFalse(self.has_changes())
+
+    def test_in_does_not_mark_changes(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.dep_manager.close()
+        self.dep_manager.reopen()
+        self.assertTrue(self.dep_manager._in("t1"))
+        self.dep_manager._in("nosuch")
+        self.assertFalse(self.has_changes())
+
+    def test_remove_of_stored_id_marks_changes(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.dep_manager.close()
+        self.dep_manager.reopen()
+        self.dep_manager.remove("t1")
+        self.assertTrue(self.has_changes())
+
+    def test_remove_of_unknown_id_does_not_mark_changes(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.dep_manager.close()
+        self.dep_manager.reopen()
+        self.dep_manager._get("nosuch", "dep")
+        self.dep_manager.remove("nosuch")
+        self.assertFalse(self.has_changes())
+
+    def test_set_then_remove_marks_changes(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.dep_manager.remove("t1")
+        self.assertTrue(self.has_changes())
+
+    def test_remove_all_on_empty_db_marks_changes(self):
+        self.dep_manager.remove_all()
+        self.assertTrue(self.has_changes())
+
+
+class TestHasChangesJson(DependencyTestBase, _HasChangesTests, unittest.TestCase):
+    backend_name = 'json'
+
+class TestHasChangesSqlite(DependencyTestBase, _HasChangesTests, unittest.TestCase):
+    backend_name = 'sqlite3'
+
+class TestHasChangesDbmGnu(DependencyTestBase, _HasChangesTests, unittest.TestCase):
+    backend_name = 'dbm.gnu'
+
+class TestHasChangesDbmNdbm(DependencyTestBase, _HasChangesTests, unittest.TestCase):
+    backend_name = 'dbm.ndbm'
+
+class TestHasChangesDbmDumb(DependencyTestBase, _HasChangesTests, unittest.TestCase):
+    backend_name = 'dbm.dumb'
+
+
+# ---------------------------------------------------------------------------
+# release() guard
+# ---------------------------------------------------------------------------
+
+class _ReleaseGuardTests:
+    """release() refuses to drop unsaved changes unless asked to."""
+
+    def test_release_of_clean_db_is_allowed(self):
+        self.dep_manager.release()
+        self.assertTrue(self.dep_manager._closed)
+
+    def test_set_blocks_release(self):
+        self.dep_manager._set("t1", "dep", "1")
+        with self.assertRaises(UnsavedChangesError) as ctx:
+            self.dep_manager.release()
+        message = str(ctx.exception)
+        self.assertIn('close()', message)
+        self.assertIn('discard=True', message)
+
+    def test_unsaved_changes_error_is_a_database_exception(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.assertRaises(DatabaseException, self.dep_manager.release)
+
+    def test_remove_blocks_release(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.dep_manager.close()
+        self.dep_manager.reopen()
+        self.dep_manager.remove("t1")
+        self.assertRaises(UnsavedChangesError, self.dep_manager.release)
+
+    def test_remove_all_on_empty_db_blocks_release(self):
+        self.dep_manager.remove_all()
+        self.assertRaises(UnsavedChangesError, self.dep_manager.release)
+
+    def test_reads_do_not_block_release(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.dep_manager.close()
+        self.dep_manager.reopen()
+        self.assertEqual("1", self.dep_manager._get("t1", "dep"))
+        self.assertTrue(self.dep_manager._in("t1"))
+        self.assertIsNone(self.dep_manager._get("nosuch", "dep"))
+        self.dep_manager.remove("nosuch")  # no-op removal
+        self.assertFalse(self.dep_manager.has_changes())
+        self.dep_manager.release()
+        self.assertTrue(self.dep_manager._closed)
+
+    def test_object_stays_open_when_guard_raises(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.assertRaises(UnsavedChangesError, self.dep_manager.release)
+        self.assertFalse(self.dep_manager._closed)
+        self.assertTrue(self.dep_manager.has_changes())
+        # close() still saves
+        self.dep_manager.close()
+        self.dep_manager.reopen()
+        self.assertEqual("1", self.dep_manager._get("t1", "dep"))
+
+    def test_discard_after_guard_raised(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.assertRaises(UnsavedChangesError, self.dep_manager.release)
+        self.dep_manager.release(discard=True)
+        self.assertTrue(self.dep_manager._closed)
+        self.assertFalse(self.dep_manager.has_changes())
+        self.dep_manager.release()  # second release does nothing
+        self.assertTrue(self.dep_manager._closed)
+        self.dep_manager.reopen()
+        self.assertIsNone(self.dep_manager._get("t1", "dep"))
+
+    def test_reopen_guard_and_discard(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.dep_manager.close()
+        self.dep_manager.reopen()
+        self.dep_manager._set("t1", "dep", "changed")
+        self.assertRaises(UnsavedChangesError, self.dep_manager.reopen)
+        self.assertFalse(self.dep_manager._closed)
+        self.dep_manager.reopen(discard=True)
+        self.assertEqual("1", self.dep_manager._get("t1", "dep"))
+
+    def test_close_then_reopen_keeps_changes(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.dep_manager.close()
+        self.dep_manager.reopen()
+        self.assertEqual("1", self.dep_manager._get("t1", "dep"))
+        self.assertFalse(self.dep_manager.has_changes())
+
+
+class TestReleaseGuardJson(DependencyTestBase, _ReleaseGuardTests, unittest.TestCase):
+    backend_name = 'json'
+
+class TestReleaseGuardSqlite(DependencyTestBase, _ReleaseGuardTests, unittest.TestCase):
+    backend_name = 'sqlite3'
+
+class TestReleaseGuardDbmGnu(DependencyTestBase, _ReleaseGuardTests, unittest.TestCase):
+    backend_name = 'dbm.gnu'
+
+class TestReleaseGuardDbmNdbm(DependencyTestBase, _ReleaseGuardTests, unittest.TestCase):
+    backend_name = 'dbm.ndbm'
+
+class TestReleaseGuardDbmDumb(DependencyTestBase, _ReleaseGuardTests, unittest.TestCase):
+    backend_name = 'dbm.dumb'
+
+
+# ---------------------------------------------------------------------------
+# deferred removals
+# ---------------------------------------------------------------------------
+
+class _DeferredRemovalTests:
+    """remove()/remove_all() change the file only in dump()."""
+
+    def _two_saved_tasks(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.dep_manager._set("t2", "dep", "2")
+        self.dep_manager.close()
+        self.dep_manager.reopen()
+
+    def test_removed_id_is_gone_in_memory_before_dump(self):
+        self._two_saved_tasks()
+        self.dep_manager.remove("t1")
+        self.assertIsNone(self.dep_manager._get("t1", "dep"))
+        self.assertFalse(self.dep_manager._in("t1"))
+        self.assertEqual("2", self.dep_manager._get("t2", "dep"))
+
+    def test_remove_is_discarded_by_release(self):
+        self._two_saved_tasks()
+        self.dep_manager.remove("t1")
+        self.dep_manager.release(discard=True)
+        self.dep_manager.reopen()
+        self.assertEqual("1", self.dep_manager._get("t1", "dep"))
+        self.assertEqual("2", self.dep_manager._get("t2", "dep"))
+
+    def test_remove_all_is_discarded_by_release(self):
+        self._two_saved_tasks()
+        self.dep_manager.remove_all()
+        self.dep_manager.release(discard=True)
+        self.dep_manager.reopen()
+        self.assertEqual("1", self.dep_manager._get("t1", "dep"))
+        self.assertEqual("2", self.dep_manager._get("t2", "dep"))
+
+    def test_remove_is_saved_by_close(self):
+        self._two_saved_tasks()
+        self.dep_manager.remove("t1")
+        self.dep_manager.close()
+        self.dep_manager.reopen()
+        self.assertFalse(self.dep_manager._in("t1"))
+        self.assertEqual("2", self.dep_manager._get("t2", "dep"))
+
+    def test_remove_all_is_saved_by_close(self):
+        self._two_saved_tasks()
+        self.dep_manager.remove_all()
+        self.dep_manager.close()
+        self.dep_manager.reopen()
+        self.assertFalse(self.dep_manager._in("t1"))
+        self.assertFalse(self.dep_manager._in("t2"))
+
+    def test_remove_all_then_set_keeps_the_new_entry(self):
+        self._two_saved_tasks()
+        self.dep_manager.remove_all()
+        self.dep_manager._set("t3", "dep", "3")
+        self.dep_manager.close()
+        self.dep_manager.reopen()
+        self.assertFalse(self.dep_manager._in("t1"))
+        self.assertFalse(self.dep_manager._in("t2"))
+        self.assertEqual("3", self.dep_manager._get("t3", "dep"))
+
+    def test_remove_of_memory_only_id_is_not_deferred(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.dep_manager.remove("t1")
+        backend = self.dep_manager.backend
+        self.assertEqual(set(), getattr(backend, '_removed', set()))
+
+
+class TestDeferredRemovalJson(DependencyTestBase, _DeferredRemovalTests,
+                              unittest.TestCase):
+    backend_name = 'json'
+
+class TestDeferredRemovalSqlite(DependencyTestBase, _DeferredRemovalTests,
+                                unittest.TestCase):
+    backend_name = 'sqlite3'
+
+class TestDeferredRemovalDbmGnu(DependencyTestBase, _DeferredRemovalTests,
+                                unittest.TestCase):
+    backend_name = 'dbm.gnu'
+
+class TestDeferredRemovalDbmNdbm(DependencyTestBase, _DeferredRemovalTests,
+                                 unittest.TestCase):
+    backend_name = 'dbm.ndbm'
+
+class TestDeferredRemovalDbmDumb(DependencyTestBase, _DeferredRemovalTests,
+                                 unittest.TestCase):
+    backend_name = 'dbm.dumb'
+
+
+class _DbmDumpTests:
+    """dump() survives ids another process already removed."""
+
+    def test_dump_tolerates_key_already_gone(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.dep_manager.close()
+        self.dep_manager.reopen()
+        # as if another process removed it between remove() and dump()
+        self.dep_manager.backend._removed.add("gone")
+        self.dep_manager.close()  # must not raise
+        self.dep_manager.reopen()
+        self.assertEqual("1", self.dep_manager._get("t1", "dep"))
+
+
+class TestDbmDumpGnu(DependencyTestBase, _DbmDumpTests, unittest.TestCase):
+    backend_name = 'dbm.gnu'
+
+class TestDbmDumpNdbm(DependencyTestBase, _DbmDumpTests, unittest.TestCase):
+    backend_name = 'dbm.ndbm'
+
+class TestDbmDumpDumb(DependencyTestBase, _DbmDumpTests, unittest.TestCase):
+    backend_name = 'dbm.dumb'
+
+
+# ---------------------------------------------------------------------------
+# in_() must not report an id as present because it was read
+# ---------------------------------------------------------------------------
+
+class _InAfterReadTests:
+
+    def test_in_is_false_for_unknown_id(self):
+        self.assertFalse(self.dep_manager._in("nosuch"))
+
+    def test_in_is_false_after_get_of_unknown_id(self):
+        self.assertIsNone(self.dep_manager._get("nosuch", "dep"))
+        self.assertFalse(self.dep_manager._in("nosuch"))
+
+    def test_in_is_true_before_and_after_get_of_stored_id(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.dep_manager.close()
+        self.dep_manager.reopen()
+        self.assertTrue(self.dep_manager._in("t1"))
+        self.assertEqual("1", self.dep_manager._get("t1", "dep"))
+        self.assertTrue(self.dep_manager._in("t1"))
+
+    def test_in_is_false_after_get_of_removed_id(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.dep_manager.close()
+        self.dep_manager.reopen()
+        self.dep_manager.remove("t1")
+        self.assertIsNone(self.dep_manager._get("t1", "dep"))
+        self.assertFalse(self.dep_manager._in("t1"))
+
+
+class TestInAfterReadJson(DependencyTestBase, _InAfterReadTests, unittest.TestCase):
+    backend_name = 'json'
+
+class TestInAfterReadSqlite(DependencyTestBase, _InAfterReadTests, unittest.TestCase):
+    backend_name = 'sqlite3'
+
+class TestInAfterReadDbmGnu(DependencyTestBase, _InAfterReadTests, unittest.TestCase):
+    backend_name = 'dbm.gnu'
+
+class TestInAfterReadDbmNdbm(DependencyTestBase, _InAfterReadTests, unittest.TestCase):
+    backend_name = 'dbm.ndbm'
+
+class TestInAfterReadDbmDumb(DependencyTestBase, _InAfterReadTests, unittest.TestCase):
+    backend_name = 'dbm.dumb'
+
+
+# ---------------------------------------------------------------------------
+# sqlite must not take a write lock outside dump()
+# ---------------------------------------------------------------------------
+
+class TestSqliteNoWriteLock(DependencyTestBase, unittest.TestCase):
+    backend_name = 'sqlite3'
+
+    def _second_connection_writes(self, task_id):
+        """write from another connection, with no patience for locks"""
+        import sqlite3
+        conn = sqlite3.connect(self.dep_manager.name, timeout=0)
+        try:
+            conn.execute('insert or replace into doit values (?,?)',
+                         (task_id, '{}'))
+            conn.commit()
+        finally:
+            conn.close()
+
+    def _saved_task(self):
+        self.dep_manager._set("t1", "dep", "1")
+        self.dep_manager.close()
+        self.dep_manager.reopen()
+
+    def test_second_connection_writes_after_read(self):
+        self._saved_task()
+        self.assertEqual("1", self.dep_manager._get("t1", "dep"))
+        self._second_connection_writes("other")
+
+    def test_second_connection_writes_after_remove(self):
+        self._saved_task()
+        self.dep_manager.remove("t1")
+        self._second_connection_writes("other")
+
+    def test_second_connection_writes_after_remove_all(self):
+        self._saved_task()
+        self.dep_manager.remove_all()
+        self._second_connection_writes("other")

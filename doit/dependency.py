@@ -18,6 +18,15 @@ class DatabaseException(Exception):
     pass
 
 
+class UnsavedChangesError(DatabaseException):
+    """release() was asked to drop changes that were never saved.
+
+    Subclass of DatabaseException so existing handlers keep working, while
+    a caller that means it can catch this one on its own.
+    """
+    pass
+
+
 def get_md5(input_data):
     """return md5 from string or unicode"""
     byte_data = input_data.encode("utf-8")
@@ -66,6 +75,7 @@ class JsonDB:
             self._db = {}
         else:
             self._db = self._load()
+        self._changed = False
 
     def _load(self):
         """load db content from file"""
@@ -91,12 +101,21 @@ class JsonDB:
             db_file.write(self.codec.encode(self._db))
         finally:
             db_file.close()
+        self._changed = False
+
+    def has_changes(self):
+        """@return bool: there are changes not written to the file"""
+        return self._changed
+
+    def release(self):
+        """nothing to release, content is in memory"""
 
     def set(self, task_id, dependency, value):
         """Store value in the DB."""
         if task_id not in self._db:
             self._db[task_id] = {}
         self._db[task_id][dependency] = value
+        self._changed = True
 
 
     def get(self, task_id, dependency):
@@ -117,10 +136,12 @@ class JsonDB:
         """remove saved dependencies from DB for taskId"""
         if task_id in self._db:
             del self._db[task_id]
+            self._changed = True
 
     def remove_all(self):
         """remove saved dependencies from DB for all tasks"""
         self._db = {}
+        self._changed = True
 
 
 def get_dbm_module(mod_name):
@@ -138,12 +159,17 @@ class DbmDB:
     If an item is modified ``_db`` is update and the `id` is added
     to the `dirty` set. Only on ``dump`` all dirty items values are encoded
     in json into ``_dbm`` and the DBM file is saved.
+    Removals are buffered the same way: ``remove`` and ``remove_all`` never
+    touch the file, they are applied on ``dump`` before the dirty values.
 
     :ivar str name: file name/path
     :ivar module: DBM implementation name one of: 'dbm.gun', 'dbm.ndbm', 'dbm.dumb'.
     :ivar dbm _dbm: items with json encoded values
     :ivar dict _db: items with python-dict as value
     :ivar set dirty: id of modified tasks
+    :ivar set _removed: id of tasks to delete from the file on ``dump``
+    :ivar bool _truncate: ``remove_all`` was called, file is emptied on ``dump``
+    :ivar bool _changed: there are changes not written to the file
     """
     DBM_CONTENT_ERROR_MSG = 'db type could not be determined'
 
@@ -172,11 +198,37 @@ class DbmDB:
 
         self._db = {}
         self.dirty = set()
+        self._changed = False
+        self._removed = set()
+        self._truncate = False
 
     def dump(self):
-        """save/close DBM file"""
+        """apply removals, save dirty values, close DBM file"""
+        if self._truncate:
+            self._dbm.close()
+            del self._dbm
+            self._dbm = self.module.open(self.name, 'n')
+        else:
+            for task_id in self._removed:
+                try:
+                    del self._dbm[task_id]
+                except KeyError:
+                    # another process may have removed it meanwhile
+                    pass
         for task_id in self.dirty:
             self._dbm[task_id] = self.codec.encode(self._db[task_id])
+        self._dbm.close()
+        self.dirty = set()
+        self._removed = set()
+        self._truncate = False
+        self._changed = False
+
+    def has_changes(self):
+        """@return bool: there are changes not written to the file"""
+        return self._changed
+
+    def release(self):
+        """close DBM file without saving"""
         self._dbm.close()
 
 
@@ -186,6 +238,7 @@ class DbmDB:
             self._db[task_id] = {}
         self._db[task_id][dependency] = value
         self.dirty.add(task_id)
+        self._changed = True
 
 
     def _in_dbm(self, key):
@@ -206,38 +259,42 @@ class DbmDB:
         # optimization, just try to get it without checking it exists
         if task_id in self._db:
             return self._db[task_id].get(dependency, None)
-        else:
-            try:
-                task_data = self._dbm[task_id]
-            except KeyError:
-                return
-            self._db[task_id] = self.codec.decode(task_data.decode('utf-8'))
-            return self._db[task_id].get(dependency, None)
-
+        if self._truncate or task_id in self._removed:
+            return None
+        try:
+            task_data = self._dbm[task_id]
+        except KeyError:
+            return
+        self._db[task_id] = self.codec.decode(task_data.decode('utf-8'))
+        return self._db[task_id].get(dependency, None)
 
     def in_(self, task_id):
         """@return bool if task_id is in DB"""
-        return self._in_dbm(task_id) or task_id in self.dirty
-
+        if task_id in self.dirty:
+            return True
+        if self._truncate or task_id in self._removed:
+            return False
+        return self._in_dbm(task_id)
 
     def remove(self, task_id):
-        """remove saved dependencies from DB for taskId"""
+        """remove saved dependencies from DB for taskId (applied on dump)"""
+        in_file = (not self._truncate) and self._in_dbm(task_id)
+        if in_file or task_id in self.dirty:
+            self._changed = True
         if task_id in self._db:
             del self._db[task_id]
-        if self._in_dbm(task_id):
-            del self._dbm[task_id]
         if task_id in self.dirty:
             self.dirty.remove(task_id)
-
+        if in_file:
+            self._removed.add(task_id)
 
     def remove_all(self):
-        """remove saved dependencies from DB for all tasks"""
+        """remove saved dependencies from DB for all tasks (applied on dump)"""
         self._db = {}
-        self._dbm.close()
-        del self._dbm
-        self._dbm = self.module.open(self.name, 'n')
         self.dirty = set()
-
+        self._removed = set()
+        self._truncate = True
+        self._changed = True
 
 
 class SqliteDB:
@@ -249,6 +306,9 @@ class SqliteDB:
         self._conn = self._sqlite3(self.name)
         self._cache = {}
         self._dirty = set()
+        self._changed = False
+        self._removed = set()
+        self._truncate = False
 
     def _sqlite3(self, name):
         """Open/create a sqlite3 DB file"""
@@ -297,14 +357,28 @@ class SqliteDB:
         """
         if task_id in self._cache:
             return self._cache[task_id].get(dependency, None)
-        else:
-            data = self._cache[task_id] = self._get_task_data(task_id)
-            return data.get(dependency, None)
+        if self._truncate or task_id in self._removed:
+            return None
+        data = self._get_task_data(task_id)
+        # a missing row is never cached: _cache membership means "exists"
+        if data:
+            self._cache[task_id] = data
+        return data.get(dependency, None)
 
     def _get_task_data(self, task_id):
         data = self._conn.execute('select task_data from doit where task_id=?',
                                   (task_id,)).fetchone()
         return data['task_data'] if data else {}
+
+    def _row_exists(self, task_id):
+        """@return bool: task_id has a row in the file (read only, no lock)"""
+        row = self._conn.execute('select task_id from doit where task_id=?',
+                                 (task_id,)).fetchone()
+        return row is not None
+
+    def has_changes(self):
+        """@return bool: there are changes not written to the file"""
+        return self._changed
 
     def set(self, task_id, dependency, value):
         """Store value in the DB."""
@@ -312,38 +386,59 @@ class SqliteDB:
             self._cache[task_id] = {}
         self._cache[task_id][dependency] = value
         self._dirty.add(task_id)
+        self._changed = True
 
 
     def in_(self, task_id):
+        if task_id in self._dirty:
+            return True
+        if self._truncate or task_id in self._removed:
+            return False
         if task_id in self._cache:
             return True
-        if self._conn.execute('select task_id from doit where task_id=?',
-                              (task_id,)).fetchone():
-            return True
-        return False
+        return self._row_exists(task_id)
 
     def dump(self):
-        """save/close sqlite3 DB file"""
+        """apply removals, save dirty values, close sqlite3 DB file"""
+        if self._truncate:
+            self._conn.execute('delete from doit')
+        else:
+            for task_id in self._removed:
+                self._conn.execute('delete from doit where task_id=?',
+                                   (task_id,))
         for task_id in self._dirty:
             self._conn.execute('insert or replace into doit values (?,?)',
                                (task_id, self.codec.encode(self._cache[task_id])))
         self._conn.commit()
         self._conn.close()
         self._dirty = set()
+        self._removed = set()
+        self._truncate = False
+        self._changed = False
+
+    def release(self):
+        """close sqlite3 DB file without saving"""
+        self._conn.close()
 
     def remove(self, task_id):
-        """remove saved dependencies from DB for taskId"""
+        """remove saved dependencies from DB for taskId (applied on dump)"""
+        in_file = (not self._truncate) and self._row_exists(task_id)
+        if in_file or task_id in self._dirty:
+            self._changed = True
         if task_id in self._cache:
             del self._cache[task_id]
         if task_id in self._dirty:
             self._dirty.remove(task_id)
-        self._conn.execute('delete from doit where task_id=?', (task_id,))
+        if in_file:
+            self._removed.add(task_id)
 
     def remove_all(self):
-        """remove saved dependencies from DB for all task"""
-        self._conn.execute('delete from doit')
+        """remove saved dependencies from DB for all task (applied on dump)"""
         self._cache = {}
         self._dirty = set()
+        self._removed = set()
+        self._truncate = True
+        self._changed = True
 
 
 class FileChangedChecker:
@@ -500,10 +595,19 @@ class Dependency:
     """
     def __init__(self, db_class, backend_name, checker_cls=MD5Checker,
                  codec_cls=JSONCodec, module_name=None):
-        self._closed = False
+        self._codec_cls = codec_cls
+        self._module_name = module_name
         self.checker = checker_cls()
         self.db_class = db_class
-        self.backend = db_class(backend_name, codec=codec_cls(), module_name=module_name)
+        self._open(backend_name)
+
+    def _open(self, backend_name):
+        # build the backend first, it may raise. only then mark as open.
+        backend = self.db_class(
+            backend_name, codec=self._codec_cls(),
+            module_name=self._module_name)
+        self._closed = False
+        self.backend = backend
         self._set = self.backend.set
         self._get = self.backend.get
         self.remove = self.backend.remove
@@ -516,6 +620,52 @@ class Dependency:
         if not self._closed:
             self.backend.dump()
             self._closed = True
+
+    def has_changes(self):
+        """@return bool: the backend holds changes not written to the file.
+
+        False when already closed. A backend without `has_changes()`
+        (plugin) reports no changes.
+        """
+        if self._closed:
+            return False
+        has_changes = getattr(self.backend, 'has_changes', None)
+        if has_changes is None:
+            return False
+        return has_changes()
+
+    def release(self, discard=False):
+        """Release the DB file handle without saving.
+
+        Nothing can be read after this, until `reopen()`.
+
+        :param bool discard: drop unsaved changes on purpose. Without it,
+            unsaved changes raise `UnsavedChangesError` and nothing changes:
+            the DB stays open and the caller can still `close()` it.
+
+        A backend without `release()` (plugin) keeps its handle. A backend
+        without `has_changes()` (plugin) reports no changes, so its unsaved
+        changes are dropped here without warning.
+        """
+        if self._closed:
+            return
+        if not discard and self.has_changes():
+            raise UnsavedChangesError(
+                f"DB '{self.name}' has unsaved changes. "
+                "Use close() to save them, "
+                "or release(discard=True) to drop them.")
+        release = getattr(self.backend, 'release', None)
+        if release is not None:
+            release()
+        self._closed = True
+
+    def reopen(self, discard=False):
+        """Read the DB file again.
+
+        :param bool discard: drop unsaved changes on purpose, see `release()`.
+        """
+        self.release(discard=discard)
+        self._open(self.name)
 
 
     ####### task specific
