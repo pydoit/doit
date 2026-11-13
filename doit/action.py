@@ -156,16 +156,29 @@ class CmdAction(BaseAction):
             return ref(*args, **kwargs)
 
 
+    @staticmethod
+    def _write_realtime(realtime, line):
+        try:
+            realtime.write(line)
+        except UnicodeEncodeError:
+            encoding = getattr(realtime, 'encoding', None) or 'ascii'
+            realtime.write(
+                line.encode(encoding, 'backslashreplace').decode(encoding))
+        realtime.flush()  # required if on byte buffering mode
+
     def _print_process_output(self, process, input_, capture, realtime):
         """Reads 'input_' until process is terminated.
         Writes 'input_' content to 'capture' (string)
-        and 'realtime' stream
+        and 'realtime' stream.
+        A 'realtime' write error stops the echo but not the reading,
+        and is re-raised once 'input_' is exhausted.
         """
         if self.buffering:
             read = lambda: input_.read(self.buffering)
         else:
             # line buffered
             read = lambda: input_.readline()
+        write_error = None
         while True:
             try:
                 line = read().decode(self.encoding, self.decode_error)
@@ -178,8 +191,14 @@ class CmdAction(BaseAction):
                 break
             capture.write(line)
             if realtime:
-                realtime.write(line)
-                realtime.flush()  # required if on byte buffering mode
+                try:
+                    self._write_realtime(realtime, line)
+                except Exception as exc:
+                    # keep draining: the child would block on a full pipe
+                    write_error = exc
+                    realtime = None
+        if write_error:
+            raise write_error
 
 
     def execute(self, out=None, err=None):
