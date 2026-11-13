@@ -151,7 +151,8 @@ class CmdOption:
             else:
                 val = self.type(str_val)
         except ValueError as exception:
-            msg = (f"Error parsing parameter '{self.name}' {self.type}.\n"
+            type_name = getattr(self.type, '__name__', str(self.type))
+            msg = (f"Error parsing parameter '{self.name}' ({type_name}).\n"
                    f"{exception}\n")
             raise CmdParseError(msg)
 

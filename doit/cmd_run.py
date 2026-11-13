@@ -1,4 +1,5 @@
 import sys
+import os
 import codecs
 
 from .exceptions import InvalidCommand
@@ -70,13 +71,24 @@ opt_single = {
 }
 
 
+def num_process_type(value):
+    """number of subprocesses, 'cpu' means number of available CPUs"""
+    if value == 'cpu':
+        return os.cpu_count() or 1
+    try:
+        return int(value)
+    except ValueError:
+        raise ValueError(f"expected an integer or 'cpu', got {value!r}")
+
+
 opt_num_process = {
     'name': 'num_process',
     'short': 'n',
     'long': 'process',
-    'type': int,
+    'type': num_process_type,
     'default': 0,
-    'help': "number of subprocesses [default: %(default)s]"
+    'help': ("number of subprocesses, 'cpu' to use one per CPU "
+             "[default: %(default)s]"),
 }
 
 
