@@ -226,6 +226,21 @@ By default the execution of tasks is halted on the first task failure or error. 
     $ doit --continue
 
 
+always execute
+--------------
+
+The option ``-a/--always-execute`` runs tasks even when they are up-to-date.
+Use it to rerun a task without changing its dependencies or targets.
+
+.. code-block:: console
+
+    $ doit -a do_something
+    $ doit --always-execute do_something
+
+Task selection and task dependencies still apply. This option does not
+remove dependency information from the DB-file.
+
+
 single task execution
 ----------------------
 
