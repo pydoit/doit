@@ -12,7 +12,7 @@ Installing
 pip
 ^^^
 
-`package <https://pip.pypa.io/>`_ (requires Python 3.10+)::
+`package <https://pip.pypa.io/>`_ (requires Python 3.11+)::
 
    $ pip install doit
 
