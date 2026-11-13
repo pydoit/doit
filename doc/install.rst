@@ -22,7 +22,7 @@ Source
 
 Download `source <https://pypi.python.org/pypi/doit>`_::
 
-  $ pip install -e .
+  $ pip install .
 
 
 git repository
@@ -31,6 +31,10 @@ git repository
 Get latest development version::
 
   $ git clone https://github.com/pydoit/doit.git
+  $ cd doit
+  $ pip install .
+
+For a development setup see ``DEV-README.rst`` in the repository.
 
 
 OS package

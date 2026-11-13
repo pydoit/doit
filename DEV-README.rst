@@ -11,24 +11,54 @@ see AUTHORS file
 development setup
 ==================
 
-Create a virtualenv and install in editable mode with dev dependencies:
+Dev dependencies are defined as ``[dependency-groups]`` in ``pyproject.toml``.
+
+Using `uv <https://docs.astral.sh/uv/>`_ (same as CI):
+
+.. code:: bash
+
+  uv sync --group dev --group docs
+
+Using pip (requires pip >= 25.1):
 
 .. code:: bash
 
   python -m venv .venv
   source .venv/bin/activate
-  pip install --editable .
-  pip install --requirement dev_requirements.txt
+  pip install --upgrade pip
+  pip install --editable . --group dev --group docs
+
+
+using an unreleased rut
+-----------------------
+
+To test against a local checkout of rut (e.g. ``../rut``),
+install it on top of the dev dependencies.
+
+pip:
+
+.. code:: bash
+
+  pip install --editable ../rut
+
+uv:
+
+.. code:: bash
+
+  uv pip install --editable ../rut
+  uv run --no-sync rut
+
+Note: a plain ``uv sync`` or ``uv run`` re-installs rut from PyPI.
 
 
 tests
 =======
 
-Use py.test - https://pytest.org
+Use rut - https://pypi.org/project/rut/
 
 .. code:: bash
 
-  $ py.test
+  $ rut
 
 
 linting

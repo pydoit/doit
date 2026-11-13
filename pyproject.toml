@@ -38,7 +38,7 @@ classifiers = [
 dependencies = []
 
 # uv sync --group dev --group docs
-# pip install --dependency-groups dev,docs -e .
+# pip install -e . --group dev --group docs  (pip >= 25.1)
 [dependency-groups]
 dev = [
     "setuptools>=68.0",
