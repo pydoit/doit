@@ -9,7 +9,7 @@ version = "0.38.0.dev0"
 description = "doit - Automation Tool"
 license = {text = "MIT"}
 readme = "pypi_long_description.rst"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 authors = [
     {name = "Eduardo Naufel Schettino", email = "schettino72@gmail.com"},
 ]
@@ -22,10 +22,10 @@ classifiers = [
     "Operating System :: OS Independent",
     "Operating System :: POSIX",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Intended Audience :: Developers",
     "Intended Audience :: Information Technology",
     "Intended Audience :: Science/Research",
@@ -48,7 +48,6 @@ dev = [
     "pycodestyle>=2.10",
     "rut>=0.3",
     "coverage>=7.0",
-    "tomli; python_version < '3.11'",
 ]
 docs = [
     "furo>=2025.12,<2027",
@@ -67,7 +66,7 @@ Tracker = "https://github.com/pydoit/doit/issues"
 doit = "doit.__main__:main"
 
 [project.optional-dependencies]
-toml = ["tomli; python_version < '3.11'"]
+toml = []  # kept for backward compatibility: tomllib in stdlib since 3.11
 cloudpickle = ["cloudpickle; platform_python_implementation != 'PyPy'"]
 
 

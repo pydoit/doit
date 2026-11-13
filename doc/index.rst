@@ -249,7 +249,7 @@ Advanced Features
      <p>
        <code>doit</code> is a mature project actively maintained since
        <a href="http://schettino72.wordpress.com/2008/04/14/doit-a-build-tool-tale">2008</a>.
-       Python 3.10+. 99% unit-test code coverage.
+       Python 3.11+. 99% unit-test code coverage.
        Contributions welcome — development is driven by real-world use cases.
      </p>
      <p>

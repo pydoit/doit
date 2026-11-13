@@ -33,12 +33,8 @@ This is the preferred configuration source, and may gain features not available 
 
 .. note::
 
-   A TOML parser (`tomllib <https://docs.python.org/3/library/tomllib.html>`_)
-   is part of the standard library since Python 3.11.
-   On Python 3.10, a third-party package is required, one of:
-
-   - `tomli <https://pypi.org/project/tomli/>`_
-   - `tomlkit <https://pypi.org/project/tomlkit/>`_
+   TOML is parsed with `tomllib <https://docs.python.org/3/library/tomllib.html>`_
+   from the standard library, no extra package is required.
 
 
 TOML vs INI
