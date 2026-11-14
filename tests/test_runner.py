@@ -859,6 +859,18 @@ class TestMRunner_parallel_run_tasks(DepManagerMixin, unittest.TestCase):
         my_runner.run_tasks(dispatcher)
         self.assertEqual(runner.SUCCESS, my_runner.finish())
 
+    @unittest.skipIf(not runner.MRunner.available()
+                     or runner._mp_context.get_start_method() != 'fork',
+                     'needs MRunner with fork')
+    def test_task_with_nested_function_multiprocess(self):
+        def nested():
+            return True
+        t1 = Task("t1", [(nested,)])
+        my_runner = runner.MRunner(self.dep_manager, self.reporter)
+        dispatcher = TaskDispatcher({'t1': t1}, [], ['t1'])
+        my_runner.run_tasks(dispatcher)
+        self.assertEqual(runner.SUCCESS, my_runner.finish())
+
     def test_task_not_picklabe_thread(self):
         t1 = Task("t1", [(my_print, ["out a"])])
         t2 = Task("t2", None, loader=DelayedLoader(
