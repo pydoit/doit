@@ -602,3 +602,12 @@ class TestGenerateTasksGenerator(unittest.TestCase):
         self.assertTrue(tasks[0].has_subtask)
         self.assertEqual('xxx doc', tasks[0].doc)
 
+    def testGeneratorGroupAfterSubtasks(self):
+        def f_xpto():
+            yield {'basename': 'xpto', 'name': 'child', 'actions': None}
+            yield {'basename': 'xpto', 'name': None, 'doc': 'group doc'}
+
+        tasks = {task.name: task for task in generate_tasks("f_xpto", f_xpto())}
+        self.assertEqual(['xpto:child'], tasks['xpto'].task_dep)
+        self.assertTrue(tasks['xpto'].has_subtask)
+        self.assertEqual('group doc', tasks['xpto'].doc)

@@ -268,6 +268,7 @@ If you are not sure sub-tasks will be created for a given ``basename``
 but you want to make sure that a task exists,
 you can yield a sub-task with ``name`` equal to ``None``.
 This can also be used to set the task ``doc`` and ``watch`` attributes.
+It can be yielded before or after the other sub-tasks.
 
 .. literalinclude:: samples/empty_subtasks.py
 
