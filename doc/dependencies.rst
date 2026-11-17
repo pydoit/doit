@@ -340,7 +340,11 @@ The values must be JSON encodable.
 
 A cmd-action can also save it's output.
 But for this you will need to explicitly import `CmdAction` and set its `save_out`
-parameter with the *name* used to save the output in *values*
+parameter with the *name* used to save the output in *values*.
+When changing a directly specified list action to ``CmdAction`` to save its
+output, also pass ``shell=False`` to preserve execution without a shell.
+Explicit ``CmdAction`` objects default to ``shell=True`` even for lists; see
+:ref:`cmd-action` for the distinction.
 
 .. literalinclude:: samples/save_out.py
 
