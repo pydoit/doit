@@ -499,6 +499,8 @@ class PythonAction(BaseAction):
             pass
         elif isinstance(returned_value, str):
             self.result = returned_value
+        elif isinstance(returned_value, PurePath):
+            self.result = str(returned_value)
         elif isinstance(returned_value, dict):
             self.values = returned_value
             self.result = returned_value
@@ -507,7 +509,8 @@ class PythonAction(BaseAction):
         else:
             return TaskError("Python Task error: '%s'. It must return:\n"
                              "False for failed task.\n"
-                             "True, None, string or dict for successful task\n"
+                             "True, None, string, pathlib path or dict "
+                             "for successful task\n"
                              "returned %s (%s)" %
                              (self.py_callable, returned_value,
                               type(returned_value)))

@@ -38,6 +38,7 @@ time *doit* was executed.
 The "result" from the dependent task compared between different runs is given
 by its last action.
 The content for python-action is the value of the returned string or dict.
+Returned ``pathlib`` paths are stored as strings.
 For cmd-actions it is the output send to stdout plus stderr.
 
 `result_dep` also supports group-tasks. In this case it will check that the
