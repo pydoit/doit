@@ -8,6 +8,7 @@ from unittest.mock import Mock, patch
 from doit.exceptions import InvalidCommand
 from doit import reporter, runner
 from doit.cmd_run import Run
+from doit.task import Task
 from tests.support import tasks_sample, CmdFactory
 from tests.support import DepfileNameMixin, DependencyFileMixin
 
@@ -105,6 +106,26 @@ class TestCmdRun(DependencyFileMixin, DepfileNameMixin, unittest.TestCase):
         cmd_run._execute(output, single=True)
         got = output.getvalue().split("\n")[:-1]
         self.assertEqual([".  t1"], got)
+
+    def testProcessRunSingleWithArgsTaskDep(self):
+        # Fix #349: task args are passed in "single" execution,
+        # and task_dep is not executed
+        output = StringIO()
+        got_params = []
+        def show_params(param1):
+            got_params.append(param1)
+        task_list = [
+            Task('long_running', [""]),
+            Task('params', [(show_params,)], task_dep=['long_running'],
+                 params=[{'name': 'param1', 'short': 'p',
+                          'default': 'default value'}]),
+        ]
+        cmd_run = CmdFactory(Run, backend='dbm', dep_file=self.depfile_name,
+                             task_list=task_list,
+                             sel_tasks=['params', '-p', 'val'])
+        self.assertEqual(0, cmd_run._execute(output, single=True))
+        self.assertEqual([".  params"], output.getvalue().splitlines())
+        self.assertEqual(['val'], got_params)
 
     def testProcessRunEmptyFilter(self):
         output = StringIO()
