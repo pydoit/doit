@@ -52,6 +52,12 @@ be specified to sort them in the order in which they appear in the `dodo` file.
    link : create binary program
 
 
+To list selected tasks, pass their names or quoted wildcard patterns, for
+example ``doit list "comp*"``. Patterns containing ``*`` use the same matching
+rules as task execution and can also match sub-task names. Overlapping selections
+list each task only once; a pattern without matches lists nothing. Quoting the
+pattern prevents the shell from expanding it as a file name.
+
 By default task name and description are listed. The task description is taken
 from the first line of task function doc-string. You can also set it using the
 *doc* attribute on the task dictionary. It is possible to omit the description
