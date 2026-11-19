@@ -326,6 +326,44 @@ class TestCommand(unittest.TestCase):
         self.assertEqual("no", params['choices'])
         self.assertEqual("yes", params['choicesnodesc'])
 
+    def test_list_args_replace_defaults(self):
+        self.cmd.overwrite_defaults({'list': ['default', 'values']})
+        params, args = self.cmd.parse(['-l', 'foo', '--list', 'bar'])
+        self.assertEqual(['foo', 'bar'], params['list'])
+        self.assertEqual(['default', 'values'], self.cmd['list'].default)
+        params.update_defaults({'list': ['config']})
+        self.assertEqual(['foo', 'bar'], params['list'])
+
+    def test_list_args_do_not_leak_between_parses(self):
+        first, _ = self.cmd.parse(['-l', 'foo'])
+        second, _ = self.cmd.parse(['-l', 'bar'])
+        defaults, _ = self.cmd.parse([])
+        self.assertEqual(['foo'], first['list'])
+        self.assertEqual(['bar'], second['list'])
+        self.assertEqual([], defaults['list'])
+
+    def test_list_args_replace_each_default_independently(self):
+        options = [
+            CmdOption({'name': 'one', 'short': 'a', 'type': list,
+                       'default': ['default one']}),
+            CmdOption({'name': 'two', 'short': 'b', 'type': list,
+                       'default': ['default two']}),
+        ]
+        params, args = CmdParse(options).parse(['-a', 'foo', '-b', 'bar', '-a', 'baz'])
+        self.assertEqual(['foo', 'baz'], params['one'])
+        self.assertEqual(['bar'], params['two'])
+
+    def test_list_args_replace_environment(self):
+        option = CmdOption({'name': 'items', 'short': 'l', 'type': list,
+                            'default': ['default'], 'env_var': 'DOIT_TEST_LIST'})
+        cmd = CmdParse([option])
+        os.environ['DOIT_TEST_LIST'] = 'env1, env2'
+        self.addCleanup(os.environ.pop, 'DOIT_TEST_LIST', None)
+        params, args = cmd.parse([])
+        self.assertEqual(['env1', 'env2'], params['items'])
+        params, args = cmd.parse(['-l', 'cli1', '-l', 'cli2'])
+        self.assertEqual(['cli1', 'cli2'], params['items'])
+
     def test_parsePositionalArgs(self):
         params, args = self.cmd.parse(['-f','p1','p2', '--sub-arg'])
         self.assertEqual(['p1','p2', '--sub-arg'], args)

@@ -324,11 +324,15 @@ class CmdParse:
             raise CmdParseError(msg)
 
         # update params with values from command line
+        list_params = set()
         for opt, val in opts:
             this, inverse = self.get_option(opt)
             if this.type is bool:
                 params[this.name] = not inverse
             elif this.type is list:
+                if this.name not in list_params:
+                    params[this.name] = []
+                    list_params.add(this.name)
                 params[this.name].append(val)
             else:
                 params[this.name] = this.str2type(val)

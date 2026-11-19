@@ -298,6 +298,22 @@ class TestTaskGeneratorParams(unittest.TestCase):
         task = task_list.pop()
         self.assertEqual(task.doc, 'from_arg')
 
+    def test_list_args_replace_defaults(self):
+        defaults = ['item1', 'item2']
+
+        @task_params([{'name': 'items', 'type': list, 'short': 'l',
+                       'default': defaults}])
+        def task_foo(items):
+            for item in items:
+                yield {'name': item, 'actions': []}
+
+        namespace = {'task_foo': task_foo}
+        tasks = load_tasks(namespace, args=['foo', '-l', 'item1', '-l', 'item3'])
+        self.assertEqual(['foo', 'foo:item1', 'foo:item3'], [t.name for t in tasks])
+        tasks = load_tasks(namespace)
+        self.assertEqual(['foo', 'foo:item1', 'foo:item2'], [t.name for t in tasks])
+        self.assertEqual(['item1', 'item2'], defaults)
+
     def test_call_api(self):
         'Ensure that a task generator parameter can be set from direct API call'
         @task_params([{"name": "fp", "default": "default p", "long": "fp"}])

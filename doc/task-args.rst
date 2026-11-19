@@ -40,6 +40,9 @@ For python-actions the python function must define arguments with the same name 
 
 Need a list in your python function? Specify an option with ``type``
 set to ``list``.
+Repeated occurrences collect values in order. The first command-line value
+replaces the default list (including values from configuration or the
+environment); omitting the option keeps those values.
 
 .. code-block:: console
 
