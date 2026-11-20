@@ -4,6 +4,7 @@ from collections import OrderedDict
 from .control import TaskControl
 from .cmd_base import DoitCmdBase
 from .cmd_base import check_tasks_exist
+from .exceptions import BaseFail
 
 
 opt_clean_dryrun = {
@@ -55,14 +56,18 @@ class Clean(DoitCmdBase):
     def clean_tasks(self, tasks, dryrun, cleanforget):
         """ensure task clean-action is executed only once"""
         cleaned = set()
+        failed = False
         forget_tasks = cleanforget and not dryrun
         for task in tasks:
             if task.name not in cleaned:
                 cleaned.add(task.name)
-                task.clean(self.outstream, dryrun)
+                result = task.clean(self.outstream, dryrun)
+                if isinstance(result, BaseFail):
+                    failed = True
                 if forget_tasks:
                     self.dep_manager.remove(task.name)
         self.dep_manager.close()
+        return 1 if failed else 0
 
     def _expand(self, clean_list):
         result = []
@@ -120,7 +125,7 @@ class Clean(DoitCmdBase):
             tree.build_nodes(tasks, clean_list)
 
         to_clean = [tasks[x] for x in tree.flat()]
-        self.clean_tasks(to_clean, dryrun, cleanforget)
+        return self.clean_tasks(to_clean, dryrun, cleanforget)
 
 
 class CleanDepTree:

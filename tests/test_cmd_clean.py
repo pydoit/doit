@@ -1,4 +1,6 @@
 import unittest
+import contextlib
+import sys
 from io import StringIO
 from unittest import mock
 
@@ -9,6 +11,38 @@ from tests.support import CmdFactory
 
 
 class TestCmdClean(unittest.TestCase):
+
+    def test_failure_exit_status_and_remaining_tasks(self):
+        cleaned = []
+        def fail_clean():
+            return False
+        def later_clean():
+            cleaned.append(True)
+        tasks = [Task('bad', None, clean=[fail_clean]),
+                 Task('good', None, clean=[later_clean])]
+        manager = mock.MagicMock()
+        command = CmdFactory(Clean, outstream=StringIO(), task_list=tasks,
+                             dep_manager=manager)
+        with contextlib.redirect_stderr(StringIO()):
+            result = command._execute(dryrun=False, cleandep=False,
+                                      cleanall=False, cleanforget=False,
+                                      pos_args=['bad', 'good'])
+        self.assertEqual(1, result)
+        self.assertEqual([True], cleaned)
+        manager.close.assert_called_once_with()
+
+    def test_command_failure_and_dry_run_status(self):
+        action = '"%s" -c "raise SystemExit(3)"' % sys.executable
+        tasks = [Task('bad', None, clean=[action])]
+        for dryrun, expected in [(True, 0), (False, 1)]:
+            with self.subTest(dryrun=dryrun):
+                command = CmdFactory(Clean, outstream=StringIO(), task_list=tasks,
+                                     dep_manager=mock.MagicMock())
+                with contextlib.redirect_stderr(StringIO()):
+                    result = command._execute(dryrun=dryrun, cleandep=False,
+                                              cleanall=False, cleanforget=False,
+                                              pos_args=['bad'])
+                self.assertEqual(expected, result)
 
     def setUp(self):
         super().setUp()
