@@ -619,6 +619,12 @@ class TestDictToTask(unittest.TestCase):
         dict_ = {'name': 'simple', 'actions': ['xpto 14']}
         self.assertIsInstance(task.dict_to_task(dict_), task.Task)
 
+    def testDictBasename(self):
+        dict_ = {'name': 'simple', 'basename': 'base', 'actions': ['xpto 14']}
+        t = task.dict_to_task(dict_)
+        self.assertEqual('simple', t.name)
+        self.assertEqual('base', t.basename)
+
     def testDictFieldTypo(self):
         dict_ = {'name': 'z', 'actions': ['xpto 14'],
                  'typo_here': ['xxx']}

@@ -108,6 +108,7 @@ class Task:
     """Task
 
     @ivar name string
+    @ivar basename: string or None, as given in the task dict
     @ivar actions: list - L{BaseAction}
     @ivar clean_actions: list - L{BaseAction}
     @ivar loader (DelayedLoader)
@@ -145,7 +146,7 @@ class Task:
     DEFAULT_VERBOSITY = 1
     string_types = (str, )
     # list of valid types/values for each task attribute.
-    valid_attr = {'basename': (string_types, ()),
+    valid_attr = {'basename': (string_types, (None,)),
                   'name': (string_types, ()),
                   'actions': ((list, tuple), (None,)),
                   'file_dep': ((list, tuple), ()),
@@ -174,7 +175,7 @@ class Task:
                  subtask_of=None, has_subtask=False,
                  doc=None, params=(), pos_arg=None,
                  verbosity=None, io=None, title=None, getargs=None,
-                 watch=(), meta=None, loader=None):
+                 watch=(), meta=None, loader=None, basename=None):
         """sanity checks and initialization
 
         @param params: (list of dict for parameters) see cmdparse.CmdOption
@@ -182,6 +183,7 @@ class Task:
 
         getargs = getargs or {}  # default
         self.check_attr(name, 'name', name, self.valid_attr['name'])
+        self.check_attr(name, 'basename', basename, self.valid_attr['basename'])
         self.check_attr(name, 'actions', actions, self.valid_attr['actions'])
         self.check_attr(name, 'file_dep', file_dep, self.valid_attr['file_dep'])
         self.check_attr(name, 'task_dep', task_dep, self.valid_attr['task_dep'])
@@ -205,6 +207,7 @@ class Task:
             msg = "Task '{}': name must not use the char '=' (equal sign)."
             raise InvalidTask(msg.format(name))
         self.name = name
+        self.basename = basename
         self.params = params  # save just for use on command `info`
         self.creator_params = []  # add through task_params decorator
         self.options = None
