@@ -196,3 +196,92 @@ class TestConfig(unittest.TestCase):
             self.assertIn('bar', main.get_cmds())
             self.assertEqual({'optx': '2', 'opty': '3', 'optz': '10'},
                              main.config['GLOBAL'])
+
+    def test_find_pyproject_toml_in_parent_dir(self):
+        config_filename = self._test_path('pyproject.toml')
+        api_config = {'GLOBAL': {'opty': '10', 'optz': '10'}}
+
+        with tempfile.TemporaryDirectory() as td:
+            shutil.copy(config_filename, os.path.join(td, 'pyproject.toml'))
+            sub_dir = os.path.join(td, 'sub', 'subsub')
+            os.makedirs(sub_dir)
+            old_cwd = os.getcwd()
+            try:
+                os.chdir(sub_dir)
+                main = doit_cmd.DoitMain(extra_config=api_config)
+            finally:
+                os.chdir(old_cwd)
+
+            self.assertEqual(1, len(main.config['COMMAND']))
+            self.assertIn('bar', main.get_cmds())
+            self.assertEqual({'optx': '2', 'opty': '3', 'optz': '10'},
+                             main.config['GLOBAL'])
+
+    def test_find_pyproject_toml_current_dir_overrides_parent(self):
+        with tempfile.TemporaryDirectory() as td:
+            parent_toml = os.path.join(td, 'pyproject.toml')
+            with open(parent_toml, 'w') as f:
+                f.write('[tool.doit]\noptx = "parent"\n')
+
+            sub_dir = os.path.join(td, 'sub')
+            os.makedirs(sub_dir)
+            child_toml = os.path.join(sub_dir, 'pyproject.toml')
+            with open(child_toml, 'w') as f:
+                f.write('[tool.doit]\noptx = "child"\n')
+
+            old_cwd = os.getcwd()
+            try:
+                os.chdir(sub_dir)
+                main = doit_cmd.DoitMain()
+            finally:
+                os.chdir(old_cwd)
+
+            self.assertEqual('child', main.config['GLOBAL']['optx'])
+
+    def test_find_ini_config_in_parent_dir(self):
+        config_filename = self._test_path('sample.cfg')
+        with tempfile.TemporaryDirectory() as td:
+            shutil.copy(config_filename, os.path.join(td, 'doit.cfg'))
+            sub_dir = os.path.join(td, 'nested', 'deep')
+            os.makedirs(sub_dir)
+            old_cwd = os.getcwd()
+            try:
+                os.chdir(sub_dir)
+                main = doit_cmd.DoitMain()
+            finally:
+                os.chdir(old_cwd)
+
+            self.assertEqual(1, len(main.config['COMMAND']))
+            self.assertIn('foo', main.get_cmds())
+            self.assertEqual('6', main.config['GLOBAL']['optx'])
+
+    def test_find_config_file_helper(self):
+        with tempfile.TemporaryDirectory() as td:
+            cfg_path = os.path.join(td, 'test.cfg')
+            with open(cfg_path, 'w') as f:
+                f.write('[GLOBAL]\nx = 1\n')
+            sub_dir = os.path.join(td, 'a', 'b')
+            os.makedirs(sub_dir)
+
+            # Finds file in parent directory
+            found = doit_cmd.DoitMain.find_config_file('test.cfg', start_dir=sub_dir)
+            self.assertEqual(os.path.abspath(cfg_path), found)
+
+            # Returns None for non-existent file
+            self.assertIsNone(
+                doit_cmd.DoitMain.find_config_file(
+                    'no_such_file.cfg', start_dir=sub_dir
+                )
+            )
+
+            # Absolute path exists
+            self.assertEqual(
+                cfg_path,
+                doit_cmd.DoitMain.find_config_file(cfg_path, start_dir=sub_dir)
+            )
+
+            # Absolute path does not exist
+            missing_abs = os.path.join(td, 'nonexistent.cfg')
+            self.assertIsNone(
+                doit_cmd.DoitMain.find_config_file(missing_abs, start_dir=sub_dir)
+            )

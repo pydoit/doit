@@ -30,6 +30,7 @@ pyproject.toml
 `doit` configuration can be read from `pyproject.toml <https://www.python.org/dev/peps/pep-0518/>`_
 under the `tool.doit` namespace.
 This is the preferred configuration source, and may gain features not available in the legacy `doit.cfg`.
+If `pyproject.toml` is not found in the current working directory, `doit` searches parent directories recursively.
 
 .. note::
 
@@ -111,7 +112,7 @@ doit.cfg
 (see `configparser <https://docs.python.org/3/library/configparser.html>`_).
 Note: key/value entries can be separated only by the equal sign `=`.
 
-If a file name `doit.cfg` is present in the current working directory,
+If a file named `doit.cfg` is present in the current working directory or any parent directory,
 it is processed. It supports 4 kind of sections:
 
 - a `GLOBAL` section
