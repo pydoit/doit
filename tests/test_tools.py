@@ -1,6 +1,7 @@
 import os
 import datetime
 import json
+from pathlib import Path
 import operator
 import unittest
 from sys import executable
@@ -54,6 +55,19 @@ class TestConfigChanged(unittest.TestCase):
         class NotValid(object): pass
         uptodate = tools.config_changed(NotValid())
         self.assertRaises(Exception, uptodate, None, None)
+
+    def test_unserializable_config_identifies_task(self):
+        for config in ({'source': Path('input')},
+                       {'nested': {'source': Path('input')}},
+                       {Path('input'): 'value'}):
+            with self.subTest(config=config):
+                check = tools.config_changed(config)
+                current_task = task.Task('build:assets', None, uptodate=[check])
+                with self.assertRaisesRegex(TypeError, "Path") as raised:
+                    check(current_task, {})
+                self.assertIn("Task 'build:assets': config_changed",
+                              raised.exception.__notes__[-1])
+                self.assertIsNone(check.config_digest)
 
     def test_string(self):
         ua = tools.config_changed('a')

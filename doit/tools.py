@@ -73,7 +73,12 @@ class config_changed:
 
     def __call__(self, task, values):
         """return True if config values are UNCHANGED"""
-        self.config_digest = self._calc_digest()
+        try:
+            self.config_digest = self._calc_digest()
+        except TypeError as error:
+            error.add_note(f"Task '{task.name}': config_changed could not "
+                           f"serialize configuration")
+            raise
         last_success = values.get('_config_changed')
         if last_success is None:
             return False
