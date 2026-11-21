@@ -524,6 +524,11 @@ class DoitCmdBase(Command):
         self.loader.setup(params)
         dodo_config = self.loader.load_doit_config()
 
+        # merge config values that are not a command option into params,
+        # command options were already handled by the cmdparser
+        params.update_defaults({key: val for key, val in self.config_vals.items()
+                                if key not in self.cmdparser})
+
         # merge config values from dodo.py into params
         params.update_defaults(dodo_config)
 
