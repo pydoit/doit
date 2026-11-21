@@ -58,7 +58,9 @@ class DoitConfig():
     def loads(self, config_filenames):
         for config_filename in config_filenames:
             if str(config_filename).lower().endswith('.toml'):
-                prefix = 'tool.doit' if config_filename == 'pyproject.toml' else ''
+                prefix = ('tool.doit'
+                          if os.path.basename(config_filename) == 'pyproject.toml'
+                          else '')
                 toml_config = self.load_config_toml(config_filename, prefix)
                 for section in toml_config:
                     self.config[section].update(toml_config[section].items())
@@ -156,6 +158,30 @@ class DoitMain:
     DOIT_CMDS = (Help, Run, List, Info, Clean, Forget, Ignore, DumpDB,
                  Strace, TabCompletion, ResetDep)
 
+    @staticmethod
+    def find_config_file(filename, start_dir=None):
+        """Find a configuration file by checking start_dir (default: current directory)
+        and recursively searching parent directories.
+
+        :param filename: (str) path or name of config file
+        :param start_dir: (str) initial directory to search from
+                          (default: current working directory)
+        :return: (str or None) absolute path of found config file, or None
+        """
+        if os.path.isabs(filename):
+            return filename if os.path.exists(filename) else None
+
+        current = os.path.abspath(start_dir or os.getcwd())
+        while True:
+            candidate = os.path.join(current, filename)
+            if os.path.exists(candidate):
+                return candidate
+            parent = os.path.dirname(current)
+            if parent == current:
+                break
+            current = parent
+        return None
+
     def __init__(self, task_loader=None,
                  config_filenames=('pyproject.toml', 'doit.cfg'),
                  extra_config=None):
@@ -169,8 +195,12 @@ class DoitMain:
         if isinstance(config_filenames, str):
             config_filenames = [config_filenames]
 
-        # ignore config files do that not exist
-        config_filenames = [fn for fn in config_filenames if os.path.exists(fn)]
+        # resolve config files (search current directory and parent directories)
+        resolved_config_filenames = []
+        for fn in config_filenames:
+            found = self.find_config_file(fn)
+            if found:
+                resolved_config_filenames.append(found)
 
         self.config = defaultdict(dict)
         if extra_config:
@@ -179,7 +209,7 @@ class DoitMain:
 
         # combine config option from INI/TOML files and API
         config_in = DoitConfig()
-        config_in.loads(config_filenames)
+        config_in.loads(resolved_config_filenames)
         for section, vals in config_in.as_dict().items():
             self.config[section].update(vals)
 
