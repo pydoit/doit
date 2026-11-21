@@ -520,10 +520,36 @@ class Dependency:
 
     ####### task specific
 
-    def save_success(self, task, result_hash=None):
+    def get_dep_states(self, task):
+        """get the current state of all task's file_dep
+
+        :return dict: maps each file_dep path to its current state,
+                in the same format used by save_success() to save it.
+                Dependencies whose state can not be determined (e.g.
+                the file does not exist) are not included.
+        """
+        dep_states = {}
+        for dep in task.file_dep:
+            try:
+                state = self.checker.get_state(dep, self._get(task.name, dep))
+            except OSError:
+                continue
+            if state is None:
+                # state did not change since it was last saved
+                state = self._get(task.name, dep)
+            dep_states[dep] = state
+        return dep_states
+
+    def save_success(self, task, result_hash=None, dep_states=None):
         """save info after a task is successfully executed
 
         :param str result_hash: explicitly set result_hash
+        :param dict dep_states: states of task's file_dep as returned by
+               get_dep_states(), taken before the task was executed.
+               If given, the state of a file_dep present in `dep_states`
+               is saved as-is instead of its state after execution, so
+               a file_dep modified while the task was being executed
+               is not wrongly considered as up-to-date.
         """
         # save task values
         self._set(task.name, "_values_:", task.values)
@@ -540,7 +566,10 @@ class Dependency:
         # file-dep
         self._set(task.name, 'checker:', self.checker.__class__.__name__)
         for dep in task.file_dep:
-            state = self.checker.get_state(dep, self._get(task.name, dep))
+            if dep_states is not None and dep in dep_states:
+                state = dep_states[dep]
+            else:
+                state = self.checker.get_state(dep, self._get(task.name, dep))
             if state is not None:
                 self._set(task.name, dep, state)
 

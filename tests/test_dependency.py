@@ -320,6 +320,60 @@ class _SaveSuccessTests:
         self.dep_manager.save_success(t1)
         self.assertEqual({'x': 5, 'y': 10}, self.dep_manager._get("t1", "_values_:"))
 
+    def test_get_dep_states(self):
+        filePath = get_abspath("data/dependency1")
+        ff = open(filePath, "w")
+        ff.write("content1")
+        ff.close()
+        t1 = Task("taskId_X", None, [filePath])
+        states = self.dep_manager.get_dep_states(t1)
+        self.assertEqual(os.path.getmtime(filePath), states[filePath][0])
+        self.assertEqual(8, states[filePath][1])
+        self.assertEqual(get_md5("content1"), states[filePath][2])
+
+    def test_get_dep_states_missing_file(self):
+        t1 = Task("taskId_X", None, ["i_dont_exist"])
+        self.assertEqual({}, self.dep_manager.get_dep_states(t1))
+
+    def test_save_dep_states_taken_before_execution(self):
+        # issue #119: a file_dep modified while the task is being
+        # executed must not be saved with its post-execution state
+        filePath = get_abspath("data/dependency1")
+        ff = open(filePath, "w")
+        ff.write("content1")
+        ff.close()
+        t1 = Task("taskId_X", None, [filePath])
+        dep_states = self.dep_manager.get_dep_states(t1)
+        # dep is modified after its state was taken (during execution)
+        ff = open(filePath, "w")
+        ff.write("content2 with different size")
+        ff.close()
+        self.dep_manager.save_success(t1, dep_states=dep_states)
+        value = self.dep_manager._get("taskId_X", filePath)
+        self.assertEqual(get_md5("content1"), value[2])
+        # so on the next check the task is not up-to-date
+        status = self.dep_manager.get_status(t1, {})
+        self.assertEqual('run', status.status)
+
+    def test_save_dep_states_fallback_for_new_dep(self):
+        # a dep that is not in dep_states (e.g. added by calc_dep during
+        # execution) is saved with its current state
+        filePath = get_abspath("data/dependency1")
+        ff = open(filePath, "w")
+        ff.write("content1")
+        ff.close()
+        filePath2 = get_abspath("data/dependency2")
+        ff = open(filePath2, "w")
+        ff.write("content2")
+        ff.close()
+        t1 = Task("taskId_X", None, [filePath])
+        dep_states = self.dep_manager.get_dep_states(t1)
+        t1.file_dep.add(filePath2)
+        self.dep_manager.save_success(t1, dep_states=dep_states)
+        self.assertIsNotNone(self.dep_manager._get("taskId_X", filePath))
+        value2 = self.dep_manager._get("taskId_X", filePath2)
+        self.assertEqual(get_md5("content2"), value2[2])
+
 
 class TestSaveSuccessJson(DependencyTestBase, _SaveSuccessTests, unittest.TestCase):
     backend_name = 'json'

@@ -1,6 +1,8 @@
 import os
 import sys
 import pickle
+import shutil
+import tempfile
 import unittest
 from multiprocessing import Queue
 import platform
@@ -337,6 +339,19 @@ def make_args():
     return {'myarg': 1}
 def action_add_filedep(task, extra_dep):
     task.file_dep.add(extra_dep)
+def action_copy_file(dep_path, target_path):
+    with open(dep_path) as fp:
+        content = fp.read()
+    with open(target_path, 'w') as fp:
+        fp.write(content)
+def action_copy_file_modify_dep(dep_path, target_path):
+    # copy dep to target, then modify the dep itself: simulates the
+    # input file being modified while the task is executing (issue #119)
+    action_copy_file(dep_path, target_path)
+    with open(dep_path) as fp:
+        content = fp.read()
+    with open(dep_path, 'w') as fp:
+        fp.write(content + '-changed')
 
 
 # ---------------------------------------------------------------------------
@@ -538,6 +553,65 @@ class RunnerRunTasksBase:
         self.assertEqual(('execute', t1), self.reporter.log.pop(0))
         self.assertEqual(('success', t1), self.reporter.log.pop(0))
         self.assertEqual(t1.file_dep, set([extra_dep]))
+
+    def _dep_target_files(self):
+        """create a tmp dir with a dep file, return (dep, target) paths"""
+        tmpdir = tempfile.mkdtemp(prefix='doit-test-runner-')
+        self.addCleanup(shutil.rmtree, tmpdir, True)
+        dep_path = os.path.join(tmpdir, 'dep.txt')
+        target_path = os.path.join(tmpdir, 'out.txt')
+        with open(dep_path, 'w') as fp:
+            fp.write('original')
+        return dep_path, target_path
+
+    def test_dep_modified_during_execution(self):
+        # issue #119: a file_dep modified while the task is executing
+        # (after the task read it) must not be saved as up-to-date:
+        # the task must be executed again on the next run
+        dep_path, target_path = self._dep_target_files()
+        action = (action_copy_file_modify_dep, [dep_path, target_path])
+        t1 = Task('t1', [action], file_dep=[dep_path],
+                  targets=[target_path])
+        my_runner = self.runner_class(self.dep_manager, self.reporter)
+        my_runner.run_tasks(TaskDispatcher({'t1': t1}, [], ['t1']))
+        self.assertEqual(runner.SUCCESS, my_runner.finish())
+        with open(target_path) as fp:
+            self.assertEqual('original', fp.read())
+
+        # second run: task is executed again, not skipped as up-to-date
+        # (new Dependency instance on same DB file, as a new doit run)
+        self.reporter.log = []
+        t1 = Task('t1', [action], file_dep=[dep_path],
+                  targets=[target_path])
+        dep_manager = Dependency(DbmDB, self.dep_manager.name)
+        my_runner = self.runner_class(dep_manager, self.reporter)
+        my_runner.run_tasks(TaskDispatcher({'t1': t1}, [], ['t1']))
+        self.assertEqual(runner.SUCCESS, my_runner.finish())
+        self.assertIn(('execute', t1), self.reporter.log)
+        self.assertNotIn(('up-to-date', t1), self.reporter.log)
+        with open(target_path) as fp:
+            self.assertEqual('original-changed', fp.read())
+
+    def test_dep_not_modified_uptodate(self):
+        # guard: a task whose file_dep is not modified during execution
+        # is still considered up-to-date on the next run
+        dep_path, target_path = self._dep_target_files()
+        action = (action_copy_file, [dep_path, target_path])
+        t1 = Task('t1', [action], file_dep=[dep_path],
+                  targets=[target_path])
+        my_runner = self.runner_class(self.dep_manager, self.reporter)
+        my_runner.run_tasks(TaskDispatcher({'t1': t1}, [], ['t1']))
+        self.assertEqual(runner.SUCCESS, my_runner.finish())
+
+        self.reporter.log = []
+        t1 = Task('t1', [action], file_dep=[dep_path],
+                  targets=[target_path])
+        dep_manager = Dependency(DbmDB, self.dep_manager.name)
+        my_runner = self.runner_class(dep_manager, self.reporter)
+        my_runner.run_tasks(TaskDispatcher({'t1': t1}, [], ['t1']))
+        self.assertEqual(runner.SUCCESS, my_runner.finish())
+        self.assertIn(('up-to-date', t1), self.reporter.log)
+        self.assertNotIn(('execute', t1), self.reporter.log)
 
     # SystemExit runner should not interfere with SystemExit
     def testSystemExitRaises(self):
