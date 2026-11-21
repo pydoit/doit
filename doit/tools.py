@@ -76,9 +76,9 @@ class config_changed:
         try:
             self.config_digest = self._calc_digest()
         except TypeError as error:
-            msg = (f"Task '{task.name}': config_changed could not serialize "
-                   f"configuration: {error}")
-            raise TypeError(msg) from error
+            error.add_note(f"Task '{task.name}': config_changed could not "
+                           f"serialize configuration")
+            raise
         last_success = values.get('_config_changed')
         if last_success is None:
             return False

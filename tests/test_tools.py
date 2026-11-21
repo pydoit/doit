@@ -63,11 +63,10 @@ class TestConfigChanged(unittest.TestCase):
             with self.subTest(config=config):
                 check = tools.config_changed(config)
                 current_task = task.Task('build:assets', None, uptodate=[check])
-                with self.assertRaisesRegex(
-                        TypeError, "build:assets.*config_changed") as raised:
+                with self.assertRaisesRegex(TypeError, "Path") as raised:
                     check(current_task, {})
-                self.assertIsInstance(raised.exception.__cause__, TypeError)
-                self.assertIn('Path', str(raised.exception.__cause__))
+                self.assertIn("Task 'build:assets': config_changed",
+                              raised.exception.__notes__[-1])
                 self.assertIsNone(check.config_digest)
 
     def test_string(self):
