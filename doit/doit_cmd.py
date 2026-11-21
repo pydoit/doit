@@ -23,6 +23,7 @@ from .cmd_dumpdb import DumpDB
 from .cmd_strace import Strace
 from .cmd_completion import TabCompletion
 from .cmd_resetdep import ResetDep
+from .cmd_status import Status
 
 
 # used to save variable values passed from command line
@@ -154,7 +155,7 @@ class DoitMain:
     # core doit commands
     BIN_NAME = os.path.split(sys.argv[0])[-1]
     DOIT_CMDS = (Help, Run, List, Info, Clean, Forget, Ignore, DumpDB,
-                 Strace, TabCompletion, ResetDep)
+                 Strace, TabCompletion, ResetDep, Status)
 
     def __init__(self, task_loader=None,
                  config_filenames=('pyproject.toml', 'doit.cfg'),
