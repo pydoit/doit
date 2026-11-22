@@ -465,6 +465,71 @@ class TestCmd_print_process_output_line(unittest.TestCase):
         finally:
             inp.close()
 
+    def test_decoding_across_reads(self):
+        cases = [
+            ('utf-8', 'start 中🙂 end\n'),
+            ('utf-16', 'start 中🙂 end\n'),
+            ('iso2022_jp', 'start 日本 end\n'),
+        ]
+        for encoding, expected in cases:
+            for buffering in (0, 1, 2, 7):
+                with self.subTest(encoding=encoding, buffering=buffering):
+                    my_action = action.CmdAction(
+                        '', encoding=encoding, buffering=buffering,
+                        decode_error='strict')
+                    process = Mock()
+                    capture, realtime = StringIO(), StringIO()
+                    my_action._print_process_output(
+                        process, BytesIO(expected.encode(encoding)),
+                        capture, realtime)
+                    self.assertEqual(expected, capture.getvalue())
+                    self.assertEqual(expected, realtime.getvalue())
+                    process.terminate.assert_not_called()
+
+    def test_decoding_error_policies_across_reads(self):
+        cases = [
+            (b'a\xe2\x82Z', 'replace', 'a\ufffdZ'),
+            (b'a\xe2\x82Z', 'ignore', 'aZ'),
+            (b'a\xe2\x82', 'replace', 'a\ufffd'),
+            (b'a\xe2\x82', 'ignore', 'a'),
+        ]
+        for data, errors, expected in cases:
+            for buffering in (0, 1, 2):
+                with self.subTest(data=data, errors=errors,
+                                  buffering=buffering):
+                    my_action = action.CmdAction(
+                        '', buffering=buffering, decode_error=errors)
+                    capture, realtime = StringIO(), StringIO()
+                    my_action._print_process_output(
+                        Mock(), BytesIO(data), capture, realtime)
+                    self.assertEqual(expected, capture.getvalue())
+                    self.assertEqual(expected, realtime.getvalue())
+
+    def test_decoding_incomplete_character_at_eof(self):
+        my_action = action.CmdAction('', buffering=1, decode_error='strict')
+        process, capture = Mock(), StringIO()
+        with self.assertRaises(UnicodeDecodeError):
+            my_action._print_process_output(
+                process, BytesIO(b'a\xe2\x82'), capture, None)
+        process.terminate.assert_called_once()
+        self.assertEqual('a', capture.getvalue())
+
+    def test_multibyte_subprocess_output(self):
+        stdout, stderr = 'stdout 中🙂 end\n', 'stderr 文é end\n'
+        code = ('import os; os.write(1, %r); os.write(2, %r)' %
+                (stdout.encode('utf-8'), stderr.encode('utf-8')))
+        my_action = action.CmdAction(
+            [executable, '-c', code], shell=False, buffering=1,
+            save_out='output')
+        out, err = StringIO(), StringIO()
+        self.assertIsNone(my_action.execute(out, err))
+        self.assertEqual(stdout, my_action.out)
+        self.assertEqual(stderr, my_action.err)
+        self.assertEqual(stdout, out.getvalue())
+        self.assertEqual(stderr, err.getvalue())
+        self.assertEqual(stdout + stderr, my_action.result)
+        self.assertEqual({'output': stdout}, my_action.values)
+
     def test_unbuffered_env(self):
         my_action = action.CmdAction("", buffering=1)
         proc_mock = Mock()

@@ -181,6 +181,8 @@ for `CmdAction`. You can change that by specifying the `buffering`
 parameter when creating a `CmdAction`. The value zero (the default)
 means line-buffered, positive integers are the number of bytes to
 be read per call.
+Characters that span multiple reads are decoded once all their bytes
+have arrived, so a small buffer does not split multibyte characters.
 
 Note this controls the buffering from the `doit` process and the
 terminal, not to be confused with subprocess.Popen `buffered`.

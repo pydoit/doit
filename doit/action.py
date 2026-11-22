@@ -3,6 +3,7 @@
 
 import os
 import sys
+import codecs
 import subprocess
 import io
 from io import StringIO
@@ -166,20 +167,26 @@ class CmdAction(BaseAction):
         else:
             # line buffered
             read = lambda: input_.readline()
+        decoder = None
         while True:
             try:
-                line = read().decode(self.encoding, self.decode_error)
+                data = read()
+                if decoder is None:
+                    decoder = codecs.getincrementaldecoder(self.encoding)(
+                        self.decode_error)
+                line = decoder.decode(data, final=not data)
             except Exception:
                 # happens when fails to decoded input
                 process.terminate()
                 input_.read()
                 raise
-            if not line:
+            if line:
+                capture.write(line)
+                if realtime:
+                    realtime.write(line)
+                    realtime.flush()  # required if on byte buffering mode
+            if not data:
                 break
-            capture.write(line)
-            if realtime:
-                realtime.write(line)
-                realtime.flush()  # required if on byte buffering mode
 
 
     def execute(self, out=None, err=None):
