@@ -24,6 +24,15 @@ class TestCmdInfo(DepManagerMixin, unittest.TestCase):
         self.assertIn("getargs    : {'a': ('x', 'y')}", output.getvalue())
         self.assertIn("meta       : {'a': ['b', 'c']}", output.getvalue())
 
+    def test_unknown_task(self):
+        for hide_status in [False, True]:
+            with self.subTest(hide_status=hide_status):
+                output = StringIO()
+                cmd = CmdFactory(Info, outstream=output, task_list=[Task('known', [])])
+                with self.assertRaisesRegex(InvalidCommand, "'missing' is not a task"):
+                    cmd._execute(['missing'], hide_status=hide_status)
+                self.assertEqual('', output.getvalue())
+
     def test_invalid_command_args(self):
         output = StringIO()
         task = Task("t1", [], file_dep=['tests/data/dependency1'])

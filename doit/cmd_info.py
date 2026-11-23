@@ -2,7 +2,7 @@
 
 import pprint
 
-from .cmd_base import DoitCmdBase
+from .cmd_base import DoitCmdBase, check_tasks_exist
 from .exceptions import InvalidCommand
 
 
@@ -34,6 +34,7 @@ class Info(DoitCmdBase):
         task_name = pos_args[0]
         # dict of all tasks
         tasks = dict([(t.name, t) for t in self.task_list])
+        check_tasks_exist(tasks, [task_name])
 
         printer = pprint.PrettyPrinter(indent=4, stream=self.outstream)
 
