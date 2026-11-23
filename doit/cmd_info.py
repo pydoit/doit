@@ -81,6 +81,11 @@ class Info(DoitCmdBase):
                 else:
                     printer.pprint(getattr(task, attr))
 
+        saved_values = self.dep_manager.get_values(task.name)
+        if saved_values:
+            self.outstream.write('\n{:11s}: '.format('values'))
+            printer.pprint(saved_values)
+
         return retcode
 
     @staticmethod
