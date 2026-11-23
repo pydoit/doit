@@ -328,6 +328,11 @@ def _generate_task_from_yield(tasks, func_name, task_dict, gen_doc):
             task_dict['actions'] = None
             group_task = dict_to_task(task_dict)
             group_task.has_subtask = True
+            existing_group = tasks.get(basename)
+            if existing_group is not None:
+                if not existing_group.has_subtask:
+                    raise InvalidTask(msg_dup % (func_name, basename))
+                group_task.task_dep.extend(existing_group.task_dep)
             tasks[basename] = group_task
             return
 
