@@ -27,6 +27,7 @@ Changes
 - fix #446: run all selected tasks with ``--single`` without parsing their
   arguments twice; retain selected order and skip their task dependencies.
 - fix #362: ``config_changed`` error on non JSON-serializable config now names the task.
+- fix #400: ``run --process/-n`` accepts ``cpu`` to use one subprocess per CPU.
 
 
 0.37.0 (*2026-02-09*)
